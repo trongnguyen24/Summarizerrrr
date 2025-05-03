@@ -1,0 +1,29 @@
+{
+  "name": "pack",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "@iconify/svelte": "^5.0.0",
+    "@sveltejs/vite-plugin-svelte": "^5.0.3",
+    "@tailwindcss/typography": "^0.5.16",
+    "autoprefixer": "^10.4.21",
+    "postcss": "^8.5.3",
+    "svelte": "^5.23.1",
+    "vite": "^6.3.1"
+  },
+  "dependencies": {
+    "@fontsource-variable/geist-mono": "^5.2.5",
+    "@tailwindcss/vite": "^4.1.5",
+    "bits-ui": "^1.4.3",
+    "marked": "^15.0.11",
+    "overlayscrollbars": "^2.11.1",
+    "overlayscrollbars-svelte": "^0.5.5",
+    "tailwindcss": "^4.1.5"
+  }
+}

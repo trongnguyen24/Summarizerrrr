@@ -1,0 +1,30 @@
+{
+  "manifest_version": 3,
+  "name": "Summarizerrrr",
+  "version": "1.0.0",
+  "description": "Tóm tắt nội dung trang web và video YouTube bằng Gemini API thông qua Side Panel.",
+  "permissions": ["sidePanel", "storage", "activeTab", "scripting", "tabs"],
+  "host_permissions": ["<all_urls>"],
+  "side_panel": {
+    "default_path": "index.html"
+  },
+  "background": {
+    "service_worker": "assets/background.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://*.youtube.com/watch*"],
+      "js": ["assets/youtubetranscript.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_title": "Mở trình tóm tắt"
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}

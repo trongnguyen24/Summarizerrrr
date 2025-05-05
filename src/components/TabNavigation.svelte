@@ -2,7 +2,7 @@
   // Props received from App.svelte
   let {
     activeTab,
-    isYouTubeVideoActive,
+    showTabNavigation, // Use the new prop
     chapterSummary,
     isChapterLoading,
     chapterError,
@@ -20,7 +20,7 @@
   }
 </script>
 
-{#if isYouTubeVideoActive}
+{#if showTabNavigation}
   <div class="flex w-fit gap-2 p-0.5 mb-4 bg-surface-1 rounded-full">
     <button
       class="px-4 py-1 rounded-full text-sm transition-colors duration-150"

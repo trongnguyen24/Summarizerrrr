@@ -13,16 +13,16 @@
 </script>
 
 <button
-  class=" p-3 pl-2 pr-4 bg-white text-black flex items-center rounded-full gap-2 w-fit h-8"
+  class=" p-4 pl-4 pr-6 bg-white text-black flex items-center rounded-full gap-2 w-fit h-12"
   onclick={dispatch}
   disabled={isLoading || isChapterLoading}
   title="Summarize current page"
 >
-  <div class="flex text-primary items-center justify-center relative size-4">
+  <div class="text-primary relative size-6">
     {#if isLoading || isChapterLoading}
       <span transition:slideScaleFade>
         <Icon
-          width={16}
+          width={24}
           icon="svg-spinners:bouncing-ball"
           class="absolute inset-0"
         />
@@ -30,15 +30,15 @@
     {:else}
       <span transition:slideScaleFade>
         <Icon
-          class="translate-x-0.5 absolute inset-0"
-          width={16}
+          class="absolute inset-0"
+          width={24}
           icon="octicon:sparkle-fill-16"
         />
       </span>
     {/if}
   </div>
   <div>
-    <div class="text-sm">Summarize</div>
+    <div class="text-lg">Summarize</div>
   </div>
 </button>
 

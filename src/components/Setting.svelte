@@ -1,4 +1,5 @@
 <script>
+  // @ts-nocheck
   import { onMount } from 'svelte'
   import { fade } from 'svelte/transition'
   import Icon from '@iconify/svelte' // Import Icon
@@ -32,7 +33,7 @@
           // Ensure defaults are set if nothing is in storage yet
           summaryLength = result.summaryLength || 'medium'
           summaryLang = result.summaryLang || 'vi'
-          summaryFormat = result.summaryFormat || 'paragraph'
+          summaryFormat = result.summaryFormat || 'heading'
           selectedModel = result.selectedModel || 'gemini-1.5-flash' // Load selected model
         }
       )
@@ -42,7 +43,7 @@
       apiKey = localStorage.getItem('geminiApiKey_dev') || '' // Load from local storage for dev
       summaryLength = 'medium'
       summaryLang = 'vi'
-      summaryFormat = 'paragraph'
+      summaryFormat = 'heading'
       selectedModel =
         localStorage.getItem('selectedModel_dev') || 'gemini-1.5-flash' // Load selected model for dev
     }
@@ -53,7 +54,7 @@
     clearTimeout(apiKeyDebounceTimer)
     apiKeyDebounceTimer = setTimeout(() => {
       saveApiKey()
-    }, 800) // Delay of 0.8 seconds
+    }, 400) // Delay of 0.8 seconds
   }
 
   function updateSetting(key, value) {
@@ -125,7 +126,7 @@
 
 <!-- Apply Tailwind classes for overall layout and styling -->
 <div
-  class="font-mono text-text-primary dark:text-muted text-xs bg-surface-2 dark:bg-background backdrop-blur-3xl overflow-hidden border border-border/50 rounded-2xl w-full flex-shrink-0 flex flex-col"
+  class="font-mono text-text-primary dark:text-muted text-xs bg-surface-2 dark:bg-background backdrop-blur-3xl overflow-hidden border border-border/50 w-full flex-shrink-0 flex flex-col"
 >
   <div
     class="px-4 bg-surface-1 dark:bg-background backdrop-blur-3xl py-2 flex border-t border-border rounded-t-2xl items-center justify-between border-b border-b-border/50"

@@ -68,9 +68,9 @@ html {
   background-image: repeating-linear-gradient(
     45deg,
     transparent,
-    transparent 6px,
+    transparent 7px,
     var(--color-border) 1px,
-    var(--color-border) 7px
+    var(--color-border) 8px
   );
 }
 
@@ -87,7 +87,7 @@ button {
 }
 
 .settingbar button {
-  @apply p-1 dark:hover:bg-surface-2 hover:bg-surface-1 rounded-md  transition-colors duration-150;
+  @apply p-1 px-2  transition-colors duration-150;
 }
 
 .settingbar button.active {

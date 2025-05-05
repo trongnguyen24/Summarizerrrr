@@ -14,21 +14,22 @@ Khi tôi cung cấp transcript từ một video YouTube, hãy phân tích và t�
 
 1. Độ dài tóm tắt: ${length}
    - "short": 2-3 câu về ý chính
-   - "medium": 2-4 đoạn bao gồm các điểm chính
-   - "long": 5+ đoạn hoặc tóm tắt chi tiết bao gồm tất cả các phần quan trọng
+   - "medium": 2-4 câu bao gồm các điểm chính
+   - "long": 5+ câu hoặc tóm tắt chi tiết bao gồm tất cả các phần quan trọng
 
 2. Ngôn ngữ: ${lang}
    - Tóm tắt sẽ được trả về bằng ngôn ngữ được chỉ định (ví dụ: "vi" cho tiếng Việt, "en" cho tiếng Anh)
 
 3. Định dạng: ${format}
-   - "paragraph": Tóm tắt dưới dạng văn bản liền mạch
-   - "heading": Tóm tắt dưới dạng tiêu đề cấp độ tiêu bắt đầu bằng thẻ ##
+   - "heading": Tóm tắt dưới dạng tiêu đề cấp độ tiêu bắt đầu bằng thẻ h2 ##, tiêu đề chi tiết theo cấp độ thấp hơn h3 ###
 
 Hướng dẫn tóm tắt:
 - Không cần chào hỏi hay giới thiệu, chỉ bắt đầu bằng tiêu đề và nội dung tóm tắt
 - Không bỏ vào block markdown
 - Không hiện thông tin setting của người dùng
 - Xác định chủ đề chính, điểm quan trọng và kết luận của video
+- Tạo tiêu đề cho các phần chính
+- Tạo keylight cho các điểm quan trọng
 - Loại bỏ chi tiết không cần thiết và thông tin trùng lặp
 - Giữ giọng điệu khách quan và chính xác
 - Nếu video chứa thuật ngữ chuyên ngành, số liệu thống kê, hoặc nghiên cứu, đảm bảo bao gồm thông tin này một cách chính xác
@@ -44,20 +45,15 @@ Khi nhận được nội dung, hãy phân tích và tóm tắt nội dung chín
 
 1. Độ dài tóm tắt: ${length}
    - "short": 2-3 câu về ý chính
-   - "medium": 2-4 đoạn bao gồm các điểm chính
-   - "long": 5+ đoạn hoặc tóm tắt chi tiết bao gồm tất cả các phần quan trọng
+   - "medium": 2-4 câu mỗi điểm chính trong nội dung
+   - "long": tóm tắt chi tiết bao gồm tất cả các phần quan trọng
 
 2. Ngôn ngữ: ${lang}
-   - Tóm tắt sẽ được trả về bằng ngôn ngữ được chỉ định
+   - Tóm tắt sẽ được trả về bằng ngôn ngữ được chỉ định (ví dụ: "vi" cho tiếng Việt, "en" cho tiếng Anh)
 
 3. Định dạng: ${format}
-   - "paragraph": Tóm tắt dưới dạng văn bản liền mạch
-   - "heading": Tóm tắt dưới dạng tiêu đề bắt đầu từ thẻ h2 ## 
+   - "heading": Tóm tắt dưới dạng tiêu đề cấp độ tiêu bắt đầu bằng thẻ h2 ##, tiêu đề chi tiết theo cấp độ thấp hơn h3 ###
 
-4. Mức độ chuyên môn: intermediate
-   - "basic": Dành cho người không chuyên
-   - "intermediate": Giả định kiến thức cơ bản
-   - "expert": Dành cho chuyên gia trong lĩnh vực
 
 Lưu ý:
 - Không cần chào hỏi hay giới thiệu, chỉ bắt đầu bằng tiêu đề và nội dung tóm tắt
@@ -93,8 +89,8 @@ Bạn là một AI chuyên gia trong việc tóm tắt nội dung video YouTube.
 
 Khi tôi cung cấp transcript có thời gian của một video YouTube, hãy tạo tóm tắt theo hướng dẫn sau:
 
-1.  **Ngôn ngữ tóm tắt:** Hãy tạo tóm tắt bằng ngôn ngữ: ${lang}.
-2.  **Độ dài tóm tắt cho mỗi chapter:** Mục tiêu độ dài là: ${length} ('short': 1-2 câu, 'medium': 2-4 câu, 'long': chi tiết hơn nếu cần).
+1.  **Ngôn ngữ tóm tắt:** Hãy tạo tóm tắt bằng ngôn ngữ: ${lang} (ví dụ: "vi" cho tiếng Việt, "en" cho tiếng Anh).
+2.  **Độ dài tóm tắt cho mỗi chapter:** Mục tiêu độ dài là: ${length} ('short': 1-2 câu, 'medium': 2-4 câu, 'long': chi tiết bao gồm tất cả các phần quan trọng).
 3.  **Phân tích transcript:** Tự động xác định các phần (chapters) logic dựa trên sự thay đổi chủ đề hoặc khoảng dừng trong transcript. Đặt tên phù hợp cho mỗi chapter (theo ngôn ngữ ${lang}). Lưu ý: Việc phân chia chapter là tự động và có thể không hoàn toàn chính xác.
 4.  **Tạo tiêu đề chính:** Bắt đầu với "## Tóm tắt video theo chương:" (hoặc tương đương trong ngôn ngữ ${lang}).
 5.  **Với mỗi chapter bạn xác định được:**

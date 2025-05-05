@@ -1,10 +1,4 @@
-/**
- * YouTube Transcript Extractor
- * Chrome extension content script để lấy transcript (phụ đề) từ video YouTube
- */
-
-console.log('YouTube Transcript Content Script đã được tiêm vào tab.')
-
+// @ts-nocheck
 /**
  * Class quản lý việc trích xuất và xử lý YouTube transcript
  */
@@ -24,18 +18,25 @@ class YouTubeTranscriptExtractor {
   async getPlayerResponse() {
     try {
       // Cách 1: Lấy từ trang HTML trực tiếp (nhanh hơn)
+      console.log('Attempting Method 1: Fetching page HTML...')
       const responseText = await fetch(window.location.href).then((res) =>
         res.text()
       )
-      const playerResponseMatch = responseText
-        .split('ytInitialPlayerResponse = ')[1]
-        ?.split(';var')[0]
+      // Điều chỉnh regex một chút để bắt được nhiều trường hợp kết thúc hơn, tương tự regex ở phương pháp 2
+      const playerResponseMatch = responseText.match(
+        /ytInitialPlayerResponse\s*=\s*({.+?})\s*;\s*(?:var\s+(?:meta|head|opf)|<\/script|\n|$)/s
+      ) // Thêm cờ 's' cho '.' khớp newline
 
-      if (playerResponseMatch) {
-        return JSON.parse(playerResponseMatch)
+      if (playerResponseMatch && playerResponseMatch[1]) {
+        console.log(
+          'Method 1 successful: Found ytInitialPlayerResponse by fetching page HTML.'
+        )
+        return JSON.parse(playerResponseMatch[1])
       }
 
-      // Cách 2: Tìm trong script tags (backup)
+      console.log('Method 1 failed. Trying Method 2 (script tags)...')
+
+      // Cách 2: Tìm trong script tags (backup) - Logic giữ nguyên từ đoạn code đầu tiên
       const scripts = document.querySelectorAll('script')
       const playerResponseScript = Array.from(scripts).find((script) =>
         script.textContent.includes('var ytInitialPlayerResponse = {')
@@ -54,6 +55,8 @@ class YouTubeTranscriptExtractor {
             scriptEnd !== -1 ? scriptEnd : undefined
           )
         }
+        // Cách xử lý objectEnd này hơi phức tạp và có thể không chính xác hoàn toàn,
+        // giữ nguyên như code gốc để tích hợp logic mới
         if (objectEnd === -1) {
           objectEnd = scriptContent.lastIndexOf(
             '}',
@@ -62,35 +65,98 @@ class YouTubeTranscriptExtractor {
           if (objectEnd !== -1) objectEnd += 1
         }
 
-        if (
-          objectStart === -1 ||
-          objectEnd === -1 ||
-          objectEnd <= objectStart
-        ) {
-          console.error(
-            'Could not accurately determine JSON boundaries from script tag.'
+        if (objectStart !== -1 && objectEnd !== -1 && objectEnd > objectStart) {
+          const jsonString = scriptContent.substring(objectStart, objectEnd)
+          console.log(
+            'Method 2 successful: Found ytInitialPlayerResponse in script tag.'
           )
-          return null
+          return JSON.parse(jsonString)
+        } else {
+          console.warn(
+            'Method 2 failed: Could not accurately determine JSON boundaries from script tag.'
+          )
+          // Continue to next method
         }
-
-        const jsonString = scriptContent.substring(objectStart, objectEnd)
-        return JSON.parse(jsonString)
+      } else {
+        console.log(
+          'Method 2 failed: No script tag containing ytInitialPlayerResponse found.'
+        )
+        // Continue to next method
       }
 
-      // Cách 3: Kiểm tra window object (fallback cuối cùng)
+      console.log('Method 2 failed. Trying Method 3 (window object)...')
+
+      // Cách 3: Kiểm tra window object (fallback cuối cùng trước khi thêm cách mới)
       if (window.ytInitialPlayerResponse) {
-        console.log('Found ytInitialPlayerResponse in window object.')
+        console.log(
+          'Method 3 successful: Found ytInitialPlayerResponse in window object.'
+        )
         return window.ytInitialPlayerResponse
       }
 
-      console.error('Failed to obtain playerResponse object.')
+      console.log('Method 3 failed. Trying Method 4 (fallback fetch URL)...')
+
+      // --- Bắt đầu Cách 4: Lấy dữ liệu từ googleusercontent.com (từ đoạn mã thứ hai) ---
+      const videoId = new URLSearchParams(window.location.search).get('v')
+      // Sử dụng regex từ đoạn mã thứ hai, thêm cờ 's'
+      const YT_INITIAL_PLAYER_RESPONSE_RE_METHOD4 =
+        /ytInitialPlayerResponse\s*=\s*({.+?})\s*;\s*(?:var\s+(?:meta|head)|<\/script|\n|$)/s // Thêm cờ 's' cho '.' khớp newline
+
+      if (!videoId) {
+        console.warn('Method 4 failed: No video ID found in URL.')
+        // Chuyển sang bước thất bại cuối cùng
+      } else {
+        try {
+          const fallbackUrl = 'https://www.youtube.com/watch?v=' + videoId
+          console.log(`Attempting Method 4: Fetching from ${fallbackUrl}`)
+
+          const response = await fetch(fallbackUrl)
+          if (!response.ok) {
+            console.warn(
+              `Method 4 failed: Fetch returned status ${response.status}`
+            )
+            // Chuyển sang bước thất bại cuối cùng
+          } else {
+            const body = await response.text()
+            const playerResponseMatchMethod4 = body.match(
+              YT_INITIAL_PLAYER_RESPONSE_RE_METHOD4
+            )
+
+            if (playerResponseMatchMethod4 && playerResponseMatchMethod4[1]) {
+              console.log(
+                'Method 4 successful: Found ytInitialPlayerResponse using fallback URL.'
+              )
+              return JSON.parse(playerResponseMatchMethod4[1])
+            } else {
+              console.warn(
+                'Method 4 failed: Could not find playerResponse regex match in fallback data.'
+              )
+              // Chuyển sang bước thất bại cuối cùng
+            }
+          }
+        } catch (fetchError) {
+          console.error(
+            'Method 4 failed: Error during fetch from fallback URL:',
+            fetchError
+          )
+          // Chuyển sang bước thất bại cuối cùng
+        }
+      }
+      // --- Kết thúc Cách 4 ---
+
+      console.error(
+        'Failed to obtain playerResponse object after trying all methods.'
+      )
       return null
     } catch (error) {
-      console.error('Error finding or parsing ytInitialPlayerResponse:', error)
+      console.error('An unexpected error occurred in getPlayerResponse:', error)
       return null
     }
   }
 
+  // Giữ nguyên các phương thức còn lại (selectBestCaptionTrack, cleanTranscriptText,
+  // formatMilliseconds, processTranscriptData, getTranscript, getPlainTranscript,
+  // getTimestampedTranscript)
   /**
    * Tìm và chọn caption track tốt nhất dựa trên ngôn ngữ ưa thích
    * @param {Array} captionTracks - Danh sách các caption tracks có sẵn
@@ -98,6 +164,7 @@ class YouTubeTranscriptExtractor {
    * @returns {Object} - Thông tin về track được chọn và URL của nó
    */
   selectBestCaptionTrack(captionTracks, preferredLang) {
+    // ... (logic giữ nguyên)
     if (!captionTracks || captionTracks.length === 0) {
       console.log('No caption tracks found.')
       return { baseUrl: null, needsTlang: false, trackInfo: null }
@@ -126,23 +193,53 @@ class YouTubeTranscriptExtractor {
         captionTracks[0]?.baseUrl // Lấy track đầu tiên nếu không có gì khác
 
       // Nếu dùng fallback mà không phải là auto-gen của ngôn ngữ mong muốn, cần thêm tlang
-      if (baseUrl && !findCaptionUrl(autoVssId)) {
-        needsTlang = true
+      // Cần kiểm tra kỹ hơn: nếu baseUrl là tự động tạo của ngôn ngữ khác preferredLang, cũng cần tlang
+      // Nếu baseUrl là bất kỳ non-asr nào không phải preferredLang, cũng cần tlang
+      // Đơn giản hóa lại logic needsTlang: cần tlang nếu ngôn ngữ của track được chọn
+      // không phải là preferredLang (và không phải là auto-gen của preferredLang)
+      const selectedTrack = baseUrl
+        ? captionTracks.find((track) => track.baseUrl === baseUrl)
+        : null
+
+      if (selectedTrack && selectedTrack.languageCode !== preferredLang) {
+        // Needs tlang UNLESS the selected track is already the auto-generated for preferredLang
+        if (
+          !(
+            selectedTrack.kind === 'asr' &&
+            selectedTrack.languageCode === preferredLang
+          )
+        ) {
+          needsTlang = true
+          console.log(
+            `Selected track language (${selectedTrack.languageCode}) does not match preferred language (${preferredLang}). Setting needsTlang = true.`
+          )
+        }
+      } else if (!selectedTrack) {
+        console.log('No track selected.')
+      } else {
+        console.log(
+          `Selected track language (${selectedTrack.languageCode}) matches preferred language (${preferredLang}). Setting needsTlang = false.`
+        )
       }
+    } else {
+      console.log(
+        `Found exact match for ${preferredLang}. Setting needsTlang = false.`
+      )
     }
 
     // Tìm thông tin về track được chọn để log
-    const selectedTrack = baseUrl
+    const selectedTrackInfo = baseUrl
       ? captionTracks.find((track) => track.baseUrl === baseUrl)
       : null
 
-    const trackInfo = selectedTrack
+    const trackInfo = selectedTrackInfo
       ? {
           name:
-            selectedTrack.name?.simpleText ||
-            selectedTrack.languageCode ||
+            selectedTrackInfo.name?.simpleText ||
+            selectedTrackInfo.languageCode ||
             'Unknown',
-          isAutoGenerated: selectedTrack.kind === 'asr',
+          isAutoGenerated: selectedTrackInfo.kind === 'asr',
+          languageCode: selectedTrackInfo.languageCode, // Thêm languageCode để kiểm tra needsTlang chính xác hơn
         }
       : null
 
@@ -155,11 +252,12 @@ class YouTubeTranscriptExtractor {
    * @returns {string} - Text đã làm sạch
    */
   cleanTranscriptText(text) {
+    // ... (logic giữ nguyên)
     return text
-      .replace(/\n/g, ' ') // Thay thế newline
-      .replace(/♪|'|"|\.{2,}|\<[\s\S]*?\>|\{[\s\S]*?\}|\[[\s\S]*?\]/g, '') // Loại bỏ ký hiệu nhạc, dấu nháy, v.v.
-      .replace(/\s+/g, ' ') // Chuẩn hóa khoảng trắng
-      .trim() // Cắt khoảng trắng thừa
+      .replace(/\n/g, ' ')
+      .replace(/♪|'|"|\.{2,}|\<[\s\S]*?\>|\{[\s\S]*?\}|\[[\s\S]*?\]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim()
   }
 
   /**
@@ -168,6 +266,7 @@ class YouTubeTranscriptExtractor {
    * @returns {string} - Chuỗi thời gian đã định dạng.
    */
   formatMilliseconds(ms) {
+    // ... (logic giữ nguyên)
     const totalSeconds = Math.floor(ms / 1000)
     const hours = Math.floor(totalSeconds / 3600)
     const minutes = Math.floor((totalSeconds % 3600) / 60)
@@ -191,6 +290,7 @@ class YouTubeTranscriptExtractor {
    * @returns {string|null} - Transcript đã xử lý hoặc null nếu không thành công
    */
   processTranscriptData(transcriptData, includeTimestamps) {
+    // ... (logic giữ nguyên)
     if (!transcriptData || !transcriptData.events) {
       console.error('Invalid json3 format received or no events found.')
       return null
@@ -238,13 +338,17 @@ class YouTubeTranscriptExtractor {
     preferredLang = this.defaultLang,
     includeTimestamps = false
   ) {
+    // ... (logic giữ nguyên)
     const logType = includeTimestamps ? 'timestamped transcript' : 'transcript'
     console.log(`Attempting to get ${logType} for language: ${preferredLang}`)
 
     try {
       // Bước 1: Lấy playerResponse
       const playerResponse = await this.getPlayerResponse()
-      if (!playerResponse) return null
+      if (!playerResponse) {
+        console.error('Failed to get playerResponse after all attempts.')
+        return null
+      }
 
       // Bước 2: Lấy captionTracks
       const captionTracks =
@@ -263,15 +367,18 @@ class YouTubeTranscriptExtractor {
 
       // Log thông tin về track được chọn
       console.log(
-        `Selected track: ${trackInfo.name}${
+        `Selected track: ${trackInfo.name} (Code: ${trackInfo.languageCode})${
           trackInfo.isAutoGenerated ? ' (auto-generated)' : ''
         }`
       )
+      if (needsTlang) {
+        console.log(`Will add &tlang=${preferredLang} to fetch URL.`)
+      }
 
       // Bước 4: Tạo URL và fetch transcript
       const transcriptUrl =
         baseUrl + '&fmt=json3' + (needsTlang ? `&tlang=${preferredLang}` : '')
-      console.log(`Fetching ${logType} from: ${transcriptUrl}`)
+      console.log(`Workspaceing ${logType} from: ${transcriptUrl}`)
 
       const response = await fetch(transcriptUrl)
       if (!response.ok) {
@@ -294,6 +401,9 @@ class YouTubeTranscriptExtractor {
         return result
       }
 
+      console.error(
+        'Processing transcript data returned null (possibly no valid text).'
+      )
       return null
     } catch (error) {
       console.error(
@@ -332,11 +442,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   const handleRequest = async () => {
     switch (request.action) {
       case 'fetchTranscript':
-        console.log('Content script received fetchTranscript request')
+        console.log('Content script received fetchTranscript request', request) // Log request
         try {
-          const transcript = await transcriptExtractor.getPlainTranscript(
-            request.lang || 'en'
-          )
+          // Sử dụng request.lang nếu có, ngược lại dùng defaultLang của instance ('vi')
+          const lang = request.lang || transcriptExtractor.defaultLang
+          const transcript = await transcriptExtractor.getPlainTranscript(lang)
           if (transcript) {
             console.log('Transcript fetched successfully')
             sendResponse({ success: true, transcript })
@@ -352,11 +462,14 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
       case 'fetchTranscriptWithTimestamp':
         console.log(
-          'Content script received fetchTranscriptWithTimestamp request'
-        )
+          'Content script received fetchTranscriptWithTimestamp request',
+          request
+        ) // Log request
         try {
+          // Sử dụng request.lang nếu có, ngược lại dùng defaultLang của instance ('vi')
+          const lang = request.lang || transcriptExtractor.defaultLang
           const transcript = await transcriptExtractor.getTimestampedTranscript(
-            request.lang || 'en'
+            lang
           )
           if (transcript) {
             console.log('Timestamped transcript fetched successfully')

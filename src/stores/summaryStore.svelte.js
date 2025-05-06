@@ -207,6 +207,7 @@ export async function fetchAndSummarize() {
     isLoading = false // End main loading
     // Không cần đặt isChapterLoading = false ở đây nữa vì nó được xử lý trong khối if/else và IIAFE
   }
+  return isYouTubeVideoActive // Thêm dòng này
 }
 
 // --- Exported State ---

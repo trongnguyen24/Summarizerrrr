@@ -30,10 +30,10 @@
 
   // Handle tab change event from TabNavigation
   document.addEventListener('summarizeClick', async () => {
-    // Thêm async
-    await summaryStore.fetchAndSummarize() // Thêm await
+    // Thêm async lại
+    const isYouTube = await summaryStore.fetchAndSummarize() // Thêm await và lấy giá trị trả về
     // Chỉ hiển thị TabNavigation nếu đang ở tab YouTube
-    showTabNavigation = summaryStore.isYouTubeVideoActive
+    showTabNavigation = isYouTube // Sử dụng giá trị trả về
   }) // Listen for click event from SummarizeButton
   document.addEventListener('tabChange', (event) => {
     activeTab = event.detail

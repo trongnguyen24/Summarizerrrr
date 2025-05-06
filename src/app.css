@@ -5,9 +5,9 @@
 :root {
   --font-mono: 'Geist Mono Variable', ui-monospace, SFMono-Regular, Menlo,
     Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
-  --h-0: clamp(1rem, 0.6761rem + 1.3636vw, 1.375rem);
-  --h-1: clamp(1.25rem, 0.9261rem + 1.3636vw, 1.625rem);
-  --h-2: clamp(1.125rem, 0.9091rem + 0.9091vw, 1.375rem);
+  --h-0: clamp(0.9375rem, 0.6548rem + 1.1905vw, 1.25rem);
+  --h-1: clamp(1.25rem, 1.0673rem + 0.7692vw, 1.5rem);
+  --h-2: clamp(1.125rem, 0.9423rem + 0.7692vw, 1.375rem);
 }
 
 @theme {

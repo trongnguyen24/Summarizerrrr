@@ -21,7 +21,7 @@
 </script>
 
 {#if showTabNavigation}
-  <div class="flex w-fit gap-2 p-0.5 mb-4 bg-surface-1 rounded-full">
+  <div class="flex w-fit gap-2 p-0.5 mb-4 bg-surface-1">
     <button
       class="px-4 py-1 rounded-full text-sm transition-colors duration-150"
       class:bg-background={activeTab === 'summary'}

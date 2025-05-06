@@ -19,6 +19,7 @@
   // State for UI tabs
   let activeTab = $state('summary')
   let showTabNavigation = $state(false) // New state variable
+  let reactTabNavigation = $state(false) // New state for checking if TabNavigation is shown
 
   const options = {
     scrollbars: {
@@ -31,7 +32,7 @@
   // Handle tab change event from TabNavigation
   document.addEventListener('summarizeClick', () => {
     summaryStore.fetchAndSummarize()
-    showTabNavigation = true // Show TabNavigation on summarize click
+    showTabNavigation = reactTabNavigation // <-- Thay đổi dòng này
   }) // Listen for click event from SummarizeButton
   document.addEventListener('tabChange', (event) => {
     activeTab = event.detail
@@ -63,11 +64,20 @@
         console.log('[App.svelte] Received tabUpdated message:', request)
         summaryStore.updateIsYouTubeVideoActive(request.isYouTube)
         tabTitleStore.set(request.tabTitle) // Update the tabTitleStore
+        console.log(
+          '------[App.svelte] Updated tabTitleStore with new title:',
+          request.isYouTube
+        )
+        reactTabNavigation = request.isYouTube // <-- Thêm dòng này
       } else if (request.action === 'currentTabInfo') {
         // Handle response for initial tab info request
         console.log('[App.svelte] Received currentTabInfo response:', request)
         tabTitleStore.set(request.tabTitle)
         summaryStore.updateIsYouTubeVideoActive(request.isYouTube)
+        console.log(
+          '------[App.svelte] Updated tabTitleStore with new title:',
+          request.isYouTube
+        )
       }
       // Trả về true để giữ kênh message mở nếu cần phản hồi bất đồng bộ
       // return true; // Không cần thiết nếu không gửi phản hồi
@@ -110,6 +120,7 @@
       <div class="text-text-secondary">
         <div class="line-clamp-1 text-[0.65rem] px-2 text-text-secondary">
           {$tabTitleStore}
+          <!-- {$reactTabNavigation ? ' - YouTube Video' : 'Web Page'} -->
         </div>
       </div>
     </div>

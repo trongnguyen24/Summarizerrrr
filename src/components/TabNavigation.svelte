@@ -23,11 +23,11 @@
 
 {#if showTabNavigation}
   <div
-    class="flex relative text-text-secondary w-fit gap-2 p-0.5 border border-border"
+    class="flex relative font-mono text-base text-text-secondary w-fit gap-2 p-0.5 border border-border"
   >
     <GroupVisual>
       <button
-        class="px-4 py-1 rounded-full text-sm transition-colors duration-150"
+        class="px-6 py-1 rounded-full transition-colors duration-150"
         class:text-text-primary={activeTab === 'summary'}
         class:active={activeTab === 'summary'}
         onclick={() => setTab('summary')}
@@ -36,7 +36,7 @@
       </button>
 
       <button
-        class="px-4 py-1 rounded-full text-sm transition-colors duration-150"
+        class="px-4 py-1 rounded-full transition-colors duration-150"
         class:text-text-primary={activeTab === 'chapters'}
         class:active={activeTab === 'chapters'}
         onclick={() => setTab('chapters')}

@@ -32,7 +32,8 @@
   // Handle tab change event from TabNavigation
   document.addEventListener('summarizeClick', () => {
     summaryStore.fetchAndSummarize()
-    showTabNavigation = reactTabNavigation // <-- Thay đổi dòng này
+    showTabNavigation = reactTabNavigation
+    activeTab = 'summary' // Set active tab to summary when clicking the button
   }) // Listen for click event from SummarizeButton
   document.addEventListener('tabChange', (event) => {
     activeTab = event.detail

@@ -103,7 +103,7 @@
 
   onMount(async () => {
     // Thêm delay để đảm bảo DOM đã render
-    await delay(500) // Có thể điều chỉnh thời gian delay nếu cần
+    await delay(100) // Có thể điều chỉnh thời gian delay nếu cần
 
     updateTOC()
 
@@ -133,7 +133,7 @@
 
   onMount(async () => {
     // Thêm delay để đảm bảo DOM đã render
-    await delay(500) // Có thể điều chỉnh thời gian delay nếu cần
+    await delay(100) // Có thể điều chỉnh thời gian delay nếu cần
 
     updateTOC()
 
@@ -224,10 +224,8 @@
   .lv2 {
   }
   .lv3 {
-    padding-left: 1.5rem;
   }
   .lv4 {
-    padding-left: 2.5rem;
   }
   .lvs2 {
     width: 0.25rem;

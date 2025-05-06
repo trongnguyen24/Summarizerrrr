@@ -1,4 +1,5 @@
 <script>
+  import GroupVisual from './GroupVisual.svelte'
   // Props received from App.svelte
   let {
     activeTab,
@@ -21,31 +22,31 @@
 </script>
 
 {#if showTabNavigation}
-  <div class="flex w-fit gap-2 p-0.5 mb-4 bg-surface-1">
-    <button
-      class="px-4 py-1 rounded-full text-sm transition-colors duration-150"
-      class:bg-background={activeTab === 'summary'}
-      class:text-text-primary={activeTab === 'summary'}
-      class:text-text-secondary={activeTab !== 'summary'}
-      class:hover:bg-surface-1={activeTab !== 'summary'}
-      onclick={() => setTab('summary')}
-    >
-      Summary
-    </button>
+  <div
+    class="flex relative text-text-secondary w-fit gap-2 p-0.5 border border-border"
+  >
+    <GroupVisual>
+      <button
+        class="px-4 py-1 rounded-full text-sm transition-colors duration-150"
+        class:text-text-primary={activeTab === 'summary'}
+        class:active={activeTab === 'summary'}
+        onclick={() => setTab('summary')}
+      >
+        Summary
+      </button>
 
-    <button
-      class="px-4 py-1 rounded-full text-sm transition-colors duration-150"
-      class:bg-background={activeTab === 'chapters'}
-      class:text-text-primary={activeTab === 'chapters'}
-      class:text-text-secondary={activeTab !== 'chapters'}
-      class:hover:bg-surface-1={activeTab !== 'chapters'}
-      onclick={() => setTab('chapters')}
-      disabled={!chapterSummary && !isChapterLoading && !chapterError}
-      title={!chapterSummary && !isChapterLoading && !chapterError
-        ? 'Waiting for chapter processing...'
-        : 'View chapter summary'}
-    >
-      Chapters
-    </button>
+      <button
+        class="px-4 py-1 rounded-full text-sm transition-colors duration-150"
+        class:text-text-primary={activeTab === 'chapters'}
+        class:active={activeTab === 'chapters'}
+        onclick={() => setTab('chapters')}
+        disabled={!chapterSummary && !isChapterLoading && !chapterError}
+        title={!chapterSummary && !isChapterLoading && !chapterError
+          ? 'Waiting for chapter processing...'
+          : 'View chapter summary'}
+      >
+        Chapters
+      </button>
+    </GroupVisual>
   </div>
 {/if}

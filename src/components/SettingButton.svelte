@@ -27,13 +27,13 @@
     </Dialog.Overlay>
     <Dialog.Content
       forceMount
-      class="outline-hidden fixed left-[50%] top-4 px-4 xs:px-8 max-w-2xl z-50 w-full translate-x-[-50%]"
+      class="outline-hidden fixed left-[50%] top-4 w-11/12 max-w-2xl z-50 translate-x-[-50%]"
     >
       {#snippet child({ props, open })}
         {#if open}
           <div {...props} transition:slideScaleFade>
             <div
-              class="absolute z-50 right-7 xs:right-11 top-3 group flex gap-2"
+              class="absolute z-50 right-4 xs:right-11 top-3 group flex gap-2"
             >
               <span class="block size-3 bg-surface-2 rounded-full"></span>
               <span class="block size-3 bg-surface-2 rounded-full"></span>
@@ -43,7 +43,7 @@
                 class="block size-3 bg-error rounded-full"
               >
                 <Icon
-                  class="text-red-800 opacity-0 group-hover:opacity-100 transition-opacity duration-150"
+                  class="text-red-800 transition-opacity duration-150"
                   width={12}
                   icon="heroicons:x-mark-16-solid"
                 />

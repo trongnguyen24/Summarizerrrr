@@ -129,7 +129,7 @@
   class="font-mono text-text-primary dark:text-muted text-xs bg-surface-2 dark:bg-background backdrop-blur-3xl overflow-hidden border border-border/50 w-full flex-shrink-0 flex flex-col"
 >
   <div
-    class="px-4 bg-surface-1 dark:bg-background backdrop-blur-3xl py-2 flex border-t border-border rounded-t-2xl items-center justify-between border-b border-b-border/50"
+    class="px-4 bg-surface-1 dark:bg-background backdrop-blur-3xl py-2 flex border-t border-border items-center justify-between border-b border-b-border/50"
   >
     <h2 class="  ">Settings</h2>
   </div>

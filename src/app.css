@@ -229,3 +229,45 @@ button {
 /* .os-theme-custom-app.os-scrollbar-vertical {
   --os-size: 10px;
 } */
+
+.plus-icon {
+  position: absolute;
+  width: 8px; /* Kích thước container dấu cộng */
+  height: 8px; /* Kích thước container dấu cộng */
+  overflow: hidden; /* Ẩn phần thừa của pseudo-elements */
+}
+
+.plus-icon::before,
+.plus-icon::after {
+  content: '';
+  position: absolute;
+  background-color: rgba(255, 255, 255, 0.8); /* Màu của dấu cộng */
+}
+
+.plus-icon::before {
+  width: 100%;
+  height: 1px; /* Độ dày của đường ngang */
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
+}
+
+.plus-icon::after {
+  width: 1px; /* Độ dày của đường dọc */
+  height: 100%;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.top-left {
+  top: 0;
+  left: 0;
+  transform: translateX(-6px) translateY(-6px);
+}
+
+.bottom-right {
+  bottom: 0;
+  right: 0;
+  transform: translateX(6px) translateY(6px);
+}

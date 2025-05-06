@@ -152,17 +152,16 @@
     <div class="bg-border"></div>
 
     <div
-      class="relative prose p z-10 flex flex-col gap-6 p-6 pt-10 pb-[50vh] max-w-3xl w-full mx-auto"
+      class="relative prose prose-h2:mt-4 p z-10 flex flex-col gap-6 p-6 pt-10 pb-[50vh] max-w-3xl w-full mx-auto"
     >
-      {#if showTabNavigation}
-        <TabNavigation
-          {activeTab}
-          {showTabNavigation}
-          chapterSummary={summaryStore.chapterSummary}
-          isChapterLoading={summaryStore.isChapterLoading}
-          chapterError={summaryStore.chapterError}
-        />
-      {/if}
+      <TabNavigation
+        {activeTab}
+        {showTabNavigation}
+        chapterSummary={summaryStore.chapterSummary}
+        isChapterLoading={summaryStore.isChapterLoading}
+        chapterError={summaryStore.chapterError}
+      />
+
       {#if activeTab === 'summary'}
         <!-- Use SummaryDisplay component -->
         <SummaryDisplay

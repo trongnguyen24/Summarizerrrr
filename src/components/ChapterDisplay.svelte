@@ -30,7 +30,7 @@
 {/if}
 
 {#if chapterSummary && !isChapterLoading}
-  <div id="chaptersummary" class="prose-sm sm:prose-base max-w-none">
+  <div id="chaptersummary">
     {@html marked.parse(chapterSummary)}
   </div>
 

@@ -141,7 +141,7 @@
     <div class="bg-border"></div>
 
     <div
-      class="relative prose prose-h1:text-xl prose-h2:text-lg prose-h3:text-base prose-h4:text-base z-10 flex flex-col gap-6 p-6 pt-10 pb-[50vh] xs:px-6 max-w-3xl w-full mx-auto"
+      class="relative prose p z-10 flex flex-col gap-6 p-6 pt-10 pb-[50vh] max-w-3xl w-full mx-auto"
     >
       {#if showTabNavigation}
         <TabNavigation

@@ -5,6 +5,9 @@
 :root {
   --font-mono: 'Geist Mono Variable', ui-monospace, SFMono-Regular, Menlo,
     Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+  --h-0: clamp(1rem, 0.6761rem + 1.3636vw, 1.375rem);
+  --h-1: clamp(1.25rem, 0.9261rem + 1.3636vw, 1.625rem);
+  --h-2: clamp(1.125rem, 0.9091rem + 0.9091vw, 1.375rem);
 }
 
 @theme {
@@ -73,13 +76,18 @@ html {
     var(--color-border) 8px
   );
 }
-
-.pong {
-  transform: translateY(-25%);
+.prose h1,
+.prose h2 {
+  font-size: var(--h-1);
 }
-
-.prose h3 {
-  @apply transition-transform ease-out duration-200;
+.prose h3,
+.prose h4 {
+  font-size: var(--h-2);
+}
+.prose p,
+.prose ul,
+.prose ol {
+  font-size: var(--h-0);
 }
 
 button {

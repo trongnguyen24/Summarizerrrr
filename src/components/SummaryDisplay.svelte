@@ -30,7 +30,7 @@
 {/if}
 
 {#if summary && !isLoading}
-  <div id="summary" class="prose-sm sm:prose-base max-w-none">
+  <div id="summary">
     {@html marked.parse(summary)}
   </div>
 

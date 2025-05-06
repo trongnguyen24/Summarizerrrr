@@ -29,9 +29,11 @@
   const [initialize, instance] = useOverlayScrollbars({ options, defer: true })
 
   // Handle tab change event from TabNavigation
-  document.addEventListener('summarizeClick', () => {
-    summaryStore.fetchAndSummarize()
-    showTabNavigation = true // Show TabNavigation on summarize click
+  document.addEventListener('summarizeClick', async () => {
+    // Thêm async
+    await summaryStore.fetchAndSummarize() // Thêm await
+    // Chỉ hiển thị TabNavigation nếu đang ở tab YouTube
+    showTabNavigation = summaryStore.isYouTubeVideoActive
   }) // Listen for click event from SummarizeButton
   document.addEventListener('tabChange', (event) => {
     activeTab = event.detail

@@ -44,15 +44,15 @@
   --tw-prose-th-borders: var(--tw-prose-invert-th-borders);
   --tw-prose-td-borders: var(--tw-prose-invert-td-borders);
 
-  --color-background: oklch(0.23 0.0041 264.49); /* Gray 1 */
-  --color-surface-1: oklch(29.9% 0.0044 271.2); /* Gray 3 */
-  --color-surface-2: oklch(32.3% 0.0056 271.2); /* Gray 4 */
-  --color-border: oklch(0.3 0 0);
+  --color-background: oklch(0.17 0 0);
+  --color-surface-1: oklch(0.23 0 0);
+  --color-surface-2: oklch(0.29 0 0);
+  --color-border: oklch(0.5 0 0 / 30%);
 
   /* Text colors */
-  --color-text-primary: oklch(94.8% 0.0023 106.6); /* Gray 12 */
-  --color-text-secondary: oklch(76.7% 0.003 106.6); /* Gray 11 */
-  --color-muted: oklch(53.5% 0.003 106.6); /* Gray 9 */
+  --color-text-primary: oklch(0.95 0 0);
+  --color-text-secondary: oklch(0.72 0 0);
+  --color-muted: oklch(0.56 0 0);
 
   --color-primary: oklch(69.1% 0.1909 45.02);
 
@@ -65,6 +65,7 @@
 html {
   scroll-behavior: smooth;
   scroll-padding-top: 0.5rem;
+  background-color: var(--color-background);
 }
 
 .top-stripes {

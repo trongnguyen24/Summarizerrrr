@@ -194,28 +194,33 @@
   <nav
     class="fixed -bottom-4 p-4 pr-3 right-0 xs:pr-6 hidden group-hover:block opacity-0 group-hover:opacity-100"
   >
-    <div
-      id="toc-scroll"
-      class="w-64 xs:w-80 overflow-auto max-h-[calc(100vh-100px)] shadow-2xl border border-border bg-surface-2 backdrop-blur-2xl rounded-xl"
-    >
+    <div class="relative">
+      <!-- <div class="plus-icon top-left z-10"></div>
+      <div class="plus-icon bottom-right z-10"></div> -->
+
       <div
-        class="flex flex-col divide-y divide-stone-100 dark:divide-stone-700"
+        id="toc-scroll"
+        class="w-64 xs:w-80 overflow-auto max-h-[calc(100vh-100px)] border border-border bg-surface-1"
       >
-        {#each headings as heading}
-          <a
-            href="#{heading.id}"
-            onclick={() => scrollToHeading(heading.id)}
-            class="px-3 py-2 font-mono text-xs/4 no-underline transition-colors
+        <div
+          class="flex flex-col divide-y divide-stone-100 dark:divide-border/70"
+        >
+          {#each headings as heading}
+            <a
+              href="#{heading.id}"
+              onclick={() => scrollToHeading(heading.id)}
+              class="px-3 py-2 font-mono text-xs/4 no-underline transition-colors
           {heading.id === activeHeadingId
-              ? 'text-text-primary bg-black/5 dark:bg-white/5'
-              : 'text-text-secondary hover:text-text-primary'}
+                ? 'text-text-primary bg-black/5 dark:bg-white/5'
+                : 'text-text-secondary hover:text-text-primary'}
           lv{heading.level}"
-          >
-            <span class="line-clamp-2">
-              {heading.text}
-            </span>
-          </a>
-        {/each}
+            >
+              <span class="line-clamp-2">
+                {heading.text}
+              </span>
+            </a>
+          {/each}
+        </div>
       </div>
     </div>
   </nav>

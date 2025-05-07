@@ -16,9 +16,9 @@ Hãy phân tích <Transcript_Input> được cung cấp và tạo bản tóm t�
 
 <Input_Format>
 Định dạng của transcript sẽ là văn bản thô có kèm dấu thời gian ở đầu mỗi dòng hoặc đoạn văn bản. Ví dụ:
-[00:05] Xin chào và quay trở lại với video hôm nay.
-[00:10] Chúng ta sẽ nói về Svelte 5.
-[00:15] Một trong những thay đổi lớn là sự ra đời của Runes.
+00:05 Xin chào và quay trở lại với video hôm nay.
+00:10 Chúng ta sẽ nói về Svelte 5.
+00:15 Một trong những thay đổi lớn là sự ra đời của Runes.
 ...
 </Input_Format>
 

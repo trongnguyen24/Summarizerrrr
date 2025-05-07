@@ -259,83 +259,25 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       const activeTab = tabs[0]
       if (activeTab) {
-        chrome.runtime
-          .sendMessage({
-            action: 'currentTabInfo', // Use a different action to avoid confusion with tabUpdated
-            tabId: activeTab.id,
-            tabUrl: activeTab.url,
-            tabTitle: activeTab.title,
-            isYouTube: activeTab.url.includes('youtube.com/watch'),
-          })
-          .catch((error) => {
-            console.error(
-              '[background.js] Error sending currentTabInfo message:',
-              error
-            )
-          })
+        // Thay vì gửi message mới, gọi sendResponse
+        sendResponse({
+          action: 'currentTabInfo',
+          tabId: activeTab.id,
+          tabUrl: activeTab.url,
+          tabTitle: activeTab.title,
+          isYouTube: activeTab.url.includes('youtube.com/watch'),
+        })
       } else {
         console.warn('[background.js] No active tab found to send info.')
+        // Cần gọi sendResponse ngay cả khi không tìm thấy tab để tránh lỗi
+        sendResponse({
+          action: 'currentTabInfo',
+          error: 'No active tab found.',
+        })
       }
     })
-    // Return true to indicate that sendResponse will be called asynchronously
+    // Trả về true để chỉ ra rằng sendResponse sẽ được gọi bất đồng bộ
     return true
-
-    // Sử dụng hàm bất đồng bộ để xử lý và gửi phản hồi
-    ;(async () => {
-      try {
-        // Đảm bảo content script đã được inject (có thể gọi lại injectContentScript nếu cần)
-        // Hoặc đơn giản là thực thi trực tiếp hàm lấy transcript
-        // Lưu ý: Hàm getTranscriptContent phải được định nghĩa
-        // hoặc bạn inject một file chứa hàm đó.
-        // Ở đây, chúng ta sẽ inject một hàm đơn giản làm ví dụ.
-        const results = await chrome.scripting.executeScript({
-          target: { tabId: targetTabId },
-          func: () => {
-            // Logic để lấy transcript từ trang YouTube
-            // Ví dụ đơn giản: tìm phần tử chứa transcript
-            // *** THAY THẾ BẰNG LOGIC LẤY TRANSCRIPT THỰC TẾ CỦA BẠN ***
-            const transcriptElement = document.querySelector(
-              'ytd-transcript-body-renderer'
-            ) // Selector ví dụ
-            return transcriptElement
-              ? transcriptElement.innerText
-              : 'Transcript not found.'
-          },
-        })
-
-        // Kiểm tra kết quả trả về từ executeScript
-        if (chrome.runtime.lastError) {
-          // Lỗi trong quá trình executeScript
-          console.error(
-            `[background.js] executeScript error: ${chrome.runtime.lastError.message}`
-          )
-          sendResponse({ error: chrome.runtime.lastError.message })
-        } else if (results && results[0]) {
-          console.log(
-            `[background.js] Script executed successfully on tab ${targetTabId}. Result:`,
-            results[0].result
-          )
-          sendResponse({ transcript: results[0].result })
-        } else {
-          console.warn(
-            `[background.js] executeScript returned unexpected results for tab ${targetTabId}:`,
-            results
-          )
-          sendResponse({
-            error: 'Failed to execute script or no result returned.',
-          })
-        }
-      } catch (err) {
-        console.error(
-          `[background.js] Error executing script for tab ${targetTabId}:`,
-          err
-        )
-        sendResponse({
-          error:
-            err.message || 'Unknown error occurred during script execution.',
-        })
-      }
-    })()
   }
 
   // Xử lý các action khác nếu cần

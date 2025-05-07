@@ -44,15 +44,15 @@
   --tw-prose-th-borders: var(--tw-prose-invert-th-borders);
   --tw-prose-td-borders: var(--tw-prose-invert-td-borders);
 
-  --color-background: oklch(0.17 0 0);
-  --color-surface-1: oklch(0.23 0 0);
-  --color-surface-2: oklch(0.29 0 0);
-  --color-border: oklch(0.5 0 0 / 30%);
+  --color-background: oklch(0.15 0.02 286);
+  --color-surface-1: oklch(0.2 0.015 268);
+  --color-surface-2: oklch(0.25 0.015 264);
+  --color-border: oklch(0.3 0.015 268);
 
   /* Text colors */
-  --color-text-primary: oklch(0.95 0 0);
+  --color-text-primary: oklch(0.89 0 0);
   --color-text-secondary: oklch(0.72 0 0);
-  --color-muted: oklch(0.56 0 0);
+  --color-muted: oklch(0.6 0 0);
 
   --color-primary: oklch(69.1% 0.1909 45.02);
 
@@ -95,53 +95,40 @@ button {
   @apply cursor-pointer select-none;
 }
 
-.settingbar button {
-  @apply p-1 px-2  transition-colors duration-150;
-}
-
-.settingbar button.active {
-  @apply text-text-primary;
-}
-/* Thêm style cho nút active nếu muốn */
-/* button.active { */
-/*   background-color: #your-active-color; */
-/*   color: white; */
-/* } */
-
 .setting-length-btn {
-  @apply px-3 py-0.5  hover:bg-surface-1 hover:text-text-primary items-center gap-2 w-16 rounded-full transition-colors duration-150;
+  @apply px-3 py-1.5   hover:text-text-primary items-center gap-2 w-16 rounded-full transition-colors duration-150;
 }
 
 .setting-length-btn.active {
-  @apply text-text-primary bg-background dark:bg-surface-2;
+  @apply text-text-primary;
 }
 
 .setting-lang-btn {
-  @apply px-3 py-0.5 hover:bg-surface-1 hover:text-text-primary  rounded-full transition-colors duration-150;
+  @apply px-3 py-1.5  hover:text-text-primary  rounded-full transition-colors duration-150;
 }
 
 .setting-lang-btn.active {
-  @apply text-text-primary bg-background dark:bg-surface-2;
+  @apply text-text-primary;
 }
 
 .setting-format-btn {
-  @apply px-3 py-0.5 hover:bg-surface-1 hover:text-text-primary  rounded-full transition-colors duration-150;
+  @apply px-3 py-1.5  hover:text-text-primary  rounded-full transition-colors duration-150;
 }
 
 .setting-format-btn.active {
-  @apply text-text-primary bg-background dark:bg-surface-2;
+  @apply text-text-primary;
 }
 
 .setting-format-btn.active span {
-  @apply text-text-primary bg-background dark:bg-surface-2;
+  @apply text-text-primary;
 }
 
 .setting-theme-btn {
-  @apply px-3 py-0.5 hover:bg-surface-1 hover:text-text-primary text-text-secondary rounded-full transition-colors duration-150;
+  @apply px-3 py-1.5 hover:bg-surface-1 hover:text-text-primary text-text-secondary rounded-full transition-colors duration-150;
 }
 
 .setting-theme-btn.active {
-  @apply text-text-primary bg-background dark:bg-surface-2;
+  @apply text-text-primary;
 }
 .animate-spin-slow {
   animation: spin 6s cubic-bezier(0.1, 0.5, 0.9, 0.5) infinite;
@@ -242,7 +229,7 @@ button {
 .plus-icon::after {
   content: '';
   position: absolute;
-  background-color: rgba(255, 255, 255, 0.8); /* Màu của dấu cộng */
+  background-color: rgba(255, 255, 255, 1); /* Màu của dấu cộng */
 }
 
 .plus-icon::before {
@@ -264,11 +251,11 @@ button {
 .top-left {
   top: 0;
   left: 0;
-  transform: translateX(-6px) translateY(-6px);
+  transform: translateX(-4px) translateY(-4px);
 }
 
 .bottom-right {
   bottom: 0;
   right: 0;
-  transform: translateX(6px) translateY(6px);
+  transform: translateX(4px) translateY(4px);
 }

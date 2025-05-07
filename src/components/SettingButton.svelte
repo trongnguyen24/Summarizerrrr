@@ -32,11 +32,9 @@
       {#snippet child({ props, open })}
         {#if open}
           <div {...props} transition:slideScaleFade>
-            <div
-              class="absolute z-50 right-4 xs:right-11 top-3 group flex gap-2"
-            >
-              <span class="block size-3 bg-surface-2 rounded-full"></span>
-              <span class="block size-3 bg-surface-2 rounded-full"></span>
+            <div class="absolute z-50 right-4 top-3 group flex gap-2">
+              <span class="block size-3 bg-muted/15 rounded-full"></span>
+              <span class="block size-3 bg-muted/15 rounded-full"></span>
               <!-- svelte-ignore a11y_consider_explicit_label -->
               <button
                 onclick={() => (isOpen = false)}

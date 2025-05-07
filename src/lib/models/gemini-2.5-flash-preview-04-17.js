@@ -34,6 +34,6 @@ export const gemini25FlashPreviewConfig = {
   },
   generationConfig: {
     maxOutputTokens: 8192, // Example value, adjust as needed
-    temperature: 0.7, // Example value, adjust as needed
+    temperature: 0.3, // Example value, adjust as needed
   },
 }

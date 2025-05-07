@@ -34,6 +34,6 @@ export const gemini15FlashConfig = {
   },
   generationConfig: {
     maxOutputTokens: 8192,
-    temperature: 0.5,
+    temperature: 0.9,
   },
 }

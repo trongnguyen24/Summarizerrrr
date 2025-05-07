@@ -48,5 +48,7 @@
         Chapters
       </button>
     </GroupVisual>
+    <div class="plus-icon top-left"></div>
+    <div class="plus-icon bottom-right"></div>
   </div>
 {/if}

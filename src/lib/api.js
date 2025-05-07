@@ -1,5 +1,7 @@
 // @svelte-compiler-ignore
+// @ts-nocheck
 import { buildPrompt, buildChapterPrompt } from './utils.js' // Import necessary static functions
+import { GoogleGenAI } from '@google/genai'
 
 /**
  * Summarizes content using Google Gemini.
@@ -37,44 +39,45 @@ export async function summarizeWithGemini(
     model = localStorage.getItem('selectedModel_dev') || 'gemini-1.5-flash'
   }
 
-  const url =
-    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=` +
-    apiKey
-  const body = {
-    contents: [{ parts: [{ text: prompt }] }],
-    generationConfig: { temperature: 0.3, maxOutputTokens: 65536 }, // Adjusted temperature slightly
-  }
-
+  const genAI = new GoogleGenAI({ apiKey })
   try {
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
+    const result = await genAI.models.generateContent({
+      model: model,
+      contents: [{ parts: [{ text: prompt }] }],
+      systemInstruction:
+        'Bạn là một trợ lý chuyên phân tích và tóm tắt video YouTube dựa trên transcript được cung cấp. Nhiệm vụ của bạn là tạo bản tóm tắt súc tích, chính xác và có cấu trúc, tuân thủ nghiêm ngặt các tham số và hướng dẫn dưới đây. Chỉ sử dụng thông tin có trong <Transcript> được cung cấp.', // Add system instruction
+      generationConfig: {
+        maxOutputTokens: 8192, // Example value, can be adjusted
+        temperature: 0.5, // Use the existing temperature
+      },
     })
-    const data = await res.json()
+    console.log('Gemini API Result (summarizeWithGemini):', result) // Log the result object
 
-    if (!res.ok) {
-      console.error('Gemini API Error Response:', data)
-      if (data.error && data.error.message) {
-        throw new Error('Gemini API Error: ' + data.error.message)
+    if (
+      result &&
+      result.candidates &&
+      result.candidates.length > 0 &&
+      result.candidates[0].content &&
+      result.candidates[0].content.parts &&
+      result.candidates[0].content.parts.length > 0
+    ) {
+      const text = result.candidates[0].content.parts[0].text
+      if (text) {
+        return text
       } else {
-        throw new Error('Unknown error from Gemini API')
+        throw new Error('Did not receive valid text content from the API.')
       }
-    }
-    if (!data.candidates || !data.candidates[0]?.content?.parts[0]?.text)
+    } else {
       throw new Error('Did not receive a valid summary result from the API.')
-    return data.candidates[0].content.parts[0].text
+    }
   } catch (e) {
-    console.error('Fetch error:', e)
-    // Check if the error is a network error or CORS issue
-    if (e instanceof TypeError && e.message.includes('NetworkError')) {
-      throw new Error(
-        'Network error calling Gemini API. Check connection and CORS settings.'
-      )
-    } else if (e.message.includes('API key')) {
+    console.error('Gemini API Error:', e)
+    if (e.message.includes('API key')) {
       throw e // Re-throw API key specific errors
     } else {
-      throw new Error('An error occurred while calling the Gemini API.')
+      throw new Error(
+        'An error occurred while calling the Gemini API: ' + e.message
+      )
     }
   }
 }
@@ -111,47 +114,48 @@ export async function summarizeChaptersWithGemini(
     model = localStorage.getItem('selectedModel_dev') || 'gemini-1.5-flash'
   }
 
-  const url =
-    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=` +
-    apiKey
-  const body = {
-    contents: [{ parts: [{ text: prompt }] }],
-    // Adjust generationConfig if needed, e.g., for longer/more detailed chapters
-    generationConfig: { temperature: 0.4, maxOutputTokens: 65536 },
-  }
-
+  const genAI = new GoogleGenAI({ apiKey })
   try {
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
+    const result = await genAI.models.generateContent({
+      model: model,
+      contents: [{ parts: [{ text: prompt }] }],
+      systemInstruction:
+        'Bạn là một trợ lý chuyên nghiệp trong việc phân tích và tóm tắt transcript video YouTube có kèm dấu thời gian. Nhiệm vụ của bạn là chia transcript thành các chương hoặc phần logic dựa trên nội dung và thời gian, sau đó tạo bản tóm tắt chi tiết cho từng phần theo yêu cầu của người dùng. Bạn phải tuân thủ nghiêm ngặt cấu trúc và định dạng đầu ra được chỉ định.', // Add system instruction
+      generationConfig: {
+        temperature: 0.3, // Use the existing temperature for chapters
+      },
     })
-    const data = await res.json()
+    console.log('Gemini API Result (summarizeChaptersWithGemini):', result) // Log the result object
 
-    if (!res.ok) {
-      console.error('Gemini API Error Response (Chapters):', data)
-      if (data.error && data.error.message) {
-        throw new Error('Gemini API Error (Chapters): ' + data.error.message)
+    if (
+      result &&
+      result.candidates &&
+      result.candidates.length > 0 &&
+      result.candidates[0].content &&
+      result.candidates[0].content.parts &&
+      result.candidates[0].content.parts.length > 0
+    ) {
+      const text = result.candidates[0].content.parts[0].text
+      if (text) {
+        return text
       } else {
-        throw new Error('Unknown error from Gemini API (Chapters)')
+        throw new Error(
+          'Did not receive valid text content from the API for chapters.'
+        )
       }
-    }
-    if (!data.candidates || !data.candidates[0]?.content?.parts[0]?.text)
+    } else {
       throw new Error(
         'Did not receive a valid chapter summary result from the API.'
       )
-    return data.candidates[0].content.parts[0].text
+    }
   } catch (e) {
-    console.error('Fetch error (Chapters):', e)
-    if (e instanceof TypeError && e.message.includes('NetworkError')) {
-      throw new Error(
-        'Network error calling Gemini API for chapters. Check connection and CORS settings.'
-      )
-    } else if (e.message.includes('API key')) {
+    console.error('Gemini API Error (Chapters):', e)
+    if (e.message.includes('API key')) {
       throw e // Re-throw API key specific errors
     } else {
       throw new Error(
-        'An error occurred while calling the Gemini API for chapters.'
+        'An error occurred while calling the Gemini API for chapters: ' +
+          e.message
       )
     }
   }

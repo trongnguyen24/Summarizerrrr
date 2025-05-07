@@ -81,11 +81,11 @@ html {
 .prose h2 {
   font-size: var(--h-1);
 }
-.prose h3,
-.prose h4 {
+.prose h3 {
   font-size: var(--h-2);
 }
 .prose p,
+.prose h4,
 .prose ul,
 .prose ol {
   font-size: var(--h-0);

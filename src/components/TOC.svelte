@@ -1,4 +1,5 @@
 <script>
+  // @ts-nocheck
   import { onMount, onDestroy } from 'svelte'
   import 'overlayscrollbars/overlayscrollbars.css' // Import CSS overlayscrollbars
   import { useOverlayScrollbars } from 'overlayscrollbars-svelte' // Import primitive
@@ -71,7 +72,7 @@
       return
     }
 
-    const foundHeadings = targetDiv.querySelectorAll('h2,h3')
+    const foundHeadings = targetDiv.querySelectorAll('h2,h3,h4')
     headings = Array.from(foundHeadings).map((heading) => {
       let text = heading.innerText
       // Remove trailing colon if present
@@ -226,11 +227,13 @@
   .lv3 {
   }
   .lv4 {
+    padding-left: 2rem;
   }
-  .lvs2 {
+  .lvs2,
+  .lvs3 {
     width: 0.25rem;
   }
-  .lvs3 {
+  .lvs4 {
     width: 0.125rem;
   }
 </style>

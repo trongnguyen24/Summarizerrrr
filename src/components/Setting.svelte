@@ -204,6 +204,16 @@
           1.5 flash
         </button>
         <button
+          onclick={() =>
+            updateSetting('selectedModel', 'gemini-2.0-flash-lite')}
+          class="setting-lang-btn {selectedModel === 'gemini-2.0-flash-lite'
+            ? 'active'
+            : ''}"
+          title="gemini-2.0-flash-lite"
+        >
+          2.0 flash lite
+        </button>
+        <button
           onclick={() => updateSetting('selectedModel', 'gemini-2.0-flash')}
           class="setting-lang-btn {selectedModel === 'gemini-2.0-flash'
             ? 'active'

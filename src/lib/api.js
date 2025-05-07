@@ -1,7 +1,7 @@
 // @svelte-compiler-ignore
 // @ts-nocheck
-import { buildPrompt, buildChapterPrompt } from './utils.js' // Import necessary static functions
 import { GoogleGenAI } from '@google/genai'
+import { geminiModelsConfig } from './geminiConfig.js'
 
 /**
  * Summarizes content using Google Gemini.
@@ -27,8 +27,6 @@ export async function summarizeWithGemini(
     )
   }
 
-  const prompt = buildPrompt(text, lang, length, format, isYouTube) // Use the updated buildPrompt function
-
   let model = 'gemini-1.5-flash' // Default model
   if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync) {
     const result = await chrome.storage.sync.get('selectedModel')
@@ -39,17 +37,25 @@ export async function summarizeWithGemini(
     model = localStorage.getItem('selectedModel_dev') || 'gemini-1.5-flash'
   }
 
+  const modelConfig =
+    geminiModelsConfig[model] || geminiModelsConfig['gemini-1.5-flash'] // Fallback to default
+
+  let prompt
+  if (isYouTube) {
+    prompt = modelConfig.buildYouTubePrompt(text, lang, length, format)
+  } else {
+    prompt = modelConfig.buildGeneralPrompt(text, lang, length, format)
+  }
+
   const genAI = new GoogleGenAI({ apiKey })
   try {
     const result = await genAI.models.generateContent({
       model: model,
       contents: [{ parts: [{ text: prompt }] }],
-      systemInstruction:
-        'Bạn là một trợ lý chuyên phân tích và tóm tắt video YouTube dựa trên transcript được cung cấp. Nhiệm vụ của bạn là tạo bản tóm tắt súc tích, chính xác và có cấu trúc, tuân thủ nghiêm ngặt các tham số và hướng dẫn dưới đây. Chỉ sử dụng thông tin có trong <Transcript> được cung cấp.', // Add system instruction
-      generationConfig: {
-        maxOutputTokens: 8192, // Example value, can be adjusted
-        temperature: 0.5, // Use the existing temperature
-      },
+      systemInstruction: isYouTube
+        ? modelConfig.youTubeSystemInstruction
+        : modelConfig.generalSystemInstruction,
+      generationConfig: modelConfig.generationConfig,
     })
     console.log('Gemini API Result (summarizeWithGemini):', result) // Log the result object
 
@@ -102,8 +108,6 @@ export async function summarizeChaptersWithGemini(
     )
   }
 
-  const prompt = buildChapterPrompt(timestampedTranscript, lang, length) // Use the updated buildChapterPrompt function
-
   let model = 'gemini-1.5-flash' // Default model
   if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync) {
     const result = await chrome.storage.sync.get('selectedModel')
@@ -114,16 +118,21 @@ export async function summarizeChaptersWithGemini(
     model = localStorage.getItem('selectedModel_dev') || 'gemini-1.5-flash'
   }
 
+  const modelConfig =
+    geminiModelsConfig[model] || geminiModelsConfig['gemini-1.5-flash'] // Fallback to default
+  const prompt = modelConfig.buildChapterPrompt(
+    timestampedTranscript,
+    lang,
+    length
+  )
+
   const genAI = new GoogleGenAI({ apiKey })
   try {
     const result = await genAI.models.generateContent({
       model: model,
       contents: [{ parts: [{ text: prompt }] }],
-      systemInstruction:
-        'Bạn là một trợ lý chuyên nghiệp trong việc phân tích và tóm tắt transcript video YouTube có kèm dấu thời gian. Nhiệm vụ của bạn là chia transcript thành các chương hoặc phần logic dựa trên nội dung và thời gian, sau đó tạo bản tóm tắt chi tiết cho từng phần theo yêu cầu của người dùng. Bạn phải tuân thủ nghiêm ngặt cấu trúc và định dạng đầu ra được chỉ định.', // Add system instruction
-      generationConfig: {
-        temperature: 0.3, // Use the existing temperature for chapters
-      },
+      systemInstruction: modelConfig.chapterSystemInstruction,
+      generationConfig: modelConfig.generationConfig,
     })
     console.log('Gemini API Result (summarizeChaptersWithGemini):', result) // Log the result object
 

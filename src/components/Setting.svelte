@@ -3,7 +3,10 @@
   import { onMount } from 'svelte'
   import { fade } from 'svelte/transition'
   import Icon from '@iconify/svelte' // Import Icon
+  import ButtonSet from './ButtonSet.svelte'
   import GroupVisual from './GroupVisual.svelte'
+  import 'overlayscrollbars/overlayscrollbars.css' // Import CSS overlayscrollbars
+  import { useOverlayScrollbars } from 'overlayscrollbars-svelte' // Import primitive
   import { theme, setTheme } from '../stores/themeStore.svelte' // Import theme store and setTheme function
 
   let apiKey = $state('')
@@ -14,6 +17,14 @@
   let selectedModel = $state('gemini-1.5-flash') // Add state for selected model
   let saveStatus = $state('')
   let apiKeyDebounceTimer = null // Timer for debouncing API key save
+
+  const options = {
+    scrollbars: {
+      // autoHide: 'never',
+      theme: 'os-theme-custom-app',
+    },
+  }
+  const [initialize, instance] = useOverlayScrollbars({ options, defer: true })
 
   onMount(() => {
     if (
@@ -33,7 +44,7 @@
           if (result.geminiApiKey) apiKey = result.geminiApiKey
           // Ensure defaults are set if nothing is in storage yet
           summaryLength = result.summaryLength || 'medium'
-          summaryLang = result.summaryLang || 'vi'
+          summaryLang = result.summaryLang || 'vi' // Default to Vietnamese
           summaryFormat = result.summaryFormat || 'heading'
           selectedModel = result.selectedModel || 'gemini-1.5-flash' // Load selected model
         }
@@ -43,10 +54,15 @@
       // Set defaults for dev environment
       apiKey = localStorage.getItem('geminiApiKey_dev') || '' // Load from local storage for dev
       summaryLength = 'medium'
-      summaryLang = 'vi'
+      summaryLang = 'vi' // Default to Vietnamese
       summaryFormat = 'heading'
       selectedModel =
         localStorage.getItem('selectedModel_dev') || 'gemini-1.5-flash' // Load selected model for dev
+    }
+    // Initialize the overlay scrollbar
+    const tocElement = document.getElementById('setting-scroll')
+    if (tocElement) {
+      initialize(tocElement)
     }
   })
 
@@ -127,7 +143,7 @@
 
 <!-- Apply Tailwind classes for overall layout and styling -->
 <div
-  class="relative font-mono text-text-primary dark:text-text-secondary text-xs bg-surface-2 dark:bg-surface-1 backdrop-blur-3xl overflow-hidden border border-border w-full flex-shrink-0 flex flex-col"
+  class="relative font-mono text-text-primary dark:text-text-secondary text-xs bg-surface-2 dark:bg-surface-1 overflow-hidden border border-border w-full flex-shrink-0 flex flex-col"
 >
   <div
     class="px-4 bg-surface-1 dark:bg-surface-2 py-2 border-b-0 border-border"
@@ -136,230 +152,180 @@
   </div>
 
   <!-- API Key Section -->
-  <div class="p-4 flex flex-col gap-6">
-    <div class="flex flex-col gap-2">
-      <div class="flex items-center gap-1 justify-between">
-        <label for="api-key" class="block dark:text-muted">Gemini API Key</label
-        >
-        {#if saveStatus}
-          <p id="save-status" transition:fade class="text-success mr-auto">
-            <!-- {saveStatus} -->
-            <Icon width={12} icon="heroicons:check-circle-16-solid" />
-          </p>
-        {/if}
-        <a
-          href="https://aistudio.google.com/app/apikey"
-          target="_blank"
-          class="text-xs flex items-center gap-0.5 text-primary hover:underline"
-          >Get a key <Icon
-            width={12}
-            icon="heroicons:arrow-up-right-16-solid"
-          /></a
-        >
-      </div>
+  <div id="setting-scroll" class="h-[calc(100vh-64px)]">
+    <div class="p-4 flex flex-col gap-6">
+      <div class="flex flex-col gap-2">
+        <div class="flex items-center gap-1 justify-between">
+          <label for="api-key" class="block dark:text-muted"
+            >Gemini API Key</label
+          >
+          {#if saveStatus}
+            <p
+              id="save-status"
+              transition:fade
+              class="text-success flex mr-auto"
+            >
+              <!-- {saveStatus} -->
 
-      <div class="relative">
-        <div class="plus-icon top-left"></div>
-        <div class="plus-icon bottom-right"></div>
-        <input
-          type={showApiKey ? 'text' : 'password'}
-          id="api-key"
-          bind:value={apiKey}
-          class="w-full pl-3 pr-9 py-1.5 h-10 bg-surface-1/50 border border-border focus:outline-none focus:ring-1 placeholder:text-muted"
-          oninput={scheduleApiKeySave}
-        />
-        <button
-          class="absolute size-8 text-muted right-0.5 top-1 grid place-items-center cursor-pointer"
-          onclick={() => (showApiKey = !showApiKey)}
-          tabindex="0"
-          aria-label={showApiKey ? 'Hide API Key' : 'Show API Key'}
-          onkeypress={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              showApiKey = !showApiKey
-            }
-          }}
-        >
-          {#if !showApiKey}
-            <Icon
-              class="absolute"
-              width={16}
-              icon="heroicons:eye-slash-16-solid"
-            />
-          {:else}
-            <Icon class="absolute" width={16} icon="heroicons:eye-16-solid" />
+              Auto saved!
+            </p>
           {/if}
-        </button>
-      </div>
-    </div>
+          <a
+            href="https://aistudio.google.com/app/apikey"
+            target="_blank"
+            class="text-xs flex items-center gap-0.5 text-primary hover:underline"
+            >Get a key <Icon
+              width={12}
+              icon="heroicons:arrow-up-right-16-solid"
+            /></a
+          >
+        </div>
 
-    <!-- Gemini Model Section -->
-    <div class="flex flex-col gap-2">
-      <!-- svelte-ignore a11y_label_has_associated_control -->
-      <label class="block font-bold">Gemini Model</label>
-      <div class="relative flex gap-1">
-        <GroupVisual initialDelay={300}>
+        <div class="relative">
+          <div class="plus-icon top-left"></div>
+          <div class="plus-icon bottom-right"></div>
+          <input
+            type={showApiKey ? 'text' : 'password'}
+            id="api-key"
+            bind:value={apiKey}
+            class="w-full pl-3 pr-9 py-1.5 h-10 bg-surface-1/50 border border-border focus:outline-none focus:ring-1 placeholder:text-muted"
+            oninput={scheduleApiKeySave}
+          />
           <button
-            onclick={() =>
-              updateSetting('selectedModel', 'gemini-2.0-flash-lite')}
-            class="setting-lang-btn {selectedModel === 'gemini-2.0-flash-lite'
+            class="absolute size-8 text-muted right-0.5 top-1 grid place-items-center cursor-pointer"
+            onclick={() => (showApiKey = !showApiKey)}
+            tabindex="0"
+            aria-label={showApiKey ? 'Hide API Key' : 'Show API Key'}
+            onkeypress={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                showApiKey = !showApiKey
+              }
+            }}
+          >
+            {#if !showApiKey}
+              <Icon
+                class="absolute"
+                width={16}
+                icon="heroicons:eye-slash-16-solid"
+              />
+            {:else}
+              <Icon class="absolute" width={16} icon="heroicons:eye-16-solid" />
+            {/if}
+          </button>
+        </div>
+      </div>
+
+      <!-- Gemini Model Section -->
+      <div class="flex flex-col gap-2">
+        <!-- svelte-ignore a11y_label_has_associated_control -->
+        <label class="block text-text-primary font-bold">Gemini Model</label>
+        <div class="grid w-full gap-0.5">
+          <ButtonSet
+            title="2.0 Flash"
+            Description="Fast, efficient, lightweight"
+            class="setting {selectedModel === 'gemini-1.5-flash'
               ? 'active'
               : ''}"
-            title="gemini-1.5-flash"
-          >
-            1.5 flash
-          </button>
-          <button
+            onclick={() => updateSetting('selectedModel', 'gemini-1.5-flash')}
+          ></ButtonSet>
+          <ButtonSet
+            title="2.5 Flash"
+            Description="Smarter, reliable performance"
+            class="setting {selectedModel === 'gemini-2.0-flash'
+              ? 'active'
+              : ''}"
             onclick={() => updateSetting('selectedModel', 'gemini-2.0-flash')}
-            class="setting-lang-btn {selectedModel === 'gemini-2.0-flash'
+          ></ButtonSet>
+          <ButtonSet
+            title="2.5 Pro"
+            Description="Advanced reasoning, request-limited"
+            class="setting {selectedModel === 'gemini-2.5-flash-preview-04-17'
               ? 'active'
               : ''}"
-            title="gemini-2.0-flash"
-          >
-            2.0 flash
-          </button>
-          <button
             onclick={() =>
               updateSetting('selectedModel', 'gemini-2.5-flash-preview-04-17')}
-            class="setting-lang-btn {selectedModel ===
-            'gemini-2.5-flash-preview-04-17'
-              ? 'active'
-              : ''}"
-            title="gemini-2.5-flash-preview-04-17"
-          >
-            2.5 flash
-          </button>
-        </GroupVisual>
+          ></ButtonSet>
+        </div>
       </div>
-    </div>
 
-    <!-- Summary Length Section -->
-    <div class="flex flex-col gap-1">
-      <!-- svelte-ignore a11y_label_has_associated_control -->
-      <label class="block font-bold">Summary Size</label>
-      <div class="relative flex gap-2 w-fit">
-        <GroupVisual initialDelay={300}>
-          <button
-            onclick={() => updateSetting('summaryLength', 'short')}
-            class="setting-length-btn {summaryLength === 'short'
-              ? 'active'
-              : ''}"
+      <!-- Summary Length Section -->
+      <div class="flex flex-col gap-2">
+        <!-- svelte-ignore a11y_label_has_associated_control -->
+        <label class="block text-text-primary font-bold">Summary Size</label>
+        <div class="grid w-full gap-0.5">
+          <ButtonSet
             title="Short"
-          >
-            <!-- <Icon width={16} icon="heroicons:minus" /> -->
-            <span class="text-xs">Short</span>
-          </button>
-          <button
-            onclick={() => updateSetting('summaryLength', 'medium')}
-            class="setting-length-btn {summaryLength === 'medium'
-              ? 'active'
-              : ''}"
+            Description="Very briefly, 1-2 sentences max"
+            class="setting {summaryLength === 'short' ? 'active' : ''}"
+            onclick={() => updateSetting('summaryLength', 'short')}
+          ></ButtonSet>
+          <ButtonSet
             title="Medium"
-          >
-            <!-- <Icon width={16} icon="heroicons:bars-2" /> -->
-            <span class="text-xs">Medium</span>
-          </button>
-          <button
-            onclick={() => updateSetting('summaryLength', 'long')}
-            class="setting-length-btn {summaryLength === 'long'
-              ? 'active'
-              : ''}"
+            Description="Concisely, about 3-5 sentences"
+            class="setting {summaryLength === 'medium' ? 'active' : ''}"
+            onclick={() => updateSetting('summaryLength', 'medium')}
+          ></ButtonSet>
+          <ButtonSet
             title="Long"
-          >
-            <!-- <Icon width={16} icon="heroicons:bars-3" /> -->
-            <span class="text-xs">Long</span>
-          </button>
-        </GroupVisual>
+            Description="Detail, covering all key parts"
+            class="setting {summaryLength === 'long' ? 'active' : ''}"
+            onclick={() => updateSetting('summaryLength', 'long')}
+          ></ButtonSet>
+        </div>
       </div>
-    </div>
 
-    <div class="flex flex-col gap-2">
-      <!-- svelte-ignore a11y_label_has_associated_control -->
-      <label class="block">Summary Format</label>
-      <div class="relative flex gap-1">
-        <GroupVisual initialDelay={300}>
-          <button
-            onclick={() => updateSetting('summaryFormat', 'heading')}
-            class="setting-format-btn {summaryFormat === 'heading'
-              ? 'active'
-              : ''}"
-            title="Heading"
-          >
-            <!-- <Icon width={16} icon="heroicons:list-bullet-16-solid" /> -->
-            <span class="text-xs">Heading</span>
-          </button>
-          <button
-            onclick={() => updateSetting('summaryFormat', 'paragraph')}
-            class="setting-format-btn {summaryFormat === 'paragraph'
-              ? 'active'
-              : ''}"
-            title="Paragraph"
-          >
-            <!-- <Icon width={16} icon="heroicons:bars-4" /> -->
-            <span class="text-xs">Paragraph</span>
-          </button>
-        </GroupVisual>
-      </div>
-    </div>
-
-    <!-- Summary Language Section -->
-    <div class="flex flex-col gap-2">
-      <!-- svelte-ignore a11y_label_has_associated_control -->
-      <label class="block">Language output</label>
-      <div class="relative flex p-0.5 gap-1">
-        <GroupVisual initialDelay={300}>
-          <button
-            onclick={() => updateSetting('summaryLang', 'vi')}
-            class="setting-lang-btn {summaryLang === 'vi' ? 'active' : ''}"
+      <!-- Summary Language Section -->
+      <div class="flex flex-col gap-2">
+        <!-- svelte-ignore a11y_label_has_associated_control -->
+        <label class="block text-text-primary font-bold">Language output</label>
+        <div class="grid w-full gap-0.5">
+          <ButtonSet
             title="Vietnamese"
-          >
-            Vietnamese
-          </button>
-          <button
-            onclick={() => updateSetting('summaryLang', 'en')}
-            class="setting-lang-btn {summaryLang === 'en' ? 'active' : ''}"
+            Description="Kêt quả bằng tiếng Việt"
+            class="setting {summaryLang === 'vi' ? 'active' : ''}"
+            onclick={() => updateSetting('summaryLang', 'vi')}
+          ></ButtonSet>
+          <ButtonSet
             title="English"
-          >
-            English
-          </button>
-        </GroupVisual>
-        <!-- Add button for other languages if needed -->
+            Description="Results in English"
+            class="setting {summaryLang === 'en' ? 'active' : ''}"
+            onclick={() => updateSetting('summaryLang', 'en')}
+          ></ButtonSet>
+          <ButtonSet
+            title="Korean"
+            Description="결과를 한국어로"
+            class="setting {summaryLang === 'Korean' ? 'active' : ''}"
+            onclick={() => updateSetting('summaryLang', 'Korean')}
+          ></ButtonSet>
+        </div>
       </div>
-    </div>
 
-    <div class="flex flex-col gap-2">
-      <!-- svelte-ignore a11y_label_has_associated_control -->
-      <label class="block">Theme</label>
-      <div class="relative flex p-0.5 gap-1">
-        <GroupVisual initialDelay={300}>
-          <button
-            onclick={() => setTheme('light')}
-            class="setting-lang-btn {$theme === 'light' ? 'active' : ''}"
+      <!-- Theme Section -->
+      <div class="flex flex-col gap-2">
+        <!-- svelte-ignore a11y_label_has_associated_control -->
+        <label class="block text-text-primary font-bold">Theme</label>
+        <div class="grid w-full gap-0.5">
+          <ButtonSet
             title="Light"
-          >
-            Light
-          </button>
-          <button
-            onclick={() => setTheme('dark')}
-            class="setting-lang-btn {$theme === 'dark' ? 'active' : ''}"
+            Description="Bright and clean look"
+            class="setting {$theme === 'light' ? 'active' : ''}"
+            onclick={() => setTheme('light')}
+          ></ButtonSet>
+          <ButtonSet
             title="Dark"
-          >
-            Dark
-          </button>
-          <button
-            onclick={() => setTheme('system')}
-            class="setting-lang-btn {$theme === 'system' ? 'active' : ''}"
+            Description="Dark mode for low-light environments"
+            class="setting {$theme === 'dark' ? 'active' : ''}"
+            onclick={() => setTheme('dark')}
+          ></ButtonSet>
+          <ButtonSet
             title="System"
-          >
-            System
-          </button>
-        </GroupVisual>
+            Description="Follow system theme settings"
+            class="setting {$theme === 'system' ? 'active' : ''}"
+            onclick={() => setTheme('system')}
+          ></ButtonSet>
+        </div>
       </div>
     </div>
   </div>
   <!-- Summary Format Section -->
 </div>
-
-<style>
-  /* Remove unused .active class if present */
-  /* Tailwind handles the active state visually now */
-</style>

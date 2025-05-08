@@ -15,7 +15,6 @@ Hãy phân tích <Input_Content> được cung cấp (bao gồm nội dung chín
 3.  Định dạng tóm tắt: \${format}
     - "plain": Tóm tắt dưới dạng một hoặc nhiều đoạn văn thuần túy, liên tục (phần nội dung chính và phần bình luận nếu có sẽ là các đoạn riêng biệt được phân cách rõ ràng bằng một dòng trống hoặc tiêu đề đơn giản).
     - "heading": Tóm tắt nội dung chính bắt đầu bằng tiêu đề cấp 2 (##). Các điểm hoặc phần quan trọng hơn trong nội dung chính sử dụng tiêu đề cấp 3 (###). Nếu có bình luận, phần tóm tắt bình luận sẽ có tiêu đề cấp 2 riêng biệt "## Tóm tắt bình luận" (hoặc tương đương trong ngôn ngữ \${lang}), và các ý/điểm nổi bật trong bình luận có thể dùng tiêu đề cấp 3 (###) hoặc cấp 4 (####) nếu cần chi tiết.
-    *(Nếu yêu cầu định dạng không hợp lệ, hãy sử dụng định dạng "plain".)*
 </Parameters>
 
 <Guidelines>

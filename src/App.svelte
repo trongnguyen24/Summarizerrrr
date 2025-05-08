@@ -4,12 +4,10 @@
   import Icon from '@iconify/svelte'
   import 'overlayscrollbars/overlayscrollbars.css' // Import CSS overlayscrollbars
   import { useOverlayScrollbars } from 'overlayscrollbars-svelte' // Import primitive
-  import Settingbar from './components/Settingbar.svelte'
   import SettingButton from './components/SettingButton.svelte'
   import SummarizeButton from './components/SummarizeButton.svelte' // Import new component
   import TabNavigation from './components/TabNavigation.svelte' // Import new component
   import SummaryDisplay from './components/SummaryDisplay.svelte' // Import new component
-  import SummarizeSize from './components/SummarizeSize.svelte' // Import new component
   import ChapterDisplay from './components/ChapterDisplay.svelte' // Import new component
   import { summaryStore } from './stores/summaryStore.svelte.js' // Import the summaryStore object
   import { theme, setTheme } from './stores/themeStore.svelte' // Import theme store and setTheme function

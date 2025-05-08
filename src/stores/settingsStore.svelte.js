@@ -10,7 +10,7 @@ const DEFAULT_SETTINGS = {
   geminiApiKey: '',
   summaryLength: 'medium', // short, medium, long
   summaryFormat: 'heading', // heading, paragraph
-  summaryLang: 'vi', // Default language Vietnamese
+  summaryLang: 'Vietnamese', // Default language Vietnamese
 }
 
 // --- State ---

@@ -227,10 +227,6 @@
 </div>
 
 <style>
-  .lv2 {
-  }
-  .lv3 {
-  }
   .lv4 {
     padding-left: 2rem;
   }

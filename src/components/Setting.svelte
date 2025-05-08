@@ -219,31 +219,29 @@
       <div class="flex flex-col gap-2">
         <!-- svelte-ignore a11y_label_has_associated_control -->
         <label class="block text-text-primary font-bold">Gemini Model</label>
-        <div class="grid w-full gap-0.5">
+        <div class="grid grid-cols-3 w-full gap-0.5">
           <ButtonSet
             title="2.0 Flash"
-            Description="Fast, efficient, lightweight"
-            class="setting {selectedModel === 'gemini-1.5-flash'
-              ? 'active'
-              : ''}"
-            onclick={() => updateSetting('selectedModel', 'gemini-1.5-flash')}
-          ></ButtonSet>
-          <ButtonSet
-            title="2.5 Flash"
-            Description="Smarter, reliable performance"
             class="setting {selectedModel === 'gemini-2.0-flash'
               ? 'active'
               : ''}"
             onclick={() => updateSetting('selectedModel', 'gemini-2.0-flash')}
           ></ButtonSet>
           <ButtonSet
-            title="2.5 Pro"
-            Description="Advanced reasoning, request-limited"
+            title="2.5 Flash"
             class="setting {selectedModel === 'gemini-2.5-flash-preview-04-17'
               ? 'active'
               : ''}"
             onclick={() =>
               updateSetting('selectedModel', 'gemini-2.5-flash-preview-04-17')}
+          ></ButtonSet>
+          <ButtonSet
+            title="2.5 Pro"
+            class="setting {selectedModel === 'gemini-2.5-pro-exp-03-25'
+              ? 'active'
+              : ''}"
+            onclick={() =>
+              updateSetting('selectedModel', 'gemini-2.5-pro-exp-03-25')}
           ></ButtonSet>
         </div>
       </div>
@@ -252,24 +250,41 @@
       <div class="flex flex-col gap-2">
         <!-- svelte-ignore a11y_label_has_associated_control -->
         <label class="block text-text-primary font-bold">Summary Size</label>
-        <div class="grid w-full gap-0.5">
+        <div class="grid grid-cols-3 w-full gap-0.5">
           <ButtonSet
             title="Short"
-            Description="Very briefly, 1-2 sentences max"
             class="setting {summaryLength === 'short' ? 'active' : ''}"
             onclick={() => updateSetting('summaryLength', 'short')}
           ></ButtonSet>
           <ButtonSet
             title="Medium"
-            Description="Concisely, about 3-5 sentences"
             class="setting {summaryLength === 'medium' ? 'active' : ''}"
             onclick={() => updateSetting('summaryLength', 'medium')}
           ></ButtonSet>
           <ButtonSet
             title="Long"
-            Description="Detail, covering all key parts"
             class="setting {summaryLength === 'long' ? 'active' : ''}"
             onclick={() => updateSetting('summaryLength', 'long')}
+          ></ButtonSet>
+        </div>
+      </div>
+
+      <!-- Summary Format Section -->
+      <div class="flex flex-col gap-2">
+        <!-- svelte-ignore a11y_label_has_associated_control -->
+        <label class="block text-text-primary font-bold">Summary format</label>
+        <div class="grid w-full gap-0.5">
+          <ButtonSet
+            title="Plain text"
+            Description="Plain text, no formatting"
+            class="setting {summaryFormat === 'plain' ? 'active' : ''}"
+            onclick={() => updateSetting('summaryFormat', 'plain')}
+          ></ButtonSet>
+          <ButtonSet
+            title="Heading"
+            Description="Headings for each section"
+            class="setting {summaryFormat === 'heading' ? 'active' : ''}"
+            onclick={() => updateSetting('summaryFormat', 'heading')}
           ></ButtonSet>
         </div>
       </div>

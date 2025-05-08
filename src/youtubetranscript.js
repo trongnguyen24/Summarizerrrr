@@ -7,7 +7,7 @@ class YouTubeTranscriptExtractor {
    * Khởi tạo extractor với ngôn ngữ mặc định
    * @param {string} defaultLang - Mã ngôn ngữ mặc định (ví dụ: 'vi', 'en')
    */
-  constructor(defaultLang = 'vi') {
+  constructor(defaultLang = 'en') {
     this.defaultLang = defaultLang
   }
 
@@ -176,55 +176,48 @@ class YouTubeTranscriptExtractor {
       captionTracks.find((track) => track.vssId?.startsWith(vssIdPrefix))
         ?.baseUrl
 
-    const langVssId = '.' + preferredLang // e.g., ".vi"
-    const autoVssId = 'a.' + preferredLang // e.g., "a.vi"
-
-    // Thử tìm theo thứ tự ưu tiên
-    let baseUrl = findCaptionUrl(langVssId) // Ưu tiên ngôn ngữ chỉ định (vd: .vi)
+    // Thử tìm theo thứ tự ưu tiên: tiếng Anh thủ công, tiếng Anh tự động tạo, bất kỳ thủ công nào, bất kỳ tự động tạo nào, cuối cùng là track đầu tiên
+    let baseUrl =
+      findCaptionUrl('.en') || // English manual
+      findCaptionUrl('a.en') || // English auto-generated
+      findCaptionUrl('.') || // any manual
+      findCaptionUrl('a.') || // any auto-generated
+      captionTracks[0]?.baseUrl // first track
     let needsTlang = false
 
-    if (!baseUrl) {
-      console.log(
-        `No exact match for ${preferredLang} (${langVssId}). Trying fallbacks.`
-      )
-      baseUrl =
-        findCaptionUrl('.') || // Thử bất kỳ ngôn ngữ nào không phải auto-gen
-        findCaptionUrl(autoVssId) || // Thử auto-gen của ngôn ngữ chỉ định
-        captionTracks[0]?.baseUrl // Lấy track đầu tiên nếu không có gì khác
+    const selectedTrack = baseUrl
+      ? captionTracks.find((track) => track.baseUrl === baseUrl)
+      : null
 
-      // Nếu dùng fallback mà không phải là auto-gen của ngôn ngữ mong muốn, cần thêm tlang
-      // Cần kiểm tra kỹ hơn: nếu baseUrl là tự động tạo của ngôn ngữ khác preferredLang, cũng cần tlang
-      // Nếu baseUrl là bất kỳ non-asr nào không phải preferredLang, cũng cần tlang
-      // Đơn giản hóa lại logic needsTlang: cần tlang nếu ngôn ngữ của track được chọn
-      // không phải là preferredLang (và không phải là auto-gen của preferredLang)
-      const selectedTrack = baseUrl
-        ? captionTracks.find((track) => track.baseUrl === baseUrl)
-        : null
-
-      if (selectedTrack && selectedTrack.languageCode !== preferredLang) {
-        // Needs tlang UNLESS the selected track is already the auto-generated for preferredLang
-        if (
-          !(
-            selectedTrack.kind === 'asr' &&
-            selectedTrack.languageCode === preferredLang
-          )
-        ) {
-          needsTlang = true
-          console.log(
-            `Selected track language (${selectedTrack.languageCode}) does not match preferred language (${preferredLang}). Setting needsTlang = true.`
-          )
-        }
-      } else if (!selectedTrack) {
-        console.log('No track selected.')
-      } else {
-        console.log(
-          `Selected track language (${selectedTrack.languageCode}) matches preferred language (${preferredLang}). Setting needsTlang = false.`
-        )
-      }
+    if (!selectedTrack) {
+      console.log('No track selected.')
     } else {
       console.log(
-        `Found exact match for ${preferredLang}. Setting needsTlang = false.`
+        `Selected track: ${
+          selectedTrack.name?.simpleText ||
+          selectedTrack.languageCode ||
+          'Unknown'
+        } (Code: ${selectedTrack.languageCode})${
+          selectedTrack.kind === 'asr' ? ' (auto-generated)' : ''
+        }`
       )
+      // Logic needsTlang: cần tlang chỉ nếu track KHÔNG phải là auto-generated VÀ ngôn ngữ không khớp với ngôn ngữ ưu tiên
+      if (selectedTrack.kind === 'asr') {
+        needsTlang = false
+        console.log(
+          'Selected track is auto-generated. Setting needsTlang = false.'
+        )
+      } else if (selectedTrack.languageCode !== preferredLang) {
+        needsTlang = true
+        console.log(
+          `Selected track is not auto-generated and language (${selectedTrack.languageCode}) does not match preferred language (${preferredLang}). Setting needsTlang = true.`
+        )
+      } else {
+        needsTlang = false
+        console.log(
+          `Selected track is not auto-generated and language (${selectedTrack.languageCode}) matches preferred language (${preferredLang}). Setting needsTlang = false.`
+        )
+      }
     }
 
     // Tìm thông tin về track được chọn để log

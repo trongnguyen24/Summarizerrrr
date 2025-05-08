@@ -34,11 +34,11 @@ export async function summarizeWithGemini(
       model = result.selectedModel
     }
   } else if (typeof localStorage !== 'undefined') {
-    model = localStorage.getItem('selectedModel_dev') || 'gemini-1.5-flash'
+    model = localStorage.getItem('selectedModel_dev') || 'gemini-2.0-flash'
   }
 
   const modelConfig =
-    geminiModelsConfig[model] || geminiModelsConfig['gemini-1.5-flash'] // Fallback to default
+    geminiModelsConfig[model] || geminiModelsConfig['gemini-2.0-flash'] // Fallback to default
 
   let prompt
   if (isYouTube) {
@@ -108,18 +108,18 @@ export async function summarizeChaptersWithGemini(
     )
   }
 
-  let model = 'gemini-1.5-flash' // Default model
+  let model = 'gemini-2.0-flash' // Default model
   if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync) {
     const result = await chrome.storage.sync.get('selectedModel')
     if (result.selectedModel) {
       model = result.selectedModel
     }
   } else if (typeof localStorage !== 'undefined') {
-    model = localStorage.getItem('selectedModel_dev') || 'gemini-1.5-flash'
+    model = localStorage.getItem('selectedModel_dev') || 'gemini-2.0-flash'
   }
 
   const modelConfig =
-    geminiModelsConfig[model] || geminiModelsConfig['gemini-1.5-flash'] // Fallback to default
+    geminiModelsConfig[model] || geminiModelsConfig['gemini-2.0-flash'] // Fallback to default
   const prompt = modelConfig.buildChapterPrompt(
     timestampedTranscript,
     lang,

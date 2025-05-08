@@ -82,6 +82,13 @@
       // return true; // Không cần thiết nếu không gửi phản hồi
     }
     chrome.runtime.onMessage.addListener(handleMessage)
+    chrome.runtime.sendMessage(
+      { action: 'requestCurrentTabInfo' },
+      (response) => {
+        tabTitleStore.set(response.tabTitle) // Update the tabTitleStore
+        reactTabNavigation = response.isYouTube
+      }
+    )
 
     // Request current tab info from background script on mount
     chrome.runtime

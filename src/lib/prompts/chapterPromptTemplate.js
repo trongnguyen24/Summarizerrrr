@@ -12,6 +12,7 @@ Hãy phân tích <Transcript_Input> được cung cấp và tạo bản tóm t�
     - "medium": Tóm tắt ngắn gọn (2-4 câu) bao gồm các điểm chính của chương/phần.
     - "long": Tóm tắt chi tiết (từ 5 câu trở lên hoặc nhiều đoạn) bao gồm tất cả các phần quan trọng, luận điểm hỗ trợ và thông tin chi tiết có trong chương/phần đó.
     *(Lưu ý: Độ dài này áp dụng cho phần tóm tắt dưới tiêu đề mỗi chương và có thể linh hoạt tùy theo nội dung thực tế của chương.)*
+    
 </Parameters>
 
 <Input_Format>

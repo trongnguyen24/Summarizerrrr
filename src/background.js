@@ -82,6 +82,50 @@ chrome.action.onClicked.addListener(async (tab) => {
     // Ghi lại lỗi nhưng vẫn tiếp tục thử inject script nếu cần
   }
 
+  // Lấy thông tin tab hiện tại và gửi message đến side panel
+  try {
+    const tabs = await chrome.tabs.query({ active: true, currentWindow: true })
+    const activeTab = tabs[0]
+    if (activeTab && activeTab.id) {
+      console.log(
+        `[background.js] Sending currentTabInfo to tab ${activeTab.id}`
+      )
+      chrome.tabs
+        .sendMessage(activeTab.id, {
+          action: 'currentTabInfo',
+          tabId: activeTab.id,
+          tabUrl: activeTab.url,
+          tabTitle: activeTab.title,
+          isYouTube: activeTab.url.includes('youtube.com/watch'),
+        })
+        .catch((error) => {
+          // Bắt lỗi nếu side panel chưa mở hoặc listener chưa sẵn sàng
+          if (
+            error.message.includes('Could not establish connection') ||
+            error.message.includes('Receiving end does not exist')
+          ) {
+            console.warn(
+              '[background.js] Side panel not open or no listener for currentTabInfo message.'
+            )
+          } else {
+            console.error(
+              '[background.js] Error sending currentTabInfo message:',
+              error
+            )
+          }
+        })
+    } else {
+      console.warn(
+        '[background.js] No active tab found to send currentTabInfo.'
+      )
+    }
+  } catch (error) {
+    console.error(
+      '[background.js] Error querying active tab or sending message:',
+      error
+    )
+  }
+
   // Sau đó mới kiểm tra và inject script nếu là trang YouTube
   if (tab.url.includes('youtube.com/watch')) {
     console.log('Action clicked on YouTube page, attempting injection...')

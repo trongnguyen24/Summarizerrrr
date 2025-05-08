@@ -2,7 +2,7 @@ import { youTubePromptTemplate } from '../prompts/youTubePromptTemplate'
 import { generalPromptTemplate } from '../prompts/generalPromptTemplate'
 import { chapterPromptTemplate } from '../prompts/chapterPromptTemplate'
 
-export const gemini15FlashConfig = {
+export const gemini20ProConfig = {
   youTubeSystemInstruction:
     'Bạn là một trợ lý chuyên phân tích và tóm tắt video YouTube dựa trên transcript được cung cấp. Nhiệm vụ của bạn là tạo bản tóm tắt súc tích, chính xác và có cấu trúc, tuân thủ nghiêm ngặt các tham số và hướng dẫn dưới đây. Chỉ sử dụng thông tin có trong <Transcript> được cung cấp.',
   generalSystemInstruction:
@@ -34,6 +34,6 @@ export const gemini15FlashConfig = {
   },
   generationConfig: {
     maxOutputTokens: 8192,
-    temperature: 0.9,
+    temperature: 0.3,
   },
 }

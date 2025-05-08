@@ -12,7 +12,7 @@
   let apiKey = $state('')
   let showApiKey = $state(false) // Track API key visibility
   let summaryLength = $state('medium')
-  let summaryLang = $state('vi') // Changed default to 'vi' to match options
+  let summaryLang = $state('Vietnamese') // Changed default to 'vi' to match options
   let summaryFormat = $state('heading') // Changed default to 'heading' to match options
   let selectedModel = $state('gemini-1.5-flash') // Add state for selected model
   let saveStatus = $state('')
@@ -44,7 +44,7 @@
           if (result.geminiApiKey) apiKey = result.geminiApiKey
           // Ensure defaults are set if nothing is in storage yet
           summaryLength = result.summaryLength || 'medium'
-          summaryLang = result.summaryLang || 'vi' // Default to Vietnamese
+          summaryLang = result.summaryLang || 'Vietnamese'
           summaryFormat = result.summaryFormat || 'heading'
           selectedModel = result.selectedModel || 'gemini-1.5-flash' // Load selected model
         }
@@ -54,7 +54,7 @@
       // Set defaults for dev environment
       apiKey = localStorage.getItem('geminiApiKey_dev') || '' // Load from local storage for dev
       summaryLength = 'medium'
-      summaryLang = 'vi' // Default to Vietnamese
+      summaryLang = 'Vietnamese'
       summaryFormat = 'heading'
       selectedModel =
         localStorage.getItem('selectedModel_dev') || 'gemini-1.5-flash' // Load selected model for dev
@@ -282,14 +282,14 @@
           <ButtonSet
             title="Vietnamese"
             Description="Kêt quả bằng tiếng Việt"
-            class="setting {summaryLang === 'vi' ? 'active' : ''}"
-            onclick={() => updateSetting('summaryLang', 'vi')}
+            class="setting {summaryLang === 'Vietnamese' ? 'active' : ''}"
+            onclick={() => updateSetting('summaryLang', 'Vietnamese')}
           ></ButtonSet>
           <ButtonSet
             title="English"
             Description="Results in English"
-            class="setting {summaryLang === 'en' ? 'active' : ''}"
-            onclick={() => updateSetting('summaryLang', 'en')}
+            class="setting {summaryLang === 'English' ? 'active' : ''}"
+            onclick={() => updateSetting('summaryLang', 'English')}
           ></ButtonSet>
           <ButtonSet
             title="Korean"

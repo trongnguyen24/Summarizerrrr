@@ -29,7 +29,7 @@ Hãy phân tích <Transcript_Input> được cung cấp và tạo bản tóm t�
 - **Xác định Thời Gian Bắt Đầu:** Thời gian bắt đầu của mỗi chương/phần sẽ là dấu thời gian sớm nhất được tìm thấy trong đoạn transcript tương ứng với chương/phần đó.
 - **Cấu trúc Đầu ra:**
     1.  Bắt đầu đầu ra bằng tiêu đề chính: ## Tóm tắt video theo chương: (hoặc tiêu đề tương đương trong ngôn ngữ \${lang}).
-    2.  Đối với *mỗi* chương/phần đã xác định, tạo một tiêu đề cấp 3 (###) theo định dạng: ### [Thời gian bắt đầu Ước lượng] - [Tên chương bạn đặt] (bằng ngôn ngữ <span class="math-inline">\{lang\}\)\.
+    2.  Đối với *mỗi* chương/phần đã xác định, tạo một tiêu đề cấp 3 (###) theo định dạng: ### Thời gian bắt đầu Ước lượng - Tên chương bạn đặt.
 3\.  Dưới tiêu đề cấp 3 của mỗi chương, tạo phần tóm tắt nội dung chính của chương đó, tuân thủ độ dài yêu cầu \(</span>{length}).
     4.  Nếu độ dài yêu cầu là "long" hoặc chương đó có nhiều điểm phức tạp, sử dụng tiêu đề cấp 4 (####) và danh sách gạch đầu dòng (-) để làm nổi bật các luận điểm hoặc chi tiết quan trọng bên trong phần tóm tắt của chapter đó.
     5.  Đảm bảo phần tóm tắt mỗi chương (và các tiểu mục nếu có) bao gồm các luận điểm chính, thuật ngữ quan trọng (in đậm **Term** bằng ngôn ngữ \${lang}) được đề cập trong chapter đó, và thông tin cốt lõi.

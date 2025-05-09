@@ -31,7 +31,9 @@
   document.addEventListener('summarizeClick', () => {
     summaryStore.fetchAndSummarize()
     showTabNavigation = reactTabNavigation
-    activeTab = 'summary' // Set active tab to summary when clicking the button
+    if (!reactTabNavigation) {
+      activeTab = 'summary' // Set active tab to summary when clicking the button
+    }
   }) // Listen for click event from SummarizeButton
   document.addEventListener('tabChange', (event) => {
     activeTab = event.detail
@@ -124,7 +126,7 @@
   <div class="grid grid-rows-[32px_1px_8px_1px_180px_1px_8px_1px_1fr] h-screen">
     <div class=" flex justify-center items-center w-full h-full">
       <div class="text-text-secondary">
-        <div class="line-clamp-1 text-[0.65rem] px-2 text-text-secondary">
+        <div class="line-clamp-1 text-[0.75rem] px-2 text-text-secondary">
           {$tabTitleStore}
           <!-- {$reactTabNavigation ? ' - YouTube Video' : 'Web Page'} -->
         </div>

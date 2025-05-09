@@ -1,7 +1,7 @@
 import { writable } from 'svelte/store'
 
 // Tạo writable store cho theme
-export const theme = writable('system')
+export const theme = writable('dark')
 
 // Biến cục bộ để lưu giá trị theme hiện tại từ store
 let currentThemeValue

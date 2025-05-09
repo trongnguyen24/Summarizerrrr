@@ -152,7 +152,7 @@
   </div>
 
   <!-- API Key Section -->
-  <div id="setting-scroll" class="h-[calc(100vh-64px)]">
+  <div id="setting-scroll" class="max-h-[calc(100vh-64px)]">
     <div class="p-4 flex flex-col gap-6">
       <div class="flex flex-col gap-2">
         <div class="flex items-center gap-1 justify-between">
@@ -273,16 +273,14 @@
       <div class="flex flex-col gap-2">
         <!-- svelte-ignore a11y_label_has_associated_control -->
         <label class="block text-text-primary font-bold">Summary format</label>
-        <div class="grid w-full gap-0.5">
+        <div class="grid grid-cols-3 w-full gap-0.5">
           <ButtonSet
-            title="Plain text"
-            Description="Plain text, no formatting"
+            title="Plain"
             class="setting {summaryFormat === 'plain' ? 'active' : ''}"
             onclick={() => updateSetting('summaryFormat', 'plain')}
           ></ButtonSet>
           <ButtonSet
             title="Heading"
-            Description="Headings for each section"
             class="setting {summaryFormat === 'heading' ? 'active' : ''}"
             onclick={() => updateSetting('summaryFormat', 'heading')}
           ></ButtonSet>
@@ -293,22 +291,19 @@
       <div class="flex flex-col gap-2">
         <!-- svelte-ignore a11y_label_has_associated_control -->
         <label class="block text-text-primary font-bold">Language output</label>
-        <div class="grid w-full gap-0.5">
+        <div class="grid grid-cols-3 w-full gap-0.5">
           <ButtonSet
             title="Vietnamese"
-            Description="Kêt quả bằng tiếng Việt"
             class="setting {summaryLang === 'Vietnamese' ? 'active' : ''}"
             onclick={() => updateSetting('summaryLang', 'Vietnamese')}
           ></ButtonSet>
           <ButtonSet
             title="English"
-            Description="Results in English"
             class="setting {summaryLang === 'English' ? 'active' : ''}"
             onclick={() => updateSetting('summaryLang', 'English')}
           ></ButtonSet>
           <ButtonSet
             title="Korean"
-            Description="결과를 한국어로"
             class="setting {summaryLang === 'Korean' ? 'active' : ''}"
             onclick={() => updateSetting('summaryLang', 'Korean')}
           ></ButtonSet>
@@ -319,22 +314,19 @@
       <div class="flex flex-col gap-2">
         <!-- svelte-ignore a11y_label_has_associated_control -->
         <label class="block text-text-primary font-bold">Theme</label>
-        <div class="grid w-full gap-0.5">
+        <div class="grid grid-cols-3 w-full gap-0.5">
           <ButtonSet
             title="Light"
-            Description="Bright and clean look"
             class="setting {$theme === 'light' ? 'active' : ''}"
             onclick={() => setTheme('light')}
           ></ButtonSet>
           <ButtonSet
             title="Dark"
-            Description="Dark mode for low-light environments"
             class="setting {$theme === 'dark' ? 'active' : ''}"
             onclick={() => setTheme('dark')}
           ></ButtonSet>
           <ButtonSet
             title="System"
-            Description="Follow system theme settings"
             class="setting {$theme === 'system' ? 'active' : ''}"
             onclick={() => setTheme('system')}
           ></ButtonSet>

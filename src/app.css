@@ -12,13 +12,14 @@
 
 @theme {
   --breakpoint-xs: 38rem;
-  --color-background: oklch(93.1% 0.0061 277.7);
-  --color-surface-1: oklch(95.6% 0.0045 277.7);
-  --color-surface-2: oklch(99.1% 0.0015 277.7);
-  --color-border: oklch(88.8% 0.0093 277.7);
-  --color-text-primary: oklch(50.3% 0.0139 277.7);
-  --color-text-secondary: oklch(70.4% 0.016 277.7);
-  --color-muted: oklch(85.3% 0.0117 277.7);
+  --color-blackwhite: oklch(0 0 0);
+  --color-background: oklch(0.95 0.001 286);
+  --color-surface-1: oklch(0.97 0.0005 286);
+  --color-surface-2: oklch(1 0 0);
+  --color-border: oklch(0.85 0 0);
+  --color-text-primary: oklch(0.2 0 0);
+  --color-text-secondary: oklch(0.46 0 0);
+  --color-muted: oklch(0.57 0 0);
   --color-primary: oklch(69.1% 0.1909 45.02);
   --color-success: oklch(0.768 0.233 130.85);
   --color-error: oklch(0.637 0.237 25.331);
@@ -44,6 +45,7 @@
   --tw-prose-th-borders: var(--tw-prose-invert-th-borders);
   --tw-prose-td-borders: var(--tw-prose-invert-td-borders);
 
+  --color-blackwhite: oklch(1 0 0);
   --color-background: oklch(0.15 0.02 286);
   --color-surface-1: oklch(0.2 0.015 268);
   --color-surface-2: oklch(0.25 0.015 264);
@@ -229,7 +231,7 @@ button {
 .plus-icon::after {
   content: '';
   position: absolute;
-  background-color: rgba(255, 255, 255, 1); /* Màu của dấu cộng */
+  background-color: var(--color-blackwhite); /* Màu sắc của dấu cộng */
 }
 
 .plus-icon::before {

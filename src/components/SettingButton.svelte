@@ -27,22 +27,22 @@
     </Dialog.Overlay>
     <Dialog.Content
       forceMount
-      class="outline-hidden fixed left-[50%] top-4 w-[calc(100vw-32px)] max-w-2xl z-50 translate-x-[-50%]"
+      class="outline-hidden fixed left-[50%] top-4 w-[calc(100vw-32px)] max-w-lg z-50 translate-x-[-50%]"
     >
       {#snippet child({ props, open })}
         {#if open}
           <div {...props} transition:slideScaleFade>
-            <div class="absolute z-50 right-3 top-2 group flex gap-2">
-              <span class="block size-4 bg-muted/15 rounded-full"></span>
-              <span class="block size-4 bg-muted/15 rounded-full"></span>
+            <div class="absolute z-50 right-3 top-2.5 group flex gap-2">
+              <span class="block size-3.5 bg-muted/15 rounded-full"></span>
+              <span class="block size-3.5 bg-muted/15 rounded-full"></span>
               <!-- svelte-ignore a11y_consider_explicit_label -->
               <button
                 onclick={() => (isOpen = false)}
-                class="block size-4 bg-error rounded-full"
+                class="block size-3.5 bg-error rounded-full"
               >
                 <Icon
                   class="text-red-800 transition-opacity duration-150"
-                  width={16}
+                  width={14}
                   icon="heroicons:x-mark-16-solid"
                 />
               </button>

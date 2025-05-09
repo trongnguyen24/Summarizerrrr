@@ -1,6 +1,7 @@
 <script>
   // @ts-nocheck
   import { onMount, onDestroy } from 'svelte'
+  import Icon from '@iconify/svelte'
   import 'overlayscrollbars/overlayscrollbars.css' // Import CSS overlayscrollbars
   import { useOverlayScrollbars } from 'overlayscrollbars-svelte' // Import primitive
 
@@ -190,6 +191,11 @@
         </span>
       </span>
     {/each}
+    <span
+      class="w-1 text-[0.5rem] mt-0.5 select-none flex justify-center items-center h-px text-primary dark:text-white"
+    >
+      ^
+    </span>
   </div>
   <nav
     class="fixed -bottom-4 p-4 pr-3 right-0 xs:pr-6 hidden group-hover:block opacity-0 group-hover:opacity-100"
@@ -220,6 +226,11 @@
               </span>
             </a>
           {/each}
+          <a
+            href="#top"
+            class="px-3 flex justify-center items-center gap-1 py-2 font-mono text-xs/4 no-underline transition-colors"
+            ><Icon width="16" icon="carbon:up-to-top" />Go to top</a
+          >
         </div>
       </div>
     </div>

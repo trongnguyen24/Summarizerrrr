@@ -226,13 +226,13 @@
               </span>
             </a>
           {/each}
-          <a
-            href="#top"
-            class="px-3 flex justify-center items-center gap-1 py-2 font-mono text-xs/4 no-underline transition-colors"
-            ><Icon width="16" icon="carbon:up-to-top" />Go to top</a
-          >
         </div>
       </div>
+      <a
+        href="#top"
+        class="px-3 bg-border flex justify-end items-center gap-1 py-3 font-mono text-xs/4 no-underline transition-colors"
+        ><Icon width="16" icon="carbon:up-to-top" />Go to top</a
+      >
     </div>
   </nav>
 </div>

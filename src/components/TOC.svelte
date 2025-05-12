@@ -200,16 +200,13 @@
   <nav
     class="fixed -bottom-4 p-4 pr-3 right-0 xs:pr-6 hidden group-hover:block opacity-0 group-hover:opacity-100"
   >
-    <div class="relative">
-      <!-- <div class="plus-icon top-left z-10"></div>
-      <div class="plus-icon bottom-right z-10"></div> -->
-
+    <div class="relative bg-surface-1">
       <div
         id="toc-scroll"
-        class="w-64 xs:w-80 overflow-auto max-h-[calc(100vh-100px)] border border-border bg-surface-1"
+        class="w-64 xs:w-80 overflow-auto max-h-[calc(100vh-150px)] border border-border bg-surface-1"
       >
         <div
-          class="flex flex-col divide-y divide-stone-100 dark:divide-border/70"
+          class="flex flex-col divide-y divide-border/50 dark:divide-border/70"
         >
           {#each headings as heading}
             <a
@@ -230,7 +227,7 @@
       </div>
       <a
         href="#top"
-        class="px-3 bg-border flex justify-end items-center gap-1 py-3 font-mono text-xs/4 no-underline transition-colors"
+        class="px-3 bg-border/50 flex justify-end items-center gap-1 py-3 font-mono text-xs/4 no-underline transition-colors"
         ><Icon width="16" icon="carbon:up-to-top" />Go to top</a
       >
     </div>

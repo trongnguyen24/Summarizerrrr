@@ -13,10 +13,11 @@
 @theme {
   --breakpoint-xs: 38rem;
   --color-blackwhite: oklch(0 0 0);
+  --color-summarize: oklch(0 0 0);
   --color-background: oklch(0.95 0.001 286);
   --color-surface-1: oklch(0.97 0.0005 286);
   --color-surface-2: oklch(1 0 0);
-  --color-border: oklch(0.85 0 0);
+  --color-border: oklch(0.88 0 0);
   --color-text-primary: oklch(0.2 0 0);
   --color-text-secondary: oklch(0.46 0 0);
   --color-muted: oklch(0.57 0 0);
@@ -44,7 +45,7 @@
   --tw-prose-pre-bg: var(--tw-prose-invert-pre-bg);
   --tw-prose-th-borders: var(--tw-prose-invert-th-borders);
   --tw-prose-td-borders: var(--tw-prose-invert-td-borders);
-
+  --color-summarize: oklch(0 0 0);
   --color-blackwhite: oklch(1 0 0);
   --color-background: oklch(0.15 0.02 286);
   --color-surface-1: oklch(0.2 0.015 268);

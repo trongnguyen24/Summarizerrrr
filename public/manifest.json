@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Summarizerrrr",
   "version": "1.0.0",
-  "description": "Tóm tắt nội dung trang web và video YouTube bằng Gemini API thông qua Side Panel.",
+  "description": "Summarize web pages and YouTube videos using the Gemini API directly from the Side Panel.",
   "permissions": ["sidePanel", "storage", "activeTab", "scripting", "tabs"],
   "host_permissions": ["<all_urls>"],
   "side_panel": {

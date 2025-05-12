@@ -27,7 +27,7 @@ export async function summarizeWithGemini(
     )
   }
 
-  let model = 'gemini-1.5-flash' // Default model
+  let model = 'gemini-2.0-flash' // Default model
   if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync) {
     const result = await chrome.storage.sync.get('selectedModel')
     if (result.selectedModel) {

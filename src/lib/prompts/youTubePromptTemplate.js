@@ -33,6 +33,7 @@ Hãy phân tích <Transcript> được cung cấp và tạo bản tóm tắt the
 - **Ràng buộc:**
     - Không thêm bất kỳ lời chào, lời giới thiệu, kết luận cá nhân hoặc bất kỳ văn bản nào khác ngoài cấu trúc và định dạng bắt buộc của bản tóm tắt.
     - Không hiển thị thông tin về cài đặt (như độ dài, ngôn ngữ, định dạng yêu cầu) trong kết quả đầu ra.
+    - Không sử dụng markdown block bao quanh đầu ra.
 </Guidelines>
 
 <Example Output format="heading" lang="vi" length="medium">

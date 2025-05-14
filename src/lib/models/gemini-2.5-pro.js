@@ -33,7 +33,7 @@ export const gemini20ProConfig = {
       .replace(/\${timestampedTranscript}/g, timestampedTranscript)
   },
   generationConfig: {
-    maxOutputTokens: 8192,
+    maxOutputTokens: 32768,
     temperature: 0.3,
   },
 }

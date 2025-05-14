@@ -14,7 +14,7 @@
   let summaryLength = $state('medium')
   let summaryLang = $state('Vietnamese') // Changed default to 'vi' to match options
   let summaryFormat = $state('heading') // Changed default to 'heading' to match options
-  let selectedModel = $state('gemini-1.5-flash') // Add state for selected model
+  let selectedModel = $state('gemini-2.0-flash') // Add state for selected model
   let saveStatus = $state('')
   let apiKeyDebounceTimer = null // Timer for debouncing API key save
 
@@ -46,7 +46,7 @@
           summaryLength = result.summaryLength || 'medium'
           summaryLang = result.summaryLang || 'Vietnamese'
           summaryFormat = result.summaryFormat || 'heading'
-          selectedModel = result.selectedModel || 'gemini-1.5-flash' // Load selected model
+          selectedModel = result.selectedModel || 'gemini-2.0-flash' // Load selected model
         }
       )
     } else {
@@ -57,7 +57,7 @@
       summaryLang = 'Vietnamese'
       summaryFormat = 'heading'
       selectedModel =
-        localStorage.getItem('selectedModel_dev') || 'gemini-1.5-flash' // Load selected model for dev
+        localStorage.getItem('selectedModel_dev') || 'gemini-2.0-flash' // Load selected model for dev
     }
     // Initialize the overlay scrollbar
     const tocElement = document.getElementById('setting-scroll')
@@ -71,7 +71,7 @@
     clearTimeout(apiKeyDebounceTimer)
     apiKeyDebounceTimer = setTimeout(() => {
       saveApiKey()
-    }, 400) // Delay of 0.8 seconds
+    }, 300) // Delay of 0.8 seconds
   }
 
   function updateSetting(key, value) {

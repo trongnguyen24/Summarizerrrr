@@ -33,7 +33,7 @@ export const gemini20FlashConfig = {
       .replace(/\${timestampedTranscript}/g, timestampedTranscript)
   },
   generationConfig: {
-    maxOutputTokens: 4096, // Example value, adjust as needed
+    maxOutputTokens: 8192, // Example value, adjust as needed
     temperature: 0.2, // Example value, adjust as needed
   },
 }

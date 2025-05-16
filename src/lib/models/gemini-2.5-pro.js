@@ -35,5 +35,6 @@ export const gemini20ProConfig = {
   generationConfig: {
     maxOutputTokens: 32768,
     temperature: 0.3,
+    topP: 0.9, // Default value, will be overridden by user settings
   },
 }

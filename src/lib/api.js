@@ -28,13 +28,21 @@ export async function summarizeWithGemini(
   }
 
   let model = 'gemini-2.0-flash' // Default model
+  let userSettings = {}
   if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync) {
-    const result = await chrome.storage.sync.get('selectedModel')
-    if (result.selectedModel) {
-      model = result.selectedModel
+    userSettings = await chrome.storage.sync.get([
+      'selectedModel',
+      'temperature',
+      'topP',
+    ])
+    if (userSettings.selectedModel) {
+      model = userSettings.selectedModel
     }
   } else if (typeof localStorage !== 'undefined') {
     model = localStorage.getItem('selectedModel_dev') || 'gemini-2.0-flash'
+    userSettings.temperature =
+      parseFloat(localStorage.getItem('temperature_dev')) || 0.6
+    userSettings.topP = parseFloat(localStorage.getItem('topP_dev')) || 0.91
   }
 
   const modelConfig =
@@ -49,13 +57,26 @@ export async function summarizeWithGemini(
 
   const genAI = new GoogleGenAI({ apiKey })
   try {
+    // Apply user settings to generationConfig, overriding defaults
+    const finalGenerationConfig = {
+      ...modelConfig.generationConfig,
+      temperature:
+        userSettings.temperature !== undefined
+          ? userSettings.temperature
+          : modelConfig.generationConfig.temperature,
+      topP:
+        userSettings.topP !== undefined
+          ? userSettings.topP
+          : modelConfig.generationConfig.topP,
+    }
+
     const result = await genAI.models.generateContent({
       model: model,
       contents: [{ parts: [{ text: prompt }] }],
       systemInstruction: isYouTube
         ? modelConfig.youTubeSystemInstruction
         : modelConfig.generalSystemInstruction,
-      generationConfig: modelConfig.generationConfig,
+      generationConfig: finalGenerationConfig,
     })
     console.log('Gemini API Result (summarizeWithGemini):', result) // Log the result object
 
@@ -109,13 +130,21 @@ export async function summarizeChaptersWithGemini(
   }
 
   let model = 'gemini-2.0-flash' // Default model
+  let userSettings = {}
   if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync) {
-    const result = await chrome.storage.sync.get('selectedModel')
-    if (result.selectedModel) {
-      model = result.selectedModel
+    userSettings = await chrome.storage.sync.get([
+      'selectedModel',
+      'temperature',
+      'topP',
+    ])
+    if (userSettings.selectedModel) {
+      model = userSettings.selectedModel
     }
   } else if (typeof localStorage !== 'undefined') {
     model = localStorage.getItem('selectedModel_dev') || 'gemini-2.0-flash'
+    userSettings.temperature =
+      parseFloat(localStorage.getItem('temperature_dev')) || 0.6
+    userSettings.topP = parseFloat(localStorage.getItem('topP_dev')) || 0.91
   }
 
   const modelConfig =
@@ -128,11 +157,24 @@ export async function summarizeChaptersWithGemini(
 
   const genAI = new GoogleGenAI({ apiKey })
   try {
+    // Apply user settings to generationConfig, overriding defaults
+    const finalGenerationConfig = {
+      ...modelConfig.generationConfig,
+      temperature:
+        userSettings.temperature !== undefined
+          ? userSettings.temperature
+          : modelConfig.generationConfig.temperature,
+      topP:
+        userSettings.topP !== undefined
+          ? userSettings.topP
+          : modelConfig.generationConfig.topP,
+    }
+
     const result = await genAI.models.generateContent({
       model: model,
       contents: [{ parts: [{ text: prompt }] }],
       systemInstruction: modelConfig.chapterSystemInstruction,
-      generationConfig: modelConfig.generationConfig,
+      generationConfig: finalGenerationConfig,
     })
     console.log('Gemini API Result (summarizeChaptersWithGemini):', result) // Log the result object
 

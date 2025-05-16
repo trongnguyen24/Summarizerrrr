@@ -15,6 +15,8 @@
   let summaryLang = $state('Vietnamese') // Changed default to 'vi' to match options
   let summaryFormat = $state('heading') // Changed default to 'heading' to match options
   let selectedModel = $state('gemini-2.0-flash') // Add state for selected model
+  let temperature = $state(0.6) // Add state for temperature, default to Balanced
+  let topP = $state(0.91) // Add state for topP, default to Balanced
   let saveStatus = $state('')
   let apiKeyDebounceTimer = null // Timer for debouncing API key save
 
@@ -39,6 +41,8 @@
           'summaryLang',
           'summaryFormat',
           'selectedModel',
+          'temperature', // Add temperature
+          'topP', // Add topP
         ],
         (result) => {
           if (result.geminiApiKey) apiKey = result.geminiApiKey
@@ -47,6 +51,8 @@
           summaryLang = result.summaryLang || 'Vietnamese'
           summaryFormat = result.summaryFormat || 'heading'
           selectedModel = result.selectedModel || 'gemini-2.0-flash' // Load selected model
+          temperature = result.temperature || 0.6 // Load temperature, default to Balanced
+          topP = result.topP || 0.91 // Load topP, default to Balanced
         }
       )
     } else {
@@ -58,6 +64,8 @@
       summaryFormat = 'heading'
       selectedModel =
         localStorage.getItem('selectedModel_dev') || 'gemini-2.0-flash' // Load selected model for dev
+      temperature = parseFloat(localStorage.getItem('temperature_dev')) || 0.6 // Load temperature for dev
+      topP = parseFloat(localStorage.getItem('topP_dev')) || 0.91 // Load topP for dev
     }
     // Initialize the overlay scrollbar
     const tocElement = document.getElementById('setting-scroll')
@@ -86,6 +94,8 @@
         if (key === 'summaryLang') summaryLang = value
         if (key === 'summaryFormat') summaryFormat = value
         if (key === 'selectedModel') selectedModel = value // Update selected model state
+        if (key === 'temperature') temperature = value // Update temperature state
+        if (key === 'topP') topP = value // Update topP state
         // Optionally show a temporary confirmation, similar to saveStatus
         // saveStatus = `Updated ${key}!`;
         // setTimeout(() => saveStatus = '', 1500);
@@ -97,6 +107,8 @@
       if (key === 'summaryLang') summaryLang = value
       if (key === 'summaryFormat') summaryFormat = value
       if (key === 'selectedModel') selectedModel = value // Update selected model state for dev
+      if (key === 'temperature') temperature = value // Update temperature state for dev
+      if (key === 'topP') topP = value // Update topP state for dev
       // Also save to local storage for dev environment
       if (key === 'geminiApiKey' && typeof localStorage !== 'undefined') {
         localStorage.setItem('geminiApiKey_dev', value)
@@ -105,6 +117,14 @@
       if (key === 'selectedModel' && typeof localStorage !== 'undefined') {
         localStorage.setItem('selectedModel_dev', value)
         console.log('Saved selectedModel to localStorage (dev)')
+      }
+      if (key === 'temperature' && typeof localStorage !== 'undefined') {
+        localStorage.setItem('temperature_dev', value.toString())
+        console.log('Saved temperature to localStorage (dev)')
+      }
+      if (key === 'topP' && typeof localStorage !== 'undefined') {
+        localStorage.setItem('topP_dev', value.toString())
+        console.log('Saved topP to localStorage (dev)')
       }
     }
   }
@@ -219,7 +239,7 @@
       <div class="flex flex-col gap-2">
         <!-- svelte-ignore a11y_label_has_associated_control -->
         <label class="block text-text-primary font-bold">Gemini Model</label>
-        <div class="grid grid-cols-3 w-full gap-0.5">
+        <div class="grid grid-cols-3 w-full gap-1">
           <ButtonSet
             title="2.0 Flash"
             class="setting {selectedModel === 'gemini-2.0-flash'
@@ -246,11 +266,49 @@
         </div>
       </div>
 
+      <!-- Temperature and Top P Section -->
+      <div class="flex flex-col gap-2">
+        <!-- svelte-ignore a11y_label_has_associated_control -->
+        <label class="block text-text-primary font-bold">Summary Style</label>
+        <div class="grid grid-cols-3 w-full gap-1">
+          <ButtonSet
+            title="Adherent"
+            class="setting {temperature === 0.3 && topP === 0.82
+              ? 'active'
+              : ''}"
+            onclick={() => {
+              updateSetting('temperature', 0.3)
+              updateSetting('topP', 0.82)
+            }}
+          ></ButtonSet>
+          <ButtonSet
+            title="Balanced"
+            class="setting {temperature === 0.6 && topP === 0.91
+              ? 'active'
+              : ''}"
+            onclick={() => {
+              updateSetting('temperature', 0.6)
+              updateSetting('topP', 0.91)
+            }}
+          ></ButtonSet>
+          <ButtonSet
+            title="Creative"
+            class="setting {temperature === 0.9 && topP === 0.96
+              ? 'active'
+              : ''}"
+            onclick={() => {
+              updateSetting('temperature', 0.9)
+              updateSetting('topP', 0.96)
+            }}
+          ></ButtonSet>
+        </div>
+      </div>
+
       <!-- Summary Length Section -->
       <div class="flex flex-col gap-2">
         <!-- svelte-ignore a11y_label_has_associated_control -->
         <label class="block text-text-primary font-bold">Summary Size</label>
-        <div class="grid grid-cols-3 w-full gap-0.5">
+        <div class="grid grid-cols-3 w-full gap-1">
           <ButtonSet
             title="Short"
             class="setting {summaryLength === 'short' ? 'active' : ''}"
@@ -273,7 +331,7 @@
       <div class="flex flex-col gap-2">
         <!-- svelte-ignore a11y_label_has_associated_control -->
         <label class="block text-text-primary font-bold">Summary format</label>
-        <div class="grid grid-cols-3 w-full gap-0.5">
+        <div class="grid grid-cols-3 w-full gap-1">
           <ButtonSet
             title="Plain"
             class="setting {summaryFormat === 'plain' ? 'active' : ''}"
@@ -291,7 +349,7 @@
       <div class="flex flex-col gap-2">
         <!-- svelte-ignore a11y_label_has_associated_control -->
         <label class="block text-text-primary font-bold">Language output</label>
-        <div class="grid grid-cols-3 w-full gap-0.5">
+        <div class="grid grid-cols-3 w-full gap-1">
           <ButtonSet
             title="Vietnamese"
             class="setting {summaryLang === 'Vietnamese' ? 'active' : ''}"
@@ -314,7 +372,7 @@
       <div class="flex flex-col gap-2">
         <!-- svelte-ignore a11y_label_has_associated_control -->
         <label class="block text-text-primary font-bold">Theme</label>
-        <div class="grid grid-cols-3 w-full gap-0.5">
+        <div class="grid grid-cols-3 w-full gap-1">
           <ButtonSet
             title="Light"
             class="setting {$theme === 'light' ? 'active' : ''}"

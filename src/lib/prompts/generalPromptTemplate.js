@@ -2,7 +2,7 @@ export const generalPromptTemplate = `<USER_TASK>
 Hãy phân tích <Input_Content> được cung cấp (bao gồm nội dung chính và có thể có phần bình luận), và tạo bản tóm tắt dựa trên các <Parameters> và <Guidelines> dưới đây.
 </USER_TASK>
 
-<Parameters>
+    <Parameters>
 1.  Độ dài tóm tắt: \${length}
     - "short": Tóm tắt rất ngắn gọn (tối đa 1-2 câu) về ý chính tổng thể của nội dung chính. Nếu có bình luận, chỉ tóm tắt ý chính nhất của phần bình luận trong 1 câu riêng biệt.
     - "medium": Tóm tắt ngắn gọn ( khoảng 3-5 câu) bao gồm các điểm chính của nội dung chính. Nếu có bình luận, tóm tắt các ý kiến/quan điểm chính từ bình luận trong khoảng 2-3 câu riêng biệt.
@@ -15,24 +15,6 @@ Hãy phân tích <Input_Content> được cung cấp (bao gồm nội dung chín
 3.  Định dạng tóm tắt: \${format}
     - "plain": Tóm tắt dưới dạng một hoặc nhiều đoạn văn thuần túy, liên tục (phần nội dung chính và phần bình luận nếu có sẽ là các đoạn riêng biệt được phân cách rõ ràng bằng một dòng trống hoặc tiêu đề đơn giản).
     - "heading": Tóm tắt nội dung chính bắt đầu bằng tiêu đề cấp 2 (##). Các điểm hoặc phần quan trọng hơn trong nội dung chính sử dụng tiêu đề cấp 3 (###). Nếu có bình luận, phần tóm tắt bình luận sẽ có tiêu đề cấp 2 riêng biệt "## Tóm tắt bình luận" (hoặc tương đương trong ngôn ngữ \${lang}), và các ý/điểm nổi bật trong bình luận có thể dùng tiêu đề cấp 3 (###) hoặc cấp 4 (####) nếu cần chi tiết.
-</Parameters>
-
-<Guidelines>
-- **Phân tích Nội dung:** Đọc kỹ <Input_Content> để xác định nội dung chính (bài viết, bài đăng, v.v.) và phần bình luận (nếu có). Phân tách hai phần này trong quá trình xử lý.
-- **Tóm tắt Nội dung Chính:**
-    - Xác định chủ đề chính, các luận điểm quan trọng, bằng chứng/số liệu hỗ trợ, ví dụ, và kết luận của nội dung chính.
-    - Tổ chức thông tin tóm tắt một cách logic và mạch lạc.
-    - Giữ lại các số liệu, tên, ngày tháng, thuật ngữ quan trọng và kết luận chính có trong nội dung gốc. Sử dụng **in đậm** cho các thuật ngữ hoặc khái niệm quan trọng lần đầu xuất hiện trong tóm tắt nếu phù hợp.
-    - Loại bỏ các chi tiết không cần thiết, thông tin lặp lại, và các câu/đoạn filler.
-    - Đảm bảo bảo toàn ý nghĩa và ngữ cảnh của nội dung gốc.
-    - Nếu nội dung gốc dài (>3000 từ được ước tính dựa trên <Input_Content>), đặc biệt khi \${length} là "long" hoặc "medium", hãy chia tóm tắt nội dung chính theo các chủ đề hoặc phần chính của nội dung gốc và sử dụng tiêu đề phù hợp (### hoặc #### nếu định dạng là "heading").
-    - Nếu phát hiện thông tin mâu thuẫn hoặc các quan điểm khác nhau được trình bày trong nội dung gốc, hãy đề cập (một cách khách quan) các quan điểm đa dạng này trong tóm tắt.
-    - Nếu chất lượng nội dung gốc hạn chế hoặc có nhiều thông tin nhiễu, tập trung vào việc trích xuất và tóm tắt những thông tin có giá trị và đáng tin cậy nhất có thể tìm thấy.
-- **Tóm tắt Bình luận (Conditional):**
-    - Nếu <Input_Content> bao gồm phần bình luận, phân tích kỹ lưỡng để xác định các ý kiến, quan điểm, câu hỏi, hoặc chủ đề thảo luận chính trong các bình luận.
-    - Chú ý đến các bình luận nổi bật, được nhiều người ủng hộ hoặc phản hồi nhất.
-    - Tạo phần tóm tắt riêng cho bình luận. Nếu định dạng là "heading", sử dụng tiêu đề "## Tóm tắt bình luận" (hoặc tương đương trong ngôn ngữ \${lang}), và các ý/điểm nổi bật trong bình luận có thể dùng tiêu đề cấp 3 (###) hoặc cấp 4 (####) nếu cần chi tiết.
-    *(Nếu yêu cầu định dạng không hợp lệ, hãy sử dụng định dạng "plain".)*
 </Parameters>
 
 <Guidelines>

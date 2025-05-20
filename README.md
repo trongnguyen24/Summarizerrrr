@@ -34,7 +34,7 @@ To install and use the Summarizerrrr Chrome Extension, follow these steps:
     ```bash
     npm run build
     ```
-    This will create the necessary files in the `dist` (or similar) directory.
+    This will create the necessary files in the `dist` directory.
 3.  Install Extension in Chrome:
     - Open Chrome and type `chrome://extensions` in the address bar.
     - Enable "Developer mode" in the top right corner.

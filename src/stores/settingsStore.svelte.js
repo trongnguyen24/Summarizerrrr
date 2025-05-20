@@ -8,7 +8,7 @@ import {
 // --- Default Settings ---
 const DEFAULT_SETTINGS = {
   geminiApiKey: '',
-  summaryLength: 'medium', // short, medium, long
+  summaryLength: 'long', // short, medium, long
   summaryFormat: 'heading', // heading, paragraph
   summaryLang: 'Vietnamese', // Default language Vietnamese
 }

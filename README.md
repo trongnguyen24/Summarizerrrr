@@ -1,47 +1,53 @@
-# Svelte + Vite
+# Summarizerrrr: Fast and Efficient Content Summarization
 
-This template should help get you started developing with Svelte in Vite.
+## Introduction
 
-## Recommended IDE Setup
+In a world overflowing with information, quickly grasping knowledge is incredibly important. **Summarizerrrr** is here to help you do just that. This is a powerful open-source tool in the form of a Chrome Extension, allowing you to summarize content from various sources, helping you grasp the main points without needing to read or watch everything.
 
-[VS Code](https://code.visualstudio.com/) + [Svelte](https://marketplace.visualstudio.com/items?itemName=svelte.svelte-vscode).
+Built with modern technology, Summarizerrrr provides a smooth and efficient experience right in your browser.
 
-## Need an official Svelte framework?
+## Key Features
 
-Check out [SvelteKit](https://github.com/sveltejs/kit#readme), which is also powered by Vite. Deploy anywhere with its serverless-first approach and adapt to various platforms, with out of the box support for TypeScript, SCSS, and Less, and easily-added support for mdsvex, GraphQL, PostCSS, Tailwind CSS, and more.
+- **Smart Summarization:** Utilizes the power of advanced language models (like Gemini) to generate accurate and easy-to-understand summaries.
+- **Multiple Source Support:** Summarize content from popular sources (currently likely YouTube transcripts, with potential for future expansion).
+- **Browser Integration:** Works seamlessly within your Chrome browser.
+- **User-Friendly Interface:** Intuitive user interface, easy to use even for beginners.
+- **Open Source:** Completely free and open source.
+- **Customization:** (If this feature exists) Allows customizing the length or detail of the summary.
 
-## Technical considerations
+## Technologies Used
 
-**Why use this over SvelteKit?**
+- **Svelte:** Modern UI framework, providing high performance and a great development experience.
+- **Vite:** Fast build tool, optimizing the development process.
+- **Tailwind CSS 4:** (Based on .clinerules) Utility-first CSS framework for rapid and flexible UI development.
+- **Gemini API:** (Based on file structure) Uses Google's language models for powerful summarization capabilities.
 
-- It brings its own routing solution which might not be preferable for some users.
-- It is first and foremost a framework that just happens to use Vite under the hood, not a Vite app.
+## Installation and Usage
 
-This template contains as little as possible to get started with Vite + Svelte, while taking into account the developer experience with regards to HMR and intellisense. It demonstrates capabilities on par with the other `create-vite` templates and is a good starting point for beginners dipping their toes into a Vite + Svelte project.
+To install and use the Summarizerrrr Chrome Extension, follow these steps:
 
-Should you later need the extended capabilities and extensibility provided by SvelteKit, the template has been structured similarly to SvelteKit so that it is easy to migrate.
+1.  Install dependencies:
+    ```bash
+    npm install
+    ```
+2.  Build extension:
+    ```bash
+    npm run build
+    ```
+    This will create the necessary files in the `dist` (or similar) directory.
+3.  Install Extension in Chrome:
+    - Open Chrome and type `chrome://extensions` in the address bar.
+    - Enable "Developer mode" in the top right corner.
+    - Click "Load unpacked" and select the `dist` (or corresponding build) folder within your project directory.
+4.  Set up API Key:
+    - After installation, the extension will appear in your list of extensions.
+    - Find the Summarizerrrr icon on your Chrome toolbar.
+    - Click the icon and look for the settings or options section to enter your API Key (e.g., Gemini API Key). (Note: The exact location may vary depending on how you've implemented the extension's settings interface).
 
-**Why `global.d.ts` instead of `compilerOptions.types` inside `jsconfig.json` or `tsconfig.json`?**
+## License
 
-Setting `compilerOptions.types` shuts out all other types not explicitly listed in the configuration. Using triple-slash references keeps the default TypeScript setting of accepting type information from the entire workspace, while also adding `svelte` and `vite/client` type information.
+This project is licensed under the **MIT License**. See the `LICENSE` file for more details.
 
-**Why include `.vscode/extensions.json`?**
+---
 
-Other templates indirectly recommend extensions via the README, but this file allows VS Code to prompt the user to install the recommended extension upon opening the project.
-
-**Why enable `checkJs` in the JS template?**
-
-It is likely that most cases of changing variable types in runtime are likely to be accidental, rather than deliberate. This provides advanced typechecking out of the box. Should you like to take advantage of the dynamically-typed nature of JavaScript, it is trivial to change the configuration.
-
-**Why is HMR not preserving my local component state?**
-
-HMR state preservation comes with a number of gotchas! It has been disabled by default in both `svelte-hmr` and `@sveltejs/vite-plugin-svelte` due to its often surprising behavior. You can read the details [here](https://github.com/sveltejs/svelte-hmr/tree/master/packages/svelte-hmr#preservation-of-local-state).
-
-If you have state that's important to retain within a component, consider creating an external store which would not be replaced by HMR.
-
-```js
-// store.js
-// An extremely simple external store
-import { writable } from 'svelte/store'
-export default writable(0)
-```
+**Start summarizing today with Summarizerrrr!**

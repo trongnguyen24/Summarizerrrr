@@ -1,4 +1,4 @@
-// @svelte-compiler-ignore
+// @ts-nocheck
 // @svelte-compiler-ignore
 import { marked } from 'marked'
 import { getPageContent } from '../services/contentService.js'
@@ -79,14 +79,18 @@ export async function fetchAndSummarize() {
     // 1. Get API Key first
     const apiKey = appSettings.geminiApiKey // Use state from settingsStore
     if (!apiKey) {
-      throw new Error('Chưa cấu hình API Key trong cài đặt.')
+      throw new Error(
+        'API Key not configured in settings. Please add your API Key in the settings.'
+      )
     }
 
     // 2. Xác định loại tab trước khi lấy nội dung
     console.log('[summaryStore] Đang kiểm tra loại tab...')
     const tabInfo = await getActiveTabInfo() // Lấy thông tin tab hiện tại bằng getActiveTabInfo
     if (!tabInfo || !tabInfo.url) {
-      throw new Error('Không thể lấy thông tin tab hiện tại hoặc URL.')
+      throw new Error(
+        'Could not get current tab information or URL. Please try switching to a different tab and back, or reopening the extension.'
+      )
     }
     const YOUTUBE_MATCH_PATTERN = /youtube\.com\/watch/i // Định nghĩa lại pattern nếu cần, hoặc import từ contentService
     isYouTubeVideoActive = YOUTUBE_MATCH_PATTERN.test(tabInfo.url)
@@ -111,7 +115,7 @@ export async function fetchAndSummarize() {
 
     if (mainContentResult.type === 'error' || !mainContentResult.content) {
       throw new Error(
-        mainContentResult.error || 'Không thể lấy nội dung trang chính.'
+        'Could not get main page content. Please try refreshing the page or reopening the extension.'
       )
     }
 
@@ -138,8 +142,7 @@ export async function fetchAndSummarize() {
             !chapterContentResult.content
           ) {
             throw new Error(
-              chapterContentResult.error ||
-                'Không thể lấy transcript có timestamp cho chapter.'
+              'Could not get timestamped transcript for chapters. Please try refreshing the YouTube page or reopening the extension.'
             )
           }
           console.log(
@@ -165,7 +168,9 @@ export async function fetchAndSummarize() {
           console.log('[summaryStore] Đã xử lý tóm tắt chapter.')
         } catch (e) {
           console.error('[summaryStore] Lỗi tóm tắt chapter:', e)
-          chapterError = e.message || 'Lỗi không mong muốn khi tóm tắt chapter.'
+          chapterError =
+            e.message ||
+            'Unexpected error when summarizing chapters. Please try again later.'
         } finally {
           isChapterLoading = false // End chapter loading regardless of outcome
         }
@@ -199,7 +204,7 @@ export async function fetchAndSummarize() {
     console.log('[summaryStore] Đã xử lý tóm tắt chính.')
   } catch (e) {
     console.error('[summaryStore] Lỗi trong quá trình tóm tắt chính:', e)
-    error = e.message || 'Đã xảy ra lỗi không mong muốn.'
+    error = e.message || 'An unexpected error occurred. Please try again later.'
     // Ensure chapter loading stops if main process fails early
     // if (isChapterLoading && !chapterError) { // Let the parallel process handle its own loading state
     // }

@@ -11,7 +11,7 @@
 
   let apiKey = $state('')
   let showApiKey = $state(false) // Track API key visibility
-  let summaryLength = $state('medium')
+  let summaryLength = $state('long')
   let summaryLang = $state('Vietnamese') // Changed default to 'vi' to match options
   let summaryFormat = $state('heading') // Changed default to 'heading' to match options
   let selectedModel = $state('gemini-2.0-flash') // Add state for selected model
@@ -47,7 +47,7 @@
         (result) => {
           if (result.geminiApiKey) apiKey = result.geminiApiKey
           // Ensure defaults are set if nothing is in storage yet
-          summaryLength = result.summaryLength || 'medium'
+          summaryLength = result.summaryLength || 'long'
           summaryLang = result.summaryLang || 'Vietnamese'
           summaryFormat = result.summaryFormat || 'heading'
           selectedModel = result.selectedModel || 'gemini-2.0-flash' // Load selected model
@@ -59,7 +59,7 @@
       console.warn('Chrome storage API is not available.')
       // Set defaults for dev environment
       apiKey = localStorage.getItem('geminiApiKey_dev') || '' // Load from local storage for dev
-      summaryLength = 'medium'
+      summaryLength = 'long'
       summaryLang = 'Vietnamese'
       summaryFormat = 'heading'
       selectedModel =
@@ -246,6 +246,7 @@
               ? 'active'
               : ''}"
             onclick={() => updateSetting('selectedModel', 'gemini-2.0-flash')}
+            Description="Fast and efficient."
           ></ButtonSet>
           <ButtonSet
             title="2.5 Flash"
@@ -254,6 +255,7 @@
               : ''}"
             onclick={() =>
               updateSetting('selectedModel', 'gemini-2.5-flash-preview-04-17')}
+            Description="Powerful but slow."
           ></ButtonSet>
           <ButtonSet
             title="2.5 Pro"
@@ -262,6 +264,7 @@
               : ''}"
             onclick={() =>
               updateSetting('selectedModel', 'gemini-2.5-pro-exp-03-25')}
+            Description="Most powerful, Very slow + limit."
           ></ButtonSet>
         </div>
       </div>
@@ -280,6 +283,7 @@
               updateSetting('temperature', 0.3)
               updateSetting('topP', 0.82)
             }}
+            Description="Adherent summary style, less creative."
           ></ButtonSet>
           <ButtonSet
             title="Balanced"
@@ -290,6 +294,7 @@
               updateSetting('temperature', 0.6)
               updateSetting('topP', 0.91)
             }}
+            Description="Balanced summary style."
           ></ButtonSet>
           <ButtonSet
             title="Creative"
@@ -300,6 +305,7 @@
               updateSetting('temperature', 0.9)
               updateSetting('topP', 0.96)
             }}
+            Description="Creative summary style, more imaginative."
           ></ButtonSet>
         </div>
       </div>
@@ -313,16 +319,19 @@
             title="Short"
             class="setting {summaryLength === 'short' ? 'active' : ''}"
             onclick={() => updateSetting('summaryLength', 'short')}
+            Description="Short summary."
           ></ButtonSet>
           <ButtonSet
             title="Medium"
             class="setting {summaryLength === 'medium' ? 'active' : ''}"
             onclick={() => updateSetting('summaryLength', 'medium')}
+            Description="Medium length summary."
           ></ButtonSet>
           <ButtonSet
             title="Long"
             class="setting {summaryLength === 'long' ? 'active' : ''}"
             onclick={() => updateSetting('summaryLength', 'long')}
+            Description="Detailed summary."
           ></ButtonSet>
         </div>
       </div>
@@ -336,11 +345,13 @@
             title="Plain"
             class="setting {summaryFormat === 'plain' ? 'active' : ''}"
             onclick={() => updateSetting('summaryFormat', 'plain')}
+            Description="Plain text format."
           ></ButtonSet>
           <ButtonSet
             title="Heading"
             class="setting {summaryFormat === 'heading' ? 'active' : ''}"
             onclick={() => updateSetting('summaryFormat', 'heading')}
+            Description="Format with headings."
           ></ButtonSet>
         </div>
       </div>
@@ -354,16 +365,19 @@
             title="Vietnamese"
             class="setting {summaryLang === 'Vietnamese' ? 'active' : ''}"
             onclick={() => updateSetting('summaryLang', 'Vietnamese')}
+            Description="Vietnamese language."
           ></ButtonSet>
           <ButtonSet
             title="English"
             class="setting {summaryLang === 'English' ? 'active' : ''}"
             onclick={() => updateSetting('summaryLang', 'English')}
+            Description="English language."
           ></ButtonSet>
           <ButtonSet
             title="Korean"
             class="setting {summaryLang === 'Korean' ? 'active' : ''}"
             onclick={() => updateSetting('summaryLang', 'Korean')}
+            Description="Korean language."
           ></ButtonSet>
         </div>
       </div>
@@ -377,16 +391,19 @@
             title="Light"
             class="setting {$theme === 'light' ? 'active' : ''}"
             onclick={() => setTheme('light')}
+            Description="Light theme."
           ></ButtonSet>
           <ButtonSet
             title="Dark"
             class="setting {$theme === 'dark' ? 'active' : ''}"
             onclick={() => setTheme('dark')}
+            Description="Dark theme."
           ></ButtonSet>
           <ButtonSet
             title="System"
             class="setting {$theme === 'system' ? 'active' : ''}"
             onclick={() => setTheme('system')}
+            Description="System theme."
           ></ButtonSet>
         </div>
       </div>

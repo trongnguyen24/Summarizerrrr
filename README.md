@@ -8,19 +8,19 @@ Built with modern technology, Summarizerrrr provides a smooth and efficient expe
 
 ## Key Features
 
-- **Smart Summarization:** Utilizes the power of advanced language models (like Gemini) to generate accurate and easy-to-understand summaries.
+- **Smart Summarization:** Utilizes the power of Gemini AI's language models to generate accurate and easy-to-understand summaries.
 - **Multiple Source Support:** Summarize content from popular sources (currently likely YouTube transcripts, with potential for future expansion).
-- **Browser Integration:** Works seamlessly within your Chrome browser.
+- **Browser Integration:** Works seamlessly within your chromium browser.
 - **User-Friendly Interface:** Intuitive user interface, easy to use even for beginners.
 - **Open Source:** Completely free and open source.
-- **Customization:** (If this feature exists) Allows customizing the length or detail of the summary.
+- **Customization:** Allows customizing the length or detail of the summary.
 
 ## Technologies Used
 
 - **Svelte:** Modern UI framework, providing high performance and a great development experience.
 - **Vite:** Fast build tool, optimizing the development process.
-- **Tailwind CSS 4:** (Based on .clinerules) Utility-first CSS framework for rapid and flexible UI development.
-- **Gemini API:** (Based on file structure) Uses Google's language models for powerful summarization capabilities.
+- **Tailwind CSS 4:** Utility-first CSS framework for rapid and flexible UI development.
+- **Gemini API:** Uses Google's language models for powerful summarization capabilities.
 
 ## Installation and Usage
 
@@ -46,8 +46,4 @@ To install and use the Summarizerrrr Chrome Extension, follow these steps:
 
 ## License
 
-This project is licensed under the **MIT License**. See the `LICENSE` file for more details.
-
----
-
-**Start summarizing today with Summarizerrrr!**
+This project is licensed under the **MIT License**.

@@ -1,6 +1,6 @@
 <div align="center">
   <img src="public/Sumarizzerrrr.png" alt="Summarizerrrr"/>
-  <p><a href="https://chromewebstore.google.com/detail/summarizerrrr/ahfjndakflcegianjdojpldllodpkkpc">https://chromewebstore.google.com/detail/summarizerrrr/ahfjndakflcegianjdojpldllodpkkpc</a></p>
+  <p><a href="https://chromewebstore.google.com/detail/summarizerrrr/ahfjndakflcegianjdojpldllodpkkpc">Install on Chrome Web Store</a></p>
 </div>
 
 # Summarizerrrr Chrome Extension 🚀

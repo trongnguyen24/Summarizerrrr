@@ -51,9 +51,9 @@
     const newHash = activeHeadingId
       ? `#${activeHeadingId}`
       : window.location.pathname
-    if (newHash !== window.location.hash) {
-      window.history.replaceState(null, null, newHash)
-    }
+    // if (newHash !== window.location.hash) {
+    //   window.history.replaceState(null, null, newHash)
+    // }
   }
 
   function generateId(text) {
@@ -101,7 +101,7 @@
   }
 
   // Bọc hàm highlight bằng throttle với giới hạn 40ms
-  const throttledHighlight = throttle(highlight, 40)
+  const throttledHighlight = throttle(highlight, 80)
 
   onMount(async () => {
     // Thêm delay để đảm bảo DOM đã render

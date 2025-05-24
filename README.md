@@ -22,7 +22,27 @@ A Chrome extension that deep summarizes content from YouTube, websites, Facebook
 - Summarizes text-heavy sites (e.g., Reddit, news).
 - Includes comment summaries from diverse perspectives.
 
+<<<<<<< HEAD
+
 ## ⚙️ Customization
+
+=======
+
+1.  Install dependencies:
+    ```bash
+    npm install
+    ```
+2.  Build extension:
+    ```bash
+    npm run build
+    ```
+    This will create the necessary files in the `dist` directory.
+3.  Install Extension in Chrome:
+    - Open Chrome and type `chrome://extensions` in the address bar.
+    - Enable "Developer mode" in the top right corner.
+    - Click "Load unpacked" and select the `dist` (or corresponding build) folder within your project directory.
+4.  Set up API Key: - After installation, the extension will appear in your list of extensions. - Find the Summarizerrrr icon on your Chrome toolbar. - Click the icon and look for the settings or options section to enter your API Key (e.g., Gemini API Key). (Note: The exact location may vary depending on how you've implemented the extension's settings interface).
+    > > > > > > > 550da27748c097b7c3b8b510c3132bea19c10e16
 
 ### Gemini Model
 

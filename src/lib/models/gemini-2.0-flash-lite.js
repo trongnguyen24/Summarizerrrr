@@ -1,8 +1,13 @@
 import { youTubePromptTemplate } from '../prompts/youTubePromptTemplate'
 import { generalPromptTemplate } from '../prompts/generalPromptTemplate'
 import { chapterPromptTemplate } from '../prompts/chapterPromptTemplate'
+import {
+  buildSelectedTextPrompt,
+  selectedTextSystemInstruction,
+} from '../prompts/selectedTextPromptTemplate'
 
 export const gemini20FlashLiteConfig = {
+  selectedTextSystemInstruction: selectedTextSystemInstruction,
   youTubeSystemInstruction:
     'Bạn là một trợ lý chuyên phân tích và tóm tắt video YouTube dựa trên transcript được cung cấp. Nhiệm vụ của bạn là tạo bản tóm tắt súc tích, chính xác và có cấu trúc, tuân thủ nghiêm ngặt các tham số và hướng dẫn dưới đây. Chỉ sử dụng thông tin có trong <Transcript> được cung cấp. Output của bạn không bỏ vào markdown code block.',
   generalSystemInstruction:
@@ -31,6 +36,10 @@ export const gemini20FlashLiteConfig = {
       .replace(/\${lang}/g, lang)
       .replace(/\${length}/g, length)
       .replace(/\${timestampedTranscript}/g, timestampedTranscript)
+  },
+  buildSelectedTextPrompt: (text, lang, length, format) => {
+    const template = buildSelectedTextPrompt // Use the imported function
+    return template(text, lang, length, format) // Call the function
   },
   generationConfig: {
     maxOutputTokens: 2048, // Example value, adjust as needed

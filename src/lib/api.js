@@ -5,9 +5,9 @@ import { geminiModelsConfig } from './geminiConfig.js'
 
 /**
  * Summarizes content using Google Gemini.
- * @param {string} text - Content to summarize (transcript or web page text).
+ * @param {string} text - Content to summarize (transcript, web page text, or selected text).
  * @param {string} apiKey - Google AI API Key.
- * @param {boolean} isYouTube - True if the content is from YouTube.
+ * @param {'youtube' | 'general' | 'selectedText'} contentType - The type of content being summarized.
  * @param {string} lang - Desired language for the summary.
  * @param {string} length - Desired length for the summary ('short', 'medium', 'long').
  * @param {string} format - Desired format for the summary ('heading', 'paragraph').
@@ -16,7 +16,7 @@ import { geminiModelsConfig } from './geminiConfig.js'
 export async function summarizeWithGemini(
   text,
   apiKey,
-  isYouTube,
+  contentType,
   lang,
   length,
   format
@@ -49,10 +49,22 @@ export async function summarizeWithGemini(
     geminiModelsConfig[model] || geminiModelsConfig['gemini-2.0-flash'] // Fallback to default
 
   let prompt
-  if (isYouTube) {
-    prompt = modelConfig.buildYouTubePrompt(text, lang, length, format)
-  } else {
-    prompt = modelConfig.buildGeneralPrompt(text, lang, length, format)
+  let systemInstruction
+
+  switch (contentType) {
+    case 'youtube':
+      prompt = modelConfig.buildYouTubePrompt(text, lang, length, format)
+      systemInstruction = modelConfig.youTubeSystemInstruction
+      break
+    case 'selectedText':
+      prompt = modelConfig.buildSelectedTextPrompt(text, lang, length, format)
+      systemInstruction = modelConfig.selectedTextSystemInstruction
+      break
+    case 'general':
+    default:
+      prompt = modelConfig.buildGeneralPrompt(text, lang, length, format)
+      systemInstruction = modelConfig.generalSystemInstruction
+      break
   }
 
   const genAI = new GoogleGenAI({ apiKey })
@@ -73,9 +85,7 @@ export async function summarizeWithGemini(
     const result = await genAI.models.generateContent({
       model: model,
       contents: [{ parts: [{ text: prompt }] }],
-      systemInstruction: isYouTube
-        ? modelConfig.youTubeSystemInstruction
-        : modelConfig.generalSystemInstruction,
+      systemInstruction: systemInstruction,
       generationConfig: finalGenerationConfig,
     })
     console.log('Gemini API Result (summarizeWithGemini):', result) // Log the result object

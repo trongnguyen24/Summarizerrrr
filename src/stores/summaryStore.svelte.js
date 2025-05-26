@@ -243,6 +243,16 @@ export const summaryStore = {
   },
   fetchAndSummarize, // Also export the action
   updateIsYouTubeVideoActive, // Export the update function
+  // Add setters for state updates from outside
+  updateSummary: (value) => {
+    summary = value
+  },
+  updateLoading: (value) => {
+    isLoading = value
+  },
+  updateError: (value) => {
+    error = value
+  },
 }
 
 console.log('summaryStore.svelte.js loaded')

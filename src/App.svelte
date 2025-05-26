@@ -79,6 +79,13 @@
           '------[App.svelte] Updated tabTitleStore with new title:',
           request.isYouTube
         )
+      } else if (request.action === 'displaySummary') {
+        console.log('[App.svelte] Received displaySummary message:', request)
+        // Update summaryStore with the received summary
+        summaryStore.updateSummary(request.summary)
+        summaryStore.updateLoading(false) // Assuming summarization is complete
+        summaryStore.updateError(request.error ? request.summary : null) // Set error if present
+        activeTab = 'summary' // Switch to summary tab to display the result
       }
       // Trả về true để giữ kênh message mở nếu cần phản hồi bất đồng bộ
       // return true; // Không cần thiết nếu không gửi phản hồi

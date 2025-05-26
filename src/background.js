@@ -1,4 +1,6 @@
 // @ts-nocheck
+import { summarizeWithGemini } from './lib/api.js' // Import the summarization function
+
 const YOUTUBE_MATCH_PATTERN = '*://*.youtube.com/watch*'
 const CONTENT_SCRIPT_PATH = 'assets/youtubetranscript.js' // Đảm bảo đường dẫn này chính xác
 
@@ -378,3 +380,100 @@ chrome.tabs.onActivated.addListener(async (activeInfo) => {
 })
 
 console.log('[background.js] Tab activation listener added.')
+
+// 4. Create context menu item for selected text summarization
+chrome.runtime.onInstalled.addListener(async () => {
+  chrome.contextMenus.create({
+    id: 'summarizeSelectedText',
+    title: 'Tóm tắt văn bản đã chọn',
+    type: 'normal',
+    contexts: ['selection'], // Chỉ hiển thị khi có văn bản được chọn
+  })
+})
+// Lắng nghe sự kiện khi người dùng chọn mục menu
+chrome.contextMenus.onClicked.addListener(async (info, tab) => {
+  if (info.menuItemId === 'summarizeSelectedText' && info.selectionText) {
+    console.log(
+      '[background.js] Summarizing selected text:',
+      info.selectionText
+    )
+    // Sử dụng trực tiếp info.selectionText, không cần gửi message đến content script
+    const selectedText = info.selectionText
+
+    if (!selectedText) {
+      console.warn('[background.js] No text selected for summarization.')
+      // Gửi message thông báo không có văn bản
+      chrome.runtime.sendMessage({
+        action: 'displaySummary',
+        summary: 'Không có văn bản nào được chọn để tóm tắt.',
+        error: false,
+      })
+      return
+    }
+
+    try {
+      // Lấy API key và settings từ storage
+      const settings = await chrome.storage.sync.get([
+        'geminiApiKey',
+        'selectedLanguage',
+        'selectedLength',
+        'selectedFormat',
+      ])
+      const apiKey = settings.geminiApiKey
+      const lang = settings.selectedLanguage || 'Vietnamese' // Default to Vietnamese
+      const length = settings.selectedLength || 'medium' // Default to medium
+      const format = settings.selectedFormat || 'paragraph' // Default to paragraph
+
+      if (!apiKey) {
+        console.error('[background.js] Gemini API key is not set.')
+        // Gửi message lỗi đến side panel
+        chrome.runtime.sendMessage({
+          action: 'displaySummary',
+          summary: 'Lỗi: Gemini API key chưa được cấu hình.',
+          error: true,
+        })
+        return
+      }
+
+      // Gửi message báo hiệu đang tóm tắt đến side panel
+      chrome.runtime.sendMessage({
+        action: 'displaySummary',
+        summary: 'Đang tóm tắt văn bản đã chọn...',
+        isLoading: true,
+        error: false,
+      })
+
+      // Gọi hàm tóm tắt văn bản đã chọn
+      const summary = await summarizeWithGemini(
+        selectedText,
+        apiKey,
+        'selectedText', // Specify content type
+        lang,
+        length,
+        format
+      )
+      console.log('[background.js] Summary:', summary)
+
+      // Gửi kết quả tóm tắt đến side panel
+      chrome.runtime.sendMessage({
+        action: 'displaySummary',
+        summary: summary,
+        isLoading: false,
+        error: false,
+      })
+    } catch (apiError) {
+      console.error('[background.js] Error summarizing text:', apiError)
+      // Gửi message lỗi đến side panel
+      chrome.runtime.sendMessage({
+        action: 'displaySummary',
+        summary: `Lỗi khi tóm tắt: ${apiError.message}`,
+        isLoading: false,
+        error: true,
+      })
+    }
+  }
+})
+// Log thông báo khi context menu được tạo
+console.log(
+  '[background.js] Context menu item "Tóm tắt văn bản đã chọn" created.'
+)

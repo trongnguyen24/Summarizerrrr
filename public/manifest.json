@@ -3,7 +3,14 @@
   "name": "Summarizerrrr",
   "version": "1.0.1",
   "description": "Summarize web pages and YouTube videos using the Gemini API directly from the Side Panel.",
-  "permissions": ["sidePanel", "storage", "activeTab", "scripting", "tabs"],
+  "permissions": [
+    "sidePanel",
+    "storage",
+    "activeTab",
+    "scripting",
+    "tabs",
+    "contextMenus"
+  ],
   "host_permissions": ["<all_urls>"],
   "side_panel": {
     "default_path": "index.html"

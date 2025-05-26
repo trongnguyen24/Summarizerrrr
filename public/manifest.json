@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Summarizerrrr",
   "version": "1.1.0",
-  "description": "Deep summarizes content from YouTube, websites, Facebook posts, Reddit, and any text-based page online. using the Gemini API directly from the Side Panel.",
+  "description": "FREE Deep Summarizes content from YouTube, websites, Facebook posts, Reddit, and any text-based page online.",
   "permissions": [
     "sidePanel",
     "storage",

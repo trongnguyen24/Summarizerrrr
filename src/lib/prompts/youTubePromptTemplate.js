@@ -4,19 +4,6 @@ export const youTubePromptTemplate = `
 Hãy phân tích <Transcript> được cung cấp và tạo bản tóm tắt theo các <Parameters> và <Guidelines> đã nêu.
 </USER_TASK>
 
-<Translation_Instructions lang="\${lang}">
-    <Goal>Bản tóm tắt cuối cùng bằng ngôn ngữ "\${lang}" phải đạt chất lượng dịch thuật cao nhất, truyền tải chính xác và đầy đủ ý nghĩa của nội dung đã được tóm tắt, đồng thời phải tự nhiên và lưu loát như người bản xứ viết.</Goal>
-    <Quality_Criteria>
-        <Criterion name="Meaning_Accuracy">Đảm bảo ý nghĩa cốt lõi, các chi tiết quan trọng và sắc thái của bản tóm tắt (trước khi dịch, nếu có bước đó) được bảo toàn và truyền tải một cách chính xác sang ngôn ngữ "\${lang}". Không thêm thông tin mới hoặc bỏ sót thông tin quan trọng trong quá trình dịch.</Criterion>
-        <Criterion name="Natural_Fluency">Sử dụng từ ngữ, cấu trúc câu và văn phong tự nhiên, trôi chảy, và idiomatically correct trong ngôn ngữ "\${lang}". Tránh tuyệt đối lối dịch word-by-word hoặc các cấu trúc câu gượng ép, thiếu tự nhiên.</Criterion>
-        <Criterion name="Terminology_Consistency">Các thuật ngữ chuyên ngành, tên riêng hoặc từ khóa quan trọng phải được dịch một cách nhất quán và chính xác sang "\${lang}". Ưu tiên sử dụng các thuật ngữ đã được chuẩn hóa hoặc phổ biến trong lĩnh vực liên quan của ngôn ngữ "\${lang}".</Criterion>
-        <Criterion name="Cultural_Adaptation">Khi gặp các thành ngữ, tục ngữ, ví von hoặc các yếu tố mang đậm màu sắc văn hóa của ngôn ngữ nguồn, hãy tìm cách diễn đạt tương đương, phù hợp và dễ hiểu trong văn hóa của ngôn ngữ "\${lang}", thay vì dịch nghĩa đen một cách máy móc.</Criterion>
-        <Criterion name="Tone_Preservation">Giữ nguyên giọng điệu (ví dụ: trang trọng, thân mật, khách quan, châm biếm) của bản tóm tắt gốc khi chuyển ngữ sang "\${lang}".</Criterion>
-        <Criterion name="Grammar_And_Spelling">Bản dịch cuối cùng phải hoàn toàn không có lỗi ngữ pháp, chính tả, hoặc dấu câu trong ngôn ngữ "\${lang}".</Criterion>
-    </Quality_Criteria>
-    <Output_Expectation>Kết quả đầu ra phải là một bản tóm tắt hoàn chỉnh, chỉ bằng ngôn ngữ "\${lang}", tuân thủ tất cả các <Parameters> và <Guidelines> khác. Bản dịch phải liền mạch và không để lộ bất kỳ dấu hiệu nào của quá trình dịch thuật (ví dụ: không có chú thích của người dịch, không có cụm từ nào cho thấy đây là bản dịch).</Output_Expectation>
-</Translation_Instructions>
-
 <Parameters>
 1.  Độ dài tóm tắt: \${length}
     - "short": Tóm tắt rất ngắn gọn (tối đa 2 câu) về ý chính tổng thể của video.
@@ -25,7 +12,7 @@ Hãy phân tích <Transcript> được cung cấp và tạo bản tóm tắt the
     *(Lưu ý: Số câu chỉ là ước tính, mục tiêu là truyền đạt đầy đủ thông tin trong phạm vi độ dài mong muốn và dựa trên nội dung transcript.)*
 
 2.  Ngôn ngữ: \${lang}
-    - Tóm tắt sẽ được trả về hoàn toàn bằng ngôn ngữ được chỉ định (ví dụ: "vi" cho tiếng Việt, "en" cho tiếng Anh).
+    - Tóm tắt sẽ được trả về hoàn toàn bằng ngôn ngữ được chỉ định với chất lượng dịch thuật cao nhất - chính xác, tự nhiên và lưu loát như người bản xứ, dịch các thuật ngữ chuyên ngành và tên riêng một cách chuẩn xác.
 
 3.  Định dạng: \${format}
     - "plain": Tóm tắt dưới dạng một hoặc nhiều đoạn văn thuần túy.

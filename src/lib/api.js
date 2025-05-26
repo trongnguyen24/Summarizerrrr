@@ -2,34 +2,7 @@
 // @ts-nocheck
 import { GoogleGenAI } from '@google/genai'
 import { geminiModelsConfig } from './geminiConfig.js'
-
-/**
- * Helper function to get user settings from storage.
- * @returns {Promise<object>} - Promise that resolves with user settings.
- */
-async function getUserSettings() {
-  let userSettings = {}
-  if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync) {
-    userSettings = await chrome.storage.sync.get([
-      'selectedModel',
-      'temperature',
-      'topP',
-      'summaryLang',
-      'summaryLength',
-      'summaryFormat',
-    ])
-  } else if (typeof localStorage !== 'undefined') {
-    userSettings.selectedModel = localStorage.getItem('selectedModel_dev')
-    userSettings.temperature = parseFloat(
-      localStorage.getItem('temperature_dev')
-    )
-    userSettings.topP = parseFloat(localStorage.getItem('topP_dev'))
-    userSettings.summaryLang = localStorage.getItem('summaryLang_dev')
-    userSettings.summaryLength = localStorage.getItem('summaryLength_dev')
-    userSettings.summaryFormat = localStorage.getItem('summaryFormat_dev')
-  }
-  return userSettings
-}
+import { settingsStore } from '../stores/settingsStore.svelte.js'
 
 /**
  * Summarizes content using Google Gemini.
@@ -45,7 +18,21 @@ export async function summarizeWithGemini(text, apiKey, contentType) {
     )
   }
 
-  const userSettings = await getUserSettings()
+  // Wait for settings to be initialized
+  if (!settingsStore.isInitialized) {
+    console.log('[api] Chờ cài đặt được tải trong summarizeWithGemini...')
+    await new Promise((resolve) => {
+      const checkInterval = setInterval(() => {
+        if (settingsStore.isInitialized) {
+          clearInterval(checkInterval)
+          resolve()
+        }
+      }, 100) // Check every 100ms
+    })
+    console.log('[api] Cài đặt đã sẵn sàng trong summarizeWithGemini.')
+  }
+
+  const userSettings = settingsStore.settings // Use settings from the store
   const model = userSettings.selectedModel || 'gemini-2.0-flash' // Default model
 
   const modelConfig =
@@ -130,7 +117,7 @@ export async function summarizeWithGemini(text, apiKey, contentType) {
 
     // Check for 429 status code in the error message
     if (e.message.includes('got status: 429')) {
-      const userSettings = await getUserSettings()
+      const userSettings = settingsStore.settings // Use settings from the store
       const model = userSettings.selectedModel || 'gemini-2.0-flash'
 
       if (model === 'gemini-2.5-pro-preview-05-06') {
@@ -192,7 +179,23 @@ export async function summarizeChaptersWithGemini(
     )
   }
 
-  const userSettings = await getUserSettings()
+  // Wait for settings to be initialized
+  if (!settingsStore.isInitialized) {
+    console.log(
+      '[api] Chờ cài đặt được tải trong summarizeChaptersWithGemini...'
+    )
+    await new Promise((resolve) => {
+      const checkInterval = setInterval(() => {
+        if (settingsStore.isInitialized) {
+          clearInterval(checkInterval)
+          resolve()
+        }
+      }, 100) // Check every 100ms
+    })
+    console.log('[api] Cài đặt đã sẵn sàng trong summarizeChaptersWithGemini.')
+  }
+
+  const userSettings = settingsStore.settings // Use settings from the store
   const model = userSettings.selectedModel || 'gemini-2.0-flash' // Default model
 
   const modelConfig =

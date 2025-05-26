@@ -3,7 +3,7 @@ export const chapterPromptTemplate = `
 Hãy phân tích <Transcript_Input> được cung cấp và tạo bản tóm tắt chi tiết theo từng chương/phần logic, kèm theo thời gian bắt đầu ước lượng cho mỗi phần. Sử dụng các <Parameters> và <Guidelines> sau để tạo ra kết quả cuối cùng.
 </USER_TASK>
 
-<Translation_Instructions lang="\${lang}">
+<Translation_Instructions>
     <Goal>Bản tóm tắt cuối cùng bằng ngôn ngữ "\${lang}" phải đạt chất lượng dịch thuật cao nhất, truyền tải chính xác và đầy đủ ý nghĩa của nội dung đã được tóm tắt, đồng thời phải tự nhiên và lưu loát như người bản xứ viết.</Goal>
     <Quality_Criteria>
         <Criterion name="Meaning_Accuracy">Đảm bảo ý nghĩa cốt lõi, các chi tiết quan trọng và sắc thái của bản tóm tắt (trước khi dịch, nếu có bước đó) được bảo toàn và truyền tải một cách chính xác sang ngôn ngữ "\${lang}". Không thêm thông tin mới hoặc bỏ sót thông tin quan trọng trong quá trình dịch.</Criterion>
@@ -18,7 +18,7 @@ Hãy phân tích <Transcript_Input> được cung cấp và tạo bản tóm t�
 
 <Parameters>
 1.  Ngôn ngữ tóm tắt: \${lang}
-    - Tóm tắt hoàn chỉnh sẽ được trả về bằng ngôn ngữ được chỉ định (ví dụ: "vi" cho tiếng Việt, "en" cho tiếng Anh).
+    - Tóm tắt sẽ được trả về hoàn toàn bằng ngôn ngữ được chỉ định với chất lượng dịch thuật cao nhất - chính xác, tự nhiên và lưu loát như người bản xứ, dịch các thuật ngữ chuyên ngành và tên riêng một cách chuẩn xác.
 
 2.  Độ dài tóm tắt cho mỗi chương/phần: \${length}
     - "short": Tóm tắt rất ngắn gọn (tối đa 1-2 câu) về ý chính của chương/phần đó.

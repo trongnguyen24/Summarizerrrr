@@ -206,7 +206,7 @@ export async function fetchAndSummarize() {
     const summarizedText = await summarizeWithGemini(
       currentContentSource, // Use the stored content
       apiKey,
-      isYouTubeVideoActive, // Pass boolean flag
+      isYouTubeVideoActive ? 'youtube' : 'general', // Pass string literal based on type
       appSettings.summaryLang, // Pass language
       appSettings.summaryLength, // Pass length
       appSettings.summaryFormat // Pass format

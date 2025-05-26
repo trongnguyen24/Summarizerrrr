@@ -1,5 +1,4 @@
 <script>
-  import Icon from '@iconify/svelte'
   import { marked } from 'marked'
   import TOC from './TOC.svelte'
 
@@ -15,17 +14,14 @@
 
 {#if chapterError}
   <div
-    class="flex gap-2 w-fit mx-auto text-orange-400 p-4 bg-orange-500/10 border border-orange-500/20 rounded-lg"
+    class="flex relative flex-col w-fit mx-auto text-red-400 px-4 bg-red-500/10 border border-red-500/20"
   >
-    <Icon
-      class="mt-0.5 flex-shrink-0"
-      width={16}
-      icon="heroicons:exclamation-triangle-16-solid"
-    />
     <p class="text-sm">
-      <span class="font-bold">Chapter summary error:</span>
+      <span class="font-bold block">Chapter summary error</span>
       {chapterError}
     </p>
+    <div class="plus-icon red-plus-icon top-left"></div>
+    <div class="plus-icon red-plus-icon bottom-right"></div>
   </div>
 {/if}
 

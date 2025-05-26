@@ -79,6 +79,14 @@
           '------[App.svelte] Updated tabTitleStore with new title:',
           request.isYouTube
         )
+      } else if (request.action === 'displaySummary') {
+        console.log('[App.svelte] Received displaySummary message:', request)
+        summaryStore.resetLoadingState() // Reset loading state before updating
+        // Update summaryStore with the received summary, loading state, and loading type
+        summaryStore.updateSummary(request.summary)
+        summaryStore.updateLoading(request.isLoading, request.loadingType) // Use isLoading and loadingType from message
+        summaryStore.updateError(request.error ? request.summary : null) // Set error if present
+        activeTab = 'summary' // Switch to summary tab to display the result
       }
       // Trả về true để giữ kênh message mở nếu cần phản hồi bất đồng bộ
       // return true; // Không cần thiết nếu không gửi phản hồi
@@ -128,7 +136,6 @@
       <div class="text-text-secondary">
         <div class="line-clamp-1 text-[0.75rem] px-2 text-text-secondary">
           {$tabTitleStore}
-          <!-- {$reactTabNavigation ? ' - YouTube Video' : 'Web Page'} -->
         </div>
       </div>
     </div>
@@ -176,6 +183,7 @@
           summary={summaryStore.summary}
           isLoading={summaryStore.isLoading}
           error={summaryStore.error}
+          loadingType={summaryStore.currentLoadingType}
         />
       {:else if activeTab === 'chapters'}
         <!-- Use ChapterDisplay component -->

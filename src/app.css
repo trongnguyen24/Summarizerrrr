@@ -233,6 +233,13 @@ button {
   overflow: hidden; /* Ẩn phần thừa của pseudo-elements */
 }
 
+.plus-icon {
+  position: absolute;
+  width: 8px; /* Kích thước container dấu cộng */
+  height: 8px; /* Kích thước container dấu cộng */
+  overflow: hidden; /* Ẩn phần thừa của pseudo-elements */
+}
+
 .plus-icon::before,
 .plus-icon::after {
   content: '';
@@ -256,14 +263,19 @@ button {
   transform: translateX(-50%);
 }
 
+.red-plus-icon:before,
+.red-plus-icon:after {
+  background-color: var(--color-error);
+}
+
 .top-left {
   top: 0;
   left: 0;
-  transform: translateX(-4px) translateY(-4px);
+  transform: translateX(-4.5px) translateY(-4.5px);
 }
 
 .bottom-right {
   bottom: 0;
   right: 0;
-  transform: translateX(4px) translateY(4px);
+  transform: translateX(4.5px) translateY(4.5px);
 }

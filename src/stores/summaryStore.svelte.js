@@ -19,6 +19,7 @@ let error = $state('') // Error for the main summary
 let chapterError = $state('') // Error for chapters
 let isYouTubeVideoActive = $state(false) // Is the current tab a YouTube video?
 let currentContentSource = $state('') // Store the source text for potential re-summarization
+let currentLoadingType = $state(null) // Add state for loading type
 
 // --- Actions ---
 
@@ -43,6 +44,24 @@ function resetState() {
 function updateIsYouTubeVideoActive(isYouTube) {
   isYouTubeVideoActive = isYouTube
   console.log(`[summaryStore] isYouTubeVideoActive updated to: ${isYouTube}`)
+}
+
+/**
+ * Resets the loading state and type.
+ */
+function resetLoadingState() {
+  isLoading = false
+  currentLoadingType = null
+}
+
+/**
+ * Updates the loading state and type.
+ * @param {boolean} value - The new loading state.
+ * @param {string|null} type - The type of loading ('main', 'selectedText', null).
+ */
+function updateLoading(value, type = null) {
+  isLoading = value
+  currentLoadingType = type
 }
 
 /**
@@ -247,12 +266,15 @@ export const summaryStore = {
   updateSummary: (value) => {
     summary = value
   },
-  updateLoading: (value) => {
-    isLoading = value
-  },
   updateError: (value) => {
     error = value
   },
+  get currentLoadingType() {
+    // Export the new state
+    return currentLoadingType
+  },
+  updateLoading, // Export the updated function
+  resetLoadingState, // Export the new function
 }
 
 console.log('summaryStore.svelte.js loaded')

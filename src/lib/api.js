@@ -4,68 +4,84 @@ import { GoogleGenAI } from '@google/genai'
 import { geminiModelsConfig } from './geminiConfig.js'
 
 /**
- * Summarizes content using Google Gemini.
- * @param {string} text - Content to summarize (transcript, web page text, or selected text).
- * @param {string} apiKey - Google AI API Key.
- * @param {'youtube' | 'general' | 'selectedText'} contentType - The type of content being summarized.
- * @param {string} lang - Desired language for the summary.
- * @param {string} length - Desired length for the summary ('short', 'medium', 'long').
- * @param {string} format - Desired format for the summary ('heading', 'paragraph').
- * @returns {Promise<string>} - Promise that resolves with the summary in Markdown format.
+ * Helper function to get user settings from storage.
+ * @returns {Promise<object>} - Promise that resolves with user settings.
  */
-export async function summarizeWithGemini(
-  text,
-  apiKey,
-  contentType,
-  lang,
-  length,
-  format
-) {
-  if (!apiKey) {
-    throw new Error(
-      'Gemini API key is not configured. Click the settings icon on the right to add your API key.'
-    )
-  }
-
-  let model = 'gemini-2.0-flash' // Default model
+async function getUserSettings() {
   let userSettings = {}
   if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync) {
     userSettings = await chrome.storage.sync.get([
       'selectedModel',
       'temperature',
       'topP',
+      'summaryLang',
+      'summaryLength',
+      'summaryFormat',
     ])
-    if (userSettings.selectedModel) {
-      model = userSettings.selectedModel
-    }
   } else if (typeof localStorage !== 'undefined') {
-    model = localStorage.getItem('selectedModel_dev') || 'gemini-2.0-flash'
-    userSettings.temperature =
-      parseFloat(localStorage.getItem('temperature_dev')) || 0.6
-    userSettings.topP = parseFloat(localStorage.getItem('topP_dev')) || 0.91
+    userSettings.selectedModel = localStorage.getItem('selectedModel_dev')
+    userSettings.temperature = parseFloat(
+      localStorage.getItem('temperature_dev')
+    )
+    userSettings.topP = parseFloat(localStorage.getItem('topP_dev'))
+    userSettings.summaryLang = localStorage.getItem('summaryLang_dev')
+    userSettings.summaryLength = localStorage.getItem('summaryLength_dev')
+    userSettings.summaryFormat = localStorage.getItem('summaryFormat_dev')
   }
+  return userSettings
+}
+
+/**
+ * Summarizes content using Google Gemini.
+ * @param {string} text - Content to summarize (transcript, web page text, or selected text).
+ * @param {string} apiKey - Google AI API Key.
+ * @param {'youtube' | 'general' | 'selectedText'} contentType - The type of content being summarized.
+ * @returns {Promise<string>} - Promise that resolves with the summary in Markdown format.
+ */
+export async function summarizeWithGemini(text, apiKey, contentType) {
+  if (!apiKey) {
+    throw new Error(
+      'Gemini API key is not configured. Click the settings icon on the right to add your API key.'
+    )
+  }
+
+  const userSettings = await getUserSettings()
+  const model = userSettings.selectedModel || 'gemini-2.0-flash' // Default model
 
   const modelConfig =
     geminiModelsConfig[model] || geminiModelsConfig['gemini-2.0-flash'] // Fallback to default
 
-  let prompt
-  let systemInstruction
-
-  switch (contentType) {
-    case 'youtube':
-      prompt = modelConfig.buildYouTubePrompt(text, lang, length, format)
-      systemInstruction = modelConfig.youTubeSystemInstruction
-      break
-    case 'selectedText':
-      prompt = modelConfig.buildSelectedTextPrompt(text, lang, length, format)
-      systemInstruction = modelConfig.selectedTextSystemInstruction
-      break
-    case 'general':
-    default:
-      prompt = modelConfig.buildGeneralPrompt(text, lang, length, format)
-      systemInstruction = modelConfig.generalSystemInstruction
-      break
+  // Object lookup for prompt and system instruction based on contentType
+  const contentConfig = {
+    youtube: {
+      buildPrompt: modelConfig.buildYouTubePrompt,
+      systemInstruction: modelConfig.youTubeSystemInstruction,
+    },
+    selectedText: {
+      buildPrompt: modelConfig.buildSelectedTextPrompt,
+      systemInstruction: modelConfig.selectedTextSystemInstruction,
+    },
+    general: {
+      buildPrompt: modelConfig.buildGeneralPrompt,
+      systemInstruction: modelConfig.generalSystemInstruction,
+    },
   }
+
+  const config = contentConfig[contentType] || contentConfig['general'] // Fallback to general
+
+  if (!config.buildPrompt || !config.systemInstruction) {
+    throw new Error(
+      `Configuration for content type "${contentType}" is incomplete for model "${model}".`
+    )
+  }
+
+  const prompt = config.buildPrompt(
+    text,
+    userSettings.summaryLang,
+    userSettings.summaryLength,
+    userSettings.summaryFormat
+  )
+  const systemInstruction = config.systemInstruction
 
   const genAI = new GoogleGenAI({ apiKey })
   try {
@@ -139,23 +155,8 @@ export async function summarizeChaptersWithGemini(
     )
   }
 
-  let model = 'gemini-2.0-flash' // Default model
-  let userSettings = {}
-  if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync) {
-    userSettings = await chrome.storage.sync.get([
-      'selectedModel',
-      'temperature',
-      'topP',
-    ])
-    if (userSettings.selectedModel) {
-      model = userSettings.selectedModel
-    }
-  } else if (typeof localStorage !== 'undefined') {
-    model = localStorage.getItem('selectedModel_dev') || 'gemini-2.0-flash'
-    userSettings.temperature =
-      parseFloat(localStorage.getItem('temperature_dev')) || 0.6
-    userSettings.topP = parseFloat(localStorage.getItem('topP_dev')) || 0.91
-  }
+  const userSettings = await getUserSettings()
+  const model = userSettings.selectedModel || 'gemini-2.0-flash' // Default model
 
   const modelConfig =
     geminiModelsConfig[model] || geminiModelsConfig['gemini-2.0-flash'] // Fallback to default

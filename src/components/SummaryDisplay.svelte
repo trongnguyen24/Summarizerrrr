@@ -4,13 +4,19 @@
   import TOC from './TOC.svelte'
 
   // Props received from App.svelte (or directly from summaryStore if desired)
-  let { summary, isLoading, error } = $props()
+  let { summary, isLoading, error, loadingType } = $props() // Receive loadingType prop
 </script>
 
 {#if isLoading}
-  <div class="text-center p-4 text-text-secondary animate-pulse">
-    Processing main summary...
-  </div>
+  {#if loadingType === 'selectedText'}
+    <div class="text-center p-4 text-text-secondary animate-pulse">
+      Summarizing selected text...
+    </div>
+  {:else}
+    <div class="text-center p-4 text-text-secondary animate-pulse">
+      Processing main summary...
+    </div>
+  {/if}
 {/if}
 
 {#if error}

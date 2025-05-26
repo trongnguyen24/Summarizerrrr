@@ -397,6 +397,25 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
       '[background.js] Summarizing selected text:',
       info.selectionText
     )
+
+    // Cố gắng mở side panel trước khi tóm tắt
+    if (tab && tab.windowId) {
+      try {
+        console.log(
+          `Attempting to open side panel for window ${tab.windowId} from context menu...`
+        )
+        await chrome.sidePanel.open({ windowId: tab.windowId })
+        console.log(
+          `Side panel open command issued for window ${tab.windowId}.`
+        )
+      } catch (error) {
+        console.error(
+          `Error opening side panel from context menu for window ${tab.windowId}: ${error}`
+        )
+        // Ghi lại lỗi nhưng vẫn tiếp tục tóm tắt nếu có thể
+      }
+    }
+
     // Sử dụng trực tiếp info.selectionText, không cần gửi message đến content script
     const selectedText = info.selectionText
 
@@ -412,17 +431,9 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
     }
 
     try {
-      // Lấy API key và settings từ storage
-      const settings = await chrome.storage.sync.get([
-        'geminiApiKey',
-        'selectedLanguage',
-        'selectedLength',
-        'selectedFormat',
-      ])
+      // Lấy API key từ storage
+      const settings = await chrome.storage.sync.get(['geminiApiKey'])
       const apiKey = settings.geminiApiKey
-      const lang = settings.selectedLanguage || 'Vietnamese' // Default to Vietnamese
-      const length = settings.selectedLength || 'medium' // Default to medium
-      const format = settings.selectedFormat || 'paragraph' // Default to paragraph
 
       if (!apiKey) {
         console.error('[background.js] Gemini API key is not set.')
@@ -436,21 +447,21 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
       }
 
       // Gửi message báo hiệu đang tóm tắt đến side panel
+      await new Promise((resolve) => setTimeout(resolve, 500)) // Add 500ms delay
       chrome.runtime.sendMessage({
         action: 'displaySummary',
-        summary: 'Đang tóm tắt văn bản đã chọn...',
+        summary: 'Summarizing selected text...',
         isLoading: true,
+        loadingType: 'selectedText', // Add loading type
         error: false,
       })
 
       // Gọi hàm tóm tắt văn bản đã chọn
+      // summarizeWithGemini sẽ tự lấy các cài đặt khác từ storage
       const summary = await summarizeWithGemini(
         selectedText,
         apiKey,
-        'selectedText', // Specify content type
-        lang,
-        length,
-        format
+        'selectedText' // Specify content type
       )
       console.log('[background.js] Summary:', summary)
 

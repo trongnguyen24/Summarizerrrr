@@ -3,7 +3,7 @@ import { generalPromptTemplate } from '../prompts/generalPromptTemplate'
 import { chapterPromptTemplate } from '../prompts/chapterPromptTemplate'
 import { selectedTextPromptTemplate } from '../prompts/selectedTextPromptTemplate'
 
-export const gemini25FlashPreview0417Config = {
+export const gemini25FlashConfig = {
   youTubeSystemInstruction:
     'Bạn là một trợ lý chuyên phân tích và tóm tắt video YouTube dựa trên transcript được cung cấp. Nhiệm vụ của bạn là tạo bản tóm tắt súc tích, chính xác và có cấu trúc, tuân thủ nghiêm ngặt các tham số và hướng dẫn dưới đây. Chỉ sử dụng thông tin có trong <Transcript> được cung cấp. Không chào hỏi, không giới thiệu.',
   generalSystemInstruction:

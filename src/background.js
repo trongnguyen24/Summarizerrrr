@@ -385,7 +385,7 @@ console.log('[background.js] Tab activation listener added.')
 chrome.runtime.onInstalled.addListener(async () => {
   chrome.contextMenus.create({
     id: 'summarizeSelectedText',
-    title: 'Tóm tắt văn bản đã chọn',
+    title: 'Summarizing selected text',
     type: 'normal',
     contexts: ['selection'], // Chỉ hiển thị khi có văn bản được chọn
   })
@@ -424,7 +424,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
       // Gửi message thông báo không có văn bản
       chrome.runtime.sendMessage({
         action: 'displaySummary',
-        summary: 'Không có văn bản nào được chọn để tóm tắt.',
+        summary: 'No text selected for summarization.',
         error: false,
       })
       return
@@ -440,7 +440,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
         // Gửi message lỗi đến side panel
         chrome.runtime.sendMessage({
           action: 'displaySummary',
-          summary: 'Lỗi: Gemini API key chưa được cấu hình.',
+          summary: 'Error: Gemini API key is not set.',
           error: true,
         })
         return

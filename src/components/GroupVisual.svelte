@@ -134,7 +134,7 @@
 <!-- svelte-ignore event_directive_deprecated -->
 <div class="wrapcross" bind:this={wrapcrossElement} on:click={handleClick}>
   <div
-    class="shadow-run border border-muted/5 border-t-muted/20"
+    class="shadow-run border border-white/40 border-b-white/70 dark:border-muted/5 dark:border-t-muted/20"
     style="
     top: {shadowStyle.top}px;
     left: {shadowStyle.left}px;

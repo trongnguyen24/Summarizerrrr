@@ -125,13 +125,50 @@ export async function summarizeWithGemini(text, apiKey, contentType) {
     }
   } catch (e) {
     console.error('Gemini API Error:', e)
-    if (e.message.includes('API key')) {
+    let errorMessage =
+      'An error occurred while calling the Gemini API: ' + e.message
+
+    // Check for 429 status code in the error message
+    if (e.message.includes('got status: 429')) {
+      const userSettings = await getUserSettings()
+      const model = userSettings.selectedModel || 'gemini-2.0-flash'
+
+      if (model === 'gemini-2.5-pro-preview-05-06') {
+        errorMessage =
+          'You have exceeded your Gemini Pro 2.5 API quota. Please try switching to Gemini 2.5 Flash or Gemini 2.0 Flash for higher limits or try again in a few minutes.'
+      } else {
+        errorMessage =
+          'You have exceeded your Gemini API quota. Please try switching to Gemini 2.5 Flash or Gemini 2.0 Flash for higher limits or try again in a few minutes.'
+      }
+    } else if (
+      e.message.includes('got status: 400') &&
+      e.message.includes('API key not valid')
+    ) {
+      errorMessage =
+        'Invalid Gemini API key. Please check your API key in the settings.'
+    } else if (
+      e.message.includes('got status: 400') &&
+      e.message.includes('API key not valid')
+    ) {
+      errorMessage =
+        'Invalid Gemini API key for chapters. Please check your API key in the settings.'
+    } else if (
+      e instanceof TypeError &&
+      e.message.includes('Failed to fetch')
+    ) {
+      errorMessage =
+        'Network error. Please check your internet connection and try again.'
+    } else if (
+      e instanceof TypeError &&
+      e.message.includes('Failed to fetch')
+    ) {
+      errorMessage =
+        'Network error for chapters. Please check your internet connection and try again.'
+    } else if (e.message.includes('API key')) {
       throw e // Re-throw API key specific errors
-    } else {
-      throw new Error(
-        'An error occurred while calling the Gemini API: ' + e.message
-      )
     }
+
+    throw new Error(errorMessage)
   }
 }
 
@@ -212,13 +249,26 @@ export async function summarizeChaptersWithGemini(
     }
   } catch (e) {
     console.error('Gemini API Error (Chapters):', e)
-    if (e.message.includes('API key')) {
+    let errorMessage =
+      'An error occurred while calling the Gemini API for chapters: ' +
+      e.message
+
+    // Check for 429 status code in the error message
+    if (e.message.includes('got status: 429')) {
+      const userSettings = await getUserSettings()
+      const model = userSettings.selectedModel || 'gemini-2.0-flash'
+
+      if (model === 'gemini-2.5-pro-preview-05-06') {
+        errorMessage =
+          'You have exceeded your Gemini Pro 2.5 API quota. Please try switching to Gemini 2.5 Flash or Gemini 2.0 Flash for higher limits or try again in a few minutes.'
+      } else {
+        errorMessage =
+          'You have exceeded your Gemini API quota. Please try switching to Gemini 2.5 Flash or Gemini 2.0 Flash for higher limits or try again in a few minutes.'
+      }
+    } else if (e.message.includes('API key')) {
       throw e // Re-throw API key specific errors
-    } else {
-      throw new Error(
-        'An error occurred while calling the Gemini API for chapters: ' +
-          e.message
-      )
     }
+
+    throw new Error(errorMessage)
   }
 }

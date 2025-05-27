@@ -108,7 +108,7 @@ export async function fetchAndSummarize() {
     const tabInfo = await getActiveTabInfo() // Lấy thông tin tab hiện tại bằng getActiveTabInfo
     if (!tabInfo || !tabInfo.url) {
       throw new Error(
-        'Could not get current tab information or URL. Please try switching to a different tab and back, or reopening the extension.'
+        'Could not get current tab information or URL. Please try switching to a different tab and back, or ing the extension. if this error persists, please clear your cookie.'
       )
     }
     const YOUTUBE_MATCH_PATTERN = /youtube\.com\/watch/i // Định nghĩa lại pattern nếu cần, hoặc import từ contentService
@@ -134,7 +134,7 @@ export async function fetchAndSummarize() {
 
     if (mainContentResult.type === 'error' || !mainContentResult.content) {
       throw new Error(
-        'Could not get main page content. Please try refreshing the page or reopening the extension.'
+        'Could not get main page content. Please try refreshing the page or reopening the extension. If the error persists, please clear your YouTube cookies and site data.'
       )
     }
 
@@ -161,7 +161,7 @@ export async function fetchAndSummarize() {
             !chapterContentResult.content
           ) {
             throw new Error(
-              'Could not get timestamped transcript for chapters. Please try refreshing the YouTube page or reopening the extension.'
+              'Could not get main page content. Please try refreshing the page or reopening the extension. If the error persists, please clear your YouTube cookies and site data.'
             )
           }
           console.log(

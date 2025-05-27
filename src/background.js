@@ -72,16 +72,25 @@ chrome.action.onClicked.addListener(async (tab) => {
     return
   }
 
-  // Luôn thử mở side panel trước
+  // Thử đóng side panel trước. Nếu không thành công (vì nó đang đóng), thì mở nó.
   try {
-    console.log(`Attempting to open side panel for window ${tab.windowId}...`)
-    await chrome.sidePanel.open({ windowId: tab.windowId })
-    console.log(`Side panel open command issued for window ${tab.windowId}.`)
-  } catch (error) {
-    console.error(
-      `Error opening side panel for window ${tab.windowId}: ${error}`
+    console.log(`Attempting to close side panel for window ${tab.windowId}...`)
+    await chrome.sidePanel.setOpened({ windowId: tab.windowId, enabled: false })
+    console.log(`Side panel close command issued for window ${tab.windowId}.`)
+  } catch (closeError) {
+    // Nếu đóng không thành công, có thể side panel đang đóng. Thử mở nó.
+    console.log(
+      `Failed to close side panel for window ${tab.windowId}, attempting to open...`,
+      closeError
     )
-    // Ghi lại lỗi nhưng vẫn tiếp tục thử inject script nếu cần
+    try {
+      await chrome.sidePanel.open({ windowId: tab.windowId })
+      console.log(`Side panel open command issued for window ${tab.windowId}.`)
+    } catch (openError) {
+      console.error(
+        `Error opening side panel for window ${tab.windowId}: ${openError}`
+      )
+    }
   }
 
   // Lấy thông tin tab hiện tại và gửi message đến side panel
@@ -385,7 +394,7 @@ console.log('[background.js] Tab activation listener added.')
 chrome.runtime.onInstalled.addListener(async () => {
   chrome.contextMenus.create({
     id: 'summarizeSelectedText',
-    title: 'Summarizing selected text',
+    title: 'Summarize selected text',
     type: 'normal',
     contexts: ['selection'], // Chỉ hiển thị khi có văn bản được chọn
   })

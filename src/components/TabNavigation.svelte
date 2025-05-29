@@ -7,6 +7,8 @@
     chapterSummary,
     isChapterLoading,
     chapterError,
+    isYouTubeVideoActive, // New prop
+    currentLoadingType, // New prop
   } = $props()
 
   // Event dispatcher to notify when the tab changes
@@ -35,18 +37,20 @@
         Summary
       </button>
 
-      <button
-        class="px-4 py-1 rounded-full transition-colors duration-150"
-        class:text-text-primary={activeTab === 'chapters'}
-        class:active={activeTab === 'chapters'}
-        onclick={() => setTab('chapters')}
-        disabled={!chapterSummary && !isChapterLoading && !chapterError}
-        title={!chapterSummary && !isChapterLoading && !chapterError
-          ? 'Waiting for chapter processing...'
-          : 'View chapter summary'}
-      >
-        Chapters
-      </button>
+      {#if isYouTubeVideoActive && currentLoadingType !== 'selectedText'}
+        <button
+          class="px-4 py-1 rounded-full transition-colors duration-150"
+          class:text-text-primary={activeTab === 'chapters'}
+          class:active={activeTab === 'chapters'}
+          onclick={() => setTab('chapters')}
+          disabled={!chapterSummary && !isChapterLoading && !chapterError}
+          title={!chapterSummary && !isChapterLoading && !chapterError
+            ? 'Waiting for chapter processing...'
+            : 'View chapter summary'}
+        >
+          Chapters
+        </button>
+      {/if}
     </GroupVisual>
     <div class="plus-icon top-left"></div>
     <div class="plus-icon bottom-right"></div>

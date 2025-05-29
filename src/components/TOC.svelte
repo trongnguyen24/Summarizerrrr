@@ -56,13 +56,23 @@
     // }
   }
 
+  function generateRandomString(length = 4) {
+    const characters = 'abcdefghijklmnopqrstuvwxyz0123456789'
+    let result = ''
+    for (let i = 0; i < length; i++) {
+      result += characters.charAt(Math.floor(Math.random() * characters.length))
+    }
+    return result
+  }
+
   function generateId(text) {
-    return text
+    const baseId = text
       .toLowerCase()
       .replace(/[^a-z0-9\s-]/g, '')
       .trim()
       .replace(/\s+/g, '-')
       .replace(/-+/g, '-')
+    return `${baseId}-${generateRandomString()}`
   }
 
   function updateTOC() {

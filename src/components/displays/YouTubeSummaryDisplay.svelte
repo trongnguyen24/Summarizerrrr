@@ -9,22 +9,10 @@
     updateActiveYouTubeTab,
   } from '../../stores/summaryStore.svelte.js'
 
-  let {
-    activeYouTubeTab, // Thêm activeYouTubeTab vào props
-  } = $props()
-
-  // Các biến này sẽ được lấy từ summaryState
-  const {
-    summary,
-    chapterSummary,
-    isLoading,
-    isChapterLoading,
-    error,
-    chapterError,
-  } = summaryState
+  let { activeYouTubeTab } = $props()
 
   function selectYouTubeTab(tabName) {
-    updateActiveYouTubeTab(tabName) // Gọi hàm trực tiếp
+    updateActiveYouTubeTab(tabName)
   }
 
   const youtubeTabs = $derived([
@@ -37,17 +25,21 @@
   <TabNavigation
     tabs={youtubeTabs}
     activeTab={activeYouTubeTab}
-    on:selectTab={(e) => selectYouTubeTab(e.detail)}
+    onSelectTab={selectYouTubeTab}
   />
 
   <div class="youtube-content mt-4">
     {#if activeYouTubeTab === 'videoSummary'}
-      <YouTubeVideoSummary {summary} {isLoading} {error} />
+      <YouTubeVideoSummary
+        summary={summaryState.summary}
+        isLoading={summaryState.isLoading}
+        error={summaryState.error}
+      />
     {:else if activeYouTubeTab === 'chapterSummary'}
       <YouTubeChapterSummary
-        {chapterSummary}
-        {isChapterLoading}
-        {chapterError}
+        chapterSummary={summaryState.chapterSummary}
+        isChapterLoading={summaryState.isChapterLoading}
+        chapterError={summaryState.chapterError}
       />
     {/if}
   </div>

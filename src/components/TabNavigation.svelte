@@ -1,14 +1,11 @@
 <!-- @ts-nocheck -->
 <script>
-  import { createEventDispatcher } from 'svelte'
   import GroupVisual from './GroupVisual.svelte'
 
-  let { tabs, activeTab } = $props()
-
-  const dispatch = createEventDispatcher()
+  let { tabs, activeTab, onSelectTab } = $props()
 
   function selectTab(tabId) {
-    dispatch('selectTab', tabId)
+    onSelectTab(tabId)
   }
 </script>
 

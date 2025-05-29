@@ -175,8 +175,6 @@
         chapterSummary={summaryStore.chapterSummary}
         isChapterLoading={summaryStore.isChapterLoading}
         chapterError={summaryStore.chapterError}
-        isYouTubeVideoActive={summaryStore.isYouTubeVideoActive}
-        currentLoadingType={summaryStore.currentLoadingType}
       />
 
       {#if activeTab === 'summary'}
@@ -193,8 +191,6 @@
           chapterSummary={summaryStore.chapterSummary}
           isChapterLoading={summaryStore.isChapterLoading}
           chapterError={summaryStore.chapterError}
-          isYouTubeVideoActive={summaryStore.isYouTubeVideoActive}
-          currentLoadingType={summaryStore.currentLoadingType}
         />
       {/if}
     </div>

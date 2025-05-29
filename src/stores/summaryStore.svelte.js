@@ -140,8 +140,8 @@ export async function fetchAndSummarize() {
 
     currentContentSource = mainContentResult.content // Store the fetched content
 
-    // --- Start Chapter Summarization in Parallel (if YouTube and not selected text) ---
-    if (isYouTubeVideoActive && currentLoadingType !== 'selectedText') {
+    // --- Start Chapter Summarization in Parallel (if YouTube) ---
+    if (isYouTubeVideoActive) {
       isChapterLoading = true // Start chapter loading
       console.log(
         '[summaryStore] Bắt đầu lấy transcript có timestamp cho chapters...'
@@ -195,7 +195,7 @@ export async function fetchAndSummarize() {
         }
       })()
     } else {
-      // Nếu không phải YouTube hoặc là selected text, đảm bảo không có trạng thái loading chapter
+      // Nếu không phải YouTube, đảm bảo không có trạng thái loading chapter
       isChapterLoading = false
       chapterSummary = ''
       chapterError = ''

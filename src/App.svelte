@@ -1,22 +1,34 @@
 <script>
   // @ts-nocheck
-  import { onMount, onDestroy } from 'svelte' // Import onMount and onDestroy
   import Icon from '@iconify/svelte'
-  import 'overlayscrollbars/overlayscrollbars.css' // Import CSS overlayscrollbars
-  import { useOverlayScrollbars } from 'overlayscrollbars-svelte' // Import primitive
+  import 'overlayscrollbars/overlayscrollbars.css'
+  import { useOverlayScrollbars } from 'overlayscrollbars-svelte'
   import SettingButton from './components/SettingButton.svelte'
-  import SummarizeButton from './components/SummarizeButton.svelte' // Import new component
-  import TabNavigation from './components/TabNavigation.svelte' // Import new component
-  import SummaryDisplay from './components/SummaryDisplay.svelte' // Import new component
-  import { summaryStore } from './stores/summaryStore.svelte.js' // Import the summaryStore object
-  import { theme, setTheme } from './stores/themeStore.svelte' // Import theme store and setTheme function
-  import { tabTitleStore } from './stores/tabTitleStore.svelte.js' // Import the tabTitleStore
-  import '@fontsource-variable/geist-mono' // Import variable font for Geist Mono
+  import SummarizeButton from './components/SummarizeButton.svelte'
+  import TabNavigation from './components/TabNavigation.svelte'
+  import SummaryDisplay from './components/SummaryDisplay.svelte'
 
-  // State for UI tabs (activeTab is now managed by SummaryDisplay)
-  // let activeTab = $state('summary'); // Removed
-  // let showTabNavigation = $state(false); // Removed
-  // let reactTabNavigation = $state(false); // Removed
+  // Import trực tiếp các biến và hàm từ các store đã refactor
+  import {
+    summaryState, // Import the summaryState object
+    summarizeSelectedText,
+    resetDisplayState,
+    updateIsYouTubeVideoActive,
+    fetchAndSummarize,
+  } from './stores/summaryStore.svelte.js'
+  import {
+    getTheme,
+    initializeTheme,
+    setTheme,
+    subscribeToSystemThemeChanges,
+  } from './stores/themeStore.svelte'
+  import { getTabTitle, setTabTitle } from './stores/tabTitleStore.svelte.js'
+  import {
+    loadSettings,
+    subscribeToSettingsChanges,
+  } from './stores/settingsStore.svelte.js' // Import loadSettings và subscribeToSettingsChanges
+
+  import '@fontsource-variable/geist-mono'
 
   const options = {
     scrollbars: {
@@ -26,107 +38,73 @@
   }
   const [initialize, instance] = useOverlayScrollbars({ options, defer: true })
 
-  // Handle summarize button click
-  document.addEventListener('summarizeClick', () => {
-    summaryStore.resetDisplayState() // Reset display state before new summarization
-    summaryStore.fetchAndSummarize()
-  }) // Listen for click event from SummarizeButton
-
-  // Lắng nghe sự thay đổi theme của hệ thống
-  let mediaQuery
-  let mediaQueryListener
-
-  onMount(() => {
-    if (typeof window !== 'undefined') {
-      mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-      mediaQueryListener = (e) => {
-        // Chỉ cập nhật nếu theme hiện tại là 'system'
-        if ($theme === 'system') {
-          // Cập nhật store. applyTheme sẽ được gọi qua subscribe trong store.
-          setTheme('system') // Đặt lại là 'system' để kích hoạt subscribe và áp dụng theme hệ thống mới
-        }
-      }
-      mediaQuery.addEventListener('change', mediaQueryListener)
-    }
-
-    // Initialize OverlayScrollbars on the body element
+  // Sử dụng $effect để khởi tạo OverlayScrollbars và các listeners
+  $effect(() => {
     initialize(document.body)
 
-    // Lắng nghe message từ background script để cập nhật trạng thái loại tab
+    // Gọi các hàm khởi tạo và đăng ký lắng nghe
+    loadSettings()
+    initializeTheme()
+    const unsubscribeTheme = subscribeToSystemThemeChanges() // Đăng ký lắng nghe theme hệ thống
+    subscribeToSettingsChanges() // Đăng ký lắng nghe thay đổi settings
+
+    // Hàm cleanup cho $effect
+    return () => {
+      unsubscribeTheme() // Hủy đăng ký lắng nghe theme hệ thống
+      // Không cần hủy đăng ký settings vì onStorageChange không trả về hàm hủy
+    }
+  })
+
+  // LOẠI BỎ $effect cũ lắng nghe sự thay đổi theme của hệ thống
+  // Logic này đã được chuyển vào subscribeToSystemThemeChanges và được gọi trong $effect trên
+
+  // Logic xử lý message từ background script
+  $effect(() => {
     const handleMessage = (request, sender, sendResponse) => {
       if (request.action === 'tabUpdated') {
         console.log('[App.svelte] Received tabUpdated message:', request)
-        summaryStore.updateIsYouTubeVideoActive(request.isYouTube)
-        tabTitleStore.set(request.tabTitle) // Update the tabTitleStore
-        console.log(
-          '------[App.svelte] Updated tabTitleStore with new title:',
-          request.isYouTube
-        )
-        // reactTabNavigation = request.isYouTube; // Removed
+        updateIsYouTubeVideoActive(request.isYouTube) // Hàm này vẫn được export riêng
+        setTabTitle(request.tabTitle) // Cập nhật trực tiếp tabTitle
       } else if (request.action === 'currentTabInfo') {
-        // Handle response for initial tab info request
         console.log('[App.svelte] Received currentTabInfo response:', request)
-        tabTitleStore.set(request.tabTitle)
-        summaryStore.updateIsYouTubeVideoActive(request.isYouTube)
-        console.log(
-          '------[App.svelte] Updated tabTitleStore with new title:',
-          request.isYouTube
-        )
+        setTabTitle(request.tabTitle) // Cập nhật trực tiếp tabTitle
+        updateIsYouTubeVideoActive(request.isYouTube) // Hàm này vẫn được export riêng
       } else if (request.action === 'displaySummary') {
         console.log('[App.svelte] Received displaySummary message:', request)
-        // summaryStore.resetLoadingState(); // Removed
-        // Update summaryStore with the received summary, loading state, and loading type
-        summaryStore.updateSummary(request.summary)
-        // summaryStore.updateLoading(request.isLoading, request.loadingType); // Removed
-        summaryStore.updateError(request.error ? request.summary : null) // Set error if present
-        // activeTab = 'summary'; // Removed
+        summaryState.summary = request.summary // Cập nhật trực tiếp thuộc tính
+        summaryState.error = request.error ? request.summary : null // Cập nhật trực tiếp thuộc tính
       } else if (request.action === 'summarizeSelectedText') {
         console.log(
           '[App.svelte] Received summarizeSelectedText message:',
           request
         )
-        summaryStore.summarizeSelectedText(request.selectedText)
+        summarizeSelectedText(request.selectedText)
       }
-      // Trả về true để giữ kênh message mở nếu cần phản hồi bất đồng bộ
-      // return true; // Không cần thiết nếu không gửi phản hồi
     }
+
     chrome.runtime.onMessage.addListener(handleMessage)
-    chrome.runtime.sendMessage(
-      { action: 'requestCurrentTabInfo' },
-      (response) => {
-        tabTitleStore.set(response.tabTitle) // Update the tabTitleStore
-        // reactTabNavigation = response.isYouTube; // Removed
-      }
-    )
 
     // Request current tab info from background script on mount
     chrome.runtime
       .sendMessage({ action: 'requestCurrentTabInfo' })
       .catch((error) => {
-        // Catch error if background script is not ready or listener not added yet
         console.warn(
           '[App.svelte] Could not send requestCurrentTabInfo message:',
           error
         )
       })
 
-    // Cleanup listener on destroy
     return () => {
       chrome.runtime.onMessage.removeListener(handleMessage)
     }
   })
 
-  onDestroy(() => {
-    if (mediaQuery && mediaQueryListener) {
-      mediaQuery.removeEventListener('change', mediaQueryListener)
-    }
+  // Handle summarize button click
+  // Đây là một event listener toàn cục, có thể giữ nguyên hoặc xem xét lại cách truyền event
+  document.addEventListener('summarizeClick', () => {
+    resetDisplayState() // Reset display state before new summarization
+    fetchAndSummarize() // Gọi hàm từ summaryStore
   })
-
-  // Removed: textToSummarize, local summary/loading/error states, theme logic,
-  // ensureContentScriptInjected, handleSummarizeText, OverlayScrollbars, onMount/onDestroy related to them.
-
-  // Removed: textToSummarize, local summary/loading/error states, theme logic,
-  // ensureContentScriptInjected, handleSummarizeText, OverlayScrollbars, onMount/onDestroy related to them.
 </script>
 
 <div class="flex flex-col">
@@ -134,7 +112,7 @@
     <div class=" flex justify-center items-center w-full h-full">
       <div class="text-text-secondary">
         <div class="line-clamp-1 text-[0.75rem] px-2 text-text-secondary">
-          {$tabTitleStore}
+          {getTabTitle()}
         </div>
       </div>
     </div>
@@ -151,8 +129,8 @@
       </div>
       <div class="flex flex-col gap-6 items-center justify-center">
         <SummarizeButton
-          isLoading={summaryStore.isLoading}
-          isChapterLoading={summaryStore.isChapterLoading}
+          isLoading={summaryState.isLoading}
+          isChapterLoading={summaryState.isChapterLoading}
         />
       </div>
     </div>
@@ -168,7 +146,6 @@
     <div
       class="relative prose prose-h2:mt-4 p z-10 flex flex-col gap-6 p-6 pt-10 pb-[50vh] max-w-3xl w-screen mx-auto"
     >
-      <!-- TabNavigation and content display are now handled within SummaryDisplay -->
       <SummaryDisplay />
     </div>
   </div>

@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Module cung cấp các hàm tiện ích để tương tác với Chrome API một cách nhất quán.
  */

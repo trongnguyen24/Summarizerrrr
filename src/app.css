@@ -98,41 +98,6 @@ button {
   @apply cursor-pointer select-none;
 }
 
-.setting-length-btn {
-  @apply px-3 py-1.5   hover:text-text-primary items-center gap-2 w-16 rounded-full transition-colors duration-150;
-}
-
-.setting-length-btn.active {
-  @apply text-text-primary;
-}
-
-.setting-lang-btn {
-  @apply px-3 py-1.5  hover:text-text-primary  rounded-full transition-colors duration-150;
-}
-
-.setting-lang-btn.active {
-  @apply text-text-primary;
-}
-
-.setting-format-btn {
-  @apply px-3 py-1.5  hover:text-text-primary  rounded-full transition-colors duration-150;
-}
-
-.setting-format-btn.active {
-  @apply text-text-primary;
-}
-
-.setting-format-btn.active span {
-  @apply text-text-primary;
-}
-
-.setting-theme-btn {
-  @apply px-3 py-1.5 hover:bg-surface-1 hover:text-text-primary text-text-secondary rounded-full transition-colors duration-150;
-}
-
-.setting-theme-btn.active {
-  @apply text-text-primary;
-}
 .animate-spin-slow {
   animation: spin 6s cubic-bezier(0.1, 0.5, 0.9, 0.5) infinite;
 }

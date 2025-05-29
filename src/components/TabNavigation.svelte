@@ -18,15 +18,17 @@
   <GroupVisual>
     {#each tabs as tab (tab.id)}
       <button
-        class="px-6 py-1 rounded-full transition-colors duration-150"
-        class:text-text-primary={activeTab === tab.id}
-        class:active={activeTab === tab.id}
+        class="px-6 py-1 rounded-full transition-colors duration-150 {activeTab ===
+        tab.id
+          ? 'text-text-primary'
+          : ''}"
         onclick={() => selectTab(tab.id)}
       >
         {tab.label}
       </button>
     {/each}
   </GroupVisual>
+  <!-- Giữ lại các div plus-icon và các lớp vị trí, sẽ xử lý CSS sau -->
   <div class="plus-icon top-left"></div>
   <div class="plus-icon bottom-right"></div>
 </div>

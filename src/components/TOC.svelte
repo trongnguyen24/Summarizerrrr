@@ -1,9 +1,8 @@
 <script>
   // @ts-nocheck
-  import { onMount, onDestroy } from 'svelte'
   import Icon from '@iconify/svelte'
-  import 'overlayscrollbars/overlayscrollbars.css' // Import CSS overlayscrollbars
-  import { useOverlayScrollbars } from 'overlayscrollbars-svelte' // Import primitive
+  import 'overlayscrollbars/overlayscrollbars.css'
+  import { useOverlayScrollbars } from 'overlayscrollbars-svelte'
 
   const { targetDivId } = $props()
 
@@ -113,25 +112,47 @@
   // Bọc hàm highlight bằng throttle với giới hạn 40ms
   const throttledHighlight = throttle(highlight, 80)
 
-  onMount(async () => {
-    // Thêm delay để đảm bảo DOM đã render
-    await delay(100) // Có thể điều chỉnh thời gian delay nếu cần
+  // Sử dụng $effect để thay thế onMount và onDestroy
+  $effect(() => {
+    const init = async () => {
+      await delay(100) // Thêm delay để đảm bảo DOM đã render
 
-    updateTOC()
+      updateTOC()
 
-    // Gắn sự kiện cuộn và thay đổi kích thước với hàm đã được throttle
-    window.addEventListener('scroll', throttledHighlight)
-    window.addEventListener('resize', throttledHighlight)
+      // Gắn sự kiện cuộn và thay đổi kích thước với hàm đã được throttle
+      window.addEventListener('scroll', throttledHighlight)
+      window.addEventListener('resize', throttledHighlight)
 
-    // Optional: Observe changes in the target div to update TOC dynamically
-    const targetDiv = document.getElementById(targetDivId)
-    if (targetDiv) {
-      observer = new MutationObserver(updateTOC)
-      observer.observe(targetDiv, {
-        childList: true,
-        subtree: true,
-        characterData: true,
-      })
+      // Optional: Observe changes in the target div to update TOC dynamically
+      const targetDiv = document.getElementById(targetDivId)
+      if (targetDiv) {
+        observer = new MutationObserver(updateTOC)
+        observer.observe(targetDiv, {
+          childList: true,
+          subtree: true,
+          characterData: true,
+        })
+      }
+
+      // Initialize OverlayScrollbars on the element with id "toc-scroll"
+      const tocElement = document.getElementById('toc-scroll')
+      if (tocElement) {
+        initialize(tocElement)
+      }
+    }
+
+    init()
+
+    // Cleanup function for $effect
+    return () => {
+      window.removeEventListener('scroll', throttledHighlight)
+      window.removeEventListener('resize', throttledHighlight)
+      if (observer) {
+        observer.disconnect()
+      }
+      if (instance()) {
+        instance().destroy()
+      }
     }
   })
 
@@ -142,47 +163,6 @@
     },
   }
   const [initialize, instance] = useOverlayScrollbars({ options, defer: true })
-
-  onMount(async () => {
-    // Thêm delay để đảm bảo DOM đã render
-    await delay(100) // Có thể điều chỉnh thời gian delay nếu cần
-
-    updateTOC()
-
-    // Gắn sự kiện cuộn và thay đổi kích thước với hàm đã được throttle
-    window.addEventListener('scroll', throttledHighlight)
-    window.addEventListener('resize', throttledHighlight)
-
-    // Optional: Observe changes in the target div to update TOC dynamically
-    const targetDiv = document.getElementById(targetDivId)
-    if (targetDiv) {
-      observer = new MutationObserver(updateTOC)
-      observer.observe(targetDiv, {
-        childList: true,
-        subtree: true,
-        characterData: true,
-      })
-    }
-
-    // Initialize OverlayScrollbars on the element with id "toc-scroll"
-    const tocElement = document.getElementById('toc-scroll')
-    if (tocElement) {
-      initialize(tocElement)
-    }
-  })
-
-  onDestroy(() => {
-    // Gỡ bỏ sự kiện khi component bị hủy
-    window.removeEventListener('scroll', throttledHighlight)
-    window.removeEventListener('resize', throttledHighlight)
-    if (observer) {
-      observer.disconnect()
-    }
-    // Destroy OverlayScrollbars instance on component destroy
-    if (instance()) {
-      instance().destroy()
-    }
-  })
 </script>
 
 <div class="fixed toc-animation z-20 right-0 bottom-18 group p-2 pr-3 pl-3">

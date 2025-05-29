@@ -1,163 +1,71 @@
 <script>
   // @ts-nocheck
-  import { onMount } from 'svelte'
   import { fade } from 'svelte/transition'
-  import Icon from '@iconify/svelte' // Import Icon
+  import Icon from '@iconify/svelte'
   import ButtonSet from './ButtonSet.svelte'
   import GroupVisual from './GroupVisual.svelte'
-  import 'overlayscrollbars/overlayscrollbars.css' // Import CSS overlayscrollbars
-  import { useOverlayScrollbars } from 'overlayscrollbars-svelte' // Import primitive
-  import { theme, setTheme } from '../stores/themeStore.svelte' // Import theme store and setTheme function
+  import 'overlayscrollbars/overlayscrollbars.css'
+  import { useOverlayScrollbars } from 'overlayscrollbars-svelte'
+
+  // Import trực tiếp từ stores đã refactor
+  import {
+    settings,
+    getIsInitialized,
+    updateSettings,
+  } from '../stores/settingsStore.svelte.js'
+  import { getTheme, setTheme } from '../stores/themeStore.svelte'
 
   let apiKey = $state('')
-  let showApiKey = $state(false) // Track API key visibility
+  let showApiKey = $state(false)
   let summaryLength = $state('long')
-  let summaryLang = $state('Vietnamese') // Changed default to 'vi' to match options
-  let summaryFormat = $state('heading') // Changed default to 'heading' to match options
-  let selectedModel = $state('gemini-2.0-flash') // Add state for selected model
-  let temperature = $state(0.6) // Add state for temperature, default to Balanced
-  let topP = $state(0.91) // Add state for topP, default to Balanced
+  let summaryLang = $state('Vietnamese')
+  let summaryFormat = $state('heading')
+  let selectedModel = $state('gemini-2.0-flash')
+  let temperature = $state(0.6)
+  let topP = $state(0.91)
   let saveStatus = $state('')
-  let apiKeyDebounceTimer = null // Timer for debouncing API key save
+  let apiKeyDebounceTimer = null
 
   const options = {
     scrollbars: {
-      // autoHide: 'never',
       theme: 'os-theme-custom-app',
     },
   }
   const [initialize, instance] = useOverlayScrollbars({ options, defer: true })
 
-  onMount(() => {
-    if (
-      typeof chrome !== 'undefined' &&
-      chrome.storage &&
-      chrome.storage.sync
-    ) {
-      chrome.storage.sync.get(
-        [
-          'geminiApiKey',
-          'summaryLength',
-          'summaryLang',
-          'summaryFormat',
-          'selectedModel',
-          'temperature', // Add temperature
-          'topP', // Add topP
-        ],
-        (result) => {
-          if (result.geminiApiKey) apiKey = result.geminiApiKey
-          // Ensure defaults are set if nothing is in storage yet
-          summaryLength = result.summaryLength || 'long'
-          summaryLang = result.summaryLang || 'Vietnamese'
-          summaryFormat = result.summaryFormat || 'heading'
-          selectedModel = result.selectedModel || 'gemini-2.0-flash' // Load selected model
-          temperature = result.temperature || 0.6 // Load temperature, default to Balanced
-          topP = result.topP || 0.91 // Load topP, default to Balanced
-        }
-      )
-    } else {
-      console.warn('Chrome storage API is not available.')
-      // Set defaults for dev environment
-      apiKey = localStorage.getItem('geminiApiKey_dev') || '' // Load from local storage for dev
-      summaryLength = 'long'
-      summaryLang = 'Vietnamese'
-      summaryFormat = 'heading'
-      selectedModel =
-        localStorage.getItem('selectedModel_dev') || 'gemini-2.0-flash' // Load selected model for dev
-      temperature = parseFloat(localStorage.getItem('temperature_dev')) || 0.6 // Load temperature for dev
-      topP = parseFloat(localStorage.getItem('topP_dev')) || 0.91 // Load topP for dev
-    }
-    // Initialize the overlay scrollbar
+  // Sử dụng $effect để khởi tạo OverlayScrollbars
+  $effect(() => {
     const tocElement = document.getElementById('setting-scroll')
     if (tocElement) {
       initialize(tocElement)
     }
   })
 
-  // Debounce function for API key saving
+  // Sử dụng $effect để tải cài đặt từ store khi nó được khởi tạo
+  $effect(() => {
+    if (getIsInitialized()) {
+      apiKey = settings.geminiApiKey
+      summaryLength = settings.summaryLength
+      summaryLang = settings.summaryLang
+      summaryFormat = settings.summaryFormat
+      selectedModel = settings.selectedModel
+      temperature = settings.temperature
+      topP = settings.topP
+      console.log('[Setting.svelte] Cài đặt đã được tải từ store:', settings)
+    }
+  })
+
   function scheduleApiKeySave() {
     clearTimeout(apiKeyDebounceTimer)
     apiKeyDebounceTimer = setTimeout(() => {
-      saveApiKey()
-    }, 300) // Delay of 0.8 seconds
+      updateSettings({ geminiApiKey: apiKey.trim() })
+      saveStatus = 'saved!'
+      setTimeout(() => (saveStatus = ''), 2000)
+    }, 300)
   }
 
-  function updateSetting(key, value) {
-    if (
-      typeof chrome !== 'undefined' &&
-      chrome.storage &&
-      chrome.storage.sync
-    ) {
-      chrome.storage.sync.set({ [key]: value }, () => {
-        // Update local state immediately for reactivity
-        if (key === 'summaryLength') summaryLength = value
-        if (key === 'summaryLang') summaryLang = value
-        if (key === 'summaryFormat') summaryFormat = value
-        if (key === 'selectedModel') selectedModel = value // Update selected model state
-        if (key === 'temperature') temperature = value // Update temperature state
-        if (key === 'topP') topP = value // Update topP state
-        // Optionally show a temporary confirmation, similar to saveStatus
-        // saveStatus = `Updated ${key}!`;
-        // setTimeout(() => saveStatus = '', 1500);
-        console.log(`Updated ${key} to ${value}`)
-      })
-    } else {
-      console.warn('Chrome storage API is not available. Simulating update.')
-      if (key === 'summaryLength') summaryLength = value
-      if (key === 'summaryLang') summaryLang = value
-      if (key === 'summaryFormat') summaryFormat = value
-      if (key === 'selectedModel') selectedModel = value // Update selected model state for dev
-      if (key === 'temperature') temperature = value // Update temperature state for dev
-      if (key === 'topP') topP = value // Update topP state for dev
-      // Also save to local storage for dev environment
-      if (key === 'geminiApiKey' && typeof localStorage !== 'undefined') {
-        localStorage.setItem('geminiApiKey_dev', value)
-        console.log('Saved API Key to localStorage (dev)')
-      }
-      if (key === 'selectedModel' && typeof localStorage !== 'undefined') {
-        localStorage.setItem('selectedModel_dev', value)
-        console.log('Saved selectedModel to localStorage (dev)')
-      }
-      if (key === 'temperature' && typeof localStorage !== 'undefined') {
-        localStorage.setItem('temperature_dev', value.toString())
-        console.log('Saved temperature to localStorage (dev)')
-      }
-      if (key === 'topP' && typeof localStorage !== 'undefined') {
-        localStorage.setItem('topP_dev', value.toString())
-        console.log('Saved topP to localStorage (dev)')
-      }
-    }
-  }
-
-  function saveApiKey() {
-    const keyToSave = apiKey.trim()
-    if (
-      typeof chrome !== 'undefined' &&
-      chrome.storage &&
-      chrome.storage.sync
-    ) {
-      chrome.storage.sync.set({ geminiApiKey: keyToSave }, () => {
-        saveStatus = 'saved!'
-        setTimeout(() => (saveStatus = ''), 2000)
-        console.log('saved')
-      })
-    } else {
-      if (typeof localStorage !== 'undefined') {
-        localStorage.setItem('geminiApiKey_dev', keyToSave)
-        saveStatus = 'saved (simulated)!'
-        console.log(
-          'API Key automatically saved to localStorage (dev):',
-          keyToSave
-        )
-        setTimeout(() => (saveStatus = ''), 2000)
-      } else {
-        saveStatus = 'Error: Could not save API Key.'
-        console.error(
-          'Cannot save API Key: Neither chrome.storage nor localStorage is available.'
-        )
-        setTimeout(() => (saveStatus = ''), 2000)
-      }
-    }
+  function handleUpdateSetting(key, value) {
+    updateSettings({ [key]: value })
   }
 </script>
 
@@ -185,8 +93,6 @@
               transition:fade
               class="text-success flex mr-auto"
             >
-              <!-- {saveStatus} -->
-
               Auto saved!
             </p>
           {/if}
@@ -242,28 +148,36 @@
         <div class="grid grid-cols-3 w-full gap-1">
           <ButtonSet
             title="2.0 Flash"
-            class="setting {selectedModel === 'gemini-2.0-flash'
+            class="setting-btn {selectedModel === 'gemini-2.0-flash'
               ? 'active'
               : ''}"
-            onclick={() => updateSetting('selectedModel', 'gemini-2.0-flash')}
+            onclick={() =>
+              handleUpdateSetting('selectedModel', 'gemini-2.0-flash')}
             Description="Fast and efficient."
           ></ButtonSet>
           <ButtonSet
             title="2.5 Flash"
-            class="setting {selectedModel === 'gemini-2.5-flash-preview-04-17'
+            class="setting-btn {selectedModel ===
+            'gemini-2.5-flash-preview-05-20'
               ? 'active'
               : ''}"
             onclick={() =>
-              updateSetting('selectedModel', 'gemini-2.5-flash-preview-04-17')}
+              handleUpdateSetting(
+                'selectedModel',
+                'gemini-2.5-flash-preview-05-20'
+              )}
             Description="Powerful but slow."
           ></ButtonSet>
           <ButtonSet
             title="2.5 Pro"
-            class="setting {selectedModel === 'gemini-2.5-pro-exp-03-25'
+            class="setting-btn {selectedModel === 'gemini-2.5-pro-preview-05-06'
               ? 'active'
               : ''}"
             onclick={() =>
-              updateSetting('selectedModel', 'gemini-2.5-pro-exp-03-25')}
+              handleUpdateSetting(
+                'selectedModel',
+                'gemini-2.5-pro-preview-05-06'
+              )}
             Description="Most powerful, Very slow + limit."
           ></ButtonSet>
         </div>
@@ -276,34 +190,34 @@
         <div class="grid grid-cols-3 w-full gap-1">
           <ButtonSet
             title="Adherent"
-            class="setting {temperature === 0.3 && topP === 0.82
+            class="setting-btn {temperature === 0.3 && topP === 0.82
               ? 'active'
               : ''}"
             onclick={() => {
-              updateSetting('temperature', 0.3)
-              updateSetting('topP', 0.82)
+              handleUpdateSetting('temperature', 0.3)
+              handleUpdateSetting('topP', 0.82)
             }}
             Description="Adherent summary style, less creative."
           ></ButtonSet>
           <ButtonSet
             title="Balanced"
-            class="setting {temperature === 0.6 && topP === 0.91
+            class="setting-btn {temperature === 0.6 && topP === 0.91
               ? 'active'
               : ''}"
             onclick={() => {
-              updateSetting('temperature', 0.6)
-              updateSetting('topP', 0.91)
+              handleUpdateSetting('temperature', 0.6)
+              handleUpdateSetting('topP', 0.91)
             }}
             Description="Balanced summary style."
           ></ButtonSet>
           <ButtonSet
             title="Creative"
-            class="setting {temperature === 0.9 && topP === 0.96
+            class="setting-btn {temperature === 0.9 && topP === 0.96
               ? 'active'
               : ''}"
             onclick={() => {
-              updateSetting('temperature', 0.9)
-              updateSetting('topP', 0.96)
+              handleUpdateSetting('temperature', 0.9)
+              handleUpdateSetting('topP', 0.96)
             }}
             Description="Creative summary style, more imaginative."
           ></ButtonSet>
@@ -317,20 +231,20 @@
         <div class="grid grid-cols-3 w-full gap-1">
           <ButtonSet
             title="Short"
-            class="setting {summaryLength === 'short' ? 'active' : ''}"
-            onclick={() => updateSetting('summaryLength', 'short')}
+            class="setting-btn {summaryLength === 'short' ? 'active' : ''}"
+            onclick={() => handleUpdateSetting('summaryLength', 'short')}
             Description="Short summary."
           ></ButtonSet>
           <ButtonSet
             title="Medium"
-            class="setting {summaryLength === 'medium' ? 'active' : ''}"
-            onclick={() => updateSetting('summaryLength', 'medium')}
+            class="setting-btn {summaryLength === 'medium' ? 'active' : ''}"
+            onclick={() => handleUpdateSetting('summaryLength', 'medium')}
             Description="Medium length summary."
           ></ButtonSet>
           <ButtonSet
             title="Long"
-            class="setting {summaryLength === 'long' ? 'active' : ''}"
-            onclick={() => updateSetting('summaryLength', 'long')}
+            class="setting-btn {summaryLength === 'long' ? 'active' : ''}"
+            onclick={() => handleUpdateSetting('summaryLength', 'long')}
             Description="Detailed summary."
           ></ButtonSet>
         </div>
@@ -343,14 +257,14 @@
         <div class="grid grid-cols-3 w-full gap-1">
           <ButtonSet
             title="Plain"
-            class="setting {summaryFormat === 'plain' ? 'active' : ''}"
-            onclick={() => updateSetting('summaryFormat', 'plain')}
+            class="setting-btn {summaryFormat === 'plain' ? 'active' : ''}"
+            onclick={() => handleUpdateSetting('summaryFormat', 'plain')}
             Description="Plain text format."
           ></ButtonSet>
           <ButtonSet
             title="Heading"
-            class="setting {summaryFormat === 'heading' ? 'active' : ''}"
-            onclick={() => updateSetting('summaryFormat', 'heading')}
+            class="setting-btn {summaryFormat === 'heading' ? 'active' : ''}"
+            onclick={() => handleUpdateSetting('summaryFormat', 'heading')}
             Description="Format with headings."
           ></ButtonSet>
         </div>
@@ -363,20 +277,20 @@
         <div class="grid grid-cols-3 w-full gap-1">
           <ButtonSet
             title="Vietnamese"
-            class="setting {summaryLang === 'Vietnamese' ? 'active' : ''}"
-            onclick={() => updateSetting('summaryLang', 'Vietnamese')}
+            class="setting-btn {summaryLang === 'Vietnamese' ? 'active' : ''}"
+            onclick={() => handleUpdateSetting('summaryLang', 'Vietnamese')}
             Description="Vietnamese language."
           ></ButtonSet>
           <ButtonSet
             title="English"
-            class="setting {summaryLang === 'English' ? 'active' : ''}"
-            onclick={() => updateSetting('summaryLang', 'English')}
+            class="setting-btn {summaryLang === 'English' ? 'active' : ''}"
+            onclick={() => handleUpdateSetting('summaryLang', 'English')}
             Description="English language."
           ></ButtonSet>
           <ButtonSet
             title="Korean"
-            class="setting {summaryLang === 'Korean' ? 'active' : ''}"
-            onclick={() => updateSetting('summaryLang', 'Korean')}
+            class="setting-btn {summaryLang === 'Korean' ? 'active' : ''}"
+            onclick={() => handleUpdateSetting('summaryLang', 'Korean')}
             Description="Korean language."
           ></ButtonSet>
         </div>
@@ -389,19 +303,19 @@
         <div class="grid grid-cols-3 w-full gap-1">
           <ButtonSet
             title="Light"
-            class="setting {$theme === 'light' ? 'active' : ''}"
+            class="setting-btn {getTheme() === 'light' ? 'active' : ''}"
             onclick={() => setTheme('light')}
             Description="Light theme."
           ></ButtonSet>
           <ButtonSet
             title="Dark"
-            class="setting {$theme === 'dark' ? 'active' : ''}"
+            class="setting-btn {getTheme() === 'dark' ? 'active' : ''}"
             onclick={() => setTheme('dark')}
             Description="Dark theme."
           ></ButtonSet>
           <ButtonSet
             title="System"
-            class="setting {$theme === 'system' ? 'active' : ''}"
+            class="setting-btn {getTheme() === 'system' ? 'active' : ''}"
             onclick={() => setTheme('system')}
             Description="System theme."
           ></ButtonSet>

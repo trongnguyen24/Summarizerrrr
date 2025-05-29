@@ -2,7 +2,7 @@
 // @ts-nocheck
 import { GoogleGenAI } from '@google/genai'
 import { geminiModelsConfig } from './geminiConfig.js'
-import { settingsStore } from '../stores/settingsStore.svelte.js'
+import { settings, getIsInitialized } from '../stores/settingsStore.svelte.js' // Import trực tiếp settings và getIsInitialized
 
 /**
  * Summarizes content using Google Gemini.
@@ -19,11 +19,13 @@ export async function summarizeWithGemini(text, apiKey, contentType) {
   }
 
   // Wait for settings to be initialized
-  if (!settingsStore.isInitialized) {
+  if (!getIsInitialized()) {
+    // Sử dụng getIsInitialized()
     console.log('[api] Chờ cài đặt được tải trong summarizeWithGemini...')
     await new Promise((resolve) => {
       const checkInterval = setInterval(() => {
-        if (settingsStore.isInitialized) {
+        if (getIsInitialized()) {
+          // Sử dụng getIsInitialized()
           clearInterval(checkInterval)
           resolve()
         }
@@ -32,7 +34,7 @@ export async function summarizeWithGemini(text, apiKey, contentType) {
     console.log('[api] Cài đặt đã sẵn sàng trong summarizeWithGemini.')
   }
 
-  const userSettings = settingsStore.settings // Use settings from the store
+  const userSettings = settings // Sử dụng settings trực tiếp
   const model = userSettings.selectedModel || 'gemini-2.0-flash' // Default model
 
   const modelConfig =
@@ -117,7 +119,7 @@ export async function summarizeWithGemini(text, apiKey, contentType) {
 
     // Check for 429 status code in the error message
     if (e.message.includes('got status: 429')) {
-      const userSettings = settingsStore.settings // Use settings from the store
+      const userSettings = settings // Sử dụng settings trực tiếp
       const model = userSettings.selectedModel || 'gemini-2.0-flash'
 
       if (model === 'gemini-2.5-pro-preview-05-06') {
@@ -180,13 +182,15 @@ export async function summarizeChaptersWithGemini(
   }
 
   // Wait for settings to be initialized
-  if (!settingsStore.isInitialized) {
+  if (!getIsInitialized()) {
+    // Sử dụng getIsInitialized()
     console.log(
       '[api] Chờ cài đặt được tải trong summarizeChaptersWithGemini...'
     )
     await new Promise((resolve) => {
       const checkInterval = setInterval(() => {
-        if (settingsStore.isInitialized) {
+        if (getIsInitialized()) {
+          // Sử dụng getIsInitialized()
           clearInterval(checkInterval)
           resolve()
         }
@@ -195,7 +199,7 @@ export async function summarizeChaptersWithGemini(
     console.log('[api] Cài đặt đã sẵn sàng trong summarizeChaptersWithGemini.')
   }
 
-  const userSettings = settingsStore.settings // Use settings from the store
+  const userSettings = settings // Sử dụng settings trực tiếp
   const model = userSettings.selectedModel || 'gemini-2.0-flash' // Default model
 
   const modelConfig =
@@ -258,7 +262,7 @@ export async function summarizeChaptersWithGemini(
 
     // Check for 429 status code in the error message
     if (e.message.includes('got status: 429')) {
-      const userSettings = await getUserSettings()
+      const userSettings = settings // Sửa lỗi: sử dụng settings trực tiếp
       const model = userSettings.selectedModel || 'gemini-2.0-flash'
 
       if (model === 'gemini-2.5-pro-preview-05-06') {

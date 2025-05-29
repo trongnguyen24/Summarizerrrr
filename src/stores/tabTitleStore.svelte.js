@@ -1,3 +1,9 @@
-import { writable } from 'svelte/store'
+let _tabTitle = $state('') // Biến nội bộ, không export let
 
-export const tabTitleStore = writable('')
+export function getTabTitle() {
+  return _tabTitle
+}
+
+export function setTabTitle(newTitle) {
+  _tabTitle = newTitle // Cập nhật biến nội bộ
+}

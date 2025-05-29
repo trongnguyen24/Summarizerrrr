@@ -334,13 +334,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     // Trả về true để chỉ ra rằng sendResponse sẽ được gọi bất đồng bộ
     return true
   }
-
-  // Xử lý các action khác nếu cần
-  // else if (message.action === 'anotherAction') { ... }
-
-  // Nếu không xử lý message này, không cần trả về gì hoặc trả về false
-  console.log('[background.js] No specific action handler for this message.')
-  // return false; // Không cần thiết vì mặc định là false
 })
 
 console.log('[background.js] Message listener added.')
@@ -430,66 +423,20 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 
     if (!selectedText) {
       console.warn('[background.js] No text selected for summarization.')
-      // Gửi message thông báo không có văn bản
-      chrome.runtime.sendMessage({
-        action: 'displaySummary',
-        summary: 'No text selected for summarization.',
-        error: false,
-      })
       return
     }
 
     try {
-      // Lấy API key từ storage
-      const settings = await chrome.storage.sync.get(['geminiApiKey'])
-      const apiKey = settings.geminiApiKey
-
-      if (!apiKey) {
-        console.error('[background.js] Gemini API key is not set.')
-        // Gửi message lỗi đến side panel
-        chrome.runtime.sendMessage({
-          action: 'displaySummary',
-          summary: 'Error: Gemini API key is not set.',
-          error: true,
-        })
-        return
-      }
-
-      // Gửi message báo hiệu đang tóm tắt đến side panel
-      await new Promise((resolve) => setTimeout(resolve, 500)) // Add 500ms delay
+      // Gửi message đến side panel để kích hoạt tóm tắt văn bản được chọn
       chrome.runtime.sendMessage({
-        action: 'displaySummary',
-        summary: 'Summarizing selected text...',
-        isLoading: true,
-        loadingType: 'selectedText', // Add loading type
-        error: false,
+        action: 'summarizeSelectedText',
+        selectedText: selectedText,
       })
-
-      // Gọi hàm tóm tắt văn bản đã chọn
-      // summarizeWithGemini sẽ tự lấy các cài đặt khác từ storage
-      const summary = await summarizeWithGemini(
-        selectedText,
-        apiKey,
-        'selectedText' // Specify content type
+    } catch (error) {
+      console.error(
+        '[background.js] Error sending summarizeSelectedText message:',
+        error
       )
-      console.log('[background.js] Summary:', summary)
-
-      // Gửi kết quả tóm tắt đến side panel
-      chrome.runtime.sendMessage({
-        action: 'displaySummary',
-        summary: summary,
-        isLoading: false,
-        error: false,
-      })
-    } catch (apiError) {
-      console.error('[background.js] Error summarizing text:', apiError)
-      // Gửi message lỗi đến side panel
-      chrome.runtime.sendMessage({
-        action: 'displaySummary',
-        summary: `Lỗi khi tóm tắt: ${apiError.message}`,
-        isLoading: false,
-        error: true,
-      })
     }
   }
 })

@@ -8,16 +8,15 @@
   import SummarizeButton from './components/SummarizeButton.svelte' // Import new component
   import TabNavigation from './components/TabNavigation.svelte' // Import new component
   import SummaryDisplay from './components/SummaryDisplay.svelte' // Import new component
-  import ChapterDisplay from './components/ChapterDisplay.svelte' // Import new component
   import { summaryStore } from './stores/summaryStore.svelte.js' // Import the summaryStore object
   import { theme, setTheme } from './stores/themeStore.svelte' // Import theme store and setTheme function
   import { tabTitleStore } from './stores/tabTitleStore.svelte.js' // Import the tabTitleStore
   import '@fontsource-variable/geist-mono' // Import variable font for Geist Mono
 
-  // State for UI tabs
-  let activeTab = $state('summary')
-  let showTabNavigation = $state(false) // New state variable
-  let reactTabNavigation = $state(false) // New state for checking if TabNavigation is shown
+  // State for UI tabs (activeTab is now managed by SummaryDisplay)
+  // let activeTab = $state('summary'); // Removed
+  // let showTabNavigation = $state(false); // Removed
+  // let reactTabNavigation = $state(false); // Removed
 
   const options = {
     scrollbars: {
@@ -27,17 +26,11 @@
   }
   const [initialize, instance] = useOverlayScrollbars({ options, defer: true })
 
-  // Handle tab change event from TabNavigation
+  // Handle summarize button click
   document.addEventListener('summarizeClick', () => {
+    summaryStore.resetDisplayState() // Reset display state before new summarization
     summaryStore.fetchAndSummarize()
-    showTabNavigation = reactTabNavigation
-    if (!reactTabNavigation) {
-      activeTab = 'summary' // Set active tab to summary when clicking the button
-    }
   }) // Listen for click event from SummarizeButton
-  document.addEventListener('tabChange', (event) => {
-    activeTab = event.detail
-  })
 
   // Lắng nghe sự thay đổi theme của hệ thống
   let mediaQuery
@@ -69,7 +62,7 @@
           '------[App.svelte] Updated tabTitleStore with new title:',
           request.isYouTube
         )
-        reactTabNavigation = request.isYouTube // <-- Thêm dòng này
+        // reactTabNavigation = request.isYouTube; // Removed
       } else if (request.action === 'currentTabInfo') {
         // Handle response for initial tab info request
         console.log('[App.svelte] Received currentTabInfo response:', request)
@@ -81,12 +74,18 @@
         )
       } else if (request.action === 'displaySummary') {
         console.log('[App.svelte] Received displaySummary message:', request)
-        summaryStore.resetLoadingState() // Reset loading state before updating
+        // summaryStore.resetLoadingState(); // Removed
         // Update summaryStore with the received summary, loading state, and loading type
         summaryStore.updateSummary(request.summary)
-        summaryStore.updateLoading(request.isLoading, request.loadingType) // Use isLoading and loadingType from message
+        // summaryStore.updateLoading(request.isLoading, request.loadingType); // Removed
         summaryStore.updateError(request.error ? request.summary : null) // Set error if present
-        activeTab = 'summary' // Switch to summary tab to display the result
+        // activeTab = 'summary'; // Removed
+      } else if (request.action === 'summarizeSelectedText') {
+        console.log(
+          '[App.svelte] Received summarizeSelectedText message:',
+          request
+        )
+        summaryStore.summarizeSelectedText(request.selectedText)
       }
       // Trả về true để giữ kênh message mở nếu cần phản hồi bất đồng bộ
       // return true; // Không cần thiết nếu không gửi phản hồi
@@ -96,7 +95,7 @@
       { action: 'requestCurrentTabInfo' },
       (response) => {
         tabTitleStore.set(response.tabTitle) // Update the tabTitleStore
-        reactTabNavigation = response.isYouTube
+        // reactTabNavigation = response.isYouTube; // Removed
       }
     )
 
@@ -169,30 +168,8 @@
     <div
       class="relative prose prose-h2:mt-4 p z-10 flex flex-col gap-6 p-6 pt-10 pb-[50vh] max-w-3xl w-screen mx-auto"
     >
-      <TabNavigation
-        {activeTab}
-        {showTabNavigation}
-        chapterSummary={summaryStore.chapterSummary}
-        isChapterLoading={summaryStore.isChapterLoading}
-        chapterError={summaryStore.chapterError}
-      />
-
-      {#if activeTab === 'summary'}
-        <!-- Use SummaryDisplay component -->
-        <SummaryDisplay
-          summary={summaryStore.summary}
-          isLoading={summaryStore.isLoading}
-          error={summaryStore.error}
-          loadingType={summaryStore.currentLoadingType}
-        />
-      {:else if activeTab === 'chapters'}
-        <!-- Use ChapterDisplay component -->
-        <ChapterDisplay
-          chapterSummary={summaryStore.chapterSummary}
-          isChapterLoading={summaryStore.isChapterLoading}
-          chapterError={summaryStore.chapterError}
-        />
-      {/if}
+      <!-- TabNavigation and content display are now handled within SummaryDisplay -->
+      <SummaryDisplay />
     </div>
   </div>
 

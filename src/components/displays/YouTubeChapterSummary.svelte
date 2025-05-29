@@ -1,8 +1,8 @@
+<!-- @ts-nocheck -->
 <script>
   import { marked } from 'marked'
-  import TOC from './TOC.svelte'
+  import TOC from '../TOC.svelte' // TOC is in src/components
 
-  // Props received from App.svelte (or directly from summaryStore if desired)
   let { chapterSummary, isChapterLoading, chapterError } = $props()
 </script>
 
@@ -17,7 +17,7 @@
     class="flex relative flex-col w-fit mx-auto text-red-400 px-4 bg-red-500/10 border border-red-500/20"
   >
     <p class="text-sm">
-      <span class="font-bold block">Chapter summary error</span>
+      <span class="font-bold block">Chapters summary error</span>
       {chapterError}
     </p>
     <div class="plus-icon red-plus-icon top-left"></div>

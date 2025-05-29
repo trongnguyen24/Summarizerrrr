@@ -19,7 +19,11 @@ let error = $state('') // Error for the main summary
 let chapterError = $state('') // Error for chapters
 let isYouTubeVideoActive = $state(false) // Is the current tab a YouTube video?
 let currentContentSource = $state('') // Store the source text for potential re-summarization
-let currentLoadingType = $state(null) // Add state for loading type
+let selectedTextSummary = $state('') // Summary for selected text
+let isSelectedTextLoading = $state(false) // Loading state for selected text summary
+let selectedTextError = $state('') // Error for selected text summary
+let lastSummaryTypeDisplayed = $state(null) // Stores the type of the last summary displayed ('web', 'youtube', 'selectedText')
+let activeYouTubeTab = $state('videoSummary') // Mặc định là tóm tắt video
 
 // --- Actions ---
 
@@ -29,12 +33,33 @@ let currentLoadingType = $state(null) // Add state for loading type
 function resetState() {
   summary = ''
   chapterSummary = ''
+  selectedTextSummary = ''
   isLoading = false
   isChapterLoading = false
+  isSelectedTextLoading = false
   error = ''
   chapterError = ''
+  selectedTextError = ''
   isYouTubeVideoActive = false
   currentContentSource = ''
+  lastSummaryTypeDisplayed = null // Reset this as well
+  activeYouTubeTab = 'videoSummary' // Reset YouTube tab to default
+}
+
+/**
+ * Resets only the display-related states, clearing current summaries.
+ */
+function resetDisplayState() {
+  summary = ''
+  chapterSummary = ''
+  selectedTextSummary = ''
+  error = ''
+  chapterError = ''
+  selectedTextError = ''
+  lastSummaryTypeDisplayed = null
+  activeYouTubeTab = 'videoSummary' // Reset YouTube tab to default
+  // Keep isLoading, isChapterLoading, isSelectedTextLoading as false if not actively summarizing
+  // Keep isYouTubeVideoActive and currentContentSource as they reflect the current tab's info
 }
 
 /**
@@ -47,21 +72,12 @@ function updateIsYouTubeVideoActive(isYouTube) {
 }
 
 /**
- * Resets the loading state and type.
+ * Updates the active YouTube tab state.
+ * @param {string} tabName - The ID of the active YouTube tab ('videoSummary' or 'chapterSummary').
  */
-function resetLoadingState() {
-  isLoading = false
-  currentLoadingType = null
-}
-
-/**
- * Updates the loading state and type.
- * @param {boolean} value - The new loading state.
- * @param {string|null} type - The type of loading ('main', 'selectedText', null).
- */
-function updateLoading(value, type = null) {
-  isLoading = value
-  currentLoadingType = type
+function updateActiveYouTubeTab(tabName) {
+  activeYouTubeTab = tabName
+  console.log(`[summaryStore] activeYouTubeTab updated to: ${tabName}`)
 }
 
 /**
@@ -219,6 +235,7 @@ export async function fetchAndSummarize() {
       summary = '<p><i>Không thể tạo tóm tắt từ nội dung này.</i></p>'
     } else {
       summary = marked.parse(summarizedText)
+      lastSummaryTypeDisplayed = isYouTubeVideoActive ? 'youtube' : 'web' // Cập nhật loại tóm tắt đã hiển thị
     }
     console.log('[summaryStore] Đã xử lý tóm tắt chính.')
   } catch (e) {
@@ -233,6 +250,84 @@ export async function fetchAndSummarize() {
   }
 }
 
+/**
+ * Summarizes selected text.
+ * @param {string} text - The selected text to summarize.
+ */
+export async function summarizeSelectedText(text) {
+  if (isSelectedTextLoading || isLoading || isChapterLoading) {
+    console.warn(
+      '[summaryStore] Selected text summarization already in progress or other summarization is active.'
+    )
+    return
+  }
+
+  if (!settingsStore.isInitialized) {
+    console.log(
+      '[summaryStore] Chờ cài đặt được tải cho tóm tắt văn bản được chọn...'
+    )
+    await new Promise((resolve) => {
+      const checkInterval = setInterval(() => {
+        if (settingsStore.isInitialized) {
+          clearInterval(checkInterval)
+          resolve()
+        }
+      }, 100)
+    })
+    console.log(
+      '[summaryStore] Cài đặt đã sẵn sàng cho tóm tắt văn bản được chọn.'
+    )
+  }
+
+  const { settings: appSettings } = settingsStore
+
+  selectedTextSummary = '' // Reset previous selected text summary
+  selectedTextError = '' // Reset previous error
+  isSelectedTextLoading = true // Start loading for selected text
+
+  try {
+    const apiKey = appSettings.geminiApiKey
+    if (!apiKey) {
+      throw new Error(
+        'API Key not configured in settings. Please add your API Key in the settings.'
+      )
+    }
+
+    if (!text || text.trim() === '') {
+      throw new Error('No text selected for summarization.')
+    }
+
+    console.log('[summaryStore] Bắt đầu tóm tắt văn bản được chọn...')
+    const summarizedText = await summarizeWithGemini(
+      text,
+      apiKey,
+      'selectedText', // Pass type as 'selectedText'
+      appSettings.summaryLang,
+      appSettings.summaryLength,
+      appSettings.summaryFormat
+    )
+
+    if (!summarizedText || summarizedText.trim() === '') {
+      console.warn(
+        '[summaryStore] Gemini trả về kết quả rỗng cho tóm tắt văn bản được chọn.'
+      )
+      selectedTextSummary =
+        '<p><i>Không thể tạo tóm tắt từ văn bản được chọn này.</i></p>'
+    } else {
+      selectedTextSummary = marked.parse(summarizedText)
+      lastSummaryTypeDisplayed = 'selectedText' // Cập nhật loại tóm tắt đã hiển thị
+    }
+    console.log('[summaryStore] Đã xử lý tóm tắt văn bản được chọn.')
+  } catch (e) {
+    console.error('[summaryStore] Lỗi tóm tắt văn bản được chọn:', e)
+    selectedTextError =
+      e.message ||
+      'An unexpected error occurred during selected text summarization. Please try again later.'
+  } finally {
+    isSelectedTextLoading = false // End loading
+  }
+}
+
 // --- Exported State ---
 // Export an object containing the state variables and actions
 export const summaryStore = {
@@ -242,11 +337,17 @@ export const summaryStore = {
   get chapterSummary() {
     return chapterSummary
   },
+  get selectedTextSummary() {
+    return selectedTextSummary
+  },
   get isLoading() {
     return isLoading
   },
   get isChapterLoading() {
     return isChapterLoading
+  },
+  get isSelectedTextLoading() {
+    return isSelectedTextLoading
   },
   get error() {
     return error
@@ -254,14 +355,26 @@ export const summaryStore = {
   get chapterError() {
     return chapterError
   },
+  get selectedTextError() {
+    return selectedTextError
+  },
   get isYouTubeVideoActive() {
     return isYouTubeVideoActive
   },
   get currentContentSource() {
     return currentContentSource
   },
+  get lastSummaryTypeDisplayed() {
+    return lastSummaryTypeDisplayed
+  }, // Export the new state
+  get activeYouTubeTab() {
+    return activeYouTubeTab
+  }, // Export the new state
   fetchAndSummarize, // Also export the action
+  summarizeSelectedText, // Export the new action
   updateIsYouTubeVideoActive, // Export the update function
+  updateActiveYouTubeTab, // Export the new update function
+  resetDisplayState, // Export the new reset function
   // Add setters for state updates from outside
   updateSummary: (value) => {
     summary = value
@@ -269,12 +382,6 @@ export const summaryStore = {
   updateError: (value) => {
     error = value
   },
-  get currentLoadingType() {
-    // Export the new state
-    return currentLoadingType
-  },
-  updateLoading, // Export the updated function
-  resetLoadingState, // Export the new function
 }
 
 console.log('summaryStore.svelte.js loaded')

@@ -1,54 +1,32 @@
+<!-- @ts-nocheck -->
 <script>
+  import { createEventDispatcher } from 'svelte'
   import GroupVisual from './GroupVisual.svelte'
-  // Props received from App.svelte
-  let {
-    activeTab,
-    showTabNavigation, // Use the new prop
-    chapterSummary,
-    isChapterLoading,
-    chapterError,
-  } = $props()
 
-  // Event dispatcher to notify when the tab changes
-  const dispatch = (event, detail) => {
-    const customEvent = new CustomEvent(event, { detail })
-    document.dispatchEvent(customEvent) // Dispatch to document or a specific element
-  }
+  let { tabs, activeTab } = $props()
 
-  function setTab(tabName) {
-    // activeTab = tabName; // Update local state if needed, but App.svelte will manage the source of truth
-    dispatch('tabChange', tabName) // Notify parent (App.svelte)
+  const dispatch = createEventDispatcher()
+
+  function selectTab(tabId) {
+    dispatch('selectTab', tabId)
   }
 </script>
 
-{#if showTabNavigation}
-  <div
-    class="flex relative font-mono text-base text-text-secondary w-fit gap-2 p-0.5 border border-border"
-  >
-    <GroupVisual>
+<div
+  class="flex relative font-mono text-base text-text-secondary w-fit gap-2 p-0.5 border border-border"
+>
+  <GroupVisual>
+    {#each tabs as tab (tab.id)}
       <button
         class="px-6 py-1 rounded-full transition-colors duration-150"
-        class:text-text-primary={activeTab === 'summary'}
-        class:active={activeTab === 'summary'}
-        onclick={() => setTab('summary')}
+        class:text-text-primary={activeTab === tab.id}
+        class:active={activeTab === tab.id}
+        onclick={() => selectTab(tab.id)}
       >
-        Summary
+        {tab.label}
       </button>
-
-      <button
-        class="px-4 py-1 rounded-full transition-colors duration-150"
-        class:text-text-primary={activeTab === 'chapters'}
-        class:active={activeTab === 'chapters'}
-        onclick={() => setTab('chapters')}
-        disabled={!chapterSummary && !isChapterLoading && !chapterError}
-        title={!chapterSummary && !isChapterLoading && !chapterError
-          ? 'Waiting for chapter processing...'
-          : 'View chapter summary'}
-      >
-        Chapters
-      </button>
-    </GroupVisual>
-    <div class="plus-icon top-left"></div>
-    <div class="plus-icon bottom-right"></div>
-  </div>
-{/if}
+    {/each}
+  </GroupVisual>
+  <div class="plus-icon top-left"></div>
+  <div class="plus-icon bottom-right"></div>
+</div>

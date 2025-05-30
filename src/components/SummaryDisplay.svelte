@@ -38,8 +38,8 @@
       {chapterError}
     />
 
-    ---
+    <!-- ---
 
-    <WebSummaryDisplay {summary} {isLoading} {error} />
+    <WebSummaryDisplay {summary} {isLoading} {error} /> -->
   </div>
 </div>

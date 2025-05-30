@@ -4,6 +4,7 @@
   import Icon from '@iconify/svelte'
   import ButtonSet from './ButtonSet.svelte'
   import GroupVisual from './GroupVisual.svelte'
+  import LanguageSelect from './LanguageSelect.svelte' // Import LanguageSelect
   import 'overlayscrollbars/overlayscrollbars.css'
   import { useOverlayScrollbars } from 'overlayscrollbars-svelte'
 
@@ -273,26 +274,10 @@
       <div class="flex flex-col gap-2">
         <!-- svelte-ignore a11y_label_has_associated_control -->
         <label class="block text-text-primary font-bold">Language output</label>
-        <div class="grid grid-cols-3 w-full gap-1">
-          <ButtonSet
-            title="Vietnamese"
-            class="setting-btn {summaryLang === 'Vietnamese' ? 'active' : ''}"
-            onclick={() => handleUpdateSetting('summaryLang', 'Vietnamese')}
-            Description="Vietnamese language."
-          ></ButtonSet>
-          <ButtonSet
-            title="English"
-            class="setting-btn {summaryLang === 'English' ? 'active' : ''}"
-            onclick={() => handleUpdateSetting('summaryLang', 'English')}
-            Description="English language."
-          ></ButtonSet>
-          <ButtonSet
-            title="Korean"
-            class="setting-btn {summaryLang === 'Korean' ? 'active' : ''}"
-            onclick={() => handleUpdateSetting('summaryLang', 'Korean')}
-            Description="Korean language."
-          ></ButtonSet>
-        </div>
+        <LanguageSelect
+          value={summaryLang}
+          on:change={(e) => handleUpdateSetting('summaryLang', e.detail)}
+        />
       </div>
 
       <!-- Theme Section -->

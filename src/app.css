@@ -129,7 +129,7 @@ button {
   }
 
   100% {
-    transform: scale(0.9) translateY(-100px); /* Thu nhỏ còn 80% */
+    transform: scale(0.9) translateY(36px); /* Thu nhỏ còn 90% */
     opacity: 0;
   }
 }

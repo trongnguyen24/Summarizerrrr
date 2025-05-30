@@ -10,7 +10,7 @@
 
 <button
   onclick={() => (isOpen = true)}
-  class="p-1 transition-colors hover:bg-surface-1 rounded-full hover:text-text-primary"
+  class="p-1 setting-animation transition-colors hover:bg-surface-1 rounded-full hover:text-text-primary"
   title="Open settings"
 >
   <Icon width={24} icon="heroicons:cog-6-tooth" />
@@ -54,3 +54,88 @@
     </Dialog.Content>
   </Dialog.Portal>
 </Dialog.Root>
+
+<!-- <script> -->
+
+<style>
+  .setting-animation {
+    animation: gear-jiggle 10s ease-in-out infinite;
+  }
+
+  @keyframes spin-cogwheel {
+    0% {
+      transform: rotate(0deg);
+    }
+    17% {
+      transform: rotate(0deg);
+    }
+    20% {
+      transform: rotate(60deg);
+    }
+    20% {
+      transform: rotate(60deg);
+    }
+    45% {
+      transform: rotate(60deg);
+    }
+    50% {
+      transform: rotate(0deg);
+    }
+    60% {
+      transform: rotate(0deg);
+    }
+    64% {
+      transform: rotate(-30deg);
+    }
+    66% {
+      transform: rotate(-30deg);
+    }
+    70% {
+      transform: rotate(0deg);
+    }
+    90% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(0deg);
+    }
+  }
+
+  @keyframes gear-jiggle {
+    0%,
+    100% {
+      transform: rotate(0deg);
+    }
+    5% {
+      transform: rotate(60deg); /* Nhích lên rõ ràng hơn */
+    }
+    8% {
+      transform: rotate(30deg); /* Nhích xuống rõ ràng hơn */
+    }
+    11% {
+      transform: rotate(0deg);
+    }
+    16% {
+      transform: rotate(-30deg);
+    }
+    20%,
+    70% {
+      transform: rotate(0deg); /* Đứng yên lâu hơn một chút */
+    }
+    76% {
+      transform: rotate(60deg); /* Một cú giật khác */
+    }
+    84% {
+      transform: rotate(-60deg);
+    }
+    90% {
+      transform: rotate(30deg);
+    }
+    93% {
+      transform: rotate(-30deg);
+    }
+    97% {
+      transform: rotate(0deg);
+    }
+  }
+</style>

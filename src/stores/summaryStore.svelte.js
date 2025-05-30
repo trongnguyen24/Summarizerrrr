@@ -80,15 +80,17 @@ export function updateActiveYouTubeTab(tabName) {
  * Fetches content from the current tab and triggers the summarization process.
  */
 export async function fetchAndSummarize() {
+  // Nếu có quá trình tóm tắt đang diễn ra, reset trạng thái và bắt đầu quá trình mới
   if (summaryState.isLoading || summaryState.isChapterLoading) {
-    console.warn('[summaryStore] Summarization already in progress.')
-    return
+    console.warn(
+      '[summaryStore] Existing summarization in progress. Resetting and starting new.'
+    )
+    resetState() // Reset state before starting a new summarization
   }
 
   // Wait for settings to be initialized
   if (!getIsInitialized()) {
     // Sử dụng getIsInitialized()
-    console.log('[summaryStore] Chờ cài đặt được tải...')
     await new Promise((resolve) => {
       const checkInterval = setInterval(() => {
         if (getIsInitialized()) {
@@ -255,22 +257,20 @@ export async function fetchAndSummarize() {
  * @param {string} text - The selected text to summarize.
  */
 export async function summarizeSelectedText(text) {
+  // Nếu có quá trình tóm tắt đang diễn ra, reset trạng thái và bắt đầu quá trình mới
   if (
     summaryState.isSelectedTextLoading ||
     summaryState.isLoading ||
     summaryState.isChapterLoading
   ) {
     console.warn(
-      '[summaryStore] Selected text summarization already in progress or other summarization is active.'
+      '[summaryStore] Existing summarization in progress. Resetting and starting new selected text summarization.'
     )
-    return
+    resetState() // Reset state before starting a new selected text summarization
   }
 
   if (!getIsInitialized()) {
     // Sử dụng getIsInitialized()
-    console.log(
-      '[summaryStore] Chờ cài đặt được tải cho tóm tắt văn bản được chọn...'
-    )
     await new Promise((resolve) => {
       const checkInterval = setInterval(() => {
         if (getIsInitialized()) {
@@ -290,6 +290,7 @@ export async function summarizeSelectedText(text) {
   summaryState.selectedTextSummary = '' // Reset previous selected text summary
   summaryState.selectedTextError = '' // Reset previous error
   summaryState.isSelectedTextLoading = true // Start loading for selected text
+  summaryState.lastSummaryTypeDisplayed = 'selectedText' // Ensure selected text display is active immediately
 
   try {
     const apiKey = userSettings.geminiApiKey
@@ -321,7 +322,7 @@ export async function summarizeSelectedText(text) {
         '<p><i>Không thể tạo tóm tắt từ văn bản được chọn này.</i></p>'
     } else {
       summaryState.selectedTextSummary = marked.parse(summarizedText)
-      summaryState.lastSummaryTypeDisplayed = 'selectedText' // Cập nhật loại tóm tắt đã hiển thị
+      // summaryState.lastSummaryTypeDisplayed = 'selectedText' // Đã di chuyển lên trên
     }
     console.log('[summaryStore] Đã xử lý tóm tắt văn bản được chọn.')
   } catch (e) {
@@ -337,5 +338,3 @@ export async function summarizeSelectedText(text) {
 // Các hàm updateSummary và updateError không còn cần thiết nếu các component trực tiếp cập nhật summaryState.summary và summaryState.error
 // export function updateSummary(value) { summaryState.summary = value; }
 // export function updateError(value) { summaryState.error = value; }
-
-console.log('summaryStore.svelte.js loaded')

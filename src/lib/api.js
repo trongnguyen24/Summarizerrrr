@@ -21,7 +21,6 @@ export async function summarizeWithGemini(text, apiKey, contentType) {
   // Wait for settings to be initialized
   if (!getIsInitialized()) {
     // Sử dụng getIsInitialized()
-    console.log('[api] Chờ cài đặt được tải trong summarizeWithGemini...')
     await new Promise((resolve) => {
       const checkInterval = setInterval(() => {
         if (getIsInitialized()) {
@@ -184,9 +183,6 @@ export async function summarizeChaptersWithGemini(
   // Wait for settings to be initialized
   if (!getIsInitialized()) {
     // Sử dụng getIsInitialized()
-    console.log(
-      '[api] Chờ cài đặt được tải trong summarizeChaptersWithGemini...'
-    )
     await new Promise((resolve) => {
       const checkInterval = setInterval(() => {
         if (getIsInitialized()) {

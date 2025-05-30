@@ -56,8 +56,6 @@ async function injectContentScript(tabId) {
       )
     } else if (err.message?.includes('Cannot access chrome://')) {
       console.warn(`Skipping chrome:// tab ${tabId}.`)
-    } else if (err.message?.includes('No tab with id')) {
-      console.warn(`Tab with id ${tabId} not found.`)
     } else {
       // Các lỗi khác
       console.warn(`An unexpected error occurred for tab ${tabId}:`, err)

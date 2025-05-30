@@ -166,5 +166,3 @@ export async function getPageContent(
     error: 'Logic không xác định trong getPageContent.',
   }
 }
-
-console.log('contentService.js loaded')

@@ -63,12 +63,12 @@
     const handleMessage = (request, sender, sendResponse) => {
       if (request.action === 'tabUpdated') {
         console.log('[App.svelte] Received tabUpdated message:', request)
-        updateIsYouTubeVideoActive(request.isYouTube) // Hàm này vẫn được export riêng
+        // updateIsYouTubeVideoActive(request.isYouTube) // Không cập nhật isYouTubeVideoActive tự động
         setTabTitle(request.tabTitle) // Cập nhật trực tiếp tabTitle
       } else if (request.action === 'currentTabInfo') {
         console.log('[App.svelte] Received currentTabInfo response:', request)
         setTabTitle(request.tabTitle) // Cập nhật trực tiếp tabTitle
-        updateIsYouTubeVideoActive(request.isYouTube) // Hàm này vẫn được export riêng
+        // updateIsYouTubeVideoActive(request.isYouTube) // Không cập nhật isYouTubeVideoActive tự động
       } else if (request.action === 'displaySummary') {
         console.log('[App.svelte] Received displaySummary message:', request)
         summaryState.summary = request.summary // Cập nhật trực tiếp thuộc tính
@@ -78,6 +78,8 @@
           '[App.svelte] Received summarizeSelectedText message:',
           request
         )
+        resetDisplayState() // Reset display state before new selected text summarization
+        summaryState.lastSummaryTypeDisplayed = 'selectedText' // Ensure selected text display is active immediately
         summarizeSelectedText(request.selectedText)
       }
     }

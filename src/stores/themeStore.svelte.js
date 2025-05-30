@@ -26,7 +26,6 @@ function applyThemeToDocument(themeValue) {
       document.documentElement.style.colorScheme = 'light'
     }
   }
-  console.log(`Theme set to: ${themeValue}`)
 }
 
 // Hàm khởi tạo theme khi ứng dụng load

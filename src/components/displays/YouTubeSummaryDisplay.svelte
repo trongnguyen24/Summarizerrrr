@@ -16,8 +16,18 @@
   }
 
   const youtubeTabs = $derived([
-    { id: 'videoSummary', label: 'Summary', show: true },
-    { id: 'chapterSummary', label: 'Chapters', show: true },
+    {
+      id: 'videoSummary',
+      label: 'Summary',
+      show: true,
+      isLoading: summaryState.isLoading,
+    },
+    {
+      id: 'chapterSummary',
+      label: 'Chapters',
+      show: true,
+      isLoading: summaryState.isChapterLoading,
+    },
   ])
 </script>
 

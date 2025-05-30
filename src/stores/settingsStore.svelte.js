@@ -34,7 +34,6 @@ export async function loadSettings() {
   // THÊM EXPORT Ở ĐÂY
   if (_isInitialized) return // Chỉ load một lần
 
-  console.log('[settingsStore] Đang tải cài đặt...')
   try {
     const storedSettings = await getStorage(Object.keys(DEFAULT_SETTINGS))
     const mergedSettings = { ...DEFAULT_SETTINGS }
@@ -75,11 +74,9 @@ export async function updateSettings(newSettings) {
   }
 
   Object.assign(settings, validUpdates)
-  console.log('[settingsStore] Cập nhật state cục bộ:', settings)
 
   try {
     await setStorage(validUpdates)
-    console.log('[settingsStore] Đã lưu cài đặt vào storage:', validUpdates)
   } catch (error) {
     console.error('[settingsStore] Lỗi khi lưu cài đặt:', error)
   }

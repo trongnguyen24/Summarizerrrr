@@ -12,12 +12,6 @@ export const gemini25FlashConfig = {
     'Bạn là một trợ lý chuyên nghiệp trong việc phân tích và tóm tắt transcript video YouTube có kèm dấu thời gian. Nhiệm vụ của bạn là chia transcript thành các chương hoặc phần logic dựa trên nội dung và thời gian, sau đó tạo bản tóm tắt chi tiết cho từng phần theo yêu cầu của người dùng. Bạn phải tuân thủ nghiêm ngặt cấu trúc và định dạng đầu ra được chỉ định. Không chào hỏi, không giới thiệu.',
   selectedTextSystemInstruction: `Bạn là một công cụ AI được tích hợp vào trình duyệt, chuyên trách về việc phân tích và tóm tắt nội dung văn bản do người dùng lựa chọn. Mục tiêu của bạn là cung cấp bản tóm tắt chính xác, súc tích và phù hợp với các tùy chỉnh của người dùng.`,
   buildYouTubePrompt: (text, lang, length, format) => {
-    console.log('[buildYouTubePrompt - Flash] Variables:', {
-      text: text ? 'present' : 'missing',
-      lang,
-      length,
-      format,
-    })
     const template = youTubePromptTemplate
     return template
       .replace(/\${length}/g, length)
@@ -26,12 +20,6 @@ export const gemini25FlashConfig = {
       .replace(/\${text}/g, text)
   },
   buildGeneralPrompt: (text, lang, length, format) => {
-    console.log('[buildGeneralPrompt - Flash] Variables:', {
-      text: text ? 'present' : 'missing',
-      lang,
-      length,
-      format,
-    })
     const template = generalPromptTemplate
     return template
       .replace(/\${length}/g, length)
@@ -40,11 +28,6 @@ export const gemini25FlashConfig = {
       .replace(/\${text}/g, text)
   },
   buildChapterPrompt: (timestampedTranscript, lang, length) => {
-    console.log('[buildChapterPrompt - Flash] Variables:', {
-      timestampedTranscript: timestampedTranscript ? 'present' : 'missing',
-      lang,
-      length,
-    })
     const template = chapterPromptTemplate
     return template
       .replace(/\${lang}/g, lang)
@@ -52,12 +35,6 @@ export const gemini25FlashConfig = {
       .replace(/\${timestampedTranscript}/g, timestampedTranscript)
   },
   buildSelectedTextPrompt: (text, lang, length, format) => {
-    console.log('[buildSelectedTextPrompt - Flash] Variables:', {
-      text: text ? 'present' : 'missing',
-      lang,
-      length,
-      format,
-    })
     const template = selectedTextPromptTemplate
     return template
       .replace(/\${length}/g, length)

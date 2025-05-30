@@ -93,7 +93,8 @@
 
         // Nếu tìm thấy button active, cập nhật shadowStyle
         if (activeButton) {
-          updateShadow(activeButton)
+          activeButtonElement = activeButton // Gán activeButton cho activeButtonElement
+          updateShadow(activeButtonElement) // Cập nhật shadow
         }
         // Đánh dấu là đã mounted sau khi delay
         isMounted = true

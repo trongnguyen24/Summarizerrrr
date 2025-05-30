@@ -51,7 +51,6 @@
       selectedModel = settings.selectedModel
       temperature = settings.temperature
       topP = settings.topP
-      console.log('[Setting.svelte] Cài đặt đã được tải từ store:', settings)
     }
   })
 

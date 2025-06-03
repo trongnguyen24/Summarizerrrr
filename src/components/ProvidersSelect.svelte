@@ -2,62 +2,22 @@
 <script>
   import { Select } from 'bits-ui'
   import { fly } from 'svelte/transition'
-  const languages = [
-    { value: 'Arabic', label: 'Arabic' },
-    { value: 'Bengali', label: 'Bengali' },
-    { value: 'Bulgarian', label: 'Bulgarian' },
-    {
-      value: 'Chinese Simplified',
-      label: 'Chinese Simplified',
-    },
-    {
-      value: 'Chinese Traditional',
-      label: 'Chinese Traditional',
-    },
-    { value: 'Croatian', label: 'Croatian' },
-    { value: 'Czech', label: 'Czech' },
-    { value: 'Danish', label: 'Danish' },
-    { value: 'Dutch', label: 'Dutch' },
-    { value: 'English', label: 'English' },
-    { value: 'Estonian', label: 'Estonian' },
-    { value: 'Finnish', label: 'Finnish' },
-    { value: 'French', label: 'French' },
-    { value: 'German', label: 'German' },
-    { value: 'Greek', label: 'Greek' },
-    { value: 'Hebrew', label: 'Hebrew' },
-    { value: 'Hindi', label: 'Hindi' },
-    { value: 'Hungarian', label: 'Hungarian' },
-    { value: 'Indonesian', label: 'Indonesian' },
-    { value: 'Italian', label: 'Italian' },
-    { value: 'Japanese', label: 'Japanese' },
-    { value: 'Korean', label: 'Korean' },
-    { value: 'Latvian', label: 'Latvian' },
-    { value: 'Lithuanian', label: 'Lithuanian' },
-    { value: 'Norwegian', label: 'Norwegian' },
-    { value: 'Polish', label: 'Polish' },
-    { value: 'Portuguese', label: 'Portuguese' },
-    { value: 'Romanian', label: 'Romanian' },
-    { value: 'Russian', label: 'Russian' },
-    { value: 'Serbian', label: 'Serbian' },
-    { value: 'Slovak', label: 'Slovak' },
-    { value: 'Slovenian', label: 'Slovenian' },
-    { value: 'Spanish', label: 'Spanish' },
-    { value: 'Swahili', label: 'Swahili' },
-    { value: 'Swedish', label: 'Swedish' },
-    { value: 'Thai', label: 'Thai' },
-    { value: 'Turkish', label: 'Turkish' },
-    { value: 'Ukrainian', label: 'Ukrainian' },
-    { value: 'Vietnamese', label: 'Vietnamese' },
-    { value: 'Kí tự cổ ngữ Rune', label: 'ᛊᚢᛗᛗᛖᚱᛁᛟᚠ' },
-  ]
+  import { providersConfig } from '../lib/providersConfig.js'
+  import { settings } from '../stores/settingsStore.svelte.js'
 
-  let { value = $bindable() } = $props()
+  const providers = Object.keys(providersConfig).map((key) => ({
+    value: key,
+    label: providersConfig[key].name,
+  }))
+
+  let { value = $bindable() } = $props() // Giá trị mặc định sẽ được truyền từ Setting.svelte
   const selectedLabel = $derived(
-    value ? languages.find((lang) => lang.value === value)?.label : 'English'
+    value ? providers.find((p) => p.value === value)?.label : 'Google Gemini'
   )
 
   function handleChange(newValue) {
     value = newValue // Cập nhật giá trị bindable
+    settings.selectedProvider = newValue // Cập nhật selectedProvider trong store
     // Phát ra sự kiện tùy chỉnh để Setting.svelte có thể lắng nghe
     const event = new CustomEvent('change', { detail: newValue })
     dispatchEvent(event)
@@ -66,15 +26,15 @@
 
 <Select.Root
   type="single"
-  bind:value
-  items={languages}
+  bind:value={settings.selectedProvider}
+  items={providers}
   onValueChange={handleChange}
 >
   <Select.Trigger
     class="select-none font-mono relative text-xs overflow-hidden flex flex-col gap-0 px-3 text-text-primary text-left py-1.5 bg-muted/5 dark:bg-muted/5 border border-border hover:border-white/10 transition-colors duration-150"
-    aria-label="Select a language"
+    aria-label="Select a provider"
   >
-    <div class="lang">
+    <div class="provider">
       {selectedLabel}
     </div>
     <svg
@@ -120,14 +80,14 @@
                 </svg>
               </Select.ScrollUpButton>
               <Select.Viewport>
-                {#each languages as lang, i (i + lang.value)}
+                {#each providers as provider, i (i + provider.value)}
                   <Select.Item
                     class=" font-mono text-xs data-highlighted:bg-blackwhite/10 outline-hidden flex h-6 w-full select-none items-center py-1 pl-3 pr-2 capitalize duration-75"
-                    value={lang.value}
-                    label={lang.label}
+                    value={provider.value}
+                    label={provider.label}
                   >
                     {#snippet children({ selected })}
-                      {lang.label}
+                      {provider.label}
                       {#if selected}
                         <div class="ml-auto">
                           <svg
@@ -160,7 +120,7 @@
                   <path
                     fill="currentColor"
                     fill-rule="evenodd"
-                    d="M7.47 12.78a.75.75 0 0 0 1.06 0l3.25-3.25a.75.75 0 0 0-1.06-1.06L8 11.19L5.28 8.47a.75.75 0 0 0-1.06 1.06zM4.22 4.53l3.25 3.25a.75.75 0 0 0 1.06 0l3.25-3.25a.75.75 0 0 0-1.06-1.06L8 6.19L5.28 3.47a.75.75 0 0 0-1.06 1.06"
+                    d="M7.47 12.78a.75.75 0 0 0 1.06 0l3.25-3.25a.75.75 0 0 0-1.06-1.06L8 11.19l-2.72 2.72a.75.75 0 0 0-1.06 1.06zM4.22 4.53l3.25 3.25a.75.75 0 0 0 1.06 0l3.25-3.25a.75.75 0 0 0-1.06-1.06L8 6.19L5.28 3.47a.75.75 0 0 0-1.06 1.06"
                     clip-rule="evenodd"
                   />
                 </svg></Select.ScrollDownButton
@@ -174,7 +134,7 @@
 </Select.Root>
 
 <style>
-  .lang::after {
+  .provider::after {
     display: block;
     content: '';
     position: absolute;
@@ -187,10 +147,10 @@
     transition: transform 0.3s ease-out;
     transform-origin: top right;
   }
-  .lang::after {
+  .provider::after {
     transform: rotate(45deg) translate(50%, -50%);
   }
-  .lang::before {
+  .provider::before {
     display: block;
     content: '';
     z-index: -1;
@@ -203,7 +163,7 @@
     transform: translateY(100%);
     transition: transform 0.3s ease-out;
   }
-  .lang::before {
+  .provider::before {
     transform: translateY(0);
   }
 </style>

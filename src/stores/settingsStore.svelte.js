@@ -9,15 +9,18 @@ import {
 const DEFAULT_SETTINGS = {
   selectedProvider: 'gemini', // New: Default provider
   geminiApiKey: '',
+  selectedGeminiModel: 'gemini-2.5-flash', // New: Default Gemini model
+  openrouterApiKey: '', // New: OpenRouter API Key
+  selectedOpenrouterModel: 'openrouter/auto', // New: Default OpenRouter model
   deepseekApiKey: '', // New: DeepSeek API Key
   chatgptApiKey: '', // New: ChatGPT API Key
-  openrouterApiKey: '', // New: OpenRouter API Key
   summaryLength: 'long', // short, medium, long
   summaryFormat: 'heading', // heading, paragraph
   summaryLang: 'Vietnamese', // Default language Vietnamese
   selectedModel: 'gemini-2.0-flash', // Default model
   temperature: 0.6, // Default temperature for summary style
   topP: 0.91, // Default topP for summary style
+  isAdvancedMode: false, // New: Default to basic mode
 }
 
 // --- State ---

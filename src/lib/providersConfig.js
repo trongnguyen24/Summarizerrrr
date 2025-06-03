@@ -1,5 +1,6 @@
 // @ts-nocheck
 import { GeminiProvider } from './providers/geminiProvider.js'
+import { OpenrouterProvider } from './providers/openrouterProvider.js'
 // Import other providers here as they are implemented
 
 export const providersConfig = {
@@ -17,10 +18,10 @@ export const providersConfig = {
   //   name: 'ChatGPT',
   //   providerClass: ChatGPTProvider,
   // },
-  // openrouter: {
-  //   name: 'OpenRouter',
-  //   providerClass: OpenRouterProvider,
-  // },
+  openrouter: {
+    name: 'OpenRouter',
+    providerClass: OpenrouterProvider,
+  },
 }
 
 export function getProvider(providerId, apiKey) {

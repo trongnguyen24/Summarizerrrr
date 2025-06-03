@@ -1,6 +1,9 @@
 // @svelte-compiler-ignore
 // @ts-nocheck
+// @svelte-compiler-ignore
+// @ts-nocheck
 import { geminiModelsConfig } from './geminiConfig.js'
+import { openrouterModelsConfig } from './openrouterConfig.js' // Import openrouterModelsConfig
 import { settings, getIsInitialized } from '../stores/settingsStore.svelte.js'
 import { getProvider, providersConfig } from './providersConfig.js'
 import { promptBuilders } from './promptBuilders.js'
@@ -36,11 +39,23 @@ export async function summarizeContent(text, contentType) {
   }
 
   const provider = getProvider(selectedProviderId, apiKey)
-  const model = userSettings.selectedModel || 'gemini-2.0-flash' // Default model
 
-  // For Gemini, we still need geminiModelsConfig for prompts and system instructions
-  const modelConfig =
-    geminiModelsConfig[model] || geminiModelsConfig['gemini-2.0-flash'] // Fallback to default
+  let model
+  let modelConfig
+
+  if (selectedProviderId === 'gemini') {
+    model = userSettings.selectedGeminiModel || 'gemini-2.0-flash'
+    modelConfig =
+      geminiModelsConfig[model] || geminiModelsConfig['gemini-2.0-flash']
+  } else if (selectedProviderId === 'openrouter') {
+    model = userSettings.selectedOpenrouterModel || 'openrouter/auto'
+    modelConfig =
+      openrouterModelsConfig[model] || openrouterModelsConfig['openrouter/auto']
+  } else {
+    // Fallback for other providers or if model config is not found
+    model = userSettings.selectedModel || 'gemini-2.0-flash' // Keep a generic selectedModel for other cases
+    modelConfig = { generationConfig: { temperature: 0.6, topP: 0.91 } }
+  }
 
   const contentConfig = promptBuilders[contentType] || promptBuilders['general'] // Fallback to general
 
@@ -72,9 +87,18 @@ export async function summarizeContent(text, contentType) {
           : modelConfig.generationConfig.topP,
     }
 
+    let contentsForProvider
+    if (selectedProviderId === 'gemini') {
+      contentsForProvider = [{ parts: [{ text: prompt }] }] // Gemini specific content format
+    } else if (selectedProviderId === 'openrouter') {
+      contentsForProvider = [{ parts: [{ text: prompt }] }] // OpenRouter expects messages array, but our provider handles this mapping
+    } else {
+      contentsForProvider = [{ parts: [{ text: prompt }] }] // Default for other providers
+    }
+
     const rawResult = await provider.generateContent(
       model,
-      [{ parts: [{ text: prompt }] }], // Gemini specific content format
+      contentsForProvider,
       systemInstruction,
       finalGenerationConfig
     )
@@ -116,10 +140,23 @@ export async function summarizeChapters(timestampedTranscript) {
   }
 
   const provider = getProvider(selectedProviderId, apiKey)
-  const model = userSettings.selectedModel || 'gemini-2.0-flash' // Default model
 
-  const modelConfig =
-    geminiModelsConfig[model] || geminiModelsConfig['gemini-2.0-flash'] // Fallback to default
+  let model
+  let modelConfig
+
+  if (selectedProviderId === 'gemini') {
+    model = userSettings.selectedGeminiModel || 'gemini-2.0-flash'
+    modelConfig =
+      geminiModelsConfig[model] || geminiModelsConfig['gemini-2.0-flash']
+  } else if (selectedProviderId === 'openrouter') {
+    model = userSettings.selectedOpenrouterModel || 'openrouter/auto'
+    modelConfig =
+      openrouterModelsConfig[model] || openrouterModelsConfig['openrouter/auto']
+  } else {
+    // Fallback for other providers or if model config is not found
+    model = userSettings.selectedModel || 'gemini-2.0-flash' // Keep a generic selectedModel for other cases
+    modelConfig = { generationConfig: { temperature: 0.6, topP: 0.91 } }
+  }
 
   const chapterConfig = promptBuilders['chapter']
 
@@ -146,9 +183,18 @@ export async function summarizeChapters(timestampedTranscript) {
           : modelConfig.generationConfig.topP,
     }
 
+    let contentsForProvider
+    if (selectedProviderId === 'gemini') {
+      contentsForProvider = [{ parts: [{ text: prompt }] }] // Gemini specific content format
+    } else if (selectedProviderId === 'openrouter') {
+      contentsForProvider = [{ parts: [{ text: prompt }] }] // OpenRouter expects messages array, but our provider handles this mapping
+    } else {
+      contentsForProvider = [{ parts: [{ text: prompt }] }] // Default for other providers
+    }
+
     const rawResult = await provider.generateContent(
       model,
-      [{ parts: [{ text: prompt }] }], // Gemini specific content format
+      contentsForProvider,
       chapterConfig.systemInstruction,
       finalGenerationConfig
     )

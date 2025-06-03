@@ -7,7 +7,11 @@ import {
 
 // --- Default Settings ---
 const DEFAULT_SETTINGS = {
+  selectedProvider: 'gemini', // New: Default provider
   geminiApiKey: '',
+  deepseekApiKey: '', // New: DeepSeek API Key
+  chatgptApiKey: '', // New: ChatGPT API Key
+  openrouterApiKey: '', // New: OpenRouter API Key
   summaryLength: 'long', // short, medium, long
   summaryFormat: 'heading', // heading, paragraph
   summaryLang: 'Vietnamese', // Default language Vietnamese

@@ -189,16 +189,20 @@ export default defineBackground(() => {
   browser.runtime.onInstalled.addListener(async (details) => {
     if (details.reason === 'install' || details.reason === 'update') {
       // Tạo context menu
-      browser.contextMenus
-        .create({
-          id: 'summarizeSelectedText',
-          title: 'Summarize selected text',
-          type: 'normal',
-          contexts: ['selection'],
-        })
-        .catch((error) => {
-          console.error('[background.js] Error creating context menu:', error)
-        })
+      try {
+        if (browser.contextMenus) {
+          browser.contextMenus.create({
+            id: 'summarizeSelectedText',
+            title: 'Summarize selected text',
+            type: 'normal',
+            contexts: ['selection'],
+          })
+        } else {
+          console.warn('[background.js] browser.contextMenus is not available.')
+        }
+      } catch (error) {
+        console.error('[background.js] Error creating context menu:', error)
+      }
 
       try {
         const tabs = await browser.tabs.query({

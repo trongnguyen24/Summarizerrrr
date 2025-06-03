@@ -4,7 +4,7 @@ import { marked } from 'marked'
 import { getPageContent } from '../services/contentService.js'
 import { getActiveTabInfo } from '../services/chromeService.js'
 import { settings, getIsInitialized } from './settingsStore.svelte.js' // Import settings và getIsInitialized
-import { summarizeWithGemini, summarizeChaptersWithGemini } from '../lib/api.js'
+import { summarizeContent, summarizeChapters } from '../lib/api.js'
 
 // --- State ---
 export const summaryState = $state({
@@ -182,11 +182,8 @@ export async function fetchAndSummarize() {
             '[summaryStore] Đã lấy transcript có timestamp, bắt đầu tóm tắt chapter...'
           )
 
-          const chapterSummarizedText = await summarizeChaptersWithGemini(
-            chapterContentResult.content,
-            apiKey,
-            userSettings.summaryLang,
-            userSettings.summaryLength
+          const chapterSummarizedText = await summarizeChapters(
+            chapterContentResult.content
           )
 
           if (!chapterSummarizedText || chapterSummarizedText.trim() === '') {
@@ -217,13 +214,9 @@ export async function fetchAndSummarize() {
 
     // --- Continue Main Summarization (Awaited) ---
     console.log('[summaryStore] Bắt đầu tóm tắt chính...')
-    const summarizedText = await summarizeWithGemini(
+    const summarizedText = await summarizeContent(
       summaryState.currentContentSource, // Use the stored content
-      apiKey,
-      summaryState.isYouTubeVideoActive ? 'youtube' : 'general', // Pass string literal based on type
-      userSettings.summaryLang, // Pass language
-      userSettings.summaryLength, // Pass length
-      userSettings.summaryFormat // Pass format
+      summaryState.isYouTubeVideoActive ? 'youtube' : 'general' // Pass string literal based on type
     )
 
     if (!summarizedText || summarizedText.trim() === '') {
@@ -305,13 +298,9 @@ export async function summarizeSelectedText(text) {
     }
 
     console.log('[summaryStore] Bắt đầu tóm tắt văn bản được chọn...')
-    const summarizedText = await summarizeWithGemini(
+    const summarizedText = await summarizeContent(
       text,
-      apiKey,
-      'selectedText', // Pass type as 'selectedText'
-      userSettings.summaryLang,
-      userSettings.summaryLength,
-      userSettings.summaryFormat
+      'selectedText' // Pass type as 'selectedText'
     )
 
     if (!summarizedText || summarizedText.trim() === '') {

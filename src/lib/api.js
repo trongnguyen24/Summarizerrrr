@@ -1,77 +1,63 @@
 // @svelte-compiler-ignore
 // @ts-nocheck
-import { GoogleGenAI } from '@google/genai'
 import { geminiModelsConfig } from './geminiConfig.js'
-import { settings, getIsInitialized } from '../stores/settingsStore.svelte.js' // Import trực tiếp settings và getIsInitialized
+import { settings, getIsInitialized } from '../stores/settingsStore.svelte.js'
+import { getProvider, providersConfig } from './providersConfig.js'
+import { promptBuilders } from './promptBuilders.js'
 
 /**
- * Summarizes content using Google Gemini.
+ * Summarizes content using the selected AI provider.
  * @param {string} text - Content to summarize (transcript, web page text, or selected text).
- * @param {string} apiKey - Google AI API Key.
  * @param {'youtube' | 'general' | 'selectedText'} contentType - The type of content being summarized.
  * @returns {Promise<string>} - Promise that resolves with the summary in Markdown format.
  */
-export async function summarizeWithGemini(text, apiKey, contentType) {
-  if (!apiKey) {
-    throw new Error(
-      'Gemini API key is not configured. Click the settings icon on the right to add your API key.'
-    )
-  }
-
+export async function summarizeContent(text, contentType) {
   // Wait for settings to be initialized
   if (!getIsInitialized()) {
-    // Sử dụng getIsInitialized()
     await new Promise((resolve) => {
       const checkInterval = setInterval(() => {
         if (getIsInitialized()) {
-          // Sử dụng getIsInitialized()
           clearInterval(checkInterval)
           resolve()
         }
       }, 100) // Check every 100ms
     })
-    console.log('[api] Cài đặt đã sẵn sàng trong summarizeWithGemini.')
+    console.log('[api] Cài đặt đã sẵn sàng trong summarizeContent.')
   }
 
-  const userSettings = settings // Sử dụng settings trực tiếp
-  const model = userSettings.selectedModel || 'gemini-2.0-flash' // Default model
+  const userSettings = settings
+  const selectedProviderId = userSettings.selectedProvider || 'gemini' // Default to gemini
+  const apiKey = userSettings[`${selectedProviderId}ApiKey`]
 
-  const modelConfig =
-    geminiModelsConfig[model] || geminiModelsConfig['gemini-2.0-flash'] // Fallback to default
-
-  // Object lookup for prompt and system instruction based on contentType
-  const contentConfig = {
-    youtube: {
-      buildPrompt: modelConfig.buildYouTubePrompt,
-      systemInstruction: modelConfig.youTubeSystemInstruction,
-    },
-    selectedText: {
-      buildPrompt: modelConfig.buildSelectedTextPrompt,
-      systemInstruction: modelConfig.selectedTextSystemInstruction,
-    },
-    general: {
-      buildPrompt: modelConfig.buildGeneralPrompt,
-      systemInstruction: modelConfig.generalSystemInstruction,
-    },
-  }
-
-  const config = contentConfig[contentType] || contentConfig['general'] // Fallback to general
-
-  if (!config.buildPrompt || !config.systemInstruction) {
+  if (!apiKey) {
     throw new Error(
-      `Configuration for content type "${contentType}" is incomplete for model "${model}".`
+      `${providersConfig[selectedProviderId].name} API key is not configured. Click the settings icon on the right to add your API key.`
     )
   }
 
-  const prompt = config.buildPrompt(
+  const provider = getProvider(selectedProviderId, apiKey)
+  const model = userSettings.selectedModel || 'gemini-2.0-flash' // Default model
+
+  // For Gemini, we still need geminiModelsConfig for prompts and system instructions
+  const modelConfig =
+    geminiModelsConfig[model] || geminiModelsConfig['gemini-2.0-flash'] // Fallback to default
+
+  const contentConfig = promptBuilders[contentType] || promptBuilders['general'] // Fallback to general
+
+  if (!contentConfig.buildPrompt || !contentConfig.systemInstruction) {
+    throw new Error(
+      `Configuration for content type "${contentType}" is incomplete.`
+    )
+  }
+
+  const prompt = contentConfig.buildPrompt(
     text,
     userSettings.summaryLang,
     userSettings.summaryLength,
     userSettings.summaryFormat
   )
-  const systemInstruction = config.systemInstruction
+  const systemInstruction = contentConfig.systemInstruction
 
-  const genAI = new GoogleGenAI({ apiKey })
   try {
     // Apply user settings to generationConfig, overriding defaults
     const finalGenerationConfig = {
@@ -86,129 +72,68 @@ export async function summarizeWithGemini(text, apiKey, contentType) {
           : modelConfig.generationConfig.topP,
     }
 
-    const result = await genAI.models.generateContent({
-      model: model,
-      contents: [{ parts: [{ text: prompt }] }],
-      systemInstruction: systemInstruction,
-      generationConfig: finalGenerationConfig,
-    })
-    console.log('Gemini API Result (summarizeWithGemini):', result) // Log the result object
-
-    if (
-      result &&
-      result.candidates &&
-      result.candidates.length > 0 &&
-      result.candidates[0].content &&
-      result.candidates[0].content.parts &&
-      result.candidates[0].content.parts.length > 0
-    ) {
-      const text = result.candidates[0].content.parts[0].text
-      if (text) {
-        return text
-      } else {
-        throw new Error('Did not receive valid text content from the API.')
-      }
-    } else {
-      throw new Error('Did not receive a valid summary result from the API.')
-    }
+    const rawResult = await provider.generateContent(
+      model,
+      [{ parts: [{ text: prompt }] }], // Gemini specific content format
+      systemInstruction,
+      finalGenerationConfig
+    )
+    return provider.parseResponse(rawResult)
   } catch (e) {
-    console.error('Gemini API Error:', e)
-    let errorMessage =
-      'An error occurred while calling the Gemini API: ' + e.message
-
-    // Check for 429 status code in the error message
-    if (e.message.includes('got status: 429')) {
-      const userSettings = settings // Sử dụng settings trực tiếp
-      const model = userSettings.selectedModel || 'gemini-2.0-flash'
-
-      if (model === 'gemini-2.5-pro-preview-05-06') {
-        errorMessage =
-          'You have exceeded your Gemini Pro 2.5 API quota. Please try switching to Gemini 2.5 Flash or Gemini 2.0 Flash for higher limits or try again in a few minutes.'
-      } else {
-        errorMessage =
-          'You have exceeded your Gemini API quota. Please try switching to Gemini 2.5 Flash or Gemini 2.0 Flash for higher limits or try again in a few minutes.'
-      }
-    } else if (
-      e.message.includes('got status: 400') &&
-      e.message.includes('API key not valid')
-    ) {
-      errorMessage =
-        'Invalid Gemini API key. Please check your API key in the settings.'
-    } else if (
-      e.message.includes('got status: 400') &&
-      e.message.includes('API key not valid')
-    ) {
-      errorMessage =
-        'Invalid Gemini API key for chapters. Please check your API key in the settings.'
-    } else if (
-      e instanceof TypeError &&
-      e.message.includes('Failed to fetch')
-    ) {
-      errorMessage =
-        'Network error. Please check your internet connection and try again.'
-    } else if (
-      e instanceof TypeError &&
-      e.message.includes('Failed to fetch')
-    ) {
-      errorMessage =
-        'Network error for chapters. Please check your internet connection and try again.'
-    } else if (e.message.includes('API key')) {
-      throw e // Re-throw API key specific errors
-    }
-
-    throw new Error(errorMessage)
+    console.error(`${providersConfig[selectedProviderId].name} API Error:`, e)
+    throw new Error(provider.handleError(e, model))
   }
 }
 
 /**
- * Summarizes YouTube video content by chapter using Google Gemini.
+ * Summarizes YouTube video content by chapter using the selected AI provider.
  * @param {string} timestampedTranscript - Video transcript with timestamps.
- * @param {string} apiKey - Google AI API Key.
  * @param {string} lang - Desired language for the chapter summary.
  * @param {string} length - Desired length for the chapter summary ('short', 'medium', 'long').
  * @returns {Promise<string>} - Promise that resolves with the chapter summary in Markdown format.
  */
-export async function summarizeChaptersWithGemini(
-  timestampedTranscript,
-  apiKey,
-  lang,
-  length
-) {
-  if (!apiKey) {
-    throw new Error(
-      'Gemini API key is not configured. Click the settings icon on the right to add your API key.'
-    )
-  }
-
-  // Wait for settings to be initialized
+export async function summarizeChapters(timestampedTranscript) {
   if (!getIsInitialized()) {
-    // Sử dụng getIsInitialized()
     await new Promise((resolve) => {
       const checkInterval = setInterval(() => {
         if (getIsInitialized()) {
-          // Sử dụng getIsInitialized()
           clearInterval(checkInterval)
           resolve()
         }
       }, 100) // Check every 100ms
     })
-    console.log('[api] Cài đặt đã sẵn sàng trong summarizeChaptersWithGemini.')
+    console.log('[api] Cài đặt đã sẵn sàng trong summarizeChapters.')
   }
 
-  const userSettings = settings // Sử dụng settings trực tiếp
+  const userSettings = settings
+  const selectedProviderId = userSettings.selectedProvider || 'gemini' // Default to gemini
+  const apiKey = userSettings[`${selectedProviderId}ApiKey`]
+
+  if (!apiKey) {
+    throw new Error(
+      `${providersConfig[selectedProviderId].name} API key is not configured. Click the settings icon on the right to add your API key.`
+    )
+  }
+
+  const provider = getProvider(selectedProviderId, apiKey)
   const model = userSettings.selectedModel || 'gemini-2.0-flash' // Default model
 
   const modelConfig =
     geminiModelsConfig[model] || geminiModelsConfig['gemini-2.0-flash'] // Fallback to default
-  const prompt = modelConfig.buildChapterPrompt(
+
+  const chapterConfig = promptBuilders['chapter']
+
+  if (!chapterConfig.buildPrompt || !chapterConfig.systemInstruction) {
+    throw new Error(`Configuration for chapter summary is incomplete.`)
+  }
+
+  const prompt = chapterConfig.buildPrompt(
     timestampedTranscript,
-    lang,
-    length
+    userSettings.summaryLang, // Lấy từ userSettings
+    userSettings.summaryLength // Lấy từ userSettings
   )
 
-  const genAI = new GoogleGenAI({ apiKey })
   try {
-    // Apply user settings to generationConfig, overriding defaults
     const finalGenerationConfig = {
       ...modelConfig.generationConfig,
       temperature:
@@ -221,57 +146,18 @@ export async function summarizeChaptersWithGemini(
           : modelConfig.generationConfig.topP,
     }
 
-    const result = await genAI.models.generateContent({
-      model: model,
-      contents: [{ parts: [{ text: prompt }] }],
-      systemInstruction: modelConfig.chapterSystemInstruction,
-      generationConfig: finalGenerationConfig,
-    })
-    console.log('Gemini API Result (summarizeChaptersWithGemini):', result) // Log the result object
-
-    if (
-      result &&
-      result.candidates &&
-      result.candidates.length > 0 &&
-      result.candidates[0].content &&
-      result.candidates[0].content.parts &&
-      result.candidates[0].content.parts.length > 0
-    ) {
-      const text = result.candidates[0].content.parts[0].text
-      if (text) {
-        return text
-      } else {
-        throw new Error(
-          'Did not receive valid text content from the API for chapters.'
-        )
-      }
-    } else {
-      throw new Error(
-        'Did not receive a valid chapter summary result from the API.'
-      )
-    }
+    const rawResult = await provider.generateContent(
+      model,
+      [{ parts: [{ text: prompt }] }], // Gemini specific content format
+      chapterConfig.systemInstruction,
+      finalGenerationConfig
+    )
+    return provider.parseResponse(rawResult)
   } catch (e) {
-    console.error('Gemini API Error (Chapters):', e)
-    let errorMessage =
-      'An error occurred while calling the Gemini API for chapters: ' +
-      e.message
-
-    // Check for 429 status code in the error message
-    if (e.message.includes('got status: 429')) {
-      const userSettings = settings // Sửa lỗi: sử dụng settings trực tiếp
-      const model = userSettings.selectedModel || 'gemini-2.0-flash'
-
-      if (model === 'gemini-2.5-pro-preview-05-06') {
-        errorMessage =
-          'You have exceeded your Gemini Pro 2.5 API quota. Please try switching to Gemini 2.5 Flash or Gemini 2.0 Flash for higher limits or try again in a few minutes.'
-      } else {
-        errorMessage =
-          'You have exceeded your Gemini API quota. Please try switching to Gemini 2.5 Flash or Gemini 2.0 Flash for higher limits or try again in a few minutes.'
-      }
-    } else if (e.message.includes('API key')) {
-      throw e // Re-throw API key specific errors
-    }
-
-    throw new Error(errorMessage)
+    console.error(
+      `${providersConfig[selectedProviderId].name} API Error (Chapters):`,
+      e
+    )
+    throw new Error(provider.handleError(e, model))
   }
 }

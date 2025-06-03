@@ -5,7 +5,7 @@
 
 # Summarizerrrr Chrome Extension 🚀
 
-A Chrome extension that deep summarizes content from YouTube, websites, Facebook posts, Reddit, and any text-based page online. Built to save time and meet personal needs unmet by existing tools. 😊
+A browser extension that deep summarizes content from YouTube, websites, Facebook posts, Reddit, and any text-based page online. Built to save time and meet personal needs unmet by existing tools. 😊
 
 ## 🎁 Free to Use
 
@@ -21,6 +21,10 @@ A Chrome extension that deep summarizes content from YouTube, websites, Facebook
 
 - Summarizes text-heavy sites (e.g., Reddit, news).
 - Includes comment summaries from diverse perspectives.
+
+### ✂️ Summarize Selected Text
+
+- Highlight any text on a webpage and generate a concise summary instantly.
 
 ## ⚙️ Customization
 
@@ -49,7 +53,7 @@ A Chrome extension that deep summarizes content from YouTube, websites, Facebook
 
 ### Language Options
 
-- 🗣️ English, Vietnamese, Korean (50+ languages coming soon).
+- 🗣️ More than 40+: English, Chinese (Simplified), Spanish, French, German, Japanese, Korean, Arabic, Portuguese, Russian, Hindi, Indonesian, Italian, Turkish, Vietnamese...
 
 ### Additional Features
 
@@ -64,10 +68,13 @@ A Chrome extension that deep summarizes content from YouTube, websites, Facebook
    npm install
    ```
 2. **Build Extension**:
+
    ```bash
    npm run build
    ```
+
    - Creates files in the `dist` directory.
+
 3. **Install in Chrome**:
    - Navigate to `chrome://extensions`.
    - Enable **Developer mode** (top right).
@@ -82,8 +89,6 @@ A Chrome extension that deep summarizes content from YouTube, websites, Facebook
 - Landing page with documentation, tips, and use cases.
 - YouTube summary timestamps linked to video player.
 - Streaming responses (non-blocking).
-- Support for 50+ languages.
-- Enhanced translation prompts.
 - PDF summarization.
 - Response styles (e.g., Expert, Casual, Alien, Quirky Friend).
 - Save, copy, or export summaries as PDF/Markdown.

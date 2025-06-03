@@ -1,24 +1,30 @@
+// @ts-nocheck
 /**
- * Module cung cấp các hàm tiện ích để tương tác với Chrome API một cách nhất quán.
+ * Module cung cấp các hàm tiện ích để tương tác với WebExtension API một cách nhất quán.
+ * Sử dụng webextension-polyfill để tương thích với cả Chrome và Firefox.
  */
 
 // --- Constants ---
-const IS_CHROME_EXTENSION =
-  typeof chrome !== 'undefined' && !!chrome.runtime?.id
+// IS_BROWSER_EXTENSION không còn cần thiết nếu sử dụng webextension-polyfill
+// hoặc nếu bạn muốn code chạy trên cả hai bằng cách kiểm tra browser.runtime
+// Tuy nhiên, nếu bạn đã có polyfill, browser.runtime sẽ luôn khả dụng.
+const IS_BROWSER_EXTENSION =
+  typeof browser !== 'undefined' && !!browser.runtime?.id
 
 // --- Tab Management ---
 
 /**
  * Lấy thông tin về tab đang hoạt động trong cửa sổ hiện tại.
- * @returns {Promise<chrome.tabs.Tab | null>} Thông tin tab hoặc null nếu lỗi.
+ * @returns {Promise<browser.tabs.Tab | null>} Thông tin tab hoặc null nếu lỗi.
  */
 export async function getActiveTabInfo() {
-  if (!IS_CHROME_EXTENSION || !chrome.tabs) {
-    console.warn('Chrome Tabs API không khả dụng.')
+  // Thay thế chrome.tabs bằng browser.tabs
+  if (!IS_BROWSER_EXTENSION || !browser.tabs) {
+    console.warn('Browser Tabs API không khả dụng.')
     return null
   }
   try {
-    const [tab] = await chrome.tabs.query({
+    const [tab] = await browser.tabs.query({
       active: true,
       currentWindow: true,
     })
@@ -34,6 +40,8 @@ export async function getActiveTabInfo() {
 }
 
 // --- Scripting ---
+// Đã chỉnh sửa để tương thích với Manifest V2 (sử dụng browser.tabs.executeScript)
+// và Manifest V3 (sử dụng browser.scripting.executeScript) thông qua kiểm tra API.
 
 /**
  * Tiêm một hoặc nhiều file script vào một tab cụ thể.
@@ -42,28 +50,49 @@ export async function getActiveTabInfo() {
  * @returns {Promise<boolean>} True nếu thành công (hoặc script đã tồn tại), false nếu lỗi.
  */
 export async function injectScript(tabId, files) {
-  if (!IS_CHROME_EXTENSION || !chrome.scripting) {
-    console.warn('Chrome Scripting API không khả dụng.')
+  if (!IS_BROWSER_EXTENSION) {
+    console.warn('Browser API không khả dụng để tiêm script.')
     return false
   }
+
   try {
-    await chrome.scripting.executeScript({
-      target: { tabId: tabId },
-      files: files,
-    })
-    console.log(`Đã tiêm script ${files.join(', ')} vào tab ${tabId}`)
+    if (browser.scripting) {
+      // Dùng browser.scripting (Manifest V3) nếu có
+      await browser.scripting.executeScript({
+        target: { tabId: tabId },
+        files: files,
+      })
+      console.log(
+        `Đã tiêm script (scripting API) ${files.join(', ')} vào tab ${tabId}`
+      )
+    } else if (browser.tabs && browser.tabs.executeScript) {
+      // Dùng browser.tabs.executeScript (Manifest V2) nếu browser.scripting không có
+      for (const file of files) {
+        await browser.tabs.executeScript(tabId, { file: file })
+      }
+      console.log(
+        `Đã tiêm script (tabs.executeScript API) ${files.join(
+          ', '
+        )} vào tab ${tabId}`
+      )
+    } else {
+      console.warn('Không có API scripting hoặc tabs.executeScript khả dụng.')
+      return false
+    }
     return true
   } catch (error) {
-    // Lỗi thường gặp là script đã được tiêm, coi như thành công trong trường hợp đó.
+    // Xử lý các lỗi phổ biến khi tiêm script
     if (
       error.message.includes('already injected') ||
-      error.message.includes('Cannot access') // Có thể xảy ra trên trang đặc biệt
+      error.message.includes('Cannot access') ||
+      error.message.includes('script already executed') || // Firefox specific
+      error.message.includes('No such tab') // Tab might have closed
     ) {
       console.warn(
-        `Cảnh báo khi tiêm script vào tab ${tabId} (có thể đã tồn tại hoặc không được phép):`,
+        `Cảnh báo khi tiêm script vào tab ${tabId} (có thể đã tồn tại, không được phép hoặc tab đã đóng):`,
         error.message
       )
-      return true // Vẫn coi là thành công để luồng tiếp tục
+      return true // Vẫn coi là thành công để luồng tiếp tục nếu lỗi là do đã tiêm
     }
     console.error(`Lỗi khi tiêm script vào tab ${tabId}:`, error)
     return false
@@ -78,18 +107,41 @@ export async function injectScript(tabId, files) {
  * @returns {Promise<any | null>} Kết quả trả về từ hàm hoặc null nếu lỗi.
  */
 export async function executeFunction(tabId, func, args = []) {
-  if (!IS_CHROME_EXTENSION || !chrome.scripting) {
-    console.warn('Chrome Scripting API không khả dụng.')
+  if (!IS_BROWSER_EXTENSION) {
+    console.warn('Browser API không khả dụng để thực thi hàm.')
     return null
   }
+
   try {
-    const results = await chrome.scripting.executeScript({
-      target: { tabId: tabId },
-      func: func,
-      args: args,
-    })
-    // executeScript trả về một mảng kết quả, thường chỉ cần phần tử đầu tiên
-    return results?.[0]?.result ?? null
+    let results
+    if (browser.scripting) {
+      // Dùng browser.scripting (Manifest V3) nếu có
+      results = await browser.scripting.executeScript({
+        target: { tabId: tabId },
+        func: func,
+        args: args,
+      })
+      console.log(`Đã thực thi hàm (scripting API) trong tab ${tabId}`)
+      return results?.[0]?.result ?? null
+    } else if (browser.tabs && browser.tabs.executeScript) {
+      // Dùng browser.tabs.executeScript (Manifest V2) nếu browser.scripting không có
+      // Chuyển đổi hàm thành chuỗi và tiêm vào.
+      // CÁCH NÀY CÓ HẠN CHẾ VỚI CÁC ĐỐI SỐ PHỨC TẠP HOẶP BIẾN ĐÓNG.
+      // Đối với các trường hợp phức tạp hơn, nên sử dụng message passing.
+      const funcString = `(function() {
+        // Đảm bảo func và args được định nghĩa trong ngữ cảnh này nếu cần
+        const funcToExecute = ${func.toString()};
+        const argsToPass = ${JSON.stringify(args)};
+        return funcToExecute(...argsToPass);
+      })();`
+      results = await browser.tabs.executeScript(tabId, { code: funcString })
+      console.log(`Đã thực thi hàm (tabs.executeScript API) trong tab ${tabId}`)
+      // executeScript trả về một mảng kết quả, thường chỉ cần phần tử đầu tiên
+      return results?.[0] ?? null // results[0] sẽ là kết quả của code được thực thi
+    } else {
+      console.warn('Không có API scripting hoặc tabs.executeScript khả dụng.')
+      return null
+    }
   } catch (error) {
     console.error(`Lỗi khi thực thi hàm trong tab ${tabId}:`, error)
     return null
@@ -106,9 +158,10 @@ export async function executeFunction(tabId, func, args = []) {
  * @returns {Promise<any>} Promise giải quyết với phản hồi từ content script hoặc bị reject nếu lỗi/timeout.
  */
 export async function sendMessageToTab(tabId, message, timeoutMs = 5000) {
-  if (!IS_CHROME_EXTENSION || !chrome.tabs) {
-    console.warn('Chrome Tabs/Runtime API không khả dụng để gửi message.')
-    return Promise.reject(new Error('Chrome API không khả dụng.'))
+  // Thay thế chrome.tabs/chrome.runtime bằng browser.tabs/browser.runtime
+  if (!IS_BROWSER_EXTENSION || !browser.tabs) {
+    console.warn('Browser Tabs/Runtime API không khả dụng để gửi message.')
+    return Promise.reject(new Error('Browser API không khả dụng.'))
   }
   return new Promise(async (resolve, reject) => {
     const timeout = setTimeout(() => {
@@ -124,115 +177,105 @@ export async function sendMessageToTab(tabId, message, timeoutMs = 5000) {
     }, timeoutMs)
 
     try {
-      const response = await chrome.tabs.sendMessage(tabId, message)
+      // chrome.tabs.sendMessage() trả về Promise khi có webextension-polyfill
+      const response = await browser.tabs.sendMessage(tabId, message)
       clearTimeout(timeout)
-      // Kiểm tra lỗi phổ biến khi content script không tồn tại
-      if (chrome.runtime.lastError) {
-        if (
-          chrome.runtime.lastError.message?.includes(
-            'Could not establish connection'
-          ) ||
-          chrome.runtime.lastError.message?.includes(
-            'Receiving end does not exist'
-          )
-        ) {
-          reject(
-            new Error(
-              `Không thể kết nối đến content script trong tab ${tabId}. Script có thể chưa được tiêm hoặc trang không hợp lệ.`
-            )
-          )
-        } else {
-          reject(
-            new Error(
-              `Lỗi runtime khi gửi message đến tab ${tabId}: ${chrome.runtime.lastError.message}`
-            )
-          )
-        }
-      } else {
-        resolve(response)
-      }
+      // webextension-polyfill sẽ xử lý lỗi và throw exception thay vì cần kiểm tra riêng
+      resolve(response)
     } catch (error) {
       clearTimeout(timeout)
-      // Bắt các lỗi khác (vd: tab đã đóng)
-      reject(
-        new Error(
-          `Lỗi khi gửi message đến tab ${tabId}: ${error.message || error}`
+      // Các lỗi phổ biến khi content script không tồn tại hoặc tab đã đóng
+      if (
+        error.message?.includes('Could not establish connection') ||
+        error.message?.includes('Receiving end does not exist') ||
+        error.message?.includes(
+          'The message port closed before a response was received'
+        ) // Phổ biến ở Firefox
+      ) {
+        reject(
+          new Error(
+            `Không thể kết nối đến content script trong tab ${tabId}. Script có thể chưa được tiêm hoặc trang không hợp lệ.`
+          )
         )
-      )
+      } else {
+        reject(
+          new Error(
+            `Lỗi khi gửi message đến tab ${tabId}: ${error.message || error}`
+          )
+        )
+      }
     }
   })
 }
 
 /**
  * Lắng nghe message từ các phần khác của extension (vd: content scripts).
- * @param {(message: any, sender: chrome.runtime.MessageSender, sendResponse: (response?: any) => void) => boolean | undefined | Promise<any>} callback Hàm xử lý message.
+ * @param {(message: any, sender: browser.runtime.MessageSender, sendResponse: (response?: any) => void) => boolean | undefined | Promise<any>} callback Hàm xử lý message.
  */
 export function onMessage(callback) {
-  if (!IS_CHROME_EXTENSION || !chrome.runtime?.onMessage) {
-    console.warn('Chrome Runtime onMessage API không khả dụng.')
+  // Thay thế chrome.runtime bằng browser.runtime
+  if (!IS_BROWSER_EXTENSION || !browser.runtime?.onMessage) {
+    console.warn('Browser Runtime onMessage API không khả dụng.')
     return
   }
-  chrome.runtime.onMessage.addListener(callback)
+  // Polyfill sẽ chuyển đổi để callback nhận sender/sendResponse tương thích
+  browser.runtime.onMessage.addListener(callback)
 }
 
 // --- Storage ---
 
 /**
- * Lấy giá trị từ chrome.storage.sync.
+ * Lấy giá trị từ browser.storage.sync.
  * @param {string | string[] | null} keys Khóa hoặc mảng khóa cần lấy. Null để lấy tất cả.
  * @returns {Promise<{[key: string]: any}>} Promise giải quyết với object chứa các cặp key-value.
  */
 export async function getStorage(keys) {
-  if (!IS_CHROME_EXTENSION || !chrome.storage?.sync) {
-    console.warn('Chrome Storage Sync API không khả dụng.')
-    return {} // Trả về object rỗng để tránh lỗi
+  // Thay thế chrome.storage bằng browser.storage
+  if (!IS_BROWSER_EXTENSION || !browser.storage?.sync) {
+    console.warn('Browser Storage Sync API không khả dụng.')
+    return {}
   }
-  return new Promise((resolve, reject) => {
-    chrome.storage.sync.get(keys, (result) => {
-      if (chrome.runtime.lastError) {
-        reject(
-          new Error(`Lỗi khi lấy storage: ${chrome.runtime.lastError.message}`)
-        )
-      } else {
-        resolve(result || {})
-      }
-    })
-  })
+  // browser.storage.sync.get() đã trả về Promise sẵn
+  try {
+    const result = await browser.storage.sync.get(keys)
+    return result || {}
+  } catch (error) {
+    console.error(`Lỗi khi lấy storage: ${error.message}`)
+    return {}
+  }
 }
 
 /**
- * Lưu giá trị vào chrome.storage.sync.
+ * Lưu giá trị vào browser.storage.sync.
  * @param {{[key: string]: any}} items Object chứa các cặp key-value cần lưu.
  * @returns {Promise<void>} Promise giải quyết khi lưu xong hoặc reject nếu lỗi.
  */
 export async function setStorage(items) {
-  if (!IS_CHROME_EXTENSION || !chrome.storage?.sync) {
-    console.warn('Chrome Storage Sync API không khả dụng.')
-    return Promise.resolve() // Giả lập thành công
+  // Thay thế chrome.storage bằng browser.storage
+  if (!IS_BROWSER_EXTENSION || !browser.storage?.sync) {
+    console.warn('Browser Storage Sync API không khả dụng.')
+    return Promise.resolve()
   }
-  return new Promise((resolve, reject) => {
-    chrome.storage.sync.set(items, () => {
-      if (chrome.runtime.lastError) {
-        reject(
-          new Error(`Lỗi khi lưu storage: ${chrome.runtime.lastError.message}`)
-        )
-      } else {
-        resolve()
-      }
-    })
-  })
+  // browser.storage.sync.set() đã trả về Promise sẵn
+  try {
+    await browser.storage.sync.set(items)
+  } catch (error) {
+    console.error(`Lỗi khi lưu storage: ${error.message}`)
+    throw error // Re-throw để người gọi biết lỗi
+  }
 }
 
 /**
- * Lắng nghe sự thay đổi trong chrome.storage.sync.
- * @param {(changes: {[key: string]: chrome.storage.StorageChange}, areaName: "sync" | "local" | "managed" | "session") => void} callback Hàm xử lý khi có thay đổi.
+ * Lắng nghe sự thay đổi trong browser.storage.sync.
+ * @param {(changes: {[key: string]: browser.storage.StorageChange}, areaName: "sync" | "local" | "managed" | "session") => void} callback Hàm xử lý khi có thay đổi.
  */
 export function onStorageChange(callback) {
-  if (!IS_CHROME_EXTENSION || !chrome.storage?.onChanged) {
-    console.warn('Chrome Storage onChanged API không khả dụng.')
+  // Thay thế chrome.storage bằng browser.storage
+  if (!IS_BROWSER_EXTENSION || !browser.storage?.onChanged) {
+    console.warn('Browser Storage onChanged API không khả dụng.')
     return
   }
-  chrome.storage.onChanged.addListener(callback)
+  browser.storage.onChanged.addListener(callback)
 }
 
-console.log('chromeService.js loaded') // Để xác nhận module đã được load
+console.log('chromeService.js loaded (now compatible with Firefox)') // Để xác nhận module đã được load

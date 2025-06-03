@@ -1,7 +1,8 @@
+// @ts-nocheck
 import {
   getActiveTabInfo,
   sendMessageToTab,
-  executeFunction,
+  executeFunction, // Hàm này giờ đã tương thích với MV2/MV3
 } from './chromeService.js'
 
 const YOUTUBE_MATCH_PATTERN = /youtube\.com\/watch/i
@@ -36,13 +37,13 @@ function getWebpageText() {
  * Lấy nội dung từ tab hiện tại.
  * Tự động xác định là trang YouTube hay trang web thường dựa trên URL.
  * @param {'transcript' | 'timestampedTranscript' | 'webpageText'} contentType Loại nội dung cần lấy.
- *        'transcript': Chỉ lấy text transcript từ YouTube (nếu là trang YouTube).
- *        'timestampedTranscript': Lấy transcript kèm timestamp từ YouTube (nếu là trang YouTube).
- *        'webpageText': Lấy text từ body trang web (áp dụng cho mọi loại trang).
+ * 'transcript': Chỉ lấy text transcript từ YouTube (nếu là trang YouTube).
+ * 'timestampedTranscript': Lấy transcript kèm timestamp từ YouTube (nếu là trang YouTube).
+ * 'webpageText': Lấy text từ body trang web (áp dụng cho mọi loại trang).
  * @param {string} [preferredLang='en'] Ngôn ngữ ưu tiên cho transcript YouTube.
  * @returns {Promise<{ type: 'youtube' | 'webpage' | 'error', content: string | null, error?: string }>}
- *          Object chứa loại trang (dựa trên URL), nội dung và lỗi (nếu có).
- *          Lưu ý: `type` trả về ('youtube' hoặc 'webpage') phản ánh loại trang thực tế, không phải `contentType` yêu cầu.
+ * Object chứa loại trang (dựa trên URL), nội dung và lỗi (nếu có).
+ * Lưu ý: `type` trả về ('youtube' hoặc 'webpage') phản ánh loại trang thực tế, không phải `contentType` yêu cầu.
  */
 export async function getPageContent(
   contentType = 'webpageText',
@@ -165,5 +166,3 @@ export async function getPageContent(
     error: 'Logic không xác định trong getPageContent.',
   }
 }
-
-console.log('contentService.js loaded')

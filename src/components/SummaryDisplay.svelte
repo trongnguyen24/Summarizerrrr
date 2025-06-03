@@ -1,41 +1,28 @@
+<!-- @ts-nocheck -->
 <script>
-  import Icon from '@iconify/svelte'
-  import { marked } from 'marked'
-  import TOC from './TOC.svelte'
+  // Import trực tiếp các biến và hàm từ summaryStore đã refactor
+  import { summaryState } from '../stores/summaryStore.svelte.js'
 
-  // Props received from App.svelte (or directly from summaryStore if desired)
-  let { summary, isLoading, error } = $props()
+  import WebSummaryDisplay from './displays/WebSummaryDisplay.svelte'
+  import YouTubeSummaryDisplay from './displays/YouTubeSummaryDisplay.svelte'
+  import SelectedTextSummaryDisplay from './displays/SelectedTextSummaryDisplay.svelte'
 </script>
 
-{#if isLoading}
-  <div class="text-center p-4 text-text-secondary animate-pulse">
-    Processing main summary...
-  </div>
-{/if}
-
-{#if error}
-  <div
-    class="flex gap-2 w-fit mx-auto text-red-400 p-4 bg-red-500/10 border border-red-500/20 rounded-lg"
-  >
-    <Icon
-      class="mt-0.5 flex-shrink-0"
-      width={16}
-      icon="heroicons:exclamation-circle-16-solid"
+<!-- Loại bỏ summary-display-container và summary-content nếu không có CSS tùy chỉnh -->
+<div id="summarydisplay" class="w-full select-text">
+  {#if summaryState.lastSummaryTypeDisplayed === 'selectedText'}
+    <SelectedTextSummaryDisplay
+      selectedTextSummary={summaryState.selectedTextSummary}
+      isSelectedTextLoading={summaryState.isSelectedTextLoading}
+      selectedTextError={summaryState.selectedTextError}
     />
-    <p class="text-sm">
-      <span class="font-bold">Main summary error:</span>
-      {error}
-    </p>
-  </div>
-{/if}
-
-{#if summary && !isLoading}
-  <div id="summary" class="prose-sm sm:prose-base max-w-none">
-    {@html marked.parse(summary)}
-  </div>
-
-  <TOC targetDivId="summary" />
-{:else if !isLoading && !error}
-  <!-- Optional: Add a placeholder if no summary and no error -->
-  <!-- <p class="text-text-secondary text-center italic">No summary available.</p> -->
-{/if}
+  {:else if summaryState.isYouTubeVideoActive}
+    <YouTubeSummaryDisplay activeYouTubeTab={summaryState.activeYouTubeTab} />
+  {:else}
+    <WebSummaryDisplay
+      summary={summaryState.summary}
+      isLoading={summaryState.isLoading}
+      error={summaryState.error}
+    />
+  {/if}
+</div>

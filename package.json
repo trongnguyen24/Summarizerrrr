@@ -1,29 +1,40 @@
 {
-  "name": "pack",
+  "name": "Summarizerrrr",
+  "description": "FREE Deep Summarizes content from YouTube, websites, Facebook posts, Reddit, and any text-based page online.",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.3.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
+    "dev": "wxt",
+    "dev:firefox": "wxt -b firefox",
+    "build": "wxt build",
+    "build:firefox": "wxt build -b firefox",
+    "zip": "wxt zip",
+    "zip:firefox": "wxt zip -b firefox",
+    "check": "svelte-check --tsconfig ./tsconfig.json",
+    "postinstall": "wxt prepare"
   },
   "devDependencies": {
     "@iconify/svelte": "^5.0.0",
-    "@sveltejs/vite-plugin-svelte": "^5.0.3",
     "@tailwindcss/typography": "^0.5.16",
-    "autoprefixer": "^10.4.21",
-    "postcss": "^8.5.3",
-    "svelte": "^5.23.1",
-    "vite": "^6.3.1"
+    "@tsconfig/svelte": "^5.0.4",
+    "@wxt-dev/module-svelte": "^2.0.3",
+    "svelte": "^5.28.2",
+    "svelte-check": "^4.1.6",
+    "tslib": "^2.8.1",
+    "typescript": "^5.8.3",
+    "wxt": "^0.20.6"
   },
   "dependencies": {
-    "@fontsource-variable/geist-mono": "^5.2.5",
-    "@tailwindcss/vite": "^4.1.5",
+    "@fontsource-variable/geist-mono": "^5.2.6",
+    "@google/genai": "^0.12.0",
+    "@tailwindcss/vite": "^4.1.8",
+    "animejs": "^4.0.2",
     "bits-ui": "^1.4.3",
     "marked": "^15.0.11",
     "overlayscrollbars": "^2.11.1",
     "overlayscrollbars-svelte": "^0.5.5",
-    "tailwindcss": "^4.1.5"
+    "tailwindcss": "^4.1.8",
+    "webextension-polyfill": "^0.12.0"
   }
 }

@@ -1,7 +1,9 @@
 <script>
-  import { onMount, onDestroy } from 'svelte'
-  import 'overlayscrollbars/overlayscrollbars.css' // Import CSS overlayscrollbars
-  import { useOverlayScrollbars } from 'overlayscrollbars-svelte' // Import primitive
+  // @ts-nocheck
+  import Icon from '@iconify/svelte'
+  import 'overlayscrollbars/overlayscrollbars.css'
+  import { animate, stagger, onScroll } from 'animejs'
+  import { useOverlayScrollbars } from 'overlayscrollbars-svelte'
 
   const { targetDivId } = $props()
 
@@ -49,18 +51,28 @@
     const newHash = activeHeadingId
       ? `#${activeHeadingId}`
       : window.location.pathname
-    if (newHash !== window.location.hash) {
-      window.history.replaceState(null, null, newHash)
+    // if (newHash !== window.location.hash) {
+    //   window.history.replaceState(null, null, newHash)
+    // }
+  }
+
+  function generateRandomString(length = 4) {
+    const characters = 'abcdefghijklmnopqrstuvwxyz0123456789'
+    let result = ''
+    for (let i = 0; i < length; i++) {
+      result += characters.charAt(Math.floor(Math.random() * characters.length))
     }
+    return result
   }
 
   function generateId(text) {
-    return text
+    const baseId = text
       .toLowerCase()
       .replace(/[^a-z0-9\s-]/g, '')
       .trim()
       .replace(/\s+/g, '-')
       .replace(/-+/g, '-')
+    return `${baseId}-${generateRandomString()}`
   }
 
   function updateTOC() {
@@ -71,7 +83,7 @@
       return
     }
 
-    const foundHeadings = targetDiv.querySelectorAll('h2,h3')
+    const foundHeadings = targetDiv.querySelectorAll('h2,h3,h4')
     headings = Array.from(foundHeadings).map((heading) => {
       let text = heading.innerText
       // Remove trailing colon if present
@@ -99,27 +111,62 @@
   }
 
   // Bọc hàm highlight bằng throttle với giới hạn 40ms
-  const throttledHighlight = throttle(highlight, 40)
+  const throttledHighlight = throttle(highlight, 80)
 
-  onMount(async () => {
-    // Thêm delay để đảm bảo DOM đã render
-    await delay(500) // Có thể điều chỉnh thời gian delay nếu cần
+  // Sử dụng $effect để thay thế onMount và onDestroy
+  $effect(() => {
+    animate('#toc', {
+      opacity: [0, 1],
+      translateX: ['2rem', 0],
+      scaleX: [0, 1, 1, 1, 1, 1, 1, 1],
+      ease: 'inOutQuad',
+      autoplay: onScroll({
+        container: 'body',
+        enter: 'bottom-=280px',
+        leave: 'bottom-=330px',
+        sync: 0.5,
+      }),
+    })
 
-    updateTOC()
+    const init = async () => {
+      await delay(100) // Thêm delay để đảm bảo DOM đã render
 
-    // Gắn sự kiện cuộn và thay đổi kích thước với hàm đã được throttle
-    window.addEventListener('scroll', throttledHighlight)
-    window.addEventListener('resize', throttledHighlight)
+      updateTOC()
 
-    // Optional: Observe changes in the target div to update TOC dynamically
-    const targetDiv = document.getElementById(targetDivId)
-    if (targetDiv) {
-      observer = new MutationObserver(updateTOC)
-      observer.observe(targetDiv, {
-        childList: true,
-        subtree: true,
-        characterData: true,
-      })
+      // Gắn sự kiện cuộn và thay đổi kích thước với hàm đã được throttle
+      window.addEventListener('scroll', throttledHighlight)
+      window.addEventListener('resize', throttledHighlight)
+
+      // Optional: Observe changes in the target div to update TOC dynamically
+      const targetDiv = document.getElementById(targetDivId)
+      if (targetDiv) {
+        observer = new MutationObserver(updateTOC)
+        observer.observe(targetDiv, {
+          childList: true,
+          subtree: true,
+          characterData: true,
+        })
+      }
+
+      // Initialize OverlayScrollbars on the element with id "toc-scroll"
+      const tocElement = document.getElementById('toc-scroll')
+      if (tocElement) {
+        initialize(tocElement)
+      }
+    }
+
+    init()
+
+    // Cleanup function for $effect
+    return () => {
+      window.removeEventListener('scroll', throttledHighlight)
+      window.removeEventListener('resize', throttledHighlight)
+      if (observer) {
+        observer.disconnect()
+      }
+      if (instance()) {
+        instance().destroy()
+      }
     }
   })
 
@@ -130,50 +177,9 @@
     },
   }
   const [initialize, instance] = useOverlayScrollbars({ options, defer: true })
-
-  onMount(async () => {
-    // Thêm delay để đảm bảo DOM đã render
-    await delay(500) // Có thể điều chỉnh thời gian delay nếu cần
-
-    updateTOC()
-
-    // Gắn sự kiện cuộn và thay đổi kích thước với hàm đã được throttle
-    window.addEventListener('scroll', throttledHighlight)
-    window.addEventListener('resize', throttledHighlight)
-
-    // Optional: Observe changes in the target div to update TOC dynamically
-    const targetDiv = document.getElementById(targetDivId)
-    if (targetDiv) {
-      observer = new MutationObserver(updateTOC)
-      observer.observe(targetDiv, {
-        childList: true,
-        subtree: true,
-        characterData: true,
-      })
-    }
-
-    // Initialize OverlayScrollbars on the element with id "toc-scroll"
-    const tocElement = document.getElementById('toc-scroll')
-    if (tocElement) {
-      initialize(tocElement)
-    }
-  })
-
-  onDestroy(() => {
-    // Gỡ bỏ sự kiện khi component bị hủy
-    window.removeEventListener('scroll', throttledHighlight)
-    window.removeEventListener('resize', throttledHighlight)
-    if (observer) {
-      observer.disconnect()
-    }
-    // Destroy OverlayScrollbars instance on component destroy
-    if (instance()) {
-      instance().destroy()
-    }
-  })
 </script>
 
-<div class="fixed toc-animation z-20 right-0 bottom-18 group p-2 pr-3 pl-3">
+<div id="toc" class="fixed z-20 right-0 bottom-18 group p-2 pr-3">
   <div
     class="flex items-end group-hover:opacity-0 transition-all flex-col gap-1.5"
   >
@@ -189,50 +195,58 @@
         </span>
       </span>
     {/each}
+    <span
+      class="w-1 text-[0.5rem] mt-0.5 select-none flex justify-center items-center h-px text-primary dark:text-white"
+    >
+      ^
+    </span>
   </div>
   <nav
-    class="fixed -bottom-4 p-4 pr-3 right-0 xs:pr-6 hidden group-hover:block opacity-0 group-hover:opacity-100"
+    class="fixed bottom-0 pt-4 px-3 right-0 hidden group-hover:block opacity-0 group-hover:opacity-100"
   >
-    <div
-      id="toc-scroll"
-      class="w-64 xs:w-80 overflow-auto max-h-[calc(100vh-100px)] shadow-2xl border border-border bg-surface-2 backdrop-blur-2xl rounded-xl"
-    >
+    <div class="relative">
       <div
-        class="flex flex-col divide-y divide-stone-100 dark:divide-stone-700"
+        id="toc-scroll"
+        class="w-64 xs:w-80 overflow-auto max-h-[calc(100vh-150px)] border rounded-lg border-border bg-surface-1"
       >
-        {#each headings as heading}
-          <a
-            href="#{heading.id}"
-            onclick={() => scrollToHeading(heading.id)}
-            class="px-3 py-2 font-mono text-xs/4 no-underline transition-colors
+        <div
+          class="flex flex-col divide-y divide-border/50 dark:divide-border/70"
+        >
+          {#each headings as heading}
+            <a
+              href="#{heading.id}"
+              onclick={() => scrollToHeading(heading.id)}
+              class="px-3 py-2 font-mono text-xs/4 no-underline transition-colors
           {heading.id === activeHeadingId
-              ? 'text-text-primary bg-black/5 dark:bg-white/5'
-              : 'text-text-secondary hover:text-text-primary'}
+                ? 'text-text-primary bg-black/5 dark:bg-white/5'
+                : 'text-text-secondary hover:text-text-primary'}
           lv{heading.level}"
-          >
-            <span class="line-clamp-2">
-              {heading.text}
-            </span>
-          </a>
-        {/each}
+            >
+              <span class="line-clamp-2">
+                {heading.text}
+              </span>
+            </a>
+          {/each}
+        </div>
+        <a
+          href="#top"
+          class="px-3 bg-border/50 flex justify-end items-center gap-1 py-3 font-mono text-xs/4 no-underline transition-colors"
+          ><Icon width="16" icon="carbon:up-to-top" />Go to top</a
+        >
       </div>
     </div>
   </nav>
 </div>
 
 <style>
-  .lv2 {
-  }
-  .lv3 {
-    padding-left: 1.5rem;
-  }
   .lv4 {
-    padding-left: 2.5rem;
+    padding-left: 2rem;
   }
-  .lvs2 {
+  .lvs2,
+  .lvs3 {
     width: 0.25rem;
   }
-  .lvs3 {
+  .lvs4 {
     width: 0.125rem;
   }
 </style>

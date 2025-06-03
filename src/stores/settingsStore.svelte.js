@@ -8,41 +8,50 @@ import {
 // --- Default Settings ---
 const DEFAULT_SETTINGS = {
   geminiApiKey: '',
-  summaryLength: 'medium', // short, medium, long
+  summaryLength: 'long', // short, medium, long
   summaryFormat: 'heading', // heading, paragraph
-  summaryLang: 'vi', // Default language Vietnamese
+  summaryLang: 'Vietnamese', // Default language Vietnamese
+  selectedModel: 'gemini-2.0-flash', // Default model
+  temperature: 0.6, // Default temperature for summary style
+  topP: 0.91, // Default topP for summary style
 }
 
 // --- State ---
-let settings = $state({ ...DEFAULT_SETTINGS })
-let isInitialized = $state(false)
+export let settings = $state({ ...DEFAULT_SETTINGS })
+let _isInitialized = $state(false) // Biến nội bộ
+
+// Export isInitialized dưới dạng hàm
+export function getIsInitialized() {
+  return _isInitialized
+}
 
 // --- Actions ---
 
 /**
  * Tải cài đặt từ chrome.storage.sync khi store khởi tạo.
  */
-async function loadSettings() {
-  if (isInitialized) return // Chỉ load một lần
+export async function loadSettings() {
+  // THÊM EXPORT Ở ĐÂY
+  if (_isInitialized) return // Chỉ load một lần
 
-  console.log('[settingsStore] Đang tải cài đặt...')
   try {
     const storedSettings = await getStorage(Object.keys(DEFAULT_SETTINGS))
-    // Merge stored settings with defaults, ensuring no undefined values
     const mergedSettings = { ...DEFAULT_SETTINGS }
     for (const key in DEFAULT_SETTINGS) {
       if (storedSettings[key] !== undefined && storedSettings[key] !== null) {
         mergedSettings[key] = storedSettings[key]
       }
     }
-    settings = mergedSettings // Cập nhật state
-    isInitialized = true
-    console.log('[settingsStore] Cài đặt đã được tải:', settings)
+    Object.assign(settings, mergedSettings)
+    _isInitialized = true // Cập nhật biến nội bộ
+    console.log(
+      '[settingsStore] Cài đặt đã được tải:',
+      $state.snapshot(settings)
+    )
   } catch (error) {
     console.error('[settingsStore] Lỗi khi tải cài đặt:', error)
-    // Sử dụng giá trị mặc định nếu có lỗi
-    settings = { ...DEFAULT_SETTINGS }
-    isInitialized = true // Vẫn đánh dấu đã khởi tạo để tránh load lại
+    Object.assign(settings, DEFAULT_SETTINGS)
+    _isInitialized = true // Vẫn đánh dấu đã khởi tạo để tránh load lại
   }
 }
 
@@ -51,11 +60,10 @@ async function loadSettings() {
  * @param {Partial<typeof DEFAULT_SETTINGS>} newSettings Object chứa các cài đặt cần cập nhật.
  */
 export async function updateSettings(newSettings) {
-  if (!isInitialized) {
+  if (!_isInitialized) {
     console.warn('[settingsStore] Store chưa khởi tạo, không thể cập nhật.')
     return
   }
-  // Lọc ra các key hợp lệ
   const validUpdates = {}
   for (const key in newSettings) {
     if (key in DEFAULT_SETTINGS) {
@@ -68,56 +76,38 @@ export async function updateSettings(newSettings) {
     return
   }
 
-  // Cập nhật state cục bộ trước (optimistic update)
-  settings = { ...settings, ...validUpdates }
-  console.log('[settingsStore] Cập nhật state cục bộ:', settings)
+  Object.assign(settings, validUpdates)
 
   try {
     await setStorage(validUpdates)
-    console.log('[settingsStore] Đã lưu cài đặt vào storage:', validUpdates)
   } catch (error) {
     console.error('[settingsStore] Lỗi khi lưu cài đặt:', error)
-    // Optional: Rollback state if needed, though storage listener should handle inconsistencies
   }
 }
 
 // --- Initialization and Listeners ---
 
-// Tự động load cài đặt khi store được import lần đầu
-loadSettings()
-
-// Lắng nghe thay đổi từ storage để cập nhật state nếu có thay đổi từ nơi khác
-onStorageChange((changes, areaName) => {
-  if (areaName === 'sync' && isInitialized) {
-    let changed = false
-    const updatedSettings = { ...settings }
-    for (const key in changes) {
-      if (key in DEFAULT_SETTINGS && changes[key].newValue !== settings[key]) {
-        updatedSettings[key] = changes[key].newValue ?? DEFAULT_SETTINGS[key] // Use default if newValue is null/undefined
-        changed = true
+export function subscribeToSettingsChanges() {
+  onStorageChange((changes, areaName) => {
+    if (areaName === 'sync' && _isInitialized) {
+      let changed = false
+      const updatedSettings = {}
+      for (const key in changes) {
+        if (
+          key in DEFAULT_SETTINGS &&
+          changes[key].newValue !== settings[key]
+        ) {
+          updatedSettings[key] = changes[key].newValue ?? DEFAULT_SETTINGS[key]
+          changed = true
+        }
+      }
+      if (changed) {
+        console.log(
+          '[settingsStore] Phát hiện thay đổi từ storage, cập nhật state:',
+          updatedSettings
+        )
+        Object.assign(settings, updatedSettings)
       }
     }
-    if (changed) {
-      console.log(
-        '[settingsStore] Phát hiện thay đổi từ storage, cập nhật state:',
-        updatedSettings
-      )
-      settings = updatedSettings // Cập nhật state
-    }
-  }
-})
-
-// --- Exported State (Read-only access recommended) ---
-// --- Exported State ---
-// Export an object containing the state variables
-export const settingsStore = {
-  get settings() {
-    return settings
-  },
-  get isInitialized() {
-    return isInitialized
-  },
-  updateSettings, // Also export the action
+  })
 }
-
-console.log('settingsStore.svelte.js loaded')

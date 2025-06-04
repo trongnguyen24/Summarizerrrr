@@ -37,28 +37,3 @@
     {/each}
   </select>
 </div>
-
-<style>
-  .provider-config {
-    margin-top: 1rem;
-    padding: 1rem;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    background-color: #f9f9f9;
-  }
-
-  .provider-config label {
-    display: block;
-    margin-bottom: 0.5rem;
-    font-weight: bold;
-  }
-
-  .provider-config input[type='password'],
-  .provider-config select {
-    width: 100%;
-    padding: 0.5rem;
-    margin-bottom: 1rem;
-    border: 1px solid #ddd;
-    border-radius: 3px;
-  }
-</style>

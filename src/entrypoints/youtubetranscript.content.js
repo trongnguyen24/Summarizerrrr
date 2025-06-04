@@ -294,6 +294,167 @@ export default defineContentScript({
       }
 
       /**
+       * Lấy bản ghi từ DOM như một cách dự phòng.
+       * @returns {Promise<string|null>} - Bản ghi đã xử lý hoặc null nếu không thành công.
+       */
+      async getTranscriptFromDOM() {
+        console.log('Chuyển sang Cách 2: Lấy bản ghi từ DOM.')
+
+        // Hàm Sa() - Kiểm tra và mở phần bản ghi
+        async function checkAndShowTranscriptDOM() {
+          if (
+            document.getElementsByTagName('ytd-transcript-segment-renderer')
+              .length > 1
+          ) {
+            console.log('Bản ghi đã hiển thị (DOM).')
+            return 'ok'
+          }
+          const transcriptSectionRenderers = document.getElementsByTagName(
+            'ytd-video-description-transcript-section-renderer'
+          )
+          if (transcriptSectionRenderers.length === 0) {
+            // Thử tìm nút "..." menu rồi click "Show transcript"
+            const menuRenderer = document.querySelector(
+              'ytd-menu-renderer.ytd-watch-metadata > div > button#button.ytd-menu-renderer, ytd-menu-renderer.ytd-watch-metadata > yt-button-shape > button#button'
+            ) // Cập nhật selector
+            if (menuRenderer) {
+              console.log('Tìm thấy nút menu, đang nhấp...')
+              menuRenderer.click()
+              await new Promise((resolve) => setTimeout(resolve, 500)) // Chờ menu mở
+
+              const showTranscriptButton = Array.from(
+                document.querySelectorAll(
+                  'tp-yt-paper-item.ytd-menu-service-item-renderer, ytd-menu-service-item-renderer'
+                )
+              ) // Cập nhật selector
+                .find((el) => {
+                  const textContent = el.textContent?.trim().toLowerCase()
+                  return (
+                    textContent?.includes('show transcript') ||
+                    textContent?.includes('hiện bản chép lời')
+                  )
+                })
+              if (showTranscriptButton) {
+                console.log(
+                  "Tìm thấy nút 'Show transcript' trong menu, đang nhấp..."
+                )
+                showTranscriptButton.click()
+                return 'waiting_after_menu_click'
+              }
+              console.log("Không tìm thấy nút 'Show transcript' trong menu.")
+              return 'error_no_transcript_button_in_menu'
+            }
+            console.log(
+              'Không tìm thấy khu vực bản ghi (ytd-video-description-transcript-section-renderer) hoặc nút menu.'
+            )
+            return 'error_no_transcript_section_or_menu'
+          }
+          let transcriptOpened = false
+          for (const section of Array.from(transcriptSectionRenderers)) {
+            const button = section.querySelector('button')
+            if (button && button.click) {
+              console.log('Tìm thấy nút hiển thị bản ghi, đang nhấp...')
+              button.click()
+              transcriptOpened = true
+              break
+            }
+          }
+          return transcriptOpened
+            ? 'waiting_after_button_click'
+            : 'error_no_button_to_open_transcript'
+        }
+
+        // Hàm Ea() - Trích xuất bản ghi từ các đoạn
+        async function extractTranscriptSegmentsDOM() {
+          const segments = document.getElementsByTagName(
+            'ytd-transcript-segment-renderer'
+          )
+          if (segments.length > 0) {
+            // Chỉ cần >0 vì có thể chỉ có 1 segment nếu video rất ngắn
+            console.log(
+              'Đang trích xuất từ ' + segments.length + ' đoạn bản ghi.'
+            )
+            const transcriptContainer = segments[0].closest(
+              'ytd-engagement-panel-section-list-renderer[target-id="engagement-panel-searchable-transcript"]'
+            ) // Selector chính xác hơn
+            if (transcriptContainer) {
+              const toggleButton = transcriptContainer.querySelector(
+                '#primary-button button[aria-pressed="true"], yt-button-shape[aria-pressed="true"] button'
+              ) // Cập nhật selector
+              if (toggleButton) {
+                const buttonText =
+                  toggleButton.textContent?.trim().toLowerCase() ||
+                  toggleButton.getAttribute('aria-label')?.trim().toLowerCase()
+                if (
+                  buttonText &&
+                  (buttonText.includes('timestamps') ||
+                    buttonText.includes('dấu thời gian'))
+                ) {
+                  console.log('Đang tắt Dấu thời gian...')
+                  toggleButton.click()
+                  await new Promise((resolve) => setTimeout(resolve, 500)) // Chờ DOM cập nhật
+                }
+              }
+            }
+            // Lấy lại các segment sau khi có thể đã tắt dấu thời gian
+            const updatedSegments = document.getElementsByTagName(
+              'ytd-transcript-segment-renderer'
+            )
+            return Array.from(updatedSegments)
+              .map((segment) => {
+                const textElement = segment.querySelector(
+                  '.segment-text, .ytd-transcript-segment-renderer'
+                ) // Cập nhật selector, lấy textContent của chính segment nếu .segment-text không có
+                return textElement ? textElement.textContent.trim() : ''
+              })
+              .filter((text) => text.length > 0)
+              .join('\n')
+          }
+          console.log(
+            'Không tìm thấy (hoặc không đủ) ytd-transcript-segment-renderer.'
+          )
+          return null
+        }
+
+        let status = await checkAndShowTranscriptDOM()
+        console.log('Trạng thái mở bản ghi (DOM):', status)
+
+        if (status.startsWith('error')) {
+          console.error('Cách 2 thất bại (Không thể mở bản ghi DOM):', status)
+          return null
+        }
+
+        if (status.startsWith('waiting')) {
+          console.log('Đang chờ bản ghi tải (DOM)...')
+          await new Promise((resolve) => setTimeout(resolve, 3000)) // Tăng thời gian chờ
+        }
+
+        // Thử lại kiểm tra sau khi chờ
+        if (
+          document.getElementsByTagName('ytd-transcript-segment-renderer')
+            .length <= 1 &&
+          (status.startsWith('waiting_after_button_click') ||
+            status.startsWith('waiting_after_menu_click'))
+        ) {
+          console.log('Bản ghi vẫn chưa tải đủ, chờ thêm...')
+          await new Promise((resolve) => setTimeout(resolve, 3000)) // Chờ thêm
+        }
+
+        const transcriptText = await extractTranscriptSegmentsDOM()
+
+        if (transcriptText && transcriptText.trim().length > 0) {
+          console.log('--- BẢN GHI (Từ DOM) ---')
+          console.log(transcriptText)
+          return transcriptText
+        } else {
+          console.error(
+            'Cách 2 thất bại (Không thể trích xuất bản ghi từ DOM).'
+          )
+          return null
+        }
+      }
+
+      /**
        * Hàm chính để lấy transcript từ YouTube
        * @param {string} preferredLang - Mã ngôn ngữ ưa thích
        * @param {boolean} includeTimestamps - Có bao gồm timestamp không
@@ -325,7 +486,13 @@ export default defineContentScript({
             this.selectBestCaptionTrack(captionTracks)
 
           if (!baseUrl) {
-            console.error('Could not find any suitable caption track baseUrl.')
+            console.error(
+              'Could not find any suitable caption track baseUrl. Attempting to get transcript from DOM as fallback.'
+            )
+            const domTranscript = await this.getTranscriptFromDOM()
+            if (domTranscript) {
+              return domTranscript
+            }
             return null
           }
 

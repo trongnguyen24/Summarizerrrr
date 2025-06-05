@@ -110,7 +110,18 @@ export async function fetchAndSummarize() {
 
   try {
     // 1. Get API Key first
-    const apiKey = userSettings.geminiApiKey // Use state from settingsStore
+    let apiKey
+    const selectedProviderId = userSettings.selectedProvider || 'gemini'
+    if (selectedProviderId === 'gemini') {
+      if (userSettings.isAdvancedMode) {
+        apiKey = userSettings.geminiAdvancedApiKey
+      } else {
+        apiKey = userSettings.geminiApiKey
+      }
+    } else {
+      apiKey = userSettings[`${selectedProviderId}ApiKey`]
+    }
+
     if (!apiKey) {
       throw new Error(
         'API Key not configured in settings. Please add your API Key in the settings.'
@@ -286,7 +297,18 @@ export async function summarizeSelectedText(text) {
   summaryState.lastSummaryTypeDisplayed = 'selectedText' // Ensure selected text display is active immediately
 
   try {
-    const apiKey = userSettings.geminiApiKey
+    let apiKey
+    const selectedProviderId = userSettings.selectedProvider || 'gemini'
+    if (selectedProviderId === 'gemini') {
+      if (userSettings.isAdvancedMode) {
+        apiKey = userSettings.geminiAdvancedApiKey
+      } else {
+        apiKey = userSettings.geminiApiKey
+      }
+    } else {
+      apiKey = userSettings[`${selectedProviderId}ApiKey`]
+    }
+
     if (!apiKey) {
       throw new Error(
         'API Key not configured in settings. Please add your API Key in the settings.'

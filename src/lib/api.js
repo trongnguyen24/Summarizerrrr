@@ -30,7 +30,35 @@ export async function summarizeContent(text, contentType) {
 
   const userSettings = settings
   const selectedProviderId = userSettings.selectedProvider || 'gemini' // Default to gemini
-  const apiKey = userSettings[`${selectedProviderId}ApiKey`]
+  let apiKey
+  if (selectedProviderId === 'gemini') {
+    if (userSettings.isAdvancedMode) {
+      apiKey = userSettings.geminiAdvancedApiKey
+    } else {
+      apiKey = userSettings.geminiApiKey
+    }
+  } else {
+    apiKey = userSettings[`${selectedProviderId}ApiKey`]
+  }
+
+  console.log('DEBUG: selectedProviderId:', selectedProviderId)
+  console.log('DEBUG: isAdvancedMode:', userSettings.isAdvancedMode)
+  console.log(
+    'DEBUG: geminiApiKey:',
+    userSettings.geminiApiKey ? 'CONFIGURED' : 'NOT CONFIGURED'
+  )
+  console.log(
+    'DEBUG: geminiAdvancedApiKey:',
+    userSettings.geminiAdvancedApiKey ? 'CONFIGURED' : 'NOT CONFIGURED'
+  )
+  console.log(
+    'DEBUG: openrouterApiKey:',
+    userSettings.openrouterApiKey ? 'CONFIGURED' : 'NOT CONFIGURED'
+  )
+  console.log(
+    'DEBUG: final apiKey value:',
+    apiKey ? 'CONFIGURED' : 'NOT CONFIGURED'
+  )
 
   if (!apiKey) {
     throw new Error(
@@ -44,7 +72,11 @@ export async function summarizeContent(text, contentType) {
   let modelConfig
 
   if (selectedProviderId === 'gemini') {
-    model = userSettings.selectedGeminiModel || 'gemini-2.0-flash'
+    if (userSettings.isAdvancedMode) {
+      model = userSettings.selectedGeminiAdvancedModel || 'gemini-2.0-flash'
+    } else {
+      model = userSettings.selectedGeminiModel || 'gemini-2.0-flash'
+    }
     modelConfig =
       geminiModelsConfig[model] || geminiModelsConfig['gemini-2.0-flash']
   } else if (selectedProviderId === 'openrouter') {
@@ -131,7 +163,16 @@ export async function summarizeChapters(timestampedTranscript) {
 
   const userSettings = settings
   const selectedProviderId = userSettings.selectedProvider || 'gemini' // Default to gemini
-  const apiKey = userSettings[`${selectedProviderId}ApiKey`]
+  let apiKey
+  if (selectedProviderId === 'gemini') {
+    if (userSettings.isAdvancedMode) {
+      apiKey = userSettings.geminiAdvancedApiKey
+    } else {
+      apiKey = userSettings.geminiApiKey
+    }
+  } else {
+    apiKey = userSettings[`${selectedProviderId}ApiKey`]
+  }
 
   if (!apiKey) {
     throw new Error(
@@ -145,7 +186,11 @@ export async function summarizeChapters(timestampedTranscript) {
   let modelConfig
 
   if (selectedProviderId === 'gemini') {
-    model = userSettings.selectedGeminiModel || 'gemini-2.0-flash'
+    if (userSettings.isAdvancedMode) {
+      model = userSettings.selectedGeminiAdvancedModel || 'gemini-2.0-flash'
+    } else {
+      model = userSettings.selectedGeminiModel || 'gemini-2.0-flash'
+    }
     modelConfig =
       geminiModelsConfig[model] || geminiModelsConfig['gemini-2.0-flash']
   } else if (selectedProviderId === 'openrouter') {

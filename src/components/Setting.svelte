@@ -89,7 +89,7 @@
     <div class="p-4 flex flex-col gap-6">
       <div class="flex items-center justify-between">
         <label for="advanced-mode-toggle" class="block dark:text-muted"
-          >Chế độ nâng cao</label
+          >Advanced Mode</label
         >
         <input
           type="checkbox"
@@ -105,7 +105,7 @@
         <div class="flex flex-col gap-2">
           <!-- svelte-ignore a11y_label_has_associated_control -->
           <label class="block text-text-primary font-bold"
-            >Chọn nhà cung cấp</label
+            >Selected Provider</label
           >
           <ProvidersSelect bind:value={settings.selectedProvider} />
         </div>

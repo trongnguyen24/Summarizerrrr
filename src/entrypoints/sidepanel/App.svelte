@@ -109,7 +109,7 @@
   })
 </script>
 
-<div class="flex flex-col">
+<div class="flex min-w-[22.5rem] w-full flex-col">
   <div class="grid grid-rows-[32px_1px_8px_1px_160px_1px_8px_1px_1fr] h-screen">
     <div class=" flex justify-center items-center w-full h-full">
       <div class="text-text-secondary">

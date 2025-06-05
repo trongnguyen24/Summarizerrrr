@@ -6,13 +6,12 @@
   import GroupVisual from './GroupVisual.svelte'
   import LanguageSelect from './LanguageSelect.svelte' // Import LanguageSelect
   import ProvidersSelect from './ProvidersSelect.svelte' // Import ProvidersSelect
-  import GeminiConfig from './providerConfigs/GeminiConfig.svelte' // Import GeminiConfig
+  import GeminiBasicConfig from './providerConfigs/GeminiBasicConfig.svelte' // Import GeminiBasicConfig
+  import GeminiAdvancedConfig from './providerConfigs/GeminiAdvancedConfig.svelte' // Import GeminiAdvancedConfig
   import OpenrouterConfig from './providerConfigs/OpenrouterConfig.svelte' // Import OpenrouterConfig
   import 'overlayscrollbars/overlayscrollbars.css'
   import { useOverlayScrollbars } from 'overlayscrollbars-svelte'
   import { providersConfig } from '../lib/providersConfig.js'
-  import { geminiModelsConfig } from '../lib/geminiConfig.js' // Import geminiModelsConfig
-  import { openrouterModelsConfig } from '../lib/openrouterConfig.js' // Import openrouterModelsConfig
 
   // Import trực tiếp từ stores đã refactor
   import {
@@ -22,14 +21,11 @@
   } from '../stores/settingsStore.svelte.js'
   import { getTheme, setTheme } from '../stores/themeStore.svelte'
 
-  let showApiKey = $state(false)
   let summaryLength = $state('long')
   let summaryFormat = $state('heading')
   let temperature = $state(0.6)
   let topP = $state(0.91)
   let isAdvancedMode = $state(false)
-  let saveStatus = $state('')
-  let apiKeyDebounceTimer = null
 
   const options = {
     scrollbars: {
@@ -73,15 +69,6 @@
     }
   })
 
-  function scheduleGeminiApiKeySave() {
-    clearTimeout(apiKeyDebounceTimer)
-    apiKeyDebounceTimer = setTimeout(() => {
-      updateSettings({ geminiApiKey: settings.geminiApiKey.trim() })
-      saveStatus = 'saved!'
-      setTimeout(() => (saveStatus = ''), 2000)
-    }, 300)
-  }
-
   function handleUpdateSetting(key, value) {
     updateSettings({ [key]: value })
   }
@@ -116,6 +103,7 @@
       {#if isAdvancedMode}
         <!-- Providers Select Section -->
         <div class="flex flex-col gap-2">
+          <!-- svelte-ignore a11y_label_has_associated_control -->
           <label class="block text-text-primary font-bold"
             >Chọn nhà cung cấp</label
           >
@@ -124,9 +112,11 @@
 
         <!-- Dynamic Provider Config Section -->
         {#if settings.selectedProvider === 'gemini'}
-          <GeminiConfig
-            bind:geminiApiKey={settings.geminiApiKey}
-            bind:selectedGeminiModel={settings.selectedGeminiModel}
+          <GeminiAdvancedConfig
+            bind:geminiAdvancedApiKey={settings.geminiAdvancedApiKey}
+            bind:selectedGeminiAdvancedModel={
+              settings.selectedGeminiAdvancedModel
+            }
           />
         {:else if settings.selectedProvider === 'openrouter'}
           <OpenrouterConfig
@@ -135,113 +125,10 @@
           />
         {/if}
       {:else}
-        <!-- Default API Key Section (for basic mode, only Gemini) -->
-        <div class="flex flex-col gap-2">
-          <div class="flex items-center gap-1 justify-between">
-            <label for="gemini-api-key" class="block dark:text-muted"
-              >Gemini API Key</label
-            >
-            {#if saveStatus}
-              <p
-                id="save-status"
-                transition:fade
-                class="text-success flex mr-auto"
-              >
-                Auto saved!
-              </p>
-            {/if}
-            <a
-              href="https://aistudio.google.com/app/apikey"
-              target="_blank"
-              class="text-xs flex items-center gap-0.5 text-primary hover:underline"
-              >Get a key <Icon
-                width={12}
-                icon="heroicons:arrow-up-right-16-solid"
-              /></a
-            >
-          </div>
-
-          <div class="relative">
-            <div class="plus-icon top-left"></div>
-            <div class="plus-icon bottom-right"></div>
-            <input
-              type={showApiKey ? 'text' : 'password'}
-              id="gemini-api-key"
-              bind:value={settings.geminiApiKey}
-              class="w-full pl-3 pr-9 py-1.5 h-10 bg-surface-1/50 border border-border focus:outline-none focus:ring-1 placeholder:text-muted"
-              oninput={scheduleGeminiApiKeySave}
-            />
-            <button
-              class="absolute size-8 text-muted right-0.5 top-1 grid place-items-center cursor-pointer"
-              onclick={() => (showApiKey = !showApiKey)}
-              tabindex="0"
-              aria-label={showApiKey ? 'Hide API Key' : 'Show API Key'}
-              onkeypress={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  showApiKey = !showApiKey
-                }
-              }}
-            >
-              {#if !showApiKey}
-                <Icon
-                  class="absolute"
-                  width={16}
-                  icon="heroicons:eye-slash-16-solid"
-                />
-              {:else}
-                <Icon
-                  class="absolute"
-                  width={16}
-                  icon="heroicons:eye-16-solid"
-                />
-              {/if}
-            </button>
-          </div>
-        </div>
-
-        <!-- Default Model Section (for basic mode, only Gemini) -->
-        <div class="flex flex-col gap-2">
-          <!-- svelte-ignore a11y_label_has_associated_control -->
-          <label class="block text-text-primary font-bold">Gemini Model</label>
-          <div class="grid grid-cols-3 w-full gap-1">
-            <ButtonSet
-              title="2.0 Flash"
-              class="setting-btn {settings.selectedGeminiModel ===
-              'gemini-2.0-flash'
-                ? 'active'
-                : ''}"
-              onclick={() =>
-                handleUpdateSetting('selectedGeminiModel', 'gemini-2.0-flash')}
-              Description="Fast and efficient."
-            ></ButtonSet>
-            <ButtonSet
-              title="2.5 Flash"
-              class="setting-btn {settings.selectedGeminiModel ===
-              'gemini-2.5-flash-preview-05-20'
-                ? 'active'
-                : ''}"
-              onclick={() =>
-                handleUpdateSetting(
-                  'selectedGeminiModel',
-                  'gemini-2.5-flash-preview-05-20'
-                )}
-              Description="Powerful but slow."
-            ></ButtonSet>
-            <ButtonSet
-              title="2.5 Pro"
-              class="setting-btn {settings.selectedGeminiModel ===
-              'gemini-2.5-pro-preview-05-06'
-                ? 'active'
-                : ''}"
-              onclick={() =>
-                handleUpdateSetting(
-                  'selectedGeminiModel',
-                  'gemini-2.5-pro-preview-05-06'
-                )}
-              Description="Most powerful, Very slow + limit."
-            ></ButtonSet>
-          </div>
-        </div>
+        <GeminiBasicConfig
+          bind:geminiApiKey={settings.geminiApiKey}
+          bind:selectedGeminiModel={settings.selectedGeminiModel}
+        />
       {/if}
 
       <!-- Temperature and Top P Section -->

@@ -9,9 +9,11 @@ import {
 const DEFAULT_SETTINGS = {
   selectedProvider: 'gemini', // New: Default provider
   geminiApiKey: '',
-  selectedGeminiModel: 'gemini-2.5-flash', // New: Default Gemini model
+  selectedGeminiModel: 'gemini-2.0-flash', // New: Default Gemini model for basic mode
+  geminiAdvancedApiKey: '', // New: Gemini API Key for advanced mode
+  selectedGeminiAdvancedModel: 'gemini-2.0-flash', // New: Default Gemini model for advanced mode
   openrouterApiKey: '', // New: OpenRouter API Key
-  selectedOpenrouterModel: 'openrouter/auto', // New: Default OpenRouter model
+  selectedOpenrouterModel: 'deepseek/deepseek-r1-0528:free', // New: Default OpenRouter model
   deepseekApiKey: '', // New: DeepSeek API Key
   chatgptApiKey: '', // New: ChatGPT API Key
   summaryLength: 'long', // short, medium, long
@@ -87,6 +89,10 @@ export async function updateSettings(newSettings) {
 
   try {
     await setStorage(validUpdates)
+    console.log(
+      '[settingsStore] Cài đặt đã được cập nhật và lưu:',
+      $state.snapshot(settings)
+    )
   } catch (error) {
     console.error('[settingsStore] Lỗi khi lưu cài đặt:', error)
   }

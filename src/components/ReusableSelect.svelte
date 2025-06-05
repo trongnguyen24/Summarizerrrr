@@ -56,7 +56,7 @@
   </Select.Trigger>
   <Select.Portal>
     <Select.Content
-      class="focus-override text-text-primary bg-surface-2 outline-hidden z-50 h-96 max-h-[var(--bits-select-content-available-height)] w-[var(--bits-select-anchor-width)] min-w-[var(--bits-select-anchor-width)] select-none border border-border"
+      class="focus-override text-text-primary bg-surface-2 outline-hidden z-50 max-h-[var(--bits-select-content-available-height)] w-[var(--bits-select-anchor-width)] min-w-[var(--bits-select-anchor-width)] select-none border border-border"
       sideOffset={4}
       forceMount
     >
@@ -84,29 +84,28 @@
               <Select.Viewport>
                 {#each items as item, i (i + item.value)}
                   <Select.Item
-                    class=" font-mono text-xs data-highlighted:bg-blackwhite/10 outline-hidden flex h-6 w-full select-none items-center py-1 pl-3 pr-2 capitalize duration-75"
+                    class=" relative font-mono text-xs data-selected:text-text-primary text-text-secondary data-highlighted:bg-blackwhite/10 outline-hidden flex w-full select-none items-center py-1 pl-3 pr-2 capitalize duration-75"
                     value={item.value}
                     label={item.label}
                   >
                     {#snippet children({ selected })}
-                      {item.label}
-                      {#if selected}
-                        <div class="ml-auto">
+                      <div class=" line-clamp-1 truncate">
+                        {item.label}
+                      </div>
+                      <!-- {#if selected}
+                        <div class=" text-primary absolute left-0.5 top-2">
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
-                            width="16"
-                            height="16"
-                            viewBox="0 0 16 16"
+                            width="8"
+                            viewBox="0 0 24 24"
                           >
                             <path
                               fill="currentColor"
-                              fill-rule="evenodd"
-                              d="M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.353 2.353l4.493-6.74a.75.75 0 0 1 1.04-.207"
-                              clip-rule="evenodd"
+                              d="M1 12C1 5.925 5.925 1 12 1s11 4.925 11 11s-4.925 11-11 11S1 18.075 1 12m14.5 0L10 7.75v8.5z"
                             />
                           </svg>
                         </div>
-                      {/if}
+                      {/if} -->
                     {/snippet}
                   </Select.Item>
                 {/each}

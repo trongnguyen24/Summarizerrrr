@@ -76,155 +76,192 @@
 
 <!-- Apply Tailwind classes for overall layout and styling -->
 <div
-  class="relative font-mono rounded-lg text-text-primary dark:text-text-secondary text-xs bg-surface-2 dark:bg-surface-1 overflow-hidden border border-border w-full flex-shrink-0 flex flex-col"
+  class="relative font-mono rounded-lg text-text-primary dark:text-text-secondary text-xs bg-background dark:bg-background overflow-hidden border border-border w-full flex-shrink-0 flex flex-col"
 >
   <div
     class="px-4 bg-surface-1 dark:bg-surface-2 py-2 border-b-0 border-border"
   >
-    <h2 class="">Settings</h2>
+    <h2 class="text-center">Settings</h2>
   </div>
 
   <!-- Advanced Mode Toggle -->
   <div id="setting-scroll" class="max-h-[calc(100vh-64px)]">
-    <div class="p-4 flex flex-col gap-6">
-      <div class="flex items-center justify-between">
-        <label for="advanced-mode-toggle" class="block dark:text-muted"
-          >Advanced Mode</label
+    <div class="flex flex-col">
+      <div
+        class="top-stripes h-2 border border-border border-l-0 border-r-0"
+      ></div>
+      <div class="setting-block flex flex-col">
+        <div
+          class="flex border-b border-border border-dashed items-center justify-between py-2 px-4"
         >
-        <input
-          type="checkbox"
-          id="advanced-mode-toggle"
-          bind:checked={isAdvancedMode}
-          onchange={() => updateSettings({ isAdvancedMode })}
-          class="toggle toggle-primary"
-        />
-      </div>
-
-      {#if isAdvancedMode}
-        <!-- Providers Select Section -->
-        <div class="flex flex-col gap-2">
-          <!-- svelte-ignore a11y_label_has_associated_control -->
-          <label class="block text-text-primary font-bold"
-            >Selected Provider</label
+          <label for="advanced-mode-toggle" class="block dark:text-muted"
+            >Provider</label
           >
-          <ProvidersSelect bind:value={settings.selectedProvider} />
-        </div>
-
-        <!-- Dynamic Provider Config Section -->
-        {#if settings.selectedProvider === 'gemini'}
-          <GeminiAdvancedConfig
-            bind:geminiAdvancedApiKey={settings.geminiAdvancedApiKey}
-            bind:selectedGeminiAdvancedModel={
-              settings.selectedGeminiAdvancedModel
-            }
+          <input
+            type="checkbox"
+            id="advanced-mode-toggle"
+            bind:checked={isAdvancedMode}
+            onchange={() => updateSettings({ isAdvancedMode })}
+            class="toggle toggle-primary"
           />
-        {:else if settings.selectedProvider === 'openrouter'}
-          <OpenrouterConfig
-            bind:openrouterApiKey={settings.openrouterApiKey}
-            bind:selectedOpenrouterModel={settings.selectedOpenrouterModel}
+        </div>
+        <div class="setting-secsion flex flex-col gap-4 p-4">
+          {#if isAdvancedMode}
+            <!-- Providers Select Section -->
+            <div class="flex flex-col gap-2">
+              <!-- svelte-ignore a11y_label_has_associated_control -->
+              <label class="block text-text-primary font-bold"
+                >Selected Provider</label
+              >
+              <ProvidersSelect bind:value={settings.selectedProvider} />
+            </div>
+
+            <!-- Dynamic Provider Config Section -->
+            {#if settings.selectedProvider === 'gemini'}
+              <GeminiAdvancedConfig
+                bind:geminiAdvancedApiKey={settings.geminiAdvancedApiKey}
+                bind:selectedGeminiAdvancedModel={
+                  settings.selectedGeminiAdvancedModel
+                }
+              />
+            {:else if settings.selectedProvider === 'openrouter'}
+              <OpenrouterConfig
+                bind:openrouterApiKey={settings.openrouterApiKey}
+                bind:selectedOpenrouterModel={settings.selectedOpenrouterModel}
+              />
+            {/if}
+          {:else}
+            <GeminiBasicConfig
+              bind:geminiApiKey={settings.geminiApiKey}
+              bind:selectedGeminiModel={settings.selectedGeminiModel}
+            />
+          {/if}
+
+          <!-- Temperature and Top P Section -->
+          <div class="flex flex-col gap-2">
+            <!-- svelte-ignore a11y_label_has_associated_control -->
+            <label class="block text-text-primary font-bold"
+              >Summary Style</label
+            >
+            <div class="grid grid-cols-3 w-full gap-1">
+              <ButtonSet
+                title="Adherent"
+                class="setting-btn {temperature === 0.3 && topP === 0.82
+                  ? 'active'
+                  : ''}"
+                onclick={() => {
+                  handleUpdateSetting('temperature', 0.3)
+                  handleUpdateSetting('topP', 0.82)
+                }}
+                Description="Adherent summary style, less creative."
+              ></ButtonSet>
+              <ButtonSet
+                title="Balanced"
+                class="setting-btn {temperature === 0.6 && topP === 0.91
+                  ? 'active'
+                  : ''}"
+                onclick={() => {
+                  handleUpdateSetting('temperature', 0.6)
+                  handleUpdateSetting('topP', 0.91)
+                }}
+                Description="Balanced summary style."
+              ></ButtonSet>
+              <ButtonSet
+                title="Creative"
+                class="setting-btn {temperature === 0.9 && topP === 0.96
+                  ? 'active'
+                  : ''}"
+                onclick={() => {
+                  handleUpdateSetting('temperature', 0.9)
+                  handleUpdateSetting('topP', 0.96)
+                }}
+                Description="Creative summary style, more imaginative."
+              ></ButtonSet>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        class="top-stripes h-2 border border-border border-l-0 border-r-0"
+      ></div>
+      <div class="setting-block flex flex-col gap-4">
+        <div
+          class="flex border-b border-border items-center justify-between py-2 px-4"
+        >
+          <label for="summary-settings-toggle" class="block dark:text-muted"
+            >Summary Settings</label
+          >
+          <input
+            type="checkbox"
+            id="summary-settings-toggle"
+            bind:checked={settings.isSummaryEnabled}
+            onchange={() =>
+              updateSettings({ isSummaryEnabled: settings.isSummaryEnabled })}
+            class="toggle toggle-primary"
           />
-        {/if}
-      {:else}
-        <GeminiBasicConfig
-          bind:geminiApiKey={settings.geminiApiKey}
-          bind:selectedGeminiModel={settings.selectedGeminiModel}
-        />
-      {/if}
+        </div>
+        <div class="setting-secsion flex flex-col gap-4 px-4">
+          <!-- Summary Length Section -->
+          <div class="flex flex-col gap-2">
+            <!-- svelte-ignore a11y_label_has_associated_control -->
+            <label class="block text-text-primary font-bold">Summary Size</label
+            >
+            <div class="grid grid-cols-3 w-full gap-1">
+              <ButtonSet
+                title="Short"
+                class="setting-btn {summaryLength === 'short' ? 'active' : ''}"
+                onclick={() => handleUpdateSetting('summaryLength', 'short')}
+                Description="Short summary."
+              ></ButtonSet>
+              <ButtonSet
+                title="Medium"
+                class="setting-btn {summaryLength === 'medium' ? 'active' : ''}"
+                onclick={() => handleUpdateSetting('summaryLength', 'medium')}
+                Description="Medium length summary."
+              ></ButtonSet>
+              <ButtonSet
+                title="Long"
+                class="setting-btn {summaryLength === 'long' ? 'active' : ''}"
+                onclick={() => handleUpdateSetting('summaryLength', 'long')}
+                Description="Detailed summary."
+              ></ButtonSet>
+            </div>
+          </div>
 
-      <!-- Temperature and Top P Section -->
-      <div class="flex flex-col gap-2">
-        <!-- svelte-ignore a11y_label_has_associated_control -->
-        <label class="block text-text-primary font-bold">Summary Style</label>
-        <div class="grid grid-cols-3 w-full gap-1">
-          <ButtonSet
-            title="Adherent"
-            class="setting-btn {temperature === 0.3 && topP === 0.82
-              ? 'active'
-              : ''}"
-            onclick={() => {
-              handleUpdateSetting('temperature', 0.3)
-              handleUpdateSetting('topP', 0.82)
-            }}
-            Description="Adherent summary style, less creative."
-          ></ButtonSet>
-          <ButtonSet
-            title="Balanced"
-            class="setting-btn {temperature === 0.6 && topP === 0.91
-              ? 'active'
-              : ''}"
-            onclick={() => {
-              handleUpdateSetting('temperature', 0.6)
-              handleUpdateSetting('topP', 0.91)
-            }}
-            Description="Balanced summary style."
-          ></ButtonSet>
-          <ButtonSet
-            title="Creative"
-            class="setting-btn {temperature === 0.9 && topP === 0.96
-              ? 'active'
-              : ''}"
-            onclick={() => {
-              handleUpdateSetting('temperature', 0.9)
-              handleUpdateSetting('topP', 0.96)
-            }}
-            Description="Creative summary style, more imaginative."
-          ></ButtonSet>
+          <!-- Summary Format Section -->
+          <div class="flex flex-col gap-2">
+            <!-- svelte-ignore a11y_label_has_associated_control -->
+            <label class="block text-text-primary font-bold"
+              >Summary format</label
+            >
+            <div class="grid grid-cols-3 w-full gap-1">
+              <ButtonSet
+                title="Plain"
+                class="setting-btn {summaryFormat === 'plain' ? 'active' : ''}"
+                onclick={() => handleUpdateSetting('summaryFormat', 'plain')}
+                Description="Plain text format."
+              ></ButtonSet>
+              <ButtonSet
+                title="Heading"
+                class="setting-btn {summaryFormat === 'heading'
+                  ? 'active'
+                  : ''}"
+                onclick={() => handleUpdateSetting('summaryFormat', 'heading')}
+                Description="Format with headings."
+              ></ButtonSet>
+            </div>
+          </div>
+
+          <!-- Summary Language Section -->
+          <div class="flex flex-col gap-2">
+            <!-- svelte-ignore a11y_label_has_associated_control -->
+            <label class="block text-text-primary font-bold"
+              >Language output</label
+            >
+            <LanguageSelect bind:value={settings.summaryLang} />
+          </div>
         </div>
       </div>
-
-      <!-- Summary Length Section -->
-      <div class="flex flex-col gap-2">
-        <!-- svelte-ignore a11y_label_has_associated_control -->
-        <label class="block text-text-primary font-bold">Summary Size</label>
-        <div class="grid grid-cols-3 w-full gap-1">
-          <ButtonSet
-            title="Short"
-            class="setting-btn {summaryLength === 'short' ? 'active' : ''}"
-            onclick={() => handleUpdateSetting('summaryLength', 'short')}
-            Description="Short summary."
-          ></ButtonSet>
-          <ButtonSet
-            title="Medium"
-            class="setting-btn {summaryLength === 'medium' ? 'active' : ''}"
-            onclick={() => handleUpdateSetting('summaryLength', 'medium')}
-            Description="Medium length summary."
-          ></ButtonSet>
-          <ButtonSet
-            title="Long"
-            class="setting-btn {summaryLength === 'long' ? 'active' : ''}"
-            onclick={() => handleUpdateSetting('summaryLength', 'long')}
-            Description="Detailed summary."
-          ></ButtonSet>
-        </div>
-      </div>
-
-      <!-- Summary Format Section -->
-      <div class="flex flex-col gap-2">
-        <!-- svelte-ignore a11y_label_has_associated_control -->
-        <label class="block text-text-primary font-bold">Summary format</label>
-        <div class="grid grid-cols-3 w-full gap-1">
-          <ButtonSet
-            title="Plain"
-            class="setting-btn {summaryFormat === 'plain' ? 'active' : ''}"
-            onclick={() => handleUpdateSetting('summaryFormat', 'plain')}
-            Description="Plain text format."
-          ></ButtonSet>
-          <ButtonSet
-            title="Heading"
-            class="setting-btn {summaryFormat === 'heading' ? 'active' : ''}"
-            onclick={() => handleUpdateSetting('summaryFormat', 'heading')}
-            Description="Format with headings."
-          ></ButtonSet>
-        </div>
-      </div>
-
-      <!-- Summary Language Section -->
-      <div class="flex flex-col gap-2">
-        <!-- svelte-ignore a11y_label_has_associated_control -->
-        <label class="block text-text-primary font-bold">Language output</label>
-        <LanguageSelect bind:value={settings.summaryLang} />
-      </div>
-
       <!-- Theme Section -->
       <div class="flex flex-col gap-2">
         <!-- svelte-ignore a11y_label_has_associated_control -->
@@ -254,3 +291,9 @@
   </div>
   <!-- Summary Format Section -->
 </div>
+
+<style>
+  .setting-block {
+    background-color: var(--color-surface-1);
+  }
+</style>

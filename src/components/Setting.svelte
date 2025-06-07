@@ -84,6 +84,23 @@
     <h2 class="text-center">Settings</h2>
   </div>
 
+  <div
+    class="flex items-center justify-center px-4 py-2 border-b border-border gap-2"
+  >
+    <div class="flex flex-col items-center gap-2">
+      <Icon icon="heroicons:sparkles" width="20" height="20" />
+      <span class="text-text-primary dark:text-text-secondary"> AI</span>
+    </div>
+    <div class="flex flex-col items-center gap-2">
+      <Icon icon="heroicons:document-text" width="20" height="20" />
+      <span class="text-text-primary dark:text-text-secondary"> Summary</span>
+    </div>
+    <div class="flex flex-col items-center gap-2">
+      <Icon icon="heroicons:swatch" width="20" height="20" />
+      <span class="text-text-primary dark:text-text-secondary"> General</span>
+    </div>
+  </div>
+
   <!-- Advanced Mode Toggle -->
   <div id="setting-scroll" class="max-h-[calc(100vh-64px)]">
     <div class="flex flex-col">

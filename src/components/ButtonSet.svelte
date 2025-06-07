@@ -10,7 +10,7 @@
   {...rest}
 >
   <div
-    class="relative rounded-full overflow-hidden flex flex-col gap-0 px-3 text-text-secondary text-left py-1.5 font-mono border border-transparent hover:border-white/10 transition-colors duration-150"
+    class="relative overflow-hidden flex flex-col gap-0 px-3 text-text-secondary text-left py-1.5 font-mono border border-transparent hover:border-white/10 transition-colors duration-150"
   >
     <div class="title">{title}</div>
   </div>

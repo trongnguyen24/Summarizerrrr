@@ -10,7 +10,7 @@
   {...rest}
 >
   <div
-    class="relative overflow-hidden flex flex-col gap-0 px-3 text-text-secondary text-left py-1.5 font-mono border border-transparent hover:border-white/10 transition-colors duration-150"
+    class="relative overflow-hidden flex flex-col gap-0 px-3 text-text-secondary text-left py-1.5 font-mono bg-muted/5 dark:bg-muted/5 border border-transparent hover:border-white/10 transition-colors duration-150"
   >
     <div class="title">{title}</div>
   </div>
@@ -30,8 +30,8 @@
     position: absolute;
     top: 0;
     right: 0;
-    height: 16px;
-    width: 16px;
+    height: 8px;
+    width: 8px;
     background-color: var(--color-text-primary);
     transform: rotate(45deg) translate(-50%, -50%);
     transition: transform 0.3s ease-out;

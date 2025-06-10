@@ -5,6 +5,14 @@
 import { geminiModelsConfig } from './geminiConfig.js'
 import { openrouterModelsConfig } from './openrouterConfig.js' // Import openrouterModelsConfig
 import { settings, getIsInitialized } from '../stores/settingsStore.svelte.js'
+import {
+  advancedModeSettings,
+  loadAdvancedModeSettings,
+} from '../stores/advancedModeSettingsStore.svelte.js'
+import {
+  basicModeSettings,
+  loadBasicModeSettings,
+} from '../stores/basicModeSettingsStore.svelte.js'
 import { getProvider, providersConfig } from './providersConfig.js'
 import { promptBuilders } from './promptBuilders.js'
 
@@ -97,6 +105,10 @@ export async function summarizeContent(text, contentType) {
     )
   }
 
+  // Đảm bảo các store cài đặt chế độ đã được tải
+  await loadAdvancedModeSettings()
+  await loadBasicModeSettings()
+
   const prompt = contentConfig.buildPrompt(
     text,
     userSettings.summaryLang,
@@ -109,14 +121,12 @@ export async function summarizeContent(text, contentType) {
     // Apply user settings to generationConfig, overriding defaults
     const finalGenerationConfig = {
       ...modelConfig.generationConfig,
-      temperature:
-        userSettings.temperature !== undefined
-          ? userSettings.temperature
-          : modelConfig.generationConfig.temperature,
-      topP:
-        userSettings.topP !== undefined
-          ? userSettings.topP
-          : modelConfig.generationConfig.topP,
+      temperature: userSettings.isAdvancedMode
+        ? advancedModeSettings.temperature
+        : basicModeSettings.temperature,
+      topP: userSettings.isAdvancedMode
+        ? advancedModeSettings.topP
+        : basicModeSettings.topP,
     }
 
     let contentsForProvider
@@ -218,14 +228,12 @@ export async function summarizeChapters(timestampedTranscript) {
   try {
     const finalGenerationConfig = {
       ...modelConfig.generationConfig,
-      temperature:
-        userSettings.temperature !== undefined
-          ? userSettings.temperature
-          : modelConfig.generationConfig.temperature,
-      topP:
-        userSettings.topP !== undefined
-          ? userSettings.topP
-          : modelConfig.generationConfig.topP,
+      temperature: userSettings.isAdvancedMode
+        ? advancedModeSettings.temperature
+        : basicModeSettings.temperature,
+      topP: userSettings.isAdvancedMode
+        ? advancedModeSettings.topP
+        : basicModeSettings.topP,
     }
 
     let contentsForProvider

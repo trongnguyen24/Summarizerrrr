@@ -20,8 +20,6 @@ const DEFAULT_SETTINGS = {
   summaryFormat: 'heading', // heading, paragraph
   summaryLang: 'Vietnamese', // Default language Vietnamese
   selectedModel: 'gemini-2.0-flash', // Default model
-  temperature: 0.6, // Default temperature for summary style
-  topP: 0.91, // Default topP for summary style
   isAdvancedMode: false, // New: Default to basic mode
 }
 
@@ -45,6 +43,10 @@ export async function loadSettings() {
 
   try {
     const storedSettings = await getStorage(Object.keys(DEFAULT_SETTINGS))
+    console.log(
+      '[settingsStore] Stored settings from storage:',
+      JSON.stringify(storedSettings)
+    ) // Thêm log
     const mergedSettings = { ...DEFAULT_SETTINGS }
     for (const key in DEFAULT_SETTINGS) {
       if (storedSettings[key] !== undefined && storedSettings[key] !== null) {
@@ -54,8 +56,8 @@ export async function loadSettings() {
     Object.assign(settings, mergedSettings)
     _isInitialized = true // Cập nhật biến nội bộ
     console.log(
-      '[settingsStore] Cài đặt đã được tải:',
-      $state.snapshot(settings)
+      '[settingsStore] Cài đặt đã được tải (sau khi hợp nhất):', // Cập nhật log
+      JSON.stringify($state.snapshot(settings))
     )
   } catch (error) {
     console.error('[settingsStore] Lỗi khi tải cài đặt:', error)
@@ -88,10 +90,14 @@ export async function updateSettings(newSettings) {
   Object.assign(settings, validUpdates)
 
   try {
+    console.log(
+      '[settingsStore] Cập nhật và lưu các cài đặt sau:',
+      JSON.stringify(validUpdates)
+    ) // Thêm log
     await setStorage(validUpdates)
     console.log(
       '[settingsStore] Cài đặt đã được cập nhật và lưu:',
-      $state.snapshot(settings)
+      JSON.stringify($state.snapshot(settings))
     )
   } catch (error) {
     console.error('[settingsStore] Lỗi khi lưu cài đặt:', error)

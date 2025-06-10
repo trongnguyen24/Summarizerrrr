@@ -102,10 +102,18 @@
   })
 
   // Handle summarize button click
-  // Đây là một event listener toàn cục, có thể giữ nguyên hoặc xem xét lại cách truyền event
-  document.addEventListener('summarizeClick', () => {
-    resetDisplayState() // Reset display state before new summarization
-    fetchAndSummarize() // Gọi hàm từ summaryStore
+  // Đăng ký event listener toàn cục và đảm bảo nó được hủy khi component bị hủy
+  $effect(() => {
+    const handleSummarizeClick = () => {
+      resetDisplayState() // Reset display state before new summarization
+      fetchAndSummarize() // Gọi hàm từ summaryStore
+    }
+
+    document.addEventListener('summarizeClick', handleSummarizeClick)
+
+    return () => {
+      document.removeEventListener('summarizeClick', handleSummarizeClick)
+    }
   })
 </script>
 

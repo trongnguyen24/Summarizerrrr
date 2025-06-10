@@ -41,7 +41,7 @@
 
 <div class="flex flex-col gap-2">
   <!-- svelte-ignore a11y_label_has_associated_control -->
-  <label class="block text-text-primary font-bold">Select Gemini Model</label>
+  <label class="block">Select Gemini Model</label>
   <div class="grid grid-cols-3 w-full gap-1">
     {#each modelOptions as model}
       <ButtonSet

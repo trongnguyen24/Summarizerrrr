@@ -14,6 +14,7 @@
 @theme {
   --breakpoint-xs: 38rem;
   --color-blackwhite: oklch(0 0 0);
+  --color-track: oklch(0.9 0 0);
   --color-summarize: oklch(0 0 0);
   --color-background: oklch(0.95 0.001 286);
   --color-surface-1: oklch(0.97 0.0005 286);
@@ -25,6 +26,7 @@
   --color-primary: oklch(69.1% 0.1909 45.02);
   --color-success: oklch(0.768 0.233 130.85);
   --color-error: oklch(0.637 0.237 25.331);
+  --animate-wiggle: wiggle 6s ease-in-out infinite;
 }
 .dark,
 .dark .prose {
@@ -48,6 +50,7 @@
   --tw-prose-td-borders: var(--tw-prose-invert-td-borders);
   --color-summarize: oklch(0 0 0);
   --color-blackwhite: oklch(1 0 0);
+  --color-track: oklch(0.3 0 0);
   --color-background: oklch(0.15 0.02 286);
   --color-surface-1: oklch(0.2 0.015 268);
   --color-surface-2: oklch(0.25 0.015 264);
@@ -127,6 +130,28 @@ button {
   }
 }
 
+@keyframes wiggle {
+  0% {
+    transform: rotate(0deg);
+  }
+  30% {
+    transform: rotate(15deg);
+  }
+  38% {
+    transform: rotate(15deg);
+  }
+  42% {
+    transform: rotate(-8deg);
+  }
+  47% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
 /* Custom OverlayScrollbars Theme */
 .os-theme-custom-app.os-scrollbar {
   --os-size: 6px;
@@ -155,3 +180,98 @@ button {
 /* .os-theme-custom-app.os-scrollbar-vertical {
   --os-size: 10px;
 } */
+
+/* Custom styles for range input */
+input[type='range'] {
+  -webkit-appearance: none; /* Loại bỏ kiểu dáng mặc định của trình duyệt */
+  width: 100%; /* Chiều rộng đầy đủ */
+  height: 16px; /* Chiều cao của track */
+  border-radius: 5px; /* Bo tròn góc của track */
+  outline: none; /* Loại bỏ outline khi focus */
+  opacity: 0.8; /* Độ trong suốt nhẹ */
+  transition: opacity 0.2s; /* Hiệu ứng chuyển đổi khi hover */
+}
+
+input[type='range']:hover {
+  opacity: 1; /* Tăng độ trong suốt khi hover */
+}
+
+/* Style cho thumb (nút kéo) */
+input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px; /* Kích thước của thumb */
+  height: 16px; /* Kích thước của thumb */
+  background: var(--color-muted); /* Màu của thumb */
+  border-radius: 50%; /* Hình tròn */
+  cursor: grab; /* Con trỏ kéo */
+  margin-top: -7px; /* Căn giữa thumb với track */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Bóng đổ nhẹ */
+  transition: background 0.2s, transform 0.2s; /* Hiệu ứng chuyển đổi */
+}
+
+input[type='range']::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  background: var(--color-muted);
+  border-radius: 50%;
+  cursor: grab;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: background 0.2s, transform 0.2s;
+}
+
+input[type='range']::-ms-thumb {
+  width: 16px;
+  height: 16px;
+  background: var(--color-muted);
+  border-radius: 50%;
+  cursor: grab;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: background 0.2s, transform 0.2s;
+}
+
+/* Style cho track (thanh) */
+input[type='range']::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 2px;
+  background-color: var(--color-track);
+  border-radius: 5px;
+}
+
+input[type='range']::-moz-range-track {
+  width: 100%;
+  height: 2px;
+  background-color: var(--color-track);
+  border-radius: 5px;
+}
+
+input[type='range']::-ms-track {
+  width: 100%;
+  height: 2px;
+  background-color: var(--color-track);
+  border-radius: 5px;
+  border-color: transparent; /* Cần thiết cho IE */
+  color: transparent; /* Cần thiết cho IE */
+}
+
+/* Fill track before thumb (chỉ cho Firefox) */
+input[type='range']::-moz-range-progress {
+  background-color: var(--color-primary);
+  border-radius: 5px;
+}
+
+/* Active state for thumb */
+input[type='range']::-webkit-slider-thumb:active {
+  transform: scale(1.1); /* Phóng to nhẹ khi kéo */
+  cursor: grabbing;
+}
+
+input[type='range']::-moz-range-thumb:active {
+  transform: scale(1.1);
+  cursor: grabbing;
+}
+
+input[type='range']::-ms-thumb:active {
+  transform: scale(1.1);
+  cursor: grabbing;
+}

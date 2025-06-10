@@ -1,7 +1,7 @@
 <script>
   import ReusableSelect from './ReusableSelect.svelte'
   import { providersConfig } from '../lib/providersConfig.js'
-  import { settings } from '../stores/settingsStore.svelte.js'
+  import { settings, updateSettings } from '../stores/settingsStore.svelte.js' // Import updateSettings
 
   const providers = Object.keys(providersConfig).map((key) => ({
     value: key,
@@ -13,6 +13,7 @@
   function handleChange(newValue) {
     value = newValue
     settings.selectedProvider = newValue
+    updateSettings({ selectedProvider: newValue }) // Lưu cài đặt vào storage
     const event = new CustomEvent('change', { detail: newValue })
     dispatchEvent(event)
   }

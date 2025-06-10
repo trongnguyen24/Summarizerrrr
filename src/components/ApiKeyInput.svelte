@@ -28,7 +28,7 @@
 
 <div class="flex flex-col gap-2">
   <div class="flex items-center gap-1 justify-between">
-    <label for="api-key-input" class="block text-text-primary font-bold">
+    <label for="api-key-input" class="block">
       {label}
     </label>
     {#if saveStatus}

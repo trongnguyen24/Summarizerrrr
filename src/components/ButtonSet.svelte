@@ -43,13 +43,13 @@
   button div::before {
     display: block;
     content: '';
-    z-index: -1;
+    z-index: 0;
     position: absolute;
     bottom: 0;
     left: 0;
     height: 28px;
     width: 100%;
-    background-color: rgba(124, 124, 124, 0.025);
+    background-color: rgba(124, 124, 124, 0.035);
     transform: translateY(100%);
     transition: transform 0.3s ease-out;
   }

@@ -50,9 +50,7 @@
   />
 </div>
 <div class="flex flex-col gap-2">
-  <label for="Select OpenRouter Model" class="block text-text-primary font-bold"
-    >OpenRouter Model</label
-  >
+  <label for="Select OpenRouter Model" class="block">OpenRouter Model</label>
   <ReusableSelect
     items={openrouterModelItems}
     bindValue={selectedOpenrouterModel}

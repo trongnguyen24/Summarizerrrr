@@ -1,10 +1,18 @@
 // @ts-nocheck
 import 'webextension-polyfill'
 import { injectScript, executeFunction } from '../services/chromeService.js'
+import {
+  loadSettings,
+  subscribeToSettingsChanges,
+} from '../stores/settingsStore.svelte.js'
 
 export default defineBackground(() => {
   let sidePanelPort = null
   let pendingSelectedText = null
+
+  // Tải cài đặt và đăng ký lắng nghe thay đổi khi background script khởi động
+  loadSettings()
+  subscribeToSettingsChanges()
 
   const YOUTUBE_MATCH_PATTERN = '*://*.youtube.com/watch*'
   const CONTENT_SCRIPT_PATH = 'content-scripts/youtubetranscript.js'

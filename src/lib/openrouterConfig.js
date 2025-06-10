@@ -78,4 +78,13 @@ export const openrouterModelsConfig = {
   'mistralai/mistral-nemo:free': {
     name: 'Mistral: Mistral Nemo (free)',
   },
+  'google/gemma-3-27b-it:free': {
+    name: 'Google: Gemma 3 27B (free)',
+  },
+  'google/gemma-3-12b-it:free': {
+    name: 'Google: Gemma 3 12B (free)',
+  },
+  'google/gemma-3-4b-it:free': {
+    name: 'Google: Gemma 3 4B (free)',
+  },
 }

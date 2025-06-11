@@ -21,6 +21,7 @@ const DEFAULT_SETTINGS = {
   summaryLang: 'Vietnamese', // Default language Vietnamese
   selectedModel: 'gemini-2.0-flash', // Default model
   isAdvancedMode: false, // New: Default to basic mode
+  selectedFont: 'default', // New: Default font setting
 }
 
 // --- State ---

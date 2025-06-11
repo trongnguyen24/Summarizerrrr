@@ -28,11 +28,14 @@
     setTabTitle,
   } from '../../stores/tabTitleStore.svelte.js'
   import {
+    settings, // Import settings
     loadSettings,
     subscribeToSettingsChanges,
   } from '../../stores/settingsStore.svelte.js' // Import loadSettings và subscribeToSettingsChanges
 
   import '@fontsource-variable/geist-mono'
+  import '@fontsource-variable/noto-serif'
+  import '@fontsource/opendyslexic'
 
   const options = {
     scrollbars: {
@@ -56,6 +59,21 @@
     return () => {
       unsubscribeTheme() // Hủy đăng ký lắng nghe theme hệ thống
       // Không cần hủy đăng ký settings vì onStorageChange không trả về hàm hủy
+    }
+  })
+
+  // Sử dụng $effect để cập nhật lớp font trên body khi settings.selectedFont thay đổi
+  $effect(() => {
+    if (document.body && settings.selectedFont) {
+      // Xóa tất cả các lớp font cũ
+      document.body.classList.remove(
+        'font-default',
+        'font-noto-serif',
+        'font-opendyslexic',
+        'font-noto-mix'
+      )
+      // Thêm lớp font mới
+      document.body.classList.add(`font-${settings.selectedFont}`)
     }
   })
 

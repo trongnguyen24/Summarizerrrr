@@ -3,6 +3,7 @@
   import { fade } from 'svelte/transition'
   import Icon from '@iconify/svelte'
   import ButtonSet from './ButtonSet.svelte'
+  import ButtonIcon from './ButtonIcon.svelte'
   import GroupVisual from './GroupVisual.svelte'
   import LanguageSelect from './LanguageSelect.svelte' // Import LanguageSelect
   import ProvidersSelect from './ProvidersSelect.svelte' // Import ProvidersSelect
@@ -212,7 +213,7 @@
     <div class="flex flex-col">
       {#if activeTab === 'ai-model'}
         <!--AI Model Section -->
-        <div class="setting-block flex gap-6 py-6 flex-col">
+        <div class="setting-block flex gap-5 pb-6 pt-5 flex-col">
           <div class="flex items-center h-6 justify-between px-5">
             <label
               for="advanced-mode-toggle"
@@ -231,7 +232,7 @@
                 id="provider-toggle"
                 bind:checked={settings.isAdvancedMode}
                 name="Advanced Mode"
-                class="focus-visible:ring-primary border border-blackwhite/5 text-text-secondary flex justify-center items-center focus-visible:ring-offset-background  bg-blackwhite/5 hover:bg-blackwhite/10 transition-colors rounded-full  focus-visible:outline-hidden  size-7.5  shrink-0 cursor-pointer  focus-visible:ring-1 focus-visible:ring-offset-1 disabled:cursor-not-allowed data-[state=checked]:text-white disabled:opacity-50"
+                class="focus-visible:ring-primary border border-blackwhite/5 text-text-secondary flex justify-center items-center focus-visible:ring-offset-background  bg-blackwhite/5 hover:bg-blackwhite/10 transition-colors rounded-full  focus-visible:outline-hidden  size-7.5  shrink-0 cursor-pointer  focus-visible:ring-1 focus-visible:ring-offset-1 disabled:cursor-not-allowed data-[state=checked]:text-white disabled:opacity50"
               >
                 <Switch.Thumb
                   class="bg-primary rounded-full pointer-events-none block shrink-0 size-7.5 transition-all duration-300 data-[state=checked]:scale-100 data-[state=unchecked]:scale-60  data-[state=checked]:opacity-100 data-[state=unchecked]:opacity-0"
@@ -277,8 +278,9 @@
               <div class="grid grid-cols-2 gap-4">
                 <!-- Temperature Section -->
                 <div class="flex flex-col gap-2">
+                  <!-- svelte-ignore a11y_label_has_associated_control -->
                   <label
-                    class="block text-text-secondary flex justify-between items-center"
+                    class=" text-text-secondary flex justify-between items-center"
                   >
                     <span>Temperature</span>
                     <span class="text-text-primary font-bold"
@@ -304,8 +306,9 @@
                 <!-- Top P Section -->
                 <div class="flex flex-col gap-2 relative">
                   <!-- Added relative here -->
+                  <!-- svelte-ignore a11y_label_has_associated_control -->
                   <label
-                    class="block text-text-secondary flex justify-between items-center"
+                    class=" text-text-secondary flex justify-between items-center"
                   >
                     <span>Top P</span>
                     <span class="text-text-primary font-bold"
@@ -332,8 +335,9 @@
               />
               <!-- Temperature Section for Basic Mode -->
               <div class="flex flex-col gap-2">
+                <!-- svelte-ignore a11y_label_has_associated_control -->
                 <label
-                  class="block text-text-secondary flex justify-between items-center"
+                  class=" text-text-secondary flex justify-between items-center"
                 >
                   <span>Temperature</span>
                   <span class="text-text-primary font-bold"
@@ -370,8 +374,9 @@
 
               <!-- Top P Section for Basic Mode -->
               <div class="flex flex-col gap-2">
+                <!-- svelte-ignore a11y_label_has_associated_control -->
                 <label
-                  class="block text-text-secondary flex justify-between items-center"
+                  class=" text-text-secondary flex justify-between items-center"
                 >
                   <span>Top P</span>
                   <span class="text-text-primary font-bold"
@@ -497,35 +502,84 @@
 
       {#if activeTab === 'general'}
         <!-- General Section -->
-        <div class="setting-block flex flex-col">
-          <div
-            class="flex border-b border-border items-center justify-between py-2 px-4"
-          >
-            <label for="summary-settings-toggle" class="block dark:text-muted"
-              >General Settings</label
+        <div class="setting-block flex pb-6 pt-5 flex-col">
+          <div class="flex items-center h-6 justify-between px-5">
+            <label
+              for="advanced-mode-toggle"
+              class="block font-bold text-text-primary">General Settings</label
             >
           </div>
           <div class="flex flex-col gap-2 p-4">
             <!-- svelte-ignore a11y_label_has_associated_control -->
             <label class="block text-text-secondary">Theme</label>
-            <div class="grid grid-cols-3 w-full gap-1">
-              <ButtonSet
+            <div class="flexw-full gap-1">
+              <ButtonIcon
                 title="Light"
                 class="setting-btn {getTheme() === 'light' ? 'active' : ''}"
                 onclick={() => setTheme('light')}
                 Description="Light theme."
-              ></ButtonSet>
-              <ButtonSet
+              >
+                <Icon icon="heroicons:sun-16-solid" width="20" height="20" />
+              </ButtonIcon>
+              <ButtonIcon
                 title="Dark"
                 class="setting-btn {getTheme() === 'dark' ? 'active' : ''}"
                 onclick={() => setTheme('dark')}
                 Description="Dark theme."
-              ></ButtonSet>
-              <ButtonSet
+              >
+                <Icon icon="heroicons:moon-20-solid" width="20" height="20" />
+              </ButtonIcon>
+              <ButtonIcon
                 title="System"
                 class="setting-btn {getTheme() === 'system' ? 'active' : ''}"
                 onclick={() => setTheme('system')}
                 Description="System theme."
+              >
+                <Icon
+                  icon="heroicons:computer-desktop-20-solid"
+                  width="20"
+                  height="20"
+                /></ButtonIcon
+              >
+            </div>
+          </div>
+          <div class="flex flex-col gap-2 p-4">
+            <!-- svelte-ignore a11y_label_has_associated_control -->
+            <label class="block text-text-secondary">Font Family</label>
+            <div class="grid grid-cols-2 w-full gap-1">
+              <ButtonSet
+                title="Default"
+                class="setting-btn {settings.selectedFont === 'default'
+                  ? 'active'
+                  : ''}"
+                onclick={() => handleUpdateSetting('selectedFont', 'default')}
+                Description="Default font."
+              ></ButtonSet>
+              <ButtonSet
+                title="Noto Serif"
+                class="setting-btn {settings.selectedFont === 'noto-serif'
+                  ? 'active'
+                  : ''}"
+                onclick={() =>
+                  handleUpdateSetting('selectedFont', 'noto-serif')}
+                Description="Noto Serif font."
+              ></ButtonSet>
+              <ButtonSet
+                title="OpenDyslexic"
+                class="setting-btn {settings.selectedFont === 'opendyslexic'
+                  ? 'active'
+                  : ''}"
+                onclick={() =>
+                  handleUpdateSetting('selectedFont', 'opendyslexic')}
+                Description="OpenDyslexic font for dyslexia."
+              ></ButtonSet>
+              <ButtonSet
+                title="Noto Mix"
+                class="setting-btn {settings.selectedFont === 'noto-mix'
+                  ? 'active'
+                  : ''}"
+                onclick={() => handleUpdateSetting('selectedFont', 'noto-mix')}
+                Description="Noto Serif for headings, Noto Sans for body."
               ></ButtonSet>
             </div>
           </div>

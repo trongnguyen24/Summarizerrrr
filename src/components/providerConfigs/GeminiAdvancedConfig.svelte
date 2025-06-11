@@ -39,9 +39,7 @@
 ></ApiKeyInput>
 
 <div class="flex flex-col gap-2">
-  <label for="Select a model" class="block text-text-primary font-bold"
-    >Gemini Advanced Model</label
-  >
+  <label for="Select a model" class="block">Gemini Advanced Model</label>
   <ReusableSelect
     items={geminiAdvancedModels}
     bindValue={selectedGeminiAdvancedModel}

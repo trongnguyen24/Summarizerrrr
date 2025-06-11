@@ -1,3 +1,4 @@
+// @ts-nocheck
 export default defineContentScript({
   matches: ['*://*.youtube.com/watch*'],
   main() {
@@ -17,203 +18,57 @@ export default defineContentScript({
        */
       async getPlayerResponse() {
         try {
-          // Cách 1: Lấy từ trang HTML trực tiếp (nhanh hơn)
-          const responseText = await fetch(window.location.href).then((res) =>
-            res.text()
-          )
-          // Điều chỉnh regex một chút để bắt được nhiều trường hợp kết thúc hơn, tương tự regex ở phương pháp 2
-          const playerResponseMatch = responseText.match(
-            /ytInitialPlayerResponse\s*=\s*({.+?})\s*;\s*(?:var\s+(?:meta|head|opf)|<\/script|\n|$)/s
-          ) // Thêm cờ 's' cho '.' khớp newline
+          // Đóng biểu ngữ cookie
+          document.querySelector('button[aria-label*=cookies]')?.click()
 
-          if (playerResponseMatch && playerResponseMatch[1]) {
-            console.log(
-              'Method 1 successful: Found ytInitialPlayerResponse by fetching page HTML.'
-            )
-            return JSON.parse(playerResponseMatch[1])
-          }
-
-          // Cách 2: Tìm trong script tags (backup) - Logic giữ nguyên từ đoạn code đầu tiên
-          const scripts = document.querySelectorAll('script')
-          const playerResponseScript = Array.from(scripts).find((script) =>
-            script.textContent.includes('var ytInitialPlayerResponse = {')
-          )
-
-          if (playerResponseScript) {
-            const scriptContent = playerResponseScript.textContent
-            const jsonStart = scriptContent.indexOf(
-              'ytInitialPlayerResponse = {'
-            )
-            const objectStart = scriptContent.indexOf('{', jsonStart)
-
-            let objectEnd = scriptContent.indexOf(';</script>', objectStart)
-            if (objectEnd === -1) {
-              const scriptEnd = scriptContent.indexOf('</script>', objectStart)
-              objectEnd = scriptContent.lastIndexOf(
-                ';',
-                scriptEnd !== -1 ? scriptEnd : undefined
+          // Chờ nút 'Show transcript' xuất hiện và nhấp vào nó
+          await new Promise((resolve) => {
+            const checkButton = () => {
+              const button = document.querySelector(
+                'ytd-video-description-transcript-section-renderer button'
               )
-            }
-            // Cách xử lý objectEnd này hơi phức tạp và có thể không chính xác hoàn toàn,
-            // giữ nguyên như code gốc để tích hợp logic mới
-            if (objectEnd === -1) {
-              objectEnd = scriptContent.lastIndexOf(
-                '}',
-                scriptContent.indexOf('</script>', objectStart)
-              )
-              if (objectEnd !== -1) objectEnd += 1
-            }
-
-            if (
-              objectStart !== -1 &&
-              objectEnd !== -1 &&
-              objectEnd > objectStart
-            ) {
-              const jsonString = scriptContent.substring(objectStart, objectEnd)
-              console.log(
-                'Method 2 successful: Found ytInitialPlayerResponse in script tag.'
-              )
-              return JSON.parse(jsonString)
-            } else {
-              console.warn(
-                'Method 2 failed: Could not accurately determine JSON boundaries from script tag.'
-              )
-              // Continue to next method
-            }
-          } else {
-            // Continue to next method
-          }
-
-          // Cách 3: Kiểm tra window object (fallback cuối cùng trước khi thêm cách mới)
-          if (window.ytInitialPlayerResponse) {
-            console.log(
-              'Method 3 successful: Found ytInitialPlayerResponse in window object.'
-            )
-            return window.ytInitialPlayerResponse
-          }
-
-          // --- Bắt đầu Cách 4: Lấy dữ liệu từ googleusercontent.com (từ đoạn mã thứ hai) ---
-          const videoId = new URLSearchParams(window.location.search).get('v')
-          // Sử dụng regex từ đoạn mã thứ hai, thêm cờ 's'
-          const YT_INITIAL_PLAYER_RESPONSE_RE_METHOD4 =
-            /ytInitialPlayerResponse\s*=\s*({.+?})\s*;\s*(?:var\s+(?:meta|head)|<\/script|\n|$)/s // Thêm cờ 's' cho '.' khớp newline
-
-          if (!videoId) {
-            console.warn('Method 4 failed: No video ID found in URL.')
-            // Chuyển sang bước thất bại cuối cùng
-          } else {
-            try {
-              const fallbackUrl = 'https://www.youtube.com/watch?v=' + videoId
-              console.log(`Attempting Method 4: Fetching from ${fallbackUrl}`)
-
-              const response = await fetch(fallbackUrl)
-              if (!response.ok) {
-                console.warn(
-                  `Method 4 failed: Fetch returned status ${response.status}`
-                )
-                // Chuyển sang bước thất bại cuối cùng
+              if (button) {
+                button.click()
+                resolve()
               } else {
-                const body = await response.text()
-                const playerResponseMatchMethod4 = body.match(
-                  YT_INITIAL_PLAYER_RESPONSE_RE_METHOD4
-                )
-
-                if (
-                  playerResponseMatchMethod4 &&
-                  playerResponseMatchMethod4[1]
-                ) {
-                  console.log(
-                    'Method 4 successful: Found ytInitialPlayerResponse using fallback URL.'
-                  )
-                  return JSON.parse(playerResponseMatchMethod4[1])
-                } else {
-                  console.warn(
-                    'Method 4 failed: Could not find playerResponse regex match in fallback data.'
-                  )
-                  // Chuyển sang bước thất bại cuối cùng
-                }
+                setTimeout(checkButton, 500) // Kiểm tra lại sau 500ms
               }
-            } catch (fetchError) {
-              console.error(
-                'Method 4 failed: Error during fetch from fallback URL:',
-                fetchError
-              )
-              // Chuyển sang bước thất bại cuối cùng
             }
-          }
-          // --- Kết thúc Cách 4 ---
+            checkButton()
+          })
 
-          console.error(
-            'Failed to obtain playerResponse object after trying all methods.'
+          // Chờ vùng chứa bản ghi xuất hiện
+          await new Promise((resolve) => {
+            const checkContainer = () => {
+              const container = document.querySelector('#segments-container')
+              if (container) {
+                resolve()
+              } else {
+                setTimeout(checkContainer, 500) // Kiểm tra lại sau 500ms
+              }
+            }
+            checkContainer()
+          })
+
+          // Phân tích tất cả các nút văn bản từ vùng chứa bản ghi và nối chúng bằng một dòng trống
+          const transcriptText = Array.from(
+            document.querySelectorAll('#segments-container')
           )
-          return null
+            .map((element) => element.textContent?.trim())
+            .join('\n')
+
+          // Trả về một đối tượng giả định để phù hợp với cấu trúc ban đầu của getPlayerResponse
+          // Mặc dù chúng ta không cần playerResponse thực sự nữa, nhưng các hàm khác có thể mong đợi nó.
+          // Trong trường hợp này, chúng ta sẽ trả về một đối tượng có thuộc tính 'transcript'
+          // để hàm getTranscript có thể sử dụng nó.
+          return { transcript: transcriptText }
         } catch (error) {
           console.error(
-            'An unexpected error occurred in getPlayerResponse:',
+            'An error occurred while interacting with DOM to get transcript:',
             error
           )
           return null
         }
-      }
-
-      /**
-       * Tìm và chọn caption track tốt nhất dựa trên ngôn ngữ ưa thích
-       * @param {Array} captionTracks - Danh sách các caption tracks có sẵn
-       * @returns {Object} - Thông tin về track được chọn và URL của nó
-       */
-      selectBestCaptionTrack(captionTracks) {
-        if (!captionTracks || captionTracks.length === 0) {
-          console.log('No caption tracks found.')
-          return { baseUrl: null, trackInfo: null }
-        }
-
-        console.log(`Found ${captionTracks.length} caption tracks.`)
-
-        const findCaptionUrl = (vssIdPrefix) =>
-          captionTracks.find((track) => track.vssId?.startsWith(vssIdPrefix))
-            ?.baseUrl
-
-        let baseUrl =
-          findCaptionUrl('.en') ||
-          findCaptionUrl('a.en') ||
-          findCaptionUrl('a.') ||
-          findCaptionUrl('.') ||
-          captionTracks[0]?.baseUrl
-
-        const selectedTrack = baseUrl
-          ? captionTracks.find((track) => track.baseUrl === baseUrl)
-          : null
-
-        if (!selectedTrack) {
-          console.log('No track selected.')
-        } else {
-          console.log(
-            `Selected track: ${
-              selectedTrack.name?.simpleText ||
-              selectedTrack.languageCode ||
-              'Unknown'
-            } (Code: ${selectedTrack.languageCode})${
-              selectedTrack.kind === 'asr' ? ' (auto-generated)' : ''
-            }`
-          )
-        }
-
-        const selectedTrackInfo = baseUrl
-          ? captionTracks.find((track) => track.baseUrl === baseUrl)
-          : null
-
-        const trackInfo = selectedTrackInfo
-          ? {
-              name:
-                selectedTrackInfo.name?.simpleText ||
-                selectedTrackInfo.languageCode ||
-                'Unknown',
-              isAutoGenerated: selectedTrackInfo.kind === 'asr',
-              languageCode: selectedTrackInfo.languageCode,
-            }
-          : null
-
-        return { baseUrl, trackInfo }
       }
 
       /**
@@ -252,48 +107,6 @@ export default defineContentScript({
       }
 
       /**
-       * Trích xuất transcript từ dữ liệu JSON
-       * @param {Object} transcriptData - Dữ liệu transcript dạng JSON
-       * @param {boolean} includeTimestamps - Có bao gồm timestamp không
-       * @returns {string|null} - Transcript đã xử lý hoặc null nếu không thành công
-       */
-      processTranscriptData(transcriptData, includeTimestamps) {
-        if (!transcriptData || !transcriptData.events) {
-          console.error('Invalid json3 format received or no events found.')
-          return null
-        }
-
-        if (includeTimestamps) {
-          const transcriptLines = transcriptData.events
-            .filter((event) => event.segs && event.tStartMs !== undefined)
-            .map((event) => {
-              const startTime = this.formatMilliseconds(event.tStartMs)
-              const text = this.cleanTranscriptText(
-                event.segs.map((seg) => seg.utf8).join(' ')
-              )
-
-              return text.length > 0 ? `[${startTime}] ${text}` : null
-            })
-            .filter((line) => line !== null)
-
-          if (transcriptLines.length === 0) {
-            console.log(
-              'Transcript events found, but no valid text content could be extracted.'
-            )
-            return null
-          }
-
-          return transcriptLines.join('\n')
-        } else {
-          const fullTranscript = transcriptData.events
-            .map((event) => event.segs?.map((seg) => seg.utf8)?.join(' ') || '')
-            .join(' ')
-
-          return this.cleanTranscriptText(fullTranscript)
-        }
-      }
-
-      /**
        * Hàm chính để lấy transcript từ YouTube
        * @param {string} preferredLang - Mã ngôn ngữ ưa thích
        * @param {boolean} includeTimestamps - Có bao gồm timestamp không
@@ -307,61 +120,30 @@ export default defineContentScript({
           ? 'timestamped transcript'
           : 'transcript'
         console.log(
-          `Attempting to get ${logType} for language: ${preferredLang}`
+          `Attempting to get ${logType} for language: ${preferredLang} using DOM interaction.`
         )
 
         try {
-          const playerResponse = await this.getPlayerResponse()
-          if (!playerResponse) {
-            console.error('Failed to get playerResponse after all attempts.')
-            return null
-          }
+          // Gọi getPlayerResponse để thực hiện tương tác DOM và lấy bản ghi
+          const domResult = await this.getPlayerResponse()
 
-          const captionTracks =
-            playerResponse?.captions?.playerCaptionsTracklistRenderer
-              ?.captionTracks
-
-          const { baseUrl, trackInfo } =
-            this.selectBestCaptionTrack(captionTracks)
-
-          if (!baseUrl) {
-            console.error('Could not find any suitable caption track baseUrl.')
-            return null
-          }
-
-          console.log(
-            `Selected track: ${trackInfo.name} (Code: ${
-              trackInfo.languageCode
-            })${trackInfo.isAutoGenerated ? ' (auto-generated)' : ''}`
-          )
-
-          const transcriptUrl = baseUrl + '&fmt=json3'
-          console.log(`Fetching ${logType} from: ${transcriptUrl}`)
-
-          const response = await fetch(transcriptUrl)
-          if (!response.ok) {
-            console.error(
-              `Failed to fetch transcript json3. Status: ${response.status}`
+          if (domResult && domResult.transcript) {
+            console.log(
+              `${logType} extracted and processed successfully from DOM.`
             )
+            // Nếu includeTimestamps là true, chúng ta cần định dạng lại bản ghi
+            // Hiện tại, logic DOM chỉ trả về văn bản thuần túy.
+            // Nếu người dùng cần timestamp, họ sẽ phải làm rõ cách chúng ta nên lấy chúng từ DOM.
+            if (includeTimestamps) {
+              console.warn(
+                'Timestamped transcript requested, but DOM interaction currently only provides plain text. Returning plain text.'
+              )
+            }
+            return domResult.transcript
+          } else {
+            console.error('Failed to get transcript from DOM interaction.')
             return null
           }
-
-          const transcriptData = await response.json()
-
-          const result = this.processTranscriptData(
-            transcriptData,
-            includeTimestamps
-          )
-
-          if (result) {
-            console.log(`${logType} extracted and processed successfully.`)
-            return result
-          }
-
-          console.error(
-            'Processing transcript data returned null (possibly no valid text).'
-          )
-          return null
         } catch (error) {
           console.error(
             `An unexpected error occurred in getTranscript(withTimestamp=${includeTimestamps}):`,

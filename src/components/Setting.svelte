@@ -4,6 +4,7 @@
   import Icon from '@iconify/svelte'
   import ButtonSet from './ButtonSet.svelte'
   import ButtonIcon from './ButtonIcon.svelte'
+  import ButtonFont from './ButtonFont.svelte'
   import GroupVisual from './GroupVisual.svelte'
   import LanguageSelect from './LanguageSelect.svelte' // Import LanguageSelect
   import ProvidersSelect from './ProvidersSelect.svelte' // Import ProvidersSelect
@@ -14,8 +15,10 @@
   import { Label, Switch } from 'bits-ui'
   import { useOverlayScrollbars } from 'overlayscrollbars-svelte'
   import { providersConfig } from '../lib/providersConfig.js'
-
-  // Import trực tiếp từ stores đã refactor
+  import Dyslexic from './icon/Dyslexic.svelte'
+  import Mix from './icon/Mix.svelte'
+  import SanSerif from './icon/San-serif.svelte'
+  import Serif from './icon/Serif.svelte'
   import {
     settings,
     getIsInitialized,
@@ -546,25 +549,27 @@
           <div class="flex flex-col gap-2 p-4">
             <!-- svelte-ignore a11y_label_has_associated_control -->
             <label class="block text-text-secondary">Font Family</label>
-            <div class="grid grid-cols-2 w-full gap-1">
-              <ButtonSet
-                title="Default"
-                class="setting-btn {settings.selectedFont === 'default'
+            <div class="flex flex-col w-full gap-1">
+              <ButtonFont
+                title="Sans Serif"
+                class="setting-btn  {settings.selectedFont === 'default'
                   ? 'active'
                   : ''}"
                 onclick={() => handleUpdateSetting('selectedFont', 'default')}
                 Description="Default font."
-              ></ButtonSet>
-              <ButtonSet
-                title="Noto Serif"
+                font="sans"
+              ></ButtonFont>
+              <ButtonFont
+                title="Serif"
                 class="setting-btn {settings.selectedFont === 'noto-serif'
                   ? 'active'
                   : ''}"
                 onclick={() =>
                   handleUpdateSetting('selectedFont', 'noto-serif')}
                 Description="Noto Serif font."
-              ></ButtonSet>
-              <ButtonSet
+                font="serif"
+              ></ButtonFont>
+              <ButtonFont
                 title="OpenDyslexic"
                 class="setting-btn {settings.selectedFont === 'opendyslexic'
                   ? 'active'
@@ -572,15 +577,17 @@
                 onclick={() =>
                   handleUpdateSetting('selectedFont', 'opendyslexic')}
                 Description="OpenDyslexic font for dyslexia."
-              ></ButtonSet>
-              <ButtonSet
-                title="Noto Mix"
+                font="dyslexic"
+              ></ButtonFont>
+              <ButtonFont
+                title="Mix Sans Serif &  Serif"
                 class="setting-btn {settings.selectedFont === 'noto-mix'
                   ? 'active'
                   : ''}"
                 onclick={() => handleUpdateSetting('selectedFont', 'noto-mix')}
                 Description="Noto Serif for headings, Noto Sans for body."
-              ></ButtonSet>
+                font="mix"
+              ></ButtonFont>
             </div>
           </div>
         </div>

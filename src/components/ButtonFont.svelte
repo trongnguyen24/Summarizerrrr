@@ -1,10 +1,10 @@
 <script>
   let {
-    children,
     title,
     Description,
     class: className,
     onclick,
+    font,
     ...rest
   } = $props()
 </script>
@@ -12,18 +12,30 @@
 <button
   type="button"
   title={Description}
-  class={`group overflow-hidden relative w-16 ${className}`}
+  class={`group overflow-hidden relative w-full ${className}`}
   {onclick}
   {...rest}
 >
   <div
-    class="relative overflow-hidden flex flex-col justify-center h-18 items-center gap-1 text-text-secondary text-left font-mono bg-muted/5 dark:bg-muted/5 border border-transparent hover:border-blackwhite/10 transition-colors duration-150"
+    class="relative overflow-hidden flex flex-col h-13 justify-center px-3 text-text-secondary text-left font-mono bg-muted/5 dark:bg-muted/5 border border-transparent hover:border-blackwhite/10 transition-colors duration-150"
   >
-    {#if children}
-      <div class="icon">{@render children()}</div>
-    {/if}
-
-    <div class="title">{title}</div>
+    <div
+      class="title leading-5 font-bold text-base"
+      class:font-default={font === 'sans'}
+      class:font-noto-serif={(font === 'serif') | (font === 'mix')}
+      class:font-opendyslexic={font === 'dyslexic'}
+    >
+      {title}
+    </div>
+    <div
+      class="text-demo line-clamp-1 text-xs"
+      class:font-default={font === 'sans'}
+      class:font-noto-serif={font === 'serif'}
+      class:font-noto-mix={font === 'mix'}
+      class:font-opendyslexic={font === 'dyslexic'}
+    >
+      Whereas disregard and contempt for human rights have resulted
+    </div>
   </div>
   <span
     class="absolute size-4 rotate-45 bottom-px left-px bg-muted/5 group-hover:bg-border -translate-x-1/2 translate-y-1/2 transition-colors duration-150"
@@ -34,7 +46,7 @@
 
 <style>
   button {
-    clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 11px 100%, 0% 61px);
+    clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 12px 100%, 0% 40px);
   }
   button.active div .title {
     color: var(--color-text-primary);
@@ -70,7 +82,7 @@
     background-color: transparent;
     transition: transform 0.3s ease-out;
     box-shadow:
-      0 -0px 0px #fff,
+      0 0 0 #fff,
       0 0 0 #fff;
   }
   button.active .rec {

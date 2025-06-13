@@ -69,7 +69,7 @@ export const promptBuilders = {
   },
   udemyConcepts: {
     systemInstruction:
-      'Bạn là một trợ lý chuyên phân tích transcript của các bài giảng Udemy. Nhiệm vụ của bạn là xác định các thuật ngữ hoặc khái niệm kỹ thuật quan trọng được nhắc đến trong <Transcript> và cung cấp giải thích ngắn gọn, rõ ràng cho từng thuật ngữ đó.',
+      'Mục tiêu của tôi là hiểu sâu hơn về các khái niệm chuyên ngành được đề cập trong một khoá học trực tuyến. Bạn cần sử dụng kiến thức rộng lớn của mình để cung cấp những giải thích chi tiết, chuyên sâu và dễ hiểu về các thuật ngữ này',
     buildPrompt: (text, lang, format) => {
       const template = udemyConceptsPromptTemplate
       return template

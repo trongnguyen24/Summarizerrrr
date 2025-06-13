@@ -25,7 +25,7 @@
       <PlusIcon color="red" position="bottom-right" />
     </div>
   {:else if summaryState.udemyConcepts}
-    <div id="udemy-summary" class="prose dark:prose-invert">
+    <div id="udemy-summary">
       {@html summaryState.udemyConcepts}
     </div>
     <Toc targetDivId="udemy-summary" />

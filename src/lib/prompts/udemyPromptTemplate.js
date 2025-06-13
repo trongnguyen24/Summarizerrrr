@@ -57,46 +57,53 @@ Closure rất hữu ích trong việc tạo ra các hàm riêng tư, quản lý 
 
 export const udemyConceptsPromptTemplate = `
 
-<USER_TASK>
-Bạn là một trợ lý chuyên phân tích transcript của các bài giảng Udemy. Nhiệm vụ của bạn là xác định các thuật ngữ hoặc khái niệm kỹ thuật quan trọng được nhắc đến trong <Transcript> và cung cấp giải thích ngắn gọn, rõ ràng cho từng thuật ngữ đó.
-</USER_TASK>
+<role>
+    Bạn là một chuyên gia uyên bác với kiến thức sâu rộng. Bạn có khả năng phân tích thông tin từ các tài liệu và giải thích các khái niệm phức tạp cho người học một cách minh bạch, có cấu trúc và đầy đủ.
+</role>
 
-<Parameters>
-1.  Ngôn ngữ giải thích: \${lang}
-    - Các giải thích sẽ được trả về hoàn toàn bằng ngôn ngữ được chỉ định với chất lượng dịch thuật cao nhất - chính xác, tự nhiên và lưu loát như người bản xứ, dịch các thuật ngữ chuyên ngành và tên riêng một cách chuẩn xác.
+<output_language>
+    Ngôn ngữ giải thích: \${lang}
+</output_language>
 
-2.  Định dạng: \${format}
-    - "plain": Danh sách các thuật ngữ và giải thích dưới dạng văn bản thuần túy.
-    - "markdown": Danh sách các thuật ngữ và giải thích được định dạng bằng Markdown, với mỗi thuật ngữ là một tiêu đề cấp độ h3 (###) và giải thích là đoạn văn bản dưới đó.
-</Parameters>
+<action>
+    1. Đọc kỹ transcript khoá học được cung cấp dưới đây, tập trung vào việc xác định các khái niệm chuyên ngành chính.
+    2. Đối với mỗi khái niệm đã xác định, dựa vào kiến thức chuyên sâu của bạn (không chỉ dựa vào thông tin trong transcript), hãy:
+       a. Cung cấp định nghĩa rõ ràng.
+       b. Giải thích chi tiết về cách thức hoạt động hoặc nguyên lý của nó.
+       c. Nêu bật tầm quan trọng hoặc ý nghĩa của khái niệm đó trong lĩnh vực liên quan.
+       d. Cung cấp ít nhất một ví dụ thực tế hoặc đoạn mã để minh họa.
+    3. Để đảm bảo tính chính xác và độ sâu, hãy suy nghĩ từng bước khi phân tích và giải thích từng khái niệm.
+    4. Đảm bảo các giải thích có chiều sâu, bao quát các khía cạnh quan trọng mà không đi quá chi tiết vào những điểm không cần thiết, và sử dụng giọng văn học thuật nhưng vẫn dễ tiếp cận.
+</action>
 
-<Guidelines>
-- **Xác định Thuật Ngữ:** Đọc kỹ transcript để xác định các thuật ngữ, khái niệm, từ viết tắt hoặc tên công nghệ quan trọng mà người học có thể cần được giải thích. Ưu tiên các thuật ngữ kỹ thuật hoặc chuyên ngành.
-- **Giải thích Ngắn Gọn:** Cung cấp một giải thích súc tích (1-3 câu) cho mỗi thuật ngữ. Giải thích phải rõ ràng, dễ hiểu và chỉ dựa trên kiến thức chung hoặc thông tin có thể suy ra từ ngữ cảnh của transcript.
-- **Không Suy Diễn:** Không thêm thông tin từ bên ngoài transcript trừ khi đó là kiến thức chung về thuật ngữ đó.
-- **Định dạng:**
-    - Nếu format là "plain", liệt kê mỗi thuật ngữ và giải thích trên một dòng mới, ví dụ: "Thuật ngữ: Giải thích."
-    - Nếu format là "markdown", sử dụng tiêu đề cấp độ h3 (###) cho mỗi thuật ngữ và đoạn văn bản cho giải thích.
-- **Số lượng:** Cố gắng xác định từ 5 đến 10 thuật ngữ quan trọng nhất. Nếu transcript quá ngắn hoặc không có đủ thuật ngữ, hãy liệt kê những gì có thể.
-- **Xử lý Transcript Không Đủ Thông tin:** Nếu <Transcript> quá ngắn, không có nội dung liên quan hoặc quá nhiễu để xác định thuật ngữ, hãy trả về thông báo (bằng ngôn ngữ yêu cầu \${lang}) rằng "Không đủ thuật ngữ hoặc khái niệm trong transcript để giải thích."
-- **Ràng buộc:**
-    - Không thêm bất kỳ lời chào, lời giới thiệu, kết luận cá nhân hoặc bất kỳ văn bản nào khác ngoài cấu trúc và định dạng bắt buộc của đầu ra.
-    - Không hiển thị thông tin về cài đặt (như ngôn ngữ, định dạng yêu cầu) trong kết quả đầu ra.
-    - Không sử dụng markdown block bao quanh đầu ra.
-</Guidelines>
+<format>
+    Hãy trình bày câu trả lời của bạn bằng ngôn ngữ \${lang} và theo cấu trúc sau:
+    ### [Khái niệm 1]
+    #### 1. Định nghĩa
+    [Giải thích định nghĩa chi tiết, chuyên sâu]
+    #### 2. Cách hoạt động / Nguyên lý
+    [Giải thích cách thức hoạt động hoặc nguyên lý một cách rõ ràng và đầy đủ]
+    #### 3. Tầm quan trọng / Ý nghĩa
+    [Phân tích tầm quan trọng hoặc ý nghĩa trong lĩnh vực liên quan]
+    #### 4. Ví dụ / Ứng dụng
+    [Cung cấp ví dụ thực tế hoặc trường hợp ứng dụng để minh họa]
 
-<Example Output format="markdown" lang="vi">
-### Closure
-Closure trong JavaScript là một hàm bên trong có thể truy cập các biến từ phạm vi bên ngoài của nó, ngay cả sau khi hàm bên ngoài đã kết thúc thực thi. Điều này cho phép hàm bên trong "ghi nhớ" môi trường mà nó được tạo ra.
+    ### [Khái niệm 2]
+    #### 1. Định nghĩa
+    [Giải thích định nghĩa chi tiết, chuyên sâu]
+    #### 2. Cách hoạt động / Nguyên lý
+    [Giải thích cách thức hoạt động hoặc nguyên lý một cách rõ ràng và đầy đủ]
+    #### 3. Tầm quan trọng / Ý nghĩa
+    [Phân tích tầm quan trọng hoặc ý nghĩa trong lĩnh vực liên quan]
+    #### 4. Ví dụ / Ứng dụng
+    [Cung cấp ví dụ thực tế hoặc trường hợp ứng dụng để minh họa]
+    Cứ tiếp tục cấu trúc này cho tất cả các khái niệm chính được xác định.
+</format>
 
-### Scope
-Scope (phạm vi) trong lập trình xác định khả năng truy cập của các biến, hàm và đối tượng trong một phần cụ thể của chương trình. Có hai loại scope chính: global scope và local scope.
+<input_transcript>
 
-### Callback Function
-Callback function là một hàm được truyền vào một hàm khác làm đối số, và sau đó được gọi lại (thực thi) bên trong hàm bên ngoài để hoàn thành một loại hành động nào đó.
-</Example Output>
+    \${text}
 
-<Transcript>
-\${text}
-</Transcript>
+</input_transcript>
+
 `

@@ -421,21 +421,38 @@
       {#if activeTab === 'summary'}
         <!-- Summmary Section -->
 
-        <div class="setting-block flex flex-col gap-4">
-          <div
-            class="flex border-b border-border items-center justify-between py-2 px-4"
-          >
-            <label for="summary-settings-toggle" class="block dark:text-muted"
-              >Summary Settings</label
+        <div class="setting-block flex flex-col gap-5 pb-6 pt-5">
+          <div class="flex items-center h-6 justify-between px-5">
+            <label
+              for="advanced-mode-toggle"
+              class="block font-bold text-text-primary">Provider settings</label
             >
-            <input
-              type="checkbox"
-              id="summary-settings-toggle"
-              bind:checked={settings.isSummaryEnabled}
-              onchange={() =>
-                updateSettings({ isSummaryEnabled: settings.isSummaryEnabled })}
-              class="toggle toggle-primary"
-            />
+            <div class="flex items-center">
+              <Label.Root
+                class="cursor-pointer pr-2 py-2 w-20 text-right font-bold select-none {settings.isSummaryEnabled
+                  ? 'text-primary'
+                  : 'text-text-primary'}"
+                for="provider-toggle"
+              >
+                {settings.isSummaryEnabled ? 'Advanced' : 'Basic'}
+              </Label.Root>
+              <Switch.Root
+                id="provider-toggle"
+                bind:checked={settings.isSummaryEnabled}
+                name="Advanced Mode"
+                class="focus-visible:ring-primary border border-blackwhite/5 text-text-secondary flex justify-center items-center focus-visible:ring-offset-background  bg-blackwhite/5 hover:bg-blackwhite/10 transition-colors rounded-full  focus-visible:outline-hidden  size-7.5  shrink-0 cursor-pointer  focus-visible:ring-1 focus-visible:ring-offset-1 disabled:cursor-not-allowed data-[state=checked]:text-white disabled:opacity50"
+              >
+                <Switch.Thumb
+                  class="bg-primary rounded-full pointer-events-none block shrink-0 size-7.5 transition-all duration-300 data-[state=checked]:scale-100 data-[state=unchecked]:scale-60  data-[state=checked]:opacity-100 data-[state=unchecked]:opacity-0"
+                />
+                <Icon
+                  icon="heroicons:wrench-16-solid"
+                  width="20"
+                  height="20"
+                  class="origin-[75%_25%] animate-wiggle absolute z-10"
+                />
+              </Switch.Root>
+            </div>
           </div>
           <div class="setting-secsion flex flex-col gap-4 px-4">
             <!-- Summary Length Section -->
@@ -512,41 +529,7 @@
               class="block font-bold text-text-primary">General Settings</label
             >
           </div>
-          <div class="flex flex-col gap-2 p-4">
-            <!-- svelte-ignore a11y_label_has_associated_control -->
-            <label class="block text-text-secondary">Theme</label>
-            <div class="flexw-full gap-1">
-              <ButtonIcon
-                title="Light"
-                class="setting-btn {getTheme() === 'light' ? 'active' : ''}"
-                onclick={() => setTheme('light')}
-                Description="Light theme."
-              >
-                <Icon icon="heroicons:sun-16-solid" width="20" height="20" />
-              </ButtonIcon>
-              <ButtonIcon
-                title="Dark"
-                class="setting-btn {getTheme() === 'dark' ? 'active' : ''}"
-                onclick={() => setTheme('dark')}
-                Description="Dark theme."
-              >
-                <Icon icon="heroicons:moon-20-solid" width="20" height="20" />
-              </ButtonIcon>
-              <ButtonIcon
-                title="System"
-                class="setting-btn {getTheme() === 'system' ? 'active' : ''}"
-                onclick={() => setTheme('system')}
-                Description="System theme."
-              >
-                <Icon
-                  icon="heroicons:computer-desktop-20-solid"
-                  width="20"
-                  height="20"
-                /></ButtonIcon
-              >
-            </div>
-          </div>
-          <div class="flex flex-col gap-2 p-4">
+          <div class="flex flex-col gap-2 p-5">
             <!-- svelte-ignore a11y_label_has_associated_control -->
             <label class="block text-text-secondary">Font Family</label>
             <div class="flex flex-col w-full gap-1">
@@ -588,6 +571,40 @@
                 Description="Noto Serif for headings, Noto Sans for body."
                 font="mix"
               ></ButtonFont>
+            </div>
+          </div>
+          <div class="flex flex-col gap-2 p-5">
+            <!-- svelte-ignore a11y_label_has_associated_control -->
+            <label class="block text-text-secondary">Theme</label>
+            <div class="flexw-full gap-1">
+              <ButtonIcon
+                title="Light"
+                class="setting-btn {getTheme() === 'light' ? 'active' : ''}"
+                onclick={() => setTheme('light')}
+                Description="Light theme."
+              >
+                <Icon icon="heroicons:sun-16-solid" width="20" height="20" />
+              </ButtonIcon>
+              <ButtonIcon
+                title="Dark"
+                class="setting-btn {getTheme() === 'dark' ? 'active' : ''}"
+                onclick={() => setTheme('dark')}
+                Description="Dark theme."
+              >
+                <Icon icon="heroicons:moon-20-solid" width="20" height="20" />
+              </ButtonIcon>
+              <ButtonIcon
+                title="System"
+                class="setting-btn {getTheme() === 'system' ? 'active' : ''}"
+                onclick={() => setTheme('system')}
+                Description="System theme."
+              >
+                <Icon
+                  icon="heroicons:computer-desktop-20-solid"
+                  width="20"
+                  height="20"
+                /></ButtonIcon
+              >
             </div>
           </div>
         </div>

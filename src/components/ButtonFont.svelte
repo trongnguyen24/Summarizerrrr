@@ -19,12 +19,7 @@
   <div
     class="relative overflow-hidden flex flex-col h-13 justify-center px-3 text-text-secondary text-left font-mono bg-muted/5 dark:bg-muted/5 border border-transparent hover:border-blackwhite/10 transition-colors duration-150"
   >
-    <div
-      class="title leading-5 font-bold text-base"
-      class:font-default={font === 'sans'}
-      class:font-noto-serif={(font === 'serif') | (font === 'mix')}
-      class:font-opendyslexic={font === 'dyslexic'}
-    >
+    <div class="title leading-4">
       {title}
     </div>
     <div
@@ -34,7 +29,7 @@
       class:font-noto-mix={font === 'mix'}
       class:font-opendyslexic={font === 'dyslexic'}
     >
-      Whereas disregard and contempt for human rights have resulted
+      The quick brown fox jumps over the lazy dog.
     </div>
   </div>
   <span
@@ -74,20 +69,20 @@
   button .rec {
     position: absolute;
     bottom: 0;
-    left: 2.1rem;
-    transform: translateX(-50%) translateY(3px);
+    left: 4px;
+    transform: rotate(45deg) translate(-50%, 3px);
     height: 3px;
     border-radius: 2px 2px 0 0;
-    width: 20px;
+    width: 16px;
     background-color: transparent;
     transition: transform 0.3s ease-out;
     box-shadow:
-      0 0 0 #fff,
+      0 -0px 0px #fff,
       0 0 0 #fff;
   }
   button.active .rec {
     background-color: #fff;
-    transform: translateX(-50%) translateY(0px);
+    transform: rotate(45deg) translate(-50%, 0);
     box-shadow:
       0 -2px 6px #fff,
       0 -1px 3px #ffffffa5;

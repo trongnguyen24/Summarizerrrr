@@ -118,7 +118,7 @@
     animate('#toc', {
       opacity: [0, 1],
       translateX: ['2rem', 0],
-      scaleX: [0, 1, 1, 1, 1, 1, 1, 1],
+      scaleX: [0.1, 1, 1, 1, 1, 1, 1, 1],
       ease: 'inOutQuad',
       autoplay: onScroll({
         container: 'body',

@@ -62,11 +62,11 @@
   button .rec {
     position: absolute;
     bottom: 0;
-    left: 2.1rem;
-    transform: translateX(-50%) translateY(3px);
+    left: 4px;
+    transform: rotate(45deg) translate(-50%, 3px);
     height: 3px;
     border-radius: 2px 2px 0 0;
-    width: 20px;
+    width: 16px;
     background-color: transparent;
     transition: transform 0.3s ease-out;
     box-shadow:
@@ -75,7 +75,7 @@
   }
   button.active .rec {
     background-color: #fff;
-    transform: translateX(-50%) translateY(0px);
+    transform: rotate(45deg) translate(-50%, 0);
     box-shadow:
       0 -2px 6px #fff,
       0 -1px 3px #ffffffa5;

@@ -2,8 +2,6 @@
 <script>
   import { openrouterModelsConfig } from '../../lib/openrouterConfig.js'
   import { updateSettings } from '../../stores/settingsStore.svelte.js' // Chỉ import updateSettings
-  import { fade } from 'svelte/transition'
-  import Icon from '@iconify/svelte'
   import ReusableSelect from '../ReusableSelect.svelte'
   import ApiKeyInput from '../ApiKeyInput.svelte'
 

@@ -7,8 +7,8 @@ import {
 
 // --- Default Settings for Basic Mode ---
 const DEFAULT_BASIC_MODE_SETTINGS = {
-  temperature: 0.7, // Default temperature for basic mode
-  topP: 0.95, // Default topP for basic mode
+  temperature: 0.7, // Default temperature for basic mode (less creative)
+  topP: 0.9, // Default topP for basic mode (focus on most likely tokens)
 }
 
 // --- State ---

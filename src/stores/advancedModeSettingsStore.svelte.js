@@ -7,8 +7,8 @@ import {
 
 // --- Default Settings for Advanced Mode ---
 const DEFAULT_ADVANCED_MODE_SETTINGS = {
-  temperature: 0.7, // Default temperature for advanced mode
-  topP: 0.95, // Default topP for advanced mode
+  temperature: 0.9, // Default temperature for advanced mode (more creative)
+  topP: 0.95, // Default topP for advanced mode (broader range of tokens)
 }
 
 // --- State ---

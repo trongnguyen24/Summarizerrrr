@@ -5,8 +5,16 @@
   import { useOverlayScrollbars } from 'overlayscrollbars-svelte'
   import SettingButton from '../../components/SettingButton.svelte'
   import SummarizeButton from '../../components/SummarizeButton.svelte'
-  import TabNavigation from '../../components/TabNavigation.svelte'
-  import SummaryDisplay from '../../components/SummaryDisplay.svelte'
+  import TabNavigation from '../../components/TabNavigation.svelte' // Vẫn cần cho các component wrapper
+  import SummaryDisplay from '../../components/SummaryDisplay.svelte' // Component hiển thị chung
+  import UdemyConceptsDisplay from '../../components/displays/UdemyConceptsDisplay.svelte' // Component nội dung Udemy Concepts // Component nội dung Udemy Summary (đã đổi tên)
+  import UdemyVideoSummary from '../../components/displays/UdemyVideoSummary.svelte' // Component nội dung Udemy Video Summary (mới tạo)
+  import YouTubeChapterSummary from '../../components/displays/YouTubeChapterSummary.svelte' // Component nội dung YouTube Chapter
+  import YouTubeVideoSummary from '../../components/displays/YouTubeVideoSummary.svelte' // Component nội dung YouTube Video
+  import WebSummaryDisplay from '../../components/displays/WebSummaryDisplay.svelte' // Component nội dung Web Summary
+  import SelectedTextSummaryDisplay from '../../components/displays/SelectedTextSummaryDisplay.svelte' // Component nội dung Selected Text Summary
+  import YouTubeSummaryDisplay from '../../components/displays/YouTubeSummaryDisplay.svelte' // Component wrapper YouTube
+  import UdemySummaryDisplay from '../../components/displays/UdemySummaryDisplay.svelte' // Component wrapper Udemy (mới tạo)
   import 'webextension-polyfill'
 
   // Import trực tiếp các biến và hàm từ các store đã refactor
@@ -14,8 +22,10 @@
     summaryState, // Import the summaryState object
     summarizeSelectedText,
     resetDisplayState,
-    updateIsYouTubeVideoActive,
+    updateVideoActiveStates, // Updated import
     fetchAndSummarize,
+    updateActiveUdemyTab, // New import
+    updateActiveYouTubeTab, // Import updateActiveYouTubeTab
   } from '../../stores/summaryStore.svelte.js'
   import {
     getTheme,
@@ -77,9 +87,6 @@
     }
   })
 
-  // LOẠI BỎ $effect cũ lắng nghe sự thay đổi theme của hệ thống
-  // Logic này đã được chuyển vào subscribeToSystemThemeChanges và được gọi trong $effect trên
-
   // Logic xử lý message từ background script (sử dụng cổng kết nối)
   $effect(() => {
     const port = browser.runtime.connect({ name: 'side-panel' })
@@ -89,9 +96,11 @@
       if (request.action === 'tabUpdated') {
         console.log('[App.svelte] Received tabUpdated message:', request)
         setTabTitle(request.tabTitle)
+        updateVideoActiveStates(request.isYouTube, request.isUdemy) // Update video active states
       } else if (request.action === 'currentTabInfo') {
         console.log('[App.svelte] Received currentTabInfo response:', request)
         setTabTitle(request.tabTitle)
+        updateVideoActiveStates(request.isYouTube, request.isUdemy) // Update video active states
       } else if (request.action === 'displaySummary') {
         console.log(
           '[App.svelte] Received displaySummary message:',
@@ -107,6 +116,23 @@
         resetDisplayState()
         summaryState.lastSummaryTypeDisplayed = 'selectedText'
         summarizeSelectedText(request.selectedText)
+      } else if (request.action === 'udemyTranscriptAvailable') {
+        console.log(
+          '[App.svelte] Received udemyTranscriptAvailable message:',
+          $state.snapshot(request)
+        )
+        // Khi transcript Udemy có sẵn, kích hoạt tóm tắt và giải thích khái niệm
+        // Chỉ kích hoạt nếu chưa có tóm tắt Udemy hoặc đang không loading
+        if (!summaryState.udemySummary && !summaryState.isUdemyLoading) {
+          resetDisplayState()
+          summaryState.lastSummaryTypeDisplayed = 'udemy' // Đặt loại hiển thị là Udemy
+          updateActiveUdemyTab('udemySummary') // Mặc định hiển thị tab tóm tắt
+          fetchAndSummarize() // Kích hoạt quá trình tóm tắt và giải thích
+        } else {
+          console.log(
+            '[App.svelte] Udemy summary already exists or is loading, skipping fetchAndSummarize.'
+          )
+        }
       }
     }
 
@@ -130,7 +156,7 @@
     document.addEventListener('summarizeClick', handleSummarizeClick)
 
     return () => {
-      document.removeEventListener('summarizeClick', handleSummarizeClick)
+      document.removeListener('summarizeClick', handleSummarizeClick)
     }
   })
 </script>
@@ -157,7 +183,7 @@
       </div>
       <div class="flex flex-col gap-6 items-center justify-center">
         <SummarizeButton
-          isLoading={summaryState.isLoading}
+          isLoading={summaryState.isLoading || summaryState.isUdemyLoading}
           isChapterLoading={summaryState.isChapterLoading}
         />
       </div>
@@ -174,7 +200,32 @@
     <div
       class="relative prose prose-h2:mt-4 p z-10 flex flex-col gap-8 px-6 pt-8 pb-[50vh] max-w-3xl w-screen mx-auto"
     >
-      <SummaryDisplay />
+      {#if summaryState.lastSummaryTypeDisplayed === 'youtube'}
+        <YouTubeSummaryDisplay
+          activeYouTubeTab={summaryState.activeYouTubeTab}
+        />
+      {:else if summaryState.lastSummaryTypeDisplayed === 'udemy'}
+        <UdemySummaryDisplay activeUdemyTab={summaryState.activeUdemyTab} />
+      {:else if summaryState.lastSummaryTypeDisplayed === 'selectedText'}
+        <SelectedTextSummaryDisplay
+          selectedTextSummary={summaryState.selectedTextSummary}
+          isSelectedTextLoading={summaryState.isSelectedTextLoading}
+          selectedTextError={summaryState.selectedTextError}
+        />
+      {:else if summaryState.lastSummaryTypeDisplayed === 'web'}
+        <WebSummaryDisplay
+          summary={summaryState.summary}
+          isLoading={summaryState.isLoading}
+          error={summaryState.error}
+        />
+      {:else}
+        <!-- Hiển thị SummaryDisplay mặc định khi không có loại tóm tắt nào được chọn -->
+        <SummaryDisplay
+          summary={summaryState.summary}
+          isLoading={summaryState.isLoading}
+          error={summaryState.error}
+        />
+      {/if}
     </div>
   </div>
 

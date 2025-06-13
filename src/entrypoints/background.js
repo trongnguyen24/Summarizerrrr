@@ -15,10 +15,13 @@ export default defineBackground(() => {
   subscribeToSettingsChanges()
 
   const YOUTUBE_MATCH_PATTERN = '*://*.youtube.com/watch*'
-  const CONTENT_SCRIPT_PATH = 'content-scripts/youtubetranscript.js'
+  const UDEMY_MATCH_PATTERN = '*://*.udemy.com/course/*/learn/*'
+
+  const YOUTUBE_CONTENT_SCRIPT_PATH = 'content-scripts/youtubetranscript.js'
+  const UDEMY_CONTENT_SCRIPT_PATH = 'content-scripts/udemytranscript.js'
 
   // Hàm helper để inject content script
-  async function injectContentScriptIntoTab(tabId) {
+  async function injectContentScriptIntoTab(tabId, scriptPath) {
     if (import.meta.env.BROWSER === 'chrome') {
       if (!chrome.scripting) {
         console.error(
@@ -27,23 +30,42 @@ export default defineBackground(() => {
         return
       }
       try {
+        // Kiểm tra xem script đã được inject chưa
         const results = await chrome.scripting.executeScript({
           target: { tabId: tabId },
-          func: () =>
-            typeof window.isYoutubeTranscriptContentScriptReady === 'boolean',
+          func: (youtubeScriptPath, udemyScriptPath) => {
+            if (youtubeScriptPath === 'content-scripts/youtubetranscript.js') {
+              return (
+                typeof window.isYoutubeTranscriptContentScriptReady ===
+                'boolean'
+              )
+            } else if (
+              udemyScriptPath === 'content-scripts/udemytranscript.js'
+            ) {
+              return (
+                typeof window.isUdemyTranscriptContentScriptReady === 'boolean'
+              )
+            }
+            return false
+          },
+          args: [YOUTUBE_CONTENT_SCRIPT_PATH, UDEMY_CONTENT_SCRIPT_PATH],
         })
 
         if (results[0]?.result === true) {
+          console.log(
+            `Content script ${scriptPath} already injected into tab ${tabId}.`
+          )
           return
         }
 
         await chrome.scripting.executeScript({
           target: { tabId: tabId },
-          files: [CONTENT_SCRIPT_PATH],
+          files: [scriptPath],
         })
+        console.log(`Content script ${scriptPath} injected into tab ${tabId}.`)
       } catch (err) {
         console.warn(
-          `Failed to inject or check content script in tab ${tabId}:`,
+          `Failed to inject or check content script ${scriptPath} in tab ${tabId}:`,
           err,
           err.stack
         )
@@ -59,15 +81,15 @@ export default defineBackground(() => {
       }
     } else if (import.meta.env.BROWSER === 'firefox') {
       try {
-        const injected = await injectScript(tabId, [CONTENT_SCRIPT_PATH])
+        const injected = await injectScript(tabId, [scriptPath])
         if (!injected) {
           console.warn(
-            `[background.js] Failed to inject content script into tab ${tabId}.`
+            `[background.js] Failed to inject content script ${scriptPath} into tab ${tabId}.`
           )
         }
       } catch (err) {
         console.warn(
-          `Failed to inject or check content script in tab ${tabId}:`,
+          `Failed to inject or check content script ${scriptPath} in tab ${tabId}:`,
           err,
           err.stack
         )
@@ -178,18 +200,24 @@ export default defineBackground(() => {
       return
     }
 
+    const isYouTube = tab.url.includes('youtube.com/watch')
+    const isUdemy = tab.url.includes('udemy.com/course/')
+
     const currentTabInfo = {
       action: 'currentTabInfo',
       tabId: tab.id,
       tabUrl: tab.url,
       tabTitle: tab.title,
-      isYouTube: tab.url.includes('youtube.com/watch'),
+      isYouTube: isYouTube,
+      isUdemy: isUdemy,
     }
 
     await sendMessageToSidePanel(currentTabInfo, tab.id)
 
-    if (currentTabInfo.isYouTube) {
-      await injectContentScriptIntoTab(tab.id)
+    if (isYouTube) {
+      await injectContentScriptIntoTab(tab.id, YOUTUBE_CONTENT_SCRIPT_PATH)
+    } else if (isUdemy) {
+      await injectContentScriptIntoTab(tab.id, UDEMY_CONTENT_SCRIPT_PATH)
     }
   })
 
@@ -213,12 +241,24 @@ export default defineBackground(() => {
       }
 
       try {
-        const tabs = await browser.tabs.query({
+        const youtubeTabs = await browser.tabs.query({
           url: YOUTUBE_MATCH_PATTERN,
         })
-        for (const tab of tabs) {
+        for (const tab of youtubeTabs) {
           if (tab.id && tab.status === 'complete') {
-            await injectContentScriptIntoTab(tab.id)
+            await injectContentScriptIntoTab(
+              tab.id,
+              YOUTUBE_CONTENT_SCRIPT_PATH
+            )
+          }
+        }
+
+        const udemyTabs = await browser.tabs.query({
+          url: UDEMY_MATCH_PATTERN,
+        })
+        for (const tab of udemyTabs) {
+          if (tab.id && tab.status === 'complete') {
+            await injectContentScriptIntoTab(tab.id, UDEMY_CONTENT_SCRIPT_PATH)
           }
         }
       } catch (error) {
@@ -232,9 +272,12 @@ export default defineBackground(() => {
   // 3. Listen for URL changes and tab updates
   browser.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
     const isYouTube = tab.url.includes('youtube.com/watch')
+    const isUdemy = tab.url.includes('udemy.com/course/')
+
     const tabUpdatedInfo = {
       action: 'tabUpdated',
       isYouTube: isYouTube,
+      isUdemy: isUdemy,
       tabId: tab.id,
       tabUrl: tab.url,
       tabTitle: changeInfo.title || tab.title,
@@ -244,8 +287,12 @@ export default defineBackground(() => {
       await sendMessageToSidePanel(tabUpdatedInfo)
     }
 
-    if (changeInfo.status === 'complete' && isYouTube) {
-      await injectContentScriptIntoTab(tabId)
+    if (changeInfo.status === 'complete') {
+      if (isYouTube) {
+        await injectContentScriptIntoTab(tabId, YOUTUBE_CONTENT_SCRIPT_PATH)
+      } else if (isUdemy) {
+        await injectContentScriptIntoTab(tabId, UDEMY_CONTENT_SCRIPT_PATH)
+      }
     }
   })
 
@@ -287,6 +334,26 @@ export default defineBackground(() => {
         }
       })()
       return true
+    } else if (message.action === 'udemyTranscriptFetched') {
+      // Xử lý transcript Udemy đã lấy được từ content script
+      console.log(
+        '[background.js] Received udemyTranscriptFetched from content script.'
+      )
+      if (sidePanelPort) {
+        sidePanelPort.postMessage({
+          action: 'udemyTranscriptAvailable',
+          transcript: message.transcript,
+          lang: message.lang,
+        })
+        console.log(
+          '[background.js] Sent udemyTranscriptAvailable to side panel.'
+        )
+      } else {
+        console.warn(
+          '[background.js] Side panel not connected, cannot send udemyTranscriptAvailable.'
+        )
+      }
+      return true
     } else if (message.action === 'requestCurrentTabInfo') {
       ;(async () => {
         const tabs = await browser.tabs.query({
@@ -294,13 +361,17 @@ export default defineBackground(() => {
           currentWindow: true,
         })
         const activeTab = tabs[0]
+        const isYouTube = activeTab?.url?.includes('youtube.com/watch')
+        const isUdemy = activeTab?.url?.includes('udemy.com/course/')
+
         const currentTabInfo = activeTab
           ? {
               action: 'currentTabInfo',
               tabId: activeTab.id,
               tabUrl: activeTab.url,
               tabTitle: activeTab.title,
-              isYouTube: activeTab.url.includes('youtube.com/watch'),
+              isYouTube: isYouTube,
+              isUdemy: isUdemy,
             }
           : {
               action: 'currentTabInfo',
@@ -363,13 +434,17 @@ export default defineBackground(() => {
             currentWindow: true,
           })
           const activeTab = tabs[0]
+          const isYouTube = activeTab?.url?.includes('youtube.com/watch')
+          const isUdemy = activeTab?.url?.includes('udemy.com/course/')
+
           const currentTabInfo = activeTab
             ? {
                 action: 'currentTabInfo',
                 tabId: activeTab.id,
                 tabUrl: activeTab.url,
                 tabTitle: activeTab.title,
-                isYouTube: activeTab.url.includes('youtube.com/watch'),
+                isYouTube: isYouTube,
+                isUdemy: isUdemy,
               }
             : {
                 action: 'currentTabInfo',
@@ -408,9 +483,13 @@ export default defineBackground(() => {
           console.error(
             `[background.js] ${
               import.meta.env.BROWSER === 'chrome' ? 'Chrome' : 'Firefox'
-            }: Error sending pending summarizeSelectedText message via port:`,
+            }: Error sending pending summarizeSelectedText message via existing port:`,
             error
           )
+          // Nếu gửi tin nhắn thất bại, không cần cố gắng mở lại side panel ở đây
+          // vì logic mở side panel đã được xử lý khi pendingSelectedText được đặt.
+          // Đặt lại pendingSelectedText để tránh lặp lại.
+          pendingSelectedText = null
         }
       }
 
@@ -432,14 +511,23 @@ export default defineBackground(() => {
 
       if (tab && tab.url) {
         const isYouTube = tab.url.includes('youtube.com/watch')
+        const isUdemy = tab.url.includes('udemy.com/course/')
+
         const tabUpdatedInfo = {
           action: 'tabUpdated',
           isYouTube: isYouTube,
+          isUdemy: isUdemy,
           tabId: tab.id,
           tabUrl: tab.url,
           tabTitle: tab.title,
         }
         await sendMessageToSidePanel(tabUpdatedInfo)
+
+        if (isYouTube) {
+          await injectContentScriptIntoTab(tab.id, YOUTUBE_CONTENT_SCRIPT_PATH)
+        } else if (isUdemy) {
+          await injectContentScriptIntoTab(tab.id, UDEMY_CONTENT_SCRIPT_PATH)
+        }
       }
     } catch (error) {
       console.error('[background.js] Error in onActivated listener:', error)

@@ -129,6 +129,27 @@ export async function summarizeContent(text, contentType) {
         : basicModeSettings.topP,
     }
 
+    console.log('--- summarizeContent Debug Info ---')
+    console.log('isAdvancedMode:', userSettings.isAdvancedMode)
+    console.log('selectedProviderId:', selectedProviderId)
+    console.log('model:', model)
+    console.log(
+      'finalGenerationConfig (temperature):',
+      finalGenerationConfig.temperature
+    )
+    console.log('finalGenerationConfig (topP):', finalGenerationConfig.topP)
+    console.log(
+      'advancedModeSettings (temperature):',
+      advancedModeSettings.temperature
+    )
+    console.log('advancedModeSettings (topP):', advancedModeSettings.topP)
+    console.log(
+      'basicModeSettings (temperature):',
+      basicModeSettings.temperature
+    )
+    console.log('basicModeSettings (topP):', basicModeSettings.topP)
+    console.log('---------------------------------')
+
     let contentsForProvider
     if (selectedProviderId === 'gemini') {
       contentsForProvider = [{ parts: [{ text: prompt }] }] // Gemini specific content format
@@ -235,6 +256,27 @@ export async function summarizeChapters(timestampedTranscript) {
         ? advancedModeSettings.topP
         : basicModeSettings.topP,
     }
+
+    console.log('--- summarizeChapters Debug Info ---')
+    console.log('isAdvancedMode:', userSettings.isAdvancedMode)
+    console.log('selectedProviderId:', selectedProviderId)
+    console.log('model:', model)
+    console.log(
+      'finalGenerationConfig (temperature):',
+      finalGenerationConfig.temperature
+    )
+    console.log('finalGenerationConfig (topP):', finalGenerationConfig.topP)
+    console.log(
+      'advancedModeSettings (temperature):',
+      advancedModeSettings.temperature
+    )
+    console.log('advancedModeSettings (topP):', advancedModeSettings.topP)
+    console.log(
+      'basicModeSettings (temperature):',
+      basicModeSettings.temperature
+    )
+    console.log('basicModeSettings (topP):', basicModeSettings.topP)
+    console.log('---------------------------------')
 
     let contentsForProvider
     if (selectedProviderId === 'gemini') {

@@ -6,6 +6,7 @@ import {
 } from './chromeService.js'
 
 const YOUTUBE_MATCH_PATTERN = /youtube\.com\/watch/i
+const UDEMY_MATCH_PATTERN = /udemy\.com\/course\/.*\/learn\//i
 
 /**
  * Lấy nội dung text từ body của trang web.
@@ -59,10 +60,16 @@ export async function getPageContent(
   }
 
   const isYouTubeVideo = YOUTUBE_MATCH_PATTERN.test(tab.url)
-  const actualPageType = isYouTubeVideo ? 'youtube' : 'webpage'
+  const isUdemyVideo = UDEMY_MATCH_PATTERN.test(tab.url)
+  let actualPageType = 'webpage'
+  if (isYouTubeVideo) {
+    actualPageType = 'youtube'
+  } else if (isUdemyVideo) {
+    actualPageType = 'udemy'
+  }
 
   console.log(
-    `[contentService] Tab ID: ${tab.id}, URL: ${tab.url}, Is YouTube: ${isYouTubeVideo}, Requested Type: ${contentType}`
+    `[contentService] Tab ID: ${tab.id}, URL: ${tab.url}, Is YouTube: ${isYouTubeVideo}, Is Udemy: ${isUdemyVideo}, Requested Type: ${contentType}`
   )
 
   if (contentType === 'webpageText') {
@@ -143,22 +150,65 @@ export async function getPageContent(
     }
   }
 
+  if (isUdemyVideo && contentType === 'transcript') {
+    const action = 'fetchUdemyTranscript'
+    try {
+      console.log(
+        `[contentService] Gửi yêu cầu ${action} (vì là Udemy và yêu cầu ${contentType}) đến tab ${tab.id} với ngôn ngữ ${preferredLang}`
+      )
+      const response = await sendMessageToTab(tab.id, {
+        action: action,
+        lang: preferredLang,
+      })
+
+      if (response && response.success && response.transcript) {
+        console.log(
+          `[contentService] Nhận được transcript (${action}) thành công.`
+        )
+        return {
+          type: 'udemy',
+          content: response.transcript,
+        }
+      } else {
+        console.error(
+          `[contentService] Lỗi từ content script (${action}):`,
+          response?.error
+        )
+        return {
+          type: 'error',
+          content: null,
+          error:
+            response?.error ||
+            `Không thể lấy ${contentType} từ content script Udemy.`,
+        }
+      }
+    } catch (error) {
+      console.error(`[contentService] Lỗi khi gửi message (${action}):`, error)
+      return {
+        type: 'error',
+        content: null,
+        error: `Lỗi giao tiếp với content script Udemy: ${error.message}`,
+      }
+    }
+  }
+
   if (
     !isYouTubeVideo &&
+    !isUdemyVideo &&
     (contentType === 'transcript' || contentType === 'timestampedTranscript')
   ) {
     console.warn(
-      `[contentService] Yêu cầu lấy ${contentType} nhưng đây không phải trang YouTube. URL: ${tab.url}`
+      `[contentService] Yêu cầu lấy ${contentType} nhưng đây không phải trang YouTube hoặc Udemy. URL: ${tab.url}`
     )
     return {
       type: 'error',
       content: null,
-      error: `Không thể lấy ${contentType} vì đây không phải trang YouTube.`,
+      error: `Không thể lấy ${contentType} vì đây không phải trang YouTube hoặc Udemy.`,
     }
   }
 
   console.error(
-    `[contentService] Trường hợp không xử lý được: isYouTube=${isYouTubeVideo}, contentType=${contentType}`
+    `[contentService] Trường hợp không xử lý được: isYouTube=${isYouTubeVideo}, isUdemy=${isUdemyVideo}, contentType=${contentType}`
   )
   return {
     type: 'error',

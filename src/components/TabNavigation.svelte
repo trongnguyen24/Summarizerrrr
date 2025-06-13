@@ -10,7 +10,8 @@
 
   $effect(() => {
     tabs.forEach((tab) => {
-      if (tab.isLoading) {
+      // Chỉ cập nhật nếu tab đang loading và chưa được đánh dấu là đã từng loading
+      if (tab.isLoading && !tabLoadingStatus[tab.id]) {
         tabLoadingStatus = { ...tabLoadingStatus, [tab.id]: true }
       }
     })
@@ -71,13 +72,14 @@
               />
             </circle>
           </svg>
-        {:else if !tab.isLoading && tabLoadingStatus[tab.id]}
-          <div
-            class="flex items-center justify-center absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
-          >
-            {tab.label}
-          </div>
         {/if}
+        <div
+          class="flex items-center justify-center absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 {tab.isLoading
+            ? 'opacity-0'
+            : ''}"
+        >
+          {tab.label}
+        </div>
       </button>
     {/each}
   </GroupVisual>

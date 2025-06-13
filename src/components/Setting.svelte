@@ -428,7 +428,7 @@
               class="block font-bold text-text-primary">Provider settings</label
             >
             <div class="flex items-center">
-              <Label.Root
+              <!-- <Label.Root
                 class="cursor-pointer pr-2 py-2 w-20 text-right font-bold select-none {settings.isSummaryEnabled
                   ? 'text-primary'
                   : 'text-text-primary'}"
@@ -451,7 +451,7 @@
                   height="20"
                   class="origin-[75%_25%] animate-wiggle absolute z-10"
                 />
-              </Switch.Root>
+              </Switch.Root> -->
             </div>
           </div>
           <div class="setting-secsion flex flex-col gap-4 px-4">

@@ -3,6 +3,10 @@ import { youTubePromptTemplate } from './prompts/youTubePromptTemplate.js'
 import { generalPromptTemplate } from './prompts/generalPromptTemplate.js'
 import { chapterPromptTemplate } from './prompts/chapterPromptTemplate.js'
 import { selectedTextPromptTemplate } from './prompts/selectedTextPromptTemplate.js'
+import {
+  udemySummaryPromptTemplate,
+  udemyConceptsPromptTemplate,
+} from './prompts/udemyPromptTemplate.js'
 
 export const promptBuilders = {
   youtube: {
@@ -46,6 +50,29 @@ export const promptBuilders = {
       const template = selectedTextPromptTemplate
       return template
         .replace(/\${length}/g, length)
+        .replace(/\${lang}/g, lang)
+        .replace(/\${format}/g, format)
+        .replace(/\${text}/g, text)
+    },
+  },
+  udemySummary: {
+    systemInstruction:
+      'Bạn là một trợ lý chuyên phân tích và tóm tắt bài giảng Udemy dựa trên transcript được cung cấp. Nhiệm vụ của bạn là tạo bản tóm tắt súc tích, chính xác và có cấu trúc, tuân thủ nghiêm ngặt các tham số và hướng dẫn dưới đây. Chỉ sử dụng thông tin có trong <Transcript> được cung cấp.',
+    buildPrompt: (text, lang, length, format) => {
+      const template = udemySummaryPromptTemplate
+      return template
+        .replace(/\${length}/g, length)
+        .replace(/\${lang}/g, lang)
+        .replace(/\${format}/g, format)
+        .replace(/\${text}/g, text)
+    },
+  },
+  udemyConcepts: {
+    systemInstruction:
+      'Bạn là một trợ lý chuyên phân tích transcript của các bài giảng Udemy. Nhiệm vụ của bạn là xác định các thuật ngữ hoặc khái niệm kỹ thuật quan trọng được nhắc đến trong <Transcript> và cung cấp giải thích ngắn gọn, rõ ràng cho từng thuật ngữ đó.',
+    buildPrompt: (text, lang, format) => {
+      const template = udemyConceptsPromptTemplate
+      return template
         .replace(/\${lang}/g, lang)
         .replace(/\${format}/g, format)
         .replace(/\${text}/g, text)

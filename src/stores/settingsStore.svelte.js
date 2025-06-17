@@ -74,6 +74,10 @@ export async function loadSettings() {
  * @param {Partial<typeof DEFAULT_SETTINGS>} newSettings Object chứa các cài đặt cần cập nhật.
  */
 export async function updateSettings(newSettings) {
+  console.log(
+    '[settingsStore] updateSettings được gọi. _isInitialized:',
+    _isInitialized
+  )
   if (!_isInitialized) {
     console.warn('[settingsStore] Store chưa khởi tạo, không thể cập nhật.')
     return

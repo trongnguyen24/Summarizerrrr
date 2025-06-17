@@ -7,7 +7,8 @@ export class OllamaProvider extends BaseProvider {
     this.ollamaEndpoint = ollamaEndpoint
   }
 
-  async generateContent(prompt) {
+  async generateContent(model, prompt) {
+    // Thêm 'model' vào tham số
     try {
       const response = await fetch(`${this.ollamaEndpoint}/api/generate`, {
         method: 'POST',
@@ -15,23 +16,48 @@ export class OllamaProvider extends BaseProvider {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: this.model,
+          model: model, // Sử dụng 'model' được truyền vào
           prompt: prompt,
           stream: false,
         }),
       })
 
       if (!response.ok) {
-        const errorData = await response.json()
+        let errorDetails = `Ollama API error: ${response.status} ${response.statusText}`
+        const contentType = response.headers.get('content-type')
+
+        if (contentType && contentType.includes('application/json')) {
+          try {
+            const errorData = await response.json()
+            errorDetails += ` - ${
+              errorData.message || JSON.stringify(errorData)
+            }`
+          } catch (jsonError) {
+            errorDetails += ` - Failed to parse error JSON: ${jsonError.message}`
+          }
+        } else {
+          const errorText = await response.text()
+          errorDetails += ` - Response: ${errorText.substring(0, 200)}` // Limit to first 200 chars
+        }
+        throw new Error(errorDetails)
+      }
+
+      const responseText = await response.text()
+      let data
+
+      try {
+        data = JSON.parse(responseText)
+      } catch (jsonError) {
         throw new Error(
-          `Ollama API error: ${response.status} ${response.statusText} - ${
-            errorData.message || JSON.stringify(errorData)
-          }`
+          `Failed to parse JSON response from Ollama API: ${jsonError.message}. Response text: ${responseText}`
         )
       }
 
-      const data = await response.json()
-      return data.response
+      // Remove <think> tags and their content
+      const cleanedResponse = data.response
+        .replace(/<think>[\s\S]*?<\/think>\n*/g, '')
+        .trim()
+      return cleanedResponse
     } catch (error) {
       console.error('Error generating content with Ollama:', error)
       throw error
@@ -52,5 +78,10 @@ export class OllamaProvider extends BaseProvider {
       return `Ollama model "${model}" not found. Please ensure the model is downloaded and available on your Ollama server.`
     }
     return `An unexpected Ollama API error occurred: ${error.message}.`
+  }
+
+  parseResponse(rawResult) {
+    // For Ollama, rawResult is already the cleaned response string
+    return rawResult
   }
 }

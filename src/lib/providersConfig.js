@@ -39,7 +39,8 @@ export function getProvider(providerId, apiKey) {
 
   if (providerId === 'ollama') {
     const ollamaEndpoint = settings.ollamaEndpoint
-    const selectedOllamaModel = settings.selectedOllamaModel
+    // Ensure selectedOllamaModel has a default value if not set
+    const selectedOllamaModel = settings.selectedOllamaModel || 'llama2'
     return new config.providerClass(ollamaEndpoint, selectedOllamaModel)
   }
 

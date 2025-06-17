@@ -1,36 +1,39 @@
 <script>
   // @ts-nocheck
-  import ApiKeyInput from '../ApiKeyInput.svelte'
   import TextInput from '../TextInput.svelte'
-  import { updateSettings } from '../../stores/settingsStore.svelte'
+  import { settings, updateSettings } from '../../stores/settingsStore.svelte'
 
-  let { ollamaEndpoint = $bindable(), selectedOllamaModel = $bindable() } =
-    $props()
-
-  $effect(() => {
-    let cleanedEndpoint = ollamaEndpoint
+  function handleOllamaEndpointSave(value) {
+    let cleanedEndpoint = value || ''
     if (cleanedEndpoint.endsWith('/api/generate')) {
       cleanedEndpoint = cleanedEndpoint.substring(
         0,
         cleanedEndpoint.length - '/api/generate'.length
       )
     }
-    updateSettings({
-      ollamaEndpoint: cleanedEndpoint,
-      selectedOllamaModel: selectedOllamaModel,
-    })
-  })
+    console.log('OllamaConfig: Saving ollamaEndpoint', cleanedEndpoint)
+    updateSettings({ ollamaEndpoint: cleanedEndpoint })
+  }
+
+  function handleSelectedOllamaModelSave(value) {
+    console.log('OllamaConfig: Saving selectedOllamaModel', value)
+    updateSettings({ selectedOllamaModel: value })
+  }
 </script>
 
 <div class="flex flex-col gap-2">
   <TextInput
     label="Ollama Endpoint"
+    id="Endpoint"
     placeholder="http://localhost:11434"
-    bind:value={ollamaEndpoint}
+    apiKey={settings.ollamaEndpoint}
+    onSave={handleOllamaEndpointSave}
   />
   <TextInput
     label="Ollama Model"
     placeholder="llama2"
-    bind:value={selectedOllamaModel}
+    id="model"
+    apiKey={settings.selectedOllamaModel}
+    onSave={handleSelectedOllamaModelSave}
   />
 </div>

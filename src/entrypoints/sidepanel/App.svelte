@@ -145,6 +145,11 @@
     }
   })
 
+  // Tạo biến derived để kiểm tra xem có bất kỳ phần tóm tắt Udemy nào đang tải không
+  const isAnyUdemyLoading = $derived(
+    summaryState.isUdemySummaryLoading || summaryState.isUdemyConceptsLoading
+  )
+
   // Handle summarize button click
   // Đăng ký event listener toàn cục và đảm bảo nó được hủy khi component bị hủy
   $effect(() => {
@@ -183,7 +188,7 @@
       </div>
       <div class="flex flex-col gap-6 items-center justify-center">
         <SummarizeButton
-          isLoading={summaryState.isLoading || summaryState.isUdemyLoading}
+          isLoading={summaryState.isLoading || isAnyUdemyLoading}
           isChapterLoading={summaryState.isChapterLoading}
         />
       </div>
@@ -214,13 +219,6 @@
         />
       {:else if summaryState.lastSummaryTypeDisplayed === 'web'}
         <WebSummaryDisplay
-          summary={summaryState.summary}
-          isLoading={summaryState.isLoading}
-          error={summaryState.error}
-        />
-      {:else}
-        <!-- Hiển thị SummaryDisplay mặc định khi không có loại tóm tắt nào được chọn -->
-        <SummaryDisplay
           summary={summaryState.summary}
           isLoading={summaryState.isLoading}
           error={summaryState.error}

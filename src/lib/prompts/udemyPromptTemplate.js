@@ -74,6 +74,9 @@ export const udemyConceptsPromptTemplate = `
        d. Cung cấp ít nhất một ví dụ thực tế hoặc đoạn mã để minh họa.
     3. Để đảm bảo tính chính xác và độ sâu, hãy suy nghĩ từng bước khi phân tích và giải thích từng khái niệm.
     4. Đảm bảo các giải thích có chiều sâu, bao quát các khía cạnh quan trọng mà không đi quá chi tiết vào những điểm không cần thiết, và sử dụng giọng văn học thuật nhưng vẫn dễ tiếp cận.
+    - **Ràng buộc:**
+    - Không thêm bất kỳ lời chào, lời giới thiệu.
+    - Không sử dụng markdown block bao quanh đầu ra.
 </action>
 
 <format>
@@ -99,6 +102,8 @@ export const udemyConceptsPromptTemplate = `
     [Cung cấp ví dụ thực tế hoặc trường hợp ứng dụng để minh họa]
     Cứ tiếp tục cấu trúc này cho tất cả các khái niệm chính được xác định.
 </format>
+
+
 
 <input_transcript>
 

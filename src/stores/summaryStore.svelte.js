@@ -14,7 +14,8 @@ export const summaryState = $state({
   udemyConcepts: '', // New: For Udemy concepts explanation
   isLoading: false,
   isChapterLoading: false,
-  isUdemyLoading: false, // New: For Udemy loading state
+  isUdemySummaryLoading: false, // New: For Udemy video summary loading state
+  isUdemyConceptsLoading: false, // New: For Udemy concepts loading state
   error: '',
   chapterError: '',
   udemySummaryError: '', // New: For Udemy summary error
@@ -43,7 +44,8 @@ export function resetState() {
   summaryState.selectedTextSummary = ''
   summaryState.isLoading = false
   summaryState.isChapterLoading = false
-  summaryState.isUdemyLoading = false
+  summaryState.isUdemySummaryLoading = false
+  summaryState.isUdemyConceptsLoading = false
   summaryState.isSelectedTextLoading = false
   summaryState.error = ''
   summaryState.chapterError = ''
@@ -137,7 +139,8 @@ export async function fetchAndSummarize() {
   resetState()
   summaryState.isLoading = true
   summaryState.isChapterLoading = true
-  summaryState.isUdemyLoading = true
+  summaryState.isUdemySummaryLoading = true // Set loading for Udemy summary
+  summaryState.isUdemyConceptsLoading = true // Set loading for Udemy concepts
 
   try {
     let apiKey
@@ -285,9 +288,9 @@ export async function fetchAndSummarize() {
       console.log(
         '[summaryStore] Bắt đầu tóm tắt Udemy và giải thích khái niệm...'
       )
-      const udemyPromise = (async () => {
+
+      const udemySummaryPromise = (async () => {
         summaryState.udemySummaryError = ''
-        summaryState.udemyConceptsError = ''
         try {
           const udemySummarizedText = await summarizeContent(
             summaryState.currentContentSource,
@@ -304,7 +307,19 @@ export async function fetchAndSummarize() {
             summaryState.udemySummary = marked.parse(udemySummarizedText)
           }
           console.log('[summaryStore] Đã xử lý tóm tắt Udemy.')
+        } catch (e) {
+          console.error('[summaryStore] Lỗi tóm tắt Udemy:', e)
+          summaryState.udemySummaryError =
+            e.message ||
+            'Unexpected error when summarizing Udemy video. Please try again later.'
+        } finally {
+          summaryState.isUdemySummaryLoading = false
+        }
+      })()
 
+      const udemyConceptsPromise = (async () => {
+        summaryState.udemyConceptsError = ''
+        try {
           const udemyConceptsText = await summarizeContent(
             summaryState.currentContentSource,
             'udemyConcepts'
@@ -321,18 +336,16 @@ export async function fetchAndSummarize() {
           }
           console.log('[summaryStore] Đã xử lý giải thích khái niệm Udemy.')
         } catch (e) {
-          console.error('[summaryStore] Lỗi tóm tắt/khái niệm Udemy:', e)
-          summaryState.udemySummaryError =
-            e.message ||
-            'Unexpected error when summarizing Udemy video. Please try again later.'
+          console.error('[summaryStore] Lỗi giải thích khái niệm Udemy:', e)
           summaryState.udemyConceptsError =
             e.message ||
             'Unexpected error when explaining Udemy concepts. Please try again later.'
         } finally {
-          summaryState.isUdemyLoading = false
+          summaryState.isUdemyConceptsLoading = false
         }
       })()
-      await udemyPromise // Await the Udemy promise
+
+      await Promise.allSettled([udemySummaryPromise, udemyConceptsPromise]) // Await both promises independently
     } else {
       // For general webpages, this is the primary summarization.
       console.log('[summaryStore] Bắt đầu tóm tắt chính cho trang web chung...')
@@ -360,7 +373,8 @@ export async function fetchAndSummarize() {
     // Đảm bảo tất cả các trạng thái loading được đặt về false
     summaryState.isLoading = false
     summaryState.isChapterLoading = false
-    summaryState.isUdemyLoading = false
+    summaryState.isUdemySummaryLoading = false
+    summaryState.isUdemyConceptsLoading = false
   }
 }
 

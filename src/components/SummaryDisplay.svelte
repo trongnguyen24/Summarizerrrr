@@ -16,8 +16,6 @@
       isSelectedTextLoading={summaryState.isSelectedTextLoading}
       selectedTextError={summaryState.selectedTextError}
     />
-  {:else if summaryState.isYouTubeVideoActive}
-    <YouTubeSummaryDisplay activeYouTubeTab={summaryState.activeYouTubeTab} />
   {:else}
     <WebSummaryDisplay
       summary={summaryState.summary}

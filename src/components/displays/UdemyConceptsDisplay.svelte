@@ -7,7 +7,7 @@
 </script>
 
 <div class="flex flex-col gap-4">
-  {#if summaryState.isUdemyLoading && summaryState.udemyConcepts === ''}
+  {#if summaryState.isUdemyConceptsLoading && summaryState.udemyConcepts === ''}
     <div
       class="text-center p-4 mx-auto text-text-secondary w-fit animate-pulse"
     >

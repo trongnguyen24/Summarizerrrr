@@ -20,13 +20,13 @@
       id: 'udemySummary',
       label: 'Summary',
       show: true,
-      isLoading: summaryState.isUdemyLoading,
+      isLoading: summaryState.isUdemySummaryLoading,
     },
     {
       id: 'udemyConcepts',
       label: 'Concepts',
       show: true,
-      isLoading: summaryState.isUdemyLoading, // Cả hai tab đều dùng chung trạng thái loading của Udemy
+      isLoading: summaryState.isUdemyConceptsLoading, // Sử dụng trạng thái loading riêng cho Concepts
     },
   ])
 </script>
@@ -42,13 +42,13 @@
     {#if activeUdemyTab === 'udemySummary'}
       <UdemyVideoSummary
         summary={summaryState.udemySummary}
-        isLoading={summaryState.isUdemyLoading}
+        isLoading={summaryState.isUdemySummaryLoading}
         error={summaryState.udemySummaryError}
       />
     {:else if activeUdemyTab === 'udemyConcepts'}
       <UdemyConceptsDisplay
         udemyConcepts={summaryState.udemyConcepts}
-        isUdemyLoading={summaryState.isUdemyLoading}
+        isUdemyLoading={summaryState.isUdemyConceptsLoading}
         udemyConceptsError={summaryState.udemyConceptsError}
       />
     {/if}

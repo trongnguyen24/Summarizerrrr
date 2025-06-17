@@ -123,7 +123,7 @@
         )
         // Khi transcript Udemy có sẵn, kích hoạt tóm tắt và giải thích khái niệm
         // Chỉ kích hoạt nếu chưa có tóm tắt Udemy hoặc đang không loading
-        if (!summaryState.udemySummary && !summaryState.isUdemyLoading) {
+        if (!summaryState.udemySummary && !isAnyUdemyLoading) {
           resetDisplayState()
           summaryState.lastSummaryTypeDisplayed = 'udemy' // Đặt loại hiển thị là Udemy
           updateActiveUdemyTab('udemySummary') // Mặc định hiển thị tab tóm tắt

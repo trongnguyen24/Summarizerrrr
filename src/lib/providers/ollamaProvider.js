@@ -19,6 +19,7 @@ export class OllamaProvider extends BaseProvider {
           model: model, // Sử dụng 'model' được truyền vào
           prompt: prompt,
           stream: false,
+          think: false,
         }),
       })
 

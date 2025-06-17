@@ -11,6 +11,7 @@
   import GeminiBasicConfig from './providerConfigs/GeminiBasicConfig.svelte' // Import GeminiBasicConfig
   import GeminiAdvancedConfig from './providerConfigs/GeminiAdvancedConfig.svelte' // Import GeminiAdvancedConfig
   import OpenrouterConfig from './providerConfigs/OpenrouterConfig.svelte' // Import OpenrouterConfig
+  import OllamaConfig from './providerConfigs/OllamaConfig.svelte' // Import OllamaConfig
   import 'overlayscrollbars/overlayscrollbars.css'
   import { Label, Switch } from 'bits-ui'
   import { useOverlayScrollbars } from 'overlayscrollbars-svelte'
@@ -276,6 +277,8 @@
                     settings.selectedOpenrouterModel
                   }
                 />
+              {:else if settings.selectedProvider === 'ollama'}
+                <OllamaConfig />
               {/if}
 
               <div class="grid grid-cols-2 gap-4">

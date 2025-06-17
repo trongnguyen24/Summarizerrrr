@@ -135,30 +135,78 @@ export async function fetchAndSummarize() {
 
   const userSettings = settings
 
-  // Reset state before starting, and immediately set loading states
+  // Reset state before starting
   resetState()
-  summaryState.isLoading = true
-  summaryState.isChapterLoading = true
-  summaryState.isUdemySummaryLoading = true // Set loading for Udemy summary
-  summaryState.isUdemyConceptsLoading = true // Set loading for Udemy concepts
 
   try {
-    let apiKey
+    // Immediately set loading states inside try block
+    summaryState.isLoading = true
+    summaryState.isChapterLoading = true
+    summaryState.isUdemySummaryLoading = true // Set loading for Udemy summary
+    summaryState.isUdemyConceptsLoading = true // Set loading for Udemy concepts
+
     const selectedProviderId = userSettings.selectedProvider || 'gemini'
-    if (selectedProviderId === 'gemini') {
+
+    console.log(`[summaryStore] Selected Provider: ${selectedProviderId}`)
+    console.log(
+      `[summaryStore] Ollama Endpoint: ${userSettings.ollamaEndpoint}`
+    )
+    console.log(
+      `[summaryStore] Selected Ollama Model: ${userSettings.selectedOllamaModel}`
+    )
+
+    // Log Gemini API keys and advanced mode status for debugging
+    console.log(`[summaryStore] isAdvancedMode: ${userSettings.isAdvancedMode}`)
+    console.log(
+      `[summaryStore] geminiApiKey (Basic): ${userSettings.geminiApiKey}`
+    )
+    console.log(
+      `[summaryStore] geminiAdvancedApiKey (Advanced): ${userSettings.geminiAdvancedApiKey}`
+    )
+
+    if (selectedProviderId === 'ollama') {
+      if (
+        !userSettings.ollamaEndpoint ||
+        userSettings.ollamaEndpoint.trim() === ''
+      ) {
+        throw new Error(
+          'Ollama Endpoint not configured in settings. Please add your Ollama Endpoint in the settings.'
+        )
+      }
+      if (
+        !userSettings.selectedOllamaModel ||
+        userSettings.selectedOllamaModel.trim() === ''
+      ) {
+        throw new Error(
+          'Ollama Model not configured in settings. Please select an Ollama Model in the settings.'
+        )
+      }
+    } else if (selectedProviderId === 'gemini') {
+      let apiKey
       if (userSettings.isAdvancedMode) {
         apiKey = userSettings.geminiAdvancedApiKey
       } else {
         apiKey = userSettings.geminiApiKey
       }
+      if (!apiKey || apiKey.trim() === '') {
+        console.log(
+          `[summaryStore] Gemini API Key is empty or whitespace. API Key: "${apiKey}"`
+        ) // Debug log
+        throw new Error(
+          'Gemini API Key not configured in settings. Please add your API Key in the settings.'
+        )
+      }
     } else {
-      apiKey = userSettings[`${selectedProviderId}ApiKey`]
-    }
-
-    if (!apiKey) {
-      throw new Error(
-        'API Key not configured in settings. Please add your API Key in the settings.'
-      )
+      // For other providers that use API keys
+      const apiKey = userSettings[`${selectedProviderId}ApiKey`]
+      if (!apiKey || apiKey.trim() === '') {
+        console.log(
+          `[summaryStore] ${selectedProviderId} API Key is empty or whitespace. API Key: "${apiKey}"`
+        ) // Debug log
+        throw new Error(
+          `${selectedProviderId} API Key not configured in settings. Please add your API Key in the settings.`
+        )
+      }
     }
 
     console.log('[summaryStore] Đang kiểm tra loại tab...')
@@ -369,6 +417,7 @@ export async function fetchAndSummarize() {
     console.error('[summaryStore] Lỗi trong quá trình tóm tắt chính:', e)
     summaryState.error =
       e.message || 'An unexpected error occurred. Please try again later.'
+    summaryState.lastSummaryTypeDisplayed = 'web' // Ensure error is displayed in WebSummaryDisplay
   } finally {
     // Đảm bảo tất cả các trạng thái loading được đặt về false
     summaryState.isLoading = false
@@ -409,26 +458,50 @@ export async function summarizeSelectedText(text) {
   resetDisplayState() // Reset display state before new summarization
   summaryState.selectedTextSummary = ''
   summaryState.selectedTextError = ''
-  summaryState.isSelectedTextLoading = true
   summaryState.lastSummaryTypeDisplayed = 'selectedText' // Set immediately
 
   try {
-    let apiKey
+    summaryState.isSelectedTextLoading = true // Set loading state inside try block
+
     const selectedProviderId = userSettings.selectedProvider || 'gemini'
-    if (selectedProviderId === 'gemini') {
+
+    if (selectedProviderId === 'ollama') {
+      if (
+        !userSettings.ollamaEndpoint ||
+        userSettings.ollamaEndpoint.trim() === ''
+      ) {
+        throw new Error(
+          'Ollama Endpoint not configured in settings. Please add your Ollama Endpoint in the settings.'
+        )
+      }
+      if (
+        !userSettings.selectedOllamaModel ||
+        userSettings.selectedOllamaModel.trim() === ''
+      ) {
+        throw new Error(
+          'Ollama Model not configured in settings. Please select an Ollama Model in the settings.'
+        )
+      }
+    } else if (selectedProviderId === 'gemini') {
+      let apiKey
       if (userSettings.isAdvancedMode) {
         apiKey = userSettings.geminiAdvancedApiKey
       } else {
         apiKey = userSettings.geminiApiKey
       }
+      if (!apiKey || apiKey.trim() === '') {
+        throw new Error(
+          'Gemini API Key not configured in settings. Please add your API Key in the settings.'
+        )
+      }
     } else {
-      apiKey = userSettings[`${selectedProviderId}ApiKey`]
-    }
-
-    if (!apiKey) {
-      throw new Error(
-        'API Key not configured in settings. Please add your API Key in the settings.'
-      )
+      // For other providers that use API keys
+      const apiKey = userSettings[`${selectedProviderId}ApiKey`]
+      if (!apiKey || apiKey.trim() === '') {
+        throw new Error(
+          `${selectedProviderId} API Key not configured in settings. Please add your API Key in the settings.`
+        )
+      }
     }
 
     if (!text || text.trim() === '') {
@@ -453,6 +526,7 @@ export async function summarizeSelectedText(text) {
     summaryState.selectedTextError =
       e.message ||
       'An unexpected error occurred during selected text summarization. Please try again later.'
+    summaryState.lastSummaryTypeDisplayed = 'selectedText' // Ensure error is displayed in SelectedTextSummaryDisplay
   } finally {
     summaryState.isSelectedTextLoading = false
   }

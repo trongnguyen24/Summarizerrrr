@@ -15,6 +15,7 @@ import {
 } from '../stores/basicModeSettingsStore.svelte.js'
 import { getProvider, providersConfig } from './providersConfig.js'
 import { promptBuilders } from './promptBuilders.js'
+import { DEFAULT_OLLAMA_ENDPOINT } from './ollamaConfig.js'
 
 /**
  * Summarizes content using the selected AI provider.
@@ -45,6 +46,8 @@ export async function summarizeContent(text, contentType) {
     } else {
       apiKey = userSettings.geminiApiKey
     }
+  } else if (selectedProviderId === 'ollama') {
+    apiKey = userSettings.ollamaEndpoint || DEFAULT_OLLAMA_ENDPOINT
   } else {
     apiKey = userSettings[`${selectedProviderId}ApiKey`]
   }
@@ -91,6 +94,9 @@ export async function summarizeContent(text, contentType) {
     model = userSettings.selectedOpenrouterModel || 'openrouter/auto'
     modelConfig =
       openrouterModelsConfig[model] || openrouterModelsConfig['openrouter/auto']
+  } else if (selectedProviderId === 'ollama') {
+    model = userSettings.selectedOllamaModel || 'llama2' // Default Ollama model
+    modelConfig = { generationConfig: { temperature: 0.6, topP: 0.91 } } // Ollama doesn't use these directly, but keep for consistency
   } else {
     // Fallback for other providers or if model config is not found
     model = userSettings.selectedModel || 'gemini-2.0-flash' // Keep a generic selectedModel for other cases
@@ -155,6 +161,8 @@ export async function summarizeContent(text, contentType) {
       contentsForProvider = [{ parts: [{ text: prompt }] }] // Gemini specific content format
     } else if (selectedProviderId === 'openrouter') {
       contentsForProvider = [{ parts: [{ text: prompt }] }] // OpenRouter expects messages array, but our provider handles this mapping
+    } else if (selectedProviderId === 'ollama') {
+      contentsForProvider = prompt // Ollama expects raw prompt string
     } else {
       contentsForProvider = [{ parts: [{ text: prompt }] }] // Default for other providers
     }
@@ -201,6 +209,8 @@ export async function summarizeChapters(timestampedTranscript) {
     } else {
       apiKey = userSettings.geminiApiKey
     }
+  } else if (selectedProviderId === 'ollama') {
+    apiKey = userSettings.ollamaEndpoint || DEFAULT_OLLAMA_ENDPOINT
   } else {
     apiKey = userSettings[`${selectedProviderId}ApiKey`]
   }
@@ -228,6 +238,9 @@ export async function summarizeChapters(timestampedTranscript) {
     model = userSettings.selectedOpenrouterModel || 'openrouter/auto'
     modelConfig =
       openrouterModelsConfig[model] || openrouterModelsConfig['openrouter/auto']
+  } else if (selectedProviderId === 'ollama') {
+    model = userSettings.selectedOllamaModel || 'llama2' // Default Ollama model
+    modelConfig = { generationConfig: { temperature: 0.6, topP: 0.91 } } // Ollama doesn't use these directly, but keep for consistency
   } else {
     // Fallback for other providers or if model config is not found
     model = userSettings.selectedModel || 'gemini-2.0-flash' // Keep a generic selectedModel for other cases
@@ -283,6 +296,8 @@ export async function summarizeChapters(timestampedTranscript) {
       contentsForProvider = [{ parts: [{ text: prompt }] }] // Gemini specific content format
     } else if (selectedProviderId === 'openrouter') {
       contentsForProvider = [{ parts: [{ text: prompt }] }] // OpenRouter expects messages array, but our provider handles this mapping
+    } else if (selectedProviderId === 'ollama') {
+      contentsForProvider = prompt // Ollama expects raw prompt string
     } else {
       contentsForProvider = [{ parts: [{ text: prompt }] }] // Default for other providers
     }

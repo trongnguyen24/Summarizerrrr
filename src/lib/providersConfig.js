@@ -1,6 +1,7 @@
 // @ts-nocheck
 import { GeminiProvider } from './providers/geminiProvider.js'
 import { OpenrouterProvider } from './providers/openrouterProvider.js'
+import { OllamaProvider } from './providers/ollamaProvider.js'
 // Import other providers here as they are implemented
 
 export const providersConfig = {
@@ -22,12 +23,25 @@ export const providersConfig = {
     name: 'OpenRouter',
     providerClass: OpenrouterProvider,
   },
+  ollama: {
+    name: 'Ollama',
+    providerClass: OllamaProvider,
+  },
 }
+
+import { settings } from '../stores/settingsStore.svelte'
 
 export function getProvider(providerId, apiKey) {
   const config = providersConfig[providerId]
   if (!config) {
     throw new Error(`Provider "${providerId}" not found.`)
   }
+
+  if (providerId === 'ollama') {
+    const ollamaEndpoint = settings.ollamaEndpoint
+    const selectedOllamaModel = settings.selectedOllamaModel
+    return new config.providerClass(ollamaEndpoint, selectedOllamaModel)
+  }
+
   return new config.providerClass(apiKey)
 }

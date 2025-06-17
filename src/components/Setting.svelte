@@ -143,7 +143,7 @@
   <div
     class="px-4 bg-surface-1 dark:bg-surface-2 py-2 border-b-0 border-border"
   >
-    <h2 class="text-center">Settings</h2>
+    <p class="!text-center">Settings</p>
   </div>
 
   <div

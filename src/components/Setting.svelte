@@ -22,7 +22,7 @@
   import Serif from './icon/Serif.svelte'
   import {
     settings,
-    getIsInitialized,
+    loadSettings,
     updateSettings,
   } from '../stores/settingsStore.svelte.js'
   import {
@@ -39,10 +39,11 @@
   } from '../stores/basicModeSettingsStore.svelte.js'
   import { getTheme, setTheme } from '../stores/themeStore.svelte'
 
-  let summaryLength = $state('long')
-  let summaryFormat = $state('heading')
-  let activeTab = $state('ai-model') // Thêm biến trạng thái cho tab hiện tại
-  let activeBarTransformClass = $state('-translate-x-18') // Biến mới để điều khiển transform
+  // Bind directly to settings store properties
+  // let summaryLength = $state('long') // Removed, bind directly
+  // let summaryFormat = $state('heading') // Removed, bind directly
+  let activeTab = $state('ai-model') // State variable for current tab
+  let activeBarTransformClass = $state('-translate-x-18') // New variable to control transform
   const options = {
     scrollbars: {
       theme: 'os-theme-custom-app',
@@ -50,7 +51,7 @@
   }
   const [initialize, instance] = useOverlayScrollbars({ options, defer: true })
 
-  // Sử dụng $effect để khởi tạo OverlayScrollbars
+  // Use $effect to initialize OverlayScrollbars
   $effect(() => {
     const tocElement = document.getElementById('setting-scroll')
     if (tocElement) {
@@ -58,58 +59,54 @@
     }
   })
 
-  // Sử dụng $effect để tải cài đặt từ store khi nó được khởi tạo
+  // Use $effect to load settings from stores when the component mounts
+  $effect(async () => {
+    await loadSettings()
+    await loadAdvancedModeSettings()
+    await loadBasicModeSettings()
+    // No need to manually assign to local state if binding directly
+  })
+
+  // Use $effect to save settings when they change
   $effect(() => {
-    if (getIsInitialized()) {
-      summaryLength = settings.summaryLength
-      settings.summaryLang = settings.summaryLang
-      summaryFormat = settings.summaryFormat
-      settings.selectedModel = settings.selectedModel
-      settings.isAdvancedMode = settings.isAdvancedMode // Đảm bảo isAdvancedMode được tải
-      loadAdvancedModeSettings()
-      loadBasicModeSettings()
+    // Save summaryLength and summaryFormat when they change
+    updateSettings({
+      summaryLength: settings.summaryLength,
+      summaryFormat: settings.summaryFormat,
+      summaryLang: settings.summaryLang,
+      selectedModel: settings.selectedModel,
+      isAdvancedMode: settings.isAdvancedMode,
+      selectedFont: settings.selectedFont,
+      selectedProvider: settings.selectedProvider,
+      geminiApiKey: settings.geminiApiKey,
+      selectedGeminiModel: settings.selectedGeminiModel,
+      geminiAdvancedApiKey: settings.geminiAdvancedApiKey,
+      selectedGeminiAdvancedModel: settings.selectedGeminiAdvancedModel,
+      openrouterApiKey: settings.openrouterApiKey,
+      selectedOpenrouterModel: settings.selectedOpenrouterModel,
+      deepseekApiKey: settings.deepseekApiKey,
+      chatgptApiKey: settings.chatgptApiKey,
+      ollamaEndpoint: settings.ollamaEndpoint,
+      selectedOllamaModel: settings.selectedOllamaModel,
+    })
+  })
+
+  // Use $effect to save temperature and topP when they change
+  $effect(() => {
+    if (settings.isAdvancedMode) {
+      updateAdvancedModeSettings({
+        temperature: advancedModeSettings.temperature,
+        topP: advancedModeSettings.topP,
+      })
+    } else {
+      updateBasicModeSettings({
+        temperature: basicModeSettings.temperature,
+        topP: basicModeSettings.topP,
+      })
     }
   })
 
-  // Sử dụng $effect để lưu summaryLang khi nó thay đổi
-  $effect(() => {
-    if (getIsInitialized() && settings.summaryLang !== undefined) {
-      updateSettings({ summaryLang: settings.summaryLang })
-    }
-  })
-
-  // Sử dụng $effect để lưu selectedModel khi nó thay đổi
-  $effect(() => {
-    if (getIsInitialized() && settings.selectedModel !== undefined) {
-      updateSettings({ selectedModel: settings.selectedModel })
-    }
-  })
-
-  // Sử dụng $effect để lưu isAdvancedMode khi nó thay đổi
-  $effect(() => {
-    if (getIsInitialized() && settings.isAdvancedMode !== undefined) {
-      updateSettings({ isAdvancedMode: settings.isAdvancedMode })
-    }
-  })
-
-  // Sử dụng $effect để lưu temperature và topP khi chúng thay đổi
-  $effect(() => {
-    if (getIsInitialized()) {
-      if (settings.isAdvancedMode) {
-        updateAdvancedModeSettings({
-          temperature: advancedModeSettings.temperature,
-          topP: advancedModeSettings.topP,
-        })
-      } else {
-        updateBasicModeSettings({
-          temperature: basicModeSettings.temperature,
-          topP: basicModeSettings.topP,
-        })
-      }
-    }
-  })
-
-  // Effect để cập nhật class transform cho activebar
+  // Effect to update transform class for activebar
   $effect(() => {
     switch (activeTab) {
       case 'ai-model':
@@ -118,11 +115,11 @@
       case 'summary':
         activeBarTransformClass = 'translate-x-0'
         break
-      case 'general': // Lưu ý: tab này có id là 'general' trong button
+      case 'general': // Note: this tab has id 'general' in the button
         activeBarTransformClass = 'translate-x-18'
         break
       default:
-        activeBarTransformClass = '-translate-x-18' // Giá trị mặc định
+        activeBarTransformClass = '-translate-x-18' // Default value
     }
   })
 
@@ -465,7 +462,7 @@
               <div class="grid grid-cols-3 w-full gap-1">
                 <ButtonSet
                   title="Short"
-                  class="setting-btn {summaryLength === 'short'
+                  class="setting-btn {settings.summaryLength === 'short'
                     ? 'active'
                     : ''}"
                   onclick={() => handleUpdateSetting('summaryLength', 'short')}
@@ -473,7 +470,7 @@
                 ></ButtonSet>
                 <ButtonSet
                   title="Medium"
-                  class="setting-btn {summaryLength === 'medium'
+                  class="setting-btn {settings.summaryLength === 'medium'
                     ? 'active'
                     : ''}"
                   onclick={() => handleUpdateSetting('summaryLength', 'medium')}
@@ -481,7 +478,9 @@
                 ></ButtonSet>
                 <ButtonSet
                   title="Long"
-                  class="setting-btn {summaryLength === 'long' ? 'active' : ''}"
+                  class="setting-btn {settings.summaryLength === 'long'
+                    ? 'active'
+                    : ''}"
                   onclick={() => handleUpdateSetting('summaryLength', 'long')}
                   Description="Detailed summary."
                 ></ButtonSet>
@@ -495,7 +494,7 @@
               <div class="grid grid-cols-3 w-full gap-1">
                 <ButtonSet
                   title="Plain"
-                  class="setting-btn {summaryFormat === 'plain'
+                  class="setting-btn {settings.summaryFormat === 'plain'
                     ? 'active'
                     : ''}"
                   onclick={() => handleUpdateSetting('summaryFormat', 'plain')}
@@ -503,7 +502,7 @@
                 ></ButtonSet>
                 <ButtonSet
                   title="Heading"
-                  class="setting-btn {summaryFormat === 'heading'
+                  class="setting-btn {settings.summaryFormat === 'heading'
                     ? 'active'
                     : ''}"
                   onclick={() =>

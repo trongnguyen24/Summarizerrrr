@@ -17,15 +17,15 @@
   import UdemySummaryDisplay from '../../components/displays/UdemySummaryDisplay.svelte' // Component wrapper Udemy (mới tạo)
   import 'webextension-polyfill'
 
-  // Import trực tiếp các biến và hàm từ các store đã refactor
+  // Import direct variables and functions from refactored stores
   import {
     summaryState, // Import the summaryState object
     summarizeSelectedText,
     resetDisplayState,
-    updateVideoActiveStates, // Updated import
+    updateVideoActiveStates,
     fetchAndSummarize,
-    updateActiveUdemyTab, // New import
-    updateActiveYouTubeTab, // Import updateActiveYouTubeTab
+    updateActiveUdemyTab,
+    updateActiveYouTubeTab,
   } from '../../stores/summaryStore.svelte.js'
   import {
     getTheme,
@@ -41,7 +41,7 @@
     settings, // Import settings
     loadSettings,
     subscribeToSettingsChanges,
-  } from '../../stores/settingsStore.svelte.js' // Import loadSettings và subscribeToSettingsChanges
+  } from '../../stores/settingsStore.svelte.js'
 
   import '@fontsource-variable/geist-mono'
   import '@fontsource-variable/noto-serif'
@@ -55,60 +55,56 @@
   }
   const [initialize, instance] = useOverlayScrollbars({ options, defer: true })
 
-  // Sử dụng $effect để khởi tạo OverlayScrollbars và các listeners
+  // Use $effect to initialize OverlayScrollbars and listeners
   $effect(() => {
     initialize(document.body)
 
-    // Gọi các hàm khởi tạo và đăng ký lắng nghe
+    // Call initialization and subscription functions
     loadSettings()
     initializeTheme()
-    const unsubscribeTheme = subscribeToSystemThemeChanges() // Đăng ký lắng nghe theme hệ thống
-    subscribeToSettingsChanges() // Đăng ký lắng nghe thay đổi settings
+    const unsubscribeTheme = subscribeToSystemThemeChanges() // Subscribe to system theme changes
+    subscribeToSettingsChanges() // Subscribe to settings changes
 
-    // Hàm cleanup cho $effect
+    // Cleanup function for $effect
     return () => {
-      unsubscribeTheme() // Hủy đăng ký lắng nghe theme hệ thống
-      // Không cần hủy đăng ký settings vì onStorageChange không trả về hàm hủy
+      unsubscribeTheme() // Unsubscribe from system theme changes
+      // No need to unsubscribe from settings as onStorageChange does not return an unsubscribe function
     }
   })
 
-  // Sử dụng $effect để cập nhật lớp font trên body khi settings.selectedFont thay đổi
+  // Use $effect to update font class on body when settings.selectedFont changes
   $effect(() => {
     if (document.body && settings.selectedFont) {
-      // Xóa tất cả các lớp font cũ
+      // Remove all old font classes
       document.body.classList.remove(
         'font-default',
         'font-noto-serif',
         'font-opendyslexic',
         'font-noto-mix'
       )
-      // Thêm lớp font mới
+      // Add new font class
       document.body.classList.add(`font-${settings.selectedFont}`)
     }
   })
 
-  // Logic xử lý message từ background script (sử dụng cổng kết nối)
-  $effect(() => {
-    const port = browser.runtime.connect({ name: 'side-panel' })
-    console.log('[App.svelte] Connected to background script.')
-
-    const handleMessage = (request) => {
-      if (request.action === 'tabUpdated') {
-        console.log('[App.svelte] Received tabUpdated message:', request)
+  // Function to handle messages from the background script
+  function handleBackgroundMessage(request) {
+    switch (request.action) {
+      case 'tabUpdated':
+      case 'currentTabInfo':
+        console.log(`[App.svelte] Received ${request.action} message:`, request)
         setTabTitle(request.tabTitle)
-        updateVideoActiveStates(request.isYouTube, request.isUdemy) // Update video active states
-      } else if (request.action === 'currentTabInfo') {
-        console.log('[App.svelte] Received currentTabInfo response:', request)
-        setTabTitle(request.tabTitle)
-        updateVideoActiveStates(request.isYouTube, request.isUdemy) // Update video active states
-      } else if (request.action === 'displaySummary') {
+        updateVideoActiveStates(request.isYouTube, request.isUdemy)
+        break
+      case 'displaySummary':
         console.log(
           '[App.svelte] Received displaySummary message:',
           $state.snapshot(request)
         )
         summaryState.summary = request.summary
         summaryState.error = request.error ? request.summary : null
-      } else if (request.action === 'summarizeSelectedText') {
+        break
+      case 'summarizeSelectedText':
         console.log(
           '[App.svelte] Received summarizeSelectedText message:',
           $state.snapshot(request)
@@ -116,46 +112,55 @@
         resetDisplayState()
         summaryState.lastSummaryTypeDisplayed = 'selectedText'
         summarizeSelectedText(request.selectedText)
-      } else if (request.action === 'udemyTranscriptAvailable') {
+        break
+      case 'udemyTranscriptAvailable':
         console.log(
           '[App.svelte] Received udemyTranscriptAvailable message:',
           $state.snapshot(request)
         )
-        // Khi transcript Udemy có sẵn, kích hoạt tóm tắt và giải thích khái niệm
-        // Chỉ kích hoạt nếu chưa có tóm tắt Udemy hoặc đang không loading
+        // When Udemy transcript is available, trigger summarization and concept explanation
+        // Only trigger if no Udemy summary exists or is not loading
         if (!summaryState.udemySummary && !isAnyUdemyLoading) {
           resetDisplayState()
-          summaryState.lastSummaryTypeDisplayed = 'udemy' // Đặt loại hiển thị là Udemy
-          updateActiveUdemyTab('udemySummary') // Mặc định hiển thị tab tóm tắt
-          fetchAndSummarize() // Kích hoạt quá trình tóm tắt và giải thích
+          summaryState.lastSummaryTypeDisplayed = 'udemy' // Set display type to Udemy
+          updateActiveUdemyTab('udemySummary') // Default to summary tab
+          fetchAndSummarize() // Trigger summarization and explanation process
         } else {
           console.log(
             '[App.svelte] Udemy summary already exists or is loading, skipping fetchAndSummarize.'
           )
         }
-      }
+        break
+      default:
+        console.warn('[App.svelte] Unknown message action:', request.action)
     }
+  }
 
-    port.onMessage.addListener(handleMessage)
+  // Logic to handle messages from background script (using connection port)
+  $effect(() => {
+    const port = browser.runtime.connect({ name: 'side-panel' })
+    console.log('[App.svelte] Connected to background script.')
+
+    port.onMessage.addListener(handleBackgroundMessage)
 
     return () => {
-      port.onMessage.removeListener(handleMessage)
+      port.onMessage.removeListener(handleBackgroundMessage)
       port.disconnect()
       console.log('[App.svelte] Disconnected from background script.')
     }
   })
 
-  // Tạo biến derived để kiểm tra xem có bất kỳ phần tóm tắt Udemy nào đang tải không
+  // Create derived variable to check if any Udemy summary is loading
   const isAnyUdemyLoading = $derived(
     summaryState.isUdemySummaryLoading || summaryState.isUdemyConceptsLoading
   )
 
   // Handle summarize button click
-  // Đăng ký event listener toàn cục và đảm bảo nó được hủy khi component bị hủy
+  // Register global event listener and ensure it's cleaned up when component is destroyed
   $effect(() => {
     const handleSummarizeClick = () => {
       resetDisplayState() // Reset display state before new summarization
-      fetchAndSummarize() // Gọi hàm từ summaryStore
+      fetchAndSummarize() // Call function from summaryStore
     }
 
     document.addEventListener('summarizeClick', handleSummarizeClick)

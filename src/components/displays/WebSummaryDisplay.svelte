@@ -1,9 +1,21 @@
 <!-- @ts-nocheck -->
 <script>
   import { marked } from 'marked'
+  import hljs from 'highlight.js'
   import TOC from '../TOC.svelte'
 
   let { summary, isLoading, error } = $props()
+
+  $effect(() => {
+    if (summary && !isLoading) {
+      // Đảm bảo DOM đã được cập nhật trước khi làm nổi bật
+      // Có thể cần một setTimeout nhỏ nếu DOM chưa sẵn sàng ngay lập tức
+      // Tuy nhiên, $effect thường chạy sau khi DOM được cập nhật
+      document.querySelectorAll('pre code').forEach((block) => {
+        hljs.highlightElement(block)
+      })
+    }
+  })
 </script>
 
 {#if isLoading}

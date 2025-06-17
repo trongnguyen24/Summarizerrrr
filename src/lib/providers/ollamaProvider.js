@@ -1,4 +1,5 @@
 // @ts-nocheck
+// @ts-nocheck
 import { BaseProvider } from './baseProvider'
 
 export class OllamaProvider extends BaseProvider {
@@ -7,8 +8,12 @@ export class OllamaProvider extends BaseProvider {
     this.ollamaEndpoint = ollamaEndpoint
   }
 
-  async generateContent(model, prompt) {
-    // Thêm 'model' vào tham số
+  /**
+   * Generates content using the Ollama API.
+   * @param {string} prompt The prompt to send to the model.
+   * @returns {Promise<string>} The generated content.
+   */
+  async generateContent(prompt) {
     try {
       const response = await fetch(`${this.ollamaEndpoint}/api/generate`, {
         method: 'POST',
@@ -16,7 +21,7 @@ export class OllamaProvider extends BaseProvider {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: model, // Sử dụng 'model' được truyền vào
+          model: this.model, // Use this.model from the constructor
           prompt: prompt,
           stream: false,
           think: false,
@@ -65,6 +70,12 @@ export class OllamaProvider extends BaseProvider {
     }
   }
 
+  /**
+   * Handles specific error messages from the Ollama API.
+   * @param {Error} error The error object.
+   * @param {string} model The model name that was used.
+   * @returns {string} A user-friendly error message.
+   */
   handleError(error, model) {
     // Implement specific error handling for Ollama API errors
     if (error.message.includes('Failed to fetch')) {
@@ -81,8 +92,13 @@ export class OllamaProvider extends BaseProvider {
     return `An unexpected Ollama API error occurred: ${error.message}.`
   }
 
+  /**
+   * Parses the raw response from the Ollama API.
+   * For Ollama, the rawResult is already the cleaned response string.
+   * @param {string} rawResult The raw response string.
+   * @returns {string} The parsed and cleaned response.
+   */
   parseResponse(rawResult) {
-    // For Ollama, rawResult is already the cleaned response string
     return rawResult
   }
 }

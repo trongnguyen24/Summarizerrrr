@@ -3,6 +3,10 @@
   import TextInput from '../TextInput.svelte'
   import { settings, updateSettings } from '../../stores/settingsStore.svelte'
 
+  /**
+   * Handles saving the Ollama endpoint, cleaning it if necessary.
+   * @param {string} value The endpoint value from the input.
+   */
   function handleOllamaEndpointSave(value) {
     let cleanedEndpoint = value || ''
     if (cleanedEndpoint.endsWith('/api/generate')) {
@@ -15,6 +19,10 @@
     updateSettings({ ollamaEndpoint: cleanedEndpoint })
   }
 
+  /**
+   * Handles saving the selected Ollama model.
+   * @param {string} value The model value from the input.
+   */
   function handleSelectedOllamaModelSave(value) {
     console.log('OllamaConfig: Saving selectedOllamaModel', value)
     updateSettings({ selectedOllamaModel: value })

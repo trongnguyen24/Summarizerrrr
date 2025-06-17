@@ -1,4 +1,4 @@
-// @svelte-compiler-ignore
+// @ts-nocheck
 import {
   getStorage,
   setStorage,
@@ -7,81 +7,81 @@ import {
 
 // --- Default Settings ---
 const DEFAULT_SETTINGS = {
-  selectedProvider: 'gemini', // New: Default provider
+  selectedProvider: 'gemini', // Default provider
   geminiApiKey: '',
-  selectedGeminiModel: 'gemini-2.0-flash', // New: Default Gemini model for basic mode
-  geminiAdvancedApiKey: '', // New: Gemini API Key for advanced mode
-  selectedGeminiAdvancedModel: 'gemini-2.0-flash', // New: Default Gemini model for advanced mode
-  openrouterApiKey: '', // New: OpenRouter API Key
-  selectedOpenrouterModel: 'deepseek/deepseek-r1-0528:free', // New: Default OpenRouter model
-  deepseekApiKey: '', // New: DeepSeek API Key
-  chatgptApiKey: '', // New: ChatGPT API Key
-  ollamaEndpoint: 'http://localhost:11434', // New: Ollama Endpoint
-  selectedOllamaModel: '', // New: Default Ollama model
+  selectedGeminiModel: 'gemini-2.0-flash', // Default Gemini model for basic mode
+  geminiAdvancedApiKey: '', // Gemini API Key for advanced mode
+  selectedGeminiAdvancedModel: 'gemini-2.0-flash', // Default Gemini model for advanced mode
+  openrouterApiKey: '', // OpenRouter API Key
+  selectedOpenrouterModel: 'deepseek/deepseek-r1-0528:free', // Default OpenRouter model
+  deepseekApiKey: '', // DeepSeek API Key
+  chatgptApiKey: '', // ChatGPT API Key
+  ollamaEndpoint: 'http://localhost:11434', // Ollama Endpoint
+  selectedOllamaModel: '', // Default Ollama model
   summaryLength: 'long', // short, medium, long
   summaryFormat: 'heading', // heading, paragraph
   summaryLang: 'Vietnamese', // Default language Vietnamese
   selectedModel: 'gemini-2.0-flash', // Default model
-  isAdvancedMode: false, // New: Default to basic mode
-  selectedFont: 'default', // New: Default font setting
+  isAdvancedMode: false, // Default to basic mode
+  selectedFont: 'default', // Default font setting
 }
 
 // --- State ---
 export let settings = $state({ ...DEFAULT_SETTINGS })
-let _isInitialized = $state(false) // Biến nội bộ
-
-// Export isInitialized dưới dạng hàm
-export function getIsInitialized() {
-  return _isInitialized
-}
+let _isInitializedPromise = null // Use a Promise to track initialization
 
 // --- Actions ---
 
 /**
- * Tải cài đặt từ chrome.storage.sync khi store khởi tạo.
+ * Loads settings from chrome.storage.sync when the store is initialized.
+ * Ensures settings are loaded only once.
  */
 export async function loadSettings() {
-  // THÊM EXPORT Ở ĐÂY
-  if (_isInitialized) return // Chỉ load một lần
-
-  try {
-    const storedSettings = await getStorage(Object.keys(DEFAULT_SETTINGS))
-    console.log(
-      '[settingsStore] Stored settings from storage:',
-      JSON.stringify(storedSettings)
-    ) // Thêm log
-    const mergedSettings = { ...DEFAULT_SETTINGS }
-    for (const key in DEFAULT_SETTINGS) {
-      if (storedSettings[key] !== undefined && storedSettings[key] !== null) {
-        mergedSettings[key] = storedSettings[key]
-      }
-    }
-    Object.assign(settings, mergedSettings)
-    _isInitialized = true // Cập nhật biến nội bộ
-    console.log(
-      '[settingsStore] Cài đặt đã được tải (sau khi hợp nhất):', // Cập nhật log
-      JSON.stringify($state.snapshot(settings))
-    )
-  } catch (error) {
-    console.error('[settingsStore] Lỗi khi tải cài đặt:', error)
-    Object.assign(settings, DEFAULT_SETTINGS)
-    _isInitialized = true // Vẫn đánh dấu đã khởi tạo để tránh load lại
+  if (_isInitializedPromise) {
+    return _isInitializedPromise // Return existing promise if already loading/loaded
   }
+
+  _isInitializedPromise = (async () => {
+    try {
+      const storedSettings = await getStorage(Object.keys(DEFAULT_SETTINGS))
+      console.log(
+        '[settingsStore] Stored settings from storage:',
+        JSON.stringify(storedSettings)
+      )
+      const mergedSettings = { ...DEFAULT_SETTINGS }
+      for (const key in DEFAULT_SETTINGS) {
+        if (storedSettings[key] !== undefined && storedSettings[key] !== null) {
+          mergedSettings[key] = storedSettings[key]
+        }
+      }
+      Object.assign(settings, mergedSettings)
+      console.log(
+        '[settingsStore] Settings loaded (after merge):',
+        JSON.stringify($state.snapshot(settings))
+      )
+    } catch (error) {
+      console.error('[settingsStore] Error loading settings:', error)
+      Object.assign(settings, DEFAULT_SETTINGS) // Fallback to defaults on error
+    }
+  })()
+
+  return _isInitializedPromise
 }
 
 /**
- * Cập nhật một hoặc nhiều cài đặt và lưu vào chrome.storage.sync.
- * @param {Partial<typeof DEFAULT_SETTINGS>} newSettings Object chứa các cài đặt cần cập nhật.
+ * Updates one or more settings and saves them to chrome.storage.sync.
+ * Ensures the store is initialized before updating.
+ * @param {Partial<typeof DEFAULT_SETTINGS>} newSettings Object containing settings to update.
  */
 export async function updateSettings(newSettings) {
-  console.log(
-    '[settingsStore] updateSettings được gọi. _isInitialized:',
-    _isInitialized
-  )
-  if (!_isInitialized) {
-    console.warn('[settingsStore] Store chưa khởi tạo, không thể cập nhật.')
+  if (!_isInitializedPromise) {
+    console.warn(
+      '[settingsStore] Store not initialized, cannot update settings. Call loadSettings() first.'
+    )
     return
   }
+  await _isInitializedPromise // Wait for initialization to complete
+
   const validUpdates = {}
   for (const key in newSettings) {
     if (key in DEFAULT_SETTINGS) {
@@ -90,7 +90,7 @@ export async function updateSettings(newSettings) {
   }
 
   if (Object.keys(validUpdates).length === 0) {
-    console.warn('[settingsStore] Không có cài đặt hợp lệ nào để cập nhật.')
+    console.warn('[settingsStore] No valid settings to update.')
     return
   }
 
@@ -98,24 +98,36 @@ export async function updateSettings(newSettings) {
 
   try {
     console.log(
-      '[settingsStore] Cập nhật và lưu các cài đặt sau:',
+      '[settingsStore] Updating and saving the following settings:',
       JSON.stringify(validUpdates)
-    ) // Thêm log
+    )
     await setStorage(validUpdates)
     console.log(
-      '[settingsStore] Cài đặt đã được cập nhật và lưu:',
+      '[settingsStore] Settings updated and saved:',
       JSON.stringify($state.snapshot(settings))
     )
   } catch (error) {
-    console.error('[settingsStore] Lỗi khi lưu cài đặt:', error)
+    console.error('[settingsStore] Error saving settings:', error)
   }
 }
 
 // --- Initialization and Listeners ---
 
+/**
+ * Subscribes to changes in chrome.storage.sync and updates the store's state.
+ * Ensures the store is initialized before processing changes.
+ */
 export function subscribeToSettingsChanges() {
-  onStorageChange((changes, areaName) => {
-    if (areaName === 'sync' && _isInitialized) {
+  onStorageChange(async (changes, areaName) => {
+    if (areaName === 'sync') {
+      if (!_isInitializedPromise) {
+        console.warn(
+          '[settingsStore] Store not initialized, skipping storage change processing.'
+        )
+        return
+      }
+      await _isInitializedPromise // Wait for initialization to complete
+
       let changed = false
       const updatedSettings = {}
       for (const key in changes) {
@@ -129,7 +141,7 @@ export function subscribeToSettingsChanges() {
       }
       if (changed) {
         console.log(
-          '[settingsStore] Phát hiện thay đổi từ storage, cập nhật state:',
+          '[settingsStore] Storage change detected, updating state:',
           updatedSettings
         )
         Object.assign(settings, updatedSettings)

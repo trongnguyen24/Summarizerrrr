@@ -1,10 +1,7 @@
-// @svelte-compiler-ignore
-// @ts-nocheck
-// @svelte-compiler-ignore
 // @ts-nocheck
 import { geminiModelsConfig } from './geminiConfig.js'
-import { openrouterModelsConfig } from './openrouterConfig.js' // Import openrouterModelsConfig
-import { settings, getIsInitialized } from '../stores/settingsStore.svelte.js'
+import { openrouterModelsConfig } from './openrouterConfig.js'
+import { settings, loadSettings } from '../stores/settingsStore.svelte.js'
 import {
   advancedModeSettings,
   loadAdvancedModeSettings,
@@ -18,39 +15,75 @@ import { promptBuilders } from './promptBuilders.js'
 import { DEFAULT_OLLAMA_ENDPOINT } from './ollamaConfig.js'
 
 /**
+ * Helper function to get provider-specific configuration (API key, model, model config).
+ * @param {object} userSettings - The current settings object.
+ * @param {string} selectedProviderId - The ID of the selected provider.
+ * @returns {{apiKey: string, model: string, modelConfig: object}} - Object containing provider config.
+ * @throws {Error} If API key is not configured.
+ */
+function getProviderConfig(userSettings, selectedProviderId) {
+  let apiKey
+  let model
+  let modelConfig
+
+  switch (selectedProviderId) {
+    case 'gemini':
+      apiKey = userSettings.isAdvancedMode
+        ? userSettings.geminiAdvancedApiKey
+        : userSettings.geminiApiKey
+      model = userSettings.isAdvancedMode
+        ? userSettings.selectedGeminiAdvancedModel || 'gemini-2.0-flash'
+        : userSettings.selectedGeminiModel || 'gemini-2.0-flash'
+      modelConfig =
+        geminiModelsConfig[model] || geminiModelsConfig['gemini-2.0-flash']
+      break
+    case 'openrouter':
+      apiKey = userSettings.openrouterApiKey
+      model = userSettings.selectedOpenrouterModel || 'openrouter/auto'
+      modelConfig =
+        openrouterModelsConfig[model] ||
+        openrouterModelsConfig['openrouter/auto']
+      break
+    case 'ollama':
+      apiKey = userSettings.ollamaEndpoint || DEFAULT_OLLAMA_ENDPOINT // Ollama uses endpoint as 'key'
+      model = userSettings.selectedOllamaModel || 'llama2' // Default Ollama model
+      modelConfig = { generationConfig: { temperature: 0.6, topP: 0.91 } } // Ollama doesn't use these directly, but keep for consistency
+      break
+    default:
+      // Fallback for other providers or if model config is not found
+      apiKey = userSettings[`${selectedProviderId}ApiKey`]
+      model = userSettings.selectedModel || 'gemini-2.0-flash' // Keep a generic selectedModel for other cases
+      modelConfig = { generationConfig: { temperature: 0.6, topP: 0.91 } }
+  }
+
+  if (!apiKey) {
+    throw new Error(
+      `${providersConfig[selectedProviderId].name} API key is not configured. Click the settings icon on the right to add your API key.`
+    )
+  }
+
+  return { apiKey, model, modelConfig }
+}
+
+/**
  * Summarizes content using the selected AI provider.
  * @param {string} text - Content to summarize (transcript, web page text, or selected text).
  * @param {'youtube' | 'general' | 'selectedText'} contentType - The type of content being summarized.
  * @returns {Promise<string>} - Promise that resolves with the summary in Markdown format.
  */
 export async function summarizeContent(text, contentType) {
-  // Wait for settings to be initialized
-  if (!getIsInitialized()) {
-    await new Promise((resolve) => {
-      const checkInterval = setInterval(() => {
-        if (getIsInitialized()) {
-          clearInterval(checkInterval)
-          resolve()
-        }
-      }, 100) // Check every 100ms
-    })
-    console.log('[api] Cài đặt đã sẵn sàng trong summarizeContent.')
-  }
+  // Ensure settings are initialized
+  await loadSettings()
+  await loadAdvancedModeSettings()
+  await loadBasicModeSettings()
 
   const userSettings = settings
   const selectedProviderId = userSettings.selectedProvider || 'gemini' // Default to gemini
-  let apiKey
-  if (selectedProviderId === 'gemini') {
-    if (userSettings.isAdvancedMode) {
-      apiKey = userSettings.geminiAdvancedApiKey
-    } else {
-      apiKey = userSettings.geminiApiKey
-    }
-  } else if (selectedProviderId === 'ollama') {
-    apiKey = userSettings.ollamaEndpoint || DEFAULT_OLLAMA_ENDPOINT
-  } else {
-    apiKey = userSettings[`${selectedProviderId}ApiKey`]
-  }
+
+  const { apiKey, model, modelConfig } = getProviderConfig(
+    userSettings,
+    selectedProviderId
+  )
 
   console.log('DEBUG: selectedProviderId:', selectedProviderId)
   console.log('DEBUG: isAdvancedMode:', userSettings.isAdvancedMode)
@@ -71,37 +104,7 @@ export async function summarizeContent(text, contentType) {
     apiKey ? 'CONFIGURED' : 'NOT CONFIGURED'
   )
 
-  if (!apiKey) {
-    throw new Error(
-      `${providersConfig[selectedProviderId].name} API key is not configured. Click the settings icon on the right to add your API key.`
-    )
-  }
-
-  const provider = getProvider(selectedProviderId, apiKey)
-
-  let model
-  let modelConfig
-
-  if (selectedProviderId === 'gemini') {
-    if (userSettings.isAdvancedMode) {
-      model = userSettings.selectedGeminiAdvancedModel || 'gemini-2.0-flash'
-    } else {
-      model = userSettings.selectedGeminiModel || 'gemini-2.0-flash'
-    }
-    modelConfig =
-      geminiModelsConfig[model] || geminiModelsConfig['gemini-2.0-flash']
-  } else if (selectedProviderId === 'openrouter') {
-    model = userSettings.selectedOpenrouterModel || 'openrouter/auto'
-    modelConfig =
-      openrouterModelsConfig[model] || openrouterModelsConfig['openrouter/auto']
-  } else if (selectedProviderId === 'ollama') {
-    model = userSettings.selectedOllamaModel || 'llama2' // Default Ollama model
-    modelConfig = { generationConfig: { temperature: 0.6, topP: 0.91 } } // Ollama doesn't use these directly, but keep for consistency
-  } else {
-    // Fallback for other providers or if model config is not found
-    model = userSettings.selectedModel || 'gemini-2.0-flash' // Keep a generic selectedModel for other cases
-    modelConfig = { generationConfig: { temperature: 0.6, topP: 0.91 } }
-  }
+  const provider = getProvider(selectedProviderId, userSettings) // Pass full settings object
 
   const contentConfig = promptBuilders[contentType] || promptBuilders['general'] // Fallback to general
 
@@ -110,10 +113,6 @@ export async function summarizeContent(text, contentType) {
       `Configuration for content type "${contentType}" is incomplete.`
     )
   }
-
-  // Đảm bảo các store cài đặt chế độ đã được tải
-  await loadAdvancedModeSettings()
-  await loadBasicModeSettings()
 
   const prompt = contentConfig.buildPrompt(
     text,
@@ -167,12 +166,14 @@ export async function summarizeContent(text, contentType) {
       contentsForProvider = [{ parts: [{ text: prompt }] }] // Default for other providers
     }
 
-    const rawResult = await provider.generateContent(
-      model,
-      contentsForProvider,
-      systemInstruction,
-      finalGenerationConfig
-    )
+    const rawResult = await (selectedProviderId === 'ollama'
+      ? provider.generateContent(contentsForProvider) // Ollama's generateContent expects only prompt
+      : provider.generateContent(
+          model, // Pass model for other providers
+          contentsForProvider,
+          systemInstruction,
+          finalGenerationConfig
+        ))
     return provider.parseResponse(rawResult)
   } catch (e) {
     console.error(`${providersConfig[selectedProviderId].name} API Error:`, e)
@@ -183,37 +184,21 @@ export async function summarizeContent(text, contentType) {
 /**
  * Summarizes YouTube video content by chapter using the selected AI provider.
  * @param {string} timestampedTranscript - Video transcript with timestamps.
- * @param {string} lang - Desired language for the chapter summary.
- * @param {string} length - Desired length for the chapter summary ('short', 'medium', 'long').
  * @returns {Promise<string>} - Promise that resolves with the chapter summary in Markdown format.
  */
 export async function summarizeChapters(timestampedTranscript) {
-  if (!getIsInitialized()) {
-    await new Promise((resolve) => {
-      const checkInterval = setInterval(() => {
-        if (getIsInitialized()) {
-          clearInterval(checkInterval)
-          resolve()
-        }
-      }, 100) // Check every 100ms
-    })
-    console.log('[api] Cài đặt đã sẵn sàng trong summarizeChapters.')
-  }
+  // Ensure settings are initialized
+  await loadSettings()
+  await loadAdvancedModeSettings()
+  await loadBasicModeSettings()
 
   const userSettings = settings
   const selectedProviderId = userSettings.selectedProvider || 'gemini' // Default to gemini
-  let apiKey
-  if (selectedProviderId === 'gemini') {
-    if (userSettings.isAdvancedMode) {
-      apiKey = userSettings.geminiAdvancedApiKey
-    } else {
-      apiKey = userSettings.geminiApiKey
-    }
-  } else if (selectedProviderId === 'ollama') {
-    apiKey = userSettings.ollamaEndpoint || DEFAULT_OLLAMA_ENDPOINT
-  } else {
-    apiKey = userSettings[`${selectedProviderId}ApiKey`]
-  }
+
+  const { apiKey, model, modelConfig } = getProviderConfig(
+    userSettings,
+    selectedProviderId
+  )
 
   if (!apiKey) {
     throw new Error(
@@ -221,31 +206,7 @@ export async function summarizeChapters(timestampedTranscript) {
     )
   }
 
-  const provider = getProvider(selectedProviderId, apiKey)
-
-  let model
-  let modelConfig
-
-  if (selectedProviderId === 'gemini') {
-    if (userSettings.isAdvancedMode) {
-      model = userSettings.selectedGeminiAdvancedModel || 'gemini-2.0-flash'
-    } else {
-      model = userSettings.selectedGeminiModel || 'gemini-2.0-flash'
-    }
-    modelConfig =
-      geminiModelsConfig[model] || geminiModelsConfig['gemini-2.0-flash']
-  } else if (selectedProviderId === 'openrouter') {
-    model = userSettings.selectedOpenrouterModel || 'openrouter/auto'
-    modelConfig =
-      openrouterModelsConfig[model] || openrouterModelsConfig['openrouter/auto']
-  } else if (selectedProviderId === 'ollama') {
-    model = userSettings.selectedOllamaModel || 'llama2' // Default Ollama model
-    modelConfig = { generationConfig: { temperature: 0.6, topP: 0.91 } } // Ollama doesn't use these directly, but keep for consistency
-  } else {
-    // Fallback for other providers or if model config is not found
-    model = userSettings.selectedModel || 'gemini-2.0-flash' // Keep a generic selectedModel for other cases
-    modelConfig = { generationConfig: { temperature: 0.6, topP: 0.91 } }
-  }
+  const provider = getProvider(selectedProviderId, userSettings) // Pass full settings object
 
   const chapterConfig = promptBuilders['chapter']
 
@@ -255,8 +216,8 @@ export async function summarizeChapters(timestampedTranscript) {
 
   const prompt = chapterConfig.buildPrompt(
     timestampedTranscript,
-    userSettings.summaryLang, // Lấy từ userSettings
-    userSettings.summaryLength // Lấy từ userSettings
+    userSettings.summaryLang,
+    userSettings.summaryLength
   )
 
   try {
@@ -302,12 +263,14 @@ export async function summarizeChapters(timestampedTranscript) {
       contentsForProvider = [{ parts: [{ text: prompt }] }] // Default for other providers
     }
 
-    const rawResult = await provider.generateContent(
-      model,
-      contentsForProvider,
-      chapterConfig.systemInstruction,
-      finalGenerationConfig
-    )
+    const rawResult = await (selectedProviderId === 'ollama'
+      ? provider.generateContent(contentsForProvider) // Ollama's generateContent expects only prompt
+      : provider.generateContent(
+          model, // Pass model for other providers
+          contentsForProvider,
+          chapterConfig.systemInstruction,
+          finalGenerationConfig
+        ))
     return provider.parseResponse(rawResult)
   } catch (e) {
     console.error(

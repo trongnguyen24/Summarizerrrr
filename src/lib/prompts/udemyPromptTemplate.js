@@ -2,52 +2,52 @@
 export const udemySummaryPromptTemplate = `
 
 <USER_TASK>
-Hãy phân tích <Transcript> được cung cấp và tạo bản tóm tắt theo các <Parameters> và <Guidelines> đã nêu.
+Analyze the provided <Transcript> and generate a summary according to the stated <Parameters> and <Guidelines>.
 </USER_TASK>
 
 <Parameters>
-1.  Độ dài tóm tắt: \${length}
-    - "short": Tóm tắt rất ngắn gọn (tối đa 2 câu) về ý chính tổng thể của bài giảng.
-    - "medium": Tóm tắt ngắn gọn (2-4 câu) bao gồm các điểm chính được thảo luận.
-    - "long": Tóm tắt chi tiết (5+ câu hoặc nhiều đoạn) bao gồm tất cả các phần quan trọng, điểm hỗ trợ và kết luận. Hãy cố gắng bao quát đầy đủ các khía cạnh chính được đề cập một cách cô đọng.
-    *(Lưu ý: Số câu chỉ là ước tính, mục tiêu là truyền đạt đầy đủ thông tin trong phạm vi độ dài mong muốn và dựa trên nội dung transcript.)*
+1.  Summary Length: \${length}
+    - "short": Very concise summary (max 2 sentences) of the overall main idea of the lecture.
+    - "medium": Concise summary (2-4 sentences) covering the main points discussed.
+    - "long": Detailed summary (5+ sentences or multiple paragraphs) covering all important sections, supporting points, and conclusions. Aim to comprehensively cover the key aspects mentioned in a condensed manner.
+    *(Note: Sentence count is an estimate; the goal is to convey full information within the desired length and based on the transcript content.)*
 
-2.  Ngôn ngữ: \${lang}
-    - Tóm tắt sẽ được trả về hoàn toàn bằng ngôn ngữ được chỉ định với chất lượng dịch thuật cao nhất - chính xác, tự nhiên và lưu loát như người bản xứ, dịch các thuật ngữ chuyên ngành và tên riêng một cách chuẩn xác.
+2.  Language: \${lang}
+    - The summary will be returned entirely in the specified language with the highest translation quality - accurate, natural, and fluent like a native speaker, precisely translating technical terms and proper nouns.
 
-3.  Định dạng: \${format}
-    - "plain": Tóm tắt dưới dạng một hoặc nhiều đoạn văn thuần túy.
-    - "heading": Tóm tắt được tổ chức với tiêu đề cấp độ h2 (##) cho chủ đề chính và tiêu đề cấp độ h3 (###) cho các phần/điểm quan trọng. Nội dung dưới mỗi tiêu đề phải phù hợp với độ dài yêu cầu (\${length}) và làm nổi bật các "key points" của phần đó.
+3.  Format: \${format}
+    - "plain": Summary as one or more plain paragraphs.
+    - "heading": Summary organized with an h2 (##) heading for the main topic and h3 (###) headings for important sections/points. Content under each heading must be consistent with the required length (\${length}) and highlight the "key points" of that section.
 </Parameters>
 
 <Guidelines>
-- **Phân tích:** Đọc kỹ transcript để xác định chủ đề chính, các điểm quan trọng, ví dụ/minh họa hỗ trợ, và kết luận của bài giảng.
-- **Tổ chức:** Tổ chức thông tin một cách logic và mạch lạc.
-- **Định dạng (Conditional):** Nếu định dạng là "heading", tạo tiêu đề rõ ràng cho chủ đề chính (##) và các phần/điểm quan trọng (###).
-- **Cô đọng:** Loại bỏ chi tiết không cần thiết, thông tin trùng lặp, các từ/câu nói thừa, và các đoạn chuyển không mang nội dung (ví dụ: "uhm", "à", "bạn biết đấy"). Chỉ giữ lại nội dung cốt lõi.
-- **Khách quan & Chính xác:** Giữ giọng điệu khách quan và chính xác, chỉ dựa trên nội dung *từ* transcript. Không suy diễn hoặc thêm thông tin từ bên ngoài.
-- **Nội dung Cụ Thể:** Nếu bài giảng chứa thuật ngữ chuyên ngành, số liệu thống kê, hoặc nghiên cứu, hãy bao gồm thông tin này một cách chính xác trong tóm tắt phù hợp với độ dài yêu cầu.
-- **Quan điểm:** Nếu người nói chia sẻ quan điểm cá nhân hoặc ý kiến, nêu rõ đây là quan điểm *được trình bày trong bài giảng* (ví dụ: "Người nói cho rằng...", "Theo quan điểm được chia sẻ trong bài giảng...").
-- **Các Bước/Hướng dẫn:** Nếu có phần thảo luận về các bước cụ thể hoặc hướng dẫn, tóm tắt các bước chính một cách ngắn gọn và rõ ràng (đặc biệt quan trọng cho độ dài "medium" và "long").
-- **Độ dài & Chi tiết:** Đảm bảo mức độ chi tiết và số lượng nội dung trong tóm tắt tổng thể phù hợp với độ dài yêu cầu (\${length}). Nếu dùng format "heading", nội dung dưới mỗi heading cũng cần tương xứng.
-- **Xử lý Transcript Không Đủ Thông tin:** Nếu <Transcript> quá ngắn, không có nội dung liên quan hoặc quá nhiễu để tạo bản tóm tắt có nghĩa theo độ dài yêu cầu, hãy trả về bản tóm tắt ngắn nhất có thể (có thể chỉ 1-2 câu) về những gì có trong transcript hoặc thông báo (bằng ngôn ngữ yêu cầu \${lang}) rằng "Không đủ thông tin trong transcript để tạo tóm tắt chi tiết."
-- **Ràng buộc:**
-    - Không thêm bất kỳ lời chào, lời giới thiệu, kết luận cá nhân hoặc bất kỳ văn bản nào khác ngoài cấu trúc và định dạng bắt buộc của bản tóm tắt.
-    - Không hiển thị thông tin về cài đặt (như độ dài, ngôn ngữ, định dạng yêu cầu) trong kết quả đầu ra.
-    - Không sử dụng markdown block bao quanh đầu ra.
+- **Analysis:** Carefully read the transcript to identify the main topic, key points, supporting examples/illustrations, and conclusions of the lecture.
+- **Organization:** Organize information logically and coherently.
+- **Formatting (Conditional):** If the format is "heading", create clear headings for the main topic (##) and important sections/points (###).
+- **Conciseness:** Eliminate unnecessary details, redundant information, superfluous words/phrases, and non-content transitional phrases (e.g., "uhm", "ah", "you know"). Retain only the core content.
+- **Objectivity & Accuracy:** Maintain an objective and accurate tone, relying solely on content *from* the transcript. Do not infer or add external information.
+- **Specific Content:** If the lecture contains technical terms, statistics, or studies, include this information accurately in the summary, consistent with the required length.
+- **Perspective:** If the speaker shares personal opinions or views, clearly state that these are views *presented in the lecture* (e.g., "The speaker suggests...", "According to the perspective shared in the lecture...").
+- **Steps/Instructions:** If there is a discussion of specific steps or instructions, summarize the main steps concisely and clearly (especially important for "medium" and "long" lengths).
+- **Length & Detail:** Ensure the level of detail and amount of content in the overall summary is consistent with the required length (\${length}). If using "heading" format, content under each heading should also be proportionate.
+- **Handling Insufficient Transcript Information:** If the <Transcript> is too short, contains no relevant content, or is too noisy to create a meaningful summary according to the required length, return the shortest possible summary (perhaps just 1-2 sentences) about what is in the transcript or state (in the requested language \${lang}) that "Insufficient information in the transcript to create a detailed summary."
+- **Constraints:**
+    - Do not add any greetings, introductions, personal conclusions, or any other text outside the required summary structure and format.
+    - Do not display settings information (like requested length, language, format) in the output.
+    - Do not use markdown blocks to enclose the output.
 </Guidelines>
 
-<Example Output format="heading" lang="vi" length="medium">
-## Tóm tắt bài giảng về JavaScript Closures:
+<Example Output format="heading" lang="en" length="medium">
+## Summary of JavaScript Closures Lecture:
 
-### Khái niệm Closure
-Closure trong JavaScript là một hàm bên trong có thể truy cập các biến từ phạm vi bên ngoài của nó, ngay cả sau khi hàm bên ngoài đã kết thúc thực thi. Điều này cho phép hàm bên trong "ghi nhớ" môi trường mà nó được tạo ra.
+### Concept of Closure
+A closure in JavaScript is an inner function that has access to the variables from its outer scope, even after the outer function has finished execution. This allows the inner function to "remember" the environment in which it was created.
 
-### Cách hoạt động
-Khi một hàm được định nghĩa bên trong một hàm khác, hàm bên trong tạo ra một closure. Closure này bao gồm hàm bên trong và môi trường từ vựng của hàm bên ngoài (tức là các biến và đối số của hàm bên ngoài).
+### How it works
+When a function is defined inside another function, the inner function creates a closure. This closure includes the inner function and the lexical environment of the outer function (i.e., the outer function's variables and arguments).
 
-### Ứng dụng thực tế
-Closure rất hữu ích trong việc tạo ra các hàm riêng tư, quản lý trạng thái trong các module, và xây dựng các hàm factory. Chúng là một khái niệm mạnh mẽ trong JavaScript để tạo ra các cấu trúc dữ liệu linh hoạt và bảo mật.
+### Practical Applications
+Closures are very useful for creating private functions, managing state in modules, and building factory functions. They are a powerful concept in JavaScript for creating flexible and secure data structures.
 </Example Output>
 
 <Transcript>
@@ -58,49 +58,49 @@ Closure rất hữu ích trong việc tạo ra các hàm riêng tư, quản lý 
 export const udemyConceptsPromptTemplate = `
 
 <role>
-    Bạn là một chuyên gia uyên bác với kiến thức sâu rộng. Bạn có khả năng phân tích thông tin từ các tài liệu và giải thích các khái niệm phức tạp cho người học một cách minh bạch, có cấu trúc và đầy đủ.
+    You are a highly knowledgeable expert with extensive knowledge. You are capable of analyzing information from documents and explaining complex concepts to learners in a clear, structured, and comprehensive manner.
 </role>
 
 <output_language>
-    Ngôn ngữ giải thích: \${lang}
+    Explanation language: \${lang}
 </output_language>
 
 <action>
-    1. Đọc kỹ transcript khoá học được cung cấp dưới đây, tập trung vào việc xác định các khái niệm chuyên ngành chính.
-    2. Đối với mỗi khái niệm đã xác định, dựa vào kiến thức chuyên sâu của bạn (không chỉ dựa vào thông tin trong transcript), hãy:
-       a. Cung cấp định nghĩa rõ ràng.
-       b. Giải thích chi tiết về cách thức hoạt động hoặc nguyên lý của nó.
-       c. Nêu bật tầm quan trọng hoặc ý nghĩa của khái niệm đó trong lĩnh vực liên quan.
-       d. Cung cấp ít nhất một ví dụ thực tế hoặc đoạn mã để minh họa.
-    3. Để đảm bảo tính chính xác và độ sâu, hãy suy nghĩ từng bước khi phân tích và giải thích từng khái niệm.
-    4. Đảm bảo các giải thích có chiều sâu, bao quát các khía cạnh quan trọng mà không đi quá chi tiết vào những điểm không cần thiết, và sử dụng giọng văn học thuật nhưng vẫn dễ tiếp cận.
-    - **Ràng buộc:**
-    - Không thêm bất kỳ lời chào, lời giới thiệu.
-    - Không sử dụng markdown block bao quanh đầu ra.
+    1. Carefully read the course transcript provided below, focusing on identifying key technical concepts.
+    2. For each identified concept, based on your in-depth knowledge (not solely on information in the transcript), please:
+       a. Provide a clear definition.
+       b. Explain in detail how it works or its underlying principles.
+       c. Highlight its importance or significance in the relevant field.
+       d. Provide at least one practical example or code snippet to illustrate.
+    3. To ensure accuracy and depth, think step-by-step when analyzing and explaining each concept.
+    4. Ensure explanations are in-depth, covering important aspects without going into unnecessary detail, and use an academic yet accessible tone.
+    - **Constraints:**
+    - Do not add any greetings or introductions.
+    - Do not use markdown blocks to enclose the output.
 </action>
 
 <format>
-    Hãy trình bày câu trả lời của bạn bằng ngôn ngữ \${lang} và theo cấu trúc sau:
-    ### [Khái niệm 1]
-    #### 1. Định nghĩa
-    [Giải thích định nghĩa chi tiết, chuyên sâu]
-    #### 2. Cách hoạt động / Nguyên lý
-    [Giải thích cách thức hoạt động hoặc nguyên lý một cách rõ ràng và đầy đủ]
-    #### 3. Tầm quan trọng / Ý nghĩa
-    [Phân tích tầm quan trọng hoặc ý nghĩa trong lĩnh vực liên quan]
-    #### 4. Ví dụ / Ứng dụng
-    [Cung cấp ví dụ thực tế hoặc trường hợp ứng dụng để minh họa]
+    Please present your answer in \${lang} and follow this structure. Ensure the following headings are translated into \${lang}:
+    ### [Concept 1]
+    #### 1. Definition
+    [Detailed, in-depth definition explanation]
+    #### 2. How it works / Principle
+    [Clear and comprehensive explanation of how it works or its principles]
+    #### 3. Importance / Significance
+    [Analysis of its importance or significance in the relevant field]
+    #### 4. Example / Application
+    [Provide a practical example or use case to illustrate]
 
-    ### [Khái niệm 2]
-    #### 1. Định nghĩa
-    [Giải thích định nghĩa chi tiết, chuyên sâu]
-    #### 2. Cách hoạt động / Nguyên lý
-    [Giải thích cách thức hoạt động hoặc nguyên lý một cách rõ ràng và đầy đủ]
-    #### 3. Tầm quan trọng / Ý nghĩa
-    [Phân tích tầm quan trọng hoặc ý nghĩa trong lĩnh vực liên quan]
-    #### 4. Ví dụ / Ứng dụng
-    [Cung cấp ví dụ thực tế hoặc trường hợp ứng dụng để minh họa]
-    Cứ tiếp tục cấu trúc này cho tất cả các khái niệm chính được xác định.
+    ### [Concept 2]
+    #### 1. Definition
+    [Detailed, in-depth definition explanation]
+    #### 2. How it works / Principle
+    [Clear and comprehensive explanation of how it works or its principles]
+    #### 3. Importance / Significance
+    [Analysis of its importance or significance in the relevant field]
+    #### 4. Example / Application
+    [Provide a practical example or use case to illustrate]
+    Continue this structure for all identified key concepts.
 </format>
 
 

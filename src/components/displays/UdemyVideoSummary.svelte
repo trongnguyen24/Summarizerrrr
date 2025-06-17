@@ -1,9 +1,18 @@
 <!-- @ts-nocheck -->
 <script>
   import { marked } from 'marked'
+  import hljs from 'highlight.js'
   import TOC from '../TOC.svelte' // TOC is in src/components
 
   let { summary, isLoading, error } = $props()
+
+  $effect(() => {
+    if (summary && !isLoading) {
+      document.querySelectorAll('pre code').forEach((block) => {
+        hljs.highlightElement(block)
+      })
+    }
+  })
 </script>
 
 {#if isLoading}

@@ -1,10 +1,19 @@
 <!-- @ts-nocheck -->
 <script>
   import { marked } from 'marked'
+  import hljs from 'highlight.js'
   import TOC from '../TOC.svelte'
 
   let { selectedTextSummary, isSelectedTextLoading, selectedTextError } =
     $props()
+
+  $effect(() => {
+    if (selectedTextSummary && !isSelectedTextLoading) {
+      document.querySelectorAll('pre code').forEach((block) => {
+        hljs.highlightElement(block)
+      })
+    }
+  })
 </script>
 
 {#if isSelectedTextLoading}

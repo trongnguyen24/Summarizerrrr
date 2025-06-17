@@ -1,34 +1,33 @@
 // @ts-nocheck
-// @svelte-compiler-ignore
 import { marked } from 'marked'
 import { getPageContent } from '../services/contentService.js'
 import { getActiveTabInfo } from '../services/chromeService.js'
-import { settings, getIsInitialized } from './settingsStore.svelte.js' // Import settings và getIsInitialized
+import { settings, loadSettings } from './settingsStore.svelte.js' // Import settings and loadSettings
 import { summarizeContent, summarizeChapters } from '../lib/api.js'
 
 // --- State ---
 export const summaryState = $state({
   summary: '',
   chapterSummary: '',
-  udemySummary: '', // New: For Udemy video summary
-  udemyConcepts: '', // New: For Udemy concepts explanation
+  udemySummary: '', // For Udemy video summary
+  udemyConcepts: '', // For Udemy concepts explanation
   isLoading: false,
   isChapterLoading: false,
-  isUdemySummaryLoading: false, // New: For Udemy video summary loading state
-  isUdemyConceptsLoading: false, // New: For Udemy concepts loading state
+  isUdemySummaryLoading: false, // For Udemy video summary loading state
+  isUdemyConceptsLoading: false, // For Udemy concepts loading state
   error: '',
   chapterError: '',
-  udemySummaryError: '', // New: For Udemy summary error
-  udemyConceptsError: '', // New: For Udemy concepts error
+  udemySummaryError: '', // For Udemy summary error
+  udemyConceptsError: '', // For Udemy concepts error
   isYouTubeVideoActive: false,
-  isUdemyVideoActive: false, // New: For Udemy video active state
+  isUdemyVideoActive: false, // For Udemy video active state
   currentContentSource: '',
   selectedTextSummary: '',
   isSelectedTextLoading: false,
   selectedTextError: '',
   lastSummaryTypeDisplayed: null,
   activeYouTubeTab: 'videoSummary',
-  activeUdemyTab: 'udemySummary', // New: For active Udemy tab
+  activeUdemyTab: 'udemySummary', // For active Udemy tab
 })
 
 // --- Actions ---
@@ -109,10 +108,59 @@ export function updateActiveUdemyTab(tabName) {
 }
 
 /**
+ * Checks if the API key for the selected provider is configured.
+ * @param {object} userSettings - The current settings object.
+ * @param {string} selectedProviderId - The ID of the selected provider.
+ * @throws {Error} If the API key is not configured.
+ */
+function checkApiKeyConfiguration(userSettings, selectedProviderId) {
+  let apiKey
+  if (selectedProviderId === 'ollama') {
+    apiKey = userSettings.ollamaEndpoint
+    if (!apiKey || apiKey.trim() === '') {
+      throw new Error(
+        'Ollama Endpoint not configured in settings. Please add your Ollama Endpoint in the settings.'
+      )
+    }
+    if (
+      !userSettings.selectedOllamaModel ||
+      userSettings.selectedOllamaModel.trim() === ''
+    ) {
+      throw new Error(
+        'Ollama Model not configured in settings. Please select an Ollama Model in the settings.'
+      )
+    }
+  } else if (selectedProviderId === 'gemini') {
+    apiKey = userSettings.isAdvancedMode
+      ? userSettings.geminiAdvancedApiKey
+      : userSettings.geminiApiKey
+    if (!apiKey || apiKey.trim() === '') {
+      console.log(
+        `[summaryStore] Gemini API Key is empty or whitespace. API Key: "${apiKey}"`
+      ) // Debug log
+      throw new Error(
+        'Gemini API Key not configured in settings. Please add your API Key in the settings.'
+      )
+    }
+  } else {
+    // For other providers that use API keys
+    apiKey = userSettings[`${selectedProviderId}ApiKey`]
+    if (!apiKey || apiKey.trim() === '') {
+      console.log(
+        `[summaryStore] ${selectedProviderId} API Key is empty or whitespace. API Key: "${apiKey}"`
+      ) // Debug log
+      throw new Error(
+        `${selectedProviderId} API Key not configured in settings. Please add your API Key in the settings.`
+      )
+    }
+  }
+}
+
+/**
  * Fetches content from the current tab and triggers the summarization process.
  */
 export async function fetchAndSummarize() {
-  // Nếu có quá trình tóm tắt đang diễn ra, reset trạng thái và bắt đầu quá trình mới
+  // If a summarization process is already ongoing, reset state and start a new one
   if (summaryState.isLoading || summaryState.isChapterLoading) {
     console.warn(
       '[summaryStore] Existing summarization in progress. Resetting and starting new.'
@@ -121,17 +169,7 @@ export async function fetchAndSummarize() {
   }
 
   // Wait for settings to be initialized
-  if (!getIsInitialized()) {
-    await new Promise((resolve) => {
-      const checkInterval = setInterval(() => {
-        if (getIsInitialized()) {
-          clearInterval(checkInterval)
-          resolve()
-        }
-      }, 100)
-    })
-    console.log('[summaryStore] Cài đặt đã sẵn sàng.')
-  }
+  await loadSettings()
 
   const userSettings = settings
 
@@ -142,8 +180,8 @@ export async function fetchAndSummarize() {
     // Immediately set loading states inside try block
     summaryState.isLoading = true
     summaryState.isChapterLoading = true
-    summaryState.isUdemySummaryLoading = true // Set loading for Udemy summary
-    summaryState.isUdemyConceptsLoading = true // Set loading for Udemy concepts
+    summaryState.isUdemySummaryLoading = true
+    summaryState.isUdemyConceptsLoading = true
 
     const selectedProviderId = userSettings.selectedProvider || 'gemini'
 
@@ -164,52 +202,10 @@ export async function fetchAndSummarize() {
       `[summaryStore] geminiAdvancedApiKey (Advanced): ${userSettings.geminiAdvancedApiKey}`
     )
 
-    if (selectedProviderId === 'ollama') {
-      if (
-        !userSettings.ollamaEndpoint ||
-        userSettings.ollamaEndpoint.trim() === ''
-      ) {
-        throw new Error(
-          'Ollama Endpoint not configured in settings. Please add your Ollama Endpoint in the settings.'
-        )
-      }
-      if (
-        !userSettings.selectedOllamaModel ||
-        userSettings.selectedOllamaModel.trim() === ''
-      ) {
-        throw new Error(
-          'Ollama Model not configured in settings. Please select an Ollama Model in the settings.'
-        )
-      }
-    } else if (selectedProviderId === 'gemini') {
-      let apiKey
-      if (userSettings.isAdvancedMode) {
-        apiKey = userSettings.geminiAdvancedApiKey
-      } else {
-        apiKey = userSettings.geminiApiKey
-      }
-      if (!apiKey || apiKey.trim() === '') {
-        console.log(
-          `[summaryStore] Gemini API Key is empty or whitespace. API Key: "${apiKey}"`
-        ) // Debug log
-        throw new Error(
-          'Gemini API Key not configured in settings. Please add your API Key in the settings.'
-        )
-      }
-    } else {
-      // For other providers that use API keys
-      const apiKey = userSettings[`${selectedProviderId}ApiKey`]
-      if (!apiKey || apiKey.trim() === '') {
-        console.log(
-          `[summaryStore] ${selectedProviderId} API Key is empty or whitespace. API Key: "${apiKey}"`
-        ) // Debug log
-        throw new Error(
-          `${selectedProviderId} API Key not configured in settings. Please add your API Key in the settings.`
-        )
-      }
-    }
+    // Check API key configuration
+    checkApiKeyConfiguration(userSettings, selectedProviderId)
 
-    console.log('[summaryStore] Đang kiểm tra loại tab...')
+    console.log('[summaryStore] Checking tab type...')
     const tabInfo = await getActiveTabInfo()
     if (!tabInfo || !tabInfo.url) {
       throw new Error(
@@ -223,7 +219,7 @@ export async function fetchAndSummarize() {
     summaryState.isUdemyVideoActive = UDEMY_MATCH_PATTERN.test(tabInfo.url)
 
     console.log(
-      `[summaryStore] Tab hiện tại là: ${tabInfo.url}. YouTube video: ${summaryState.isYouTubeVideoActive}. Udemy video: ${summaryState.isUdemyVideoActive}`
+      `[summaryStore] Current tab is: ${tabInfo.url}. YouTube video: ${summaryState.isYouTubeVideoActive}. Udemy video: ${summaryState.isUdemyVideoActive}`
     )
 
     let mainContentTypeToFetch = 'webpageText'
@@ -241,7 +237,7 @@ export async function fetchAndSummarize() {
       summaryState.lastSummaryTypeDisplayed = 'web' // Set immediately for general web
     }
     console.log(
-      `[summaryStore] Sẽ lấy loại nội dung chính: ${mainContentTypeToFetch} cho loại tóm tắt: ${summaryType}`
+      `[summaryStore] Will fetch main content type: ${mainContentTypeToFetch} for summary type: ${summaryType}`
     )
 
     const mainContentResult = await getPageContent(
@@ -259,7 +255,7 @@ export async function fetchAndSummarize() {
 
     if (summaryState.isYouTubeVideoActive) {
       console.log(
-        '[summaryStore] Bắt đầu lấy transcript có timestamp cho chapters và tóm tắt video...'
+        '[summaryStore] Starting to fetch timestamped transcript for chapters and video summary...'
       )
       const chapterPromise = (async () => {
         summaryState.chapterError = ''
@@ -277,7 +273,7 @@ export async function fetchAndSummarize() {
             )
           }
           console.log(
-            '[summaryStore] Đã lấy transcript có timestamp, bắt đầu tóm tắt chapter...'
+            '[summaryStore] Fetched timestamped transcript, starting chapter summarization...'
           )
 
           const chapterSummarizedText = await summarizeChapters(
@@ -286,16 +282,16 @@ export async function fetchAndSummarize() {
 
           if (!chapterSummarizedText || chapterSummarizedText.trim() === '') {
             console.warn(
-              '[summaryStore] Gemini trả về kết quả rỗng cho tóm tắt chapter.'
+              '[summaryStore] Gemini returned empty result for chapter summary.'
             )
             summaryState.chapterSummary =
-              '<p><i>Không thể tạo tóm tắt chapter từ nội dung này.</i></p>'
+              '<p><i>Could not generate chapter summary from this content.</i></p>'
           } else {
             summaryState.chapterSummary = marked.parse(chapterSummarizedText)
           }
-          console.log('[summaryStore] Đã xử lý tóm tắt chapter.')
+          console.log('[summaryStore] Chapter summary processed.')
         } catch (e) {
-          console.error('[summaryStore] Lỗi tóm tắt chapter:', e)
+          console.error('[summaryStore] Chapter summarization error:', e)
           summaryState.chapterError =
             e.message ||
             'Unexpected error when summarizing chapters. Please try again later.'
@@ -314,16 +310,16 @@ export async function fetchAndSummarize() {
 
           if (!videoSummarizedText || videoSummarizedText.trim() === '') {
             console.warn(
-              '[summaryStore] Gemini trả về kết quả rỗng cho tóm tắt video YouTube.'
+              '[summaryStore] Gemini returned empty result for YouTube video summary.'
             )
             summaryState.summary =
-              '<p><i>Không thể tạo tóm tắt video YouTube từ nội dung này.</i></p>'
+              '<p><i>Could not generate YouTube video summary from this content.</i></p>'
           } else {
             summaryState.summary = marked.parse(videoSummarizedText)
           }
-          console.log('[summaryStore] Đã xử lý tóm tắt video YouTube.')
+          console.log('[summaryStore] YouTube video summary processed.')
         } catch (e) {
-          console.error('[summaryStore] Lỗi tóm tắt video YouTube:', e)
+          console.error('[summaryStore] YouTube video summarization error:', e)
           summaryState.error =
             e.message ||
             'Unexpected error when summarizing YouTube video. Please try again later.'
@@ -331,10 +327,10 @@ export async function fetchAndSummarize() {
           summaryState.isLoading = false
         }
       })()
-      await Promise.all([chapterPromise, videoSummaryPromise]) // Await both promises
+      await Promise.all([chapterPromise, videoSummaryPromise])
     } else if (summaryState.isUdemyVideoActive) {
       console.log(
-        '[summaryStore] Bắt đầu tóm tắt Udemy và giải thích khái niệm...'
+        '[summaryStore] Starting Udemy summary and concept explanation...'
       )
 
       const udemySummaryPromise = (async () => {
@@ -347,16 +343,16 @@ export async function fetchAndSummarize() {
 
           if (!udemySummarizedText || udemySummarizedText.trim() === '') {
             console.warn(
-              '[summaryStore] Gemini trả về kết quả rỗng cho tóm tắt Udemy.'
+              '[summaryStore] Gemini returned empty result for Udemy summary.'
             )
             summaryState.udemySummary =
-              '<p><i>Không thể tạo tóm tắt bài giảng Udemy từ nội dung này.</i></p>'
+              '<p><i>Could not generate Udemy lecture summary from this content.</i></p>'
           } else {
             summaryState.udemySummary = marked.parse(udemySummarizedText)
           }
-          console.log('[summaryStore] Đã xử lý tóm tắt Udemy.')
+          console.log('[summaryStore] Udemy summary processed.')
         } catch (e) {
-          console.error('[summaryStore] Lỗi tóm tắt Udemy:', e)
+          console.error('[summaryStore] Udemy summarization error:', e)
           summaryState.udemySummaryError =
             e.message ||
             'Unexpected error when summarizing Udemy video. Please try again later.'
@@ -375,16 +371,16 @@ export async function fetchAndSummarize() {
 
           if (!udemyConceptsText || udemyConceptsText.trim() === '') {
             console.warn(
-              '[summaryStore] Gemini trả về kết quả rỗng cho giải thích khái niệm Udemy.'
+              '[summaryStore] Gemini returned empty result for Udemy concept explanation.'
             )
             summaryState.udemyConcepts =
-              '<p><i>Không thể giải thích thuật ngữ từ nội dung này.</i></p>'
+              '<p><i>Could not explain terms from this content.</i></p>'
           } else {
             summaryState.udemyConcepts = marked.parse(udemyConceptsText)
           }
-          console.log('[summaryStore] Đã xử lý giải thích khái niệm Udemy.')
+          console.log('[summaryStore] Udemy concept explanation processed.')
         } catch (e) {
-          console.error('[summaryStore] Lỗi giải thích khái niệm Udemy:', e)
+          console.error('[summaryStore] Udemy concept explanation error:', e)
           summaryState.udemyConceptsError =
             e.message ||
             'Unexpected error when explaining Udemy concepts. Please try again later.'
@@ -393,10 +389,12 @@ export async function fetchAndSummarize() {
         }
       })()
 
-      await Promise.allSettled([udemySummaryPromise, udemyConceptsPromise]) // Await both promises independently
+      await Promise.allSettled([udemySummaryPromise, udemyConceptsPromise])
     } else {
       // For general webpages, this is the primary summarization.
-      console.log('[summaryStore] Bắt đầu tóm tắt chính cho trang web chung...')
+      console.log(
+        '[summaryStore] Starting main summarization for general webpage...'
+      )
       const summarizedText = await summarizeContent(
         summaryState.currentContentSource,
         summaryType
@@ -404,22 +402,21 @@ export async function fetchAndSummarize() {
 
       if (!summarizedText || summarizedText.trim() === '') {
         console.warn(
-          '[summaryStore] Gemini trả về kết quả rỗng cho tóm tắt chính.'
+          '[summaryStore] Gemini returned empty result for main summary.'
         )
         summaryState.summary =
-          '<p><i>Không thể tạo tóm tắt từ nội dung này.</i></p>'
+          '<p><i>Could not generate summary from this content.</i></p>'
       } else {
         summaryState.summary = marked.parse(summarizedText)
       }
-      // No need to set isLoading = false here, as it's handled by the finally block
     }
   } catch (e) {
-    console.error('[summaryStore] Lỗi trong quá trình tóm tắt chính:', e)
+    console.error('[summaryStore] Error during main summarization process:', e)
     summaryState.error =
       e.message || 'An unexpected error occurred. Please try again later.'
     summaryState.lastSummaryTypeDisplayed = 'web' // Ensure error is displayed in WebSummaryDisplay
   } finally {
-    // Đảm bảo tất cả các trạng thái loading được đặt về false
+    // Ensure all loading states are set to false
     summaryState.isLoading = false
     summaryState.isChapterLoading = false
     summaryState.isUdemySummaryLoading = false
@@ -439,99 +436,48 @@ export async function summarizeSelectedText(text) {
     resetState()
   }
 
-  if (!getIsInitialized()) {
-    await new Promise((resolve) => {
-      const checkInterval = setInterval(() => {
-        if (getIsInitialized()) {
-          clearInterval(checkInterval)
-          resolve()
-        }
-      }, 100)
-    })
-    console.log(
-      '[summaryStore] Cài đặt đã sẵn sàng cho tóm tắt văn bản được chọn.'
-    )
-  }
+  // Wait for settings to be initialized
+  await loadSettings()
 
   const userSettings = settings
 
-  resetDisplayState() // Reset display state before new summarization
+  resetDisplayState()
   summaryState.selectedTextSummary = ''
   summaryState.selectedTextError = ''
-  summaryState.lastSummaryTypeDisplayed = 'selectedText' // Set immediately
+  summaryState.lastSummaryTypeDisplayed = 'selectedText'
 
   try {
-    summaryState.isSelectedTextLoading = true // Set loading state inside try block
+    summaryState.isSelectedTextLoading = true
 
     const selectedProviderId = userSettings.selectedProvider || 'gemini'
 
-    if (selectedProviderId === 'ollama') {
-      if (
-        !userSettings.ollamaEndpoint ||
-        userSettings.ollamaEndpoint.trim() === ''
-      ) {
-        throw new Error(
-          'Ollama Endpoint not configured in settings. Please add your Ollama Endpoint in the settings.'
-        )
-      }
-      if (
-        !userSettings.selectedOllamaModel ||
-        userSettings.selectedOllamaModel.trim() === ''
-      ) {
-        throw new Error(
-          'Ollama Model not configured in settings. Please select an Ollama Model in the settings.'
-        )
-      }
-    } else if (selectedProviderId === 'gemini') {
-      let apiKey
-      if (userSettings.isAdvancedMode) {
-        apiKey = userSettings.geminiAdvancedApiKey
-      } else {
-        apiKey = userSettings.geminiApiKey
-      }
-      if (!apiKey || apiKey.trim() === '') {
-        throw new Error(
-          'Gemini API Key not configured in settings. Please add your API Key in the settings.'
-        )
-      }
-    } else {
-      // For other providers that use API keys
-      const apiKey = userSettings[`${selectedProviderId}ApiKey`]
-      if (!apiKey || apiKey.trim() === '') {
-        throw new Error(
-          `${selectedProviderId} API Key not configured in settings. Please add your API Key in the settings.`
-        )
-      }
-    }
+    // Check API key configuration
+    checkApiKeyConfiguration(userSettings, selectedProviderId)
 
     if (!text || text.trim() === '') {
       throw new Error('No text selected for summarization.')
     }
 
-    console.log('[summaryStore] Bắt đầu tóm tắt văn bản được chọn...')
+    console.log('[summaryStore] Starting selected text summarization...')
     const summarizedText = await summarizeContent(text, 'selectedText')
 
     if (!summarizedText || summarizedText.trim() === '') {
       console.warn(
-        '[summaryStore] Gemini trả về kết quả rỗng cho tóm tắt văn bản được chọn.'
+        '[summaryStore] Gemini returned empty result for selected text summary.'
       )
       summaryState.selectedTextSummary =
-        '<p><i>Không thể tạo tóm tắt từ văn bản được chọn này.</i></p>'
+        '<p><i>Could not generate summary from this selected text.</i></p>'
     } else {
       summaryState.selectedTextSummary = marked.parse(summarizedText)
     }
-    console.log('[summaryStore] Đã xử lý tóm tắt văn bản được chọn.')
+    console.log('[summaryStore] Selected text summary processed.')
   } catch (e) {
-    console.error('[summaryStore] Lỗi tóm tắt văn bản được chọn:', e)
+    console.error('[summaryStore] Selected text summarization error:', e)
     summaryState.selectedTextError =
       e.message ||
       'An unexpected error occurred during selected text summarization. Please try again later.'
-    summaryState.lastSummaryTypeDisplayed = 'selectedText' // Ensure error is displayed in SelectedTextSummaryDisplay
+    summaryState.lastSummaryTypeDisplayed = 'selectedText'
   } finally {
     summaryState.isSelectedTextLoading = false
   }
 }
-
-// Các hàm updateSummary và updateError không còn cần thiết nếu các component trực tiếp cập nhật summaryState.summary và summaryState.error
-// export function updateSummary(value) { summaryState.summary = value; }
-// export function updateError(value) { summaryState.error = value; }

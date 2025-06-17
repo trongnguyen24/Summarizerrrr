@@ -8,51 +8,72 @@ export default defineContentScript({
         this.defaultLang = defaultLang
       }
 
+      /**
+       * Chờ một phần tử DOM xuất hiện.
+       * @param {string} selector - Bộ chọn CSS của phần tử.
+       * @param {number} timeout - Thời gian chờ tối đa bằng milliseconds.
+       * @returns {Promise<Element|null>} - Phần tử hoặc null nếu hết thời gian chờ.
+       */
+      async waitForElement(selector, timeout = 15000, interval = 500) {
+        const startTime = Date.now()
+        return new Promise((resolve) => {
+          const check = () => {
+            const element = document.querySelector(selector)
+            if (element) {
+              resolve(element)
+            } else if (Date.now() - startTime > timeout) {
+              resolve(null)
+            } else {
+              setTimeout(check, interval)
+            }
+          }
+          check()
+        })
+      }
+
       async getTranscriptFromDOM() {
         try {
           // Chờ nút 'Transcript' xuất hiện và nhấp vào nó nếu panel chưa mở
-          await new Promise((resolve) => {
-            const checkButton = () => {
-              const button = document.querySelector(
-                'button[data-purpose="transcript-toggle"]'
-              )
-              if (button) {
-                // Kiểm tra xem panel đã hiện chưa
-                const isExpanded =
-                  button.getAttribute('aria-expanded') === 'true'
-                if (!isExpanded) {
-                  button.click()
-                }
-                resolve()
-              } else {
-                setTimeout(checkButton, 500) // Kiểm tra lại sau 500ms
-              }
-            }
-            checkButton()
-          })
+          const transcriptButton = await this.waitForElement(
+            'button[data-purpose="transcript-toggle"]'
+          )
+          if (!transcriptButton) {
+            console.error('Transcript button not found after waiting.')
+            return null
+          }
+
+          const isExpanded =
+            transcriptButton.getAttribute('aria-expanded') === 'true'
+          if (!isExpanded) {
+            transcriptButton.click()
+            console.log('Clicked transcript button to expand panel.')
+            // Thêm một độ trễ nhỏ sau khi nhấp để panel có thời gian mở
+            await new Promise((resolve) => setTimeout(resolve, 1000))
+          }
 
           // Chờ vùng chứa bản ghi xuất hiện
-          await new Promise((resolve) => {
-            const checkContainer = () => {
-              const container = document.querySelector(
-                'div[data-purpose="transcript-panel"]'
-              )
-              if (container) {
-                resolve()
-              } else {
-                setTimeout(checkContainer, 500) // Kiểm tra lại sau 500ms
-              }
-            }
-            checkContainer()
-          })
+          const transcriptContainer = await this.waitForElement(
+            'div[data-purpose="transcript-panel"]'
+          )
+          if (!transcriptContainer) {
+            console.error('Transcript panel container not found after waiting.')
+            return null
+          }
 
           // Phân tích tất cả các đoạn văn bản từ vùng chứa bản ghi
           const transcriptText = Array.from(
-            document.querySelectorAll('.transcript--cue-container--Vuwj6')
+            transcriptContainer.querySelectorAll(
+              '.transcript--cue-container--Vuwj6'
+            )
           )
             .map((element) => element.textContent?.trim())
             .filter(Boolean) // Lọc bỏ các giá trị null/undefined
             .join('\n') // Nối các đoạn bằng một dòng mới
+
+          if (!transcriptText) {
+            console.warn('No transcript text found in the panel.')
+            return null
+          }
 
           return transcriptText
         } catch (error) {
@@ -112,9 +133,38 @@ export default defineContentScript({
             )
             try {
               const lang = request.lang || transcriptExtractor.defaultLang
-              const transcript = await transcriptExtractor.getPlainTranscript(
-                lang
-              )
+              let transcript = null
+              const maxRetries = 3
+              let retries = 0
+              let lastError = null
+
+              while (transcript === null && retries < maxRetries) {
+                if (retries > 0) {
+                  console.log(
+                    `Retrying to get Udemy transcript (attempt ${
+                      retries + 1
+                    }/${maxRetries})...`
+                  )
+                  // Thêm độ trễ giữa các lần thử lại
+                  await new Promise((resolve) => setTimeout(resolve, 2000))
+                }
+                try {
+                  transcript = await transcriptExtractor.getPlainTranscript(
+                    lang
+                  )
+                  if (transcript) {
+                    console.log(
+                      'Udemy Transcript fetched successfully after retry.'
+                    )
+                    break // Thoát vòng lặp nếu thành công
+                  }
+                } catch (error) {
+                  lastError = error
+                  console.error(`Attempt ${retries + 1} failed:`, error)
+                }
+                retries++
+              }
+
               if (transcript) {
                 console.log('Udemy Transcript fetched successfully')
                 sendResponse({ success: true, transcript })
@@ -127,11 +177,13 @@ export default defineContentScript({
                 })
               } else {
                 console.log(
-                  'Failed to get Udemy transcript, sending error response'
+                  'Failed to get Udemy transcript after multiple attempts, sending error response'
                 )
                 sendResponse({
                   success: false,
-                  error: 'Failed to get Udemy transcript.',
+                  error: lastError
+                    ? lastError.message
+                    : 'Failed to get Udemy transcript after multiple attempts.',
                 })
               }
             } catch (error) {

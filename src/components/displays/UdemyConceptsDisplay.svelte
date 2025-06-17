@@ -4,8 +4,18 @@
   import PlusIcon from '../PlusIcon.svelte'
   import Toc from '../TOC.svelte'
   import TOC from '../TOC.svelte' // TOC is in src/components
+  import { marked } from 'marked'
+  import hljs from 'highlight.js'
 
   let { udemyConcepts, isUdemyLoading, udemyConceptsError } = $props()
+
+  $effect(() => {
+    if (udemyConcepts && !isUdemyLoading) {
+      document.querySelectorAll('pre code').forEach((block) => {
+        hljs.highlightElement(block)
+      })
+    }
+  })
 </script>
 
 <div class="flex flex-col gap-4">

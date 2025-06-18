@@ -28,7 +28,7 @@
   <GroupVisual>
     {#each tabs as tab (tab.id)}
       <button
-        class="w-36 h-9 relative rounded-full transition-colors duration-150 {activeTab ===
+        class="w-36 h-9 relative rounded-sm transition-colors duration-150 {activeTab ===
         tab.id
           ? 'text-text-primary active'
           : ''} "

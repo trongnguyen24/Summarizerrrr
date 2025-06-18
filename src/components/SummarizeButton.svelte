@@ -126,10 +126,10 @@
 </script>
 
 <button
-  class="relative summarize p-4 pl-4 pr-6 overflow-hidden text-black flex items-center rounded-full gap-2 w-fit h-12"
+  class="relative summarize p-4 pl-4 pr-6 overflow-hidden text-black flex outline-offset-2 !outline-primary items-center rounded-full gap-2 w-fit h-12"
   onclick={dispatch}
   disabled={isLoading || isChapterLoading}
-  title="Summarize current page"
+  title="Summarize"
 >
   <div class="text-primary relative z-10 size-6">
     {#if isLoading || isChapterLoading}

@@ -85,25 +85,6 @@ export async function summarizeContent(text, contentType) {
     selectedProviderId
   )
 
-  console.log('DEBUG: selectedProviderId:', selectedProviderId)
-  console.log('DEBUG: isAdvancedMode:', userSettings.isAdvancedMode)
-  console.log(
-    'DEBUG: geminiApiKey:',
-    userSettings.geminiApiKey ? 'CONFIGURED' : 'NOT CONFIGURED'
-  )
-  console.log(
-    'DEBUG: geminiAdvancedApiKey:',
-    userSettings.geminiAdvancedApiKey ? 'CONFIGURED' : 'NOT CONFIGURED'
-  )
-  console.log(
-    'DEBUG: openrouterApiKey:',
-    userSettings.openrouterApiKey ? 'CONFIGURED' : 'NOT CONFIGURED'
-  )
-  console.log(
-    'DEBUG: final apiKey value:',
-    apiKey ? 'CONFIGURED' : 'NOT CONFIGURED'
-  )
-
   const provider = getProvider(selectedProviderId, userSettings) // Pass full settings object
 
   const contentConfig = promptBuilders[contentType] || promptBuilders['general'] // Fallback to general
@@ -118,7 +99,8 @@ export async function summarizeContent(text, contentType) {
     text,
     userSettings.summaryLang,
     userSettings.summaryLength,
-    userSettings.summaryFormat
+    userSettings.summaryFormat,
+    userSettings.summaryTone
   )
   const systemInstruction = contentConfig.systemInstruction
 
@@ -133,27 +115,6 @@ export async function summarizeContent(text, contentType) {
         ? advancedModeSettings.topP
         : basicModeSettings.topP,
     }
-
-    console.log('--- summarizeContent Debug Info ---')
-    console.log('isAdvancedMode:', userSettings.isAdvancedMode)
-    console.log('selectedProviderId:', selectedProviderId)
-    console.log('model:', model)
-    console.log(
-      'finalGenerationConfig (temperature):',
-      finalGenerationConfig.temperature
-    )
-    console.log('finalGenerationConfig (topP):', finalGenerationConfig.topP)
-    console.log(
-      'advancedModeSettings (temperature):',
-      advancedModeSettings.temperature
-    )
-    console.log('advancedModeSettings (topP):', advancedModeSettings.topP)
-    console.log(
-      'basicModeSettings (temperature):',
-      basicModeSettings.temperature
-    )
-    console.log('basicModeSettings (topP):', basicModeSettings.topP)
-    console.log('---------------------------------')
 
     let contentsForProvider
     if (selectedProviderId === 'gemini') {
@@ -217,7 +178,8 @@ export async function summarizeChapters(timestampedTranscript) {
   const prompt = chapterConfig.buildPrompt(
     timestampedTranscript,
     userSettings.summaryLang,
-    userSettings.summaryLength
+    userSettings.summaryLength,
+    userSettings.summaryTone
   )
 
   try {
@@ -230,27 +192,6 @@ export async function summarizeChapters(timestampedTranscript) {
         ? advancedModeSettings.topP
         : basicModeSettings.topP,
     }
-
-    console.log('--- summarizeChapters Debug Info ---')
-    console.log('isAdvancedMode:', userSettings.isAdvancedMode)
-    console.log('selectedProviderId:', selectedProviderId)
-    console.log('model:', model)
-    console.log(
-      'finalGenerationConfig (temperature):',
-      finalGenerationConfig.temperature
-    )
-    console.log('finalGenerationConfig (topP):', finalGenerationConfig.topP)
-    console.log(
-      'advancedModeSettings (temperature):',
-      advancedModeSettings.temperature
-    )
-    console.log('advancedModeSettings (topP):', advancedModeSettings.topP)
-    console.log(
-      'basicModeSettings (temperature):',
-      basicModeSettings.temperature
-    )
-    console.log('basicModeSettings (topP):', basicModeSettings.topP)
-    console.log('---------------------------------')
 
     let contentsForProvider
     if (selectedProviderId === 'gemini') {

@@ -21,6 +21,7 @@ const DEFAULT_SETTINGS = {
   summaryLength: 'long', // short, medium, long
   summaryFormat: 'heading', // heading, paragraph
   summaryLang: 'Vietnamese', // Default language Vietnamese
+  summaryTone: 'simple', // Default tone setting
   selectedModel: 'gemini-2.0-flash', // Default model
   isAdvancedMode: false, // Default to basic mode
   selectedFont: 'default', // Default font setting

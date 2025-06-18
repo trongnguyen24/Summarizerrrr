@@ -211,7 +211,7 @@
     </div>
   </div>
   <div id="setting-scroll" class="max-h-[calc(100vh-64px)]">
-    <div class="flex flex-col">
+    <div>
       {#if activeTab === 'ai-model'}
         <!--AI Model Section -->
         <div class="setting-block flex gap-5 pb-6 pt-5 flex-col">
@@ -332,85 +332,87 @@
                 </div>
               </div>
             {:else}
-              <GeminiBasicConfig
-                bind:geminiApiKey={settings.geminiApiKey}
-                bind:selectedGeminiModel={settings.selectedGeminiModel}
-              />
-              <!-- Temperature Section for Basic Mode -->
-              <div class="flex flex-col gap-2">
-                <!-- svelte-ignore a11y_label_has_associated_control -->
-                <label
-                  class=" text-text-secondary flex justify-between items-center"
-                >
-                  <span>Temperature</span>
-                  <span class="text-text-primary font-bold"
-                    >{basicModeSettings.temperature.toFixed(2)}</span
+              <div class="setting-block flex gap-5 pb-2 flex-col">
+                <GeminiBasicConfig
+                  bind:geminiApiKey={settings.geminiApiKey}
+                  bind:selectedGeminiModel={settings.selectedGeminiModel}
+                />
+                <!-- Temperature Section for Basic Mode -->
+                <div class="flex flex-col gap-2">
+                  <!-- svelte-ignore a11y_label_has_associated_control -->
+                  <label
+                    class=" text-text-secondary flex justify-between items-center"
                   >
-                </label>
-                <div class="grid grid-cols-3 w-full gap-1">
-                  <ButtonSet
-                    title="Precise"
-                    class="setting-btn {basicModeSettings.temperature === 0.3
-                      ? 'active'
-                      : ''}"
-                    onclick={() => handleUpdateSetting('temperature', 0.3)}
-                    Description="0.3 - Less creative."
-                  ></ButtonSet>
-                  <ButtonSet
-                    title="Balanced"
-                    class="setting-btn {basicModeSettings.temperature === 0.7
-                      ? 'active'
-                      : ''}"
-                    onclick={() => handleUpdateSetting('temperature', 0.7)}
-                    Description="0.7 - Balanced."
-                  ></ButtonSet>
-                  <ButtonSet
-                    title="Creative"
-                    class="setting-btn {basicModeSettings.temperature === 0.9
-                      ? 'active'
-                      : ''}"
-                    onclick={() => handleUpdateSetting('temperature', 0.9)}
-                    Description="0.9 - More creative."
-                  ></ButtonSet>
+                    <span>Temperature</span>
+                    <span class="text-text-primary block font-bold"
+                      >{basicModeSettings.temperature.toFixed(2)}</span
+                    >
+                  </label>
+                  <div class="grid grid-cols-3 w-full gap-1">
+                    <ButtonSet
+                      title="Precise"
+                      class="setting-btn {basicModeSettings.temperature === 0.3
+                        ? 'active'
+                        : ''}"
+                      onclick={() => handleUpdateSetting('temperature', 0.3)}
+                      Description="0.3 - Less creative."
+                    ></ButtonSet>
+                    <ButtonSet
+                      title="Balanced"
+                      class="setting-btn {basicModeSettings.temperature === 0.7
+                        ? 'active'
+                        : ''}"
+                      onclick={() => handleUpdateSetting('temperature', 0.7)}
+                      Description="0.7 - Balanced."
+                    ></ButtonSet>
+                    <ButtonSet
+                      title="Creative"
+                      class="setting-btn {basicModeSettings.temperature === 0.9
+                        ? 'active'
+                        : ''}"
+                      onclick={() => handleUpdateSetting('temperature', 0.9)}
+                      Description="0.9 - More creative."
+                    ></ButtonSet>
+                  </div>
                 </div>
-              </div>
 
-              <!-- Top P Section for Basic Mode -->
-              <div class="flex flex-col gap-2">
-                <!-- svelte-ignore a11y_label_has_associated_control -->
-                <label
-                  class=" text-text-secondary flex justify-between items-center"
-                >
-                  <span>Top P</span>
-                  <span class="text-text-primary font-bold"
-                    >{basicModeSettings.topP.toFixed(2)}</span
+                <!-- Top P Section for Basic Mode -->
+                <div class="flex flex-col gap-2">
+                  <!-- svelte-ignore a11y_label_has_associated_control -->
+                  <label
+                    class=" text-text-secondary flex justify-between items-center"
                   >
-                </label>
-                <div class="grid grid-cols-3 w-full gap-1">
-                  <ButtonSet
-                    title="Narrow"
-                    class="setting-btn {basicModeSettings.topP === 0.9
-                      ? 'active'
-                      : ''}"
-                    onclick={() => handleUpdateSetting('topP', 0.9)}
-                    Description="0.9 - Focus on most likely tokens."
-                  ></ButtonSet>
-                  <ButtonSet
-                    title="Balanced"
-                    class="setting-btn {basicModeSettings.topP === 0.95
-                      ? 'active'
-                      : ''}"
-                    onclick={() => handleUpdateSetting('topP', 0.95)}
-                    Description="0.95 - Broader range of tokens."
-                  ></ButtonSet>
-                  <ButtonSet
-                    title="Wide"
-                    class="setting-btn {basicModeSettings.topP === 0.98
-                      ? 'active'
-                      : ''}"
-                    onclick={() => handleUpdateSetting('topP', 0.98)}
-                    Description="0.98 - Wider range of tokens."
-                  ></ButtonSet>
+                    <span>Top P</span>
+                    <span class="text-text-primary block font-bold"
+                      >{basicModeSettings.topP.toFixed(2)}</span
+                    >
+                  </label>
+                  <div class="grid grid-cols-3 w-full gap-1">
+                    <ButtonSet
+                      title="Narrow"
+                      class="setting-btn {basicModeSettings.topP === 0.9
+                        ? 'active'
+                        : ''}"
+                      onclick={() => handleUpdateSetting('topP', 0.9)}
+                      Description="0.9 - Focus on most likely tokens."
+                    ></ButtonSet>
+                    <ButtonSet
+                      title="Balanced"
+                      class="setting-btn {basicModeSettings.topP === 0.95
+                        ? 'active'
+                        : ''}"
+                      onclick={() => handleUpdateSetting('topP', 0.95)}
+                      Description="0.95 - Broader range of tokens."
+                    ></ButtonSet>
+                    <ButtonSet
+                      title="Wide"
+                      class="setting-btn {basicModeSettings.topP === 0.98
+                        ? 'active'
+                        : ''}"
+                      onclick={() => handleUpdateSetting('topP', 0.98)}
+                      Description="0.98 - Wider range of tokens."
+                    ></ButtonSet>
+                  </div>
                 </div>
               </div>
             {/if}
@@ -425,7 +427,7 @@
           <div class="flex items-center h-6 justify-between px-5">
             <label
               for="advanced-mode-toggle"
-              class="block font-bold text-text-primary">Provider settings</label
+              class="block font-bold text-text-primary">Summmary settings</label
             >
             <div class="flex items-center">
               <!-- <Label.Root
@@ -454,7 +456,7 @@
               </Switch.Root> -->
             </div>
           </div>
-          <div class="setting-secsion flex flex-col gap-4 px-4">
+          <div class="setting-secsion flex flex-col gap-6 px-5">
             <!-- Summary Length Section -->
             <div class="flex flex-col gap-2">
               <!-- svelte-ignore a11y_label_has_associated_control -->
@@ -490,7 +492,7 @@
             <!-- Summary Format Section -->
             <div class="flex flex-col gap-2">
               <!-- svelte-ignore a11y_label_has_associated_control -->
-              <label class="block text-text-secondary">Summary format</label>
+              <label class="block text-text-secondary">Format</label>
               <div class="grid grid-cols-3 w-full gap-1">
                 <ButtonSet
                   title="Plain"
@@ -508,6 +510,38 @@
                   onclick={() =>
                     handleUpdateSetting('summaryFormat', 'heading')}
                   Description="Format with headings."
+                ></ButtonSet>
+              </div>
+            </div>
+
+            <!-- Summary Tone Section -->
+            <div class="flex flex-col gap-2">
+              <!-- svelte-ignore a11y_label_has_associated_control -->
+              <label class="block text-text-secondary">Tone</label>
+              <div class="grid grid-cols-3 w-full gap-1">
+                <ButtonSet
+                  title="Simple"
+                  class="setting-btn {settings.summaryTone === 'simple'
+                    ? 'active'
+                    : ''}"
+                  onclick={() => handleUpdateSetting('summaryTone', 'simple')}
+                  Description="Easy to understand, friendly."
+                ></ButtonSet>
+                <ButtonSet
+                  title="Expert"
+                  class="setting-btn {settings.summaryTone === 'expert'
+                    ? 'active'
+                    : ''}"
+                  onclick={() => handleUpdateSetting('summaryTone', 'expert')}
+                  Description="Professional, technical, authoritative."
+                ></ButtonSet>
+                <ButtonSet
+                  title="Alien"
+                  class="setting-btn {settings.summaryTone === 'alien'
+                    ? 'active'
+                    : ''}"
+                  onclick={() => handleUpdateSetting('summaryTone', 'alien')}
+                  Description="Curious, analytical, detached."
                 ></ButtonSet>
               </div>
             </div>

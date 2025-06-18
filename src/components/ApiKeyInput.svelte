@@ -40,7 +40,7 @@
       <a
         href={linkHref}
         target="_blank"
-        class="text-xs flex items-center gap-0.5 text-primary hover:underline"
+        class="text-xs flex items-center gap-0.5 text-primary outline-gray-500 hover:underline"
       >
         {linkText}
         <Icon width={12} icon="heroicons:arrow-up-right-16-solid" />
@@ -54,7 +54,7 @@
       type={showApiKey ? 'text' : 'password'}
       id="api-key-input"
       bind:value={apiKey}
-      class="w-full pl-3 text-xs pr-9 h-7.5 bg-muted/5 dark:bg-muted/5 border border-border hover:border-white/10 focus:outline-none focus:ring-1 placeholder:text-muted transition-colors duration-150"
+      class="w-full pl-3 text-xs pr-9 h-7.5 bg-muted/5 dark:bg-muted/5 border border-border hover:border-blackwhite/15 focus:border-blackwhite/30 dark:border-blackwhite/10 dark:focus:border-blackwhite/20 focus:outline-none focus:ring-0 placeholder:text-muted transition-colors duration-150"
       oninput={scheduleApiKeySave}
     />
     <button

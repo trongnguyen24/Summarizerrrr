@@ -12,14 +12,14 @@ export const openrouterModelsConfig = {
   'meta-llama/llama-3.3-8b-instruct:free': {
     name: 'Meta: Llama 3.3 8B Instruct (free)',
   },
-  'deepseek/deepseek-prover-v2:free': {
-    name: 'DeepSeek: DeepSeek Prover V2 (free)',
-  },
   'tngtech/deepseek-r1t-chimera:free': {
     name: 'TNG: DeepSeek R1T Chimera (free)',
   },
   'microsoft/mai-ds-r1:free': {
     name: 'Microsoft: MAI DS R1 (free)',
+  },
+  'agentica-org/deepcoder-14b-preview:free': {
+    name: 'Agentica: Deepcoder 14B Preview (free)',
   },
   'moonshotai/kimi-vl-a3b-thinking:free': {
     name: 'Moonshot AI: Kimi VL A3B Thinking (free)',
@@ -45,14 +45,26 @@ export const openrouterModelsConfig = {
   'deepseek/deepseek-chat-v3-0324:free': {
     name: 'DeepSeek: DeepSeek V3 0324 (free)',
   },
-  'deepseek/deepseek-r1-zero:free': {
-    name: 'DeepSeek: DeepSeek R1 Zero (free)',
+  'mistralai/mistral-small-3.1-24b-instruct:free': {
+    name: 'Mistral: Mistral Small 3.1 24B (free)',
+  },
+  'google/gemma-3-4b-it:free': {
+    name: 'Google: Gemma 3 4B (free)',
+  },
+  'google/gemma-3-12b-it:free': {
+    name: 'Google: Gemma 3 12B (free)',
+  },
+  'google/gemma-3-27b-it:free': {
+    name: 'Google: Gemma 3 27B (free)',
   },
   'nousresearch/deephermes-3-llama-3-8b-preview:free': {
     name: 'Nous: DeepHermes 3 Llama 3 8B Preview (free)',
   },
   'qwen/qwen2.5-vl-72b-instruct:free': {
     name: 'Qwen: Qwen2.5 VL 72B Instruct (free)',
+  },
+  'deepseek/deepseek-r1-distill-qwen-14b:free': {
+    name: 'DeepSeek: R1 Distill Qwen 14B (free)',
   },
   'deepseek/deepseek-r1:free': {
     name: 'DeepSeek: R1 (free)',
@@ -77,14 +89,5 @@ export const openrouterModelsConfig = {
   },
   'mistralai/mistral-nemo:free': {
     name: 'Mistral: Mistral Nemo (free)',
-  },
-  'google/gemma-3-27b-it:free': {
-    name: 'Google: Gemma 3 27B (free)',
-  },
-  'google/gemma-3-12b-it:free': {
-    name: 'Google: Gemma 3 12B (free)',
-  },
-  'google/gemma-3-4b-it:free': {
-    name: 'Google: Gemma 3 4B (free)',
   },
 }

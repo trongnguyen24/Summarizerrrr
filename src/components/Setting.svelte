@@ -609,7 +609,7 @@
               ></ButtonFont>
             </div>
           </div>
-          <div class="flex flex-col gap-2 p-5">
+          <div class="flex flex-col gap-2 px-5">
             <!-- svelte-ignore a11y_label_has_associated_control -->
             <label class="block text-text-secondary">Theme</label>
             <div class="flexw-full gap-1">

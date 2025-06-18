@@ -118,7 +118,7 @@
     animate('#toc', {
       opacity: [0, 1],
       translateX: ['2rem', 0],
-      scaleX: [0, 0.3, 1, 1, 1, 1],
+      scale: [0, 1, 1, 1, 1, 1],
       ease: 'inOutQuad',
       autoplay: onScroll({
         container: 'body',
@@ -179,7 +179,10 @@
   const [initialize, instance] = useOverlayScrollbars({ options, defer: true })
 </script>
 
-<div id="toc" class="fixed z-20 right-0 bottom-18 group p-2 pr-3">
+<div
+  id="toc"
+  class="fixed z-20 right-0 bottom-18 group p-2 pr-3 origin-bottom-right"
+>
   <div
     class="flex items-end group-hover:opacity-0 transition-all flex-col gap-1.5"
   >

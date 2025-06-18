@@ -1,6 +1,7 @@
 <div align="center">
   <img width="320px" src="public/Sumarizzerrrr.png" alt="Summarizerrrr"/>
   <p><a href="https://chromewebstore.google.com/detail/summarizerrrr/ahfjndakflcegianjdojpldllodpkkpc">Install on Chrome Web Store</a></p>
+  <p><a href="https://addons.mozilla.org/en-CA/firefox/addon/summarizerrrr/">Install on Firefox Add-ons</a></p>
 </div>
 
 # Summarizerrrr Chrome Extension 🚀
@@ -9,7 +10,8 @@ A browser extension that deep summarizes content from YouTube, websites, Faceboo
 
 ## 🎁 Free to Use
 
-- Powered by Google's Gemini API key (free tier with usage limits: tokens, requests/min).
+- Powered by various AI providers (e.g., Google Gemini, Ollama, Openrouter).
+- You can use your own API key for these providers.
 
 ## ✨ Key Features
 
@@ -26,19 +28,34 @@ A browser extension that deep summarizes content from YouTube, websites, Faceboo
 
 - Highlight any text on a webpage and generate a concise summary instantly.
 
+### 🎓 Udemy Content Summarization
+
+- Summarizes key courses and concepts from Udemy lectures.
+
 ## ⚙️ Customization
 
 ### Gemini Model
 
 - ⚡ **2.0 Flash**: Fast, slightly quirky results.
+- ⚡ **2.5 Flash Lite**: High-quality, faster.
 - 🧠 **2.5 Flash**: High-quality, slower due to model thinking.
-- 💎 **2.5 Pro**: Premium quality, best for paid API users.
+
+### AI Providers
+
+- **Google Gemini**: Use your Gemini API key.
+- **Ollama**: Connect to local models via Ollama.
+- **Openrouter**: Integrate with free various models via Openrouter.
 
 ### Summary Style
 
-- 📌 **Adherent**: Precise (temperature=0.3, topP=0.82).
-- ⚖️ **Balanced**: Moderate (temperature=0.6, topP=0.91).
-- 🎨 **Creative**: Expressive (temperature=0.9, topP=0.96).
+- 📝 **Simple**: Easy to understand, friendly.
+- 🧠 **Expert**: Professional, technically deep.
+- 👽 **Alien**: Curious, analytical, novel perspectives.
+
+### Advanced Parameters
+
+- **Temperature**: Controls the randomness of the output (0.0 - 1.0). Higher values mean more creative results.
+- **Top P**: Controls the diversity of the output (0.0 - 1.0). Higher values mean more diverse results.
 
 ### Summary Size
 
@@ -58,6 +75,7 @@ A browser extension that deep summarizes content from YouTube, websites, Faceboo
 ### Additional Features
 
 - Dark/Light mode interface.
+- Font options: Dyslexic, Mix, San-serif, Serif.
 - Auto-scaling font for side panel.
 - Table of Contents for a "summary of the summary" in bottom-right corner.
 

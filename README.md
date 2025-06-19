@@ -1,6 +1,6 @@
 <div align="center">
   <img width="320px" src="public/Sumarizzerrrr.png" alt="Summarizerrrr"/>
-  <h1>🎯 Summarizerrrr - Your Smart AI Companion for Digital Life</h1>
+  <h1>🎯 Summarizerrrr - Smart AI Companion for Digital Life</h1>
   <p><strong>Summarize everything in 1 click. Save time. Capture the essence.</strong></p>
   
   <p>
@@ -158,8 +158,8 @@ npm run build
 
 Got ideas? Found bugs? Want to contribute?
 
-- 🐛 **Issues**: [GitHub Issues](link-to-issues)
-- 💡 **Feature requests**: [GitHub Discussions](link-to-discussions)
+- 🐛 **Issues**: [GitHub Issues](https://github.com/trongnguyen24/Summarizerrrr/issues)
+- 💡 **Feature requests**: [GitHub Discussions](https://github.com/trongnguyen24/Summarizerrrr/discussions)
 - ⭐ **Like the project?** Give us a star!
 
 ---
@@ -172,11 +172,4 @@ MIT License - Free to use, modify, and share! 🎉
 
 <div align="center">
   <h3>🙏 Thank you for trusting Summarizerrrr!</h3>
-  <p><em>"Life's too short to read everything. Let AI do the heavy lifting!"</em></p>
-  
-  <p>
-    <a href="#install-in-30-seconds">⚡ Install Now</a> • 
-    <a href="#magical-features">✨ See Features</a> • 
-    <a href="#customize-to-your-style">🎨 Customize</a>
-  </p>
 </div>

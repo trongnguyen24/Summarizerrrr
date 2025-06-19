@@ -1,121 +1,182 @@
 <div align="center">
   <img width="320px" src="public/Sumarizzerrrr.png" alt="Summarizerrrr"/>
-  <p><a href="https://chromewebstore.google.com/detail/summarizerrrr/ahfjndakflcegianjdojpldllodpkkpc">Install on Chrome Web Store</a></p>
-  <p><a href="https://addons.mozilla.org/en-CA/firefox/addon/summarizerrrr/">Install on Firefox Add-ons</a></p>
+  <h1>🎯 Summarizerrrr - Your Smart AI Companion for Digital Life</h1>
+  <p><strong>Summarize everything in 1 click. Save time. Capture the essence.</strong></p>
+  
+  <p>
+    <a href="https://chromewebstore.google.com/detail/summarizerrrr/ahfjndakflcegianjdojpldllodpkkpc">
+      <img src="https://img.shields.io/badge/Chrome-Install%20Now-4285F4?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Chrome Web Store"/>
+    </a>
+    <a href="https://addons.mozilla.org/en-CA/firefox/addon/summarizerrrr/">
+      <img src="https://img.shields.io/badge/Firefox-Install%20Now-FF7139?style=for-the-badge&logo=firefoxbrowser&logoColor=white" alt="Firefox Add-ons"/>
+    </a>
+  </p>
 </div>
-
-# Summarizerrrr Chrome Extension 🚀
-
-A browser extension that deep summarizes content from YouTube, websites, Facebook posts, Reddit, and any text-based page online. Built to save time and meet personal needs unmet by existing tools. 😊
-
-## 🎁 Free to Use
-
-- Powered by various AI providers (e.g., Google Gemini, Ollama, Openrouter).
-- You can use your own API key for these providers.
-
-## ✨ Key Features
-
-### 📺 YouTube Summarization
-
-- Summarizes key points or by video chapters (timeline).
-
-### 📝 Web Content Summarization
-
-- Summarizes text-heavy sites (e.g., Reddit, news).
-- Includes comment summaries from diverse perspectives.
-
-### ✂️ Summarize Selected Text
-
-- Highlight any text on a webpage and generate a concise summary instantly.
-
-### 🎓 Udemy Content Summarization
-
-- Summarizes key courses and concepts from Udemy lectures.
-
-## ⚙️ Customization
-
-### Gemini Model
-
-- ⚡ **2.0 Flash**: Fast, slightly quirky results.
-- ⚡ **2.5 Flash Lite**: High-quality, faster.
-- 🧠 **2.5 Flash**: High-quality, slower due to model thinking.
-
-### AI Providers
-
-- **Google Gemini**: Use your Gemini API key.
-- **Ollama**: Connect to local models via Ollama.
-- **Openrouter**: Integrate with free various models via Openrouter.
-
-### Summary Style
-
-- 📝 **Simple**: Easy to understand, friendly.
-- 🧠 **Expert**: Professional, technically deep.
-- 👽 **Alien**: Curious, analytical, novel perspectives.
-
-### Advanced Parameters
-
-- **Temperature**: Controls the randomness of the output (0.0 - 1.0). Higher values mean more creative results.
-- **Top P**: Controls the diversity of the output (0.0 - 1.0). Higher values mean more diverse results.
-
-### Summary Size
-
-- 🔍 **Short**: Brief overview.
-- 📄 **Medium**: Core content.
-- 📚 **Long**: Detailed summary.
-
-### Summary Format
-
-- 📝 **Plain**: Simple paragraphs.
-- 📑 **Heading**: Organized with headings.
-
-### Language Options
-
-- 🗣️ More than 40+: English, Chinese (Simplified), Spanish, French, German, Japanese, Korean, Arabic, Portuguese, Russian, Hindi, Indonesian, Italian, Turkish, Vietnamese...
-
-### Additional Features
-
-- Dark/Light mode interface.
-- Font options: Dyslexic, Mix, San-serif, Serif.
-- Auto-scaling font for side panel.
-- Table of Contents for a "summary of the summary" in bottom-right corner.
-
-## 🛠️ Installation and Usage
-
-1. **Install Dependencies**:
-   ```bash
-   npm install
-   ```
-2. **Build Extension**:
-
-   ```bash
-   npm run build
-   ```
-
-   - Creates files in the `dist` directory.
-
-3. **Install in Chrome**:
-   - Navigate to `chrome://extensions`.
-   - Enable **Developer mode** (top right).
-   - Click **Load unpacked** and select the `dist` folder.
-4. **Set Up API Key**:
-   - Locate the Summarizerrrr icon in Chrome's toolbar.
-   - Open settings/options via the icon.
-   - Enter your Gemini API Key (exact location depends on the extension's interface).
-
-## 🚀 Upcoming Features
-
-- Landing page with documentation, tips, and use cases.
-- YouTube summary timestamps linked to video player.
-- Streaming responses (non-blocking).
-- PDF summarization.
-- Response styles (e.g., Expert, Casual, Alien, Quirky Friend).
-- Save, copy, or export summaries as PDF/Markdown.
-- Text-to-speech for summaries.
-
-Stay tuned for updates!
 
 ---
 
-## 📜 License
+## 🤔 Ever found yourself...
 
-Licensed under the **MIT License**.
+❌ **Opening 20 YouTube tabs** without knowing which one to watch first?  
+❌ **Reading 30-minute articles** when you only need 3 key points?  
+❌ **Scrolling Reddit for hours** still not getting the main debate?  
+❌ **Listening to 2-hour podcasts** just to find 1 useful tip?  
+❌ **Taking Udemy courses** but forgetting important concepts from previous videos?
+
+### ✅ **Summarizerrrr** - The Solution to Everything!
+
+An intelligent AI extension that helps you **summarize everything on the internet** in seconds. From YouTube videos to articles, Reddit comments to Udemy courses - everything can be "pre-digested" into core insights.
+
+---
+
+## 🎁 **100% Free** (You just need your API key)
+
+> 💡 **Full Control**: Use your own API key with Google Gemini, Ollama, or OpenRouter. No lock-in, no dependencies!
+
+---
+
+## ⚡ **"Magical" Features**
+
+### 🎬 **YouTube Magic**
+
+- **Instant video summaries** - No need to watch 1 hour to get the main content
+- **Timeline breakdown** - Know exactly what's discussed at which minute
+- **Works with all genres**: Tutorials, podcasts, reviews, entertainment...
+
+### 🌐 **Web Content Wizard**
+
+- **Summarize any website** - From news, blogs to Wikipedia
+- **Comment analysis** - Capture multi-perspective insights from communities
+- **Especially powerful with**: Reddit discussions, Hacker News, Medium articles
+
+### ✂️ **Select & Summarize**
+
+- **Highlight any text** → Click → Get instant summary!
+- **Perfect for**: Research, studying, work
+
+### 🎓 **Udemy Learning Accelerator**
+
+- **Smart lecture summaries** - Not just notes, but deep understanding
+- **Concept Deep Dive** - Detailed explanations of complex concepts
+- **Real-world examples** - Concrete case studies for each concept
+- **Knowledge linking** - Connect with what you learned in previous videos
+- **Auto review** - Create flashcards for important concepts
+
+---
+
+## 🎨 **Customize to Your Style**
+
+### 🤖 **AI Model Selection**
+
+#### 🎯 **Basic Mode** - Simple & Effective
+
+| Model              | Characteristics                 | Best For                       |
+| ------------------ | ------------------------------- | ------------------------------ |
+| **2.0 Flash**      | Lightning fast, slightly quirky | Quick summaries, entertainment |
+| **2.5 Flash Lite** | High quality, good speed        | Daily work                     |
+| **2.5 Flash**      | Super accurate, deep thinking   | Research, academic             |
+
+#### ⚙️ **Advanced Mode** - Full Customization
+
+- **Google Gemini**: `gemini-2.5-flash`, `gemini-2.0-flash`, `gemini-2.5-flash-lite-preview-06-05`...
+- **OpenRouter**: `meta-llama/llama-3.3-70b-instruct`, `mistralai/mistral-nemo`, `google/gemma-3-27b-it`...
+- **Ollama**: `llama3.1`, `qwen2.5`, `mistral-nemo`, `codellama`... (Local models)
+
+> 💡 **Pro tip**: Advanced mode lets you experiment with the latest models and optimize for specific purposes!
+
+### 🎭 **Summary Styles**
+
+- **📝 Simple**: Easy to understand, friendly - _"Like a friend telling you the story"_
+- **🧠 Expert**: Professional, detailed - _"Like a boss briefing you on work"_
+- **👽 Alien**: Unique perspective, deep analysis - _"Like a scientist studying the content"_
+
+### 🌍 **40+ Languages**
+
+From English, 中文, Español, Français to العربية - Summarizerrrr speaks them all!
+
+### ⚙️ **Fine-tuning Parameters**
+
+- **Temperature**: Control creativity (0.0 - 1.0)
+- **Top P**: Control diversity (0.0 - 1.0)
+- **Length**: Short/Medium/Long
+- **Format**: Plain text or with headings
+
+### 🎨 **Beautiful Interface**
+
+- **Dark/Light mode** - Protect your eyes 24/7 🌙
+- **Font choices**: Dyslexic-friendly, Mix, San-serif, Serif
+- **Auto-scaling** - Automatically adjust size
+- **Table of Contents** - "Summary of the summary" super convenient
+
+---
+
+## 🚀 **Install in 30 Seconds**
+
+### 📦 **For Developers**
+
+```bash
+# Clone and install
+npm install
+
+# Build extension
+npm run build
+
+# Load into Chrome
+# 1. Open chrome://extensions
+# 2. Enable Developer mode
+# 3. Click "Load unpacked" → select dist folder
+```
+
+### 👤 **For Users**
+
+1. **Install from store** (Chrome/Firefox)
+2. **Get API key** from Google Gemini/Ollama/OpenRouter
+3. **Paste into settings** → Done!
+
+> 💡 **Pro tip**: Google Gemini API key has a generous free tier for personal use!
+
+---
+
+## 🔮 **What's Coming Next?**
+
+🎯 **In Development**:
+
+- ⏰ **YouTube timestamps** - Click summary → jump to exact moment in video
+- 🌊 **Streaming responses** - See results appear line by line, no lag
+- 📄 **PDF summarization** - Summarize PDF files too
+
+🚀 **Coming Soon**:
+
+- 🎤 **Text-to-speech** - Listen to summaries instead of reading
+- 💾 **Export PDF/Markdown** - Save beautiful summaries
+- 🌐 **Landing page** - Detailed documentation with tips & tricks
+- 🎨 **More response styles** - Quirky Friend, Casual, Professional...
+
+---
+
+## 💬 **Community & Support**
+
+Got ideas? Found bugs? Want to contribute?
+
+- 🐛 **Issues**: [GitHub Issues](link-to-issues)
+- 💡 **Feature requests**: [GitHub Discussions](link-to-discussions)
+- ⭐ **Like the project?** Give us a star!
+
+---
+
+## 📄 **License**
+
+MIT License - Free to use, modify, and share! 🎉
+
+---
+
+<div align="center">
+  <h3>🙏 Thank you for trusting Summarizerrrr!</h3>
+  <p><em>"Life's too short to read everything. Let AI do the heavy lifting!"</em></p>
+  
+  <p>
+    <a href="#install-in-30-seconds">⚡ Install Now</a> • 
+    <a href="#magical-features">✨ See Features</a> • 
+    <a href="#customize-to-your-style">🎨 Customize</a>
+  </p>
+</div>

@@ -4,11 +4,9 @@
  * All providers must implement these methods.
  */
 export class BaseProvider {
-  constructor(apiKey) {
-    if (!apiKey) {
-      throw new Error('API key is required for this provider.')
-    }
-    this.apiKey = apiKey
+  constructor(providerId, model) {
+    this.providerId = providerId
+    this.model = model
   }
 
   /**

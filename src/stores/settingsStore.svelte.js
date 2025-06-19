@@ -17,7 +17,7 @@ const DEFAULT_SETTINGS = {
   deepseekApiKey: '', // DeepSeek API Key
   chatgptApiKey: '', // ChatGPT API Key
   ollamaEndpoint: 'http://localhost:11434', // Ollama Endpoint
-  selectedOllamaModel: '', // Default Ollama model
+  selectedOllamaModel: 'llama2', // Default Ollama model
   summaryLength: 'long', // short, medium, long
   summaryFormat: 'heading', // heading, paragraph
   summaryLang: 'Vietnamese', // Default language Vietnamese
@@ -55,6 +55,13 @@ export async function loadSettings() {
           mergedSettings[key] = storedSettings[key]
         }
       }
+
+      // Ensure selectedOllamaModel is not an empty string if loaded from storage
+      if (mergedSettings.selectedOllamaModel === '') {
+        mergedSettings.selectedOllamaModel =
+          DEFAULT_SETTINGS.selectedOllamaModel
+      }
+
       Object.assign(settings, mergedSettings)
       console.log(
         '[settingsStore] Settings loaded (after merge):',

@@ -4,7 +4,7 @@ import { BaseProvider } from './baseProvider'
 
 export class OllamaProvider extends BaseProvider {
   constructor(ollamaEndpoint, model) {
-    super('ollama', model)
+    super('ollama', model) // 'ollama' is the providerId, model is the model name
     this.ollamaEndpoint = ollamaEndpoint
   }
 

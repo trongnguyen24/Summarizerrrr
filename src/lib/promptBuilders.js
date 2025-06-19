@@ -17,7 +17,7 @@ export const promptBuilders = {
       const lengthNote = parameterDefinitions.length.note
       const formatDescription = parameterDefinitions.format[format]
       const toneDescription = parameterDefinitions.tone[tone]
-      template
+      template = template
         .replace(/__LENGTH_DESCRIPTION__/g, lengthDescription)
         .replace(/__LENGTH_NOTE__/g, lengthNote)
         .replace(/__LANG__/g, lang)

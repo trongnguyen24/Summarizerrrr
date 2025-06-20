@@ -1,80 +1,74 @@
 // @ts-nocheck
 export const udemyConceptsPromptTemplate = `
 <TASK>
-Phân tích <INPUT_CONTENT> để xác định các khái niệm kỹ thuật chính và giải thích chúng một cách rõ ràng, có cấu trúc và toàn diện.
+Phân tích <INPUT_CONTENT> để xác định và giải thích các khái niệm kỹ thuật chính một cách chuyên sâu và có cấu trúc.
 </TASK>
 
-<CONTEXT>
-Bạn là một chuyên gia có kiến thức sâu rộng, có khả năng phân tích thông tin từ tài liệu và giải thích các khái niệm phức tạp cho người học một cách rõ ràng, có cấu trúc và toàn diện. Nội dung đầu vào là bản ghi (transcript) của một khóa học.
-</CONTEXT>
-
 <INPUT_PARAMETERS>
-1.  **Ngôn ngữ giải thích:** __LANG__
-2.  **Định dạng đầu ra:** __FORMAT_DESCRIPTION__
-3.  **Giọng văn:** __TONE_DESCRIPTION__
+1. **Ngôn ngữ:** __LANG__
+2. **Giọng văn:** __TONE_DESCRIPTION__
 </INPUT_PARAMETERS>
 
-<OUTPUT_STRUCTURE>
-- **Quy trình thực hiện:**
-    1.  Đọc kỹ bản ghi khóa học được cung cấp, tập trung vào việc xác định các khái niệm kỹ thuật chính.
-    2.  Đối với mỗi khái niệm được xác định, dựa trên kiến thức chuyên sâu của bạn (không chỉ dựa vào thông tin trong bản ghi), hãy:
-        a. Cung cấp một định nghĩa rõ ràng.
-        b. Giải thích chi tiết cách nó hoạt động hoặc các nguyên tắc cơ bản của nó.
-        c. Nêu bật tầm quan trọng hoặc ý nghĩa của nó trong lĩnh vực liên quan.
-        d. Cung cấp ít nhất một ví dụ thực tế hoặc đoạn mã để minh họa.
-    3.  Để đảm bảo độ chính xác và chiều sâu, hãy suy nghĩ từng bước khi phân tích và giải thích từng khái niệm.
-    4.  Đảm bảo các giải thích chuyên sâu, bao gồm các khía cạnh quan trọng mà không đi vào chi tiết không cần thiết, và sử dụng giọng văn học thuật nhưng dễ tiếp cận.
-- **Định dạng đầu ra:**
-    Trình bày câu trả lời của bạn bằng __LANG__ và tuân thủ cấu trúc sau. Đảm bảo các tiêu đề sau được dịch sang \${lang}:
-    ### [Khái niệm 1]
-    #### 1. Định nghĩa
-    [Giải thích định nghĩa chi tiết, chuyên sâu]
-    #### 2. Cách hoạt động / Nguyên tắc
-    [Giải thích rõ ràng và toàn diện về cách nó hoạt động hoặc các nguyên tắc của nó]
-    #### 3. Tầm quan trọng / Ý nghĩa
-    [Phân tích tầm quan trọng hoặc ý nghĩa của nó trong lĩnh vực liên quan]
-    #### 4. Ví dụ / Ứng dụng
-    [Cung cấp một ví dụ thực tế hoặc trường hợp sử dụng để minh họa]
+<CONCEPT_ANALYSIS_PROCESS>
+1. **Identify**: Xác định 3-8 khái niệm kỹ thuật cốt lõi từ transcript
+2. **Deep dive**: Sử dụng kiến thức chuyên môn để giải thích toàn diện (không chỉ dựa vào transcript)
+3. **Structure**: Tổ chức theo format chuẩn với 4 phần cho mỗi khái niệm
+4. **Examples**: Bao gồm code samples, use cases thực tế
+</CONCEPT_ANALYSIS_PROCESS>
 
-    ### [Khái niệm 2]
-    #### 1. Định nghĩa
-    [Giải thích định nghĩa chi tiết, chuyên sâu]
-    #### 2. Cách hoạt động / Nguyên tắc
-    [Giải thích rõ ràng và toàn diện về cách nó hoạt động hoặc các nguyên tắc của nó]
-    #### 3. Tầm quan trọng / Ý nghĩa
-    [Phân tích tầm quan trọng hoặc ý nghĩa của nó trong lĩnh vực liên quan]
-    #### 4. Ví dụ / Ứng dụng
-    [Cung cấp một ví dụ thực tế hoặc trường hợp sử dụng để minh họa]
-    Tiếp tục cấu trúc này cho tất cả các khái niệm chính được xác định.
+<OUTPUT_FORMAT>
+### [Tên Khái niệm]
+#### 🔍 Định nghĩa
+[Định nghĩa chính xác, súc tích với thuật ngữ kỹ thuật]
 
-<CONSTRAINTS>
-- Không thêm lời chào hoặc lời giới thiệu.
-- Không bao bọc kết quả cuối cùng trong khối mã Markdown.
-- Chỉ sử dụng thông tin từ <INPUT_CONTENT> để xác định khái niệm, nhưng giải thích dựa trên kiến thức chuyên sâu.
-- Không hiển thị lại các giá trị tham số đầu vào trong kết quả.
-</CONSTRAINTS>
+#### ⚙️ Cách hoạt động
+[Cơ chế, quy trình, nguyên lý hoạt động chi tiết]
+
+#### 💡 Tầm quan trọng
+[Vai trò trong hệ thống, lợi ích, use cases phổ biến]
+
+#### 📝 Ví dụ thực tế
+[Code snippet/demo/case study cụ thể với explanation]
+
+---
+[Lặp lại format cho từng khái niệm]
+</OUTPUT_FORMAT>
+
+<QUALITY_GUIDELINES>
+✅ **Focus on**: Core technical concepts, không phải basic terms
+✅ **Include**: Code examples, real-world applications, best practices
+✅ **Explain**: Why concept matters, when to use, common patterns
+✅ **Balance**: Technical accuracy với accessibility
+❌ **Avoid**: Overly basic concepts, marketing fluff, redundant info
+❌ **Don't**: Add greetings, show parameters, wrap in code blocks
+</QUALITY_GUIDELINES>
 
 <EXAMPLE>
-### Closure
-#### 1. Definition
-    [Detailed, in-depth definition explanation]
-    #### 2. How it works / Principle
-    [Clear and comprehensive explanation of how it works or its principles]
-    #### 3. Importance / Significance
-    [Analysis of its importance or significance in the relevant field]
-    #### 4. Example / Application
-    [Provide a practical example or use case to illustrate]
+### Promise
+#### 🔍 Định nghĩa
+**Promise** là object đại diện cho kết quả eventual completion (hoặc failure) của một asynchronous operation. Nó có 3 states: pending, fulfilled, rejected.
 
-    ### [Concept 2]
-    #### 1. Definition
-    [Detailed, in-depth definition explanation]
-    #### 2. How it works / Principle
-    [Clear and comprehensive explanation of how it works or its principles]
-    #### 3. Importance / Significance
-    [Analysis of its importance or significance in the relevant field]
-    #### 4. Example / Application
-    [Provide a practical example or use case to illustrate]
-    Continue this structure for all identified key concepts.
+#### ⚙️ Cách hoạt động
+Promise hoạt động thông qua executor function nhận 2 callbacks: resolve và reject. Khi async operation hoàn thành, Promise transition từ pending sang fulfilled/rejected, trigger các handlers đã register qua .then()/.catch().
+
+#### 💡 Tầm quan trọng
+Promise giải quyết "callback hell", cung cấp error handling tốt hơn, và là foundation cho async/await. Essential cho modern JavaScript development, đặc biệt API calls và file operations.
+
+#### 📝 Ví dụ thực tế
+[block code ví dụ thực tế]
+
+### Async/Await
+#### 🔍 Định nghĩa
+**Async/Await** là syntactic sugar built trên Promises, cho phép viết asynchronous code trông như synchronous code, eliminating promise chaining.
+
+#### ⚙️ Cách hoạt động
+Function được mark với \`async\` keyword automatically return Promise. \`await\` keyword pause function execution cho đến khi Promise resolves, returning resolved value hoặc throwing error nếu rejected.
+
+#### 💡 Tầm quan trọng
+Dramatically cải thiện code readability và maintainability. Giảm nesting, easier error handling với try/catch, và intuitive flow control cho complex async operations.
+
+#### 📝 Ví dụ thực tế
+[block code ví dụ thực tế]
 </EXAMPLE>
 
 <INPUT_CONTENT>

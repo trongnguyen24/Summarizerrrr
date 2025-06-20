@@ -1,55 +1,30 @@
 export const youTubePromptTemplate = `
 <TASK>
-Phân tích <INPUT_CONTENT> được cung cấp và tạo bản tóm tắt.
+Tóm tắt nội dung video YouTube từ <INPUT_CONTENT>. Tập trung vào các điểm chính, ví dụ cụ thể, và thông tin hữu ích.
 </TASK>
 
-<CONTEXT>
-Nội dung đầu vào là bản ghi (transcript) của một video trên YouTube.
-</CONTEXT>
-
 <INPUT_PARAMETERS>
-1.  **Độ dài tóm tắt:** __LENGTH_DESCRIPTION__
-    *(__LENGTH_NOTE__)*
-
-2.  **Ngôn ngữ đầu ra:** __LANG__
-
-3.  **Định dạng đầu ra:** __FORMAT_DESCRIPTION__
-
-4.  **Giọng văn:** __TONE_DESCRIPTION__
+1. **Độ dài:** __LENGTH_DESCRIPTION__ *(__LENGTH_NOTE__)*
+2. **Ngôn ngữ:** __LANG__
+3. **Giọng văn:** __TONE_DESCRIPTION__
 </INPUT_PARAMETERS>
 
-<OUTPUT_STRUCTURE>
-- **Phân tích:** Đọc kỹ transcript để xác định chủ đề chính, các điểm quan trọng, ví dụ/minh họa hỗ trợ, và kết luận của video.
-- **Tổ chức:** Tổ chức thông tin một cách logic và mạch lạc.
-- **Định dạng (Conditional):** Nếu định dạng là "heading", tạo tiêu đề rõ ràng cho chủ đề chính (##) và các phần/điểm quan trọng (###).
-- **Cô đọng:** Loại bỏ chi tiết không cần thiết, thông tin trùng lặp, các từ/câu nói thừa, và các đoạn chuyển không mang nội dung (ví dụ: "uhm", "à", "bạn biết đấy"). Chỉ giữ lại nội dung cốt lõi.
-- **Khách quan & Chính xác:** Giữ giọng điệu khách quan và chính xác, chỉ dựa trên nội dung *từ* transcript. Không suy diễn hoặc thêm thông tin từ bên ngoài.
-- **Nội dung Cụ Thể:** Nếu video chứa thuật ngữ chuyên ngành, số liệu thống kê, hoặc nghiên cứu, hãy bao gồm thông tin này một cách chính xác trong tóm tắt phù hợp với độ dài yêu cầu.
-- **Quan điểm:** Nếu người nói chia sẻ quan điểm cá nhân hoặc ý kiến, nêu rõ đây là quan điểm *được trình bày trong video* (ví dụ: "Người nói cho rằng...", "Theo quan điểm được chia sẻ trong video...").
-- **Các Bước/Hướng dẫn:** Nếu có phần thảo luận về các bước cụ thể hoặc hướng dẫn, tóm tắt các bước chính một cách ngắn gọn và rõ ràng (đặc biệt quan trọng cho độ dài "medium" và "long").
-- **Độ dài & Chi tiết:** Đảm bảo mức độ chi tiết và số lượng nội dung trong tóm tắt tổng thể phù hợp với độ dài yêu cầu. Nếu dùng format "heading", nội dung dưới mỗi heading cũng cần tương xứng.
-- **Xử lý Transcript Không Đủ Thông tin:** Nếu <INPUT_CONTENT> quá ngắn, không có nội dung liên quan hoặc quá nhiễu để tạo bản tóm tắt có nghĩa theo độ dài yêu cầu, hãy trả về bản tóm tắt ngắn nhất có thể (có thể chỉ 1-2 câu) về những gì có trong transcript hoặc thông báo (bằng ngôn ngữ yêu cầu \${lang}) rằng "Không đủ thông tin trong transcript để tạo tóm tắt chi tiết."
-</OUTPUT_STRUCTURE>
+<REQUIREMENTS>
+✅ **Bao gồm**: Chủ đề chính, điểm quan trọng, ví dụ/số liệu cụ thể, các bước/hướng dẫn (nếu có)
+✅ **Format heading** (nếu cần): Dùng ## cho chủ đề chính, ### cho các phần
+✅ **Giữ nguyên**: Thuật ngữ chuyên ngành, tên riêng, số liệu chính xác
+✅ **Quan điểm**: Ghi rõ "Người nói cho rằng..." khi đề cập ý kiến cá nhân
+❌ **Loại bỏ**: Từ nói thừa ("uhm", "à"), thông tin trùng lặp, lời chào/giới thiệu
+❌ **Không thêm**: Thông tin ngoài transcript, bình luận cá nhân
+</REQUIREMENTS>
 
-<CONSTRAINTS>
-- Không thêm lời chào, lời giới thiệu hoặc bình luận cá nhân ngoài nội dung tóm tắt.
-- Không hiển thị lại các giá trị tham số đầu vào trong kết quả.
-- Chỉ sử dụng thông tin từ <INPUT_CONTENT>.
-- Không bao bọc kết quả cuối cùng trong khối mã Markdown.
-</CONSTRAINTS>
+<SPECIAL_CASES>
+- **Transcript ngắn/nhiễu**: Tóm tắt những gì có hoặc ghi "Không đủ thông tin trong transcript để tạo tóm tắt chi tiết."
+- **Video hướng dẫn**: Ưu tiên các bước thực hiện rõ ràng
+- **Video có data**: Bao gồm số liệu, nghiên cứu chính xác
+</SPECIAL_CASES>
 
-<EXAMPLE>
-## Tóm tắt video Svelte 5:
 
-### Giới thiệu về Svelte 5
-Video giới thiệu Svelte 5 với thay đổi lớn là sự ra đời của Runes, cải thiện đáng kể cách quản lý trạng thái reactive trong ứng dụng Svelte so với các phiên bản trước.
-
-### Các tính năng chính của Runes
-Các Runes quan trọng được giới thiệu bao gồm \$state để khai báo trạng thái reactive, \$derived để tạo giá trị tính toán phụ thuộc vào trạng thái khác một cách tự động, và \$effect để xử lý các side effects (như cập nhật DOM thủ công hoặc gọi API) khi trạng thái thay đổi. Đây là những khối xây dựng cốt lõi cho mô hình reactivity mới của Svelte 5.
-
-### Lợi ích và Cải thiện Hiệu suất
-Phiên bản Svelte 5 hứa hẹn mang lại những lợi ích đáng kể về hiệu suất ứng dụng nhờ kiến trúc reactivity được tối ưu, cùng với việc giảm kích thước bundle và cải thiện trải nghiệm phát triển, giúp xây dựng các ứng dụng web hiệu quả hơn.
-</EXAMPLE>
 
 <INPUT_CONTENT>
 \${text}

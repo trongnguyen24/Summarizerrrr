@@ -47,8 +47,7 @@
 </div>
 
 <style>
-  .lang::after,
-  .provider::after {
+  .lang::after {
     display: block;
     content: '';
     position: absolute;
@@ -61,12 +60,10 @@
     transition: transform 0.3s ease-out;
     transform-origin: top right;
   }
-  .lang::after,
-  .provider::after {
+  .lang::after {
     transform: rotate(45deg) translate(50%, -50%);
   }
-  .lang::before,
-  .provider::before {
+  .lang::before {
     display: block;
     content: '';
     z-index: -1;
@@ -79,8 +76,7 @@
     transform: translateY(100%);
     transition: transform 0.3s ease-out;
   }
-  .lang::before,
-  .provider::before {
+  .lang::before {
     transform: translateY(0);
   }
 </style>

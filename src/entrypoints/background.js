@@ -420,11 +420,6 @@ export default defineBackground(() => {
   browser.runtime.onConnect.addListener((port) => {
     if (port.name === 'side-panel') {
       sidePanelPort = port
-      console.log(
-        `[background.js] ${
-          import.meta.env.BROWSER === 'chrome' ? 'Chrome' : 'Firefox'
-        }: Side panel connected.`
-      )
 
       // Gửi thông tin tab hiện tại ngay lập tức khi side panel kết nối
       ;(async () => {
@@ -494,11 +489,6 @@ export default defineBackground(() => {
       }
 
       sidePanelPort.onDisconnect.addListener(() => {
-        console.log(
-          `[background.js] ${
-            import.meta.env.BROWSER === 'chrome' ? 'Chrome' : 'Firefox'
-          }: Side panel disconnected.`
-        )
         sidePanelPort = null
       })
     }
@@ -537,19 +527,6 @@ export default defineBackground(() => {
   // 7. Listen for context menu clicks
   browser.contextMenus.onClicked.addListener(async (info, tab) => {
     if (info.menuItemId === 'summarizeSelectedText' && info.selectionText) {
-      console.log(
-        `[background.js] ${
-          import.meta.env.BROWSER === 'chrome' ? 'Chrome' : 'Firefox'
-        }: Context menu item clicked:`,
-        info.menuItemId
-      )
-      console.log(
-        `[background.js] ${
-          import.meta.env.BROWSER === 'chrome' ? 'Chrome' : 'Firefox'
-        }: Selected text:`,
-        info.selectionText
-      )
-
       const selectedText = info.selectionText
 
       if (!selectedText) {

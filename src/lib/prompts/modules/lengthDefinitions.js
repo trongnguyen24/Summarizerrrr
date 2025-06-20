@@ -1,7 +1,12 @@
 // @ts-nocheck
 export const lengthDefinitions = {
-  short: 'Tóm tắt rất ngắn gọn (tối đa 2 câu) về ý chính tổng thể của video.',
-  medium: 'Tóm tắt ngắn gọn (2-4 câu) bao gồm các điểm chính được thảo luận.',
-  long: 'Tóm tắt chi tiết (5+ câu hoặc nhiều đoạn) bao gồm tất cả các phần quan trọng, điểm hỗ trợ và kết luận. Mục tiêu là bao quát đầy đủ các khía cạnh chính được đề cập một cách cô đọng.',
-  note: 'Số câu chỉ là ước tính, mục tiêu là truyền đạt đầy đủ thông tin trong phạm vi độ dài mong muốn và dựa trên nội dung transcript.',
+  short:
+    'Tóm tắt ngắn gọn bằng một đoạn văn (có thể xuống hàng phân tách đoạn) nêu ý chính tổng thể và kết luận chính của nội dung.',
+
+  medium:
+    'Tóm tắt dạng bullet points ngắn gọn - mỗi điểm chính chỉ 1 câu súc tích, tập trung vào các luận điểm chính được thảo luận.',
+
+  long: 'Tóm tắt toàn diện (deep summary) - thuật lại chi tiết toàn bộ nội dung từ đầu đến cuối, bao gồm context, các luận điểm, ví dụ minh họa, và kết luận. Mục tiêu là người đọc có thể nắm được gần như toàn bộ thông tin mà không cần xem/đọc nội dung gốc.',
+
+  note: 'Độ dài cụ thể sẽ tùy thuộc vào độ phức tạp và lượng thông tin của nội dung gốc.',
 }

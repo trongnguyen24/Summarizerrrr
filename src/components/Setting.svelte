@@ -479,7 +479,7 @@
                   Description="Medium length summary."
                 ></ButtonSet>
                 <ButtonSet
-                  title="Long"
+                  title="Deep"
                   class="setting-btn {settings.summaryLength === 'long'
                     ? 'active'
                     : ''}"
@@ -490,8 +490,7 @@
             </div>
 
             <!-- Summary Format Section -->
-            <div class="flex flex-col gap-2">
-              <!-- svelte-ignore a11y_label_has_associated_control -->
+            <!-- <div class="flex flex-col gap-2">
               <label class="block text-text-secondary">Format</label>
               <div class="grid grid-cols-3 w-full gap-1">
                 <ButtonSet
@@ -512,7 +511,7 @@
                   Description="Format with headings."
                 ></ButtonSet>
               </div>
-            </div>
+            </div> -->
 
             <!-- Summary Tone Section -->
             <div class="flex flex-col gap-2">

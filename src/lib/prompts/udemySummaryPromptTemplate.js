@@ -1,55 +1,63 @@
 // @ts-nocheck
+
 export const udemySummaryPromptTemplate = `
 <TASK>
-Phân tích <INPUT_CONTENT> được cung cấp và tạo bản tóm tắt.
+Tóm tắt bài giảng Udemy từ <INPUT_CONTENT>, tập trung vào kiến thức cốt lõi và các bước thực hành.
 </TASK>
 
-<CONTEXT>
-Nội dung đầu vào là bản ghi (transcript) của một bài giảng Udemy.
-</CONTEXT>
-
 <INPUT_PARAMETERS>
-1.  **Độ dài tóm tắt:** __LENGTH_DESCRIPTION__
-    *(__LENGTH_NOTE__)*
-
-2.  **Ngôn ngữ đầu ra:** __LANG__
-
-3.  **Định dạng đầu ra:** __FORMAT_DESCRIPTION__
-
-4.  **Giọng văn:** __TONE_DESCRIPTION__
+1. **Độ dài:** __LENGTH_DESCRIPTION__ *(__LENGTH_NOTE__)*
+2. **Ngôn ngữ:** __LANG__
+3. **Giọng văn:** __TONE_DESCRIPTION__
 </INPUT_PARAMETERS>
 
-<OUTPUT_STRUCTURE>
-- **Phân tích:** Đọc kỹ transcript để xác định chủ đề chính, các điểm quan trọng, ví dụ/minh họa hỗ trợ, và kết luận của bài giảng.
-- **Tổ chức:** Tổ chức thông tin một cách logic và mạch lạc.
-- **Định dạng (Conditional):** Nếu định dạng là "heading", tạo tiêu đề rõ ràng cho chủ đề chính (##) và các phần/điểm quan trọng (###).
-- **Cô đọng:** Loại bỏ chi tiết không cần thiết, thông tin trùng lặp, các từ/câu nói thừa, và các đoạn chuyển không mang nội dung (ví dụ: "uhm", "à", "bạn biết đấy"). Chỉ giữ lại nội dung cốt lõi.
-- **Khách quan & Chính xác:** Giữ giọng điệu khách quan và chính xác, chỉ dựa trên nội dung *từ* transcript. Không suy diễn hoặc thêm thông tin từ bên ngoài.
-- **Nội dung Cụ Thể:** Nếu bài giảng chứa thuật ngữ chuyên ngành, số liệu thống kê, hoặc nghiên cứu, hãy bao gồm thông tin này một cách chính xác trong tóm tắt phù hợp với độ dài yêu cầu.
-- **Quan điểm:** Nếu người nói chia sẻ quan điểm cá nhân hoặc ý kiến, nêu rõ đây là quan điểm *được trình bày trong bài giảng* (ví dụ: "Người nói cho rằng...", "Theo quan điểm được chia sẻ trong bài giảng...").
-- **Các Bước/Hướng dẫn:** Nếu có phần thảo luận về các bước cụ thể hoặc hướng dẫn, tóm tắt các bước chính một cách ngắn gọn và rõ ràng (đặc biệt quan trọng cho độ dài "medium" và "long").
-- **Độ dài & Chi tiết:** Đảm bảo mức độ chi tiết và số lượng nội dung trong tóm tắt tổng thể phù hợp với độ dài yêu cầu. Nếu dùng format "heading", nội dung dưới mỗi heading cũng cần tương xứng.
-- **Xử lý Transcript Không Đủ Thông tin:** Nếu <INPUT_CONTENT> quá ngắn, không có nội dung liên quan hoặc quá nhiễu để tạo bản tóm tắt có nghĩa theo độ dài yêu cầu, hãy trả về bản tóm tắt ngắn nhất có thể (có thể chỉ 1-2 câu) về những gì có trong transcript hoặc thông báo (bằng ngôn ngữ yêu cầu \${lang}) rằng "Không đủ thông tin trong transcript để tạo tóm tắt chi tiết."
-</OUTPUT_STRUCTURE>
+<REQUIREMENTS>
+✅ **Bao gồm**: Khái niệm chính, định nghĩa thuật ngữ, các bước thực hành, ví dụ code/demo
+✅ **Format learning**: Dùng ## cho chủ đề chính, ### cho sub-topics, #### cho steps (nếu cần)
+✅ **Giữ nguyên**: Code snippets, thuật ngữ technical, tên tools/frameworks chính xác
+✅ **Best practices**: Highlight tips, warnings, common mistakes được đề cập
+✅ **Actionable**: Ưu tiên thông tin có thể áp dụng được ngay
+❌ **Loại bỏ**: "Uhm", "okay", transition words, thông tin trùng lặp
+❌ **Không thêm**: Kiến thức ngoài bài giảng, giải thích thêm
+</REQUIREMENTS>
 
-<CONSTRAINTS>
-- Không thêm lời chào, lời giới thiệu hoặc bình luận cá nhân ngoài nội dung tóm tắt.
-- Không hiển thị lại các giá trị tham số đầu vào trong kết quả.
-- Chỉ sử dụng thông tin từ <INPUT_CONTENT>.
-- Không bao bọc kết quả cuối cùng trong khối mã Markdown.
-</CONSTRAINTS>
+<LEARNING_FOCUS>
+- **Concepts**: Định nghĩa rõ ràng các khái niệm mới
+- **Steps**: Liệt kê các bước thực hiện theo thứ tự
+- **Examples**: Bao gồm ví dụ cụ thể, code samples nếu có
+- **Pitfalls**: Ghi chú lỗi thường gặp hoặc điều cần tránh
+- **Resources**: Tools, frameworks, tài liệu được recommend
+</LEARNING_FOCUS>
+
+<SPECIAL_CASES>
+- **Code-heavy lectures**: Ưu tiên syntax, key functions, implementation steps
+- **Theory lectures**: Focus vào concepts, relationships, real-world applications  
+- **Hands-on tutorials**: Emphasize workflow, debugging tips, best practices
+- **Transcript thiếu/lỗi**: Tóm tắt phần có thể hiểu được hoặc "Transcript không đủ thông tin"
+</SPECIAL_CASES>
 
 <EXAMPLE>
-## Summary of JavaScript Closures Lecture:
+## JavaScript Closures & Practical Applications:
 
-### Concept of Closure
-A closure in JavaScript is an inner function that has access to the variables from its outer scope, even after the outer function has finished execution. This allows the inner function to "remember" the environment in which it was created.
+### Khái niệm Closure
+**Closure** là inner function có khả năng truy cập variables từ outer scope, ngay cả sau khi outer function đã kết thúc. Điều này tạo ra "lexical environment" bền vững.
 
-### How it works
-When a function is defined inside another function, the inner function creates a closure. This closure includes the inner function and the lexical environment of the outer function (i.e., the outer function's variables and arguments).
+### Cách hoạt động
+[Block code demo cách hoạt động]
 
-### Practical Applications
-Closures are very useful for creating private functions, managing state in modules, and building factory functions. They are a powerful concept in JavaScript for creating flexible and secure data structures.
+
+#### Bước thực hành:
+1. Tạo outer function với parameter/variable
+2. Define inner function sử dụng outer scope
+3. Return inner function 
+4. Call và test behavior
+
+### Ứng dụng thực tế
+- **Module Pattern**: Tạo private variables và methods
+- **Factory Functions**: Generate specialized functions
+- **Event Handlers**: Maintain state across events
+
+**⚠️ Common mistake**: Closure trong loops - sử dụng 'let' thay vì 'var' để tránh shared reference.
 </EXAMPLE>
 
 <INPUT_CONTENT>

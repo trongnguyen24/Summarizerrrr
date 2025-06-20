@@ -3,7 +3,8 @@ import { BaseProvider } from './baseProvider.js'
 
 export class OpenrouterProvider extends BaseProvider {
   constructor(apiKey) {
-    super(apiKey)
+    super() // Không truyền apiKey vào super vì BaseProvider không xử lý nó
+    this.apiKey = apiKey // Gán apiKey trực tiếp vào OpenrouterProvider
     this.apiUrl = 'https://openrouter.ai/api/v1/chat/completions'
   }
 

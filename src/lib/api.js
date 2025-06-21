@@ -78,7 +78,11 @@ export async function summarizeContent(text, contentType) {
   await loadBasicModeSettings()
 
   const userSettings = settings
-  const selectedProviderId = userSettings.selectedProvider || 'gemini' // Default to gemini
+  // Determine the actual provider to use based on isAdvancedMode
+  let selectedProviderId = userSettings.selectedProvider || 'gemini'
+  if (!userSettings.isAdvancedMode) {
+    selectedProviderId = 'gemini' // Force Gemini in basic mode
+  }
 
   const { apiKey, model, modelConfig } = getProviderConfig(
     userSettings,
@@ -154,7 +158,11 @@ export async function summarizeChapters(timestampedTranscript) {
   await loadBasicModeSettings()
 
   const userSettings = settings
-  const selectedProviderId = userSettings.selectedProvider || 'gemini' // Default to gemini
+  // Determine the actual provider to use based on isAdvancedMode
+  let selectedProviderId = userSettings.selectedProvider || 'gemini'
+  if (!userSettings.isAdvancedMode) {
+    selectedProviderId = 'gemini' // Force Gemini in basic mode
+  }
 
   const { apiKey, model, modelConfig } = getProviderConfig(
     userSettings,

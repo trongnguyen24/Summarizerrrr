@@ -183,7 +183,11 @@ export async function fetchAndSummarize() {
     summaryState.isUdemySummaryLoading = true
     summaryState.isUdemyConceptsLoading = true
 
-    const selectedProviderId = userSettings.selectedProvider || 'gemini'
+    // Determine the actual provider to use based on isAdvancedMode
+    let selectedProviderId = userSettings.selectedProvider || 'gemini'
+    if (!userSettings.isAdvancedMode) {
+      selectedProviderId = 'gemini' // Force Gemini in basic mode
+    }
 
     console.log(`[summaryStore] Selected Provider: ${selectedProviderId}`)
     console.log(
@@ -449,7 +453,11 @@ export async function summarizeSelectedText(text) {
   try {
     summaryState.isSelectedTextLoading = true
 
-    const selectedProviderId = userSettings.selectedProvider || 'gemini'
+    // Determine the actual provider to use based on isAdvancedMode
+    let selectedProviderId = userSettings.selectedProvider || 'gemini'
+    if (!userSettings.isAdvancedMode) {
+      selectedProviderId = 'gemini' // Force Gemini in basic mode
+    }
 
     // Check API key configuration
     checkApiKeyConfiguration(userSettings, selectedProviderId)

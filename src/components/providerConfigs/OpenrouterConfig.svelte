@@ -2,8 +2,8 @@
 <script>
   import { openrouterModelsConfig } from '../../lib/openrouterConfig.js'
   import { updateSettings } from '../../stores/settingsStore.svelte.js' // Chỉ import updateSettings
-  import ReusableSelect from '../ReusableSelect.svelte'
-  import ApiKeyInput from '../ApiKeyInput.svelte'
+  import ReusableSelect from '../inputs/ReusableSelect.svelte'
+  import ApiKeyInput from '../inputs/ApiKeyInput.svelte'
 
   let {
     openrouterApiKey = $bindable(),

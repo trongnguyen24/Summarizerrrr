@@ -2,8 +2,8 @@
   // @ts-nocheck
   import { geminiBasicModels } from '../../lib/models/geminiModels.js'
   import { updateSettings } from '../../stores/settingsStore.svelte.js'
-  import ButtonSet from '../ButtonSet.svelte'
-  import ApiKeyInput from '../ApiKeyInput.svelte'
+  import ButtonSet from '../buttons/ButtonSet.svelte'
+  import ApiKeyInput from '../inputs/ApiKeyInput.svelte'
   import Icon from '@iconify/svelte'
 
   let { geminiApiKey = $bindable(), selectedGeminiModel = $bindable() } =

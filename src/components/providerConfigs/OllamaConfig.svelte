@@ -1,6 +1,6 @@
 <script>
   // @ts-nocheck
-  import TextInput from '../TextInput.svelte'
+  import TextInput from '../inputs/TextInput.svelte'
   import { settings, updateSettings } from '../../stores/settingsStore.svelte'
 
   /**

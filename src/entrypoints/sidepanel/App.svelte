@@ -3,8 +3,8 @@
   import Icon from '@iconify/svelte'
   import 'overlayscrollbars/overlayscrollbars.css'
   import { useOverlayScrollbars } from 'overlayscrollbars-svelte'
-  import SettingButton from '../../components/SettingButton.svelte'
-  import SummarizeButton from '../../components/SummarizeButton.svelte'
+  import SettingButton from '../../components/buttons/SettingButton.svelte'
+  import SummarizeButton from '../../components/buttons/SummarizeButton.svelte'
   import TabNavigation from '../../components/TabNavigation.svelte' // Vẫn cần cho các component wrapper
   import SummaryDisplay from '../../components/SummaryDisplay.svelte' // Component hiển thị chung
   import UdemyConceptsDisplay from '../../components/displays/UdemyConceptsDisplay.svelte' // Component nội dung Udemy Concepts // Component nội dung Udemy Summary (đã đổi tên)

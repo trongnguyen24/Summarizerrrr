@@ -1,4 +1,5 @@
 // @ts-nocheck
+import { settings } from '../stores/settingsStore.svelte.js'
 import { youTubePromptTemplate } from './prompts/youTubePromptTemplate.js'
 import { generalPromptTemplate } from './prompts/generalPromptTemplate.js'
 import { chapterPromptTemplate } from './prompts/chapterPromptTemplate.js'
@@ -13,6 +14,19 @@ export const promptBuilders = {
       'Bạn là một trợ lý chuyên phân tích và tóm tắt video YouTube dựa trên transcript được cung cấp. Nhiệm vụ của bạn là tạo bản tóm tắt súc tích, chính xác và có cấu trúc, tuân thủ nghiêm ngặt các tham số và hướng dẫn dưới đây. Chỉ sử dụng thông tin có trong <Transcript> được cung cấp.',
     buildPrompt: (text, lang, length, format, tone) => {
       let template = youTubePromptTemplate
+      if (settings.isSummaryAdvancedMode) {
+        switch (settings.youtubePromptSelection) {
+          case 'custom1':
+            template = settings.customPrompt1Content
+            break
+          case 'custom2':
+            template = settings.customPrompt2Content
+            break
+          default:
+            // Use default template
+            break
+        }
+      }
       const lengthDescription = parameterDefinitions.length[length]
       const lengthNote = parameterDefinitions.length.note
       const formatDescription = parameterDefinitions.format[format]
@@ -33,6 +47,19 @@ export const promptBuilders = {
       'Bạn là một chuyên gia phân tích và tóm tắt nội dung trang web một cách chính xác, súc tích và hiệu quả. Nhiệm vụ của bạn là xử lý văn bản được cung cấp, phân tích nội dung chính và các phần liên quan (như bình luận), sau đó tạo ra bản tóm tắt có cấu trúc theo các tham số và hướng dẫn chi tiết từ người dùng. Bạn phải tuân thủ nghiêm ngặt các quy tắc định dạng và ràng buộc đầu ra.',
     buildPrompt: (text, lang, length, format, tone) => {
       let template = generalPromptTemplate
+      if (settings.isSummaryAdvancedMode) {
+        switch (settings.webPromptSelection) {
+          case 'custom1':
+            template = settings.customPrompt1Content
+            break
+          case 'custom2':
+            template = settings.customPrompt2Content
+            break
+          default:
+            // Use default template
+            break
+        }
+      }
       const lengthDescription = parameterDefinitions.length[length]
       const lengthNote = parameterDefinitions.length.note
       const formatDescription = parameterDefinitions.format[format]
@@ -53,6 +80,19 @@ export const promptBuilders = {
       'Bạn là một trợ lý chuyên nghiệp trong việc phân tích và tóm tắt transcript video YouTube có kèm dấu thời gian. Nhiệm vụ của bạn là chia transcript thành các chương hoặc phần logic dựa trên nội dung và thời gian, sau đó tạo bản tóm tắt chi tiết cho từng phần theo yêu cầu của người dùng. Bạn phải tuân thủ nghiêm ngặt cấu trúc và định dạng đầu ra được chỉ định.',
     buildPrompt: (timestampedTranscript, lang, length, tone) => {
       let template = chapterPromptTemplate // Thêm let để có thể gán lại
+      if (settings.isSummaryAdvancedMode) {
+        switch (settings.chapterPromptSelection) {
+          case 'custom1':
+            template = settings.customPrompt1Content
+            break
+          case 'custom2':
+            template = settings.customPrompt2Content
+            break
+          default:
+            // Use default template
+            break
+        }
+      }
       const lengthDescription = parameterDefinitions.length[length]
       const lengthNote = parameterDefinitions.length.note
       const toneDescription = parameterDefinitions.tone[tone]
@@ -70,6 +110,19 @@ export const promptBuilders = {
     systemInstruction: `Bạn là một công cụ AI được tích hợp vào trình duyệt, chuyên trách về việc phân tích và tóm tắt nội dung văn bản do người dùng lựa chọn. Mục tiêu của bạn là cung cấp bản tóm tắt chính xác, súc tích và phù hợp với các tùy chỉnh của người dùng.`,
     buildPrompt: (text, lang, length, format, tone) => {
       let template = selectedTextPromptTemplate // Thêm let để có thể gán lại
+      if (settings.isSummaryAdvancedMode) {
+        switch (settings.selectedTextPromptSelection) {
+          case 'custom1':
+            template = settings.customPrompt1Content
+            break
+          case 'custom2':
+            template = settings.customPrompt2Content
+            break
+          default:
+            // Use default template
+            break
+        }
+      }
       const lengthDescription = parameterDefinitions.length[length]
       const lengthNote = parameterDefinitions.length.note
       const formatDescription = parameterDefinitions.format[format]
@@ -90,6 +143,19 @@ export const promptBuilders = {
       'Bạn là một trợ lý chuyên phân tích và tóm tắt bài giảng Udemy dựa trên transcript được cung cấp. Nhiệm vụ của bạn là tạo bản tóm tắt súc tích, chính xác và có cấu trúc, tuân thủ nghiêm ngặt các tham số và hướng dẫn dưới đây. Chỉ sử dụng thông tin có trong <Transcript> được cung cấp.',
     buildPrompt: (text, lang, length, format, tone) => {
       let template = udemySummaryPromptTemplate // Thêm let để có thể gán lại
+      if (settings.isSummaryAdvancedMode) {
+        switch (settings.udemySummaryPromptSelection) {
+          case 'custom1':
+            template = settings.customPrompt1Content
+            break
+          case 'custom2':
+            template = settings.customPrompt2Content
+            break
+          default:
+            // Use default template
+            break
+        }
+      }
       const lengthDescription = parameterDefinitions.length[length]
       const lengthNote = parameterDefinitions.length.note
       const formatDescription = parameterDefinitions.format[format]
@@ -110,6 +176,19 @@ export const promptBuilders = {
       'Mục tiêu của tôi là hiểu sâu hơn về các khái niệm chuyên ngành được đề cập trong một khoá học trực tuyến. Bạn cần sử dụng kiến thức rộng lớn của mình để cung cấp những giải thích chi tiết, chuyên sâu và dễ hiểu về các thuật ngữ này',
     buildPrompt: (text, lang, format, tone) => {
       let template = udemyConceptsPromptTemplate // Thêm let để có thể gán lại
+      if (settings.isSummaryAdvancedMode) {
+        switch (settings.udemyConceptsPromptSelection) {
+          case 'custom1':
+            template = settings.customPrompt1Content
+            break
+          case 'custom2':
+            template = settings.customPrompt2Content
+            break
+          default:
+            // Use default template
+            break
+        }
+      }
       const formatDescription = parameterDefinitions.format[format]
       const toneDescription = parameterDefinitions.tone[tone]
       template = template

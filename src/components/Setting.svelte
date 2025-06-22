@@ -14,12 +14,9 @@
   import OllamaConfig from './providerConfigs/OllamaConfig.svelte' // Import OllamaConfig
   import 'overlayscrollbars/overlayscrollbars.css'
   import { Label, Switch } from 'bits-ui'
+  import SwitchButton from './Switch.svelte'
   import { useOverlayScrollbars } from 'overlayscrollbars-svelte'
   import { providersConfig } from '../lib/providersConfig.js'
-  import Dyslexic from './icon/Dyslexic.svelte'
-  import Mix from './icon/Mix.svelte'
-  import SanSerif from './icon/San-serif.svelte'
-  import Serif from './icon/Serif.svelte'
   import {
     settings,
     loadSettings,
@@ -210,7 +207,7 @@
       ></div>
     </div>
   </div>
-  <div id="setting-scroll" class="max-h-[calc(100vh-64px)]">
+  <div id="setting-scroll" class="max-h-[calc(100vh-136px)]">
     <div>
       {#if activeTab === 'ai-model'}
         <!--AI Model Section -->
@@ -422,26 +419,25 @@
 
       {#if activeTab === 'summary'}
         <!-- Summmary Section -->
-
         <div class="setting-block flex flex-col gap-5 pb-6 pt-5">
           <div class="flex items-center h-6 justify-between px-5">
             <label
-              for="advanced-mode-toggle"
-              class="block font-bold text-text-primary">Summmary settings</label
+              for="isSummaryAdvancedMode"
+              class="block font-bold text-text-primary">Summary settings</label
             >
             <div class="flex items-center">
-              <!-- <Label.Root
-                class="cursor-pointer pr-2 py-2 w-20 text-right font-bold select-none {settings.isSummaryEnabled
+              <Label.Root
+                class="cursor-pointer pr-2 py-2 w-20 text-right font-bold select-none {settings.isSummaryAdvancedMode
                   ? 'text-primary'
                   : 'text-text-primary'}"
-                for="provider-toggle"
+                for="isSummaryAdvancedMode-toggle"
               >
-                {settings.isSummaryEnabled ? 'Advanced' : 'Basic'}
+                {settings.isSummaryAdvancedMode ? 'Advanced' : 'Basic'}
               </Label.Root>
               <Switch.Root
-                id="provider-toggle"
-                bind:checked={settings.isSummaryEnabled}
-                name="Advanced Mode"
+                id="isSummaryAdvancedMode-toggle"
+                bind:checked={settings.isSummaryAdvancedMode}
+                name="Summary Advanced Mode"
                 class="focus-visible:ring-primary border border-blackwhite/5 text-text-secondary flex justify-center items-center focus-visible:ring-offset-background  bg-blackwhite/5 hover:bg-blackwhite/10 transition-colors rounded-full  focus-visible:outline-hidden  size-7.5  shrink-0 cursor-pointer  focus-visible:ring-1 focus-visible:ring-offset-1 disabled:cursor-not-allowed data-[state=checked]:text-white disabled:opacity50"
               >
                 <Switch.Thumb
@@ -453,9 +449,10 @@
                   height="20"
                   class="origin-[75%_25%] animate-wiggle absolute z-10"
                 />
-              </Switch.Root> -->
+              </Switch.Root>
             </div>
           </div>
+
           <div class="setting-secsion flex flex-col gap-6 px-5">
             <!-- Summary Length Section -->
             <div class="flex flex-col gap-2">
@@ -488,30 +485,6 @@
                 ></ButtonSet>
               </div>
             </div>
-
-            <!-- Summary Format Section -->
-            <!-- <div class="flex flex-col gap-2">
-              <label class="block text-text-secondary">Format</label>
-              <div class="grid grid-cols-3 w-full gap-1">
-                <ButtonSet
-                  title="Plain"
-                  class="setting-btn {settings.summaryFormat === 'plain'
-                    ? 'active'
-                    : ''}"
-                  onclick={() => handleUpdateSetting('summaryFormat', 'plain')}
-                  Description="Plain text format."
-                ></ButtonSet>
-                <ButtonSet
-                  title="Heading"
-                  class="setting-btn {settings.summaryFormat === 'heading'
-                    ? 'active'
-                    : ''}"
-                  onclick={() =>
-                    handleUpdateSetting('summaryFormat', 'heading')}
-                  Description="Format with headings."
-                ></ButtonSet>
-              </div>
-            </div> -->
 
             <!-- Summary Tone Section -->
             <div class="flex flex-col gap-2">
@@ -552,6 +525,347 @@
               <LanguageSelect bind:value={settings.summaryLang} />
             </div>
           </div>
+
+          {#if settings.isSummaryAdvancedMode}
+            <div class="setting-secsion flex flex-col gap-6 px-5">
+              <!-- Prompt settings -->
+              <label for="aq" class="block mt-4 font-bold text-text-primary"
+                >Custom prompt template</label
+              >
+              <div class="flex flex-col gap-4">
+                <SwitchButton
+                  id="youtubep"
+                  name="Youtube Summary"
+                  bind:checked={settings.youtubePromptSelection}
+                />
+                {#if settings.youtubePromptSelection}
+                  <div class="flex gap-2">
+                    <ButtonSet
+                      title="Custom 1"
+                      class="setting-btn {settings.selectedYoutubeCustomPrompt ===
+                      'custom1'
+                        ? 'active'
+                        : ''}"
+                      onclick={() =>
+                        handleUpdateSetting(
+                          'selectedYoutubeCustomPrompt',
+                          'custom1'
+                        )}
+                      Description="Use Custom Prompt 1."
+                    ></ButtonSet>
+                    <ButtonSet
+                      title="Custom 2"
+                      class="setting-btn {settings.selectedYoutubeCustomPrompt ===
+                      'custom2'
+                        ? 'active'
+                        : ''}"
+                      onclick={() =>
+                        handleUpdateSetting(
+                          'selectedYoutubeCustomPrompt',
+                          'custom2'
+                        )}
+                      Description="Use Custom Prompt 2."
+                    ></ButtonSet>
+                    <ButtonSet
+                      title="Custom 3"
+                      class="setting-btn {settings.selectedYoutubeCustomPrompt ===
+                      'custom3'
+                        ? 'active'
+                        : ''}"
+                      onclick={() =>
+                        handleUpdateSetting(
+                          'selectedYoutubeCustomPrompt',
+                          'custom3'
+                        )}
+                      Description="Use Custom Prompt 3."
+                    ></ButtonSet>
+                  </div>
+                {/if}
+              </div>
+
+              <div class="flex flex-col gap-2">
+                <SwitchButton
+                  id="chapterp"
+                  name="Youtube Chapter"
+                  bind:checked={settings.chapterPromptSelection}
+                />
+                {#if settings.chapterPromptSelection}
+                  <div class="flex gap-2">
+                    <ButtonSet
+                      title="Custom 1"
+                      class="setting-btn {settings.selectedChapterCustomPrompt ===
+                      'custom1'
+                        ? 'active'
+                        : ''}"
+                      onclick={() =>
+                        handleUpdateSetting(
+                          'selectedChapterCustomPrompt',
+                          'custom1'
+                        )}
+                      Description="Use Custom Prompt 1."
+                    ></ButtonSet>
+                    <ButtonSet
+                      title="Custom 2"
+                      class="setting-btn {settings.selectedChapterCustomPrompt ===
+                      'custom2'
+                        ? 'active'
+                        : ''}"
+                      onclick={() =>
+                        handleUpdateSetting(
+                          'selectedChapterCustomPrompt',
+                          'custom2'
+                        )}
+                      Description="Use Custom Prompt 2."
+                    ></ButtonSet>
+                    <ButtonSet
+                      title="Custom 3"
+                      class="setting-btn {settings.selectedChapterCustomPrompt ===
+                      'custom3'
+                        ? 'active'
+                        : ''}"
+                      onclick={() =>
+                        handleUpdateSetting(
+                          'selectedChapterCustomPrompt',
+                          'custom3'
+                        )}
+                      Description="Use Custom Prompt 3."
+                    ></ButtonSet>
+                  </div>
+                {/if}
+              </div>
+
+              <div class="flex flex-col gap-2">
+                <SwitchButton
+                  id="webp"
+                  name="Web Summary"
+                  bind:checked={settings.webPromptSelection}
+                />
+                {#if settings.webPromptSelection}
+                  <div class="flex gap-2">
+                    <ButtonSet
+                      title="Custom 1"
+                      class="setting-btn {settings.selectedWebCustomPrompt ===
+                      'custom1'
+                        ? 'active'
+                        : ''}"
+                      onclick={() =>
+                        handleUpdateSetting(
+                          'selectedWebCustomPrompt',
+                          'custom1'
+                        )}
+                      Description="Use Custom Prompt 1."
+                    ></ButtonSet>
+                    <ButtonSet
+                      title="Custom 2"
+                      class="setting-btn {settings.selectedWebCustomPrompt ===
+                      'custom2'
+                        ? 'active'
+                        : ''}"
+                      onclick={() =>
+                        handleUpdateSetting(
+                          'selectedWebCustomPrompt',
+                          'custom2'
+                        )}
+                      Description="Use Custom Prompt 2."
+                    ></ButtonSet>
+                    <ButtonSet
+                      title="Custom 3"
+                      class="setting-btn {settings.selectedWebCustomPrompt ===
+                      'custom3'
+                        ? 'active'
+                        : ''}"
+                      onclick={() =>
+                        handleUpdateSetting(
+                          'selectedWebCustomPrompt',
+                          'custom3'
+                        )}
+                      Description="Use Custom Prompt 3."
+                    ></ButtonSet>
+                  </div>
+                {/if}
+              </div>
+
+              <div class="flex flex-col gap-2">
+                <SwitchButton
+                  id="udemysummaryp"
+                  name="Udemy Summary"
+                  bind:checked={settings.udemySummaryPromptSelection}
+                />
+                {#if settings.udemySummaryPromptSelection}
+                  <div class="flex gap-2">
+                    <ButtonSet
+                      title="Custom 1"
+                      class="setting-btn {settings.selectedUdemySummaryCustomPrompt ===
+                      'custom1'
+                        ? 'active'
+                        : ''}"
+                      onclick={() =>
+                        handleUpdateSetting(
+                          'selectedUdemySummaryCustomPrompt',
+                          'custom1'
+                        )}
+                      Description="Use Custom Prompt 1."
+                    ></ButtonSet>
+                    <ButtonSet
+                      title="Custom 2"
+                      class="setting-btn {settings.selectedUdemySummaryCustomPrompt ===
+                      'custom2'
+                        ? 'active'
+                        : ''}"
+                      onclick={() =>
+                        handleUpdateSetting(
+                          'selectedUdemySummaryCustomPrompt',
+                          'custom2'
+                        )}
+                      Description="Use Custom Prompt 2."
+                    ></ButtonSet>
+                    <ButtonSet
+                      title="Custom 3"
+                      class="setting-btn {settings.selectedUdemySummaryCustomPrompt ===
+                      'custom3'
+                        ? 'active'
+                        : ''}"
+                      onclick={() =>
+                        handleUpdateSetting(
+                          'selectedUdemySummaryCustomPrompt',
+                          'custom3'
+                        )}
+                      Description="Use Custom Prompt 3."
+                    ></ButtonSet>
+                  </div>
+                {/if}
+              </div>
+
+              <div class="flex flex-col gap-2">
+                <SwitchButton
+                  id="udemyconceptsp"
+                  name="Udemy Concepts"
+                  bind:checked={settings.udemyConceptsPromptSelection}
+                />
+                {#if settings.udemyConceptsPromptSelection}
+                  <div class="flex gap-2">
+                    <ButtonSet
+                      title="Custom 1"
+                      class="setting-btn {settings.selectedUdemyConceptsCustomPrompt ===
+                      'custom1'
+                        ? 'active'
+                        : ''}"
+                      onclick={() =>
+                        handleUpdateSetting(
+                          'selectedUdemyConceptsCustomPrompt',
+                          'custom1'
+                        )}
+                      Description="Use Custom Prompt 1."
+                    ></ButtonSet>
+                    <ButtonSet
+                      title="Custom 2"
+                      class="setting-btn {settings.selectedUdemyConceptsCustomPrompt ===
+                      'custom2'
+                        ? 'active'
+                        : ''}"
+                      onclick={() =>
+                        handleUpdateSetting(
+                          'selectedUdemyConceptsCustomPrompt',
+                          'custom2'
+                        )}
+                      Description="Use Custom Prompt 2."
+                    ></ButtonSet>
+                    <ButtonSet
+                      title="Custom 3"
+                      class="setting-btn {settings.selectedUdemyConceptsCustomPrompt ===
+                      'custom3'
+                        ? 'active'
+                        : ''}"
+                      onclick={() =>
+                        handleUpdateSetting(
+                          'selectedUdemyConceptsCustomPrompt',
+                          'custom3'
+                        )}
+                      Description="Use Custom Prompt 3."
+                    ></ButtonSet>
+                  </div>
+                {/if}
+              </div>
+
+              <div class="flex flex-col gap-2">
+                <SwitchButton
+                  id="selectedtextp"
+                  name="Selected Text"
+                  bind:checked={settings.selectedTextPromptSelection}
+                />
+                {#if settings.selectedTextPromptSelection}
+                  <div class="flex gap-2">
+                    <ButtonSet
+                      title="Custom 1"
+                      class="setting-btn {settings.selectedSelectedTextCustomPrompt ===
+                      'custom1'
+                        ? 'active'
+                        : ''}"
+                      onclick={() =>
+                        handleUpdateSetting(
+                          'selectedSelectedTextCustomPrompt',
+                          'custom1'
+                        )}
+                      Description="Use Custom Prompt 1."
+                    ></ButtonSet>
+                    <ButtonSet
+                      title="Custom 2"
+                      class="setting-btn {settings.selectedSelectedTextCustomPrompt ===
+                      'custom2'
+                        ? 'active'
+                        : ''}"
+                      onclick={() =>
+                        handleUpdateSetting(
+                          'selectedSelectedTextCustomPrompt',
+                          'custom2'
+                        )}
+                      Description="Use Custom Prompt 2."
+                    ></ButtonSet>
+                    <ButtonSet
+                      title="Custom 3"
+                      class="setting-btn {settings.selectedSelectedTextCustomPrompt ===
+                      'custom3'
+                        ? 'active'
+                        : ''}"
+                      onclick={() =>
+                        handleUpdateSetting(
+                          'selectedSelectedTextCustomPrompt',
+                          'custom3'
+                        )}
+                      Description="Use Custom Prompt 3."
+                    ></ButtonSet>
+                  </div>
+                {/if}
+              </div>
+
+              <div class="flex flex-col gap-2">
+                <!-- svelte-ignore a11y_label_has_associated_control -->
+                <label class="block text-text-secondary">Custom Prompt 1</label>
+                <textarea
+                  class="textarea textarea-bordered"
+                  bind:value={settings.customPrompt1Content}
+                />
+              </div>
+
+              <div class="flex flex-col gap-2">
+                <!-- svelte-ignore a11y_label_has_associated_control -->
+                <label class="block text-text-secondary">Custom Prompt 2</label>
+                <textarea
+                  class="textarea textarea-bordered"
+                  bind:value={settings.customPrompt2Content}
+                />
+              </div>
+
+              <div class="flex flex-col gap-2">
+                <!-- svelte-ignore a11y_label_has_associated_control -->
+                <label class="block text-text-secondary">Custom Prompt 3</label>
+                <textarea
+                  class="textarea textarea-bordered"
+                  bind:value={settings.customPrompt3Content}
+                />
+              </div>
+            </div>
+          {/if}
         </div>
       {/if}
 

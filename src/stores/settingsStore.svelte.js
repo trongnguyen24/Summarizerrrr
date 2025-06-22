@@ -25,6 +25,26 @@ const DEFAULT_SETTINGS = {
   selectedModel: 'gemini-2.0-flash', // Default model
   isAdvancedMode: false, // Default to basic mode
   selectedFont: 'default', // Default font setting
+  isSummaryAdvancedMode: false, // Chế độ tóm tắt nâng cao mới
+
+  // Lựa chọn prompt cho từng tính năng (chỉ còn 'default', 'custom1', 'custom2')
+  youtubePromptSelection: false, // Thay đổi thành boolean để điều khiển SwitchButton
+  selectedYoutubeCustomPrompt: 'custom1', // Thêm cài đặt mới để lưu lựa chọn custom prompt
+  chapterPromptSelection: false,
+  selectedChapterCustomPrompt: 'custom1',
+  webPromptSelection: false,
+  selectedWebCustomPrompt: 'custom1',
+  udemySummaryPromptSelection: false,
+  selectedUdemySummaryCustomPrompt: 'custom1',
+  udemyConceptsPromptSelection: false,
+  selectedUdemyConceptsCustomPrompt: 'custom1',
+  selectedTextPromptSelection: false,
+  selectedSelectedTextCustomPrompt: 'custom1',
+
+  // Nội dung của các prompt tùy chỉnh (chỉ custom1 và custom2)
+  customPrompt1Content: '',
+  customPrompt2Content: '',
+  customPrompt3Content: '', // Thêm customPrompt3Content
 }
 
 // --- State ---

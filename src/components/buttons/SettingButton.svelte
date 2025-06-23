@@ -32,7 +32,7 @@
       {#snippet child({ props, open })}
         {#if open}
           <div {...props} transition:slideScaleFade>
-            <div class="absolute z-50 right-3 top-2.5 group flex gap-2">
+            <div class="absolute z-10 right-3 top-2.5 group flex gap-2">
               <span class="block size-3.5 bg-muted/15 rounded-full"></span>
               <span class="block size-3.5 bg-muted/15 rounded-full"></span>
               <!-- svelte-ignore a11y_consider_explicit_label -->

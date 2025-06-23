@@ -41,47 +41,7 @@
   })
 
   // Use $effect to save settings when they change
-  $effect(() => {
-    updateSettings({
-      summaryLength: settings.summaryLength,
-      summaryFormat: settings.summaryFormat,
-      summaryLang: settings.summaryLang,
-      selectedModel: settings.selectedModel,
-      isAdvancedMode: settings.isAdvancedMode,
-      selectedFont: settings.selectedFont,
-      selectedProvider: settings.selectedProvider,
-      geminiApiKey: settings.geminiApiKey,
-      selectedGeminiModel: settings.selectedGeminiModel,
-      geminiAdvancedApiKey: settings.geminiAdvancedApiKey,
-      selectedGeminiAdvancedModel: settings.selectedGeminiAdvancedModel,
-      openrouterApiKey: settings.openrouterApiKey,
-      selectedOpenrouterModel: settings.selectedOpenrouterModel,
-      deepseekApiKey: settings.deepseekApiKey,
-      chatgptApiKey: settings.chatgptApiKey,
-      ollamaEndpoint: settings.ollamaEndpoint,
-      selectedOllamaModel: settings.selectedOllamaModel,
-      isSummaryAdvancedMode: settings.isSummaryAdvancedMode,
-      summaryTone: settings.summaryTone,
-      youtubePromptSelection: settings.youtubePromptSelection,
-      selectedYoutubeCustomPrompt: settings.selectedYoutubeCustomPrompt,
-      chapterPromptSelection: settings.chapterPromptSelection,
-      selectedChapterCustomPrompt: settings.selectedChapterCustomPrompt,
-      webPromptSelection: settings.webPromptSelection,
-      selectedWebCustomPrompt: settings.selectedWebCustomPrompt,
-      udemySummaryPromptSelection: settings.udemySummaryPromptSelection,
-      selectedUdemySummaryCustomPrompt:
-        settings.selectedUdemySummaryCustomPrompt,
-      udemyConceptsPromptSelection: settings.udemyConceptsPromptSelection,
-      selectedUdemyConceptsCustomPrompt:
-        settings.selectedUdemyConceptsCustomPrompt,
-      selectedTextPromptSelection: settings.selectedTextPromptSelection,
-      selectedSelectedTextCustomPrompt:
-        settings.selectedSelectedTextCustomPrompt,
-      customPrompt1Content: settings.customPrompt1Content,
-      customPrompt2Content: settings.customPrompt2Content,
-      customPrompt3Content: settings.customPrompt3Content,
-    })
-  })
+  $effect(() => updateSettings(settings))
 
   // Effect to update transform class for activebar
   $effect(() => {
@@ -160,7 +120,7 @@
     </button>
   </div>
   <div
-    class="top-stripes relative bg-background z-10 flex justify-center items-center h-2 border border-border border-l-0 border-r-0"
+    class="top-stripes relative bg-background flex justify-center items-center h-2 border border-border border-l-0 border-r-0"
   >
     <div
       id="activebar"

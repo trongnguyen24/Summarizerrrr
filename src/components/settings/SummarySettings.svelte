@@ -13,10 +13,37 @@
   function handleUpdateSetting(key, value) {
     updateSettings({ [key]: value })
   }
+
+  let showPromptDialog = false
+  let currentPromptKey = ''
+  let currentPromptTitle = ''
+  let currentPromptDescription = ''
+
+  function handleOpenPromptDialog(key, title, description) {
+    currentPromptKey = key
+    currentPromptTitle = title
+    currentPromptDescription = description
+    showPromptDialog = true
+  }
+
+  function handleClosePromptDialog() {
+    showPromptDialog = false
+    currentPromptKey = ''
+    currentPromptTitle = ''
+  }
+
+  function handleSavePrompt() {
+    updateSettings({ [currentPromptKey]: settings[currentPromptKey] })
+    handleClosePromptDialog()
+  }
 </script>
 
 <!-- Summmary Section -->
-<div class="setting-block flex flex-col gap-5 pb-6 pt-5">
+<div
+  class="setting-block flex flex-col gap-5 pb-6 pt-5 {showPromptDialog
+    ? 'hidden'
+    : ''}"
+>
   <div class="flex items-center h-6 justify-between px-5">
     <label for="isSummaryAdvancedMode" class="block font-bold text-text-primary"
       >Summary settings</label
@@ -121,51 +148,22 @@
   </div>
 
   {#if settings.isSummaryAdvancedMode}
-    <div class="setting-secsion flex flex-col gap-6 px-5">
+    <div class="setting-secsion flex flex-col gap-2 px-5">
       <!-- Prompt settings -->
       <label for="aq" class="block mt-4 font-bold text-text-primary"
         >Custom prompt template</label
       >
-      <div class="flex flex-col gap-4">
+      <div class="flex flex-col">
         <SwitchButton
           id="youtubep"
           name="Youtube Summary"
           bind:checked={settings.youtubePromptSelection}
+          onEdit={() =>
+            handleOpenPromptDialog(
+              'youtubePromptTemplate',
+              'Edit Youtube Summary Prompt'
+            )}
         />
-        {#if settings.youtubePromptSelection}
-          <div class="flex gap-2">
-            <ButtonSet
-              title="Custom 1"
-              class="setting-btn {settings.selectedYoutubeCustomPrompt ===
-              'custom1'
-                ? 'active'
-                : ''}"
-              onclick={() =>
-                handleUpdateSetting('selectedYoutubeCustomPrompt', 'custom1')}
-              Description="Use Custom Prompt 1."
-            ></ButtonSet>
-            <ButtonSet
-              title="Custom 2"
-              class="setting-btn {settings.selectedYoutubeCustomPrompt ===
-              'custom2'
-                ? 'active'
-                : ''}"
-              onclick={() =>
-                handleUpdateSetting('selectedYoutubeCustomPrompt', 'custom2')}
-              Description="Use Custom Prompt 2."
-            ></ButtonSet>
-            <ButtonSet
-              title="Custom 3"
-              class="setting-btn {settings.selectedYoutubeCustomPrompt ===
-              'custom3'
-                ? 'active'
-                : ''}"
-              onclick={() =>
-                handleUpdateSetting('selectedYoutubeCustomPrompt', 'custom3')}
-              Description="Use Custom Prompt 3."
-            ></ButtonSet>
-          </div>
-        {/if}
       </div>
 
       <div class="flex flex-col gap-2">
@@ -173,41 +171,12 @@
           id="chapterp"
           name="Youtube Chapter"
           bind:checked={settings.chapterPromptSelection}
+          onEdit={() =>
+            handleOpenPromptDialog(
+              'chapterPromptTemplate',
+              'Edit Youtube Chapter Prompt'
+            )}
         />
-        {#if settings.chapterPromptSelection}
-          <div class="flex gap-2">
-            <ButtonSet
-              title="Custom 1"
-              class="setting-btn {settings.selectedChapterCustomPrompt ===
-              'custom1'
-                ? 'active'
-                : ''}"
-              onclick={() =>
-                handleUpdateSetting('selectedChapterCustomPrompt', 'custom1')}
-              Description="Use Custom Prompt 1."
-            ></ButtonSet>
-            <ButtonSet
-              title="Custom 2"
-              class="setting-btn {settings.selectedChapterCustomPrompt ===
-              'custom2'
-                ? 'active'
-                : ''}"
-              onclick={() =>
-                handleUpdateSetting('selectedChapterCustomPrompt', 'custom2')}
-              Description="Use Custom Prompt 2."
-            ></ButtonSet>
-            <ButtonSet
-              title="Custom 3"
-              class="setting-btn {settings.selectedChapterCustomPrompt ===
-              'custom3'
-                ? 'active'
-                : ''}"
-              onclick={() =>
-                handleUpdateSetting('selectedChapterCustomPrompt', 'custom3')}
-              Description="Use Custom Prompt 3."
-            ></ButtonSet>
-          </div>
-        {/if}
       </div>
 
       <div class="flex flex-col gap-2">
@@ -215,38 +184,12 @@
           id="webp"
           name="Web Summary"
           bind:checked={settings.webPromptSelection}
+          onEdit={() =>
+            handleOpenPromptDialog(
+              'webPromptTemplate',
+              'Edit Web Summary Prompt'
+            )}
         />
-        {#if settings.webPromptSelection}
-          <div class="flex gap-2">
-            <ButtonSet
-              title="Custom 1"
-              class="setting-btn {settings.selectedWebCustomPrompt === 'custom1'
-                ? 'active'
-                : ''}"
-              onclick={() =>
-                handleUpdateSetting('selectedWebCustomPrompt', 'custom1')}
-              Description="Use Custom Prompt 1."
-            ></ButtonSet>
-            <ButtonSet
-              title="Custom 2"
-              class="setting-btn {settings.selectedWebCustomPrompt === 'custom2'
-                ? 'active'
-                : ''}"
-              onclick={() =>
-                handleUpdateSetting('selectedWebCustomPrompt', 'custom2')}
-              Description="Use Custom Prompt 2."
-            ></ButtonSet>
-            <ButtonSet
-              title="Custom 3"
-              class="setting-btn {settings.selectedWebCustomPrompt === 'custom3'
-                ? 'active'
-                : ''}"
-              onclick={() =>
-                handleUpdateSetting('selectedWebCustomPrompt', 'custom3')}
-              Description="Use Custom Prompt 3."
-            ></ButtonSet>
-          </div>
-        {/if}
       </div>
 
       <div class="flex flex-col gap-2">
@@ -254,50 +197,12 @@
           id="udemysummaryp"
           name="Udemy Summary"
           bind:checked={settings.udemySummaryPromptSelection}
+          onEdit={() =>
+            handleOpenPromptDialog(
+              'udemySummaryPromptTemplate',
+              'Edit Udemy Summary Prompt'
+            )}
         />
-        {#if settings.udemySummaryPromptSelection}
-          <div class="flex gap-2">
-            <ButtonSet
-              title="Custom 1"
-              class="setting-btn {settings.selectedUdemySummaryCustomPrompt ===
-              'custom1'
-                ? 'active'
-                : ''}"
-              onclick={() =>
-                handleUpdateSetting(
-                  'selectedUdemySummaryCustomPrompt',
-                  'custom1'
-                )}
-              Description="Use Custom Prompt 1."
-            ></ButtonSet>
-            <ButtonSet
-              title="Custom 2"
-              class="setting-btn {settings.selectedUdemySummaryCustomPrompt ===
-              'custom2'
-                ? 'active'
-                : ''}"
-              onclick={() =>
-                handleUpdateSetting(
-                  'selectedUdemySummaryCustomPrompt',
-                  'custom2'
-                )}
-              Description="Use Custom Prompt 2."
-            ></ButtonSet>
-            <ButtonSet
-              title="Custom 3"
-              class="setting-btn {settings.selectedUdemySummaryCustomPrompt ===
-              'custom3'
-                ? 'active'
-                : ''}"
-              onclick={() =>
-                handleUpdateSetting(
-                  'selectedUdemySummaryCustomPrompt',
-                  'custom3'
-                )}
-              Description="Use Custom Prompt 3."
-            ></ButtonSet>
-          </div>
-        {/if}
       </div>
 
       <div class="flex flex-col gap-2">
@@ -305,50 +210,12 @@
           id="udemyconceptsp"
           name="Udemy Concepts"
           bind:checked={settings.udemyConceptsPromptSelection}
+          onEdit={() =>
+            handleOpenPromptDialog(
+              'udemyConceptsPromptTemplate',
+              'Edit Udemy Concepts Prompt'
+            )}
         />
-        {#if settings.udemyConceptsPromptSelection}
-          <div class="flex gap-2">
-            <ButtonSet
-              title="Custom 1"
-              class="setting-btn {settings.selectedUdemyConceptsCustomPrompt ===
-              'custom1'
-                ? 'active'
-                : ''}"
-              onclick={() =>
-                handleUpdateSetting(
-                  'selectedUdemyConceptsCustomPrompt',
-                  'custom1'
-                )}
-              Description="Use Custom Prompt 1."
-            ></ButtonSet>
-            <ButtonSet
-              title="Custom 2"
-              class="setting-btn {settings.selectedUdemyConceptsCustomPrompt ===
-              'custom2'
-                ? 'active'
-                : ''}"
-              onclick={() =>
-                handleUpdateSetting(
-                  'selectedUdemyConceptsCustomPrompt',
-                  'custom2'
-                )}
-              Description="Use Custom Prompt 2."
-            ></ButtonSet>
-            <ButtonSet
-              title="Custom 3"
-              class="setting-btn {settings.selectedUdemyConceptsCustomPrompt ===
-              'custom3'
-                ? 'active'
-                : ''}"
-              onclick={() =>
-                handleUpdateSetting(
-                  'selectedUdemyConceptsCustomPrompt',
-                  'custom3'
-                )}
-              Description="Use Custom Prompt 3."
-            ></ButtonSet>
-          </div>
-        {/if}
       </div>
 
       <div class="flex flex-col gap-2">
@@ -356,54 +223,16 @@
           id="selectedtextp"
           name="Selected Text"
           bind:checked={settings.selectedTextPromptSelection}
+          onEdit={() =>
+            handleOpenPromptDialog(
+              'selectedTextPromptTemplate',
+              'Edit Selected Text Prompt'
+            )}
         />
-        {#if settings.selectedTextPromptSelection}
-          <div class="flex gap-2">
-            <ButtonSet
-              title="Custom 1"
-              class="setting-btn {settings.selectedSelectedTextCustomPrompt ===
-              'custom1'
-                ? 'active'
-                : ''}"
-              onclick={() =>
-                handleUpdateSetting(
-                  'selectedSelectedTextCustomPrompt',
-                  'custom1'
-                )}
-              Description="Use Custom Prompt 1."
-            ></ButtonSet>
-            <ButtonSet
-              title="Custom 2"
-              class="setting-btn {settings.selectedSelectedTextCustomPrompt ===
-              'custom2'
-                ? 'active'
-                : ''}"
-              onclick={() =>
-                handleUpdateSetting(
-                  'selectedSelectedTextCustomPrompt',
-                  'custom2'
-                )}
-              Description="Use Custom Prompt 2."
-            ></ButtonSet>
-            <ButtonSet
-              title="Custom 3"
-              class="setting-btn {settings.selectedSelectedTextCustomPrompt ===
-              'custom3'
-                ? 'active'
-                : ''}"
-              onclick={() =>
-                handleUpdateSetting(
-                  'selectedSelectedTextCustomPrompt',
-                  'custom3'
-                )}
-              Description="Use Custom Prompt 3."
-            ></ButtonSet>
-          </div>
-        {/if}
       </div>
 
-      <div class="flex flex-col gap-2">
-        <!-- svelte-ignore a11y_label_has_associated_control -->
+      <!-- <div class="flex flex-col gap-2">
+       
         <label class="block text-text-secondary">Custom Prompt 1</label>
         <textarea
           class="textarea textarea-bordered"
@@ -412,7 +241,7 @@
       </div>
 
       <div class="flex flex-col gap-2">
-        <!-- svelte-ignore a11y_label_has_associated_control -->
+       
         <label class="block text-text-secondary">Custom Prompt 2</label>
         <textarea
           class="textarea textarea-bordered"
@@ -421,13 +250,38 @@
       </div>
 
       <div class="flex flex-col gap-2">
-        <!-- svelte-ignore a11y_label_has_associated_control -->
+       
         <label class="block text-text-secondary">Custom Prompt 3</label>
         <textarea
           class="textarea textarea-bordered"
           bind:value={settings.customPrompt3Content}
         />
-      </div>
+      </div> -->
     </div>
   {/if}
 </div>
+
+{#if showPromptDialog}
+  <div
+    open={showPromptDialog}
+    class="text-xs flex items-center justify-center p-0 border-none"
+  >
+    <div class="bg-surface-1 p-6 rounded-lg shadow-lg h-full w-full">
+      <h2 class="font-bold mb-4">{currentPromptTitle}</h2>
+      <p class=" text-text-secondary mb-4">asdasda</p>
+      <textarea
+        class="textarea border border-border h-full bg-background w-full mb-4"
+        bind:value={settings[currentPromptKey]}
+      ></textarea>
+
+      <div class="flex justify-end gap-2">
+        <button class="btn variant-filled" onclick={handleClosePromptDialog}
+          >Close</button
+        >
+        <button class="btn variant-filled-primary" onclick={handleSavePrompt}
+          >Save</button
+        >
+      </div>
+    </div>
+  </div>
+{/if}

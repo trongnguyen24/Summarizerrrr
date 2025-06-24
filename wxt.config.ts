@@ -23,6 +23,10 @@ export default defineConfig({
         action: {
           default_title: 'Click to Open Summarizerrrr',
         },
+        page_action: {
+          default_popup: 'prompt.html',
+          default_title: 'Summarizerrrr Prompt',
+        },
       }
     } else if (browser === 'firefox') {
       return {
@@ -30,6 +34,7 @@ export default defineConfig({
         browser_action: {
           default_icon: 'icon/48.png',
           default_title: 'Open Summarizerrrr',
+          default_popup: 'prompt.html',
         },
         sidebar_action: {
           default_panel: 'sidepanel.html',

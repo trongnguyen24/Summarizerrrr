@@ -13,37 +13,10 @@
   function handleUpdateSetting(key, value) {
     updateSettings({ [key]: value })
   }
-
-  let showPromptDialog = false
-  let currentPromptKey = ''
-  let currentPromptTitle = ''
-  let currentPromptDescription = ''
-
-  function handleOpenPromptDialog(key, title, description) {
-    currentPromptKey = key
-    currentPromptTitle = title
-    currentPromptDescription = description
-    showPromptDialog = true
-  }
-
-  function handleClosePromptDialog() {
-    showPromptDialog = false
-    currentPromptKey = ''
-    currentPromptTitle = ''
-  }
-
-  function handleSavePrompt() {
-    updateSettings({ [currentPromptKey]: settings[currentPromptKey] })
-    handleClosePromptDialog()
-  }
 </script>
 
 <!-- Summmary Section -->
-<div
-  class="setting-block flex flex-col gap-5 pb-6 pt-5 {showPromptDialog
-    ? 'hidden'
-    : ''}"
->
+<div class="setting-block flex flex-col gap-5 pb-6 pt-5">
   <div class="flex items-center h-6 justify-between px-5">
     <label for="isSummaryAdvancedMode" class="block font-bold text-text-primary"
       >Summary settings</label
@@ -148,140 +121,84 @@
   </div>
 
   {#if settings.isSummaryAdvancedMode}
-    <div class="setting-secsion flex flex-col gap-2 px-5">
+    <div class="@container setting-secsion flex flex-col gap-2 px-5">
       <!-- Prompt settings -->
       <label for="aq" class="block mt-4 font-bold text-text-primary"
         >Custom prompt template</label
       >
-      <div class="flex flex-col">
+      <div class="grid @min-[26rem]:grid-cols-2 gap-4">
         <SwitchButton
           id="youtubep"
           name="Youtube Summary"
           bind:checked={settings.youtubePromptSelection}
           onEdit={() =>
-            handleOpenPromptDialog(
-              'youtubePromptTemplate',
-              'Edit Youtube Summary Prompt'
-            )}
+            browser.tabs.create({
+              url: browser.runtime.getURL(
+                'prompt.html?promptKey=youtubeCustomPromptContent'
+              ),
+            })}
         />
-      </div>
 
-      <div class="flex flex-col gap-2">
         <SwitchButton
           id="chapterp"
           name="Youtube Chapter"
           bind:checked={settings.chapterPromptSelection}
           onEdit={() =>
-            handleOpenPromptDialog(
-              'chapterPromptTemplate',
-              'Edit Youtube Chapter Prompt'
-            )}
+            browser.tabs.create({
+              url: browser.runtime.getURL(
+                'prompt.html?promptKey=chapterCustomPromptContent'
+              ),
+            })}
         />
-      </div>
 
-      <div class="flex flex-col gap-2">
         <SwitchButton
           id="webp"
           name="Web Summary"
           bind:checked={settings.webPromptSelection}
           onEdit={() =>
-            handleOpenPromptDialog(
-              'webPromptTemplate',
-              'Edit Web Summary Prompt'
-            )}
+            browser.tabs.create({
+              url: browser.runtime.getURL(
+                'prompt.html?promptKey=webCustomPromptContent'
+              ),
+            })}
         />
-      </div>
 
-      <div class="flex flex-col gap-2">
         <SwitchButton
           id="udemysummaryp"
           name="Udemy Summary"
           bind:checked={settings.udemySummaryPromptSelection}
           onEdit={() =>
-            handleOpenPromptDialog(
-              'udemySummaryPromptTemplate',
-              'Edit Udemy Summary Prompt'
-            )}
+            browser.tabs.create({
+              url: browser.runtime.getURL(
+                'prompt.html?promptKey=udemySummaryCustomPromptContent'
+              ),
+            })}
         />
-      </div>
 
-      <div class="flex flex-col gap-2">
         <SwitchButton
           id="udemyconceptsp"
           name="Udemy Concepts"
           bind:checked={settings.udemyConceptsPromptSelection}
           onEdit={() =>
-            handleOpenPromptDialog(
-              'udemyConceptsPromptTemplate',
-              'Edit Udemy Concepts Prompt'
-            )}
+            browser.tabs.create({
+              url: browser.runtime.getURL(
+                'prompt.html?promptKey=udemyConceptsCustomPromptContent'
+              ),
+            })}
         />
-      </div>
 
-      <div class="flex flex-col gap-2">
         <SwitchButton
           id="selectedtextp"
           name="Selected Text"
           bind:checked={settings.selectedTextPromptSelection}
           onEdit={() =>
-            handleOpenPromptDialog(
-              'selectedTextPromptTemplate',
-              'Edit Selected Text Prompt'
-            )}
+            browser.tabs.create({
+              url: browser.runtime.getURL(
+                'prompt.html?promptKey=selectedTextCustomPromptContent'
+              ),
+            })}
         />
       </div>
-
-      <!-- <div class="flex flex-col gap-2">
-       
-        <label class="block text-text-secondary">Custom Prompt 1</label>
-        <textarea
-          class="textarea textarea-bordered"
-          bind:value={settings.customPrompt1Content}
-        />
-      </div>
-
-      <div class="flex flex-col gap-2">
-       
-        <label class="block text-text-secondary">Custom Prompt 2</label>
-        <textarea
-          class="textarea textarea-bordered"
-          bind:value={settings.customPrompt2Content}
-        />
-      </div>
-
-      <div class="flex flex-col gap-2">
-       
-        <label class="block text-text-secondary">Custom Prompt 3</label>
-        <textarea
-          class="textarea textarea-bordered"
-          bind:value={settings.customPrompt3Content}
-        />
-      </div> -->
     </div>
   {/if}
 </div>
-
-{#if showPromptDialog}
-  <div
-    open={showPromptDialog}
-    class="text-xs flex items-center justify-center p-0 border-none"
-  >
-    <div class="bg-surface-1 p-6 rounded-lg shadow-lg h-full w-full">
-      <h2 class="font-bold mb-4">{currentPromptTitle}</h2>
-      <p class=" text-text-secondary mb-4">asdasda</p>
-      <textarea
-        class="textarea border border-border h-full bg-background w-full mb-4"
-        bind:value={settings[currentPromptKey]}
-      ></textarea>
-
-      <div class="flex justify-end gap-2">
-        <button class="btn variant-filled" onclick={handleClosePromptDialog}
-          >Close</button
-        >
-        <button class="btn variant-filled-primary" onclick={handleSavePrompt}
-          >Save</button
-        >
-      </div>
-    </div>
-  </div>
-{/if}

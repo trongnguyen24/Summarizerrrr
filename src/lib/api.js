@@ -99,14 +99,13 @@ export async function summarizeContent(text, contentType) {
     )
   }
 
-  const prompt = contentConfig.buildPrompt(
+  const { systemInstruction, userPrompt } = contentConfig.buildPrompt(
     text,
     userSettings.summaryLang,
     userSettings.summaryLength,
     userSettings.summaryFormat,
     userSettings.summaryTone
   )
-  const systemInstruction = contentConfig.systemInstruction
 
   try {
     // Apply user settings to generationConfig, overriding defaults
@@ -122,13 +121,13 @@ export async function summarizeContent(text, contentType) {
 
     let contentsForProvider
     if (selectedProviderId === 'gemini') {
-      contentsForProvider = [{ parts: [{ text: prompt }] }] // Gemini specific content format
+      contentsForProvider = [{ parts: [{ text: userPrompt }] }] // Gemini specific content format
     } else if (selectedProviderId === 'openrouter') {
-      contentsForProvider = [{ parts: [{ text: prompt }] }] // OpenRouter expects messages array, but our provider handles this mapping
+      contentsForProvider = [{ parts: [{ text: userPrompt }] }] // OpenRouter expects messages array, but our provider handles this mapping
     } else if (selectedProviderId === 'ollama') {
-      contentsForProvider = prompt // Ollama expects raw prompt string
+      contentsForProvider = userPrompt // Ollama expects raw prompt string
     } else {
-      contentsForProvider = [{ parts: [{ text: prompt }] }] // Default for other providers
+      contentsForProvider = [{ parts: [{ text: userPrompt }] }] // Default for other providers
     }
 
     const rawResult = await (selectedProviderId === 'ollama'
@@ -183,7 +182,7 @@ export async function summarizeChapters(timestampedTranscript) {
     throw new Error(`Configuration for chapter summary is incomplete.`)
   }
 
-  const prompt = chapterConfig.buildPrompt(
+  const { systemInstruction, userPrompt } = chapterConfig.buildPrompt(
     timestampedTranscript,
     userSettings.summaryLang,
     userSettings.summaryLength,
@@ -203,13 +202,13 @@ export async function summarizeChapters(timestampedTranscript) {
 
     let contentsForProvider
     if (selectedProviderId === 'gemini') {
-      contentsForProvider = [{ parts: [{ text: prompt }] }] // Gemini specific content format
+      contentsForProvider = [{ parts: [{ text: userPrompt }] }] // Gemini specific content format
     } else if (selectedProviderId === 'openrouter') {
-      contentsForProvider = [{ parts: [{ text: prompt }] }] // OpenRouter expects messages array, but our provider handles this mapping
+      contentsForProvider = [{ parts: [{ text: userPrompt }] }] // OpenRouter expects messages array, but our provider handles this mapping
     } else if (selectedProviderId === 'ollama') {
-      contentsForProvider = prompt // Ollama expects raw prompt string
+      contentsForProvider = userPrompt // Ollama expects raw prompt string
     } else {
-      contentsForProvider = [{ parts: [{ text: prompt }] }] // Default for other providers
+      contentsForProvider = [{ parts: [{ text: userPrompt }] }] // Default for other providers
     }
 
     const rawResult = await (selectedProviderId === 'ollama'
@@ -217,7 +216,7 @@ export async function summarizeChapters(timestampedTranscript) {
       : provider.generateContent(
           model, // Pass model for other providers
           contentsForProvider,
-          chapterConfig.systemInstruction,
+          systemInstruction, // Use the systemInstruction from the buildPrompt result
           finalGenerationConfig
         ))
     return provider.parseResponse(rawResult)

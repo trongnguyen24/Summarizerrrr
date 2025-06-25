@@ -1,11 +1,13 @@
 <script>
   // @ts-nocheck
+  import PlusIcon from '@/components/PlusIcon.svelte'
   import {
     settings,
     loadSettings,
     updateSettings,
     subscribeToSettingsChanges,
   } from '../../stores/settingsStore.svelte.js'
+  import '@fontsource-variable/geist-mono'
 
   let promptKey = $state('')
   let currentSystemPrompt = $state('')
@@ -93,40 +95,56 @@
   }
 </script>
 
-<main class="flex h-screen bg-background text-text-primary">
+<main
+  class="flex font-mono relative p-8 h-screen bg-background text-text-primary"
+>
+  <span class="fixed h-lvh w-px bg-border top-0 left-8"></span>
+  <span class="fixed h-lvh w-px bg-border top-0 right-8"></span>
+  <span class="fixed h-lvh w-px bg-border top-0 left-64"></span>
+  <span class="fixed h-px w-lvw bg-border top-8 left-0"></span>
+  <span class="fixed h-px w-lvw bg-border bottom-8 left-0"></span>
   <!-- Left Column: Prompt Menu -->
-  <div class="w-1/4 border-r border-border p-4 flex flex-col gap-2">
-    <h2 class="text-lg font-bold mb-4">Prompt Categories</h2>
-    {#each Object.entries(promptTitles) as [key, title]}
-      <button
-        class="btn {promptKey === key
-          ? 'variant-filled-primary'
-          : 'variant-ghost'} w-full text-left"
-        onclick={() => handlePromptMenuClick(key)}
-      >
-        {title}
-      </button>
-    {/each}
+  <div class="w-56 border border-gray-200 border-r-0 flex flex-col">
+    <h2 class="text-lg p-4 font-bold">Prompt Categories</h2>
+    <div class="flex flex-col text-muted gap-1">
+      {#each Object.entries(promptTitles) as [key, title]}
+        <button
+          class=" py-1 px-4 {promptKey === key
+            ? 'text-text-primary'
+            : 'variant-ghost'} w-full text-left"
+          onclick={() => handlePromptMenuClick(key)}
+        >
+          {title}
+        </button>
+      {/each}
+    </div>
   </div>
 
   <!-- Right Column: Prompt Editor -->
-  <div class="flex-1 p-6 flex flex-col">
+  <div
+    class="flex-1 relative bg-white border border-gray-200 p-6 flex flex-col"
+  >
+    <PlusIcon />
     {#if promptKey}
       <h2 class="text-2xl font-bold mb-4">{getPromptTitle(promptKey)}</h2>
-      <p class="text-text-secondary mb-4">
-        Nhập System Instruction (lời nhắc hệ thống) của bạn:
-      </p>
+      <label
+        for="currentSystemPrompt"
+        class="text-text-secondary inline-flex w-fit mb-2"
+        >System Instruction:</label
+      >
       <textarea
-        class="textarea border border-border h-32 bg-surface-1 w-full mb-4 p-2 rounded-md"
+        id="currentSystemPrompt"
+        class="textarea outline-0 shadow-[0_0_0_0_var(--color-border)] focus:shadow-[0_0_0_3px_var(--color-border)] border min-h-16 transition-shadow border-border focus:border-muted/60 h-32 w-full mb-4 p-2 rounded-lg"
         bind:value={currentSystemPrompt}
         placeholder="Ví dụ: Bạn là một trợ lý tóm tắt chuyên nghiệp..."
       ></textarea>
 
-      <p class="text-text-secondary mb-4">
-        Nhập User Prompt (lời nhắc người dùng) của bạn:
-      </p>
+      <label for="currentUserPrompt" class="text-text-secondary mb-2"
+        >User Prompt:</label
+      >
       <textarea
-        class="textarea border border-border h-full bg-surface-1 w-full mb-4 p-2 rounded-md"
+        id="currentUserPrompt"
+        class="textarea border border-border h-full w-full mb-4 p-2 rounded-md outline-0 shadow-[0_0_0_0_var(--color-border)] focus:shadow-[0_0_0_3px_var(--color-border)] min-h-16 transition-shadow focus:border-muted/60"
         bind:value={currentUserPrompt}
         placeholder="Ví dụ: Tóm tắt nội dung sau đây: (sử dụng để chèn nội dung cần tóm tắt)"
       ></textarea>

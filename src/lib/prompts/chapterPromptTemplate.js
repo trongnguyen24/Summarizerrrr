@@ -58,6 +58,6 @@ Tư duy phát triển không chỉ cải thiện học tập mà còn giúp con 
 </EXAMPLE>
 
 <INPUT_CONTENT>
-\${timestampedTranscript}
+__CONTENT__
 </INPUT_CONTENT>
 `

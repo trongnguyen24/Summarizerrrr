@@ -72,6 +72,6 @@ Dramatically cải thiện code readability và maintainability. Giảm nesting,
 </EXAMPLE>
 
 <INPUT_CONTENT>
-\${text}
+__CONTENT__
 </INPUT_CONTENT>
 `

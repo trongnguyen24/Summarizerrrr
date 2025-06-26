@@ -126,7 +126,7 @@
       <label for="aq" class="block mt-4 font-bold text-text-primary"
         >Custom prompt template</label
       >
-      <div class="grid @min-[26rem]:grid-cols-2 gap-4">
+      <div class="grid @min-[22rem]:grid-cols-2 gap-4">
         <SwitchButton
           id="youtubep"
           name="Youtube Summary"

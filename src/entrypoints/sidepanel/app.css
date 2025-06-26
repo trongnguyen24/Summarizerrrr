@@ -364,3 +364,8 @@ input[type='range']::-ms-thumb:active {
   transform: scale(1.1);
   cursor: grabbing;
 }
+
+.dud {
+  font-weight: 100;
+  color: var(--color-muted);
+}

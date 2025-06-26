@@ -27,6 +27,6 @@ Tóm tắt nội dung video YouTube từ <INPUT_CONTENT>. Tập trung vào các 
 
 
 <INPUT_CONTENT>
-\${text}
+__CONTENT__
 </INPUT_CONTENT>
 `

@@ -60,6 +60,6 @@ Nội dung thuộc **cognitive psychology**, specifically về metacognitive bia
 </EXAMPLE>
 
 <INPUT_CONTENT>
-\${text}
+__CONTENT__
 </INPUT_CONTENT>
 `

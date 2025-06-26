@@ -76,6 +76,6 @@ Kết hợp **hội nhập toàn cầu** với **bảo tồn bản sắc**, tạ
 </EXAMPLE>
 
 <INPUT_CONTENT>
-\${text}
+__CONTENT__
 </INPUT_CONTENT>
 `

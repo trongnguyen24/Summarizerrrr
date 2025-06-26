@@ -32,7 +32,7 @@ export const promptBuilders = {
           .replace(/__TONE_DESCRIPTION__/g, toneDescription)
       }
 
-      userPrompt = userPrompt.replace(/\${text}/g, text)
+      userPrompt = userPrompt.replace(/__CONTENT__/g, text)
       return { systemInstruction, userPrompt }
     },
   },
@@ -59,7 +59,7 @@ export const promptBuilders = {
           .replace(/__TONE_DESCRIPTION__/g, toneDescription)
       }
 
-      userPrompt = userPrompt.replace(/\${text}/g, text)
+      userPrompt = userPrompt.replace(/__CONTENT__/g, text)
       return { systemInstruction, userPrompt }
     },
   },
@@ -117,7 +117,7 @@ export const promptBuilders = {
           .replace(/__TONE_DESCRIPTION__/g, toneDescription)
       }
 
-      userPrompt = userPrompt.replace(/\${text}/g, text)
+      userPrompt = userPrompt.replace(/__CONTENT__/g, text)
       return { systemInstruction, userPrompt }
     },
   },
@@ -148,7 +148,7 @@ export const promptBuilders = {
           .replace(/__TONE_DESCRIPTION__/g, toneDescription)
       }
 
-      userPrompt = userPrompt.replace(/\${text}/g, text)
+      userPrompt = userPrompt.replace(/__CONTENT__/g, text)
       return { systemInstruction, userPrompt }
     },
   },
@@ -175,7 +175,7 @@ export const promptBuilders = {
           .replace(/__TONE_DESCRIPTION__/g, toneDescription)
       }
 
-      userPrompt = userPrompt.replace(/\${text}/g, text)
+      userPrompt = userPrompt.replace(/__CONTENT__/g, text)
       return { systemInstruction, userPrompt }
     },
   },

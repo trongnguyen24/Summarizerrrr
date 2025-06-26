@@ -61,6 +61,6 @@ Tóm tắt bài giảng Udemy từ <INPUT_CONTENT>, tập trung vào kiến th�
 </EXAMPLE>
 
 <INPUT_CONTENT>
-\${text}
+__CONTENT__
 </INPUT_CONTENT>
 `

@@ -1,5 +1,6 @@
 <script>
   // @ts-nocheck
+  import { promptTemplates } from '@/lib/promptTemplates.js'
   import PlusIcon from '@/components/PlusIcon.svelte'
   import TextScramble from '@/lib/textScramble.js'
   import {
@@ -127,15 +128,35 @@
     promptKey = key
     window.history.pushState({}, '', `?promptKey=${key}`)
   }
+
+  let selectedTemplate = $state(null)
+
+  function handleTemplateChange(event) {
+    selectedTemplate = event.target.value
+  }
+
+  function handleImportTemplate() {
+    if (selectedTemplate) {
+      const template = promptTemplates[promptKey].find(
+        (t) => t.title === selectedTemplate
+      )
+      if (template) {
+        currentSystemPrompt = template.systemInstruction
+        currentUserPrompt = template.userPrompt
+        isPromptDirty = true
+      }
+    }
+  }
 </script>
 
 <main
-  class="flex font-mono relative p-8 h-screen bg-background text-text-primary"
+  class="flex font-mono relative p-8 min-h-screen bg-background text-text-primary"
 >
-  <span class="fixed z-10 h-lvh w-px bg-border/70 top-0 left-8"></span>
+  <span class="fixed z-10 h-lvh w-px bg-border/70 top-0 -translate-x-px left-8"
+  ></span>
   <span class="fixed z-10 h-lvh w-px bg-border/70 top-0 translate-x-px right-8"
   ></span>
-  <span class="fixed z-10 h-lvh w-px bg-border/70 top-0 -translate-x-px left-64"
+  <span class="fixed z-20 h-lvh w-px bg-border/70 top-0 -translate-x-px left-64"
   ></span>
   <span class="fixed z-10 h-px w-lvw bg-border/70 top-8 -translate-y-px left-0"
   ></span>
@@ -143,7 +164,9 @@
     class="fixed z-10 h-px w-lvw bg-border/70 bottom-8 translate-y-px left-0"
   ></span>
   <!-- Left Column: Prompt Menu -->
-  <div class="w-56 overflow-hidden flex flex-col">
+  <div
+    class="w-56 relative z-20 bg-background overflow-hidden border-r border-border/70 flex flex-col"
+  >
     <h2 class="text-lg p-4 font-bold">Prompt Categories</h2>
     <div class="flex flex-col px-2 text-muted gap-1">
       {#each Object.entries(promptTitles) as [key, title]}
@@ -161,12 +184,15 @@
   </div>
 
   <!-- Right Column: Prompt Editor -->
-  <div class="flex-1 relative bg-white dark:bg-surface-1 p-6 flex flex-col">
+  <div
+    class="flex-1 relative z-20 bg-white dark:bg-surface-1 p-4 flex flex-col gap-2"
+  >
     <PlusIcon />
     {#if promptKey}
-      <h2 class="text-2xl font-bold mb-4" id="scramble-title">
+      <h2 class="text-lg font-bold mb-4" id="scramble-title">
         {getPromptTitle(promptKey)}
       </h2>
+
       <label
         for="currentSystemPrompt"
         class="text-text-secondary inline-flex w-fit mb-2"
@@ -174,7 +200,7 @@
       >
       <textarea
         id="currentSystemPrompt"
-        class="textarea outline-0 shadow-[0_0_0_0_var(--color-border)] focus:shadow-[0_0_0_3px_var(--color-border)] border min-h-16 transition-shadow border-border focus:border-muted/60 h-32 w-full mb-4 p-2 rounded-lg"
+        class="textarea outline-0 shadow-[0_0_0_0_var(--color-border)] focus:shadow-[0_0_0_3px_var(--color-border)] border min-h-48 transition-shadow border-border focus:border-muted/60 h-32 w-full mb-4 p-2 rounded-lg"
         bind:value={currentSystemPrompt}
         oninput={() => (isPromptDirty = true)}
         placeholder=""
@@ -188,42 +214,83 @@
 
       <textarea
         id="currentUserPrompt"
-        class="textarea border border-border h-full w-full mb-4 p-2 rounded-lg outline-0 shadow-[0_0_0_0_var(--color-border)] focus:shadow-[0_0_0_3px_var(--color-border)] min-h-16 transition-shadow focus:border-muted/60"
+        class="textarea border border-border h-full w-full mb-4 p-2 rounded-lg outline-0 shadow-[0_0_0_0_var(--color-border)] min-h-48 focus:shadow-[0_0_0_3px_var(--color-border)] transition-shadow focus:border-muted/60"
         bind:value={currentUserPrompt}
         oninput={() => (isPromptDirty = true)}
         placeholder=""
       ></textarea>
 
-      <div class="flex justify-end gap-2 mt-auto">
-        {#if showSaveSuccessMessage}
-          <div class="text-green-500 flex items-center mr-4">
-            Đã lưu thành công!
-          </div>
-        {/if}
-        <button
-          class="py-2 px-4 bg-surface-1 dark:bg-surface-2"
-          onclick={handleDiscardChanges}
-        >
-          Discard Changes
-        </button>
-        <button
-          class=" flex relative overflow-hidden group"
-          onclick={handleSavePrompt}
-          disabled={!isPromptModified()}
-        >
-          <div
-            class=" font-medium py-2 px-4 border transition-colors duration-200 {isPromptModified()
-              ? 'bg-primary group-hover:bg-primary/95 dark:group-hover:bg-orange-500 text-orange-50 dark:text-orange-100/90 border-orange-400 hover:border-orange-300/75 hover:text-white'
-              : ' bg-white dark:bg-surface-1 text-text-secondary border-border/40'}"
+      <div class="flex justify-between gap-2 mt-auto">
+        <div class="flex gap-2 items-center">
+          <!-- add key re render when promptKey Changes -->
+          {#key promptKey}
+            <select
+              id="templateSelect"
+              class="select select-bordered w-full p-1 outline-gray-500"
+              onchange={handleTemplateChange}
+            >
+              <option value="" disabled selected>Select a template</option>
+              {#each promptTemplates[promptKey] || [] as template}
+                <option value={template.title}>{template.title}</option>
+              {/each}
+            </select>
+          {/key}
+          <button
+            class="relative shrink-0 overflow-hidden group"
+            onclick={handleImportTemplate}
           >
-            Save Prompt
-          </div>
-          <span
-            class="size-4 absolute z-10 -left-2 -bottom-2 border bg-white dark:bg-surface-1 rotate-45 transition-colors duration-200 {isPromptModified()
-              ? ' border-orange-400 group-hover:border-orange-300/75'
-              : ' border-border/40'}"
-          ></span>
-        </button>
+            <div
+              class="font-medium py-2 px-4 border border-transparent group-hover:border-border/40 transition-colors duration-200 group-hover:bg-surface-2 dark:group-hover:surface-2/90 hover:text-white"
+            >
+              Import
+            </div>
+
+            <span
+              class="size-4 absolute z-10 -left-2 -bottom-2 border bg-white dark:bg-surface-1 rotate-45 transition-colors duration-200 border-border/40"
+            ></span>
+          </button>
+        </div>
+        <div class="flex gap-2 items-center">
+          {#if showSaveSuccessMessage}
+            <div class="text-green-500 flex items-center mr-4">Saved!</div>
+          {/if}
+          <button
+            class=" relative overflow-hidden group"
+            onclick={handleDiscardChanges}
+          >
+            <div
+              class=" font-medium py-2 px-4 border transition-colors duration-200 {isPromptModified()
+                ? 'bg-surface-2 group-hover:bg-surface-2/95 dark:group-hover:surface-2/90 text-orange-50 dark:text-text-primary border-border hover:border-gray-500/50 hover:text-white'
+                : ' bg-white dark:bg-surface-1 text-text-secondary border-border/40'}"
+            >
+              Discard Changes
+            </div>
+
+            <span
+              class="size-4 absolute z-10 -left-2 -bottom-2 border bg-white dark:bg-surface-1 rotate-45 transition-colors duration-200 {isPromptModified()
+                ? ' border-border group-hover:border-gray-500'
+                : ' border-border/40'}"
+            ></span>
+          </button>
+          <button
+            class=" flex relative overflow-hidden group"
+            onclick={handleSavePrompt}
+            disabled={!isPromptModified()}
+          >
+            <div
+              class=" font-medium py-2 px-4 border transition-colors duration-200 {isPromptModified()
+                ? 'bg-primary group-hover:bg-primary/95 dark:group-hover:bg-orange-500 text-orange-50 dark:text-orange-100/90 border-orange-400 hover:border-orange-300/75 hover:text-white'
+                : ' bg-white dark:bg-surface-1 text-text-secondary border-border/40'}"
+            >
+              Save Prompt
+            </div>
+            <span
+              class="size-4 absolute z-10 -left-2 -bottom-2 border bg-white dark:bg-surface-1 rotate-45 transition-colors duration-200 {isPromptModified()
+                ? ' border-orange-400 group-hover:border-orange-300/75'
+                : ' border-border/40'}"
+            ></span>
+          </button>
+        </div>
       </div>
     {:else}
       <p class="text-text-secondary">
@@ -260,5 +327,21 @@
         4px 0 8px 2px #ffffff71,
         0 0 3px 1px #ffffff94;
     }
+  }
+  textarea {
+    resize: none;
+  }
+  textarea::-webkit-scrollbar {
+    background-color: transparent;
+    width: 6px;
+    padding: 1px;
+  }
+
+  textarea::-webkit-scrollbar-thumb {
+    border-radius: 10px;
+    background-color: oklch(0.77 0.003 106.6 / 40%);
+  }
+  textarea::-webkit-scrollbar-thumb:hover {
+    background-color: oklch(0.77 0.003 106.6 / 60%);
   }
 </style>

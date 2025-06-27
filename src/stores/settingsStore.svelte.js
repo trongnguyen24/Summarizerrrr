@@ -29,23 +29,29 @@ const DEFAULT_SETTINGS = {
 
   // Lựa chọn prompt cho từng tính năng (chỉ còn 'default', 'custom1', 'custom2')
   youtubePromptSelection: false, // Thay đổi thành boolean để điều khiển SwitchButton
-  youtubeCustomPromptContent: '',
-  youtubeCustomSystemInstructionContent: '', // New field for custom system instruction
+  youtubeCustomPromptContent:
+    'Summarize the following content, format by ## and ###: __CONTENT__',
+  youtubeCustomSystemInstructionContent: 'You are an AI assistant.', // New field for custom system instruction
   chapterPromptSelection: false,
-  chapterCustomPromptContent: '',
-  chapterCustomSystemInstructionContent: '', // New field for custom system instruction
+  chapterCustomPromptContent:
+    'Summarize the following content, format by ## and ###: __CONTENT__',
+  chapterCustomSystemInstructionContent: 'You are an AI assistant.', // New field for custom system instruction
   webPromptSelection: false,
-  webCustomPromptContent: '',
-  webCustomSystemInstructionContent: '', // New field for custom system instruction
+  webCustomPromptContent:
+    'Summarize the following content, format by ## and ###: __CONTENT__',
+  webCustomSystemInstructionContent: 'You are an AI assistant.', // New field for custom system instruction
   udemySummaryPromptSelection: false,
-  udemySummaryCustomPromptContent: '',
-  udemySummaryCustomSystemInstructionContent: '', // New field for custom system instruction
+  udemySummaryCustomPromptContent:
+    'Summarize the following content: __CONTENT__',
+  udemySummaryCustomSystemInstructionContent: 'You are an AI assistant.', // New field for custom system instruction
   udemyConceptsPromptSelection: false,
-  udemyConceptsCustomPromptContent: '',
-  udemyConceptsCustomSystemInstructionContent: '', // New field for custom system instruction
+  udemyConceptsCustomPromptContent:
+    'Summarize the following content, format by ## and ###: __CONTENT__',
+  udemyConceptsCustomSystemInstructionContent: 'You are an AI assistant.', // New field for custom system instruction
   selectedTextPromptSelection: false,
-  selectedTextCustomPromptContent: '',
-  selectedTextCustomSystemInstructionContent: '', // New field for custom system instruction
+  selectedTextCustomPromptContent:
+    'Summarize the following content, format by ## and ###: __CONTENT__',
+  selectedTextCustomSystemInstructionContent: 'You are an AI assistant.', // New field for custom system instruction
 }
 
 // --- State ---

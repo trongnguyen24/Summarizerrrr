@@ -84,10 +84,7 @@ export const promptBuilders = {
           .replace(/__TONE_DESCRIPTION__/g, toneDescription)
       }
 
-      userPrompt = userPrompt.replace(
-        /\${timestampedTranscript}/g,
-        timestampedTranscript
-      )
+      userPrompt = userPrompt.replace(/__CONTENT__/g, timestampedTranscript)
       return { systemInstruction, userPrompt }
     },
   },

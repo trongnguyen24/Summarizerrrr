@@ -3,6 +3,7 @@
   import Icon from '@iconify/svelte'
   import ButtonSet from '../buttons/ButtonSet.svelte'
   import LanguageSelect from '../inputs/LanguageSelect.svelte'
+  import TextScramble from '@/lib/textScramble.js'
   import SwitchButton from '../inputs/Switch.svelte'
   import { Label, Switch } from 'bits-ui'
   import {
@@ -13,6 +14,14 @@
   function handleUpdateSetting(key, value) {
     updateSettings({ [key]: value })
   }
+
+  let textElement
+  let textScramble
+
+  $effect(() => {
+    textScramble = new TextScramble(textElement)
+    textScramble.setText(settings.isSummaryAdvancedMode ? 'Advanced' : 'Basic')
+  })
 </script>
 
 <!-- Summmary Section -->
@@ -23,13 +32,16 @@
     >
     <div class="flex items-center">
       <Label.Root
-        class="cursor-pointer pr-2 py-2 w-20 text-right font-bold select-none {settings.isSummaryAdvancedMode
+        class="cursor-pointer pr-2 py-2 w-20 text-right font-bold select-none transition-colors duration-1000 {settings.isSummaryAdvancedMode
           ? 'text-primary'
           : 'text-text-primary'}"
         for="isSummaryAdvancedMode-toggle"
       >
-        {settings.isSummaryAdvancedMode ? 'Advanced' : 'Basic'}
+        <span bind:this={textElement}>
+          {settings.isSummaryAdvancedMode ? 'Advanced' : 'Basic'}
+        </span>
       </Label.Root>
+
       <Switch.Root
         id="isSummaryAdvancedMode-toggle"
         bind:checked={settings.isSummaryAdvancedMode}
@@ -121,12 +133,10 @@
   </div>
 
   {#if settings.isSummaryAdvancedMode}
-    <div class="@container setting-secsion flex flex-col gap-2 px-5">
+    <div class="@container setting-secsion flex flex-col gap-4 px-5">
       <!-- Prompt settings -->
-      <label for="aq" class="block mt-4 font-bold text-text-primary"
-        >Custom prompt template</label
-      >
-      <div class="grid @min-[22rem]:grid-cols-2 gap-4">
+      <div class="block mt-4 font-bold text-text-primary">Custom prompt</div>
+      <div class="grid @min-[23rem]:grid-cols-2 gap-2">
         <SwitchButton
           id="youtubep"
           name="Youtube Summary"

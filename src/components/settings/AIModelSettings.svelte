@@ -4,6 +4,7 @@
   import ButtonSet from '../buttons/ButtonSet.svelte'
   import LanguageSelect from '../inputs/LanguageSelect.svelte'
   import ProvidersSelect from '../inputs/ProvidersSelect.svelte'
+  import TextScramble from '@/lib/textScramble.js'
   import GeminiBasicConfig from '../providerConfigs/GeminiBasicConfig.svelte'
   import GeminiAdvancedConfig from '../providerConfigs/GeminiAdvancedConfig.svelte'
   import OpenrouterConfig from '../providerConfigs/OpenrouterConfig.svelte'
@@ -33,6 +34,13 @@
       updateSettings({ [key]: value })
     }
   }
+  let textElement
+  let textScramble
+
+  $effect(() => {
+    textScramble = new TextScramble(textElement)
+    textScramble.setText(settings.isAdvancedMode ? 'Advanced' : 'Basic')
+  })
 </script>
 
 <!--AI Model Section -->
@@ -43,12 +51,14 @@
     >
     <div class="flex items-center">
       <Label.Root
-        class="cursor-pointer pr-2 py-2 w-20 text-right font-bold select-none {settings.isAdvancedMode
+        class="cursor-pointer pr-2 py-2 w-20 text-right font-bold select-none transition-colors duration-1000 {settings.isAdvancedMode
           ? 'text-primary'
           : 'text-text-primary'}"
         for="provider-toggle"
       >
-        {settings.isAdvancedMode ? 'Advanced' : 'Basic'}
+        <span bind:this={textElement}>
+          {settings.isAdvancedMode ? 'Advanced' : 'Basic'}
+        </span>
       </Label.Root>
       <Switch.Root
         id="provider-toggle"

@@ -11,7 +11,6 @@
   } from '../stores/settingsStore.svelte.js'
   import { loadAdvancedModeSettings } from '../stores/advancedModeSettingsStore.svelte.js'
   import { loadBasicModeSettings } from '../stores/basicModeSettingsStore.svelte.js'
-
   import AIModelSettings from './settings/AIModelSettings.svelte'
   import SummarySettings from './settings/SummarySettings.svelte'
   import GeneralSettings from './settings/GeneralSettings.svelte'
@@ -81,12 +80,13 @@
         : 'text-text-secondary'}"
       onclick={() => (activeTab = 'ai-model')}
     >
-      {#if activeTab === 'ai-model'}
-        <Icon icon="heroicons:sparkles-solid" width="20" height="20" />
-      {:else}
-        <Icon icon="heroicons:sparkles" width="20" height="20" />
-      {/if}
-
+      <div class="size-5">
+        {#if activeTab === 'ai-model'}
+          <Icon icon="heroicons:sparkles-solid" width="20" height="20" />
+        {:else}
+          <Icon icon="heroicons:sparkles" width="20" height="20" />
+        {/if}
+      </div>
       <span>Model</span>
     </button>
     <button
@@ -96,12 +96,13 @@
         : 'text-text-secondary'}"
       onclick={() => (activeTab = 'summary')}
     >
-      {#if activeTab === 'summary'}
-        <Icon icon="heroicons:document-text-solid" width="20" height="20" />
-      {:else}
-        <Icon icon="heroicons:document-text" width="20" height="20" />
-      {/if}
-
+      <div class="size-5">
+        {#if activeTab === 'summary'}
+          <Icon icon="heroicons:document-text-solid" width="20" height="20" />
+        {:else}
+          <Icon icon="heroicons:document-text" width="20" height="20" />
+        {/if}
+      </div>
       <span> Summary</span>
     </button>
     <button
@@ -111,11 +112,13 @@
         : 'text-text-secondary'}"
       onclick={() => (activeTab = 'general')}
     >
-      {#if activeTab === 'general'}
-        <Icon icon="heroicons:swatch-solid" width="20" height="20" />
-      {:else}
-        <Icon icon="heroicons:swatch" width="20" height="20" />
-      {/if}
+      <div class="size-5">
+        {#if activeTab === 'general'}
+          <Icon icon="heroicons:swatch-solid" width="20" height="20" />
+        {:else}
+          <Icon icon="heroicons:swatch" width="20" height="20" />
+        {/if}
+      </div>
       <span> General</span>
     </button>
   </div>

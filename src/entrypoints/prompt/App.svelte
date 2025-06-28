@@ -158,7 +158,7 @@
   }}
 />
 <main
-  class="flex font-mono relative p-8 min-w-3xl min-h-screen bg-background text-text-primary"
+  class="flex font-mono relative p-8 min-w-3xl min-h-dvh bg-background text-text-primary"
 >
   <span
     class="absolute z-10 h-lvh w-px bg-border/70 top-0 -translate-x-px left-8"

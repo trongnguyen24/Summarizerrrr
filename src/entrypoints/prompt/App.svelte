@@ -3,6 +3,8 @@
   import { promptTemplates } from '@/lib/promptTemplates.js'
   import PlusIcon from '@/components/PlusIcon.svelte'
   import TextScramble from '@/lib/textScramble.js'
+  import CustomToast from '@/components/CustomToast.svelte'
+  import { Toaster, toast } from 'svelte-sonner'
   import {
     settings,
     loadSettings,
@@ -149,19 +151,29 @@
   }
 </script>
 
+<Toaster
+  position="top-right"
+  toastOptions={{
+    unstyled: true,
+  }}
+/>
 <main
-  class="flex font-mono relative p-8 min-h-screen bg-background text-text-primary"
+  class="flex font-mono relative p-8 min-w-3xl min-h-screen bg-background text-text-primary"
 >
-  <span class="fixed z-10 h-lvh w-px bg-border/70 top-0 -translate-x-px left-8"
-  ></span>
-  <span class="fixed z-10 h-lvh w-px bg-border/70 top-0 translate-x-px right-8"
-  ></span>
-  <span class="fixed z-20 h-lvh w-px bg-border/70 top-0 -translate-x-px left-64"
-  ></span>
-  <span class="fixed z-10 h-px w-lvw bg-border/70 top-8 -translate-y-px left-0"
+  <span
+    class="absolute z-10 h-lvh w-px bg-border/70 top-0 -translate-x-px left-8"
   ></span>
   <span
-    class="fixed z-10 h-px w-lvw bg-border/70 bottom-8 translate-y-px left-0"
+    class="absolute z-10 h-lvh w-px bg-border/70 top-0 translate-x-px right-8"
+  ></span>
+  <span
+    class="absolute z-20 h-lvh w-px bg-border/70 top-0 -translate-x-px left-64"
+  ></span>
+  <span
+    class="absolute z-10 h-px w-lvw bg-border/70 top-8 -translate-y-px left-0"
+  ></span>
+  <span
+    class="absolute z-10 h-px w-lvw bg-border/70 bottom-8 translate-y-px left-0"
   ></span>
   <!-- Left Column: Prompt Menu -->
   <div
@@ -169,6 +181,7 @@
   >
     <h2 class="text-lg p-4 font-bold">Prompt Categories</h2>
     <div class="flex flex-col px-2 text-muted gap-1">
+      <button onclick={() => toast(CustomToast)}>Give me a toast</button>
       {#each Object.entries(promptTitles) as [key, title]}
         <button
           class="prompt-button relative p-2 transition-colors duration-125 hover:bg-blackwhite/5 rounded-sm {promptKey ===
@@ -195,7 +208,7 @@
 
       <label
         for="currentSystemPrompt"
-        class="text-text-secondary inline-flex w-fit mb-2"
+        class="text-text-secondary inline-flex w-fit mb-1"
         >System Instruction</label
       >
       <textarea
@@ -206,7 +219,7 @@
         placeholder=""
       ></textarea>
 
-      <label for="currentUserPrompt" class="text-text-secondary mb-2"
+      <label for="currentUserPrompt" class="text-text-secondary mb-1"
         >User Prompt - Use <code class="bg-blackwhite/5 px-1 py-0.5 rounded"
           >__CONTENT__</code
         > to insert the dynamic content (e.g., transcript, web page content...)</label
@@ -214,7 +227,7 @@
 
       <textarea
         id="currentUserPrompt"
-        class="textarea border border-border h-full w-full mb-4 p-2 rounded-lg outline-0 shadow-[0_0_0_0_var(--color-border)] min-h-48 focus:shadow-[0_0_0_3px_var(--color-border)] transition-shadow focus:border-muted/60"
+        class="textarea border border-border h-full w-full mb-2 p-2 rounded-lg outline-0 shadow-[0_0_0_0_var(--color-border)] min-h-48 focus:shadow-[0_0_0_3px_var(--color-border)] transition-shadow focus:border-muted/60"
         bind:value={currentUserPrompt}
         oninput={() => (isPromptDirty = true)}
         placeholder=""
@@ -263,7 +276,7 @@
                 ? 'bg-surface-2 group-hover:bg-surface-2/95 dark:group-hover:surface-2/90 text-orange-50 dark:text-text-primary border-border hover:border-gray-500/50 hover:text-white'
                 : ' bg-white dark:bg-surface-1 text-text-secondary border-border/40'}"
             >
-              Discard Changes
+              Discard
             </div>
 
             <span
@@ -282,7 +295,7 @@
                 ? 'bg-primary group-hover:bg-primary/95 dark:group-hover:bg-orange-500 text-orange-50 dark:text-orange-100/90 border-orange-400 hover:border-orange-300/75 hover:text-white'
                 : ' bg-white dark:bg-surface-1 text-text-secondary border-border/40'}"
             >
-              Save Prompt
+              Save
             </div>
             <span
               class="size-4 absolute z-10 -left-2 -bottom-2 border bg-white dark:bg-surface-1 rotate-45 transition-colors duration-200 {isPromptModified()

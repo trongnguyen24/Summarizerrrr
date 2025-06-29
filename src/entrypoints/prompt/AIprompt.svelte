@@ -3,17 +3,78 @@
   import { Dialog } from 'bits-ui'
   import { fade } from 'svelte/transition'
   import { slideScaleFade } from '../../lib/slideScaleFade.js' // Corrected path if needed
+  import { summarizeContent } from '../../lib/api.js'
+  import { settings } from '../../stores/settingsStore.svelte.js'
 
   let isOpen = $state(false) // State for the dialog
+  let enhancedSystemPrompt = $state('')
+  let enhancedUserPrompt = $state('')
+  let dataget = $state('')
+
+  let loading = false
+
+  const handlePromptEnhance = async () => {
+    loading = true
+    const systemPrompt = document.getElementById('currentSystemPrompt').value
+    const userPrompt = document.getElementById('currentUserPrompt').value
+
+    const prompt = `Bạn là một trợ lý AI chuyên về cải thiện prompt. Nhiệm vụ của bạn là cải thiện các prompt hệ thống và người dùng được cung cấp để rõ ràng, hiệu quả và phù hợp hơn với nhiệm vụ dự định.
+
+Đây là prompt hệ thống:
+<system_prompt>
+${systemPrompt}
+</system_prompt>
+
+Đây là prompt người dùng:
+<user_prompt>
+${userPrompt}
+</user_prompt>
+
+Hãy cung cấp các đề xuất prompt đã được cải thiện cho prompt hệ thống và prompt người dùng.`
+
+    try {
+      const selectedProvider = settings.selectedProvider
+      const apiKey = settings[selectedProvider + 'ApiKey']
+      const model = settings[selectedProvider + 'Model']
+
+      const data = await summarizeContent(
+        prompt,
+        apiKey,
+        model,
+        selectedProvider
+      )
+      console.log(prompt)
+      dataget = data
+
+      // enhancedSystemPrompt = data.enhancedSystemPrompt
+      // enhancedUserPrompt = data.enhancedUserPrompt
+    } catch (error) {
+      console.error('Lỗi khi gọi API:', error)
+      // Xử lý lỗi ở đây, ví dụ: hiển thị thông báo cho người dùng
+    } finally {
+      loading = false
+    }
+  }
+
+  const handleApplyPrompt = () => {
+    const systemPromptTextarea = document.getElementById('currentSystemPrompt')
+    const userPromptTextarea = document.getElementById('currentUserPrompt')
+
+    systemPromptTextarea.value = enhancedSystemPrompt
+    userPromptTextarea.value = enhancedUserPrompt
+  }
 </script>
 
 <button
-  onclick={() => (isOpen = true)}
+  onclick={() => {
+    isOpen = true
+    handlePromptEnhance()
+  }}
   class="p-1 transition-colors hover:bg-surface-1 rounded-full hover:text-text-primary"
   title="Prompt Enhance"
 >
-  <Icon icon="codicon:sparkle-filled" width="16" height="16" /></button
->
+  <Icon icon="codicon:sparkle-filled" width="16" height="16" />
+</button>
 
 <Dialog.Root bind:open={isOpen}>
   <Dialog.Portal>
@@ -55,44 +116,27 @@
                 <p class="!text-center">Prompt Enhance</p>
               </div>
               <div class="flex gap-2 flex-col p-6">
-                <label for="SystemPrompt" class="text-text-primary"
+                <!-- <label for="SystemPrompt" class="text-text-primary"
                   >System Prompt
                 </label>
-                <div>
-                  You are an expert content summarizer specializing in YouTube
-                  video transcripts. Your task is to create structured,
-                  comprehensive summaries that preserve key information,
-                  examples, and actionable insights. CORE PRINCIPLES: - Focus on
-                  main topics, supporting evidence, examples, and practical
-                  applications - Preserve important names, numbers, technical
-                  terms, and specific details - Organize content logically with
-                  clear headings and bullet points - Remove filler words,
-                  repetitions, and non-essential transitions - Maintain
-                  objective tone while highlighting key concepts
-                </div>
+                <p id="enhancedSystemPrompt" class="mb-2">
+                  {enhancedSystemPrompt}
+                </p>
 
-                <label for="UserPrompt" class=" text-text-primary"
-                  >User Prompt
+                <label for="UserPrompt" class=" text-text-primary">
+                  User Prompt
                 </label>
-                <div>
-                  You are an expert content summarizer specializing in YouTube
-                  video transcripts. Your task is to create structured,
-                  comprehensive summaries that preserve key information,
-                  examples, and actionable insights. CORE PRINCIPLES: - Focus on
-                  main topics, supporting evidence, examples, and practical
-                  applications - Preserve important names, numbers, technical
-                  terms, and specific details - Organize content logically with
-                  clear headings and bullet points - Remove filler words,
-                  repetitions, and non-essential transitions - Maintain
-                  objective tone while highlighting key concepts
-                </div>
+                <p id="enhancedUserPrompt">{enhancedUserPrompt}</p> -->
+                <p>{dataget}</p>
 
                 <div>
-                  <button class=" ml-auto flex relative overflow-hidden group">
+                  <button
+                    class=" ml-auto flex relative overflow-hidden group"
+                    onclick={handleApplyPrompt}
+                  >
                     <div
                       class=" font-medium py-2 px-4 border transition-colors duration-200
-                      bg-primary group-hover:bg-primary/95 dark:group-hover:bg-orange-500 text-orange-50 dark:text-orange-100/90 border-orange-400 hover:border-orange-300/75 hover:text-white
-                     "
+                      bg-primary group-hover:bg-primary/95 dark:group-hover:bg-orange-500 text-orange-50 dark:text-orange-100/90 border-orange-400 hover:border-orange-300/75 hover:text-white"
                     >
                       Apply prompt
                     </div>

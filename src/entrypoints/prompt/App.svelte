@@ -4,7 +4,6 @@
   import 'overlayscrollbars/overlayscrollbars.css'
   import { useOverlayScrollbars } from 'overlayscrollbars-svelte'
   import Icon from '@iconify/svelte'
-  import { Dialog } from 'bits-ui'
   import PlusIcon from '@/components/PlusIcon.svelte'
   import TextScramble from '@/lib/textScramble.js'
   import PromptMenu from './PromptMenu.svelte'
@@ -85,13 +84,16 @@
 
   function loadPromptContent(key) {
     if (settings) {
-      initialSystemPrompt =
-        settings[
-          key.replace('CustomPromptContent', 'CustomSystemInstructionContent')
-        ] || ''
+      const systemPromptKey = key.replace(
+        'CustomPromptContent',
+        'CustomSystemInstructionContent'
+      )
+      initialSystemPrompt = settings[systemPromptKey] || ''
       initialUserPrompt = settings[key] || ''
       currentSystemPrompt = initialSystemPrompt
       currentUserPrompt = initialUserPrompt
+    } else {
+      console.log('Settings are not available yet.')
     }
   }
 

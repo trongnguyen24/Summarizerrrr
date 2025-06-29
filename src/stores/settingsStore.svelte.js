@@ -72,10 +72,10 @@ export async function loadSettings() {
   _isInitializedPromise = (async () => {
     try {
       const storedSettings = await getStorage(Object.keys(DEFAULT_SETTINGS))
-      console.log(
-        '[settingsStore] Stored settings from storage:',
-        JSON.stringify(storedSettings)
-      )
+      // console.log(
+      //   '[settingsStore] Stored settings from storage:',
+      //   JSON.stringify(storedSettings)
+      // )
       const mergedSettings = { ...DEFAULT_SETTINGS }
       for (const key in DEFAULT_SETTINGS) {
         if (storedSettings[key] !== undefined && storedSettings[key] !== null) {
@@ -90,10 +90,10 @@ export async function loadSettings() {
       }
 
       Object.assign(settings, mergedSettings)
-      console.log(
-        '[settingsStore] Settings loaded (after merge):',
-        JSON.stringify($state.snapshot(settings))
-      )
+      // console.log(
+      //   '[settingsStore] Settings loaded (after merge):',
+      //   JSON.stringify($state.snapshot(settings))
+      // )
     } catch (error) {
       console.error('[settingsStore] Error loading settings:', error)
       Object.assign(settings, DEFAULT_SETTINGS) // Fallback to defaults on error

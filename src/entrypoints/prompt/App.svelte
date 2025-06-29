@@ -1,8 +1,10 @@
 <script>
   // @ts-nocheck
   import { promptTemplates } from '@/lib/promptTemplates.js'
+  import Icon from '@iconify/svelte'
   import PlusIcon from '@/components/PlusIcon.svelte'
   import TextScramble from '@/lib/textScramble.js'
+  import PromptMenu from './PromptMenu.svelte'
   import CustomToast from '@/components/CustomToast.svelte'
   import { Toaster, toast } from 'svelte-sonner'
   import {
@@ -31,7 +33,6 @@
   let currentUserPrompt = $state('')
   let initialSystemPrompt = $state('')
   let initialUserPrompt = $state('')
-  let showSaveSuccessMessage = $state(false)
   let isPromptDirty = $state(false)
 
   let scrambleInterval
@@ -114,10 +115,7 @@
     initialSystemPrompt = currentSystemPrompt
     initialUserPrompt = currentUserPrompt
     isPromptDirty = false
-    showSaveSuccessMessage = true
-    setTimeout(() => {
-      showSaveSuccessMessage = false
-    }, 3000) // Hide message after 3 seconds
+    toast(CustomToast)
   }
 
   function handleDiscardChanges() {
@@ -158,7 +156,7 @@
   }}
 />
 <main
-  class="flex font-mono relative p-8 min-w-3xl min-h-dvh bg-background text-text-primary"
+  class="flex font-mono relative p-8 min-w-4xl min-h-dvh bg-background text-text-primary"
 >
   <span
     class="absolute z-10 h-lvh w-px bg-border/70 top-0 -translate-x-px left-8"
@@ -176,25 +174,7 @@
     class="absolute z-10 h-px w-lvw bg-border/70 bottom-8 translate-y-px left-0"
   ></span>
   <!-- Left Column: Prompt Menu -->
-  <div
-    class="w-56 relative z-20 bg-background overflow-hidden border-r border-border/70 flex flex-col"
-  >
-    <h2 class="text-lg p-4 font-bold">Prompt Categories</h2>
-    <div class="flex flex-col px-2 text-muted gap-1">
-      <button onclick={() => toast(CustomToast)}>Give me a toast</button>
-      {#each Object.entries(promptTitles) as [key, title]}
-        <button
-          class="prompt-button relative p-2 transition-colors duration-125 hover:bg-blackwhite/5 rounded-sm {promptKey ===
-          key
-            ? 'text-text-primary active font-bold'
-            : 'variant-ghost'} w-full text-left"
-          onclick={() => handlePromptMenuClick(key)}
-        >
-          {title}
-        </button>
-      {/each}
-    </div>
-  </div>
+  <PromptMenu {promptKey} {promptTitles} {handlePromptMenuClick} />
 
   <!-- Right Column: Prompt Editor -->
   <div
@@ -264,9 +244,13 @@
           </button>
         </div>
         <div class="flex gap-2 items-center">
-          {#if showSaveSuccessMessage}
-            <div class="text-green-500 flex items-center mr-4">Saved!</div>
-          {/if}
+          <button>
+            <Icon
+              icon="streamline:ai-prompt-spark-solid"
+              width="20"
+              height="20"
+            />
+          </button>
           <button
             class=" relative overflow-hidden group"
             onclick={handleDiscardChanges}
@@ -314,33 +298,6 @@
 </main>
 
 <style>
-  /* Your component-specific styles here */
-  .prompt-button::after {
-    content: '';
-    display: block;
-    width: 0px;
-    position: absolute;
-    background: white;
-    top: 50%;
-    transform: translateY(-50%) translateX(-4px);
-    right: -0.5rem;
-    left: -0.5rem;
-    height: 1rem;
-    border-radius: 0 4px 4px 0;
-    transition: all 0.3s ease-in-out;
-    box-shadow:
-      0 0 2px #ffffff18,
-      0 0 0 #ffffff18;
-  }
-  .prompt-button.active {
-    &::after {
-      transform: translateY(-50%) translateX(0px);
-      width: 4px;
-      box-shadow:
-        4px 0 8px 2px #ffffff71,
-        0 0 3px 1px #ffffff94;
-    }
-  }
   textarea {
     resize: none;
   }

@@ -1,10 +1,14 @@
 <script>
   // @ts-nocheck
   import { promptTemplates } from '@/lib/promptTemplates.js'
+  import 'overlayscrollbars/overlayscrollbars.css'
+  import { useOverlayScrollbars } from 'overlayscrollbars-svelte'
   import Icon from '@iconify/svelte'
+  import { Dialog } from 'bits-ui'
   import PlusIcon from '@/components/PlusIcon.svelte'
   import TextScramble from '@/lib/textScramble.js'
   import PromptMenu from './PromptMenu.svelte'
+  import AIprompt from './AIprompt.svelte'
   import CustomToast from '@/components/CustomToast.svelte'
   import { Toaster, toast } from 'svelte-sonner'
   import {
@@ -19,7 +23,17 @@
   } from '../../stores/themeStore.svelte.js'
   import '@fontsource-variable/geist-mono'
 
+  const options = {
+    scrollbars: {
+      autoHide: 'never',
+      theme: 'os-theme-custom-app',
+    },
+  }
+  const [initialize, instance] = useOverlayScrollbars({ options, defer: true })
+
   $effect(() => {
+    initialize(document.body)
+
     initializeTheme()
     const unsubscribeTheme = subscribeToSystemThemeChanges()
 
@@ -159,19 +173,19 @@
   class="flex font-mono relative p-8 min-w-4xl min-h-dvh bg-background text-text-primary"
 >
   <span
-    class="absolute z-10 h-lvh w-px bg-border/70 top-0 -translate-x-px left-8"
+    class="absolute z-10 h-full min-h-lvh w-px bg-border/70 top-0 -translate-x-px left-8"
   ></span>
   <span
-    class="absolute z-10 h-lvh w-px bg-border/70 top-0 translate-x-px right-8"
+    class="absolute z-10 h-full min-h-lvh w-px bg-border/70 top-0 translate-x-px right-8"
   ></span>
   <span
-    class="absolute z-20 h-lvh w-px bg-border/70 top-0 -translate-x-px left-64"
+    class="absolute z-20 h-full min-h-lvh w-px bg-border/70 top-0 -translate-x-px left-64"
   ></span>
   <span
-    class="absolute z-10 h-px w-lvw bg-border/70 top-8 -translate-y-px left-0"
+    class="absolute z-10 h-px w-full min-w-lvw bg-border/70 top-8 -translate-y-px left-0"
   ></span>
   <span
-    class="absolute z-10 h-px w-lvw bg-border/70 bottom-8 translate-y-px left-0"
+    class="absolute z-10 h-px w-full min-w-lvw bg-border/70 bottom-8 translate-y-px left-0"
   ></span>
   <!-- Left Column: Prompt Menu -->
   <PromptMenu {promptKey} {promptTitles} {handlePromptMenuClick} />
@@ -198,21 +212,22 @@
         oninput={() => (isPromptDirty = true)}
         placeholder=""
       ></textarea>
-
-      <label for="currentUserPrompt" class="text-text-secondary mb-1"
-        >User Prompt - Use <code class="bg-blackwhite/5 px-1 py-0.5 rounded"
-          >__CONTENT__</code
-        > to insert the dynamic content (e.g., transcript, web page content...)</label
-      >
-
-      <textarea
-        id="currentUserPrompt"
-        class="textarea border border-border h-full w-full mb-2 p-2 rounded-lg outline-0 shadow-[0_0_0_0_var(--color-border)] min-h-48 focus:shadow-[0_0_0_3px_var(--color-border)] transition-shadow focus:border-muted/60"
-        bind:value={currentUserPrompt}
-        oninput={() => (isPromptDirty = true)}
-        placeholder=""
-      ></textarea>
-
+      <!--  - Use the <code class="bg-blackwhite/5 px-1 py-0.5 rounded">__CONTENT__</code> to
+      insert the dynamic content (e.g., transcript, web page content...) -->
+      <div class="flex flex-col h-full pt-6 gap-2 min-h-48 relative">
+        <label
+          for="currentUserPrompt"
+          class="text-text-secondary bg-blackwhite/5 rounded-t-lg top-0 px-2 pt-1 pb-5 absolute w-fit"
+          >User Prompt
+        </label>
+        <textarea
+          id="currentUserPrompt"
+          class="textarea relative z-10 bg-surface-1 border border-border h-full w-full mb-2 p-2 rounded-lg outline-0 shadow-[0_0_0_0_var(--color-border)] focus:shadow-[0_0_0_3px_var(--color-border)] transition-shadow focus:border-muted/60"
+          bind:value={currentUserPrompt}
+          oninput={() => (isPromptDirty = true)}
+          placeholder=""
+        ></textarea>
+      </div>
       <div class="flex justify-between gap-2 mt-auto">
         <div class="flex gap-2 items-center">
           <!-- add key re render when promptKey Changes -->
@@ -244,13 +259,8 @@
           </button>
         </div>
         <div class="flex gap-2 items-center">
-          <button>
-            <Icon
-              icon="streamline:ai-prompt-spark-solid"
-              width="20"
-              height="20"
-            />
-          </button>
+          <AIprompt />
+
           <button
             class=" relative overflow-hidden group"
             onclick={handleDiscardChanges}

@@ -5,7 +5,7 @@
   import { slideScaleFade } from '../../lib/slideScaleFade.js' // Corrected path if needed
   import { enhancePrompt } from '../../lib/api.js'
 
-  let isOpen = $state(true) // State for the dialog
+  let isOpen = $state(false) // State for the dialog
   let enhancedSystemPrompt = $state('')
   let enhancedUserPrompt = $state('')
   let dataget = $state('')

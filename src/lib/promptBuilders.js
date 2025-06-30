@@ -176,4 +176,15 @@ export const promptBuilders = {
       return { systemInstruction, userPrompt }
     },
   },
+  promptEnhance: {
+    systemInstruction: `
+You are an expert AI Prompt Engineer specializing in optimizing prompts for professional applications. You enhance prompts improving clarity and effectiveness.
+`,
+    buildPrompt: (text, lang) => {
+      return {
+        systemInstruction: promptBuilders.promptEnhance.systemInstruction,
+        userPrompt: text.replace(/__LANG__/g, lang),
+      }
+    },
+  },
 }

@@ -146,6 +146,85 @@ export async function summarizeContent(text, contentType) {
 }
 
 /**
+ * Enhances a system prompt and user prompt using the selected AI provider.
+ * @param {string} systemPrompt - The system prompt to enhance.
+ * @param {string} userPrompt - The user prompt to enhance.
+ * @returns {Promise<string>} - Promise that resolves with the enhanced prompts.
+ */
+export async function enhancePrompt(systemPrompt, userPrompt) {
+  // Ensure settings are initialized
+  await loadSettings()
+  await loadAdvancedModeSettings()
+  await loadBasicModeSettings()
+
+  const userSettings = settings
+  // Determine the actual provider to use based on isAdvancedMode
+  let selectedProviderId = userSettings.selectedProvider || 'gemini'
+  if (!userSettings.isAdvancedMode) {
+    selectedProviderId = 'gemini' // Force Gemini in basic mode
+  }
+
+  const { apiKey, model, modelConfig } = getProviderConfig(
+    userSettings,
+    selectedProviderId
+  )
+
+  const provider = getProvider(selectedProviderId, userSettings) // Pass full settings object
+
+  // Combine system and user prompts into a single prompt for enhancement
+  const combinedPrompt = `System Prompt:\n${systemPrompt}\n\nUser Prompt:\n${userPrompt}`
+
+  const contentConfig = promptBuilders['promptEnhance']
+
+  if (!contentConfig.buildPrompt || !contentConfig.systemInstruction) {
+    throw new Error(
+      `Configuration for content type "promptEnhance" is incomplete.`
+    )
+  }
+
+  const { systemInstruction, userPrompt: enhancedPrompt } =
+    contentConfig.buildPrompt(combinedPrompt, userSettings.summaryLang)
+
+  try {
+    // Apply user settings to generationConfig, overriding defaults
+    const finalGenerationConfig = {
+      ...modelConfig.generationConfig,
+      temperature: userSettings.isAdvancedMode
+        ? advancedModeSettings.temperature
+        : basicModeSettings.temperature,
+      topP: userSettings.isAdvancedMode
+        ? advancedModeSettings.topP
+        : basicModeSettings.topP,
+    }
+
+    let contentsForProvider
+    if (selectedProviderId === 'gemini') {
+      contentsForProvider = [{ parts: [{ text: enhancedPrompt }] }] // Gemini specific content format
+    } else if (selectedProviderId === 'openrouter') {
+      contentsForProvider = [{ parts: [{ text: enhancedPrompt }] }] // OpenRouter expects messages array, but our provider handles this mapping
+    } else if (selectedProviderId === 'ollama') {
+      contentsForProvider = enhancedPrompt // Ollama expects raw prompt string
+    } else {
+      contentsForProvider = [{ parts: [{ text: enhancedPrompt }] }] // Default for other providers
+    }
+
+    const rawResult = await (selectedProviderId === 'ollama'
+      ? provider.generateContent(contentsForProvider) // Ollama's generateContent expects only prompt
+      : provider.generateContent(
+          model, // Pass model for other providers
+          contentsForProvider,
+          systemInstruction,
+          finalGenerationConfig
+        ))
+    return provider.parseResponse(rawResult)
+  } catch (e) {
+    console.error(`${providersConfig[selectedProviderId].name} API Error:`, e)
+    throw new Error(provider.handleError(e, model))
+  }
+}
+
+/**
+ * Summarizes YouTube video content by chapter using the selected AI provider.
  * Summarizes YouTube video content by chapter using the selected AI provider.
  * @param {string} timestampedTranscript - Video transcript with timestamps.
  * @returns {Promise<string>} - Promise that resolves with the chapter summary in Markdown format.

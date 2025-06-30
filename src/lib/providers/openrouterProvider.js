@@ -9,6 +9,12 @@ export class OpenrouterProvider extends BaseProvider {
   }
 
   async generateContent(model, contents, systemInstruction, generationConfig) {
+    console.log('OpenRouter generateContent:', {
+      model,
+      contents,
+      systemInstruction,
+      generationConfig,
+    })
     const messages = []
 
     if (systemInstruction) {

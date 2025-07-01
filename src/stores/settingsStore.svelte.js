@@ -72,10 +72,7 @@ export async function loadSettings() {
   _isInitializedPromise = (async () => {
     try {
       const storedSettings = await getStorage(Object.keys(DEFAULT_SETTINGS))
-      // console.log(
-      //   '[settingsStore] Stored settings from storage:',
-      //   JSON.stringify(storedSettings)
-      // )
+
       const mergedSettings = { ...DEFAULT_SETTINGS }
       for (const key in DEFAULT_SETTINGS) {
         if (storedSettings[key] !== undefined && storedSettings[key] !== null) {
@@ -90,10 +87,6 @@ export async function loadSettings() {
       }
 
       Object.assign(settings, mergedSettings)
-      // console.log(
-      //   '[settingsStore] Settings loaded (after merge):',
-      //   JSON.stringify($state.snapshot(settings))
-      // )
     } catch (error) {
       console.error('[settingsStore] Error loading settings:', error)
       Object.assign(settings, DEFAULT_SETTINGS) // Fallback to defaults on error
@@ -132,14 +125,22 @@ export async function updateSettings(newSettings) {
   Object.assign(settings, validUpdates)
 
   try {
-    console.log(
-      '[settingsStore] Updating and saving the following settings:',
-      JSON.stringify(validUpdates)
-    )
-    await setStorage(validUpdates)
-    console.log(
-      '[settingsStore] Settings updated and saved:',
-      JSON.stringify($state.snapshot(settings))
+    console.dir(
+      {
+        message: '[settingsStore] Settings updated and saved:',
+        settings: Object.fromEntries(
+          Object.entries($state.snapshot(settings)).map(([key, value]) => {
+            if (
+              key.includes('PromptContent') ||
+              key.includes('SystemInstructionContent')
+            ) {
+              return [key, value.substring(0, 50) + '...']
+            }
+            return [key, value]
+          })
+        ),
+      },
+      { depth: null }
     )
   } catch (error) {
     console.error('[settingsStore] Error saving settings:', error)

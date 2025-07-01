@@ -201,19 +201,21 @@
       <h2 class="text-lg font-bold mb-4" id="scramble-title">
         {getPromptTitle(promptKey)}
       </h2>
+      <div class="flex flex-col h-full pt-6 gap-2 min-h-48 relative">
+        <label
+          for="currentSystemPrompt"
+          class="text-text-secondary bg-blackwhite/5 rounded-t-lg top-0 px-2 pt-1 pb-5 absolute w-fit"
+          >System Instruction</label
+        >
+        <textarea
+          id="currentSystemPrompt"
+          class="textarea relative z-10 bg-surface-1 border border-border h-full w-full mb-2 p-2 rounded-lg outline-0 shadow-[0_0_0_0_var(--color-border)] focus:shadow-[0_0_0_3px_var(--color-border)] transition-shadow focus:border-muted/60"
+          bind:value={currentSystemPrompt}
+          oninput={() => (isPromptDirty = true)}
+          placeholder=""
+        ></textarea>
+      </div>
 
-      <label
-        for="currentSystemPrompt"
-        class="text-text-secondary inline-flex w-fit mb-1"
-        >System Instruction</label
-      >
-      <textarea
-        id="currentSystemPrompt"
-        class="textarea outline-0 shadow-[0_0_0_0_var(--color-border)] focus:shadow-[0_0_0_3px_var(--color-border)] border min-h-48 transition-shadow border-border focus:border-muted/60 h-32 w-full mb-4 p-2 rounded-lg"
-        bind:value={currentSystemPrompt}
-        oninput={() => (isPromptDirty = true)}
-        placeholder=""
-      ></textarea>
       <!--  - Use the <code class="bg-blackwhite/5 px-1 py-0.5 rounded">__CONTENT__</code> to
       insert the dynamic content (e.g., transcript, web page content...) -->
       <div class="flex flex-col h-full pt-6 gap-2 min-h-48 relative">

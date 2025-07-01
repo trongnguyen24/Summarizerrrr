@@ -44,8 +44,10 @@
 
       <Switch.Root
         id="isSummaryAdvancedMode-toggle"
-        bind:checked={settings.isSummaryAdvancedMode}
         name="Summary Advanced Mode"
+        checked={settings.isSummaryAdvancedMode}
+        onCheckedChange={(value) =>
+          handleUpdateSetting('isSummaryAdvancedMode', value)}
         class="focus-visible:ring-primary border border-blackwhite/5 text-text-secondary flex justify-center items-center focus-visible:ring-offset-background  bg-blackwhite/5 hover:bg-blackwhite/10 transition-colors rounded-full  focus-visible:outline-hidden  size-7.5  shrink-0 cursor-pointer  focus-visible:ring-1 focus-visible:ring-offset-1 disabled:cursor-not-allowed data-[state=checked]:text-white disabled:opacity50"
       >
         <Switch.Thumb
@@ -128,7 +130,10 @@
     <div class="flex flex-col gap-2">
       <!-- svelte-ignore a11y_label_has_associated_control -->
       <label class="block text-text-secondary">Language output</label>
-      <LanguageSelect bind:value={settings.summaryLang} />
+      <LanguageSelect
+        bind:value={settings.summaryLang}
+        onchange={(event) => handleUpdateSetting('summaryLang', event.detail)}
+      />
     </div>
   </div>
 
@@ -140,7 +145,9 @@
         <SwitchButton
           id="youtubep"
           name="Youtube Summary"
-          bind:checked={settings.youtubePromptSelection}
+          checked={settings.youtubePromptSelection}
+          onCheckedChange={(value) =>
+            handleUpdateSetting('youtubePromptSelection', value)}
           onEdit={() =>
             browser.tabs.create({
               url: browser.runtime.getURL(
@@ -152,7 +159,9 @@
         <SwitchButton
           id="chapterp"
           name="Youtube Chapter"
-          bind:checked={settings.chapterPromptSelection}
+          checked={settings.chapterPromptSelection}
+          onCheckedChange={(value) =>
+            handleUpdateSetting('chapterPromptSelection', value)}
           onEdit={() =>
             browser.tabs.create({
               url: browser.runtime.getURL(
@@ -164,7 +173,9 @@
         <SwitchButton
           id="webp"
           name="Web Summary"
-          bind:checked={settings.webPromptSelection}
+          checked={settings.webPromptSelection}
+          onCheckedChange={(value) =>
+            handleUpdateSetting('webPromptSelection', value)}
           onEdit={() =>
             browser.tabs.create({
               url: browser.runtime.getURL(
@@ -176,7 +187,9 @@
         <SwitchButton
           id="udemysummaryp"
           name="Udemy Summary"
-          bind:checked={settings.udemySummaryPromptSelection}
+          checked={settings.udemySummaryPromptSelection}
+          onCheckedChange={(value) =>
+            handleUpdateSetting('udemySummaryPromptSelection', value)}
           onEdit={() =>
             browser.tabs.create({
               url: browser.runtime.getURL(
@@ -188,7 +201,9 @@
         <SwitchButton
           id="udemyconceptsp"
           name="Udemy Concepts"
-          bind:checked={settings.udemyConceptsPromptSelection}
+          checked={settings.udemyConceptsPromptSelection}
+          onCheckedChange={(value) =>
+            handleUpdateSetting('udemyConceptsPromptSelection', value)}
           onEdit={() =>
             browser.tabs.create({
               url: browser.runtime.getURL(
@@ -200,7 +215,9 @@
         <SwitchButton
           id="selectedtextp"
           name="Selected Text"
-          bind:checked={settings.selectedTextPromptSelection}
+          checked={settings.selectedTextPromptSelection}
+          onCheckedChange={(value) =>
+            handleUpdateSetting('selectedTextPromptSelection', value)}
           onEdit={() =>
             browser.tabs.create({
               url: browser.runtime.getURL(

@@ -62,8 +62,10 @@
       </Label.Root>
       <Switch.Root
         id="provider-toggle"
-        bind:checked={settings.isAdvancedMode}
         name="Advanced Mode"
+        checked={settings.isAdvancedMode}
+        onCheckedChange={(value) =>
+          handleUpdateSetting('isAdvancedMode', value)}
         class="focus-visible:ring-primary border border-blackwhite/5 text-text-secondary flex justify-center items-center focus-visible:ring-offset-background  bg-blackwhite/5 hover:bg-blackwhite/10 transition-colors rounded-full  focus-visible:outline-hidden  size-7.5  shrink-0 cursor-pointer  focus-visible:ring-1 focus-visible:ring-offset-1 disabled:cursor-not-allowed data-[state=checked]:text-white disabled:opacity50"
       >
         <Switch.Thumb

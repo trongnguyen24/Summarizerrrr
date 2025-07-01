@@ -3,7 +3,13 @@
   import { Label, Switch } from 'bits-ui'
   import Icon from '@iconify/svelte'
 
-  let { id, name, checked = $bindable(), onEdit } = $props()
+  let { id, name, checked = $bindable(), onEdit, onCheckedChange } = $props()
+
+  $effect(() => {
+    if (onCheckedChange) {
+      onCheckedChange(checked)
+    }
+  })
 </script>
 
 <div class="flex flex-row items-center gap-0.5">

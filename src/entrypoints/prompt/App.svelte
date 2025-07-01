@@ -51,6 +51,8 @@
   let scrambleInterval
   let displayTitle = $state('')
   let ts = null
+  let settingsLog = $state('')
+
   $effect(() => {
     if (promptKey) {
       const title = getPromptTitle(promptKey)
@@ -59,6 +61,10 @@
       }
       ts.setText(title)
     }
+  })
+
+  $effect(() => {
+    settingsLog = JSON.stringify(settings, null, 2)
   })
   const promptTitles = {
     youtubeCustomPromptContent: 'Youtube Summary',
@@ -174,6 +180,15 @@
 <main
   class="flex font-mono relative p-8 min-w-4xl min-h-dvh bg-background text-text-primary"
 >
+  <details
+    class=" fixed w-2xl text-text-secondary border border-border bg-surface-2/80 backdrop-blur-lg bottom-10 left-10 z-50"
+  >
+    <summary class="p-4">Log setting:</summary>
+    <pre
+      class=" border-t pt-4 border-border px-4 wrap-normal w-full overflow-hidden">{settingsLog}
+  </pre>
+  </details>
+
   <span
     class="absolute z-10 h-full min-h-lvh w-px bg-border/70 top-0 -translate-x-px left-8"
   ></span>

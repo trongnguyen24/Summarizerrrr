@@ -112,9 +112,7 @@
     -moz-appearance: none; /* Firefox */
     -webkit-appearance: none; /* Safari and Chrome */
   }
-  #openrouter-model-list::-webkit-calendar-picker-indicator {
-    display: none;
-  }
+
   input::-webkit-calendar-picker-indicator {
     display: none !important;
   }

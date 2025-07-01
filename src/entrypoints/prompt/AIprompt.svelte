@@ -113,7 +113,7 @@ Do not include any explanations, greetings, or additional formatting.
     </Dialog.Overlay>
     <Dialog.Content
       forceMount
-      class="outline-hidden fixed left-[50%] top-4 w-[calc(100vw-32px)] max-w-5xl z-50 translate-x-[-50%]"
+      class="outline-hidden fixed left-[50%] top-1/2 -translate-y-1/2 w-[calc(100vw-32px)] max-w-5xl z-50 translate-x-[-50%]"
     >
       {#snippet child({ props, open })}
         {#if open}
@@ -144,7 +144,7 @@ Do not include any explanations, greetings, or additional formatting.
               <div class="flex gap-2 flex-col p-6">
                 <textarea
                   disabled
-                  class="resize-none outline-0 min-h-48 h-[calc(100vh-10rem)] overflow-auto w-full"
+                  class="resize-none outline-0 min-h-48 h-[calc(100vh-10rem)] max-h-[40rem] overflow-auto w-full"
                   >{dataget}</textarea
                 >
                 <div>

@@ -47,7 +47,7 @@ CONTENT
 ❌ Don't include unnecessary examples or lengthy explanations
 </QUALITY_REQUIREMENTS>
 <INPUT_PARAMETERS>
-Language for enhanced prompt: LANG
+Language for enhanced prompt: __LANG__
 Original prompt to enhance:
 <PROMPT_TO_ENHANCE>
 \${userPrompt}

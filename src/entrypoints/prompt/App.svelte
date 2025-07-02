@@ -318,22 +318,3 @@
     {/if}
   </div>
 </main>
-
-<style>
-  textarea {
-    resize: none;
-  }
-  textarea::-webkit-scrollbar {
-    background-color: transparent;
-    width: 6px;
-    padding: 1px;
-  }
-
-  textarea::-webkit-scrollbar-thumb {
-    border-radius: 10px;
-    background-color: oklch(0.77 0.003 106.6 / 40%);
-  }
-  textarea::-webkit-scrollbar-thumb:hover {
-    background-color: oklch(0.77 0.003 106.6 / 60%);
-  }
-</style>

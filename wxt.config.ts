@@ -31,10 +31,9 @@ export default defineConfig({
     } else if (browser === 'firefox') {
       return {
         permissions: ['storage', 'tabs', '<all_urls>', 'contextMenus'],
-        browser_action: {
+        action: {
           default_icon: 'icon/48.png',
           default_title: 'Open Summarizerrrr',
-          default_popup: 'prompt.html',
         },
         sidebar_action: {
           default_panel: 'sidepanel.html',

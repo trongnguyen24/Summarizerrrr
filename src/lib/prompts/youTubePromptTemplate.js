@@ -9,13 +9,23 @@ Tóm tắt nội dung video YouTube từ <INPUT_CONTENT>. Tập trung vào các 
 3. **Giọng văn:** __TONE_DESCRIPTION__
 </INPUT_PARAMETERS>
 
+<OUTPUT_STRUCTURE>
+## [Tiêu đề video hoặc chủ đề chính]
+[Nội dung tóm tắt được trình bày bằng ###, ####, bullet points, hoặc paragraphs tùy theo nội dung]
+
+## Kết luận/Takeaway
+[Thông điệp chính hoặc hành động cần thực hiện]
+</OUTPUT_STRUCTURE>
+
 <REQUIREMENTS>
 ✅ **Bao gồm**: Chủ đề chính, điểm quan trọng, ví dụ/số liệu cụ thể, các bước/hướng dẫn (nếu có)
-✅ **Format heading** (nếu cần): Dùng ## cho chủ đề chính, ### cho các phần
+✅ **Tách biệt rõ ràng** các loại thông tin bằng heading, bullet points, hoặc paragraphs
 ✅ **Giữ nguyên**: Thuật ngữ chuyên ngành, tên riêng, số liệu chính xác
 ✅ **Quan điểm**: Ghi rõ "Người nói cho rằng..." khi đề cập ý kiến cá nhân
-❌ **Loại bỏ**: Từ nói thừa ("uhm", "à"), thông tin trùng lặp, lời chào/giới thiệu
-❌ **Không thêm**: Thông tin ngoài transcript, bình luận cá nhân
+❌ Không viết thành đoạn văn dài liền mạch khi có thể tách nhỏ
+❌ Không thêm thông tin ngoài transcript hoặc bình luận cá nhân
+❌ Không bao gồm từ nói thừa ("uhm", "à"), thông tin trùng lặp
+❌ Không thêm lời chào hoặc giới thiệu không cần thiết
 </REQUIREMENTS>
 
 <SPECIAL_CASES>

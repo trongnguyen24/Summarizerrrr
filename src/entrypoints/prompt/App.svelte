@@ -28,7 +28,6 @@
   import aiPrompt from '../../lib/prompts/aiPrompt.js'
 
   let isOpen = $state(false) // State for the dialog
-  let enhancedSystemPrompt = $state('')
   let enhancedUserPrompt = $state('')
   let dataget = $state('')
 
@@ -37,19 +36,13 @@
   const handlePromptEnhance = async () => {
     console.log('Bắt đầu handlePromptEnhance, loading = true')
     loading = true
-    const systemPrompt = document.getElementById('currentSystemPrompt').value
     const userPrompt = document.getElementById('currentUserPrompt').value
-
-    const prompt = aiPrompt
-
+    const prompt = aiPrompt.replace('{{userPrompt}}', userPrompt)
+    console.log('User Prompt:', prompt)
     try {
-      const enhanced = await enhancePrompt(systemPrompt, prompt)
+      const enhanced = await enhancePrompt(prompt)
       console.log('Kết quả API:', enhanced)
       dataget = enhanced
-      if (enhanced && enhanced.enhanced_prompts) {
-        enhancedSystemPrompt = enhanced.enhanced_prompts.system_prompt
-        enhancedUserPrompt = enhanced.enhanced_prompts.user_prompt
-      }
     } catch (error) {
       console.error('Lỗi khi gọi API:', error)
       // Xử lý lỗi ở đây, ví dụ: hiển thị thông báo cho người dùng
@@ -376,7 +369,7 @@
       </div>
     {:else}
       <p class="text-text-secondary">
-        Vui lòng chọn một loại prompt từ menu bên trái để chỉnh sửa.
+        Please select a prompt from the menu on the left.
       </p>
     {/if}
   </div>

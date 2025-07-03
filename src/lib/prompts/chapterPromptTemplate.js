@@ -1,63 +1,63 @@
-export const chapterPromptTemplate = `
-<TASK>
-Phân tích <INPUT_CONTENT> và tạo bản tóm tắt chi tiết theo từng chương/phần logic, kèm thời gian bắt đầu ước lượng. Đặc biệt chú ý bảo tồn các ví dụ, câu chuyện, và chi tiết minh họa quan trọng.
+export const chapterPromptTemplate = `<TASK>
+Analyze <INPUT_CONTENT> and create detailed chapter-by-chapter summaries with estimated start times. Pay special attention to preserving examples, stories, and important illustrative details.
 </TASK>
 
 <CONTEXT>
-Nội dung đầu vào là transcript video có kèm timestamp. Các ví dụ cụ thể, câu chuyện minh họa, và case studies là yếu tố quan trọng giúp nội dung dễ hiểu và thuyết phục hơn.
+The input content is a video transcript with timestamps. Specific examples, illustrative stories, and case studies are crucial elements that make content more understandable and persuasive.
 </CONTEXT>
 
 <INPUT_PARAMETERS>
-1. **Ngôn ngữ đầu ra:** __LANG__
-2. **Độ dài:** Tóm tắt chi tiết bao gồm luận điểm chính, ví dụ minh họa, và thông tin hỗ trợ quan trọng
-3. **Giọng văn:** __TONE_DESCRIPTION__
+1. **Output language:** __LANG__
+2. **Length:** Detailed summary including main arguments, illustrative examples, and important supporting information
+3. **Tone:** __TONE_DESCRIPTION__
 </INPUT_PARAMETERS>
 
 <OUTPUT_STRUCTURE>
-## Tóm tắt video theo chương:
+## Video Summary by Chapter:
 
-### [Thời gian] - [Tên chương]
-[Nội dung tóm tắt bao gồm:]
-- Luận điểm chính và thuật ngữ quan trọng (**in đậm**)
-- **Ví dụ cụ thể**: Tóm tắt ngắn gọn các ví dụ, case studies, câu chuyện được đề cập
-- **Số liệu/dữ liệu**: Các con số, tỷ lệ, thống kê quan trọng (nếu có)
-- Kết luận hoặc takeaway của phần này
+### [Timestamp] - [Chapter Name]
+[Summary content presented scientifically using paragraphs, #### and bullet points]
 
-## Kết luận chung
-[Thông điệp tổng thể hoặc ý chính xuyên suốt video]
+## Overall Conclusion
+[Overall message or key theme throughout the video]
 </OUTPUT_STRUCTURE>
 
 <KEY_REQUIREMENTS>
-✅ **LUÔN bao gồm ví dụ cụ thể** được đề cập trong video
-✅ **Giữ lại tên riêng, số liệu** để tăng tính chính xác  
-✅ **Liên kết ví dụ với luận điểm chính** - giải thích ví dụ minh họa điều gì
-✅ **Sử dụng cụm từ chỉ dẫn**: "Ví dụ:", "Câu chuyện về:", "Theo nghiên cứu:"
-✅ Toàn bộ nội dung bằng ngôn ngữ __LANG__
-❌ Không thêm lời chào hoặc bình luận cá nhân
-❌ Không bỏ qua ví dụ minh họa quan trọng
+✅ **Clearly separate** using paragraphs, headings and bullet points
+✅ **Preserve proper names and numbers** for accuracy
+✅ **Link examples to main arguments** - explain what each example illustrates
+✅ All content in __LANG__ language
+❌ Don't write long continuous paragraphs
+❌ Don't mix different types of information together
+❌ Don't skip important illustrative examples
+❌ Don't add greetings or personal commentary
 </KEY_REQUIREMENTS>
 
 <EXAMPLE>
-## Tóm tắt video theo chương:
+## Video Summary by Chapter:
 
-### 0:00 - Giới thiệu về Tư duy Phát triển
-Khái niệm **Growth Mindset** vs **Fixed Mindset** của Carol Dweck. Người có tư duy phát triển tin rằng khả năng có thể cải thiện qua nỗ lực.
+### 0:00 - Introduction to Growth Mindset
+#### Carol Dweck's concept of **Growth Mindset** vs **Fixed Mindset**
+People with growth mindset believe abilities can be improved through effort.
 
-**Ví dụ về Michael Jordan**: Bị loại khỏi đội bóng rổ trường trung học nhưng không bỏ cuộc, luyện tập chăm chỉ và trở thành huyền thoại NBA.
+#### Example of Michael Jordan:
+Cut from high school basketball team but didn't give up, practiced hard and became an NBA legend.
 
-### 3:45 - Nghiên cứu trong Giáo dục  
-**Thí nghiệm với 400 học sinh**: Nhóm được khen "thông minh" vs nhóm được khen "chăm chỉ". Kết quả: nhóm thứ hai cải thiện điểm số 23% sau 6 tháng.
+### 3:45 - Research in Education
+**Experiment with 400 students**:
+- How praise affects children's mindset
+- Praising "process" is more effective than praising "results"
+- Results: second group improved test scores by 23% after 6 months.
 
-**Câu chuyện về Lisa**: Học sinh yếu toán, sau khi thay đổi cách suy nghĩ từ "tôi không giỏi toán" thành "tôi chưa giỏi toán", đã vượt qua và đạt điểm A.
+**Lisa's story**: Weak math student who changed her thinking from "I'm not good at math" to "I'm not good at math yet", eventually achieved an A grade.
 
-### 8:20 - Ứng dụng trong Công việc
-Các công ty như **Microsoft** áp dụng Growth Mindset trong văn hóa doanh nghiệp, khuyến khích nhân viên học hỏi từ thất bại thay vì né tránh rủi ro.
+### 8:20 - Application in the Workplace
+Companies like **Microsoft** apply Growth Mindset in corporate culture, encouraging employees to learn from failure rather than avoid risks.
 
-## Kết luận chung
-Tư duy phát triển không chỉ cải thiện học tập mà còn giúp con người vượt qua thử thách trong mọi lĩnh vực cuộc sống.
+## Overall Conclusion
+Growth mindset not only improves learning but also helps people overcome challenges in all areas of life.
 </EXAMPLE>
 
 <INPUT_CONTENT>
 __CONTENT__
-</INPUT_CONTENT>
-`
+</INPUT_CONTENT>`

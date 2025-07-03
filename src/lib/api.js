@@ -147,11 +147,10 @@ export async function summarizeContent(text, contentType) {
 
 /**
  * Enhances a system prompt and user prompt using the selected AI provider.
- * @param {string} systemPrompt - The system prompt to enhance.
  * @param {string} userPrompt - The user prompt to enhance.
  * @returns {Promise<string>} - Promise that resolves with the enhanced prompts.
  */
-export async function enhancePrompt(systemPrompt, userPrompt) {
+export async function enhancePrompt(userPrompt) {
   // Ensure settings are initialized
   await loadSettings()
   await loadAdvancedModeSettings()
@@ -171,9 +170,6 @@ export async function enhancePrompt(systemPrompt, userPrompt) {
 
   const provider = getProvider(selectedProviderId, userSettings) // Pass full settings object
 
-  // Combine system and user prompts into a single prompt for enhancement
-  const combinedPrompt = `System Prompt:\n${systemPrompt}\n\nUser Prompt:\n${userPrompt}`
-
   const contentConfig = promptBuilders['promptEnhance']
 
   if (!contentConfig.buildPrompt || !contentConfig.systemInstruction) {
@@ -183,7 +179,7 @@ export async function enhancePrompt(systemPrompt, userPrompt) {
   }
 
   const { systemInstruction, userPrompt: enhancedPrompt } =
-    contentConfig.buildPrompt(combinedPrompt, userSettings.summaryLang)
+    contentConfig.buildPrompt(userPrompt, userSettings.summaryLang)
 
   try {
     // Apply user settings to generationConfig, overriding defaults

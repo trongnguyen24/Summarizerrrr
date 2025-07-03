@@ -130,3 +130,4 @@ dist
 .pnp.*
 /.output
 .DS_Store
+public/.DS_Store

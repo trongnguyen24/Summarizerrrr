@@ -33,6 +33,10 @@
 
   let loading = $state(false)
 
+  const showEnhanceButton = $derived(
+    currentUserPrompt.trim().split(/\s+/).filter(Boolean).length > 2
+  )
+
   const handlePromptEnhance = async () => {
     console.log('Bắt đầu handlePromptEnhance, loading = true')
     loading = true
@@ -277,26 +281,35 @@
           oninput={() => (isPromptDirty = true)}
           placeholder=""
         ></textarea>
-        <button
-          onclick={() => {
-            isOpen = true
-            handlePromptEnhance()
-          }}
-          class="absolute bottom-6 right-4"
-          title="Prompt Enhance"
-        >
-          <div
-            class="p-2 relative transition-colors overflow-hidden border border-primary/10 hover:border-primary/20 dark:border-border/70 dark:hover:border-gray-700 text-primary/90 hover:text-primary z-20 bg-radial from-orange-100 dark:from-gray-950 group to-orange-50 dark:to-surface-2 to-60% hover:bg-surface-2 rounded-full"
+        {#if showEnhanceButton}
+          <button
+            onclick={() => {
+              isOpen = true
+              handlePromptEnhance()
+            }}
+            class="absolute bottom-6 right-4"
+            title="Prompt Enhance"
           >
-            <div class="chip__filter overflow-hidden"></div>
-            <Icon
-              class="group-hover:rotate-12 group-hover:scale-150 ease-in-out transition-transform duration-300"
-              icon="octicon:sparkle-fill-16"
-              width="16"
-              height="16"
-            />
-          </div>
-        </button>
+            <div
+              transition:slideScaleFade={{
+                duration: 400,
+                delay: 200,
+                slideFrom: 'bottom',
+                slideDistance: '0.5rem',
+                startScale: 0.75,
+              }}
+              class="p-2 relative transition-colors overflow-hidden border border-primary/10 hover:border-primary/20 dark:border-border/70 dark:hover:border-gray-700 text-primary/90 hover:text-primary z-20 bg-radial from-orange-100 dark:from-gray-950 group to-orange-50 dark:to-surface-2 to-60% hover:bg-surface-2 rounded-full"
+            >
+              <div class="chip__filter overflow-hidden"></div>
+              <Icon
+                class="group-hover:rotate-12 group-hover:scale-150 ease-in-out transition-transform duration-300"
+                icon="octicon:sparkle-fill-16"
+                width="16"
+                height="16"
+              />
+            </div>
+          </button>
+        {/if}
       </div>
       <div class="flex justify-between gap-2 mt-auto">
         <div class="flex gap-2 items-center">
@@ -432,7 +445,7 @@
                     <textarea
                       transition:fade
                       disabled
-                      class="resize-none px-4 pt-6 pb-12 outline-0 h-full overflow-auto w-full"
+                      class="resize-none px-4 text-sm pt-6 pb-12 outline-0 h-full overflow-auto w-full"
                       >{dataget}</textarea
                     >
                     <div

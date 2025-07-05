@@ -38,11 +38,10 @@
   )
 
   const handlePromptEnhance = async () => {
-    console.log('Bắt đầu handlePromptEnhance, loading = true')
     loading = true
     const userPrompt = document.getElementById('currentUserPrompt').value
     const prompt = aiPrompt.replace('{{userPrompt}}', userPrompt)
-    console.log('User Prompt:', prompt)
+
     try {
       const enhanced = await enhancePrompt(prompt)
       console.log('Kết quả API:', enhanced)
@@ -51,7 +50,6 @@
       console.error('Lỗi khi gọi API:', error)
       // Xử lý lỗi ở đây, ví dụ: hiển thị thông báo cho người dùng
     } finally {
-      console.log('Kết thúc handlePromptEnhance, loading = false')
       loading = false
     }
   }
@@ -445,7 +443,7 @@
                     <textarea
                       transition:fade
                       disabled
-                      class="resize-none px-4 text-sm pt-6 pb-12 outline-0 h-full overflow-auto w-full"
+                      class="resize-none px-4 text-sm pt-6 pb-12 leading-normal outline-0 h-full overflow-auto w-full"
                       >{dataget}</textarea
                     >
                     <div
@@ -456,7 +454,7 @@
                 <div class="p-4 pt-0 flex justify-end gap-2">
                   <button
                     class=" relative overflow-hidden group"
-                    onclick={(isOpen = false)}
+                    onclick={() => (isOpen = false)}
                   >
                     <div
                       class=" font-medium py-2 px-4 border transition-colors duration-200 bg-surface-2 group-hover:bg-surface-2/95 dark:group-hover:surface-2/90 text-orange-50 dark:text-text-primary border-border hover:border-gray-500/50 hover:text-white"

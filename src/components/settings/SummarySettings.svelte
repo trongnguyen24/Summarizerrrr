@@ -19,9 +19,54 @@
   let textScramble
 
   $effect(() => {
-    textScramble = new TextScramble(textElement)
-    textScramble.setText(settings.isSummaryAdvancedMode ? 'Advanced' : 'Basic')
+    if (!textScramble && textElement) {
+      textScramble = new TextScramble(textElement)
+    }
+    if (textScramble) {
+      textScramble.setText(
+        settings.isSummaryAdvancedMode ? 'Advanced' : 'Basic'
+      )
+    }
   })
+
+  const customPrompts = [
+    {
+      id: 'youtubep',
+      name: 'Youtube Summary',
+      settingKey: 'youtubePromptSelection',
+      promptKey: 'youtubeCustomPromptContent',
+    },
+    {
+      id: 'chapterp',
+      name: 'Youtube Chapter',
+      settingKey: 'chapterPromptSelection',
+      promptKey: 'chapterCustomPromptContent',
+    },
+    {
+      id: 'webp',
+      name: 'Web Summary',
+      settingKey: 'webPromptSelection',
+      promptKey: 'webCustomPromptContent',
+    },
+    {
+      id: 'udemysummaryp',
+      name: 'Udemy Summary',
+      settingKey: 'udemySummaryPromptSelection',
+      promptKey: 'udemySummaryCustomPromptContent',
+    },
+    {
+      id: 'udemyconceptsp',
+      name: 'Udemy Concepts',
+      settingKey: 'udemyConceptsPromptSelection',
+      promptKey: 'udemyConceptsCustomPromptContent',
+    },
+    {
+      id: 'selectedtextp',
+      name: 'Selected Text',
+      settingKey: 'selectedTextPromptSelection',
+      promptKey: 'selectedTextCustomPromptContent',
+    },
+  ]
 </script>
 
 <!-- Summmary Section -->
@@ -140,92 +185,36 @@
   {#if settings.isSummaryAdvancedMode}
     <div class="@container setting-secsion flex flex-col gap-4 px-5">
       <!-- Prompt settings -->
-      <div class="block mt-4 font-bold text-text-primary">Custom prompt</div>
-      <div class="grid @min-[23rem]:grid-cols-2 gap-2">
-        <SwitchButton
-          id="youtubep"
-          name="Youtube Summary"
-          checked={settings.youtubePromptSelection}
-          onCheckedChange={(value) =>
-            handleUpdateSetting('youtubePromptSelection', value)}
-          onEdit={() =>
-            browser.tabs.create({
-              url: browser.runtime.getURL(
-                'prompt.html?promptKey=youtubeCustomPromptContent'
-              ),
-            })}
-        />
-
-        <SwitchButton
-          id="chapterp"
-          name="Youtube Chapter"
-          checked={settings.chapterPromptSelection}
-          onCheckedChange={(value) =>
-            handleUpdateSetting('chapterPromptSelection', value)}
-          onEdit={() =>
-            browser.tabs.create({
-              url: browser.runtime.getURL(
-                'prompt.html?promptKey=chapterCustomPromptContent'
-              ),
-            })}
-        />
-
-        <SwitchButton
-          id="webp"
-          name="Web Summary"
-          checked={settings.webPromptSelection}
-          onCheckedChange={(value) =>
-            handleUpdateSetting('webPromptSelection', value)}
-          onEdit={() =>
-            browser.tabs.create({
-              url: browser.runtime.getURL(
-                'prompt.html?promptKey=webCustomPromptContent'
-              ),
-            })}
-        />
-
-        <SwitchButton
-          id="udemysummaryp"
-          name="Udemy Summary"
-          checked={settings.udemySummaryPromptSelection}
-          onCheckedChange={(value) =>
-            handleUpdateSetting('udemySummaryPromptSelection', value)}
-          onEdit={() =>
-            browser.tabs.create({
-              url: browser.runtime.getURL(
-                'prompt.html?promptKey=udemySummaryCustomPromptContent'
-              ),
-            })}
-        />
-
-        <SwitchButton
-          id="udemyconceptsp"
-          name="Udemy Concepts"
-          checked={settings.udemyConceptsPromptSelection}
-          onCheckedChange={(value) =>
-            handleUpdateSetting('udemyConceptsPromptSelection', value)}
-          onEdit={() =>
-            browser.tabs.create({
-              url: browser.runtime.getURL(
-                'prompt.html?promptKey=udemyConceptsCustomPromptContent'
-              ),
-            })}
-        />
-
-        <SwitchButton
-          id="selectedtextp"
-          name="Selected Text"
-          checked={settings.selectedTextPromptSelection}
-          onCheckedChange={(value) =>
-            handleUpdateSetting('selectedTextPromptSelection', value)}
-          onEdit={() =>
-            browser.tabs.create({
-              url: browser.runtime.getURL(
-                'prompt.html?promptKey=selectedTextCustomPromptContent'
-              ),
-            })}
-        />
+      <div class="flex items-center gap-1 text-text-primary justify-between">
+        Use custom prompts*
+        <a
+          href={browser.runtime.getURL('prompt.html')}
+          target="_blank"
+          class="text-xs flex items-center gap-0.5 text-primary outline-gray-500 hover:underline"
+        >
+          Prompt Editer
+          <Icon width={12} icon="heroicons:arrow-up-right-16-solid" />
+        </a>
       </div>
+
+      <div class="grid @min-[23rem]:grid-cols-2 gap-2">
+        {#each customPrompts as prompt}
+          <SwitchButton
+            id={prompt.id}
+            name={prompt.name}
+            checked={settings[prompt.settingKey]}
+            onCheckedChange={(value) =>
+              handleUpdateSetting(prompt.settingKey, value)}
+            onEdit={() =>
+              browser.tabs.create({
+                url: browser.runtime.getURL(
+                  `prompt.html?promptKey=${prompt.promptKey}`
+                ),
+              })}
+          />
+        {/each}
+      </div>
+      <p>* Basic settings are overridden in advanced mode.</p>
     </div>
   {/if}
 </div>

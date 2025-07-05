@@ -221,7 +221,85 @@ export default defineBackground(() => {
     }
   })
 
-  // 2. Extension Install/Update
+  // 2. Listen for commands (keyboard shortcuts)
+  browser.commands.onCommand.addListener(async (command) => {
+    console.log(`[background.js] Command received: ${command}`)
+    const tabs = await browser.tabs.query({ active: true, currentWindow: true })
+    const activeTab = tabs[0]
+
+    if (!activeTab || !activeTab.id || !activeTab.url) {
+      console.warn('No active tab found or tab info missing for command.')
+      return
+    }
+
+    if (command === 'summarize-current-page') {
+      console.log(
+        '[background.js] Summarize current page command received. Sending message to side panel.'
+      )
+      const isYouTube = activeTab.url.includes('youtube.com/watch')
+      const isUdemy = activeTab.url.includes('udemy.com/course/')
+
+      const summarizePageInfo = {
+        action: 'summarizeCurrentPage',
+        tabId: activeTab.id,
+        tabUrl: activeTab.url,
+        tabTitle: activeTab.title,
+        isYouTube: isYouTube,
+        isUdemy: isUdemy,
+      }
+      await sendMessageToSidePanel(summarizePageInfo, activeTab.id)
+
+      // Đảm bảo side panel mở để hiển thị kết quả tóm tắt
+      if (import.meta.env.BROWSER === 'chrome') {
+        try {
+          await chrome.sidePanel.open({ windowId: activeTab.windowId })
+        } catch (error) {
+          console.error(
+            '[background.js] Chrome: Error opening side panel for summarization:',
+            error
+          )
+        }
+      } else if (import.meta.env.BROWSER === 'firefox') {
+        try {
+          await browser.sidebarAction.open()
+        } catch (error) {
+          console.error(
+            '[background.js] Firefox: Error opening sidebar for summarization:',
+            error
+          )
+        }
+      }
+    } else if (command === 'open-prompt-page') {
+      console.log('[background.js] Open prompt page command received.')
+      if (import.meta.env.BROWSER === 'chrome') {
+        try {
+          await chrome.tabs.create({
+            url: chrome.runtime.getURL('prompt.html'),
+          })
+          console.log('[background.js] Chrome: Prompt page opened.')
+        } catch (error) {
+          console.error(
+            '[background.js] Chrome: Error opening prompt page:',
+            error
+          )
+        }
+      } else if (import.meta.env.BROWSER === 'firefox') {
+        try {
+          await browser.tabs.create({
+            url: browser.runtime.getURL('prompt.html'),
+          })
+          console.log('[background.js] Firefox: Prompt page opened.')
+        } catch (error) {
+          console.error(
+            '[background.js] Firefox: Error opening prompt page:',
+            error
+          )
+        }
+      }
+    }
+  })
+
+  // 3. Extension Install/Update
   browser.runtime.onInstalled.addListener(async (details) => {
     if (details.reason === 'install' || details.reason === 'update') {
       // Tạo context menu
@@ -269,7 +347,7 @@ export default defineBackground(() => {
     }
   })
 
-  // 3. Listen for URL changes and tab updates
+  // 4. Listen for URL changes and tab updates
   browser.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
     const isYouTube = tab.url.includes('youtube.com/watch')
     const isUdemy = tab.url.includes('udemy.com/course/')
@@ -296,7 +374,7 @@ export default defineBackground(() => {
     }
   })
 
-  // 4. Listen for messages from other parts of the extension (e.g., side panel)
+  // 5. Listen for messages from other parts of the extension (e.g., side panel)
   browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.action === 'getTranscript' && message.tabId) {
       const targetTabId = message.tabId
@@ -416,7 +494,7 @@ export default defineBackground(() => {
     }
   })
 
-  // 5. Listen for connections from side panel
+  // 6. Listen for connections from side panel
   browser.runtime.onConnect.addListener((port) => {
     if (port.name === 'side-panel') {
       sidePanelPort = port
@@ -494,7 +572,7 @@ export default defineBackground(() => {
     }
   })
 
-  // 6. Listen for tab activation changes
+  // 7. Listen for tab activation changes
   browser.tabs.onActivated.addListener(async (activeInfo) => {
     try {
       const tab = await browser.tabs.get(activeInfo.tabId)
@@ -524,7 +602,7 @@ export default defineBackground(() => {
     }
   })
 
-  // 7. Listen for context menu clicks
+  // 8. Listen for context menu clicks
   browser.contextMenus.onClicked.addListener(async (info, tab) => {
     if (info.menuItemId === 'summarizeSelectedText' && info.selectionText) {
       const selectedText = info.selectionText

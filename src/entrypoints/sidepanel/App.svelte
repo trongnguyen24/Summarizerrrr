@@ -131,6 +131,23 @@
           )
         }
         break
+      case 'summarizeCurrentPage':
+        console.log(
+          '[App.svelte] Received summarizeCurrentPage message:',
+          $state.snapshot(request)
+        )
+        resetDisplayState()
+        if (request.isYouTube) {
+          summaryState.lastSummaryTypeDisplayed = 'youtube'
+          updateActiveYouTubeTab('youtubeSummary')
+        } else if (request.isUdemy) {
+          summaryState.lastSummaryTypeDisplayed = 'udemy'
+          updateActiveUdemyTab('udemySummary')
+        } else {
+          summaryState.lastSummaryTypeDisplayed = 'web'
+        }
+        fetchAndSummarize()
+        break
       default:
         console.warn('[App.svelte] Unknown message action:', request.action)
     }

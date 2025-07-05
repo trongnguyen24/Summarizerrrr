@@ -97,4 +97,62 @@
       </ButtonIcon>
     </div>
   </div>
+  <div class="flex flex-col gap-2 p-5">
+    <!-- svelte-ignore a11y_label_has_associated_control -->
+    <div class="flex items-center gap-1 justify-between">
+      Shortcuts
+      <a
+        href="chrome://extensions/shortcuts"
+        target="_blank"
+        class="text-xs flex items-center gap-0.5 text-primary outline-gray-500 hover:underline"
+      >
+        Shortcut Settings
+        <Icon width={12} icon="heroicons:arrow-up-right-16-solid" />
+      </a>
+    </div>
+
+    <div class="flex flex-col pl-3 gap-3">
+      <!-- <ButtonIcon
+        title="Open Shortcut Settings"
+        class="setting-btn"
+        onclick={() =>
+          browser.tabs.create({ url: 'chrome://extensions/shortcuts' })}
+        Description="Configure keyboard shortcuts for the extension."
+      > -->
+      <!-- <Icon icon="heroicons:command-line-20-solid" width="20" height="20" /> -->
+
+      {#snippet keyboard(a)}
+        <span
+          class=" p-1 px-2 mr-auto text-[0.65rem] ml-1 bg-blackwhite/5 rounded-sm"
+          >{a}</span
+        >
+      {/snippet}
+      <div class="flex justify-between gap-1">
+        Open Sidepanel
+
+        <div>
+          {@render keyboard('Alt')}{@render keyboard('S')}
+        </div>
+      </div>
+
+      <div class="flex justify-between gap-1">
+        Start Summarize
+
+        <div>
+          {@render keyboard('Shift')}{@render keyboard('Alt')}{@render keyboard(
+            'S'
+          )}
+        </div>
+      </div>
+      <div class="flex justify-between gap-1">
+        Prompt Editer
+
+        <div>
+          {@render keyboard('Shift')}{@render keyboard('Alt')}{@render keyboard(
+            'P'
+          )}
+        </div>
+      </div>
+    </div>
+  </div>
 </div>

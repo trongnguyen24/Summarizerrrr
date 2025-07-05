@@ -30,6 +30,7 @@
   let isOpen = $state(false) // State for the dialog
   let enhancedUserPrompt = $state('')
   let dataget = $state('')
+  let error = $state(null)
 
   let loading = $state(false)
 
@@ -39,6 +40,7 @@
 
   const handlePromptEnhance = async () => {
     loading = true
+    error = null
     const userPrompt = document.getElementById('currentUserPrompt').value
     const prompt = aiPrompt.replace('{{userPrompt}}', userPrompt)
 
@@ -46,9 +48,9 @@
       const enhanced = await enhancePrompt(prompt)
       console.log('Kết quả API:', enhanced)
       dataget = enhanced
-    } catch (error) {
-      console.error('Lỗi khi gọi API:', error)
-      // Xử lý lỗi ở đây, ví dụ: hiển thị thông báo cho người dùng
+    } catch (err) {
+      console.error('Lỗi khi gọi API:', err)
+      error = err.message || 'An unknown error occurred.'
     } finally {
       loading = false
     }
@@ -206,6 +208,26 @@
       }
     }
   }
+
+  const phrases = [
+    'This feature works best with the Gemini 2.5 Flash model or higher.',
+    'The "Prompt Enhancement" feature just formats and explains based on your prompt input.',
+    'This feature helps you refine and clarify ideas, not create entirely new ones',
+  ]
+
+  $effect(() => {
+    let fx
+    if (isOpen) {
+      const el = document.querySelector('#scramble-info')
+      if (el) {
+        fx = new TextScramble(el)
+        fx.play(phrases)
+      }
+    }
+    return () => {
+      fx?.stop()
+    }
+  })
 </script>
 
 <Toaster
@@ -424,7 +446,7 @@
               <div
                 class="px-4 bg-surface-1 dark:bg-surface-2 py-2 border-b-0 border-border"
               >
-                <p class="!text-center">Prompt Enhance</p>
+                <p class="!text-center">Prompt enhancer</p>
               </div>
               <div class="flex relative p-px gap-4 flex-col">
                 <div class=" min-h-48 h-[calc(100vh-10rem)] max-h-[40rem]">
@@ -440,47 +462,76 @@
                     </div>
                   {/if}
                   {#if !loading}
-                    <textarea
-                      transition:fade
-                      disabled
-                      class="resize-none px-4 text-sm pt-6 pb-12 leading-normal outline-0 h-full overflow-auto w-full"
-                      >{dataget}</textarea
-                    >
-                    <div
-                      class="absolute bg-linear-to-t right-2 from-surface-1 to-surface-1/40 bottom-16 mask-t-from-50% h-8 backdrop-blur-[2px] w-full z-30 pointer-events-none"
-                    ></div>
+                    {#if error}
+                      <div
+                        class="flex relative py-4 px-6 top-1/2 -translate-y-1/2 flex-co max-w-2xl mx-auto text-red-400 bg-red-500/10 border border-red-500/20"
+                      >
+                        <p class="text-sm">
+                          <span class="font-bold block"
+                            >Prompt enhancer error</span
+                          >
+                          {error}
+                        </p>
+                        <PlusIcon />
+                      </div>
+                    {:else}
+                      <textarea
+                        transition:fade
+                        disabled
+                        class="resize-none px-4 text-sm pt-6 pb-12 leading-normal outline-0 h-full overflow-auto w-full"
+                        >{dataget}</textarea
+                      >
+                      <div
+                        class="absolute bg-linear-to-t right-2 from-surface-1 to-surface-1/40 bottom-16 mask-t-from-50% h-8 backdrop-blur-[2px] w-full z-30 pointer-events-none"
+                      ></div>
+                    {/if}
                   {/if}
                 </div>
                 <div class="p-4 pt-0 flex justify-end gap-2">
-                  <button
-                    class=" relative overflow-hidden group"
-                    onclick={() => (isOpen = false)}
+                  <p
+                    class="text-text-secondary mr-auto text-xs items-center flex"
                   >
-                    <div
-                      class=" font-medium py-2 px-4 border transition-colors duration-200 bg-surface-2 group-hover:bg-surface-2/95 dark:group-hover:surface-2/90 text-orange-50 dark:text-text-primary border-border hover:border-gray-500/50 hover:text-white"
+                    <Icon
+                      icon="heroicons-solid:light-bulb"
+                      width="24"
+                      height="24"
+                      class="mr-1 -translate-y-0.5"
+                    /><span id="scramble-info"></span>
+                  </p>
+                  <div class="flex gap-2 items-center">
+                    <button
+                      class=" relative overflow-hidden group"
+                      onclick={() => (isOpen = false)}
                     >
-                      Discard
-                    </div>
+                      <div
+                        class=" font-medium py-2 px-4 border transition-colors duration-200 bg-surface-2 group-hover:bg-surface-2/95 dark:group-hover:surface-2/90 text-orange-50 dark:text-text-primary border-border hover:border-gray-500/50 hover:text-white"
+                      >
+                        Discard
+                      </div>
 
-                    <span
-                      class="size-4 absolute z-10 -left-2 -bottom-2 border bg-white dark:bg-surface-1 rotate-45 transition-colors duration-200 border-border group-hover:border-gray-500"
-                    ></span>
-                  </button>
-                  <button
-                    class=" flex relative overflow-hidden group"
-                    onclick={handleApplyPrompt}
-                  >
-                    <div
-                      class="font-medium py-2 px-4 border transition-colors duration-200
-                      bg-primary group-hover:bg-primary/95 dark:group-hover:bg-orange-500 text-orange-50 dark:text-orange-100/90 border-orange-400 hover:border-orange-300/75 hover:text-white"
+                      <span
+                        class="size-4 absolute z-10 -left-2 -bottom-2 border bg-white dark:bg-surface-1 rotate-45 transition-colors duration-200 border-border group-hover:border-gray-500"
+                      ></span>
+                    </button>
+                    <button
+                      class=" flex relative overflow-hidden group"
+                      onclick={handleApplyPrompt}
+                      disabled={loading}
                     >
-                      Apply prompt
-                    </div>
-                    <span
-                      class="size-4 absolute z-20 -left-2 -bottom-2 border bg-white dark:bg-surface-1 rotate-45 transition-colors duration-200
-                       border-orange-400 group-hover:border-orange-300/75"
-                    ></span>
-                  </button>
+                      <div
+                        class=" font-medium py-2 px-4 border transition-colors duration-200 {!loading
+                          ? 'bg-primary group-hover:bg-primary/95 dark:group-hover:bg-orange-500 text-orange-50 dark:text-orange-100/90 border-orange-400 hover:border-orange-300/75 hover:text-white'
+                          : ' bg-white dark:bg-surface-1 text-text-secondary border-border/40'}"
+                      >
+                        Apply prompt
+                      </div>
+                      <span
+                        class="size-4 absolute z-10 -left-2 -bottom-2 border bg-white dark:bg-surface-1 rotate-45 transition-colors duration-200 {!loading
+                          ? ' border-orange-400 group-hover:border-orange-300/75'
+                          : ' border-border/40'}"
+                      ></span>
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>

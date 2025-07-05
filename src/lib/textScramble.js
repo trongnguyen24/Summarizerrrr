@@ -2,9 +2,34 @@ class TextScramble {
   constructor(el) {
     this.el = el
     this.chars = '!<>-_\\/[]{}—=+*^?#________'
+    this.speed = 1
     this.update = this.update.bind(this)
+    this.timeoutId = null
   }
-  setText(newText) {
+
+  play(phrases, interval = 5000) {
+    this.stop()
+    let counter = 0
+    const next = () => {
+      this.setText(phrases[counter]).then(() => {
+        this.timeoutId = setTimeout(next, interval)
+      })
+      counter = (counter + 1) % phrases.length
+    }
+    next()
+  }
+
+  stop() {
+    clearTimeout(this.timeoutId)
+    cancelAnimationFrame(this.frameRequest)
+  }
+
+  setText(newText, options) {
+    if (options && options.speed) {
+      this.speed = options.speed
+    } else {
+      this.speed = 1
+    }
     const oldText = this.el.innerText
     const length = Math.max(oldText.length, newText.length)
     const promise = new Promise((resolve) => (this.resolve = resolve))
@@ -44,7 +69,7 @@ class TextScramble {
       this.resolve()
     } else {
       this.frameRequest = requestAnimationFrame(this.update)
-      this.frame++
+      this.frame += this.speed
     }
   }
   randomChar() {
@@ -53,3 +78,19 @@ class TextScramble {
 }
 
 export default TextScramble
+
+// ——————————————————————————————————————————————————
+// HOW TO USE
+// ——————————————————————————————————————————————————
+
+// const el = document.querySelector('.text');
+// const fx = new TextScramble(el);
+
+// // 1. Default speed
+// fx.setText("This runs at default speed");
+
+// // 2. Custom speed
+// // Pass an options object with a 'speed' property.
+// // Higher speed value means faster animation.
+// fx.setText("This is much faster", { speed: 5 });
+// fx.setText("This is slower", { speed: 0.5 });

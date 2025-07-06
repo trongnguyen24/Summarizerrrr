@@ -1,6 +1,6 @@
 // @ts-nocheck
 export const udemyConceptsCustomPromptContent_detail = {
-  title: 'Detail prompt',
+  title: 'Concept extractor',
   systemInstruction: `You are a specialized educational concept extractor for online course transcripts. Your primary mission is to identify, define, and explain every important concept mentioned in Udemy course content to ensure comprehensive learning and understanding.
 
 **Core Capabilities:**

@@ -22,11 +22,15 @@
   >
     <div
       class=" absolute inset-0 bg-muted/5 border border-transparent hover:border-blackwhite/15 transition-colors
-      {checked ? ' !border-border !bg-blackwhite/5' : ''}"
+      {checked
+        ? ' !border-border !bg-blackwhite/5 hover:!border-blackwhite/15'
+        : ''}"
     ></div>
     <div
-      class="size-4 absolute z-10 -left-2 -bottom-2 bg-background dark:bg-surface-1 rotate-45 border border-transparent group-hover:border-blackwhite/15 transition-colors
-      {checked ? ' !border-border ' : ''}"
+      class="size-4 absolute z-10 -left-2 -bottom-2 bg-background dark:bg-surface-1 rotate-45 border group-hover:border-blackwhite/15 transition-colors
+      {checked
+        ? ' !border-border hover:!border-blackwhite/15'
+        : 'border-transparent'}"
     ></div>
     <span
       class="size-1 bg-white absolute transition-all rounded-full z-0 left-3 {checked
@@ -45,7 +49,7 @@
   <button
     class="bg-muted/5 h-8 flex text-transparent justify-center items-center w-2 border transition-all border-transparent overflow-hidden disabled:cursor-default
      {checked
-      ? '!w-10 !text-text-primary !bg-blackwhite/5 !border-border '
+      ? '!w-10 !text-text-primary !bg-blackwhite/5 !border-border hover:!border-blackwhite/15'
       : ''}"
     disabled={!checked}
     onclick={onEdit}

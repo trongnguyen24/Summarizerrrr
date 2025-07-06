@@ -186,9 +186,11 @@
     <div class="@container setting-secsion flex flex-col gap-4 px-5">
       <!-- Prompt settings -->
       <div class="flex items-center gap-1 text-text-primary justify-between">
-        Use custom prompts*
+        Active custom prompts
         <a
-          href={browser.runtime.getURL('prompt.html')}
+          href={browser.runtime.getURL(
+            'prompt.html?promptKey=youtubeCustomPromptContent'
+          )}
           target="_blank"
           class="text-xs flex items-center gap-0.5 text-primary outline-gray-500 hover:underline"
         >
@@ -214,7 +216,7 @@
           />
         {/each}
       </div>
-      <p>* Basic settings are overridden in advanced mode.</p>
+      <p>* Basic settings are overridden by active custom prompts.</p>
     </div>
   {/if}
 </div>

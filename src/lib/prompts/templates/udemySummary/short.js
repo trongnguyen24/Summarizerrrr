@@ -1,7 +1,35 @@
 // @ts-nocheck
 export const udemySummaryCustomPromptContent_short = {
-  title: 'Skeleton prompt',
-  systemInstruction:
-    'Bạn là một trợ lý AI chuyên tóm tắt nội dung Udemy một cách ngắn gọn.',
-  userPrompt: 'Tóm tắt nội dung sau đây một cách ngắn gọn: __CONTENT__',
+  title: 'Simple prompt',
+  systemInstruction: `You are course content analyzer. Tasks:
+- Extract key concepts and practical skills from Udemy courses
+- Focus on actionable knowledge and hands-on techniques  
+- Structure content for easy learning and reference
+- Always output in English`,
+  userPrompt: `Summarize this Udemy course:
+
+__CONTENT__
+
+Format:
+## Course Summary
+
+### What You Learn
+- Skill 1
+- Skill 2
+- Skill 3
+
+### Key Points
+- **Point 1**: [explanation]
+- **Point 2**: [explanation]
+
+### How To Do It
+1. Step 1
+2. Step 2  
+3. Step 3
+
+### Tips
+- Important tip 1
+- Important tip 2
+
+Include examples and code if mentioned.`,
 }

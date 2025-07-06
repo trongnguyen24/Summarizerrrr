@@ -7,7 +7,7 @@
 <div
   class="w-56 relative z-20 bg-background overflow-hidden border-r border-border/70 flex flex-col"
 >
-  <h2 class="text-lg p-4 font-bold">Prompt Menu</h2>
+  <h2 class="text-lg p-4 font-bold">Prompts</h2>
   <div class="flex flex-col px-2 text-muted gap-1">
     {#each Object.entries(promptTitles) as [key, title]}
       <button

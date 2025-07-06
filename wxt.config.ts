@@ -30,12 +30,12 @@ export default defineConfig({
         commands: {
           _execute_action: {
             suggested_key: {
-              default: 'Alt+S',
+              default: 'Alt+A',
             },
           },
           'summarize-current-page': {
             suggested_key: {
-              default: 'Alt+Shift+S',
+              default: 'Alt+S',
             },
             description: 'Summarize current page',
           },
@@ -65,14 +65,15 @@ export default defineConfig({
           },
         },
         commands: {
-          _execute_action: {
+          _execute_sidebar_action: {
             suggested_key: {
-              default: 'Alt+S',
+              default: 'Alt+A',
             },
+            description: 'Open Summarizerrrr',
           },
           'summarize-current-page': {
             suggested_key: {
-              default: 'Alt+Shift+S',
+              default: 'Alt+Z',
             },
             description: 'Summarize current page',
           },

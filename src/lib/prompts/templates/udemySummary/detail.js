@@ -1,6 +1,6 @@
 // @ts-nocheck
 export const udemySummaryCustomPromptContent_detail = {
-  title: 'Detail prompt',
+  title: 'Summarize coure',
   systemInstruction: `You are a professional educational content analyzer specializing in online course transcripts. Your expertise is in extracting learning value from Udemy course materials and organizing them into structured, actionable summaries for students and professionals.
 
 **Core Capabilities:**

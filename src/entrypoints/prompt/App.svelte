@@ -212,7 +212,7 @@
   const phrases = [
     'This feature works best with the Gemini 2.5 Flash model or higher.',
     'The "Prompt Enhancement" feature just formats and explains based on your prompt input.',
-    'This feature helps you refine and clarify ideas, not create entirely new ones',
+    'To prompt in a different language, adjust the output language in Settings > Summary.',
   ]
 
   $effect(() => {
@@ -237,7 +237,7 @@
   }}
 />
 <main
-  class="flex font-mono relative p-8 min-w-4xl min-h-dvh bg-background text-text-primary"
+  class="flex font-mono text-xs 2xl:text-sm relative p-8 min-w-4xl min-h-dvh bg-background text-text-primary"
 >
   <Logdev />
   <span
@@ -268,12 +268,15 @@
         {getPromptTitle(promptKey)}
       </h2>
 
-      <div class="flex flex-col pt-6 gap-2 min-h-40 relative">
+      <div class="flex flex-col pt-6 2xl:pt-7 gap-2 min-h-40 relative">
         <label
           for="currentSystemPrompt"
           class="text-text-secondary bg-blackwhite/5 rounded-t-lg top-0 px-2 pt-1 pb-5 absolute w-fit"
           >System Instruction</label
         >
+        <div class=" text-text-secondary absolute top-0 right-0">
+          Optional: Skip if not needed.
+        </div>
         <textarea
           id="currentSystemPrompt"
           class="textarea relative z-10 bg-white dark:bg-surface-1 border border-border h-full w-full mb-2 p-2 rounded-lg outline-0 shadow-[0_0_0_0_var(--color-border)] focus:shadow-[0_0_0_3px_var(--color-border)] transition-shadow focus:border-muted/60"
@@ -283,7 +286,7 @@
         ></textarea>
       </div>
 
-      <div class="flex flex-col h-full pt-6 gap-2 min-h-48 relative">
+      <div class="flex flex-col h-full pt-6 2xl:pt-7 gap-2 min-h-48 relative">
         <label
           for="currentUserPrompt"
           class="text-text-secondary bg-blackwhite/5 rounded-t-lg top-0 px-2 pt-1 pb-5 absolute w-fit"
@@ -337,10 +340,12 @@
           {#key promptKey}
             <select
               id="templateSelect"
-              class="select select-bordered w-full p-1 outline-gray-500"
+              class="bg-surface-1"
               onchange={handleTemplateChange}
             >
-              <option value="" disabled selected>Select a template</option>
+              <option value="" disabled selected class="bg-surface-1"
+                >Select a template</option
+              >
               {#each promptTemplates[promptKey] || [] as template}
                 <option value={template.title}>{template.title}</option>
               {/each}

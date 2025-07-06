@@ -1,65 +1,65 @@
 // @ts-nocheck
 export const selectedTextPromptTemplate = `
 <TASK>
-Phân tích <INPUT_CONTENT> và tạo phản hồi gồm hai phần: tóm tắt khách quan và nhận xét chuyên sâu.
+Analyze <INPUT_CONTENT> and create a response with two parts: objective summary and expert commentary.
 </TASK>
 
 <INPUT_PARAMETERS>
-1. **Độ dài:** __LENGTH_DESCRIPTION__ *(__LENGTH_NOTE__)*
-2. **Ngôn ngữ:** __LANG__
-3. **Giọng văn:** __TONE_DESCRIPTION__
+1. **Length:** __LENGTH_DESCRIPTION__ *(__LENGTH_NOTE__)*
+2. **Language:** __LANG__
+3. **Tone:** __TONE_DESCRIPTION__
 </INPUT_PARAMETERS>
 
 <RESPONSE_STRUCTURE>
-## Bản Tóm Tắt Nội Dung
-[Tóm tắt khách quan các ý chính từ INPUT_CONTENT, tuân thủ độ dài yêu cầu]
+## Content Summary
+[Objective summary of main points from INPUT_CONTENT, adhering to required length]
 
-## Nhận Xét Chuyên Sâu
-[Phân tích và đánh giá nội dung dựa trên kiến thức chuyên môn]
+## Expert Commentary
+[Analysis and evaluation of content based on professional knowledge]
 </RESPONSE_STRUCTURE>
 
 <SUMMARY_REQUIREMENTS>
-✅ **Objective**: Trung thành với nội dung gốc, không thêm ý kiến cá nhân
-✅ **Accurate**: Giữ nguyên ý nghĩa, thuật ngữ chính xác
-✅ **Format-compliant**: Tuân thủ strict requirements về độ dài và structure
-✅ **Key points**: Bao gồm các luận điểm chính, data, conclusions
+✅ **Objective**: Faithful to original content, no personal opinions
+✅ **Accurate**: Preserve meaning, use precise terminology
+✅ **Format-compliant**: Strictly follow length and structure requirements
+✅ **Key points**: Include main arguments, data, conclusions
 </SUMMARY_REQUIREMENTS>
 
 <EXPERT_ANALYSIS_FOCUS>
-🔍 **Context & Classification**: Lĩnh vực nào? Fit với trends/research nào?
-📊 **Information Quality**: Logic của arguments? Bias indicators? Timeliness?
+🔍 **Context & Classification**: What field? How does it fit with trends/research?
+📊 **Information Quality**: Logic of arguments? Bias indicators? Timeliness?
 🔄 **Alternative Perspectives**: Counterarguments? Missing information? Other studies?
 ⚡ **Practical Application**: Real-world applicability? Limitations? Implementation considerations?
 </EXPERT_ANALYSIS_FOCUS>
 
 <STYLE_GUIDELINES>
-- **Headers**: ## cho main sections, ### cho subsections
-- **Emphasis**: **Bold** cho key concepts, - bullets cho lists
+- **Headers**: ## for main sections, ### for subsections
+- **Emphasis**: **Bold** for key concepts, - bullets for lists
 - **Language**: Natural, native-level __LANG__ expression
 - **Technical terms**: Accurate translation, original term in () if uncertain
 - **No fluff**: Direct response, no greetings/conclusions outside structure
 </STYLE_GUIDELINES>
 
 <EXAMPLE>
-## Bản Tóm Tắt Nội Dung
+## Content Summary
 
-### Khái niệm Hiệu ứng Dunning-Kruger
-**Hiệu ứng Dunning-Kruger** là cognitive bias khiến người có năng lực thấp đánh giá quá cao khả năng bản thân do thiếu **metacognition** - khả năng nhận thức về giới hạn kiến thức của mình.
+### The Dunning-Kruger Effect Concept
+**The Dunning-Kruger Effect** is a cognitive bias where individuals with low competence overestimate their abilities due to lack of **metacognition** - the ability to recognize the limits of their own knowledge.
 
-### Biểu hiện chính
-- **Incompetent individuals**: Không nhận ra lỗi sai, overestimate abilities
-- **Competent individuals**: Underestimate khả năng vì assume tasks dễ với mọi người
+### Key Manifestations
+- **Incompetent individuals**: Fail to recognize errors, overestimate abilities
+- **Competent individuals**: Underestimate abilities assuming tasks are easy for everyone
 
-## Nhận Xét Chuyên Sâu
+## Expert Commentary
 
-Nội dung thuộc **cognitive psychology**, specifically về metacognitive biases. Findings align với original Dunning-Kruger research (1999), nhưng recent studies suggest **cultural variations** trong effect này chưa được đề cập. 
+This content falls under **cognitive psychology**, specifically metacognitive biases. The findings align with original Dunning-Kruger research (1999), but recent studies suggest **cultural variations** in this effect that aren't mentioned here.
 
-**Strengths**: Clear explanation của mechanism, practical relevance cho self-assessment. **Limitations**: Oversimplified - không mention statistical criticisms của original study hay **alternative explanations** (regression to mean, better-than-average effect).
+**Strengths**: Clear explanation of the mechanism, practical relevance for self-assessment. **Limitations**: Oversimplified - doesn't mention statistical criticisms of the original study or **alternative explanations** (regression to mean, better-than-average effect).
 
-**Practical application**: Valuable cho educational/workplace contexts nhưng avoid using để judge others. Recommend complementing với **360-degree feedback** và objective performance metrics để accurate assessment.
+**Practical application**: Valuable for educational/workplace contexts but avoid using to judge others. Recommend complementing with **360-degree feedback** and objective performance metrics for accurate assessment.
 </EXAMPLE>
 
 <INPUT_CONTENT>
-\${text}
+__CONTENT__
 </INPUT_CONTENT>
 `

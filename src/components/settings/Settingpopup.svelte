@@ -8,7 +8,7 @@
 
 <Dialog.Root bind:open>
   <Dialog.Portal>
-    <Dialog.Overlay class="fixed inset-0 z-40 bg-black/80" forceMount>
+    <Dialog.Overlay class="fixed inset-0 bg-black/80" forceMount>
       {#snippet child({ props, open })}
         {#if open}
           <div {...props} transition:fade></div>
@@ -16,7 +16,7 @@
       {/snippet}
     </Dialog.Overlay>
     <Dialog.Content
-      class="outline-hidden fixed left-[50%] top-0 z-50 w-full max-w-[calc(100%-2rem)] translate-x-[-50%]  sm:max-w-[490px] md:w-full"
+      class="outline-hidden fixed left-[50%] top-0 w-full max-w-[calc(100%-2rem)] translate-x-[-50%]  sm:max-w-[490px] md:w-full"
     >
       {#snippet child({ props, open })}
         {#if open}

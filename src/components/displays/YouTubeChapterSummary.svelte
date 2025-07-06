@@ -2,7 +2,7 @@
 <script>
   import { marked } from 'marked'
   import hljs from 'highlight.js'
-  import TOC from '../TOC.svelte' // TOC is in src/components
+  import TOC from '../TOC.svelte'
 
   let { chapterSummary, isChapterLoading, chapterError } = $props()
 

@@ -1,6 +1,9 @@
 <script>
   import ReusableSelect from './ReusableSelect.svelte'
-
+  import {
+    settings,
+    updateSettings,
+  } from '../../stores/settingsStore.svelte.js' // Import updateSettings
   const languages = [
     { value: 'Arabic', label: 'Arabic' },
     { value: 'Bengali', label: 'Bengali' },
@@ -54,6 +57,8 @@
 
   function handleChange(newValue) {
     value = newValue
+    settings.summaryLang = newValue
+    updateSettings({ summaryLang: newValue }) // Lưu cài đặt vào storage
     const event = new CustomEvent('change', { detail: newValue })
     dispatchEvent(event)
   }
@@ -61,7 +66,7 @@
 
 <ReusableSelect
   items={languages}
-  bindValue={value}
+  bindValue={settings.summaryLang}
   defaultLabel="English"
   ariaLabel="Select a language"
   className="lang"

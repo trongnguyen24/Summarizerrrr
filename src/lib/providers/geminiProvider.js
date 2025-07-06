@@ -10,6 +10,12 @@ export class GeminiProvider extends BaseProvider {
   }
 
   async generateContent(model, contents, systemInstruction, generationConfig) {
+    console.log('Gemini generateContent:', {
+      model,
+      contents,
+      systemInstruction,
+      generationConfig,
+    })
     const result = await this.genAI.models.generateContent({
       model: model,
       contents: contents,

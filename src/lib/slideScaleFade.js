@@ -74,3 +74,42 @@ export function slideScaleFade(node, params = {}) {
     },
   }
 }
+
+/*
+ * CÁCH SỬ DỤNG TRONG SVELTE 5
+ *
+ * 1. Import transition vào component của bạn:
+ *    <script>
+ *      import { slideScaleFade } from './path/to/slideScaleFade.js';
+ *      import { quintOut } from 'svelte/easing'; // Tùy chọn: import easing khác
+ *      let visible = false;
+ *    </script>
+ *
+ * 2. Áp dụng vào một phần tử HTML với directive `transition:`:
+ *
+ *    <label>
+ *      <input type="checkbox" bind:checked={visible}>
+ *      Hiển thị/ẩn
+ *    </label>
+ *
+ *    {#if visible}
+ *      <div transition:slideScaleFade>
+ *        Phần tử này sẽ trượt, scale và mờ dần khi xuất hiện/biến mất.
+ *      </div>
+ *    {/if}
+ *
+ * 3. Tùy chỉnh tham số:
+ *
+ *    {#if visible}
+ *      <div transition:slideScaleFade="{{
+ *        duration: 800,
+ *        delay: 200,
+ *        slideFrom: 'left',
+ *        slideDistance: '100px',
+ *        startScale: 0.5,
+ *        easing: quintOut
+ *      }}">
+ *        Phần tử với hiệu ứng đã được tùy chỉnh.
+ *      </div>
+ *    {/if}
+ */

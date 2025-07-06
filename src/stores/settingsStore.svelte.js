@@ -9,9 +9,9 @@ import {
 const DEFAULT_SETTINGS = {
   selectedProvider: 'gemini', // Default provider
   geminiApiKey: '',
-  selectedGeminiModel: 'gemini-2.0-flash', // Default Gemini model for basic mode
+  selectedGeminiModel: 'gemini-2.5-flash', // Default Gemini model for basic mode
   geminiAdvancedApiKey: '', // Gemini API Key for advanced mode
-  selectedGeminiAdvancedModel: 'gemini-2.0-flash', // Default Gemini model for advanced mode
+  selectedGeminiAdvancedModel: 'gemini-2.5-flash', // Default Gemini model for advanced mode
   openrouterApiKey: '', // OpenRouter API Key
   selectedOpenrouterModel: 'deepseek/deepseek-r1-0528:free', // Default OpenRouter model
   deepseekApiKey: '', // DeepSeek API Key
@@ -22,9 +22,36 @@ const DEFAULT_SETTINGS = {
   summaryFormat: 'heading', // heading, paragraph
   summaryLang: 'Vietnamese', // Default language Vietnamese
   summaryTone: 'simple', // Default tone setting
-  selectedModel: 'gemini-2.0-flash', // Default model
+  selectedModel: 'gemini-2.5-flash', // Default model
   isAdvancedMode: false, // Default to basic mode
   selectedFont: 'default', // Default font setting
+  isSummaryAdvancedMode: false, // Chế độ tóm tắt nâng cao mới
+
+  // Lựa chọn prompt cho từng tính năng (chỉ còn 'default', 'custom1', 'custom2')
+  youtubePromptSelection: false, // Thay đổi thành boolean để điều khiển SwitchButton
+  youtubeCustomPromptContent:
+    'Summarize content, format by ## and ###: __CONTENT__',
+  youtubeCustomSystemInstructionContent: 'You are an AI assistant.', // New field for custom system instruction
+  chapterPromptSelection: false,
+  chapterCustomPromptContent:
+    'Summarize content, format by ## and ###: __CONTENT__',
+  chapterCustomSystemInstructionContent: 'You are an AI assistant.', // New field for custom system instruction
+  webPromptSelection: false,
+  webCustomPromptContent:
+    'Summarize content, format by ## and ###: __CONTENT__',
+  webCustomSystemInstructionContent: 'You are an AI assistant.', // New field for custom system instruction
+  udemySummaryPromptSelection: false,
+  udemySummaryCustomPromptContent:
+    'Summarize content, format by ## and ###: __CONTENT__',
+  udemySummaryCustomSystemInstructionContent: 'You are an AI assistant.', // New field for custom system instruction
+  udemyConceptsPromptSelection: false,
+  udemyConceptsCustomPromptContent:
+    'Summarize content, format by ## and ###: __CONTENT__',
+  udemyConceptsCustomSystemInstructionContent: 'You are an AI assistant.', // New field for custom system instruction
+  selectedTextPromptSelection: false,
+  selectedTextCustomPromptContent:
+    'Summarize content, format by ## and ###: __CONTENT__',
+  selectedTextCustomSystemInstructionContent: 'You are an AI assistant.', // New field for custom system instruction
 }
 
 // --- State ---
@@ -45,10 +72,10 @@ export async function loadSettings() {
   _isInitializedPromise = (async () => {
     try {
       const storedSettings = await getStorage(Object.keys(DEFAULT_SETTINGS))
-      console.log(
-        '[settingsStore] Stored settings from storage:',
-        JSON.stringify(storedSettings)
-      )
+      // console.log(
+      //   '[settingsStore] Stored settings from storage:',
+      //   JSON.stringify(storedSettings)
+      // )
       const mergedSettings = { ...DEFAULT_SETTINGS }
       for (const key in DEFAULT_SETTINGS) {
         if (storedSettings[key] !== undefined && storedSettings[key] !== null) {
@@ -63,10 +90,10 @@ export async function loadSettings() {
       }
 
       Object.assign(settings, mergedSettings)
-      console.log(
-        '[settingsStore] Settings loaded (after merge):',
-        JSON.stringify($state.snapshot(settings))
-      )
+      // console.log(
+      //   '[settingsStore] Settings loaded (after merge):',
+      //   JSON.stringify($state.snapshot(settings))
+      // )
     } catch (error) {
       console.error('[settingsStore] Error loading settings:', error)
       Object.assign(settings, DEFAULT_SETTINGS) // Fallback to defaults on error
@@ -105,10 +132,10 @@ export async function updateSettings(newSettings) {
   Object.assign(settings, validUpdates)
 
   try {
-    console.log(
-      '[settingsStore] Updating and saving the following settings:',
-      JSON.stringify(validUpdates)
-    )
+    // console.log(
+    //   '[settingsStore] Updating and saving the following settings:',
+    //   JSON.stringify(validUpdates)
+    // )
     await setStorage(validUpdates)
     console.log(
       '[settingsStore] Settings updated and saved:',

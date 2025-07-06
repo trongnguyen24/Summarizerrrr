@@ -14,6 +14,7 @@ export class OllamaProvider extends BaseProvider {
    * @returns {Promise<string>} The generated content.
    */
   async generateContent(prompt) {
+    console.log('Ollama generateContent:', { prompt })
     try {
       const response = await fetch(`${this.ollamaEndpoint}/api/generate`, {
         method: 'POST',

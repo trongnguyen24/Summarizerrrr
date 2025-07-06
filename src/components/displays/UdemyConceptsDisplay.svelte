@@ -3,7 +3,6 @@
   import { summaryState } from '../../stores/summaryStore.svelte.js' // Keep for isUdemyConceptsLoading and udemyConcepts
   import PlusIcon from '../PlusIcon.svelte'
   import Toc from '../TOC.svelte'
-  import TOC from '../TOC.svelte' // TOC is in src/components
   import { marked } from 'marked'
   import hljs from 'highlight.js'
 

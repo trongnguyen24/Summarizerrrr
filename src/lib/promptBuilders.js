@@ -1,4 +1,5 @@
 // @ts-nocheck
+import { settings } from '../stores/settingsStore.svelte.js'
 import { youTubePromptTemplate } from './prompts/youTubePromptTemplate.js'
 import { generalPromptTemplate } from './prompts/generalPromptTemplate.js'
 import { chapterPromptTemplate } from './prompts/chapterPromptTemplate.js'
@@ -10,115 +11,179 @@ import { parameterDefinitions } from './prompts/modules/parameterDefinitions.js'
 export const promptBuilders = {
   youtube: {
     systemInstruction:
-      'Bạn là một trợ lý chuyên phân tích và tóm tắt video YouTube dựa trên transcript được cung cấp. Nhiệm vụ của bạn là tạo bản tóm tắt súc tích, chính xác và có cấu trúc, tuân thủ nghiêm ngặt các tham số và hướng dẫn dưới đây. Chỉ sử dụng thông tin có trong <Transcript> được cung cấp.',
+      'You are an assistant specializing in analyzing and summarizing YouTube videos based on the provided transcript. Your task is to create a concise, accurate, and structured summary, strictly adhering to the parameters and guidelines below. Only use information contained within the provided <Transcript>.',
     buildPrompt: (text, lang, length, format, tone) => {
-      let template = youTubePromptTemplate
-      const lengthDescription = parameterDefinitions.length[length]
-      const lengthNote = parameterDefinitions.length.note
-      const formatDescription = parameterDefinitions.format[format]
-      const toneDescription = parameterDefinitions.tone[tone]
-      template = template
-        .replace(/__LENGTH_DESCRIPTION__/g, lengthDescription)
-        .replace(/__LENGTH_NOTE__/g, lengthNote)
-        .replace(/__LANG__/g, lang)
-        .replace(/__FORMAT_DESCRIPTION__/g, formatDescription)
-        .replace(/__TONE_DESCRIPTION__/g, toneDescription)
-        .replace(/\${text}/g, text)
-      console.log('YouTube Prompt:', template) // Di chuyển console.log lên trước return
-      return template
+      let systemInstruction = promptBuilders.youtube.systemInstruction
+      let userPrompt = youTubePromptTemplate
+
+      if (settings.isSummaryAdvancedMode && settings.youtubePromptSelection) {
+        systemInstruction = settings.youtubeCustomSystemInstructionContent || ''
+        userPrompt = settings.youtubeCustomPromptContent || ''
+      } else {
+        const lengthDescription = parameterDefinitions.length[length]
+        const lengthNote = parameterDefinitions.length.note
+        const formatDescription = parameterDefinitions.format[format]
+        const toneDescription = parameterDefinitions.tone[tone]
+        userPrompt = userPrompt
+          .replace(/__LENGTH_DESCRIPTION__/g, lengthDescription)
+          .replace(/__LENGTH_NOTE__/g, lengthNote)
+          .replace(/__LANG__/g, lang)
+          .replace(/__FORMAT_DESCRIPTION__/g, formatDescription)
+          .replace(/__TONE_DESCRIPTION__/g, toneDescription)
+      }
+
+      userPrompt = userPrompt.replace(/__CONTENT__/g, text)
+      return { systemInstruction, userPrompt }
     },
   },
   general: {
     systemInstruction:
-      'Bạn là một chuyên gia phân tích và tóm tắt nội dung trang web một cách chính xác, súc tích và hiệu quả. Nhiệm vụ của bạn là xử lý văn bản được cung cấp, phân tích nội dung chính và các phần liên quan (như bình luận), sau đó tạo ra bản tóm tắt có cấu trúc theo các tham số và hướng dẫn chi tiết từ người dùng. Bạn phải tuân thủ nghiêm ngặt các quy tắc định dạng và ràng buộc đầu ra.',
+      'You are an expert in accurately, concisely, and effectively analyzing and summarizing website content. Your task is to process the provided text, analyze the main content and related sections (such as comments), and then create a structured summary according to the detailed parameters and instructions from the user. You must strictly adhere to the formatting rules and output constraints.',
     buildPrompt: (text, lang, length, format, tone) => {
-      let template = generalPromptTemplate
-      const lengthDescription = parameterDefinitions.length[length]
-      const lengthNote = parameterDefinitions.length.note
-      const formatDescription = parameterDefinitions.format[format]
-      const toneDescription = parameterDefinitions.tone[tone]
-      template = template
-        .replace(/__LENGTH_DESCRIPTION__/g, lengthDescription)
-        .replace(/__LENGTH_NOTE__/g, lengthNote)
-        .replace(/__LANG__/g, lang)
-        .replace(/__FORMAT_DESCRIPTION__/g, formatDescription)
-        .replace(/__TONE_DESCRIPTION__/g, toneDescription)
-        .replace(/\${text}/g, text)
-      console.log('General Prompt:', template) // Di chuyển console.log lên trước return
-      return template
+      let systemInstruction = promptBuilders.general.systemInstruction
+      let userPrompt = generalPromptTemplate
+
+      if (settings.isSummaryAdvancedMode && settings.webPromptSelection) {
+        systemInstruction = settings.webCustomSystemInstructionContent || ''
+        userPrompt = settings.webCustomPromptContent || ''
+      } else {
+        const lengthDescription = parameterDefinitions.length[length]
+        const lengthNote = parameterDefinitions.length.note
+        const formatDescription = parameterDefinitions.format[format]
+        const toneDescription = parameterDefinitions.tone[tone]
+        userPrompt = userPrompt
+          .replace(/__LENGTH_DESCRIPTION__/g, lengthDescription)
+          .replace(/__LENGTH_NOTE__/g, lengthNote)
+          .replace(/__LANG__/g, lang)
+          .replace(/__FORMAT_DESCRIPTION__/g, formatDescription)
+          .replace(/__TONE_DESCRIPTION__/g, toneDescription)
+      }
+
+      userPrompt = userPrompt.replace(/__CONTENT__/g, text)
+      return { systemInstruction, userPrompt }
     },
   },
   chapter: {
     systemInstruction:
-      'Bạn là một trợ lý chuyên nghiệp trong việc phân tích và tóm tắt transcript video YouTube có kèm dấu thời gian. Nhiệm vụ của bạn là chia transcript thành các chương hoặc phần logic dựa trên nội dung và thời gian, sau đó tạo bản tóm tắt chi tiết cho từng phần theo yêu cầu của người dùng. Bạn phải tuân thủ nghiêm ngặt cấu trúc và định dạng đầu ra được chỉ định.',
+      'You are a professional assistant in analyzing and summarizing timestamped YouTube video transcripts. Your task is to divide the transcript into logical chapters or sections based on content and time, then create a detailed summary for each section as requested by the user. You must strictly adhere to the specified output structure and format.',
     buildPrompt: (timestampedTranscript, lang, length, tone) => {
-      let template = chapterPromptTemplate // Thêm let để có thể gán lại
-      const lengthDescription = parameterDefinitions.length[length]
-      const lengthNote = parameterDefinitions.length.note
-      const toneDescription = parameterDefinitions.tone[tone]
-      template = template
-        .replace(/__LANG__/g, lang)
-        .replace(/__LENGTH_DESCRIPTION__/g, lengthDescription)
-        .replace(/__LENGTH_NOTE__/g, lengthNote)
-        .replace(/__TONE_DESCRIPTION__/g, toneDescription)
-        .replace(/\${timestampedTranscript}/g, timestampedTranscript)
-      console.log('Chapter Prompt:', template) // Di chuyển console.log lên trước return
-      return template
+      let systemInstruction = promptBuilders.chapter.systemInstruction
+      let userPrompt = chapterPromptTemplate
+
+      if (settings.isSummaryAdvancedMode && settings.chapterPromptSelection) {
+        systemInstruction = settings.chapterCustomSystemInstructionContent || ''
+        userPrompt = settings.chapterCustomPromptContent || ''
+      } else {
+        const lengthDescription = parameterDefinitions.length[length]
+        const lengthNote = parameterDefinitions.length.note
+        const toneDescription = parameterDefinitions.tone[tone]
+        userPrompt = userPrompt
+          .replace(/__LANG__/g, lang)
+          .replace(/__LENGTH_DESCRIPTION__/g, lengthDescription)
+          .replace(/__LENGTH_NOTE__/g, lengthNote)
+          .replace(/__TONE_DESCRIPTION__/g, toneDescription)
+      }
+
+      userPrompt = userPrompt.replace(/__CONTENT__/g, timestampedTranscript)
+      return { systemInstruction, userPrompt }
     },
   },
   selectedText: {
-    systemInstruction: `Bạn là một công cụ AI được tích hợp vào trình duyệt, chuyên trách về việc phân tích và tóm tắt nội dung văn bản do người dùng lựa chọn. Mục tiêu của bạn là cung cấp bản tóm tắt chính xác, súc tích và phù hợp với các tùy chỉnh của người dùng.`,
+    systemInstruction: `You are an AI tool integrated into the browser, specializing in analyzing and summarizing user-selected text content. Your goal is to provide accurate, concise, and customized summaries that align with user preferences.`,
     buildPrompt: (text, lang, length, format, tone) => {
-      let template = selectedTextPromptTemplate // Thêm let để có thể gán lại
-      const lengthDescription = parameterDefinitions.length[length]
-      const lengthNote = parameterDefinitions.length.note
-      const formatDescription = parameterDefinitions.format[format]
-      const toneDescription = parameterDefinitions.tone[tone]
-      template = template
-        .replace(/__LENGTH_DESCRIPTION__/g, lengthDescription)
-        .replace(/__LENGTH_NOTE__/g, lengthNote)
-        .replace(/__LANG__/g, lang)
-        .replace(/__FORMAT_DESCRIPTION__/g, formatDescription)
-        .replace(/__TONE_DESCRIPTION__/g, toneDescription)
-        .replace(/\${text}/g, text)
-      console.log('Selected Text Prompt:', template) // Di chuyển console.log lên trước return
-      return template
+      let systemInstruction = promptBuilders.selectedText.systemInstruction
+      let userPrompt = selectedTextPromptTemplate
+
+      if (
+        settings.isSummaryAdvancedMode &&
+        settings.selectedTextPromptSelection
+      ) {
+        systemInstruction =
+          settings.selectedTextCustomSystemInstructionContent || ''
+        userPrompt = settings.selectedTextCustomPromptContent || ''
+      } else {
+        const lengthDescription = parameterDefinitions.length[length]
+        const lengthNote = parameterDefinitions.length.note
+        const formatDescription = parameterDefinitions.format[format]
+        const toneDescription = parameterDefinitions.tone[tone]
+        userPrompt = userPrompt
+          .replace(/__LENGTH_DESCRIPTION__/g, lengthDescription)
+          .replace(/__LENGTH_NOTE__/g, lengthNote)
+          .replace(/__LANG__/g, lang)
+          .replace(/__FORMAT_DESCRIPTION__/g, formatDescription)
+          .replace(/__TONE_DESCRIPTION__/g, toneDescription)
+      }
+
+      userPrompt = userPrompt.replace(/__CONTENT__/g, text)
+      return { systemInstruction, userPrompt }
     },
   },
   udemySummary: {
     systemInstruction:
-      'Bạn là một trợ lý chuyên phân tích và tóm tắt bài giảng Udemy dựa trên transcript được cung cấp. Nhiệm vụ của bạn là tạo bản tóm tắt súc tích, chính xác và có cấu trúc, tuân thủ nghiêm ngặt các tham số và hướng dẫn dưới đây. Chỉ sử dụng thông tin có trong <Transcript> được cung cấp.',
+      'You are an assistant specializing in analyzing and summarizing Udemy lectures based on the provided transcript. Your task is to create a concise, accurate, and structured summary, strictly adhering to the parameters and guidelines below. Only use information contained within the provided <Transcript>.',
     buildPrompt: (text, lang, length, format, tone) => {
-      let template = udemySummaryPromptTemplate // Thêm let để có thể gán lại
-      const lengthDescription = parameterDefinitions.length[length]
-      const lengthNote = parameterDefinitions.length.note
-      const formatDescription = parameterDefinitions.format[format]
-      const toneDescription = parameterDefinitions.tone[tone]
-      template = template
-        .replace(/__LENGTH_DESCRIPTION__/g, lengthDescription)
-        .replace(/__LENGTH_NOTE__/g, lengthNote)
-        .replace(/__LANG__/g, lang)
-        .replace(/__FORMAT_DESCRIPTION__/g, formatDescription)
-        .replace(/__TONE_DESCRIPTION__/g, toneDescription)
-        .replace(/\${text}/g, text)
-      console.log('Udemy Summary Prompt:', template) // Di chuyển console.log lên trước return
-      return template
+      let systemInstruction = promptBuilders.udemySummary.systemInstruction
+      let userPrompt = udemySummaryPromptTemplate
+
+      if (
+        settings.isSummaryAdvancedMode &&
+        settings.udemySummaryPromptSelection
+      ) {
+        systemInstruction =
+          settings.udemySummaryCustomSystemInstructionContent || ''
+        userPrompt = settings.udemySummaryCustomPromptContent || ''
+      } else {
+        const lengthDescription = parameterDefinitions.length[length]
+        const lengthNote = parameterDefinitions.length.note
+        const formatDescription = parameterDefinitions.format[format]
+        const toneDescription = parameterDefinitions.tone[tone]
+        userPrompt = userPrompt
+          .replace(/__LENGTH_DESCRIPTION__/g, lengthDescription)
+          .replace(/__LENGTH_NOTE__/g, lengthNote)
+          .replace(/__LANG__/g, lang)
+          .replace(/__FORMAT_DESCRIPTION__/g, formatDescription)
+          .replace(/__TONE_DESCRIPTION__/g, toneDescription)
+      }
+
+      userPrompt = userPrompt.replace(/__CONTENT__/g, text)
+      return { systemInstruction, userPrompt }
     },
   },
   udemyConcepts: {
     systemInstruction:
-      'Mục tiêu của tôi là hiểu sâu hơn về các khái niệm chuyên ngành được đề cập trong một khoá học trực tuyến. Bạn cần sử dụng kiến thức rộng lớn của mình để cung cấp những giải thích chi tiết, chuyên sâu và dễ hiểu về các thuật ngữ này',
+      'My goal is to gain a deeper understanding of specialized concepts mentioned in an online course. You need to use your extensive knowledge to provide detailed, in-depth, and easy-to-understand explanations of these terms.',
     buildPrompt: (text, lang, format, tone) => {
-      let template = udemyConceptsPromptTemplate // Thêm let để có thể gán lại
-      const formatDescription = parameterDefinitions.format[format]
-      const toneDescription = parameterDefinitions.tone[tone]
-      template = template
-        .replace(/__LANG__/g, lang)
-        .replace(/__FORMAT_DESCRIPTION__/g, formatDescription)
-        .replace(/__TONE_DESCRIPTION__/g, toneDescription)
-        .replace(/\${text}/g, text)
-      console.log('Udemy Concepts Prompt:', template) // Di chuyển console.log lên trước return
-      return template
+      let systemInstruction = promptBuilders.udemyConcepts.systemInstruction
+      let userPrompt = udemyConceptsPromptTemplate
+
+      if (
+        settings.isSummaryAdvancedMode &&
+        settings.udemyConceptsPromptSelection
+      ) {
+        systemInstruction =
+          settings.udemyConceptsCustomSystemInstructionContent || ''
+        userPrompt = settings.udemyConceptsCustomPromptContent || ''
+      } else {
+        const formatDescription = parameterDefinitions.format[format]
+        const toneDescription = parameterDefinitions.tone[tone]
+        userPrompt = userPrompt
+          .replace(/__LANG__/g, lang)
+          .replace(/__FORMAT_DESCRIPTION__/g, formatDescription)
+          .replace(/__TONE_DESCRIPTION__/g, toneDescription)
+      }
+
+      userPrompt = userPrompt.replace(/__CONTENT__/g, text)
+      return { systemInstruction, userPrompt }
+    },
+  },
+  promptEnhance: {
+    systemInstruction: `You are an expert AI Prompt Engineer specializing in optimizing prompts for professional applications. You enhance prompts improving clarity and effectiveness.
+`,
+    buildPrompt: (text, lang) => {
+      return {
+        systemInstruction: promptBuilders.promptEnhance.systemInstruction,
+        userPrompt: text.replace(/__LANG__/g, lang),
+      }
     },
   },
 }

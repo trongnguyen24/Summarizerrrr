@@ -95,7 +95,6 @@ export function updateVideoActiveStates(isYouTube, isUdemy) {
  */
 export function updateActiveYouTubeTab(tabName) {
   summaryState.activeYouTubeTab = tabName
-  console.log(`[summaryStore] activeYouTubeTab updated to: ${tabName}`)
 }
 
 /**
@@ -104,7 +103,6 @@ export function updateActiveYouTubeTab(tabName) {
  */
 export function updateActiveUdemyTab(tabName) {
   summaryState.activeUdemyTab = tabName
-  console.log(`[summaryStore] activeUdemyTab updated to: ${tabName}`)
 }
 
 /**
@@ -135,9 +133,6 @@ function checkApiKeyConfiguration(userSettings, selectedProviderId) {
       ? userSettings.geminiAdvancedApiKey
       : userSettings.geminiApiKey
     if (!apiKey || apiKey.trim() === '') {
-      console.log(
-        `[summaryStore] Gemini API Key is empty or whitespace. API Key: "${apiKey}"`
-      ) // Debug log
       throw new Error(
         'Gemini API Key not configured in settings. Please add your API Key in the settings.'
       )
@@ -146,9 +141,6 @@ function checkApiKeyConfiguration(userSettings, selectedProviderId) {
     // For other providers that use API keys
     apiKey = userSettings[`${selectedProviderId}ApiKey`]
     if (!apiKey || apiKey.trim() === '') {
-      console.log(
-        `[summaryStore] ${selectedProviderId} API Key is empty or whitespace. API Key: "${apiKey}"`
-      ) // Debug log
       throw new Error(
         `${selectedProviderId} API Key not configured in settings. Please add your API Key in the settings.`
       )
@@ -162,9 +154,6 @@ function checkApiKeyConfiguration(userSettings, selectedProviderId) {
 export async function fetchAndSummarize() {
   // If a summarization process is already ongoing, reset state and start a new one
   if (summaryState.isLoading || summaryState.isChapterLoading) {
-    console.warn(
-      '[summaryStore] Existing summarization in progress. Resetting and starting new.'
-    )
     resetState() // Reset state before starting a new summarization
   }
 
@@ -188,23 +177,6 @@ export async function fetchAndSummarize() {
     if (!userSettings.isAdvancedMode) {
       selectedProviderId = 'gemini' // Force Gemini in basic mode
     }
-
-    console.log(`[summaryStore] Selected Provider: ${selectedProviderId}`)
-    console.log(
-      `[summaryStore] Ollama Endpoint: ${userSettings.ollamaEndpoint}`
-    )
-    console.log(
-      `[summaryStore] Selected Ollama Model: ${userSettings.selectedOllamaModel}`
-    )
-
-    // Log Gemini API keys and advanced mode status for debugging
-    console.log(`[summaryStore] isAdvancedMode: ${userSettings.isAdvancedMode}`)
-    console.log(
-      `[summaryStore] geminiApiKey (Basic): ${userSettings.geminiApiKey}`
-    )
-    console.log(
-      `[summaryStore] geminiAdvancedApiKey (Advanced): ${userSettings.geminiAdvancedApiKey}`
-    )
 
     // Check API key configuration
     checkApiKeyConfiguration(userSettings, selectedProviderId)

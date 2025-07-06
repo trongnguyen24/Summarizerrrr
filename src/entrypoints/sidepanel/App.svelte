@@ -3,8 +3,8 @@
   import Icon from '@iconify/svelte'
   import 'overlayscrollbars/overlayscrollbars.css'
   import { useOverlayScrollbars } from 'overlayscrollbars-svelte'
-  import SettingButton from '../../components/SettingButton.svelte'
-  import SummarizeButton from '../../components/SummarizeButton.svelte'
+  import SettingButton from '../../components/buttons/SettingButton.svelte'
+  import SummarizeButton from '../../components/buttons/SummarizeButton.svelte'
   import TabNavigation from '../../components/TabNavigation.svelte' // Vẫn cần cho các component wrapper
   import SummaryDisplay from '../../components/SummaryDisplay.svelte' // Component hiển thị chung
   import UdemyConceptsDisplay from '../../components/displays/UdemyConceptsDisplay.svelte' // Component nội dung Udemy Concepts // Component nội dung Udemy Summary (đã đổi tên)
@@ -131,6 +131,23 @@
           )
         }
         break
+      case 'summarizeCurrentPage':
+        console.log(
+          '[App.svelte] Received summarizeCurrentPage message:',
+          $state.snapshot(request)
+        )
+        resetDisplayState()
+        if (request.isYouTube) {
+          summaryState.lastSummaryTypeDisplayed = 'youtube'
+          updateActiveYouTubeTab('youtubeSummary')
+        } else if (request.isUdemy) {
+          summaryState.lastSummaryTypeDisplayed = 'udemy'
+          updateActiveUdemyTab('udemySummary')
+        } else {
+          summaryState.lastSummaryTypeDisplayed = 'web'
+        }
+        fetchAndSummarize()
+        break
       default:
         console.warn('[App.svelte] Unknown message action:', request.action)
     }
@@ -208,7 +225,7 @@
     <div class="bg-border"></div>
 
     <div
-      class="relative prose prose-h2:mt-4 p z-10 flex flex-col gap-8 px-6 pt-8 pb-[50vh] max-w-3xl w-screen mx-auto"
+      class="relative prose prose-h2:mt-4 p z-10 flex flex-col gap-8 px-6 pt-8 pb-[50vh] max-w-[52rem] w-screen mx-auto"
     >
       {#if summaryState.lastSummaryTypeDisplayed === 'youtube'}
         <YouTubeSummaryDisplay

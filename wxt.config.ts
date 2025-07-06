@@ -23,11 +23,34 @@ export default defineConfig({
         action: {
           default_title: 'Click to Open Summarizerrrr',
         },
+        page_action: {
+          default_popup: 'prompt.html',
+          default_title: 'Summarizerrrr Prompt',
+        },
+        commands: {
+          _execute_action: {
+            suggested_key: {
+              default: 'Alt+A',
+            },
+          },
+          'summarize-current-page': {
+            suggested_key: {
+              default: 'Alt+S',
+            },
+            description: 'Summarize current page',
+          },
+          'open-prompt-page': {
+            suggested_key: {
+              default: 'Alt+P',
+            },
+            description: 'Open prompt editer',
+          },
+        },
       }
     } else if (browser === 'firefox') {
       return {
         permissions: ['storage', 'tabs', '<all_urls>', 'contextMenus'],
-        browser_action: {
+        action: {
           default_icon: 'icon/48.png',
           default_title: 'Open Summarizerrrr',
         },
@@ -39,6 +62,26 @@ export default defineConfig({
           gecko: {
             id: 'trongnguyen24@gmail.com',
             strict_min_version: '109.0',
+          },
+        },
+        commands: {
+          _execute_sidebar_action: {
+            suggested_key: {
+              default: 'Alt+A',
+            },
+            description: 'Open Summarizerrrr',
+          },
+          'summarize-current-page': {
+            suggested_key: {
+              default: 'Alt+Z',
+            },
+            description: 'Summarize current page',
+          },
+          'open-prompt-page': {
+            suggested_key: {
+              default: 'Alt+P',
+            },
+            description: 'Open prompt page',
           },
         },
       }

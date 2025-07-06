@@ -2,9 +2,9 @@
   // @ts-nocheck
   import { geminiAdvancedModels } from '../../lib/models/geminiModels.js'
   import { updateSettings } from '../../stores/settingsStore.svelte.js' // Chỉ import updateSettings
-  import ApiKeyInput from '../ApiKeyInput.svelte'
+  import ApiKeyInput from '../inputs/ApiKeyInput.svelte'
   import Icon from '@iconify/svelte'
-  import ReusableSelect from '../ReusableSelect.svelte'
+  import ReusableSelect from '../inputs/ReusableSelect.svelte'
 
   let {
     geminiAdvancedApiKey = $bindable(),

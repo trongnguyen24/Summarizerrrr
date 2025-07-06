@@ -46,10 +46,9 @@
 
     try {
       const enhanced = await enhancePrompt(prompt)
-      console.log('Kết quả API:', enhanced)
+
       dataget = enhanced
     } catch (err) {
-      console.error('Lỗi khi gọi API:', err)
       error = err.message || 'An unknown error occurred.'
     } finally {
       loading = false
@@ -239,7 +238,7 @@
 <main
   class="flex font-mono text-xs 2xl:text-sm relative p-8 min-w-4xl min-h-dvh bg-background text-text-primary"
 >
-  <Logdev />
+  <!-- <Logdev /> -->
   <span
     class="absolute z-10 h-full min-h-lvh w-px bg-border/70 top-0 -translate-x-px left-8"
   ></span>
@@ -340,10 +339,10 @@
           {#key promptKey}
             <select
               id="templateSelect"
-              class="bg-surface-1"
+              class="dark:bg-surface-1"
               onchange={handleTemplateChange}
             >
-              <option value="" disabled selected class="bg-surface-1"
+              <option value="" disabled selected class="dark:bg-surface-1"
                 >Select a template</option
               >
               {#each promptTemplates[promptKey] || [] as template}

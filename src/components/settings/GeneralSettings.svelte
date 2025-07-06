@@ -108,6 +108,7 @@
           class="text-xs flex items-center gap-0.5 text-primary outline-gray-500 hover:underline"
         >
           Shortcut Settings
+          <Icon width={12} icon="heroicons:arrow-up-right-16-solid" />
         </button>
       {/if}
     </div>

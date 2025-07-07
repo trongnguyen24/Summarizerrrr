@@ -1,10 +1,10 @@
 // @ts-nocheck
 export default defineContentScript({
-  matches: ['*://*.udemy.com/course/*/learn/*'],
+  matches: ['*://*.coursera.org/learn/*'],
   main() {
-    console.log('Udemy Transcript Content Script ready for use.')
-    window.isUdemyContentScriptReady = true // Đặt cờ để background script biết script đã sẵn sàng
-    class UdemyTranscriptExtractor {
+    console.log('Coursera Content Script ready for use.')
+    window.isCourseraContentScriptReady = true // Đặt cờ để background script biết script đã sẵn sàng
+    class CourseraContentExtractor {
       constructor(defaultLang = 'en') {
         this.defaultLang = defaultLang
       }
@@ -32,61 +32,65 @@ export default defineContentScript({
         })
       }
 
-      async getTranscriptFromDOM() {
+      async getTranscriptOrContentFromDOM() {
         try {
-          // Chờ nút 'Transcript' xuất hiện và nhấp vào nó nếu panel chưa mở
-          const transcriptButton = await this.waitForElement(
-            'button[data-purpose="transcript-toggle"]'
+          // Kiểm tra xem đây có phải là trang video có bản ghi không
+          let contentContainer = await this.waitForElement(
+            '.rc-Transcript',
+            5000
           )
-          if (!transcriptButton) {
-            console.error('Transcript button not found after waiting.')
-            return null
-          }
-
-          const isExpanded =
-            transcriptButton.getAttribute('aria-expanded') === 'true'
-          if (!isExpanded) {
-            transcriptButton.click()
-            console.log('Clicked transcript button to expand panel.')
-            // Thêm một độ trễ nhỏ sau khi nhấp để panel có thời gian mở
-            await new Promise((resolve) => setTimeout(resolve, 1000))
-          }
-
-          // Chờ vùng chứa bản ghi xuất hiện
-          const transcriptContainer = await this.waitForElement(
-            'div[data-purpose="transcript-panel"]'
-          )
-          if (!transcriptContainer) {
-            console.error('Transcript panel container not found after waiting.')
-            return null
-          }
-
-          // Phân tích tất cả các đoạn văn bản từ vùng chứa bản ghi
-          const transcriptText = Array.from(
-            transcriptContainer.querySelectorAll(
-              '.transcript--cue-container--Vuwj6'
+          if (!contentContainer) {
+            contentContainer = await this.waitForElement(
+              '.rc-TranscriptHighlighter',
+              5000
             )
-          )
-            .map((element) => element.textContent?.trim())
-            .filter(Boolean) // Lọc bỏ các giá trị null/undefined
-            .join('\n') // Nối các đoạn bằng một dòng mới
-
-          if (!transcriptText) {
-            console.warn('No transcript text found in the panel.')
-            return null
           }
 
-          return transcriptText
+          if (contentContainer) {
+            console.log('Video transcript container found.')
+            // Đây là trang video, lấy bản ghi
+            const transcriptText = Array.from(
+              contentContainer.querySelectorAll('.rc-Phrase span')
+            )
+              .map((element) => element.textContent?.trim())
+              .filter(Boolean)
+              .join('\n')
+
+            if (!transcriptText) {
+              console.warn('No transcript text found in the video panel.')
+              return null
+            }
+            return transcriptText
+          } else {
+            // Nếu không phải trang video, kiểm tra trang đọc
+            const readingContentContainer = await this.waitForElement(
+              '.rc-CML',
+              5000
+            )
+            if (readingContentContainer) {
+              console.log('Reading content container found.')
+              // Đây là trang đọc, lấy toàn bộ nội dung
+              const readingText = readingContentContainer.textContent?.trim()
+              if (!readingText) {
+                console.warn('No reading content found in the panel.')
+                return null
+              }
+              return readingText
+            }
+          }
+
+          console.warn('No relevant content container found on Coursera page.')
+          return null
         } catch (error) {
           console.error(
-            'An error occurred while interacting with DOM to get Udemy transcript:',
+            'An error occurred while interacting with DOM to get Coursera content:',
             error
           )
           return null
         }
       }
 
-      cleanTranscriptText(text) {
+      cleanContentText(text) {
         return text
           .replace(/\n/g, ' ')
           .replace(/♪|'|"|\.{2,}|\<[\s\S]*?\>|\{[\s\S]*?\}|\[[\s\S]*?\]/g, '')
@@ -94,27 +98,27 @@ export default defineContentScript({
           .trim()
       }
 
-      async getPlainTranscript(preferredLang = this.defaultLang) {
+      async getPlainContent(preferredLang = this.defaultLang) {
         console.log(
-          `Attempting to get plain transcript for language: ${preferredLang} from Udemy DOM.`
+          `Attempting to get plain content for language: ${preferredLang} from Coursera DOM.`
         )
         try {
-          const rawTranscript = await this.getTranscriptFromDOM()
-          if (rawTranscript) {
-            const cleanedTranscript = this.cleanTranscriptText(rawTranscript)
+          const rawContent = await this.getTranscriptOrContentFromDOM()
+          if (rawContent) {
+            const cleanedContent = this.cleanContentText(rawContent)
             console.log(
-              'Udemy transcript extracted and processed successfully from DOM.'
+              'Coursera content extracted and processed successfully from DOM.'
             )
-            return cleanedTranscript
+            return cleanedContent
           } else {
             console.error(
-              'Failed to get Udemy transcript from DOM interaction.'
+              'Failed to get Coursera content from DOM interaction.'
             )
             return null
           }
         } catch (error) {
           console.error(
-            `An unexpected error occurred in getPlainTranscript for Udemy:`,
+            `An unexpected error occurred in getPlainContent for Coursera:`,
             error
           )
           return null
@@ -122,18 +126,18 @@ export default defineContentScript({
       }
     }
 
-    const transcriptExtractor = new UdemyTranscriptExtractor('en') // Udemy thường dùng tiếng Anh
+    const courseraContentExtractor = new CourseraContentExtractor('en')
 
     chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       const handleRequest = async () => {
         switch (request.action) {
           case 'fetchCourseContent': // Đổi tên action
             console.log(
-              'Content script received fetchCourseContent request for Udemy',
+              'Content script received fetchCourseContent request for Coursera',
               request
             )
             try {
-              const lang = request.lang || transcriptExtractor.defaultLang
+              const lang = request.lang || courseraContentExtractor.defaultLang
               let content = null
               const maxRetries = 3
               let retries = 0
@@ -142,20 +146,19 @@ export default defineContentScript({
               while (content === null && retries < maxRetries) {
                 if (retries > 0) {
                   console.log(
-                    `Retrying to get Udemy content (attempt ${
+                    `Retrying to get Coursera content (attempt ${
                       retries + 1
                     }/${maxRetries})...`
                   )
-                  // Thêm độ trễ giữa các lần thử lại
                   await new Promise((resolve) => setTimeout(resolve, 2000))
                 }
                 try {
-                  content = await transcriptExtractor.getPlainTranscript(lang)
+                  content = await courseraContentExtractor.getPlainContent(lang)
                   if (content) {
                     console.log(
-                      'Udemy content fetched successfully after retry.'
+                      'Coursera content fetched successfully after retry.'
                     )
-                    break // Thoát vòng lặp nếu thành công
+                    break
                   }
                 } catch (error) {
                   lastError = error
@@ -165,25 +168,24 @@ export default defineContentScript({
               }
 
               if (content) {
-                console.log('Udemy content fetched successfully')
+                console.log('Coursera content fetched successfully')
                 sendResponse({ success: true, content })
 
-                // Gửi content đến background script hoặc sidepanel với courseType
                 chrome.runtime.sendMessage({
                   action: 'courseContentFetched', // Đổi tên action
                   content: content,
                   lang: lang,
-                  courseType: 'udemy', // Thêm loại khóa học
+                  courseType: 'coursera', // Thêm loại khóa học
                 })
               } else {
                 console.log(
-                  'Failed to get Udemy content after multiple attempts, sending error response'
+                  'Failed to get Coursera content after multiple attempts, sending error response'
                 )
                 sendResponse({
                   success: false,
                   error: lastError
                     ? lastError.message
-                    : 'Failed to get Udemy content after multiple attempts.',
+                    : 'Failed to get Coursera content after multiple attempts.',
                 })
               }
             } catch (error) {

@@ -1,6 +1,6 @@
 // @ts-nocheck
 export const youtubeCustomPromptContent_detail = {
-  title: 'Detail prompt',
+  title: 'Summarizer YouTube',
   systemInstruction: `You are an expert content summarizer specializing in YouTube video transcripts. Your task is to create structured, comprehensive summaries that preserve key information, examples, and actionable insights.
 CORE PRINCIPLES:
 - Focus on main topics, supporting evidence, examples, and practical applications

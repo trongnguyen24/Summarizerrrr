@@ -27,48 +27,48 @@ Analyze <INPUT_CONTENT> to identify and explain key technical concepts in a comp
 <OUTPUT_FORMAT>
 ## 🔥 Core Concepts
 ### [Concept Name]
-#### 🔍 Definition
+##### 🔍 Definition
 [Precise, concise definition with technical terminology]
 
-#### ⚙️ How it works
+##### ⚙️ How it works
 [Mechanism, process, detailed operating principles]
 
-#### 💡 Importance
+##### 💡 Importance
 [Role in system, benefits, common use cases]
 
-#### 📝 Real-world examples
+##### 📝 Real-world examples
 [Code snippet/demo/case study with explanation]
 
-#### 🔗 Relationship to other concepts
+##### 🔗 Relationship to other concepts
 [Connections to other concepts, prerequisites, or advanced topics]
 
-#### ⚠️ Common pitfalls
+##### ⚠️ Common pitfalls
 [Common mistakes, misconceptions, edge cases, best practices]
 
 ---
 
 ## ⭐ Important Concepts
 ### [Concept Name]
-#### 🔍 Definition
+##### 🔍 Definition
 [Precise definition with context]
 
-#### ⚙️ How it works
+##### ⚙️ How it works
 [Mechanism explanation]
 
-#### 💡 Importance
+##### 💡 Importance
 [Why it matters, key use cases]
 
-#### 📝 Real-world examples
+##### 📝 Real-world examples
 [Practical example or code snippet]
 
 ---
 
 ## 📚 Supporting Concepts
 ### [Concept Name]
-#### 🔍 Definition
+##### 🔍 Definition
 [Clear, concise definition]
 
-#### 💡 Role
+##### 💡 Role
 [Brief explanation of importance and context]
 
 ---

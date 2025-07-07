@@ -94,7 +94,9 @@
       case 'currentTabInfo':
         console.log(`[App.svelte] Received ${request.action} message:`, request)
         setTabTitle(request.tabTitle)
-        updateVideoActiveStates(request.isYouTube, request.isCourse) // Changed from isUdemy
+        // Tính toán isCourse từ isUdemy và isCoursera
+        const isCourseActive = request.isUdemy || request.isCoursera
+        updateVideoActiveStates(request.isYouTube, isCourseActive)
         break
       case 'displaySummary':
         console.log(
@@ -103,6 +105,38 @@
         )
         summaryState.summary = request.summary
         summaryState.error = request.error ? request.summary : null
+        break
+      case 'udemyTranscriptAvailable': // Xử lý riêng cho Udemy
+        console.log(
+          '[App.svelte] Received udemyTranscriptAvailable message:',
+          $state.snapshot(request)
+        )
+        if (!summaryState.courseSummary && !isAnyCourseLoading) {
+          resetDisplayState()
+          summaryState.lastSummaryTypeDisplayed = 'course'
+          updateActiveCourseTab('courseSummary')
+          fetchAndSummarize()
+        } else {
+          console.log(
+            '[App.svelte] Udemy summary already exists or is loading, skipping fetchAndSummarize.'
+          )
+        }
+        break
+      case 'courseraContentAvailable': // Xử lý riêng cho Coursera
+        console.log(
+          '[App.svelte] Received courseraContentAvailable message:',
+          $state.snapshot(request)
+        )
+        if (!summaryState.courseSummary && !isAnyCourseLoading) {
+          resetDisplayState()
+          summaryState.lastSummaryTypeDisplayed = 'course'
+          updateActiveCourseTab('courseSummary')
+          fetchAndSummarize()
+        } else {
+          console.log(
+            '[App.svelte] Coursera summary already exists or is loading, skipping fetchAndSummarize.'
+          )
+        }
         break
       case 'summarizeSelectedText':
         console.log(
@@ -113,25 +147,6 @@
         summaryState.lastSummaryTypeDisplayed = 'selectedText'
         summarizeSelectedText(request.selectedText)
         break
-      case 'courseContentAvailable': // Changed from udemyTranscriptAvailable
-        console.log(
-          '[App.svelte] Received courseContentAvailable message:', // Changed from udemyTranscriptAvailable
-          $state.snapshot(request)
-        )
-        // When Course content is available, trigger summarization and concept explanation
-        // Only trigger if no Course summary exists or is not loading
-        if (!summaryState.courseSummary && !isAnyCourseLoading) {
-          // Changed from udemySummary, isAnyUdemyLoading
-          resetDisplayState()
-          summaryState.lastSummaryTypeDisplayed = 'course' // Set display type to Course
-          updateActiveCourseTab('courseSummary') // Default to summary tab
-          fetchAndSummarize() // Trigger summarization and explanation process
-        } else {
-          console.log(
-            '[App.svelte] Course summary already exists or is loading, skipping fetchAndSummarize.' // Changed from Udemy
-          )
-        }
-        break
       case 'summarizeCurrentPage':
         console.log(
           '[App.svelte] Received summarizeCurrentPage message:',
@@ -141,10 +156,9 @@
         if (request.isYouTube) {
           summaryState.lastSummaryTypeDisplayed = 'youtube'
           updateActiveYouTubeTab('youtubeSummary')
-        } else if (request.isCourse) {
-          // Changed from isUdemy
-          summaryState.lastSummaryTypeDisplayed = 'course' // Changed from udemy
-          updateActiveCourseTab('courseSummary') // Changed from udemySummary
+        } else if (request.isUdemy || request.isCoursera) {
+          summaryState.lastSummaryTypeDisplayed = 'course'
+          updateActiveCourseTab('courseSummary')
         } else {
           summaryState.lastSummaryTypeDisplayed = 'web'
         }

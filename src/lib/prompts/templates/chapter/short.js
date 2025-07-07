@@ -1,29 +1,29 @@
 // @ts-nocheck
 export const chapterCustomPromptContent_short = {
   title: 'Simple prompt',
-  systemInstruction: `Bạn là chuyên gia phân tích video YouTube. Nhiệm vụ:
-- Tạo tóm tắt chapter từ transcript
-- Giữ lại thông tin quan trọng: số liệu, tên, ví dụ
-- Viết ngắn gọn, dễ hiểu`,
-  userPrompt: `Phân tích transcript này và tạo chapter:
+  systemInstruction: `You are a YouTube video analysis expert. Task:
+- Create chapter summaries from transcripts
+- Retain important information: figures, names, examples
+- Write concisely, easy to understand`,
+  userPrompt: `Analyze this transcript and create chapters:
 
 __CONTENT__
 
-Yêu cầu:
-- Ngôn ngữ: Tiếng Anh
-- Tạo chapter theo thời gian
-- Bao gồm: ví dụ, số liệu, tên người/công ty
-- Tên chapter: ngắn và rõ ý
+Requirements:
+- Language: English
+- Create chapters by time
+- Include: examples, figures, names of people/companies
+- Chapter names: short and clear
 
 Format:
 ## Video Summary:
 
-### [Thời gian] - [Tên Chapter]
-- Nội dung chính
-- **Từ khóa quan trọng** (in đậm)
-- Ví dụ cụ thể
-- Số liệu/dữ liệu (nếu có)
+### [Time] - [Chapter Name]
+- Main content
+- **Important keywords** (bold)
+- Specific examples
+- Figures/data (if any)
 
-## Kết luận chung
-[Thông điệp chính của video]`,
+## General Conclusion
+[Main message of the video]`,
 }

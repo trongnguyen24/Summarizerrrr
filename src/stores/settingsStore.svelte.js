@@ -40,14 +40,14 @@ const DEFAULT_SETTINGS = {
   webCustomPromptContent:
     'Summarize content, format by ## and ###: __CONTENT__',
   webCustomSystemInstructionContent: 'You are an AI assistant.', // New field for custom system instruction
-  udemySummaryPromptSelection: false,
-  udemySummaryCustomPromptContent:
+  courseSummaryPromptSelection: false,
+  courseSummaryCustomPromptContent:
     'Summarize content, format by ## and ###: __CONTENT__',
-  udemySummaryCustomSystemInstructionContent: 'You are an AI assistant.', // New field for custom system instruction
-  udemyConceptsPromptSelection: false,
-  udemyConceptsCustomPromptContent:
+  courseSummaryCustomSystemInstructionContent: 'You are an AI assistant.', // New field for custom system instruction
+  courseConceptsPromptSelection: false,
+  courseConceptsCustomPromptContent:
     'Summarize content, format by ## and ###: __CONTENT__',
-  udemyConceptsCustomSystemInstructionContent: 'You are an AI assistant.', // New field for custom system instruction
+  courseConceptsCustomSystemInstructionContent: 'You are an AI assistant.', // New field for custom system instruction
   selectedTextPromptSelection: false,
   selectedTextCustomPromptContent:
     'Summarize content, format by ## and ###: __CONTENT__',

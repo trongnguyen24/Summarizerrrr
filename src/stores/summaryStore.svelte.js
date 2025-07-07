@@ -189,10 +189,11 @@ export async function fetchAndSummarize() {
       )
     }
     const YOUTUBE_MATCH_PATTERN = /youtube\.com\/watch/i
-    const COURSE_MATCH_PATTERN = /udemy\.com\/course\/.*\/learn\//i // Changed from UDEMY_MATCH_PATTERN
+    const COURSE_MATCH_PATTERN =
+      /udemy\.com\/course\/.*\/learn\/|coursera\.org\/learn\//i // Kết hợp Udemy và Coursera
 
     summaryState.isYouTubeVideoActive = YOUTUBE_MATCH_PATTERN.test(tabInfo.url)
-    summaryState.isCourseVideoActive = COURSE_MATCH_PATTERN.test(tabInfo.url) // Changed from isUdemyVideoActive
+    summaryState.isCourseVideoActive = COURSE_MATCH_PATTERN.test(tabInfo.url)
 
     console.log(
       `[summaryStore] Current tab is: ${tabInfo.url}. YouTube video: ${summaryState.isYouTubeVideoActive}. Course video: ${summaryState.isCourseVideoActive}` // Changed from Udemy video

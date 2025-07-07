@@ -6,7 +6,8 @@ import {
 } from './chromeService.js'
 
 const YOUTUBE_MATCH_PATTERN = /youtube\.com\/watch/i
-const COURSE_MATCH_PATTERN = /udemy\.com\/course\/.*\/learn\//i
+const COURSE_MATCH_PATTERN =
+  /(udemy\.com\/course\/.*\/learn\/|coursera\.org\/learn\/.*\/lecture\/)/i
 
 /**
  * Lấy nội dung text từ body của trang web.
@@ -151,7 +152,8 @@ export async function getPageContent(
   }
 
   if (isCourseVideo && contentType === 'transcript') {
-    const action = 'fetchUdemyTranscript' // Đổi tên action
+    const action = 'fetchCourseContent' // Luôn gọi action chung
+
     try {
       console.log(
         `[contentService] Gửi yêu cầu ${action} (vì là Course và yêu cầu ${contentType}) đến tab ${tab.id} với ngôn ngữ ${preferredLang}`
@@ -161,14 +163,18 @@ export async function getPageContent(
         lang: preferredLang,
       })
 
-      if (response && response.success && response.transcript) {
-        // Đổi response.content thành response.transcript
+      if (
+        response &&
+        response.success &&
+        (response.content || response.transcript)
+      ) {
+        // Xử lý cả response.content (từ Coursera) và response.transcript (từ Udemy)
         console.log(
-          `[contentService] Nhận được transcript (${action}) thành công.`
+          `[contentService] Nhận được content/transcript (${action}) thành công.`
         )
         return {
           type: 'course',
-          content: response.transcript,
+          content: response.content || response.transcript,
         }
       } else {
         console.error(

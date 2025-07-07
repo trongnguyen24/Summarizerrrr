@@ -129,9 +129,17 @@ html {
 }
 .prose p,
 .prose h4,
+.prose h5,
 .prose ul,
 .prose ol {
   font-size: var(--h-0);
+}
+.prose h5 {
+  font-weight: bold;
+  color: var(--color-blackwhite);
+}
+.prose p {
+  margin-top: 0.5em;
 }
 .prose pre {
   padding: 0;

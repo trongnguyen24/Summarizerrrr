@@ -108,8 +108,8 @@
     youtubeCustomPromptContent: 'Youtube Summary',
     chapterCustomPromptContent: 'Youtube Chapter',
     webCustomPromptContent: 'Web Summary',
-    udemySummaryCustomPromptContent: 'Udemy Summary',
-    udemyConceptsCustomPromptContent: 'Udemy Concepts',
+    courseSummaryCustomPromptContent: 'Course Summary',
+    courseConceptsCustomPromptContent: 'Course Concepts',
     selectedTextCustomPromptContent: 'Selected Text',
   }
 

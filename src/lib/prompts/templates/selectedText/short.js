@@ -2,28 +2,28 @@
 export const selectedTextCustomPromptContent_short = {
   title: 'Simple prompt',
   systemInstruction:
-    'Bạn là chuyên gia phân tích văn bản. Luôn đọc kỹ, tóm tắt chính xác, phân tích khách quan và đưa ra nhận xét phản biện.',
-  userPrompt: `Phân tích văn bản này:
+    'You are a text analysis expert. Always read carefully, summarize accurately, analyze objectively, and provide critical comments.',
+  userPrompt: `Analyze this text:
 
 <INPUT_TEXT_TO_PROCESS>
 __CONTENT__
 </INPUT_TEXT_TO_PROCESS>
 
-Trả lời theo 4 phần:
+Answer in 4 sections:
 
-## Tóm tắt: Nội dung chính trong 2-3 câu
+## Summary: Main content in 2-3 sentences
 
-## Ý chính: 3 điểm quan trọng nhất
+## Key Points: 3 most important points
 
-## Đánh giá: 
-   - Điểm tốt gì?
-   - Có vấn đề gì?
-   - Logic có hợp lý không?
+## Evaluation: 
+   - What are the strengths?
+   - What are the issues?
+   - Is the logic sound?
 
-## Phản biện: 
-   - Còn góc nhìn nào khác?
-   - Bằng chứng có đủ mạnh không?
-   - Câu hỏi cần làm rõ?
+## Critique: 
+   - Are there other perspectives?
+   - Is the evidence strong enough?
+   - Questions that need clarification?
 
-Viết ngắn gọn, dễ hiểu.`,
+Write concisely and clearly.`,
 }

@@ -1,5 +1,5 @@
 // @ts-nocheck
-export const udemyConceptsPromptTemplate = `
+export const courseConceptsPromptTemplate = `
 <TASK>
 Analyze <INPUT_CONTENT> to identify and explain key technical concepts in a comprehensive and structured way, helping learners understand deeply and apply effectively.
 </TASK>

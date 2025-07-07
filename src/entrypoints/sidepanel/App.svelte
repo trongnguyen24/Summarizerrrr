@@ -7,14 +7,14 @@
   import SummarizeButton from '../../components/buttons/SummarizeButton.svelte'
   import TabNavigation from '../../components/TabNavigation.svelte' // Vẫn cần cho các component wrapper
   import SummaryDisplay from '../../components/SummaryDisplay.svelte' // Component hiển thị chung
-  import UdemyConceptsDisplay from '../../components/displays/UdemyConceptsDisplay.svelte' // Component nội dung Udemy Concepts // Component nội dung Udemy Summary (đã đổi tên)
-  import UdemyVideoSummary from '../../components/displays/UdemyVideoSummary.svelte' // Component nội dung Udemy Video Summary (mới tạo)
+  import CourseConceptsDisplay from '../../components/displays/CourseConceptsDisplay.svelte' // Component nội dung Course Concepts
+  import CourseVideoSummary from '../../components/displays/CourseVideoSummary.svelte' // Component nội dung Course Video Summary
   import YouTubeChapterSummary from '../../components/displays/YouTubeChapterSummary.svelte' // Component nội dung YouTube Chapter
   import YouTubeVideoSummary from '../../components/displays/YouTubeVideoSummary.svelte' // Component nội dung YouTube Video
   import WebSummaryDisplay from '../../components/displays/WebSummaryDisplay.svelte' // Component nội dung Web Summary
   import SelectedTextSummaryDisplay from '../../components/displays/SelectedTextSummaryDisplay.svelte' // Component nội dung Selected Text Summary
   import YouTubeSummaryDisplay from '../../components/displays/YouTubeSummaryDisplay.svelte' // Component wrapper YouTube
-  import UdemySummaryDisplay from '../../components/displays/UdemySummaryDisplay.svelte' // Component wrapper Udemy (mới tạo)
+  import CourseSummaryDisplay from '../../components/displays/CourseSummaryDisplay.svelte' // Component wrapper Course
   import 'webextension-polyfill'
 
   // Import direct variables and functions from refactored stores
@@ -24,7 +24,7 @@
     resetDisplayState,
     updateVideoActiveStates,
     fetchAndSummarize,
-    updateActiveUdemyTab,
+    updateActiveCourseTab, // Changed from updateActiveUdemyTab
     updateActiveYouTubeTab,
   } from '../../stores/summaryStore.svelte.js'
   import {
@@ -94,7 +94,7 @@
       case 'currentTabInfo':
         console.log(`[App.svelte] Received ${request.action} message:`, request)
         setTabTitle(request.tabTitle)
-        updateVideoActiveStates(request.isYouTube, request.isUdemy)
+        updateVideoActiveStates(request.isYouTube, request.isCourse) // Changed from isUdemy
         break
       case 'displaySummary':
         console.log(
@@ -113,21 +113,22 @@
         summaryState.lastSummaryTypeDisplayed = 'selectedText'
         summarizeSelectedText(request.selectedText)
         break
-      case 'udemyTranscriptAvailable':
+      case 'courseContentAvailable': // Changed from udemyTranscriptAvailable
         console.log(
-          '[App.svelte] Received udemyTranscriptAvailable message:',
+          '[App.svelte] Received courseContentAvailable message:', // Changed from udemyTranscriptAvailable
           $state.snapshot(request)
         )
-        // When Udemy transcript is available, trigger summarization and concept explanation
-        // Only trigger if no Udemy summary exists or is not loading
-        if (!summaryState.udemySummary && !isAnyUdemyLoading) {
+        // When Course content is available, trigger summarization and concept explanation
+        // Only trigger if no Course summary exists or is not loading
+        if (!summaryState.courseSummary && !isAnyCourseLoading) {
+          // Changed from udemySummary, isAnyUdemyLoading
           resetDisplayState()
-          summaryState.lastSummaryTypeDisplayed = 'udemy' // Set display type to Udemy
-          updateActiveUdemyTab('udemySummary') // Default to summary tab
+          summaryState.lastSummaryTypeDisplayed = 'course' // Set display type to Course
+          updateActiveCourseTab('courseSummary') // Default to summary tab
           fetchAndSummarize() // Trigger summarization and explanation process
         } else {
           console.log(
-            '[App.svelte] Udemy summary already exists or is loading, skipping fetchAndSummarize.'
+            '[App.svelte] Course summary already exists or is loading, skipping fetchAndSummarize.' // Changed from Udemy
           )
         }
         break
@@ -140,9 +141,10 @@
         if (request.isYouTube) {
           summaryState.lastSummaryTypeDisplayed = 'youtube'
           updateActiveYouTubeTab('youtubeSummary')
-        } else if (request.isUdemy) {
-          summaryState.lastSummaryTypeDisplayed = 'udemy'
-          updateActiveUdemyTab('udemySummary')
+        } else if (request.isCourse) {
+          // Changed from isUdemy
+          summaryState.lastSummaryTypeDisplayed = 'course' // Changed from udemy
+          updateActiveCourseTab('courseSummary') // Changed from udemySummary
         } else {
           summaryState.lastSummaryTypeDisplayed = 'web'
         }
@@ -167,9 +169,9 @@
     }
   })
 
-  // Create derived variable to check if any Udemy summary is loading
-  const isAnyUdemyLoading = $derived(
-    summaryState.isUdemySummaryLoading || summaryState.isUdemyConceptsLoading
+  // Create derived variable to check if any Course summary is loading
+  const isAnyCourseLoading = $derived(
+    summaryState.isCourseSummaryLoading || summaryState.isCourseConceptsLoading
   )
 
   // Handle summarize button click
@@ -210,7 +212,7 @@
       </div>
       <div class="flex flex-col gap-6 items-center justify-center">
         <SummarizeButton
-          isLoading={summaryState.isLoading || isAnyUdemyLoading}
+          isLoading={summaryState.isLoading || isAnyCourseLoading}
           isChapterLoading={summaryState.isChapterLoading}
         />
       </div>
@@ -231,8 +233,8 @@
         <YouTubeSummaryDisplay
           activeYouTubeTab={summaryState.activeYouTubeTab}
         />
-      {:else if summaryState.lastSummaryTypeDisplayed === 'udemy'}
-        <UdemySummaryDisplay activeUdemyTab={summaryState.activeUdemyTab} />
+      {:else if summaryState.lastSummaryTypeDisplayed === 'course'}
+        <CourseSummaryDisplay activeCourseTab={summaryState.activeCourseTab} />
       {:else if summaryState.lastSummaryTypeDisplayed === 'selectedText'}
         <SelectedTextSummaryDisplay
           selectedTextSummary={summaryState.selectedTextSummary}

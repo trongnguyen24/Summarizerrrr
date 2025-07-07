@@ -18,7 +18,7 @@ export default defineBackground(() => {
   const UDEMY_MATCH_PATTERN = '*://*.udemy.com/course/*/learn/*'
 
   const YOUTUBE_CONTENT_SCRIPT_PATH = 'content-scripts/youtubetranscript.js'
-  const UDEMY_CONTENT_SCRIPT_PATH = 'content-scripts/udemytranscript.js'
+  const UDEMY_CONTENT_SCRIPT_PATH = 'content-scripts/udemy.js'
 
   // Hàm helper để inject content script
   async function injectContentScriptIntoTab(tabId, scriptPath) {
@@ -39,12 +39,8 @@ export default defineBackground(() => {
                 typeof window.isYoutubeTranscriptContentScriptReady ===
                 'boolean'
               )
-            } else if (
-              udemyScriptPath === 'content-scripts/udemytranscript.js'
-            ) {
-              return (
-                typeof window.isUdemyTranscriptContentScriptReady === 'boolean'
-              )
+            } else if (udemyScriptPath === 'content-scripts/udemy.js') {
+              return typeof window.isUdemyContentScriptReady === 'boolean'
             }
             return false
           },
@@ -412,23 +408,23 @@ export default defineBackground(() => {
         }
       })()
       return true
-    } else if (message.action === 'udemyTranscriptFetched') {
-      // Xử lý transcript Udemy đã lấy được từ content script
+    } else if (message.action === 'courseContentFetched') {
+      // Xử lý nội dung Course đã lấy được từ content script
       console.log(
-        '[background.js] Received udemyTranscriptFetched from content script.'
+        '[background.js] Received courseContentFetched from content script.'
       )
       if (sidePanelPort) {
         sidePanelPort.postMessage({
-          action: 'udemyTranscriptAvailable',
-          transcript: message.transcript,
+          action: 'courseContentAvailable',
+          content: message.content,
           lang: message.lang,
         })
         console.log(
-          '[background.js] Sent udemyTranscriptAvailable to side panel.'
+          '[background.js] Sent courseContentAvailable to side panel.'
         )
       } else {
         console.warn(
-          '[background.js] Side panel not connected, cannot send udemyTranscriptAvailable.'
+          '[background.js] Side panel not connected, cannot send courseContentAvailable.'
         )
       }
       return true

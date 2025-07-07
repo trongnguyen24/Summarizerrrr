@@ -9,25 +9,25 @@ import { summarizeContent, summarizeChapters } from '../lib/api.js'
 export const summaryState = $state({
   summary: '',
   chapterSummary: '',
-  udemySummary: '', // For Udemy video summary
-  udemyConcepts: '', // For Udemy concepts explanation
+  courseSummary: '', // For Course video summary
+  courseConcepts: '', // For Course concepts explanation
   isLoading: false,
   isChapterLoading: false,
-  isUdemySummaryLoading: false, // For Udemy video summary loading state
-  isUdemyConceptsLoading: false, // For Udemy concepts loading state
+  isCourseSummaryLoading: false, // For Course video summary loading state
+  isCourseConceptsLoading: false, // For Course concepts loading state
   error: '',
   chapterError: '',
-  udemySummaryError: '', // For Udemy summary error
-  udemyConceptsError: '', // For Udemy concepts error
+  courseSummaryError: '', // For Course summary error
+  courseConceptsError: '', // For Course concepts error
   isYouTubeVideoActive: false,
-  isUdemyVideoActive: false, // For Udemy video active state
+  isCourseVideoActive: false, // For Course video active state
   currentContentSource: '',
   selectedTextSummary: '',
   isSelectedTextLoading: false,
   selectedTextError: '',
   lastSummaryTypeDisplayed: null,
   activeYouTubeTab: 'videoSummary',
-  activeUdemyTab: 'udemySummary', // For active Udemy tab
+  activeCourseTab: 'courseSummary', // For active Course tab
 })
 
 // --- Actions ---
@@ -38,24 +38,24 @@ export const summaryState = $state({
 export function resetState() {
   summaryState.summary = ''
   summaryState.chapterSummary = ''
-  summaryState.udemySummary = ''
-  summaryState.udemyConcepts = ''
+  summaryState.courseSummary = ''
+  summaryState.courseConcepts = ''
   summaryState.selectedTextSummary = ''
   summaryState.isLoading = false
   summaryState.isChapterLoading = false
-  summaryState.isUdemySummaryLoading = false
-  summaryState.isUdemyConceptsLoading = false
+  summaryState.isCourseSummaryLoading = false
+  summaryState.isCourseConceptsLoading = false
   summaryState.isSelectedTextLoading = false
   summaryState.error = ''
   summaryState.chapterError = ''
-  summaryState.udemySummaryError = ''
-  summaryState.udemyConceptsError = ''
+  summaryState.courseSummaryError = ''
+  summaryState.courseConceptsError = ''
   summaryState.isYouTubeVideoActive = false
-  summaryState.isUdemyVideoActive = false
+  summaryState.isCourseVideoActive = false
   summaryState.currentContentSource = ''
   summaryState.lastSummaryTypeDisplayed = null
   summaryState.activeYouTubeTab = 'videoSummary'
-  summaryState.activeUdemyTab = 'udemySummary'
+  summaryState.activeCourseTab = 'courseSummary'
 }
 
 /**
@@ -64,28 +64,28 @@ export function resetState() {
 export function resetDisplayState() {
   summaryState.summary = ''
   summaryState.chapterSummary = ''
-  summaryState.udemySummary = ''
-  summaryState.udemyConcepts = ''
+  summaryState.courseSummary = ''
+  summaryState.courseConcepts = ''
   summaryState.selectedTextSummary = ''
   summaryState.error = ''
   summaryState.chapterError = ''
-  summaryState.udemySummaryError = ''
-  summaryState.udemyConceptsError = ''
+  summaryState.courseSummaryError = ''
+  summaryState.courseConceptsError = ''
   summaryState.lastSummaryTypeDisplayed = null
   summaryState.activeYouTubeTab = 'videoSummary'
-  summaryState.activeUdemyTab = 'udemySummary'
+  summaryState.activeCourseTab = 'courseSummary'
 }
 
 /**
  * Updates the video active states.
  * @param {boolean} isYouTube - Whether the current tab is a YouTube video.
- * @param {boolean} isUdemy - Whether the current tab is a Udemy video.
+ * @param {boolean} isCourse - Whether the current tab is a Course video.
  */
-export function updateVideoActiveStates(isYouTube, isUdemy) {
+export function updateVideoActiveStates(isYouTube, isCourse) {
   summaryState.isYouTubeVideoActive = isYouTube
-  summaryState.isUdemyVideoActive = isUdemy
+  summaryState.isCourseVideoActive = isCourse
   console.log(
-    `[summaryStore] isYouTubeVideoActive updated to: ${isYouTube}, isUdemyVideoActive updated to: ${isUdemy}`
+    `[summaryStore] isYouTubeVideoActive updated to: ${isYouTube}, isCourseVideoActive updated to: ${isCourse}`
   )
 }
 
@@ -98,11 +98,11 @@ export function updateActiveYouTubeTab(tabName) {
 }
 
 /**
- * Updates the active Udemy tab state.
- * @param {string} tabName - The ID of the active Udemy tab ('udemySummary' or 'udemyConcepts').
+ * Updates the active Course tab state.
+ * @param {string} tabName - The ID of the active Course tab ('courseSummary' or 'courseConcepts').
  */
-export function updateActiveUdemyTab(tabName) {
-  summaryState.activeUdemyTab = tabName
+export function updateActiveCourseTab(tabName) {
+  summaryState.activeCourseTab = tabName
 }
 
 /**
@@ -169,8 +169,8 @@ export async function fetchAndSummarize() {
     // Immediately set loading states inside try block
     summaryState.isLoading = true
     summaryState.isChapterLoading = true
-    summaryState.isUdemySummaryLoading = true
-    summaryState.isUdemyConceptsLoading = true
+    summaryState.isCourseSummaryLoading = true
+    summaryState.isCourseConceptsLoading = true
 
     // Determine the actual provider to use based on isAdvancedMode
     let selectedProviderId = userSettings.selectedProvider || 'gemini'
@@ -189,13 +189,13 @@ export async function fetchAndSummarize() {
       )
     }
     const YOUTUBE_MATCH_PATTERN = /youtube\.com\/watch/i
-    const UDEMY_MATCH_PATTERN = /udemy\.com\/course\/.*\/learn\//i
+    const COURSE_MATCH_PATTERN = /udemy\.com\/course\/.*\/learn\//i // Changed from UDEMY_MATCH_PATTERN
 
     summaryState.isYouTubeVideoActive = YOUTUBE_MATCH_PATTERN.test(tabInfo.url)
-    summaryState.isUdemyVideoActive = UDEMY_MATCH_PATTERN.test(tabInfo.url)
+    summaryState.isCourseVideoActive = COURSE_MATCH_PATTERN.test(tabInfo.url) // Changed from isUdemyVideoActive
 
     console.log(
-      `[summaryStore] Current tab is: ${tabInfo.url}. YouTube video: ${summaryState.isYouTubeVideoActive}. Udemy video: ${summaryState.isUdemyVideoActive}`
+      `[summaryStore] Current tab is: ${tabInfo.url}. YouTube video: ${summaryState.isYouTubeVideoActive}. Course video: ${summaryState.isCourseVideoActive}` // Changed from Udemy video
     )
 
     let mainContentTypeToFetch = 'webpageText'
@@ -205,10 +205,11 @@ export async function fetchAndSummarize() {
       mainContentTypeToFetch = 'transcript'
       summaryType = 'youtube'
       summaryState.lastSummaryTypeDisplayed = 'youtube' // Set immediately
-    } else if (summaryState.isUdemyVideoActive) {
+    } else if (summaryState.isCourseVideoActive) {
+      // Changed from isUdemyVideoActive
       mainContentTypeToFetch = 'transcript'
-      summaryType = 'udemySummary'
-      summaryState.lastSummaryTypeDisplayed = 'udemy' // Set immediately
+      summaryType = 'courseSummary' // Changed from udemySummary
+      summaryState.lastSummaryTypeDisplayed = 'course' // Changed from udemy
     } else {
       summaryState.lastSummaryTypeDisplayed = 'web' // Set immediately for general web
     }
@@ -304,68 +305,75 @@ export async function fetchAndSummarize() {
         }
       })()
       await Promise.all([chapterPromise, videoSummaryPromise])
-    } else if (summaryState.isUdemyVideoActive) {
+    } else if (summaryState.isCourseVideoActive) {
+      // Changed from isUdemyVideoActive
       console.log(
-        '[summaryStore] Starting Udemy summary and concept explanation...'
+        '[summaryStore] Starting Course summary and concept explanation...' // Changed from Udemy
       )
 
-      const udemySummaryPromise = (async () => {
-        summaryState.udemySummaryError = ''
+      const courseSummaryPromise = (async () => {
+        // Changed from udemySummaryPromise
+        summaryState.courseSummaryError = '' // Changed from udemySummaryError
         try {
-          const udemySummarizedText = await summarizeContent(
+          const courseSummarizedText = await summarizeContent(
+            // Changed from udemySummarizedText
             summaryState.currentContentSource,
-            'udemySummary'
+            'courseSummary' // Changed from udemySummary
           )
 
-          if (!udemySummarizedText || udemySummarizedText.trim() === '') {
+          if (!courseSummarizedText || courseSummarizedText.trim() === '') {
+            // Changed from udemySummarizedText
             console.warn(
-              '[summaryStore] Gemini returned empty result for Udemy summary.'
+              '[summaryStore] Gemini returned empty result for Course summary.' // Changed from Udemy
             )
-            summaryState.udemySummary =
-              '<p><i>Could not generate Udemy lecture summary from this content.</i></p>'
+            summaryState.courseSummary = // Changed from udemySummary
+              '<p><i>Could not generate Course lecture summary from this content.</i></p>' // Changed from Udemy
           } else {
-            summaryState.udemySummary = marked.parse(udemySummarizedText)
+            summaryState.courseSummary = marked.parse(courseSummarizedText) // Changed from udemySummary, udemySummarizedText
           }
-          console.log('[summaryStore] Udemy summary processed.')
+          console.log('[summaryStore] Course summary processed.') // Changed from Udemy
         } catch (e) {
-          console.error('[summaryStore] Udemy summarization error:', e)
-          summaryState.udemySummaryError =
+          console.error('[summaryStore] Course summarization error:', e) // Changed from Udemy
+          summaryState.courseSummaryError = // Changed from udemySummaryError
             e.message ||
-            'Unexpected error when summarizing Udemy video. Please try again later.'
+            'Unexpected error when summarizing Course video. Please try again later.' // Changed from Udemy
         } finally {
-          summaryState.isUdemySummaryLoading = false
+          summaryState.isCourseSummaryLoading = false // Changed from isUdemySummaryLoading
         }
       })()
 
-      const udemyConceptsPromise = (async () => {
-        summaryState.udemyConceptsError = ''
+      const courseConceptsPromise = (async () => {
+        // Changed from udemyConceptsPromise
+        summaryState.courseConceptsError = '' // Changed from udemyConceptsError
         try {
-          const udemyConceptsText = await summarizeContent(
+          const courseConceptsText = await summarizeContent(
+            // Changed from udemyConceptsText
             summaryState.currentContentSource,
-            'udemyConcepts'
+            'courseConcepts' // Changed from udemyConcepts
           )
 
-          if (!udemyConceptsText || udemyConceptsText.trim() === '') {
+          if (!courseConceptsText || courseConceptsText.trim() === '') {
+            // Changed from udemyConceptsText
             console.warn(
-              '[summaryStore] Gemini returned empty result for Udemy concept explanation.'
+              '[summaryStore] Gemini returned empty result for Course concept explanation.' // Changed from Udemy
             )
-            summaryState.udemyConcepts =
+            summaryState.courseConcepts = // Changed from udemyConcepts
               '<p><i>Could not explain terms from this content.</i></p>'
           } else {
-            summaryState.udemyConcepts = marked.parse(udemyConceptsText)
+            summaryState.courseConcepts = marked.parse(courseConceptsText) // Changed from udemyConcepts, udemyConceptsText
           }
-          console.log('[summaryStore] Udemy concept explanation processed.')
+          console.log('[summaryStore] Course concept explanation processed.') // Changed from Udemy
         } catch (e) {
-          console.error('[summaryStore] Udemy concept explanation error:', e)
-          summaryState.udemyConceptsError =
+          console.error('[summaryStore] Course concept explanation error:', e) // Changed from Udemy
+          summaryState.courseConceptsError = // Changed from udemyConceptsError
             e.message ||
-            'Unexpected error when explaining Udemy concepts. Please try again later.'
+            'Unexpected error when explaining Course concepts. Please try again later.' // Changed from Udemy
         } finally {
-          summaryState.isUdemyConceptsLoading = false
+          summaryState.isCourseConceptsLoading = false // Changed from isUdemyConceptsLoading
         }
       })()
 
-      await Promise.allSettled([udemySummaryPromise, udemyConceptsPromise])
+      await Promise.allSettled([courseSummaryPromise, courseConceptsPromise]) // Changed from udemySummaryPromise, udemyConceptsPromise
     } else {
       // For general webpages, this is the primary summarization.
       console.log(
@@ -395,8 +403,8 @@ export async function fetchAndSummarize() {
     // Ensure all loading states are set to false
     summaryState.isLoading = false
     summaryState.isChapterLoading = false
-    summaryState.isUdemySummaryLoading = false
-    summaryState.isUdemyConceptsLoading = false
+    summaryState.isCourseSummaryLoading = false
+    summaryState.isCourseConceptsLoading = false
   }
 }
 

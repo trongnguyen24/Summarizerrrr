@@ -3,7 +3,7 @@ export default defineContentScript({
   matches: ['*://*.udemy.com/course/*/learn/*'],
   main() {
     console.log('Udemy Transcript Content Script ready for use.')
-    class UdemyTranscriptExtractor {
+    class TranscriptExtractor {
       constructor(defaultLang = 'en') {
         this.defaultLang = defaultLang
       }

@@ -4,8 +4,8 @@ import { youTubePromptTemplate } from './prompts/youTubePromptTemplate.js'
 import { generalPromptTemplate } from './prompts/generalPromptTemplate.js'
 import { chapterPromptTemplate } from './prompts/chapterPromptTemplate.js'
 import { selectedTextPromptTemplate } from './prompts/selectedTextPromptTemplate.js'
-import { udemySummaryPromptTemplate } from './prompts/udemySummaryPromptTemplate.js'
-import { udemyConceptsPromptTemplate } from './prompts/udemyConceptsPromptTemplate.js'
+import { courseSummaryPromptTemplate } from './prompts/courseSummaryPromptTemplate.js'
+import { courseConceptsPromptTemplate } from './prompts/courseConceptsPromptTemplate.js'
 import { parameterDefinitions } from './prompts/modules/parameterDefinitions.js'
 
 export const promptBuilders = {
@@ -118,20 +118,20 @@ export const promptBuilders = {
       return { systemInstruction, userPrompt }
     },
   },
-  udemySummary: {
+  courseSummary: {
     systemInstruction:
-      'You are an assistant specializing in analyzing and summarizing Udemy lectures based on the provided transcript. Your task is to create a concise, accurate, and structured summary, strictly adhering to the parameters and guidelines below. Only use information contained within the provided <Transcript>.',
+      'You are an assistant specializing in analyzing and summarizing Course lectures based on the provided transcript. Your task is to create a concise, accurate, and structured summary, strictly adhering to the parameters and guidelines below. Only use information contained within the provided <Transcript>.',
     buildPrompt: (text, lang, length, format, tone) => {
-      let systemInstruction = promptBuilders.udemySummary.systemInstruction
-      let userPrompt = udemySummaryPromptTemplate
+      let systemInstruction = promptBuilders.courseSummary.systemInstruction
+      let userPrompt = courseSummaryPromptTemplate
 
       if (
         settings.isSummaryAdvancedMode &&
-        settings.udemySummaryPromptSelection
+        settings.courseSummaryPromptSelection
       ) {
         systemInstruction =
-          settings.udemySummaryCustomSystemInstructionContent || ''
-        userPrompt = settings.udemySummaryCustomPromptContent || ''
+          settings.courseSummaryCustomSystemInstructionContent || ''
+        userPrompt = settings.courseSummaryCustomPromptContent || ''
       } else {
         const lengthDescription = parameterDefinitions.length[length]
         const lengthNote = parameterDefinitions.length.note
@@ -149,20 +149,20 @@ export const promptBuilders = {
       return { systemInstruction, userPrompt }
     },
   },
-  udemyConcepts: {
+  courseConcepts: {
     systemInstruction:
       'My goal is to gain a deeper understanding of specialized concepts mentioned in an online course. You need to use your extensive knowledge to provide detailed, in-depth, and easy-to-understand explanations of these terms.',
     buildPrompt: (text, lang, format, tone) => {
-      let systemInstruction = promptBuilders.udemyConcepts.systemInstruction
-      let userPrompt = udemyConceptsPromptTemplate
+      let systemInstruction = promptBuilders.courseConcepts.systemInstruction
+      let userPrompt = courseConceptsPromptTemplate
 
       if (
         settings.isSummaryAdvancedMode &&
-        settings.udemyConceptsPromptSelection
+        settings.courseConceptsPromptSelection
       ) {
         systemInstruction =
-          settings.udemyConceptsCustomSystemInstructionContent || ''
-        userPrompt = settings.udemyConceptsCustomPromptContent || ''
+          settings.courseConceptsCustomSystemInstructionContent || ''
+        userPrompt = settings.courseConceptsCustomPromptContent || ''
       } else {
         const formatDescription = parameterDefinitions.format[format]
         const toneDescription = parameterDefinitions.tone[tone]

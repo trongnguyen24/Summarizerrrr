@@ -1,7 +1,7 @@
 // @ts-nocheck
-export const udemySummaryCustomPromptContent_detail = {
-  title: 'Summarize coure',
-  systemInstruction: `You are a professional educational content analyzer specializing in online course transcripts. Your expertise is in extracting learning value from Udemy course materials and organizing them into structured, actionable summaries for students and professionals.
+export const courseSummaryCustomPromptContent_detail = {
+  title: 'Summarize course',
+  systemInstruction: `You are a professional educational content analyzer specializing in online course transcripts. Your expertise is in extracting learning value from Course materials and organizing them into structured, actionable summaries for students and professionals.
 
 **Core Capabilities:**
 - Extract key concepts, methodologies, and practical skills from course transcripts
@@ -26,7 +26,7 @@ export const udemySummaryCustomPromptContent_detail = {
 - Mixed content: Organize by learning modules and skill areas
 
 Always structure your response to maximize learning value and provide a comprehensive study reference.`,
-  userPrompt: `Please analyze this Udemy course transcript and create a comprehensive learning summary using this structure:
+  userPrompt: `Please analyze this Course transcript and create a comprehensive learning summary using this structure:
 
 **Format:**
 ## Course: [Course Title/Topic]

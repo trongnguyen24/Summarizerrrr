@@ -17,7 +17,7 @@
 
 {#if isLoading}
   <div class="text-center p-4 mx-auto text-text-secondary w-fit animate-pulse">
-    Processing main Udemy summary...
+    Processing main Course summary...
   </div>
 {/if}
 
@@ -26,7 +26,7 @@
     class="flex relative flex-col w-fit mx-auto text-red-400 px-4 bg-red-500/10 border border-red-500/20 mb-4"
   >
     <p class="text-sm">
-      <span class="font-bold block">Main Udemy summary error</span>
+      <span class="font-bold block">Main Course summary error</span>
       {error}
     </p>
     <div class="plus-icon red-plus-icon top-left"></div>
@@ -35,11 +35,11 @@
 {/if}
 
 {#if summary && !isLoading}
-  <div id="udemy-summary">
+  <div id="course-summary">
     {@html marked.parse(summary)}
   </div>
-  <TOC targetDivId="udemy-summary" />
+  <TOC targetDivId="course-summary" />
 {:else if !isLoading && !error}
-  <!-- Optional: Placeholder for main Udemy summary -->
-  <!-- <p class="text-text-secondary text-center italic">No main Udemy summary available.</p> -->
+  <!-- Optional: Placeholder for main Course summary -->
+  <!-- <p class="text-text-secondary text-center italic">No main Course summary available.</p> -->
 {/if}

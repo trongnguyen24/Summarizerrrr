@@ -7,11 +7,15 @@
   const options = {
     scrollbars: {
       visibility: 'auto',
-      autoHide: 'never',
+      autoHide: 'scroll',
       theme: 'os-theme-custom-app',
     },
   }
   const [initialize, instance] = useOverlayScrollbars({ options, defer: true })
+  const [initialize2, instance2] = useOverlayScrollbars({
+    options,
+    defer: true,
+  })
 
   let list = [
     'Effective System Prompt Strategies',
@@ -46,6 +50,7 @@
 
   $effect(() => {
     initialize(document.getElementById('scroll-side'))
+    initialize2(document.getElementById('scroll-content'))
   })
 </script>
 
@@ -97,13 +102,15 @@
 
   <!-- Right Column -->
   <div
+    id="scroll-content"
     class="flex-1 relative h-screen overflow-auto bg-surface-1 z-20 p-4 flex flex-col gap-2"
   >
     <!-- <PlusIcon /> -->
-    <h1 class="mx-auto text-2xl font-bold mt-16 mb-8">
-      Effective System Prompt Strategies
-    </h1>
+
     <div class="prose w-full max-w-3xl prose-xs mx-auto">
+      <h1 class="mx-auto text-center text-2xl font-bold mt-16 mb-8">
+        Effective System Prompt Strategies
+      </h1>
       <div id="summary">
         <p>
           Tuyệt vời! Dưới đây là tóm tắt chi tiết về trải nghiệm "vibecoding" và
@@ -329,9 +336,3 @@
     class="top-stripes sticky top-0 w-8 h-screen border-l border-border/70"
   ></div>
 </main>
-
-<style>
-  .menu {
-    grid-area: 3 / 1 / 4 / 2;
-  }
-</style>

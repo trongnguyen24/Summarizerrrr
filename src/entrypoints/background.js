@@ -396,8 +396,10 @@ export default defineBackground(() => {
     if (changeInfo.status === 'complete') {
       if (isYouTube) {
         await injectContentScriptIntoTab(tabId, YOUTUBE_CONTENT_SCRIPT_PATH)
-      } else if (isCourse) {
-        await injectContentScriptIntoTab(tabId, COURSE_CONTENT_SCRIPT_PATH)
+      } else if (isUdemy) {
+        await injectContentScriptIntoTab(tabId, UDEMY_CONTENT_SCRIPT_PATH)
+      } else if (isCoursera) {
+        await injectContentScriptIntoTab(tabId, COURSERA_CONTENT_SCRIPT_PATH)
       }
     }
   })

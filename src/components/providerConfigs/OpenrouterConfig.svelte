@@ -10,6 +10,10 @@
     selectedOpenrouterModel = $bindable(),
   } = $props()
 
+  function saveOpenrouterApiKey(key) {
+    updateSettings({ openrouterApiKey: key })
+  }
+
   import { onMount } from 'svelte'
   let openrouterModels = $state([])
   let modelLoadError = $state(null)
@@ -18,11 +22,6 @@
     try {
       const response = await fetch('https://openrouter.ai/api/v1/models', {
         method: 'GET',
-        headers: {
-          Authorization: settings.openrouterApiKey
-            ? `Bearer ${settings.openrouterApiKey}`
-            : undefined,
-        },
       })
 
       if (!response.ok) {
@@ -30,7 +29,7 @@
       }
 
       const body = await response.json()
-      console.log(body)
+
       if (body.data) {
         openrouterModels = body.data.map((model) => model.id)
       } else {
@@ -70,6 +69,7 @@
     label="OpenRouter API Key"
     linkHref="https://openrouter.ai/keys"
     linkText="Get a key"
+    onSave={saveOpenrouterApiKey}
   />
 </div>
 <div class="flex flex-col gap-2">

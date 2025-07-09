@@ -7,7 +7,7 @@ import {
 
 const YOUTUBE_MATCH_PATTERN = /youtube\.com\/watch/i
 const COURSE_MATCH_PATTERN =
-  /(udemy\.com\/course\/.*\/learn\/|coursera\.org\/learn\/.*\/lecture\/)/i
+  /(udemy\.com\/course\/.*\/learn\/|coursera\.org\/learn\/.*\/lecture\/|coursera\.org\/learn\/.*\/supplement\/)/i
 
 /**
  * Lấy nội dung text từ body của trang web.
@@ -158,10 +158,14 @@ export async function getPageContent(
       console.log(
         `[contentService] Gửi yêu cầu ${action} (vì là Course và yêu cầu ${contentType}) đến tab ${tab.id} với ngôn ngữ ${preferredLang}`
       )
-      const response = await sendMessageToTab(tab.id, {
-        action: action,
-        lang: preferredLang,
-      })
+      const response = await sendMessageToTab(
+        tab.id,
+        {
+          action: action,
+          lang: preferredLang,
+        },
+        15000 // Tăng timeout lên 15 giây
+      )
 
       if (
         response &&

@@ -33,57 +33,66 @@ export default defineContentScript({
       }
 
       async getTranscriptOrContentFromDOM() {
+        console.log('Searching for content containers in parallel...')
+        // Định nghĩa tất cả các selectors cần tìm và loại nội dung tương ứng
+        const contentFinders = [
+          { type: 'transcript', selector: '.rc-Transcript' },
+          { type: 'transcript', selector: '.rc-TranscriptHighlighter' },
+          { type: 'reading', selector: '[data-testid="cml-viewer"]' },
+        ]
+
+        // Tạo một mảng các promise, mỗi promise sẽ tìm một selector
+        // Tất cả sẽ chạy song song, với timeout là 5 giây
+        const searchPromises = contentFinders.map((finder) =>
+          this.waitForElement(finder.selector, 5000)
+        )
+
         try {
-          // Kiểm tra xem đây có phải là trang video có bản ghi không
-          let contentContainer = await this.waitForElement(
-            '.rc-Transcript',
-            5000
+          // Đợi tất cả các cuộc tìm kiếm hoàn tất
+          const results = await Promise.all(searchPromises)
+
+          // Tìm xem cuộc tìm kiếm nào thành công đầu tiên
+          const firstFoundIndex = results.findIndex(
+            (element) => element !== null
           )
-          if (!contentContainer) {
-            contentContainer = await this.waitForElement(
-              '.rc-TranscriptHighlighter',
-              5000
-            )
-          }
 
-          if (contentContainer) {
-            console.log('Video transcript container found.')
-            // Đây là trang video, lấy bản ghi
-            const transcriptText = Array.from(
-              contentContainer.querySelectorAll('.rc-Phrase span')
-            )
-              .map((element) => element.textContent?.trim())
-              .filter(Boolean)
-              .join('\n')
+          if (firstFoundIndex !== -1) {
+            const foundElement = results[firstFoundIndex]
+            const contentType = contentFinders[firstFoundIndex].type
 
-            if (!transcriptText) {
-              console.warn('No transcript text found in the video panel.')
-              return null
-            }
-            return transcriptText
-          } else {
-            // Nếu không phải trang video, kiểm tra trang đọc
-            const readingContentContainer = await this.waitForElement(
-              '.rc-CML',
-              5000
-            )
-            if (readingContentContainer) {
-              console.log('Reading content container found.')
-              // Đây là trang đọc, lấy toàn bộ nội dung
-              const readingText = readingContentContainer.textContent?.trim()
+            console.log(`Found content of type: ${contentType}`)
+
+            if (contentType === 'transcript') {
+              const transcriptText = Array.from(
+                foundElement.querySelectorAll('.rc-Phrase span')
+              )
+                .map((element) => element.textContent?.trim())
+                .filter(Boolean)
+                .join('\n')
+
+              if (!transcriptText) {
+                console.warn('Transcript container found, but no text inside.')
+                return null
+              }
+              return transcriptText
+            } else if (contentType === 'reading') {
+              const readingText = foundElement.textContent?.trim()
               if (!readingText) {
-                console.warn('No reading content found in the panel.')
+                console.warn('Reading container found, but no text inside.')
                 return null
               }
               return readingText
             }
           }
 
-          console.warn('No relevant content container found on Coursera page.')
+          // Nếu không tìm thấy bất kỳ selector nào
+          console.warn(
+            'No relevant content container found on Coursera page after parallel search.'
+          )
           return null
         } catch (error) {
           console.error(
-            'An error occurred while interacting with DOM to get Coursera content:',
+            'An error occurred during parallel content search:',
             error
           )
           return null
@@ -168,7 +177,7 @@ export default defineContentScript({
               }
 
               if (content) {
-                console.log('Coursera content fetched successfully')
+                console.log('Coursera content fetched successfully: ' + content)
                 sendResponse({ success: true, content })
 
                 chrome.runtime.sendMessage({

@@ -6,6 +6,7 @@ declare module "wxt/browser" {
     | ""
     | "/"
     | "/Sumarizzerrrr.png"
+    | "/archive.html"
     | "/background.js"
     | "/content-scripts/coursera.js"
     | "/content-scripts/udemy.js"

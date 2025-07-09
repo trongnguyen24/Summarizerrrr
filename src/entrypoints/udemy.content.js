@@ -3,6 +3,7 @@ export default defineContentScript({
   matches: ['*://*.udemy.com/course/*/learn/*'],
   main() {
     console.log('Udemy Transcript Content Script ready for use.')
+    window.isUdemyContentScriptReady = true // Đặt cờ để background script biết script đã sẵn sàng
     class UdemyTranscriptExtractor {
       constructor(defaultLang = 'en') {
         this.defaultLang = defaultLang
@@ -126,22 +127,22 @@ export default defineContentScript({
     chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       const handleRequest = async () => {
         switch (request.action) {
-          case 'fetchUdemyTranscript':
+          case 'fetchCourseContent': // Đổi tên action
             console.log(
-              'Content script received fetchUdemyTranscript request',
+              'Content script received fetchCourseContent request for Udemy',
               request
             )
             try {
               const lang = request.lang || transcriptExtractor.defaultLang
-              let transcript = null
+              let content = null
               const maxRetries = 3
               let retries = 0
               let lastError = null
 
-              while (transcript === null && retries < maxRetries) {
+              while (content === null && retries < maxRetries) {
                 if (retries > 0) {
                   console.log(
-                    `Retrying to get Udemy transcript (attempt ${
+                    `Retrying to get Udemy content (attempt ${
                       retries + 1
                     }/${maxRetries})...`
                   )
@@ -149,12 +150,10 @@ export default defineContentScript({
                   await new Promise((resolve) => setTimeout(resolve, 2000))
                 }
                 try {
-                  transcript = await transcriptExtractor.getPlainTranscript(
-                    lang
-                  )
-                  if (transcript) {
+                  content = await transcriptExtractor.getPlainTranscript(lang)
+                  if (content) {
                     console.log(
-                      'Udemy Transcript fetched successfully after retry.'
+                      'Udemy content fetched successfully after retry.'
                     )
                     break // Thoát vòng lặp nếu thành công
                   }
@@ -165,37 +164,35 @@ export default defineContentScript({
                 retries++
               }
 
-              if (transcript) {
-                console.log('Udemy Transcript fetched successfully')
-                sendResponse({ success: true, transcript })
+              if (content) {
+                console.log('Udemy content fetched successfully')
+                sendResponse({ success: true, content })
 
-                // Gửi transcript đến background script hoặc sidepanel
+                // Gửi content đến background script hoặc sidepanel với courseType
                 chrome.runtime.sendMessage({
-                  action: 'udemyTranscriptFetched',
-                  transcript: transcript,
+                  action: 'courseContentFetched', // Đổi tên action
+                  content: content,
                   lang: lang,
+                  courseType: 'udemy', // Thêm loại khóa học
                 })
               } else {
                 console.log(
-                  'Failed to get Udemy transcript after multiple attempts, sending error response'
+                  'Failed to get Udemy content after multiple attempts, sending error response'
                 )
                 sendResponse({
                   success: false,
                   error: lastError
                     ? lastError.message
-                    : 'Failed to get Udemy transcript after multiple attempts.',
+                    : 'Failed to get Udemy content after multiple attempts.',
                 })
               }
             } catch (error) {
-              console.error(
-                'Error handling fetchUdemyTranscript message:',
-                error
-              )
+              console.error('Error handling fetchCourseContent message:', error)
               sendResponse({ success: false, error: error.message })
             }
             break
 
-          case 'pingUdemyScript':
+          case 'pingCourseScript': // Đổi tên action
             console.log('Content script received ping request, responding.')
             sendResponse({ success: true, message: 'pong' })
             break

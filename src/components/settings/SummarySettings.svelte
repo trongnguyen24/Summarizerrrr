@@ -42,23 +42,24 @@
       settingKey: 'chapterPromptSelection',
       promptKey: 'chapterCustomPromptContent',
     },
+
+    {
+      id: 'coursesummaryp',
+      name: 'Course Summary',
+      settingKey: 'courseSummaryPromptSelection',
+      promptKey: 'courseSummaryCustomPromptContent',
+    },
+    {
+      id: 'courseconceptsp',
+      name: 'Course Concepts',
+      settingKey: 'courseConceptsPromptSelection',
+      promptKey: 'courseConceptsCustomPromptContent',
+    },
     {
       id: 'webp',
       name: 'Web Summary',
       settingKey: 'webPromptSelection',
       promptKey: 'webCustomPromptContent',
-    },
-    {
-      id: 'udemysummaryp',
-      name: 'Udemy Summary',
-      settingKey: 'udemySummaryPromptSelection',
-      promptKey: 'udemySummaryCustomPromptContent',
-    },
-    {
-      id: 'udemyconceptsp',
-      name: 'Udemy Concepts',
-      settingKey: 'udemyConceptsPromptSelection',
-      promptKey: 'udemyConceptsCustomPromptContent',
     },
     {
       id: 'selectedtextp',

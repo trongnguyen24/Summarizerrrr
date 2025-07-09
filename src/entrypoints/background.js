@@ -14,11 +14,17 @@ export default defineBackground(() => {
   loadSettings()
   subscribeToSettingsChanges()
 
-  const YOUTUBE_MATCH_PATTERN = '*://*.youtube.com/watch*'
-  const UDEMY_MATCH_PATTERN = '*://*.udemy.com/course/*/learn/*'
+  const YOUTUBE_URL_PATTERN_STRING = '*://*.youtube.com/watch*'
+  const UDEMY_URL_PATTERN_STRING = '*://*.udemy.com/course/*/learn/*'
+  const COURSERA_URL_PATTERN_STRING = '*://*.coursera.org/learn/*'
+
+  const YOUTUBE_REGEX = /youtube\.com\/watch/i
+  const UDEMY_REGEX = /udemy\.com\/course\/.*\/learn\//i
+  const COURSERA_REGEX = /coursera\.org\/learn\//i
 
   const YOUTUBE_CONTENT_SCRIPT_PATH = 'content-scripts/youtubetranscript.js'
-  const UDEMY_CONTENT_SCRIPT_PATH = 'content-scripts/udemytranscript.js'
+  const UDEMY_CONTENT_SCRIPT_PATH = 'content-scripts/udemy.js'
+  const COURSERA_CONTENT_SCRIPT_PATH = 'content-scripts/coursera.js'
 
   // Hàm helper để inject content script
   async function injectContentScriptIntoTab(tabId, scriptPath) {
@@ -33,22 +39,24 @@ export default defineBackground(() => {
         // Kiểm tra xem script đã được inject chưa
         const results = await chrome.scripting.executeScript({
           target: { tabId: tabId },
-          func: (youtubeScriptPath, udemyScriptPath) => {
+          func: (youtubeScriptPath, udemyScriptPath, courseraScriptPath) => {
             if (youtubeScriptPath === 'content-scripts/youtubetranscript.js') {
               return (
                 typeof window.isYoutubeTranscriptContentScriptReady ===
                 'boolean'
               )
-            } else if (
-              udemyScriptPath === 'content-scripts/udemytranscript.js'
-            ) {
-              return (
-                typeof window.isUdemyTranscriptContentScriptReady === 'boolean'
-              )
+            } else if (udemyScriptPath === 'content-scripts/udemy.js') {
+              return typeof window.isUdemyContentScriptReady === 'boolean'
+            } else if (courseraScriptPath === 'content-scripts/coursera.js') {
+              return typeof window.isCourseraContentScriptReady === 'boolean'
             }
             return false
           },
-          args: [YOUTUBE_CONTENT_SCRIPT_PATH, UDEMY_CONTENT_SCRIPT_PATH],
+          args: [
+            YOUTUBE_CONTENT_SCRIPT_PATH,
+            UDEMY_CONTENT_SCRIPT_PATH,
+            COURSERA_CONTENT_SCRIPT_PATH,
+          ],
         })
 
         if (results[0]?.result === true) {
@@ -200,8 +208,9 @@ export default defineBackground(() => {
       return
     }
 
-    const isYouTube = tab.url.includes('youtube.com/watch')
-    const isUdemy = tab.url.includes('udemy.com/course/')
+    const isYouTube = YOUTUBE_REGEX.test(tab.url)
+    const isUdemy = UDEMY_REGEX.test(tab.url)
+    const isCoursera = COURSERA_REGEX.test(tab.url)
 
     const currentTabInfo = {
       action: 'currentTabInfo',
@@ -210,6 +219,7 @@ export default defineBackground(() => {
       tabTitle: tab.title,
       isYouTube: isYouTube,
       isUdemy: isUdemy,
+      isCoursera: isCoursera,
     }
 
     await sendMessageToSidePanel(currentTabInfo, tab.id)
@@ -218,6 +228,8 @@ export default defineBackground(() => {
       await injectContentScriptIntoTab(tab.id, YOUTUBE_CONTENT_SCRIPT_PATH)
     } else if (isUdemy) {
       await injectContentScriptIntoTab(tab.id, UDEMY_CONTENT_SCRIPT_PATH)
+    } else if (isCoursera) {
+      await injectContentScriptIntoTab(tab.id, COURSERA_CONTENT_SCRIPT_PATH)
     }
   })
 
@@ -236,8 +248,9 @@ export default defineBackground(() => {
       console.log(
         '[background.js] Summarize current page command received. Sending message to side panel.'
       )
-      const isYouTube = activeTab.url.includes('youtube.com/watch')
-      const isUdemy = activeTab.url.includes('udemy.com/course/')
+      const isYouTube = YOUTUBE_REGEX.test(activeTab.url)
+      const isUdemy = UDEMY_REGEX.test(activeTab.url)
+      const isCoursera = COURSERA_REGEX.test(activeTab.url)
 
       const summarizePageInfo = {
         action: 'summarizeCurrentPage',
@@ -246,6 +259,7 @@ export default defineBackground(() => {
         tabTitle: activeTab.title,
         isYouTube: isYouTube,
         isUdemy: isUdemy,
+        isCoursera: isCoursera,
       }
       await sendMessageToSidePanel(summarizePageInfo, activeTab.id)
 
@@ -320,7 +334,7 @@ export default defineBackground(() => {
 
       try {
         const youtubeTabs = await browser.tabs.query({
-          url: YOUTUBE_MATCH_PATTERN,
+          url: YOUTUBE_URL_PATTERN_STRING,
         })
         for (const tab of youtubeTabs) {
           if (tab.id && tab.status === 'complete') {
@@ -332,11 +346,23 @@ export default defineBackground(() => {
         }
 
         const udemyTabs = await browser.tabs.query({
-          url: UDEMY_MATCH_PATTERN,
+          url: UDEMY_URL_PATTERN_STRING,
         })
         for (const tab of udemyTabs) {
           if (tab.id && tab.status === 'complete') {
             await injectContentScriptIntoTab(tab.id, UDEMY_CONTENT_SCRIPT_PATH)
+          }
+        }
+
+        const courseraTabs = await browser.tabs.query({
+          url: COURSERA_URL_PATTERN_STRING,
+        })
+        for (const tab of courseraTabs) {
+          if (tab.id && tab.status === 'complete') {
+            await injectContentScriptIntoTab(
+              tab.id,
+              COURSERA_CONTENT_SCRIPT_PATH
+            )
           }
         }
       } catch (error) {
@@ -349,13 +375,15 @@ export default defineBackground(() => {
 
   // 4. Listen for URL changes and tab updates
   browser.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
-    const isYouTube = tab.url.includes('youtube.com/watch')
-    const isUdemy = tab.url.includes('udemy.com/course/')
+    const isYouTube = YOUTUBE_REGEX.test(tab.url)
+    const isUdemy = UDEMY_REGEX.test(tab.url)
+    const isCoursera = COURSERA_REGEX.test(tab.url)
 
     const tabUpdatedInfo = {
       action: 'tabUpdated',
       isYouTube: isYouTube,
       isUdemy: isUdemy,
+      isCoursera: isCoursera,
       tabId: tab.id,
       tabUrl: tab.url,
       tabTitle: changeInfo.title || tab.title,
@@ -368,8 +396,8 @@ export default defineBackground(() => {
     if (changeInfo.status === 'complete') {
       if (isYouTube) {
         await injectContentScriptIntoTab(tabId, YOUTUBE_CONTENT_SCRIPT_PATH)
-      } else if (isUdemy) {
-        await injectContentScriptIntoTab(tabId, UDEMY_CONTENT_SCRIPT_PATH)
+      } else if (isCourse) {
+        await injectContentScriptIntoTab(tabId, COURSE_CONTENT_SCRIPT_PATH)
       }
     }
   })
@@ -412,23 +440,24 @@ export default defineBackground(() => {
         }
       })()
       return true
-    } else if (message.action === 'udemyTranscriptFetched') {
-      // Xử lý transcript Udemy đã lấy được từ content script
+    } else if (message.action === 'courseContentFetched') {
+      // Xử lý nội dung Course đã lấy được từ content script (Udemy hoặc Coursera)
       console.log(
-        '[background.js] Received udemyTranscriptFetched from content script.'
+        '[background.js] Received courseContentFetched from content script.'
       )
       if (sidePanelPort) {
         sidePanelPort.postMessage({
-          action: 'udemyTranscriptAvailable',
-          transcript: message.transcript,
+          action: 'courseContentAvailable',
+          content: message.content,
           lang: message.lang,
+          courseType: message.courseType, // Thêm loại khóa học (udemy/coursera)
         })
         console.log(
-          '[background.js] Sent udemyTranscriptAvailable to side panel.'
+          '[background.js] Sent courseContentAvailable to side panel.'
         )
       } else {
         console.warn(
-          '[background.js] Side panel not connected, cannot send udemyTranscriptAvailable.'
+          '[background.js] Side panel not connected, cannot send courseContentAvailable.'
         )
       }
       return true
@@ -439,8 +468,9 @@ export default defineBackground(() => {
           currentWindow: true,
         })
         const activeTab = tabs[0]
-        const isYouTube = activeTab?.url?.includes('youtube.com/watch')
-        const isUdemy = activeTab?.url?.includes('udemy.com/course/')
+        const isYouTube = YOUTUBE_REGEX.test(activeTab?.url)
+        const isUdemy = UDEMY_REGEX.test(activeTab?.url)
+        const isCoursera = COURSERA_REGEX.test(activeTab?.url)
 
         const currentTabInfo = activeTab
           ? {
@@ -450,6 +480,7 @@ export default defineBackground(() => {
               tabTitle: activeTab.title,
               isYouTube: isYouTube,
               isUdemy: isUdemy,
+              isCoursera: isCoursera,
             }
           : {
               action: 'currentTabInfo',
@@ -507,8 +538,9 @@ export default defineBackground(() => {
             currentWindow: true,
           })
           const activeTab = tabs[0]
-          const isYouTube = activeTab?.url?.includes('youtube.com/watch')
-          const isUdemy = activeTab?.url?.includes('udemy.com/course/')
+          const isYouTube = YOUTUBE_REGEX.test(activeTab?.url)
+          const isUdemy = UDEMY_REGEX.test(activeTab?.url)
+          const isCoursera = COURSERA_REGEX.test(activeTab?.url)
 
           const currentTabInfo = activeTab
             ? {
@@ -518,6 +550,7 @@ export default defineBackground(() => {
                 tabTitle: activeTab.title,
                 isYouTube: isYouTube,
                 isUdemy: isUdemy,
+                isCoursera: isCoursera,
               }
             : {
                 action: 'currentTabInfo',
@@ -578,13 +611,15 @@ export default defineBackground(() => {
       const tab = await browser.tabs.get(activeInfo.tabId)
 
       if (tab && tab.url) {
-        const isYouTube = tab.url.includes('youtube.com/watch')
-        const isUdemy = tab.url.includes('udemy.com/course/')
+        const isYouTube = YOUTUBE_REGEX.test(tab.url)
+        const isUdemy = UDEMY_REGEX.test(tab.url)
+        const isCoursera = COURSERA_REGEX.test(tab.url)
 
         const tabUpdatedInfo = {
           action: 'tabUpdated',
           isYouTube: isYouTube,
           isUdemy: isUdemy,
+          isCoursera: isCoursera,
           tabId: tab.id,
           tabUrl: tab.url,
           tabTitle: tab.title,
@@ -595,6 +630,8 @@ export default defineBackground(() => {
           await injectContentScriptIntoTab(tab.id, YOUTUBE_CONTENT_SCRIPT_PATH)
         } else if (isUdemy) {
           await injectContentScriptIntoTab(tab.id, UDEMY_CONTENT_SCRIPT_PATH)
+        } else if (isCoursera) {
+          await injectContentScriptIntoTab(tab.id, COURSERA_CONTENT_SCRIPT_PATH)
         }
       }
     } catch (error) {

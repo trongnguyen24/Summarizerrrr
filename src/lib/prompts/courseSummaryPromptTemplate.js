@@ -1,8 +1,8 @@
 // @ts-nocheck
 
-export const udemySummaryPromptTemplate = `
+export const courseSummaryPromptTemplate = `
 <TASK>
-Summarize Udemy lecture from <INPUT_CONTENT>, focusing on core knowledge and practical steps.
+Summarize Course lecture from <INPUT_CONTENT>, focusing on core knowledge and practical steps.
 </TASK>
 
 <INPUT_PARAMETERS>

@@ -1,5 +1,5 @@
 // @ts-nocheck
-export const udemyConceptsCustomPromptContent_short = {
+export const courseConceptsCustomPromptContent_short = {
   title: 'Simple prompt',
   systemInstruction: `You are educational concept extractor. Tasks:
 - Find all important terms and concepts in course content

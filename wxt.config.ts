@@ -56,6 +56,7 @@ export default defineConfig({
         },
         sidebar_action: {
           default_panel: 'sidepanel.html',
+          default_icon: 'icon/48.png',
           default_title: 'Open Summarizerrrr',
         },
         browser_specific_settings: {

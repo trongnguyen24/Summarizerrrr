@@ -1,12 +1,12 @@
 // @ts-nocheck
-export const udemySummaryCustomPromptContent_short = {
+export const courseSummaryCustomPromptContent_short = {
   title: 'Simple prompt',
   systemInstruction: `You are course content analyzer. Tasks:
-- Extract key concepts and practical skills from Udemy courses
+- Extract key concepts and practical skills from Course courses
 - Focus on actionable knowledge and hands-on techniques  
 - Structure content for easy learning and reference
 - Always output in English`,
-  userPrompt: `Summarize this Udemy course:
+  userPrompt: `Summarize this Course:
 
 __CONTENT__
 

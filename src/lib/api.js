@@ -40,9 +40,10 @@ function getProviderConfig(userSettings, selectedProviderId) {
     case 'openrouter':
       apiKey = userSettings.openrouterApiKey
       model = userSettings.selectedOpenrouterModel || 'openrouter/auto'
-      modelConfig =
-        openrouterModelsConfig[model] ||
-        openrouterModelsConfig['openrouter/auto']
+      // OpenRouter models do not have specific generation configs stored locally.
+      // The generationConfig will be pulled from user settings (advancedModeSettings/basicModeSettings)
+      // and passed directly to the provider.
+      modelConfig = { generationConfig: { temperature: 0.6, topP: 0.91 } } // Default values, will be overridden
       break
     case 'ollama':
       apiKey = userSettings.ollamaEndpoint || DEFAULT_OLLAMA_ENDPOINT // Ollama uses endpoint as 'key'

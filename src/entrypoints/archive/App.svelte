@@ -6,6 +6,7 @@
   import { animate, waapi, eases, createSpring } from 'animejs'
   import { useOverlayScrollbars } from 'overlayscrollbars-svelte'
   import { openDatabase, getAllSummaries } from '@/lib/indexedDBService'
+  import { marked } from 'marked'
   import SidePanel from './SidePanel.svelte'
 
   let isSidePanelVisible = $state(true) // Thêm biến trạng thái để kiểm soát hiển thị sidepanel
@@ -156,17 +157,14 @@
                 {selectedSummary.url.replace(/(^\w+:|^)\/\//, '').split('/')[0]}
               </a>
             </div>
-            <div class="flex justify-center items-center gap-1">
-              <Icon height="16" width="16" icon="lucide:brain" class="" />
-              Gemini 2.5 Flash
-            </div>
+
             <div class="flex justify-center items-center gap-1">
               <Icon height="16" width="16" icon="lucide:clock" class="" />
               {formatDate(selectedSummary.date)}
             </div>
           </div>
           <div class="py-12" id="summary">
-            {@html selectedSummary.summary}
+            {@html marked.parse(selectedSummary.summary)}
           </div>
         </div>
       </div>

@@ -3,9 +3,15 @@
   import { marked } from 'marked'
   import hljs from 'highlight.js'
   import TOC from '../TOC.svelte'
+  import { addSummary } from '@/lib/indexedDBService'
+  import { tabTitle } from '@/stores/tabTitleStore.svelte.js'
 
-  let { summary, isLoading, error } = $props()
+  let { summary, isLoading, error, pageUrl } = $props()
+  let currentTitle = ''
 
+  tabTitle.subscribe((value) => {
+    currentTitle = value
+  })
   $effect(() => {
     if (summary && !isLoading) {
       // Đảm bảo DOM đã được cập nhật trước khi làm nổi bật
@@ -40,8 +46,24 @@
 {#if summary && !isLoading}
   <div id="summary">
     {@html marked.parse(summary)}
-    <button class="py-1 px-4 bg-blackwhite/5 hover:bg-blackwhite/10 rounded-md"
-      >Save to Archive</button
+    <button
+      class="py-1 px-4 bg-blackwhite/5 hover:bg-blackwhite/10 rounded-md"
+      onclick={async () => {
+        const date = new Date().toISOString()
+        const summaryToSave = {
+          title: currentTitle,
+          url: pageUrl,
+          summary: summary,
+          date: date,
+        }
+        try {
+          await addSummary(summaryToSave)
+          alert('Summary saved to archive!')
+        } catch (error) {
+          console.error('Error saving summary:', error)
+          alert('Failed to save summary.')
+        }
+      }}>Save to Archive</button
     >
   </div>
 

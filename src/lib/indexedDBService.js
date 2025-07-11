@@ -44,7 +44,8 @@ async function addSummary(summary) {
     const request = objectStore.add(summary)
 
     request.onsuccess = () => {
-      resolve(request.result)
+      const summaries = request.result
+      resolve(summaries)
     }
 
     request.onerror = (event) => {

@@ -94,6 +94,8 @@
       case 'currentTabInfo':
         console.log(`[App.svelte] Received ${request.action} message:`, request)
         setTabTitle(request.tabTitle)
+        pageTitle = request.tabTitle || ''
+        pageUrl = request.tabUrl || ''
         // Tính toán isCourse từ isUdemy và isCoursera
         const isCourseActive = request.isUdemy || request.isCoursera
         updateVideoActiveStates(request.isYouTube, isCourseActive)
@@ -105,6 +107,7 @@
         )
         summaryState.summary = request.summary
         summaryState.error = request.error ? request.summary : null
+        summaryState.pageUrl = request.pageUrl
         break
       case 'udemyTranscriptAvailable': // Xử lý riêng cho Udemy
         console.log(
@@ -272,6 +275,7 @@
           summary={summaryState.summary}
           isLoading={summaryState.isLoading}
           error={summaryState.error}
+          pageUrl={summaryState.pageUrl}
         />
       {/if}
     </div>

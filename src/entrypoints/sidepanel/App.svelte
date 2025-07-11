@@ -221,9 +221,21 @@
     <div class="bg-border"></div>
 
     <div class="flex font-mono flex-col gap-1 justify-center items-center">
+      <div class="size-6 absolute top-12 left-2 text-text-secondary">
+        <button
+          onclick={() => {
+            browser.tabs.create({ url: 'archive.html' })
+          }}
+          class="p-1 setting-animation transition-colors hover:bg-surface-1 rounded-full hover:text-text-primary"
+          title="Open settings"
+        >
+          <Icon width={24} icon="heroicons:archive-box" />
+        </button>
+      </div>
       <div class="size-6 absolute top-12 right-4 text-text-secondary">
         <SettingButton />
       </div>
+
       <div class="flex flex-col gap-6 items-center justify-center">
         <SummarizeButton
           isLoading={summaryState.isLoading || isAnyCourseLoading}

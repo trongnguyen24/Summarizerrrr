@@ -40,6 +40,9 @@
 {#if summary && !isLoading}
   <div id="summary">
     {@html marked.parse(summary)}
+    <button class="py-1 px-4 bg-blackwhite/5 hover:bg-blackwhite/10 rounded-md"
+      >Save to Archive</button
+    >
   </div>
 
   <TOC targetDivId="summary" />

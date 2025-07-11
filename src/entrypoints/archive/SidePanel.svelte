@@ -5,7 +5,7 @@
   import { useOverlayScrollbars } from 'overlayscrollbars-svelte'
   import { slideScaleFade } from '@/lib/slideScaleFade'
 
-  const { list, selectedSummary, selectSummary } = $props()
+  const { list, selectedSummary, selectSummary, selectedSummaryId } = $props() // Thêm selectedSummaryId
 
   const options = {
     scrollbars: {
@@ -44,18 +44,42 @@
     <div
       class=" sticky bg-linear-to-b from-background to-background/40 mask-b-from-50% left-0 top-0 w-78 h-6 backdrop-blur-[2px] z-30 pointer-events-none"
     ></div>
-    <div class="flex absolute inset-0 px-4 py-6 h-full flex-col gap-px">
+    <div
+      class="flex font-mono text-xs md:text-sm absolute inset-0 px-2 py-6 h-full flex-col gap-px"
+    >
       {#each list as item (item.id)}
-        <a
-          href="#{item.id}"
-          class="px-3 py-2 transition-colors duration-125 rounded-sm {selectedSummary &&
-          selectedSummary.id === item.id
-            ? 'bg-white'
-            : 'hover:bg-white/50'}"
-          onclick={() => selectSummary(item)}
-        >
-          <div class="line-clamp-1">{item.title}</div>
-        </a>
+        <div class="relative group">
+          <button
+            class="list-button w-full relative p-2 pr-7 text-left hover:bg-blackwhite/5 rounded-sm {selectedSummaryId ===
+            item.id
+              ? 'text-text-primary active font-bold'
+              : 'hover:bg-white/50 dark:hover:bg-white/5'}"
+            onclick={() => selectSummary(item)}
+          >
+            <div
+              class="line-clamp-1 transition-colors w-full mask-r-from-90% mask-r-to-100%"
+            >
+              {item.title}
+            </div>
+          </button>
+
+          <button
+            class="action-button text-text-muted hidden hover:bg-blackwhite/5 rounded-sm z-10 absolute right-0 justify-center items-center top-0 size-9"
+          >
+            <Icon
+              icon="heroicons:ellipsis-horizontal-16-solid"
+              width="16"
+              height="16"
+              style="color: #fff"
+            />
+          </button>
+          <div
+            class="absolute top-full hidden bg-surface-2 border border-border z-10 right-0 group-hover:flex flex-col"
+          >
+            <button class="py-1 px-4">Rename</button>
+            <button class="py-1 px-4">Delete</button>
+          </div>
+        </div>
       {/each}
       <div class="py-2 w-full">-</div>
     </div>
@@ -64,3 +88,39 @@
     class=" absolute bg-linear-to-t from-background to-background/40 mask-t-from-50% left-0 right-3 bottom-0 h-6 backdrop-blur-[2px] z-30 pointer-events-none"
   ></div>
 </div>
+
+<style>
+  .list-button::after {
+    content: '';
+    display: block;
+    width: 0px;
+    position: absolute;
+    background: white;
+    top: 50%;
+    transform: translateY(-50%) translateX(-0.25rem);
+    right: -0.5rem;
+    left: -0.5rem;
+    height: 1rem;
+    border-radius: 0 4px 4px 0;
+    transition: all 0.3s ease-in-out;
+    box-shadow:
+      0 0 2px #ffffff18,
+      0 0 0 #ffffff18;
+  }
+  .list-button.active {
+    &::after {
+      transform: translateY(-50%) translateX(1px);
+      width: 4px;
+      box-shadow:
+        4px 0 8px 2px #ffffff71,
+        0 0 3px 1px #ffffff94;
+    }
+  }
+  .list-button:focus + .action-button {
+    display: flex !important;
+  }
+  .group:focus-within .action-button,
+  .group:hover .action-button {
+    display: flex !important;
+  }
+</style>

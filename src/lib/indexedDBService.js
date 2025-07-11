@@ -61,10 +61,19 @@ async function getAllSummaries() {
   return new Promise((resolve, reject) => {
     const transaction = db.transaction([STORE_NAME], 'readonly')
     const objectStore = transaction.objectStore(STORE_NAME)
-    const request = objectStore.getAll()
+    const summaries = []
 
-    request.onsuccess = () => {
-      resolve(request.result)
+    // Mở cursor trên index 'date' theo thứ tự giảm dần
+    const request = objectStore.index('date').openCursor(null, 'prev')
+
+    request.onsuccess = (event) => {
+      const cursor = event.target.result
+      if (cursor) {
+        summaries.push(cursor.value)
+        cursor.continue()
+      } else {
+        resolve(summaries)
+      }
     }
 
     request.onerror = (event) => {

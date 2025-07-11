@@ -3,6 +3,8 @@
   import { marked } from 'marked'
   import hljs from 'highlight.js'
   import TOC from '../TOC.svelte'
+  import { summaryState } from '@/stores/summaryStore.svelte'
+  import SaveToArchiveButton from '@/components/buttons/SaveToArchiveButton.svelte'
 
   let { chapterSummary, isChapterLoading, chapterError } = $props()
 
@@ -37,6 +39,12 @@
 {#if chapterSummary && !isChapterLoading}
   <div id="chaptersummary">
     {@html marked.parse(chapterSummary)}
+    {#if summaryState.chapterSummary && summaryState.lastSummaryTypeDisplayed === 'youtube' && summaryState.activeYouTubeTab === 'chapterSummary'}
+      <SaveToArchiveButton
+        summaryContent={summaryState.chapterSummary}
+        summaryType="chapter"
+      />
+    {/if}
   </div>
 
   <TOC targetDivId="chaptersummary" />

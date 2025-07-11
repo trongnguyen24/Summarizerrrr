@@ -4,6 +4,7 @@ import { getPageContent } from '../services/contentService.js'
 import { getActiveTabInfo } from '../services/chromeService.js'
 import { settings, loadSettings } from './settingsStore.svelte.js' // Import settings and loadSettings
 import { summarizeContent, summarizeChapters } from '../lib/api.js'
+import { addSummary } from '../lib/indexedDBService.js' // Đảm bảo import này có ở đầu file summaryStore.svelte.js
 
 // --- State ---
 export const summaryState = $state({
@@ -188,6 +189,11 @@ export async function fetchAndSummarize() {
         'Could not get current tab information or URL. Please try switching to a different tab and back, or ing the extension. if this error persists, please clear your cookie.'
       )
     }
+
+    // LƯU TIÊU ĐỀ VÀ URL VÀO STATE NGAY TẠI ĐÂY
+    summaryState.pageTitle = tabInfo.title || 'Unknown Title'
+    summaryState.pageUrl = tabInfo.url || 'Unknown URL'
+
     const YOUTUBE_MATCH_PATTERN = /youtube\.com\/watch/i
     const COURSE_MATCH_PATTERN =
       /udemy\.com\/course\/.*\/learn\/|coursera\.org\/learn\//i // Kết hợp Udemy và Coursera
@@ -468,5 +474,36 @@ export async function summarizeSelectedText(text) {
     summaryState.lastSummaryTypeDisplayed = 'selectedText'
   } finally {
     summaryState.isSelectedTextLoading = false
+  }
+}
+
+export async function saveSummaryToArchive(summaryContent, type) {
+  if (!summaryContent || summaryContent.trim() === '') {
+    console.warn(`Không có nội dung tóm tắt loại '${type}' để lưu.`)
+    // TODO: Thêm thông báo cho người dùng (ví dụ: sử dụng CustomToast)
+    return
+  }
+
+  try {
+    const title = summaryState.pageTitle || 'Unknown Title'
+    const url = summaryState.pageUrl || 'Unknown URL'
+
+    const summaryToSave = {
+      title: title,
+      url: url,
+      summary: summaryContent, // Nội dung markdown thô
+      date: new Date().toISOString(),
+      type: type, // Lưu loại tóm tắt để dễ quản lý sau này
+    }
+
+    await addSummary(summaryToSave)
+    console.log(
+      `Tóm tắt loại '${type}' đã được lưu vào Archive:`,
+      summaryToSave
+    )
+    // TODO: Thêm thông báo thành công cho người dùng (ví dụ: CustomToast)
+  } catch (error) {
+    console.error(`Lỗi khi lưu tóm tắt loại '${type}' vào Archive:`, error)
+    // TODO: Thêm thông báo lỗi cho người dùng (ví dụ: CustomToast)
   }
 }

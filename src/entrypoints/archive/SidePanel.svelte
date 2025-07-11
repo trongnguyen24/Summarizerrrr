@@ -2,6 +2,7 @@
   // @ts-nocheck
   import Icon from '@iconify/svelte'
   import 'overlayscrollbars/overlayscrollbars.css'
+  import { DropdownMenu } from 'bits-ui'
   import { useOverlayScrollbars } from 'overlayscrollbars-svelte'
   import { slideScaleFade } from '@/lib/slideScaleFade'
 
@@ -62,23 +63,36 @@
               {item.title}
             </div>
           </button>
+          <DropdownMenu.Root>
+            <DropdownMenu.Trigger
+              class="text-text-muted hover:bg-blackwhite/5 rounded-sm z-10 absolute right-0 justify-center items-center top-0 size-9"
+              ><div
+                class="action-button hidden justify-center items-center top-0 size-9"
+              >
+                <Icon
+                  icon="heroicons:ellipsis-horizontal-16-solid"
+                  width="20"
+                  height="20"
+                  style="color: #fff"
+                />
+              </div></DropdownMenu.Trigger
+            >
 
-          <button
-            class="action-button text-text-muted hidden hover:bg-blackwhite/5 rounded-sm z-10 absolute right-0 justify-center items-center top-0 size-9"
-          >
-            <Icon
-              icon="heroicons:ellipsis-horizontal-16-solid"
-              width="16"
-              height="16"
-              style="color: #fff"
-            />
-          </button>
-          <div
-            class="absolute top-full hidden bg-surface-2 border border-border z-10 right-0 group-hover:flex flex-col"
-          >
-            <button class="py-1 px-4">Rename</button>
-            <button class="py-1 px-4">Delete</button>
-          </div>
+            <DropdownMenu.Portal>
+              <DropdownMenu.Content
+                class="z-50 p-0.5 text-sm rounded-sm bg-surface-1 border flex flex-col gap-px border-border"
+              >
+                <DropdownMenu.Item
+                  class="py-1 px-3 hover:bg-blackwhite/5 rounded-sm"
+                  >Rename</DropdownMenu.Item
+                >
+                <DropdownMenu.Item
+                  class="py-1 px-3 hover:bg-blackwhite/5 rounded-sm"
+                  >Remove</DropdownMenu.Item
+                >
+              </DropdownMenu.Content>
+            </DropdownMenu.Portal>
+          </DropdownMenu.Root>
         </div>
       {/each}
       <div class="py-2 w-full">-</div>

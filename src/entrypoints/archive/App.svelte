@@ -8,6 +8,7 @@
   import { openDatabase, getAllSummaries } from '@/lib/indexedDBService'
   import SidePanel from './SidePanel.svelte'
   import { marked } from 'marked'
+
   import hljs from 'highlight.js'
   import {
     initializeTheme,
@@ -153,7 +154,7 @@
   ></div>
   <div
     bind:this={sidePanel}
-    class="top-0 p-0 w-80 fixed left-8 sm:sticky h-screen z-40 bg-background overflow-hidden"
+    class="top-0 p-0 w-80 fixed left-8 h-screen max-h-screen z-40 bg-background overflow-hidden"
   >
     <div class="w-px absolute z-30 top-0 right-0 h-screen bg-border/70"></div>
     {#if isSidePanelVisible}
@@ -162,7 +163,9 @@
   </div>
 
   <!-- Right Column -->
-  <div class="flex-1 relative bg-surface-1 z-20 p-4 flex flex-col gap-2">
+  <div
+    class="flex-1 sm:pl-80 pl-0 relative bg-surface-1 z-20 p-4 flex flex-col gap-2"
+  >
     <!-- <PlusIcon /> -->
 
     {#if selectedSummary}

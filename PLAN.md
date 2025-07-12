@@ -1,4 +1,4 @@
-# Kế hoạch nâng cấp tính năng Lưu trữ và Lịch sử (Phiên bản 3)
+# Kế hoạch nâng cấp tính năng Lưu trữ và Lịch sử (Phiên bản 5)
 
 ## Tổng quan
 
@@ -16,7 +16,7 @@ Cả hai tính năng sẽ được tích hợp vào cùng một trang (`archive/
 
 ## Cấu trúc dữ liệu chung cho `summaries` (Archive) và `history`
 
-Cả hai kho dữ liệu sẽ sử dụng cùng một cấu trúc. **Lưu ý quan trọng:** Nội dung tóm tắt sẽ được lưu dưới dạng **Markdown thô**, không phải HTML.
+Cả hai kho dữ liệu sẽ sử dụng cùng một cấu trúc. **Lưu ý quan trọng:** Nội dung tóm tắt sẽ được lưu dưới dạng **Markdown thô**.
 
 ```json
 {
@@ -50,10 +50,10 @@ Cả hai kho dữ liệu sẽ sử dụng cùng một cấu trúc. **Lưu ý qua
 
 ### Bước 2: Cập nhật `src/stores/summaryStore.svelte.js`
 
-1.  **Lưu trữ cả Markdown thô và HTML:**
-    - State của store sẽ cần được điều chỉnh để lưu cả hai dạng. Ví dụ, thay vì `summaryState.summary = marked.parse(text)`, chúng ta sẽ có `summaryState.summaryRaw = text` và `summaryState.summaryHtml = marked.parse(text)`.
-    - Các component hiển thị sẽ sử dụng phiên bản HTML.
-    - Các hàm lưu trữ sẽ sử dụng phiên bản **Markdown thô**.
+1.  **Chỉ lưu trữ Markdown thô và loại bỏ `marked.parse`:**
+    - State của store sẽ **chỉ lưu trữ nội dung tóm tắt dưới dạng Markdown thô**. Ví dụ: `summaryState.summary = text`.
+    - **Loại bỏ tất cả các lệnh gọi `marked.parse()` khi cập nhật các biến trạng thái tóm tắt** (`summaryState.summary`, `summaryState.chapterSummary`, `summaryState.courseSummary`, `summaryState.courseConcepts`, `summaryState.selectedTextSummary`).
+    - Các hàm lưu trữ (Archive và History) sẽ lấy trực tiếp nội dung Markdown thô này.
 2.  **Tạo hàm `saveAllGeneratedSummariesToArchive()`:**
     - Thu thập tất cả các bản tóm tắt (dưới dạng **Markdown thô**) vào một đối tượng duy nhất.
     - Gọi `addSummary()` từ `indexedDBService`.
@@ -71,7 +71,7 @@ Cả hai kho dữ liệu sẽ sử dụng cùng một cấu trúc. **Lưu ý qua
 2.  **Các component `...Display.svelte`:**
 
     - Cập nhật cách sử dụng `SaveToArchiveButton`.
-    - Đảm bảo chúng hiển thị phiên bản HTML của tóm tắt từ store.
+    - **Quan trọng:** Đảm bảo chúng hiển thị nội dung bằng cách chuyển đổi Markdown thô sang HTML tại chỗ (ví dụ: `{@html marked.parse(summary)}`).
 
 3.  **`src/entrypoints/archive/App.svelte`:**
     - **Thêm Tab:** Tạo giao diện tab "Lưu trữ" và "Lịch sử".
@@ -87,4 +87,4 @@ Cả hai kho dữ liệu sẽ sử dụng cùng một cấu trúc. **Lưu ý qua
 
 ---
 
-Cảm ơn bạn đã chỉ ra điểm quan trọng này. Kế hoạch bây giờ đã chính xác hơn. Nếu bạn đã hài lòng, hãy yêu cầu tôi "toggle to Act mode" để tôi bắt đầu triển khai.
+Cảm ơn bạn đã chỉ ra điểm quan trọng này. Kế hoạch bây giờ đã chính xác và tối ưu hơn. Nếu bạn đã hài lòng, hãy yêu cầu tôi "toggle to Act mode" để tôi bắt đầu triển khai.

@@ -53,7 +53,7 @@
         const idFromUrl = urlParams.get('summaryId')
 
         if (idFromUrl) {
-          selectedSummary = list.find((s) => s.id === idFromUrl)
+          selectedSummary = list.find((s) => s.id == idFromUrl)
           selectedSummaryId = idFromUrl
         } else if (list.length > 0) {
           selectedSummary = list[0] // Select the first summary by default
@@ -164,12 +164,14 @@
 
   <!-- Right Column -->
   <div
-    class="flex-1 sm:pl-80 pl-0 relative bg-surface-1 z-20 p-4 flex flex-col gap-2"
+    class="flex-1 pl-0 relative transition-all bg-surface-1 duration-300 ease-out z-20 p-4 flex flex-col gap-2
+    {isSidePanelVisible ? 'sm:pl-80' : ''}
+    "
   >
     <!-- <PlusIcon /> -->
 
     {#if selectedSummary}
-      <div class="mx-auto py-8">
+      <div class="mx-auto p-8">
         <div>
           <div class="flex flex-col gap-2">
             <div
@@ -194,7 +196,9 @@
                 </a>
               </div>
             </div>
-            <h1 class="mx-auto my-0 p-0 text-center text-2xl font-bold">
+            <h1
+              class="mx-auto my-0 p-0 max-w-3xl text-balance text-center text-3xl font-bold"
+            >
               {selectedSummary.title}
             </h1>
           </div>

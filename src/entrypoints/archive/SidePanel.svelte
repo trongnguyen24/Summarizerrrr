@@ -29,10 +29,10 @@
     startScale: 1,
     slideFrom: 'left',
   }}
-  class="w-80 relative flex flex-col h-screen gap-2"
+  class="w-80 relative flex flex-col h-screen"
 >
   <h2 class="text-lg pl-11 pt-4.5 pb-2 font-bold">Archive</h2>
-  <div class="px-4">
+  <div class="px-4 mt-4">
     <input
       class="px-4 py-2 rounded-md border w-full border-border"
       type="search"
@@ -51,7 +51,7 @@
       {#each list as item (item.id)}
         <div class="relative group">
           <button
-            class="list-button w-full relative p-2 pr-7 text-left hover:bg-blackwhite/5 rounded-sm {selectedSummaryId ===
+            class="list-button w-full relative p-2 pr-7 text-left hover:bg-blackwhite/5 rounded-sm {selectedSummaryId ==
             item.id
               ? 'text-text-primary active font-bold'
               : 'hover:bg-white/50 dark:hover:bg-white/5'}"
@@ -65,7 +65,7 @@
           </button>
           <DropdownMenu.Root>
             <DropdownMenu.Trigger
-              class="text-text-muted hover:bg-blackwhite/5 rounded-sm z-10 absolute right-0 justify-center items-center top-0 size-9"
+              class="text-text-muted pointer-none: hover:bg-blackwhite/5 rounded-sm z-10 absolute right-0 justify-center items-center top-0 size-9"
               ><div
                 class="action-button hidden justify-center items-center top-0 size-9"
               >
@@ -80,15 +80,27 @@
 
             <DropdownMenu.Portal>
               <DropdownMenu.Content
-                class="z-50 p-0.5 text-sm rounded-sm bg-surface-1 border flex flex-col gap-px border-border"
+                sideOffset={4}
+                align="end"
+                class="z-50  p-0.5 text-sm rounded-sm bg-surface-2 border flex flex-col gap-px border-border"
               >
+                <div
+                  class="text-text-muted bg-blackwhite/5 rounded-sm z-10 absolute right-0 justify-center items-center flex bottom-full -translate-y-1 size-9"
+                >
+                  <Icon
+                    icon="heroicons:ellipsis-horizontal-16-solid"
+                    width="20"
+                    height="20"
+                    style="color: #fff"
+                  />
+                </div>
                 <DropdownMenu.Item
-                  class="py-1 px-3 hover:bg-blackwhite/5 rounded-sm"
+                  class="py-1 px-3 w-28 hover:bg-blackwhite/5 rounded-sm"
                   >Rename</DropdownMenu.Item
                 >
                 <DropdownMenu.Item
-                  class="py-1 px-3 hover:bg-blackwhite/5 rounded-sm"
-                  >Remove</DropdownMenu.Item
+                  class="py-1 px-3 w-28 hover:bg-blackwhite/5 rounded-sm"
+                  >Delete</DropdownMenu.Item
                 >
               </DropdownMenu.Content>
             </DropdownMenu.Portal>

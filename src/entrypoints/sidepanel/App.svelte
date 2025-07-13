@@ -10,21 +10,22 @@
   import CourseConceptsDisplay from '../../components/displays/CourseConceptsDisplay.svelte' // Component nội dung Course Concepts
   import CourseVideoSummary from '../../components/displays/CourseVideoSummary.svelte' // Component nội dung Course Video Summary
   import YouTubeChapterSummary from '../../components/displays/YouTubeChapterSummary.svelte' // Component nội dung YouTube Chapter
-  import YouTubeVideoSummary from '../../components/displays/YouTubeVideoSummary.svelte' // Component nội dung YouTube Video
-  import WebSummaryDisplay from '../../components/displays/WebSummaryDisplay.svelte' // Component nội dung Web Summary
-  import SelectedTextSummaryDisplay from '../../components/displays/SelectedTextSummaryDisplay.svelte' // Component nội dung Selected Text Summary
-  import YouTubeSummaryDisplay from '../../components/displays/YouTubeSummaryDisplay.svelte' // Component wrapper YouTube
-  import CourseSummaryDisplay from '../../components/displays/CourseSummaryDisplay.svelte' // Component wrapper Course
+  import YouTubeVideoSummary from '../../components/displays/YouTubeVideoSummary.svelte'
+  import WebSummaryDisplay from '../../components/displays/WebSummaryDisplay.svelte'
+  import SelectedTextSummaryDisplay from '../../components/displays/SelectedTextSummaryDisplay.svelte'
+  import YouTubeSummaryDisplay from '../../components/displays/YouTubeSummaryDisplay.svelte'
+  import CourseSummaryDisplay from '../../components/displays/CourseSummaryDisplay.svelte'
+  import CustomToast from '../../components/CustomToast.svelte' // Import CustomToast
   import 'webextension-polyfill'
 
   // Import direct variables and functions from refactored stores
   import {
-    summaryState, // Import the summaryState object
+    summaryState,
     summarizeSelectedText,
     resetDisplayState,
     updateVideoActiveStates,
     fetchAndSummarize,
-    updateActiveCourseTab, // Changed from updateActiveUdemyTab
+    updateActiveCourseTab,
     updateActiveYouTubeTab,
   } from '../../stores/summaryStore.svelte.js'
   import {
@@ -33,12 +34,9 @@
     setTheme,
     subscribeToSystemThemeChanges,
   } from '../../stores/themeStore.svelte.js'
+  import { tabTitle, setTabTitle } from '../../stores/tabTitleStore.svelte.js'
   import {
-    tabTitle, // Import the writable store
-    setTabTitle,
-  } from '../../stores/tabTitleStore.svelte.js'
-  import {
-    settings, // Import settings
+    settings,
     loadSettings,
     subscribeToSettingsChanges,
   } from '../../stores/settingsStore.svelte.js'
@@ -55,6 +53,19 @@
   }
   const [initialize, instance] = useOverlayScrollbars({ options, defer: true })
 
+  let showToast = $state(false)
+  let toastMessage = $state('')
+  let toastType = $state('success')
+
+  function displayToast(message, type = 'success') {
+    toastMessage = message
+    toastType = type
+    showToast = true
+    setTimeout(() => {
+      showToast = false
+    }, 3000) // Hide toast after 3 seconds
+  }
+
   // Use $effect to initialize OverlayScrollbars and listeners
   $effect(() => {
     initialize(document.body)
@@ -62,13 +73,25 @@
     // Call initialization and subscription functions
     loadSettings()
     initializeTheme()
-    const unsubscribeTheme = subscribeToSystemThemeChanges() // Subscribe to system theme changes
-    subscribeToSettingsChanges() // Subscribe to settings changes
+    const unsubscribeTheme = subscribeToSystemThemeChanges()
+    subscribeToSettingsChanges()
+
+    // Listen for custom events from summaryStore for toast messages
+    const handleSaveSuccess = (event) => {
+      displayToast(event.detail.message, 'success')
+    }
+    const handleSaveError = (event) => {
+      displayToast(event.detail.message, 'error')
+    }
+
+    document.addEventListener('saveSummarySuccess', handleSaveSuccess)
+    document.addEventListener('saveSummaryError', handleSaveError)
 
     // Cleanup function for $effect
     return () => {
-      unsubscribeTheme() // Unsubscribe from system theme changes
-      // No need to unsubscribe from settings as onStorageChange does not return an unsubscribe function
+      unsubscribeTheme()
+      document.removeEventListener('saveSummarySuccess', handleSaveSuccess)
+      document.removeEventListener('saveSummaryError', handleSaveError)
     }
   })
 
@@ -106,37 +129,25 @@
         summaryState.summary = request.summary
         summaryState.error = request.error ? request.summary : null
         break
-      case 'udemyTranscriptAvailable': // Xử lý riêng cho Udemy
+      case 'udemyTranscriptAvailable':
         console.log(
           '[App.svelte] Received udemyTranscriptAvailable message:',
           $state.snapshot(request)
         )
-        if (!summaryState.courseSummary && !isAnyCourseLoading) {
-          resetDisplayState()
-          summaryState.lastSummaryTypeDisplayed = 'course'
-          updateActiveCourseTab('courseSummary')
-          fetchAndSummarize()
-        } else {
-          console.log(
-            '[App.svelte] Udemy summary already exists or is loading, skipping fetchAndSummarize.'
-          )
-        }
+        // Chỉ cập nhật trạng thái, không tự động tóm tắt
+        summaryState.isCourseVideoActive = true
+        summaryState.lastSummaryTypeDisplayed = 'course'
+        updateActiveCourseTab('courseSummary')
         break
-      case 'courseraContentAvailable': // Xử lý riêng cho Coursera
+      case 'courseraContentAvailable':
         console.log(
           '[App.svelte] Received courseraContentAvailable message:',
           $state.snapshot(request)
         )
-        if (!summaryState.courseSummary && !isAnyCourseLoading) {
-          resetDisplayState()
-          summaryState.lastSummaryTypeDisplayed = 'course'
-          updateActiveCourseTab('courseSummary')
-          fetchAndSummarize()
-        } else {
-          console.log(
-            '[App.svelte] Coursera summary already exists or is loading, skipping fetchAndSummarize.'
-          )
-        }
+        // Chỉ cập nhật trạng thái, không tự động tóm tắt
+        summaryState.isCourseVideoActive = true
+        summaryState.lastSummaryTypeDisplayed = 'course'
+        updateActiveCourseTab('courseSummary')
         break
       case 'summarizeSelectedText':
         console.log(
@@ -149,9 +160,10 @@
         break
       case 'summarizeCurrentPage':
         console.log(
-          '[App.svelte] Received summarizeCurrentPage message:',
+          '[App.svelte] Received summarizeCurrentPage message (will not trigger fetchAndSummarize directly):',
           $state.snapshot(request)
         )
+        // Chỉ cập nhật trạng thái, không tự động tóm tắt
         resetDisplayState()
         if (request.isYouTube) {
           summaryState.lastSummaryTypeDisplayed = 'youtube'
@@ -162,7 +174,7 @@
         } else {
           summaryState.lastSummaryTypeDisplayed = 'web'
         }
-        fetchAndSummarize()
+        // fetchAndSummarize() // Removed to prevent double API call
         break
       default:
         console.warn('[App.svelte] Unknown message action:', request.action)
@@ -280,5 +292,9 @@
   <div
     class="fixed bg-linear-to-t from-background to-background/40 bottom-0 mask-t-from-50% h-16 backdrop-blur-[2px] w-full z-30 pointer-events-none"
   ></div>
-  <div class="fixed z-50 top-0 right-0"></div>
+  <div class="fixed z-50 top-0 right-0">
+    {#if showToast}
+      <CustomToast message={toastMessage} type={toastType} />
+    {/if}
+  </div>
 </div>

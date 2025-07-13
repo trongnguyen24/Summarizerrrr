@@ -38,17 +38,14 @@
 {/if}
 
 {#if selectedTextSummary && !isSelectedTextLoading}
-  <div id="selected-text-summary">
+  <div id="selected-text-summary-display">
     {@html marked.parse(selectedTextSummary)}
     {#if summaryState.selectedTextSummary && summaryState.lastSummaryTypeDisplayed === 'selectedText'}
-      <SaveToArchiveButton
-        summaryContent={summaryState.selectedTextSummary}
-        summaryType="selectedText"
-      />
+      <SaveToArchiveButton />
     {/if}
   </div>
 
-  <TOC targetDivId="selected-text-summary" />
+  <TOC targetDivId="selected-text-summary-display" />
 {:else if !isSelectedTextLoading && !selectedTextError}
   <!-- Optional: Add a placeholder if no selected text summary and no error -->
   <!-- <p class="text-text-secondary text-center italic">No selected text summary available.</p> -->

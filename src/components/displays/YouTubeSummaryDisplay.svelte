@@ -3,7 +3,6 @@
   import TabNavigation from '../TabNavigation.svelte'
   import YouTubeVideoSummary from './YouTubeVideoSummary.svelte'
   import YouTubeChapterSummary from './YouTubeChapterSummary.svelte'
-  // Import trực tiếp updateActiveYouTubeTab từ summaryStore.svelte.js
   import {
     summaryState,
     updateActiveYouTubeTab,

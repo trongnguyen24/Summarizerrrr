@@ -1,6 +1,6 @@
 <!-- @ts-nocheck -->
 <script>
-  import { summaryState } from '../../stores/summaryStore.svelte.js' // Keep for isCourseConceptsLoading and courseConcepts
+  import { summaryState } from '../../stores/summaryStore.svelte.js'
   import SaveToArchiveButton from '@/components/buttons/SaveToArchiveButton.svelte'
   import PlusIcon from '../PlusIcon.svelte'
   import Toc from '../TOC.svelte'
@@ -37,16 +37,13 @@
       <PlusIcon color="red" position="bottom-right" />
     </div>
   {:else if courseConcepts}
-    <div id="course-summary">
+    <div id="course-concepts-display">
       {@html marked.parse(courseConcepts)}
       {#if summaryState.courseConcepts && summaryState.lastSummaryTypeDisplayed === 'course' && summaryState.activeCourseTab === 'courseConcepts'}
-        <SaveToArchiveButton
-          summaryContent={summaryState.courseConcepts}
-          summaryType="courseConcepts"
-        />
+        <SaveToArchiveButton />
       {/if}
     </div>
-    <Toc targetDivId="course-summary" />
+    <Toc targetDivId="course-concepts-display" />
   {:else}
     <div class="text-text-secondary text-center p-4">
       <p>No Course concepts available yet.</p>

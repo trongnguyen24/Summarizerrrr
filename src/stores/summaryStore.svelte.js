@@ -2,33 +2,41 @@
 import { marked } from 'marked'
 import { getPageContent } from '../services/contentService.js'
 import { getActiveTabInfo } from '../services/chromeService.js'
-import { settings, loadSettings } from './settingsStore.svelte.js' // Import settings and loadSettings
+import { settings, loadSettings } from './settingsStore.svelte.js'
 import { summarizeContent, summarizeChapters } from '../lib/api.js'
-import { addSummary } from '../lib/indexedDBService.js' // Đảm bảo import này có ở đầu file summaryStore.svelte.js
+import {
+  addSummary,
+  addHistory,
+  getSummaryById,
+  getHistoryById,
+} from '../lib/indexedDBService.js'
+import { generateUUID } from '../lib/utils.js'
 
 // --- State ---
 export const summaryState = $state({
   summary: '',
   chapterSummary: '',
-  courseSummary: '', // For Course video summary
-  courseConcepts: '', // For Course concepts explanation
+  courseSummary: '',
+  courseConcepts: '',
   isLoading: false,
   isChapterLoading: false,
-  isCourseSummaryLoading: false, // For Course video summary loading state
-  isCourseConceptsLoading: false, // For Course concepts loading state
+  isCourseSummaryLoading: false,
+  isCourseConceptsLoading: false,
   error: '',
   chapterError: '',
-  courseSummaryError: '', // For Course summary error
-  courseConceptsError: '', // For Course concepts error
+  courseSummaryError: '',
+  courseConceptsError: '',
   isYouTubeVideoActive: false,
-  isCourseVideoActive: false, // For Course video active state
+  isCourseVideoActive: false,
   currentContentSource: '',
   selectedTextSummary: '',
   isSelectedTextLoading: false,
   selectedTextError: '',
   lastSummaryTypeDisplayed: null,
   activeYouTubeTab: 'videoSummary',
-  activeCourseTab: 'courseSummary', // For active Course tab
+  activeCourseTab: 'courseSummary',
+  pageTitle: '', // Thêm pageTitle vào state
+  pageUrl: '', // Thêm pageUrl vào state
 })
 
 // --- Actions ---
@@ -57,6 +65,8 @@ export function resetState() {
   summaryState.lastSummaryTypeDisplayed = null
   summaryState.activeYouTubeTab = 'videoSummary'
   summaryState.activeCourseTab = 'courseSummary'
+  summaryState.pageTitle = ''
+  summaryState.pageUrl = ''
 }
 
 /**
@@ -202,7 +212,7 @@ export async function fetchAndSummarize() {
     summaryState.isCourseVideoActive = COURSE_MATCH_PATTERN.test(tabInfo.url)
 
     console.log(
-      `[summaryStore] Current tab is: ${tabInfo.url}. YouTube video: ${summaryState.isYouTubeVideoActive}. Course video: ${summaryState.isCourseVideoActive}` // Changed from Udemy video
+      `[summaryStore] Current tab is: ${tabInfo.url}. YouTube video: ${summaryState.isYouTubeVideoActive}. Course video: ${summaryState.isCourseVideoActive}`
     )
 
     let mainContentTypeToFetch = 'webpageText'
@@ -211,14 +221,13 @@ export async function fetchAndSummarize() {
     if (summaryState.isYouTubeVideoActive) {
       mainContentTypeToFetch = 'transcript'
       summaryType = 'youtube'
-      summaryState.lastSummaryTypeDisplayed = 'youtube' // Set immediately
+      summaryState.lastSummaryTypeDisplayed = 'youtube'
     } else if (summaryState.isCourseVideoActive) {
-      // Changed from isUdemyVideoActive
       mainContentTypeToFetch = 'transcript'
-      summaryType = 'courseSummary' // Changed from udemySummary
-      summaryState.lastSummaryTypeDisplayed = 'course' // Changed from udemy
+      summaryType = 'courseSummary'
+      summaryState.lastSummaryTypeDisplayed = 'course'
     } else {
-      summaryState.lastSummaryTypeDisplayed = 'web' // Set immediately for general web
+      summaryState.lastSummaryTypeDisplayed = 'web'
     }
     console.log(
       `[summaryStore] Will fetch main content type: ${mainContentTypeToFetch} for summary type: ${summaryType}`
@@ -271,7 +280,7 @@ export async function fetchAndSummarize() {
             summaryState.chapterSummary =
               '<p><i>Could not generate chapter summary from this content.</i></p>'
           } else {
-            summaryState.chapterSummary = marked.parse(chapterSummarizedText)
+            summaryState.chapterSummary = chapterSummarizedText
           }
           console.log('[summaryStore] Chapter summary processed.')
         } catch (e) {
@@ -299,7 +308,7 @@ export async function fetchAndSummarize() {
             summaryState.summary =
               '<p><i>Could not generate YouTube video summary from this content.</i></p>'
           } else {
-            summaryState.summary = marked.parse(videoSummarizedText)
+            summaryState.summary = videoSummarizedText
           }
           console.log('[summaryStore] YouTube video summary processed.')
         } catch (e) {
@@ -313,74 +322,67 @@ export async function fetchAndSummarize() {
       })()
       await Promise.all([chapterPromise, videoSummaryPromise])
     } else if (summaryState.isCourseVideoActive) {
-      // Changed from isUdemyVideoActive
       console.log(
-        '[summaryStore] Starting Course summary and concept explanation...' // Changed from Udemy
+        '[summaryStore] Starting Course summary and concept explanation...'
       )
 
       const courseSummaryPromise = (async () => {
-        // Changed from udemySummaryPromise
-        summaryState.courseSummaryError = '' // Changed from udemySummaryError
+        summaryState.courseSummaryError = ''
         try {
           const courseSummarizedText = await summarizeContent(
-            // Changed from udemySummarizedText
             summaryState.currentContentSource,
-            'courseSummary' // Changed from udemySummary
+            'courseSummary'
           )
 
           if (!courseSummarizedText || courseSummarizedText.trim() === '') {
-            // Changed from udemySummarizedText
             console.warn(
-              '[summaryStore] Gemini returned empty result for Course summary.' // Changed from Udemy
+              '[summaryStore] Gemini returned empty result for Course summary.'
             )
-            summaryState.courseSummary = // Changed from udemySummary
-              '<p><i>Could not generate Course lecture summary from this content.</i></p>' // Changed from Udemy
+            summaryState.courseSummary =
+              '<p><i>Could not generate Course lecture summary from this content.</i></p>'
           } else {
-            summaryState.courseSummary = marked.parse(courseSummarizedText) // Changed from udemySummary, udemySummarizedText
+            summaryState.courseSummary = courseSummarizedText
           }
-          console.log('[summaryStore] Course summary processed.') // Changed from Udemy
+          console.log('[summaryStore] Course summary processed.')
         } catch (e) {
-          console.error('[summaryStore] Course summarization error:', e) // Changed from Udemy
-          summaryState.courseSummaryError = // Changed from udemySummaryError
+          console.error('[summaryStore] Course summarization error:', e)
+          summaryState.courseSummaryError =
             e.message ||
-            'Unexpected error when summarizing Course video. Please try again later.' // Changed from Udemy
+            'Unexpected error when summarizing Course video. Please try again later.'
         } finally {
-          summaryState.isCourseSummaryLoading = false // Changed from isUdemySummaryLoading
+          summaryState.isCourseSummaryLoading = false
         }
       })()
 
       const courseConceptsPromise = (async () => {
-        // Changed from udemyConceptsPromise
-        summaryState.courseConceptsError = '' // Changed from udemyConceptsError
+        summaryState.courseConceptsError = ''
         try {
           const courseConceptsText = await summarizeContent(
-            // Changed from udemyConceptsText
             summaryState.currentContentSource,
-            'courseConcepts' // Changed from udemyConcepts
+            'courseConcepts'
           )
 
           if (!courseConceptsText || courseConceptsText.trim() === '') {
-            // Changed from udemyConceptsText
             console.warn(
-              '[summaryStore] Gemini returned empty result for Course concept explanation.' // Changed from Udemy
+              '[summaryStore] Gemini returned empty result for Course concept explanation.'
             )
-            summaryState.courseConcepts = // Changed from udemyConcepts
+            summaryState.courseConcepts =
               '<p><i>Could not explain terms from this content.</i></p>'
           } else {
-            summaryState.courseConcepts = marked.parse(courseConceptsText) // Changed from udemyConcepts, udemyConceptsText
+            summaryState.courseConcepts = courseConceptsText
           }
-          console.log('[summaryStore] Course concept explanation processed.') // Changed from Udemy
+          console.log('[summaryStore] Course concept explanation processed.')
         } catch (e) {
-          console.error('[summaryStore] Course concept explanation error:', e) // Changed from Udemy
-          summaryState.courseConceptsError = // Changed from udemyConceptsError
+          console.error('[summaryStore] Course concept explanation error:', e)
+          summaryState.courseConceptsError =
             e.message ||
-            'Unexpected error when explaining Course concepts. Please try again later.' // Changed from Udemy
+            'Unexpected error when explaining Course concepts. Please try again later.'
         } finally {
-          summaryState.isCourseConceptsLoading = false // Changed from isUdemyConceptsLoading
+          summaryState.isCourseConceptsLoading = false
         }
       })()
 
-      await Promise.allSettled([courseSummaryPromise, courseConceptsPromise]) // Changed from udemySummaryPromise, udemyConceptsPromise
+      await Promise.allSettled([courseSummaryPromise, courseConceptsPromise])
     } else {
       // For general webpages, this is the primary summarization.
       console.log(
@@ -398,20 +400,23 @@ export async function fetchAndSummarize() {
         summaryState.summary =
           '<p><i>Could not generate summary from this content.</i></p>'
       } else {
-        summaryState.summary = marked.parse(summarizedText)
+        summaryState.summary = summarizedText
       }
     }
   } catch (e) {
     console.error('[summaryStore] Error during main summarization process:', e)
     summaryState.error =
       e.message || 'An unexpected error occurred. Please try again later.'
-    summaryState.lastSummaryTypeDisplayed = 'web' // Ensure error is displayed in WebSummaryDisplay
+    summaryState.lastSummaryTypeDisplayed = 'web'
   } finally {
     // Ensure all loading states are set to false
     summaryState.isLoading = false
     summaryState.isChapterLoading = false
     summaryState.isCourseSummaryLoading = false
     summaryState.isCourseConceptsLoading = false
+
+    // Log all generated summaries to history after all loading is complete
+    await logAllGeneratedSummariesToHistory()
   }
 }
 
@@ -440,6 +445,11 @@ export async function summarizeSelectedText(text) {
   try {
     summaryState.isSelectedTextLoading = true
 
+    // Get current tab info for title and URL
+    const tabInfo = await getActiveTabInfo()
+    summaryState.pageTitle = tabInfo.title || 'Selected Text Summary'
+    summaryState.pageUrl = tabInfo.url || 'Unknown URL'
+
     // Determine the actual provider to use based on isAdvancedMode
     let selectedProviderId = userSettings.selectedProvider || 'gemini'
     if (!userSettings.isAdvancedMode) {
@@ -463,7 +473,7 @@ export async function summarizeSelectedText(text) {
       summaryState.selectedTextSummary =
         '<p><i>Could not generate summary from this selected text.</i></p>'
     } else {
-      summaryState.selectedTextSummary = marked.parse(summarizedText)
+      summaryState.selectedTextSummary = summarizedText
     }
     console.log('[summaryStore] Selected text summary processed.')
   } catch (e) {
@@ -474,36 +484,173 @@ export async function summarizeSelectedText(text) {
     summaryState.lastSummaryTypeDisplayed = 'selectedText'
   } finally {
     summaryState.isSelectedTextLoading = false
+    await logAllGeneratedSummariesToHistory()
   }
 }
 
-export async function saveSummaryToArchive(summaryContent, type) {
-  if (!summaryContent || summaryContent.trim() === '') {
-    console.warn(`Không có nội dung tóm tắt loại '${type}' để lưu.`)
-    // TODO: Thêm thông báo cho người dùng (ví dụ: sử dụng CustomToast)
+export async function saveAllGeneratedSummariesToArchive() {
+  const summariesToSave = []
+
+  if (summaryState.summary && summaryState.summary.trim() !== '') {
+    summariesToSave.push({
+      title:
+        summaryState.lastSummaryTypeDisplayed === 'youtube'
+          ? 'Tóm tắt Video'
+          : 'Tóm tắt Trang Web',
+      content: summaryState.summary,
+    })
+  }
+  if (
+    summaryState.chapterSummary &&
+    summaryState.chapterSummary.trim() !== ''
+  ) {
+    summariesToSave.push({
+      title: 'Tóm tắt Chương',
+      content: summaryState.chapterSummary,
+    })
+  }
+  if (summaryState.courseSummary && summaryState.courseSummary.trim() !== '') {
+    summariesToSave.push({
+      title: 'Tóm tắt Khóa học',
+      content: summaryState.courseSummary,
+    })
+  }
+  if (
+    summaryState.courseConcepts &&
+    summaryState.courseConcepts.trim() !== ''
+  ) {
+    summariesToSave.push({
+      title: 'Khái niệm Khóa học',
+      content: summaryState.courseConcepts,
+    })
+  }
+  if (
+    summaryState.selectedTextSummary &&
+    summaryState.selectedTextSummary.trim() !== ''
+  ) {
+    summariesToSave.push({
+      title: 'Tóm tắt Văn bản đã chọn',
+      content: summaryState.selectedTextSummary,
+    })
+  }
+
+  if (summariesToSave.length === 0) {
+    console.warn('Không có bản tóm tắt nào để lưu vào Archive.')
+    // TODO: Thêm thông báo cho người dùng
     return
   }
 
   try {
-    const title = summaryState.pageTitle || 'Unknown Title'
-    const url = summaryState.pageUrl || 'Unknown URL'
-
-    const summaryToSave = {
-      title: title,
-      url: url,
-      summary: summaryContent, // Nội dung markdown thô
+    const archiveEntry = {
+      id: generateUUID(), // Generate UUID for new entry
+      title: summaryState.pageTitle || 'Tiêu đề không xác định',
+      url: summaryState.pageUrl || 'URL không xác định',
       date: new Date().toISOString(),
-      type: type, // Lưu loại tóm tắt để dễ quản lý sau này
+      summaries: summariesToSave,
     }
 
-    await addSummary(summaryToSave)
+    await addSummary(archiveEntry)
     console.log(
-      `Tóm tắt loại '${type}' đã được lưu vào Archive:`,
-      summaryToSave
+      'Đã lưu tất cả các bản tóm tắt đã tạo vào Archive:',
+      archiveEntry
     )
-    // TODO: Thêm thông báo thành công cho người dùng (ví dụ: CustomToast)
+    document.dispatchEvent(
+      new CustomEvent('saveSummarySuccess', {
+        detail: { message: 'Saved to Archive successfully!' },
+      })
+    )
   } catch (error) {
-    console.error(`Lỗi khi lưu tóm tắt loại '${type}' vào Archive:`, error)
-    // TODO: Thêm thông báo lỗi cho người dùng (ví dụ: CustomToast)
+    console.error(
+      'Lỗi khi lưu tất cả các bản tóm tắt đã tạo vào Archive:',
+      error
+    )
+    document.dispatchEvent(
+      new CustomEvent('saveSummaryError', {
+        detail: { message: `Error saving to Archive: ${error.message}` },
+      })
+    )
+  }
+}
+
+export async function logAllGeneratedSummariesToHistory() {
+  const summariesToLog = []
+
+  if (summaryState.summary && summaryState.summary.trim() !== '') {
+    summariesToLog.push({
+      title:
+        summaryState.lastSummaryTypeDisplayed === 'youtube'
+          ? 'Tóm tắt Video'
+          : 'Tóm tắt Trang Web',
+      content: summaryState.summary,
+    })
+  }
+  if (
+    summaryState.chapterSummary &&
+    summaryState.chapterSummary.trim() !== ''
+  ) {
+    summariesToLog.push({
+      title: 'Tóm tắt Chương',
+      content: summaryState.chapterSummary,
+    })
+  }
+  if (summaryState.courseSummary && summaryState.courseSummary.trim() !== '') {
+    summariesToLog.push({
+      title: 'Tóm tắt Khóa học',
+      content: summaryState.courseSummary,
+    })
+  }
+  if (
+    summaryState.courseConcepts &&
+    summaryState.courseConcepts.trim() !== ''
+  ) {
+    summariesToLog.push({
+      title: 'Khái niệm Khóa học',
+      content: summaryState.courseConcepts,
+    })
+  }
+  if (
+    summaryState.selectedTextSummary &&
+    summaryState.selectedTextSummary.trim() !== ''
+  ) {
+    summariesToLog.push({
+      title: 'Tóm tắt Văn bản đã chọn',
+      content: summaryState.selectedTextSummary,
+    })
+  }
+
+  if (summariesToLog.length === 0) {
+    console.warn('Không có bản tóm tắt nào để ghi vào History.')
+    return
+  }
+
+  try {
+    const historyEntry = {
+      id: generateUUID(), // Generate UUID for new entry
+      title: summaryState.pageTitle || 'Tiêu đề không xác định',
+      url: summaryState.pageUrl || 'URL không xác định',
+      date: new Date().toISOString(),
+      summaries: summariesToLog,
+    }
+
+    await addHistory(historyEntry)
+    console.log(
+      'Đã ghi tất cả các bản tóm tắt đã tạo vào History:',
+      historyEntry
+    )
+    document.dispatchEvent(
+      new CustomEvent('saveSummarySuccess', {
+        detail: { message: 'Logged to History successfully!' },
+      })
+    )
+  } catch (error) {
+    console.error(
+      'Lỗi khi ghi tất cả các bản tóm tắt đã tạo vào History:',
+      error
+    )
+    document.dispatchEvent(
+      new CustomEvent('saveSummaryError', {
+        detail: { message: `Error logging to History: ${error.message}` },
+      })
+    )
   }
 }

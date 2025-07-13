@@ -37,16 +37,13 @@
 {/if}
 
 {#if summary && !isLoading}
-  <div id="course-summary">
+  <div id="course-video-summary-display">
     {@html marked.parse(summary)}
     {#if summaryState.courseSummary && summaryState.lastSummaryTypeDisplayed === 'course' && summaryState.activeCourseTab === 'courseSummary'}
-      <SaveToArchiveButton
-        summaryContent={summaryState.courseSummary}
-        summaryType="courseSummary"
-      />
+      <SaveToArchiveButton />
     {/if}
   </div>
-  <TOC targetDivId="course-summary" />
+  <TOC targetDivId="course-video-summary-display" />
 {:else if !isLoading && !error}
   <!-- Optional: Placeholder for main Course summary -->
   <!-- <p class="text-text-secondary text-center italic">No main Course summary available.</p> -->

@@ -5,8 +5,13 @@
   import 'overlayscrollbars/overlayscrollbars.css'
   import { animate, waapi, eases, createSpring } from 'animejs'
   import { useOverlayScrollbars } from 'overlayscrollbars-svelte'
-  import { openDatabase, getAllSummaries } from '@/lib/indexedDBService'
+  import {
+    openDatabase,
+    getAllSummaries,
+    getAllHistory,
+  } from '@/lib/indexedDBService'
   import SidePanel from './SidePanel.svelte'
+  import TabNavigation from '@/components/TabNavigation.svelte'
   import { marked } from 'marked'
 
   import hljs from 'highlight.js'
@@ -15,8 +20,8 @@
     subscribeToSystemThemeChanges,
   } from '../../stores/themeStore.svelte.js'
 
-  let isSidePanelVisible = $state(true) // Thêm biến trạng thái để kiểm soát hiển thị sidepanel
-  let sidePanel // Biến để bind với div của sidepanel
+  let isSidePanelVisible = $state(true)
+  let sidePanel
 
   const options = {
     scrollbars: {
@@ -30,49 +35,69 @@
     defer: true,
   })
 
-  let list = $state([])
+  let activeTab = $state('history') // Set history as default tab
+  let archiveList = $state([])
+  let historyList = $state([])
   let selectedSummary = $state(null)
-  let selectedSummaryId = $state(null) // Thêm biến trạng thái để lưu ID của tóm tắt được chọn
+  let selectedSummaryId = $state(null)
+
+  async function loadData() {
+    try {
+      await openDatabase()
+      archiveList = await getAllSummaries()
+      historyList = await getAllHistory()
+
+      const urlParams = new URLSearchParams(window.location.search)
+      const idFromUrl = urlParams.get('summaryId')
+      const tabFromUrl = urlParams.get('tab')
+
+      if (tabFromUrl === 'archive') {
+        activeTab = 'archive'
+        if (idFromUrl) {
+          selectedSummary = archiveList.find((s) => s.id === idFromUrl)
+          selectedSummaryId = idFromUrl
+        } else if (archiveList.length > 0) {
+          selectedSummary = archiveList[0]
+          selectedSummaryId = archiveList[0].id
+          window.history.replaceState(
+            {},
+            '',
+            `?tab=archive&summaryId=${archiveList[0].id}`
+          )
+        }
+      } else {
+        // Default to history tab
+        activeTab = 'history'
+        if (idFromUrl) {
+          selectedSummary = historyList.find((s) => s.id === idFromUrl)
+          selectedSummaryId = idFromUrl
+        } else if (historyList.length > 0) {
+          selectedSummary = historyList[0]
+          selectedSummaryId = historyList[0].id
+          window.history.replaceState(
+            {},
+            '',
+            `?tab=history&summaryId=${historyList[0].id}`
+          )
+        }
+      }
+    } catch (error) {
+      console.error('Failed to initialize DB or load data:', error)
+    }
+  }
 
   $effect(() => {
     initialize2(document.body)
-
-    async function initDbAndLoadSummaries() {
-      try {
-        await openDatabase()
-        const summaries = await getAllSummaries()
-        list = summaries.map((s) => ({
-          id: s.id,
-          title: s.title,
-          url: s.url,
-          summary: s.summary,
-          date: s.date,
-        }))
-
-        const urlParams = new URLSearchParams(window.location.search)
-        const idFromUrl = urlParams.get('summaryId')
-
-        if (idFromUrl) {
-          selectedSummary = list.find((s) => s.id == idFromUrl)
-          selectedSummaryId = idFromUrl
-        } else if (list.length > 0) {
-          selectedSummary = list[0] // Select the first summary by default
-          selectedSummaryId = list[0].id
-          window.history.replaceState({}, '', `?summaryId=${list[0].id}`)
-        }
-      } catch (error) {
-        console.error('Failed to initialize DB or load summaries:', error)
-      }
-    }
-    initDbAndLoadSummaries()
+    loadData()
   })
 
   $effect(() => {
     if (selectedSummary) {
-      // Đảm bảo DOM đã được cập nhật trước khi làm nổi bật
-      document.querySelectorAll('#summary pre code').forEach((block) => {
-        hljs.highlightElement(block)
-      })
+      document
+        .querySelectorAll('.summary-content pre code')
+        .forEach((block) => {
+          hljs.highlightElement(block)
+        })
     }
     initializeTheme()
     const unsubscribeTheme = subscribeToSystemThemeChanges()
@@ -108,12 +133,41 @@
   function selectSummary(summary) {
     selectedSummary = summary
     selectedSummaryId = summary.id
-    window.history.pushState({}, '', `?summaryId=${summary.id}`)
+    window.history.pushState(
+      {},
+      '',
+      `?tab=${activeTab}&summaryId=${summary.id}`
+    )
+  }
+
+  function selectTab(tabName) {
+    activeTab = tabName
+    selectedSummary = null // Clear selected summary when changing tabs
+    selectedSummaryId = null
+    window.history.replaceState({}, '', `?tab=${tabName}`)
+    // Select the first item of the new tab if available
+    if (tabName === 'history' && historyList.length > 0) {
+      selectedSummary = historyList[0]
+      selectedSummaryId = historyList[0].id
+      window.history.replaceState(
+        {},
+        '',
+        `?tab=history&summaryId=${historyList[0].id}`
+      )
+    } else if (tabName === 'archive' && archiveList.length > 0) {
+      selectedSummary = archiveList[0]
+      selectedSummaryId = archiveList[0].id
+      window.history.replaceState(
+        {},
+        '',
+        `?tab=archive&summaryId=${archiveList[0].id}`
+      )
+    }
   }
 
   function formatDate(isoString) {
     const date = new Date(isoString)
-    return date.toLocaleString('vi-VN', {
+    return date.toLocaleString('en-US', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
@@ -131,6 +185,11 @@
       hideSidePanel()
     }
   }
+
+  const mainTabs = $derived([
+    { id: 'history', label: 'History', show: true, isLoading: false },
+    { id: 'archive', label: 'Archive', show: true, isLoading: false },
+  ])
 </script>
 
 <main class="flex text-sm relative min-h-dvh bg-background text-text-primary">
@@ -158,7 +217,13 @@
   >
     <div class="w-px absolute z-30 top-0 right-0 h-screen bg-border/70"></div>
     {#if isSidePanelVisible}
-      <SidePanel {list} {selectedSummary} {selectSummary} {selectedSummaryId} />
+      <TabNavigation tabs={mainTabs} {activeTab} onSelectTab={selectTab} />
+      <SidePanel
+        list={activeTab === 'archive' ? archiveList : historyList}
+        {selectedSummary}
+        {selectSummary}
+        {selectedSummaryId}
+      />
     {/if}
   </div>
 
@@ -168,8 +233,6 @@
     {isSidePanelVisible ? 'sm:pl-80' : ''}
     "
   >
-    <!-- <PlusIcon /> -->
-
     {#if selectedSummary}
       <div class="mx-auto p-8">
         <div>
@@ -203,19 +266,19 @@
             </h1>
           </div>
           <div
-            class="prose w-full mx-auto py-16 max-w-3xl prose-xs pb-12"
-            id="summary"
+            class="prose w-full mx-auto py-16 max-w-3xl prose-xs pb-12 summary-content"
           >
-            {@html selectedSummary.summary
-              ? marked.parse(selectedSummary.summary)
-              : ''}
+            {#each selectedSummary.summaries as subSummary}
+              <h2 class="text-xl font-semibold mt-8 mb-4">
+                {subSummary.title}
+              </h2>
+              {@html marked.parse(subSummary.content)}
+            {/each}
           </div>
         </div>
       </div>
     {:else}
-      <p class="text-center text-text-secondary">
-        Không có tóm tắt nào được chọn.
-      </p>
+      <p class="text-center text-text-secondary">No summary selected.</p>
     {/if}
   </div>
   <div

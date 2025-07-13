@@ -5,8 +5,9 @@
   import { DropdownMenu } from 'bits-ui'
   import { useOverlayScrollbars } from 'overlayscrollbars-svelte'
   import { slideScaleFade } from '@/lib/slideScaleFade'
+  import { addSummary, getSummaryById } from '@/lib/indexedDBService' // Import addSummary and getSummaryById
 
-  const { list, selectedSummary, selectSummary, selectedSummaryId } = $props() // Thêm selectedSummaryId
+  const { list, selectedSummary, selectSummary, selectedSummaryId } = $props()
 
   const options = {
     scrollbars: {
@@ -20,6 +21,42 @@
   $effect(() => {
     initialize(document.getElementById('scroll-side'))
   })
+
+  async function saveToArchiveFromHistory(item) {
+    try {
+      const existingSummary = await getSummaryById(item.id)
+      if (existingSummary) {
+        document.dispatchEvent(
+          new CustomEvent('saveSummaryError', {
+            detail: { message: 'This summary is already in Archive!' },
+          })
+        )
+        return
+      }
+
+      const archiveEntry = {
+        id: item.id, // Keep the same ID
+        title: item.title,
+        url: item.url,
+        date: item.date,
+        summaries: item.summaries,
+      }
+
+      await addSummary(archiveEntry)
+      document.dispatchEvent(
+        new CustomEvent('saveSummarySuccess', {
+          detail: { message: 'Saved to Archive successfully!' },
+        })
+      )
+    } catch (error) {
+      console.error('Error saving history item to archive:', error)
+      document.dispatchEvent(
+        new CustomEvent('saveSummaryError', {
+          detail: { message: `Error saving to Archive: ${error.message}` },
+        })
+      )
+    }
+  }
 </script>
 
 <div
@@ -31,7 +68,6 @@
   }}
   class="w-80 relative flex flex-col h-screen"
 >
-  <h2 class="text-lg pl-11 pt-4.5 pb-2 font-bold">Archive</h2>
   <div class="px-4 mt-4">
     <input
       class="px-4 py-2 rounded-md border w-full border-border"
@@ -94,6 +130,11 @@
                     style="color: #fff"
                   />
                 </div>
+                <DropdownMenu.Item
+                  class="py-1 px-3 w-28 hover:bg-blackwhite/5 rounded-sm"
+                  onselect={() => saveToArchiveFromHistory(item)}
+                  >Save to Archive</DropdownMenu.Item
+                >
                 <DropdownMenu.Item
                   class="py-1 px-3 w-28 hover:bg-blackwhite/5 rounded-sm"
                   >Rename</DropdownMenu.Item

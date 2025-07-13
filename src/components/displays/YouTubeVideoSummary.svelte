@@ -37,16 +37,13 @@
 {/if}
 
 {#if summary && !isLoading}
-  <div id="youtube-summary">
+  <div id="youtube-video-summary-display">
     {@html marked.parse(summary)}
     {#if summaryState.summary && summaryState.lastSummaryTypeDisplayed === 'youtube'}
-      <SaveToArchiveButton
-        summaryContent={summaryState.summary}
-        summaryType="youtube"
-      />
+      <SaveToArchiveButton />
     {/if}
   </div>
-  <TOC targetDivId="youtube-summary" />
+  <TOC targetDivId="youtube-video-summary-display" />
 {:else if !isLoading && !error}
   <!-- Optional: Placeholder for main YouTube summary -->
   <!-- <p class="text-text-secondary text-center italic">No main YouTube summary available.</p> -->

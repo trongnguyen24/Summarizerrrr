@@ -1,9 +1,8 @@
 <script>
   // @ts-nocheck
   import TabNavigation from '../TabNavigation.svelte'
-  import CourseVideoSummary from './CourseVideoSummary.svelte' // New: for Course video summary content
+  import CourseVideoSummary from './CourseVideoSummary.svelte'
   import CourseConceptsDisplay from './CourseConceptsDisplay.svelte'
-  // Import trực tiếp updateActiveCourseTab từ summaryStore.svelte.js
   import {
     summaryState,
     updateActiveCourseTab,

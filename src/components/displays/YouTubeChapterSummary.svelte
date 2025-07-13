@@ -37,17 +37,14 @@
 {/if}
 
 {#if chapterSummary && !isChapterLoading}
-  <div id="chaptersummary">
+  <div id="youtube-chapter-summary-display">
     {@html marked.parse(chapterSummary)}
     {#if summaryState.chapterSummary && summaryState.lastSummaryTypeDisplayed === 'youtube' && summaryState.activeYouTubeTab === 'chapterSummary'}
-      <SaveToArchiveButton
-        summaryContent={summaryState.chapterSummary}
-        summaryType="chapter"
-      />
+      <SaveToArchiveButton />
     {/if}
   </div>
 
-  <TOC targetDivId="chaptersummary" />
+  <TOC targetDivId="youtube-chapter-summary-display" />
 {:else if !isChapterLoading && !chapterError}
   <!-- Optional: Add a placeholder if no chapter summary and no error -->
   <!-- <p class="text-text-secondary text-center italic">No chapter summary available.</p> -->

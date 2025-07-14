@@ -56,7 +56,7 @@
     {#each tabs as tab (tab.id)}
       <button
         bind:this={tabButtons[tab.id]}
-        class="w-30 h-8 relative rounded-sm transition-colors duration-150 {activeTab ===
+        class="w-30 p-4 py-6 relative rounded-sm transition-colors duration-150 {activeTab ===
         tab.id
           ? 'text-text-primary font-bold active'
           : ''} "

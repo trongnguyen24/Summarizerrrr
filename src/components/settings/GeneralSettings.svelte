@@ -7,7 +7,11 @@
     settings,
     updateSettings,
   } from '../../stores/settingsStore.svelte.js'
-  import { getTheme, setTheme } from '../../stores/themeStore.svelte'
+  import {
+    themeSettings,
+    setTheme,
+    updateThemeSettings as updateThemeStoreSettings,
+  } from '../../stores/themeStore.svelte' // Import themeSettings và updateThemeSettings
 
   function handleUpdateSetting(key, value) {
     updateSettings({ [key]: value })
@@ -69,24 +73,24 @@
     <div class="flexw-full gap-1">
       <ButtonIcon
         title="Light"
-        class="setting-btn {getTheme() === 'light' ? 'active' : ''}"
-        onclick={() => setTheme('light')}
+        class="setting-btn {themeSettings.theme === 'light' ? 'active' : ''}"
+        onclick={() => updateThemeStoreSettings({ theme: 'light' })}
         Description="Light theme."
       >
         <Icon icon="heroicons:sun-16-solid" width="20" height="20" />
       </ButtonIcon>
       <ButtonIcon
         title="Dark"
-        class="setting-btn {getTheme() === 'dark' ? 'active' : ''}"
-        onclick={() => setTheme('dark')}
+        class="setting-btn {themeSettings.theme === 'dark' ? 'active' : ''}"
+        onclick={() => updateThemeStoreSettings({ theme: 'dark' })}
         Description="Dark theme."
       >
         <Icon icon="heroicons:moon-20-solid" width="20" height="20" />
       </ButtonIcon>
       <ButtonIcon
         title="System"
-        class="setting-btn {getTheme() === 'system' ? 'active' : ''}"
-        onclick={() => setTheme('system')}
+        class="setting-btn {themeSettings.theme === 'system' ? 'active' : ''}"
+        onclick={() => updateThemeStoreSettings({ theme: 'system' })}
         Description="System theme."
       >
         <Icon

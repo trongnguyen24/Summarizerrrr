@@ -171,11 +171,11 @@
   class="fixed z-20 right-8 bottom-8 group p-2 pr-3 origin-bottom-right"
 >
   <div
-    class="flex items-end group-hover:opacity-0 transition-all flex-col gap-1.5"
+    class="flex items-end group-hover:opacity-0 transition-all flex-col gap-2"
   >
     {#each headings as heading}
       <span
-        class="w-1 flex h-px dark:bg-white {heading.id === activeHeadingId
+        class="w-2 flex h-px dark:bg-white {heading.id === activeHeadingId
           ? 'opacity-100 bg-primary'
           : 'opacity-50 bg-text-secondary'} lvs{heading.level}"
       >
@@ -186,7 +186,7 @@
       </span>
     {/each}
     <span
-      class="w-1 text-[0.5rem] mt-0.5 select-none flex justify-center items-center h-px text-primary dark:text-white"
+      class="w-1.5 text-[0.65rem] mt-0.5 select-none flex justify-center items-center h-px text-primary dark:text-white"
     >
       ^
     </span>
@@ -197,7 +197,7 @@
     <div class="relative">
       <div
         id="toc-scroll"
-        class="w-64 xs:w-80 overflow-auto max-h-[calc(100vh-150px)] border rounded-t-lg border-border bg-surface-1"
+        class="w-80 xs:w-108 overflow-auto max-h-[calc(100vh-150px)] border rounded-t-lg border-border bg-background"
       >
         <div
           class="flex flex-col divide-y divide-border/50 dark:divide-border/70"
@@ -206,7 +206,7 @@
             <a
               href="#{heading.id}"
               onclick={() => scrollToHeading(heading.id)}
-              class="px-3 py-2 font-mono text-xs/4 no-underline transition-colors
+              class="px-3 py-2 font-mono text-sm/5 no-underline transition-colors
           {heading.id === activeHeadingId
                 ? 'text-text-primary bg-black/5 dark:bg-white/5'
                 : 'text-text-secondary hover:text-text-primary'}
@@ -221,7 +221,7 @@
       </div>
       <a
         href="#top"
-        class="px-3 bg-surface-1 border border-border border-t-0 flex justify-end rounded-b-lg items-center gap-1 py-3 font-mono text-xs/4 no-underline transition-colors"
+        class="px-3 bg-background border border-border border-t-0 flex justify-end rounded-b-lg items-center gap-1 py-3 font-mono text-xs/4 no-underline transition-colors"
         ><Icon width="16" icon="carbon:up-to-top" />Go to top</a
       >
     </div>
@@ -234,9 +234,9 @@
   }
   .lvs2,
   .lvs3 {
-    width: 0.25rem;
+    width: 0.35rem;
   }
   .lvs4 {
-    width: 0.125rem;
+    width: 0.25rem;
   }
 </style>

@@ -4,6 +4,7 @@
   import PlusIcon from '@/components/PlusIcon.svelte'
   import 'overlayscrollbars/overlayscrollbars.css'
   import { animate, waapi, eases, createSpring } from 'animejs'
+  import Logdev from '@/components/settings/Logdev.svelte'
   import { useOverlayScrollbars } from 'overlayscrollbars-svelte'
   import {
     openDatabase,
@@ -12,8 +13,16 @@
   } from '@/lib/indexedDBService'
   import SidePanel from './SidePanel.svelte'
   import {
+    settings,
+    loadSettings,
+    updateSettings,
+    subscribeToSettingsChanges,
+  } from '../../stores/settingsStore.svelte.js'
+  import {
     initializeTheme,
     subscribeToSystemThemeChanges,
+    themeSettings, // Import đối tượng themeSettings
+    applyThemeToDocument, // Import applyThemeToDocument
   } from '../../stores/themeStore.svelte.js'
   import SummaryDisplay from '@/components/displays/SummaryDisplay.svelte'
   import '@fontsource-variable/geist-mono'
@@ -124,9 +133,18 @@
     initializeTheme()
     const unsubscribeTheme = subscribeToSystemThemeChanges()
 
+    // $effect để tự động áp dụng theme khi themeSettings.theme thay đổi
+    $effect(() => {
+      applyThemeToDocument(themeSettings.theme)
+    })
+
     return () => {
       unsubscribeTheme()
     }
+  })
+
+  loadSettings().then(() => {
+    subscribeToSettingsChanges()
   })
 
   function showSidePanel() {
@@ -208,6 +226,8 @@
     }
   }
 </script>
+
+<Logdev />
 
 <main class="flex text-sm relative min-h-dvh bg-background text-text-primary">
   <button

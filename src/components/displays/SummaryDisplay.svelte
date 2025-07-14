@@ -16,10 +16,15 @@
   let tabs = $state([])
 
   // @ts-nocheck
-  const fontSizeClasses = ['prose-sm', 'prose-base', 'prose-lg', 'prose-xl']
+  const fontSizeClasses = [
+    'prose-base prose-h1:text-3xl',
+    'prose-lg prose-h1:text-3xl prose-h2:text-2xl prose-h3:text-xl',
+    'prose-xl prose-h1:text-4xl prose-h2:text-3xl  prose-h3:text-2xl',
+    'prose-2xl prose-h1:text-5xl prose-h2:text-4xl',
+  ]
 
-  const widthClasses = ['max-w-2xl', 'max-w-3xl', 'max-w-4xl']
-  const widthButtonTexts = ['w', 'W', '-W-']
+  const widthClasses = ['max-w-3xl', 'max-w-4xl', 'max-w-5xl', 'max-w-6xl']
+  const widthButtonTexts = ['.', '..', '...', '....']
 
   function increaseFontSize() {
     if ($fontSizeIndex < fontSizeClasses.length - 1) {
@@ -84,8 +89,12 @@
 </script>
 
 {#if selectedSummary}
-  <div class="mx-auto w-full relative flex flex-col px-8 py-16 gap-8">
-    <div class="absolute flex gap-2 top-0 right-0">
+  <div
+    class="prose w-full {widthClasses[$widthIndex]} mx-auto {fontSizeClasses[
+      $fontSizeIndex
+    ]} py-12 summary-content"
+  >
+    <div class="absolute text-base flex gap-2 top-2 right-2">
       <button
         class=" size-8 flex justify-center items-center hover:bg-blackwhite/5 rounded-md"
         onclick={decreaseFontSize}
@@ -103,11 +112,14 @@
         A+
       </button>
       <button
-        class=" size-8 flex justify-center items-center hover:bg-blackwhite/5 rounded-md"
+        class=" size-8 pt-1 relative flex text-xl justify-center items-center hover:bg-blackwhite/5 rounded-md"
         onclick={toggleWidth}
         title="Toggle width"
       >
-        {widthButtonTexts[$widthIndex]}
+        <span class=" absolute text-sm -translate-y-2.5"
+          >{widthButtonTexts[$widthIndex]}</span
+        >
+        ↔
       </button>
     </div>
     <div class="flex flex-col gap-2">
@@ -132,22 +144,17 @@
         </div>
       </div>
       <h1
-        class="mx-auto my-0 p-0 text-blackwhite max-w-3xl text-balance text-center text-3xl font-serif leading-[1.35]"
+        class="mx-auto font-noto-serif my-0 p-0 text-blackwhite text-balance text-center font-serif leading-[1.2]"
       >
         {selectedSummary.title}
       </h1>
     </div>
-    <div class="flex justify-center mt-6">
+    <div class="flex justify-center">
       {#if tabs.length > 1}
         <TabNavigation {tabs} activeTab={activeTabId} {onSelectTab} />
       {/if}
     </div>
-    <div
-      id="summary-content"
-      class="prose w-full {widthClasses[$widthIndex]} mx-auto {fontSizeClasses[
-        $fontSizeIndex
-      ]} pb-10 summary-content"
-    >
+    <div id="summary-content" class=" text-text-secondary">
       {#if activeTabId}
         {@const currentSummary = selectedSummary.summaries.find(
           (_, index) => `summary-tab-${index}` === activeTabId

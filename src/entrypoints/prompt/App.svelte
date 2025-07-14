@@ -19,6 +19,7 @@
   import {
     initializeTheme,
     subscribeToSystemThemeChanges,
+    themeSettings, // Import đối tượng themeSettings
   } from '../../stores/themeStore.svelte.js'
   import '@fontsource-variable/geist-mono'
   import { Dialog } from 'bits-ui'

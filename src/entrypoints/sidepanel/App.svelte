@@ -29,10 +29,11 @@
     updateActiveYouTubeTab,
   } from '../../stores/summaryStore.svelte.js'
   import {
-    getTheme,
+    themeSettings, // Import themeSettings
     initializeTheme,
     setTheme,
     subscribeToSystemThemeChanges,
+    applyThemeToDocument, // Import applyThemeToDocument
   } from '../../stores/themeStore.svelte.js'
   import { tabTitle, setTabTitle } from '../../stores/tabTitleStore.svelte.js'
   import {
@@ -75,6 +76,11 @@
     initializeTheme()
     const unsubscribeTheme = subscribeToSystemThemeChanges()
     subscribeToSettingsChanges()
+
+    // $effect để tự động áp dụng theme khi themeSettings.theme thay đổi
+    $effect(() => {
+      applyThemeToDocument(themeSettings.theme)
+    })
 
     // Listen for custom events from summaryStore for toast messages
     const handleSaveSuccess = (event) => {
@@ -216,7 +222,7 @@
   })
 </script>
 
-<div class="flex bg-surface-1 min-w-[22.5rem] w-full flex-col">
+<div class="flex min-w-[22.5rem] w-full flex-col">
   <div class="grid grid-rows-[32px_1px_8px_1px_160px_1px_8px_1px_1fr] h-screen">
     <div class=" flex justify-center items-center w-full h-full">
       <div class="text-text-secondary">

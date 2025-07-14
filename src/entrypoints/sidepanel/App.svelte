@@ -216,7 +216,7 @@
   })
 </script>
 
-<div class="flex min-w-[22.5rem] w-full flex-col">
+<div class="flex bg-surface-1 min-w-[22.5rem] w-full flex-col">
   <div class="grid grid-rows-[32px_1px_8px_1px_160px_1px_8px_1px_1fr] h-screen">
     <div class=" flex justify-center items-center w-full h-full">
       <div class="text-text-secondary">
@@ -239,9 +239,13 @@
             browser.tabs.create({ url: 'archive.html' })
           }}
           class="p-1 setting-animation transition-colors hover:bg-surface-1 rounded-full hover:text-text-primary"
-          title="Open settings"
+          title="Open Archive"
         >
-          <Icon width={24} icon="heroicons:archive-box" />
+          <Icon
+            icon="heroicons:bars-3-bottom-left-solid"
+            width="24"
+            height="24"
+          />
         </button>
       </div>
       <div class="size-6 absolute top-12 right-4 text-text-secondary">
@@ -265,7 +269,7 @@
     <div class="bg-border"></div>
 
     <div
-      class="relative prose prose-h2:mt-4 p z-10 flex flex-col gap-8 px-6 pt-8 pb-[50vh] max-w-[52rem] w-screen mx-auto"
+      class="relative prose main-sidepanel prose-h2:mt-4 p z-10 flex flex-col gap-8 px-6 pt-8 pb-[50vh] max-w-[52rem] w-screen mx-auto"
     >
       {#if summaryState.lastSummaryTypeDisplayed === 'youtube'}
         <YouTubeSummaryDisplay

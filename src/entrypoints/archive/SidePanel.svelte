@@ -5,9 +5,36 @@
   import { DropdownMenu } from 'bits-ui'
   import { useOverlayScrollbars } from 'overlayscrollbars-svelte'
   import { slideScaleFade } from '@/lib/slideScaleFade'
-  import { addSummary, getSummaryById } from '@/lib/indexedDBService' // Import addSummary and getSummaryById
+  import { deleteSummary, deleteHistory } from '@/lib/indexedDBService' // Import addSummary, getSummaryById, deleteSummary, and getAllSummaries
+  import TabArchive from '@/components/TabArchive.svelte'
 
-  const { list, selectedSummary, selectSummary, selectedSummaryId } = $props()
+  const {
+    list,
+    selectedSummary,
+    selectSummary,
+    selectedSummaryId,
+    activeTab,
+    selectTab,
+    onRefresh,
+  } = $props()
+
+  async function refreshSummaries() {
+    // list.set(await getAllSummaries()) // This line is no longer needed as onRefresh will handle it
+    if (onRefresh) {
+      await onRefresh()
+    }
+  }
+
+  async function handleDelete(id) {
+    if (activeTab === 'archive') {
+      await deleteSummary(id)
+      console.log(`Archive item with ID ${id} deleted.`)
+    } else if (activeTab === 'history') {
+      await deleteHistory(id)
+      console.log(`History item with ID ${id} deleted.`)
+    }
+    await refreshSummaries() // Cập nhật lại danh sách sau khi xóa
+  }
 
   const options = {
     scrollbars: {
@@ -21,68 +48,27 @@
   $effect(() => {
     initialize(document.getElementById('scroll-side'))
   })
-
-  async function saveToArchiveFromHistory(item) {
-    try {
-      const existingSummary = await getSummaryById(item.id)
-      if (existingSummary) {
-        document.dispatchEvent(
-          new CustomEvent('saveSummaryError', {
-            detail: { message: 'This summary is already in Archive!' },
-          })
-        )
-        return
-      }
-
-      const archiveEntry = {
-        id: item.id, // Keep the same ID
-        title: item.title,
-        url: item.url,
-        date: item.date,
-        summaries: item.summaries,
-      }
-
-      await addSummary(archiveEntry)
-      document.dispatchEvent(
-        new CustomEvent('saveSummarySuccess', {
-          detail: { message: 'Saved to Archive successfully!' },
-        })
-      )
-    } catch (error) {
-      console.error('Error saving history item to archive:', error)
-      document.dispatchEvent(
-        new CustomEvent('saveSummaryError', {
-          detail: { message: `Error saving to Archive: ${error.message}` },
-        })
-      )
-    }
-  }
 </script>
 
 <div
   transition:slideScaleFade={{
-    duration: 500,
+    duration: 800,
     slideDistance: '0rem',
     startScale: 1,
     slideFrom: 'left',
   }}
   class="w-80 relative flex flex-col h-screen"
 >
-  <div class="px-4 mt-4">
-    <input
-      class="px-4 py-2 rounded-md border w-full border-border"
-      type="search"
-      name="search"
-      id="search"
-      placeholder="Search"
-    />
-  </div>
+  <h2 class="text-lg pl-12 pt-4.5 pb-2 font-bold">Summarizerrrr</h2>
+
+  <TabArchive {activeTab} onSelectTab={selectTab} />
+
   <div id="scroll-side" class="text-text-secondary flex-1 relative gap-0.5">
     <div
-      class=" sticky bg-linear-to-b from-background to-background/40 mask-b-from-50% left-0 top-0 w-78 h-6 backdrop-blur-[2px] z-30 pointer-events-none"
+      class=" sticky bg-linear-to-b from-background to-background/40 mask-b-from-50% left-0 top-0 w-78 h-4 backdrop-blur-[2px] z-30 pointer-events-none"
     ></div>
     <div
-      class="flex font-mono text-xs md:text-sm absolute inset-0 px-2 py-6 h-full flex-col gap-px"
+      class="flex font-mono text-xs md:text-sm absolute inset-0 px-2 pt-3 pb-6 h-full flex-col gap-px"
     >
       {#each list as item (item.id)}
         <div class="relative group">
@@ -101,7 +87,7 @@
           </button>
           <DropdownMenu.Root>
             <DropdownMenu.Trigger
-              class="text-text-muted pointer-none: hover:bg-blackwhite/5 rounded-sm z-10 absolute right-0 justify-center items-center top-0 size-9"
+              class="text-text-muted hover:bg-blackwhite/5 rounded-sm z-10 absolute right-0 justify-center items-center top-0 size-9"
               ><div
                 class="action-button hidden justify-center items-center top-0 size-9"
               >
@@ -130,17 +116,14 @@
                     style="color: #fff"
                   />
                 </div>
-                <DropdownMenu.Item
-                  class="py-1 px-3 w-28 hover:bg-blackwhite/5 rounded-sm"
-                  onselect={() => saveToArchiveFromHistory(item)}
-                  >Save to Archive</DropdownMenu.Item
-                >
+
                 <DropdownMenu.Item
                   class="py-1 px-3 w-28 hover:bg-blackwhite/5 rounded-sm"
                   >Rename</DropdownMenu.Item
                 >
                 <DropdownMenu.Item
                   class="py-1 px-3 w-28 hover:bg-blackwhite/5 rounded-sm"
+                  onclick={() => handleDelete(item.id)}
                   >Delete</DropdownMenu.Item
                 >
               </DropdownMenu.Content>
@@ -148,11 +131,11 @@
           </DropdownMenu.Root>
         </div>
       {/each}
-      <div class="py-2 w-full">-</div>
+      <!-- <div class="py-2 w-full">-</div> -->
     </div>
   </div>
   <div
-    class=" absolute bg-linear-to-t from-background to-background/40 mask-t-from-50% left-0 right-3 bottom-0 h-6 backdrop-blur-[2px] z-30 pointer-events-none"
+    class=" absolute bg-linear-to-t from-background to-background/40 mask-t-from-50% left-0 right-3 bottom-0 h-4 backdrop-blur-[2px] z-30 pointer-events-none"
   ></div>
 </div>
 

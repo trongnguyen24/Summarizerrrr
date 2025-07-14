@@ -2,11 +2,19 @@
 <script>
   import GroupVisual from './GroupVisual.svelte'
   import PlusIcon from './PlusIcon.svelte'
+  import { onMount } from 'svelte'
 
   let { tabs, activeTab, onSelectTab } = $props()
 
   // Sử dụng một đối tượng để theo dõi trạng thái đã từng loading của từng tab
   let tabLoadingStatus = $state({})
+
+  // Thêm biến state để điều khiển vị trí translateX của activebar
+  let barTranslateX = $state(0)
+  let barWidth = $state(0)
+
+  // Đối tượng để lưu trữ tham chiếu đến các button
+  let tabButtons = $state({})
 
   $effect(() => {
     tabs.forEach((tab) => {
@@ -17,20 +25,40 @@
     })
   })
 
+  // Hàm để cập nhật vị trí và chiều rộng của activebar
+  function updateActiveBarPosition() {
+    if (tabButtons[activeTab]) {
+      const activeTabElement = tabButtons[activeTab]
+      barTranslateX = activeTabElement.offsetLeft
+      barWidth = activeTabElement.offsetWidth
+    }
+  }
+
+  // Effect để cập nhật vị trí và chiều rộng của activebar khi activeTab thay đổi
+  $effect(() => {
+    updateActiveBarPosition()
+  })
+
+  // Khi component được mount, cập nhật vị trí ban đầu của activebar
+  onMount(() => {
+    updateActiveBarPosition()
+  })
+
   function selectTab(tabId) {
     onSelectTab(tabId)
   }
 </script>
 
 <div
-  class="flex relative h-10 font-mono text-base text-text-secondary w-fit gap-2 p-px bg-gray-500/5 dark:bg-gray-950 border border-border dark:border-border/50"
+  class="flex mx-auto relative px-2 font-mono text-base text-text-secondary w-fit gap-2 border-b border-border dark:border-border/70"
 >
-  <GroupVisual>
+  <div class=" relative inset-0 overflow-hidden">
     {#each tabs as tab (tab.id)}
       <button
-        class="w-36 h-9 relative rounded-sm transition-colors duration-150 {activeTab ===
+        bind:this={tabButtons[tab.id]}
+        class="w-30 h-8 relative rounded-sm transition-colors duration-150 {activeTab ===
         tab.id
-          ? 'text-text-primary active'
+          ? 'text-text-primary font-bold active'
           : ''} "
         onclick={() => selectTab(tab.id)}
       >
@@ -82,6 +110,64 @@
         </div>
       </button>
     {/each}
-  </GroupVisual>
-  <PlusIcon />
+    <div
+      id="activebar"
+      style="transform: translateX({barTranslateX}px); width: {barWidth}px;"
+      class="h-1 rounded-xs absolute bottom-0 rounded-t-lg transition-transform duration-400 ease-out"
+    >
+      <div
+        class=" absolute rounded-xs w-1/2 inset-0 rounded-t-md translate-x-1/2 bg-white"
+      ></div>
+      <div
+        class="  absolute -inset-px w-1/2 translate-x-1/2 bg-white/50 blur-xs"
+      ></div>
+      <div
+        class="  absolute -inset-px w-1/2 translate-x-1/2 bg-white/50 blur-[2px]"
+      ></div>
+    </div>
+  </div>
+
+  <div class="plus-icon top-left">
+    <svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" fill="none"
+      ><path d="M4 0h1v9H4z" fill="currentColor" /><path
+        d="M9 4v1H0V4z"
+        fill="currentColor"
+      /></svg
+    >
+  </div>
+  <div class="plus-icon bottom-right">
+    <svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" fill="none"
+      ><path d="M4 0h1v9H4z" fill="currentColor" /><path
+        d="M9 4v1H0V4z"
+        fill="currentColor"
+      /></svg
+    >
+  </div>
 </div>
+
+<style>
+  .plus-icon {
+    position: absolute;
+    z-index: 41;
+    width: 9px; /* Kích thước container dấu cộng */
+    height: 9px; /* Kích thước container dấu cộng */
+    overflow: hidden; /* Ẩn phần thừa của pseudo-elements */
+  }
+
+  /* .red-plus-icon:before,
+  .red-plus-icon:after {
+    background-color: var(--color-error);
+  } */
+
+  .top-left {
+    bottom: 0;
+    left: 0;
+    transform: translateX(-5px) translateY(5px);
+  }
+
+  .bottom-right {
+    bottom: 0;
+    right: 0;
+    transform: translateX(5px) translateY(5px);
+  }
+</style>

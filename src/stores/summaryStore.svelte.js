@@ -495,8 +495,8 @@ export async function saveAllGeneratedSummariesToArchive() {
     summariesToSave.push({
       title:
         summaryState.lastSummaryTypeDisplayed === 'youtube'
-          ? 'Tóm tắt Video'
-          : 'Tóm tắt Trang Web',
+          ? 'Summary'
+          : 'Summary',
       content: summaryState.summary,
     })
   }
@@ -505,13 +505,13 @@ export async function saveAllGeneratedSummariesToArchive() {
     summaryState.chapterSummary.trim() !== ''
   ) {
     summariesToSave.push({
-      title: 'Tóm tắt Chương',
+      title: 'Chapters',
       content: summaryState.chapterSummary,
     })
   }
   if (summaryState.courseSummary && summaryState.courseSummary.trim() !== '') {
     summariesToSave.push({
-      title: 'Tóm tắt Khóa học',
+      title: 'Summary',
       content: summaryState.courseSummary,
     })
   }
@@ -520,7 +520,7 @@ export async function saveAllGeneratedSummariesToArchive() {
     summaryState.courseConcepts.trim() !== ''
   ) {
     summariesToSave.push({
-      title: 'Khái niệm Khóa học',
+      title: 'Concepts',
       content: summaryState.courseConcepts,
     })
   }
@@ -529,7 +529,7 @@ export async function saveAllGeneratedSummariesToArchive() {
     summaryState.selectedTextSummary.trim() !== ''
   ) {
     summariesToSave.push({
-      title: 'Tóm tắt Văn bản đã chọn',
+      title: 'Selected Text',
       content: summaryState.selectedTextSummary,
     })
   }
@@ -579,8 +579,8 @@ export async function logAllGeneratedSummariesToHistory() {
     summariesToLog.push({
       title:
         summaryState.lastSummaryTypeDisplayed === 'youtube'
-          ? 'Tóm tắt Video'
-          : 'Tóm tắt Trang Web',
+          ? 'Summary'
+          : 'Summary',
       content: summaryState.summary,
     })
   }
@@ -589,13 +589,13 @@ export async function logAllGeneratedSummariesToHistory() {
     summaryState.chapterSummary.trim() !== ''
   ) {
     summariesToLog.push({
-      title: 'Tóm tắt Chương',
+      title: 'Chapters',
       content: summaryState.chapterSummary,
     })
   }
   if (summaryState.courseSummary && summaryState.courseSummary.trim() !== '') {
     summariesToLog.push({
-      title: 'Tóm tắt Khóa học',
+      title: 'Summary',
       content: summaryState.courseSummary,
     })
   }
@@ -604,7 +604,7 @@ export async function logAllGeneratedSummariesToHistory() {
     summaryState.courseConcepts.trim() !== ''
   ) {
     summariesToLog.push({
-      title: 'Khái niệm Khóa học',
+      title: 'Concepts',
       content: summaryState.courseConcepts,
     })
   }
@@ -613,7 +613,7 @@ export async function logAllGeneratedSummariesToHistory() {
     summaryState.selectedTextSummary.trim() !== ''
   ) {
     summariesToLog.push({
-      title: 'Tóm tắt Văn bản đã chọn',
+      title: 'Selected Text',
       content: summaryState.selectedTextSummary,
     })
   }

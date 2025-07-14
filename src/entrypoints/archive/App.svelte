@@ -11,15 +11,14 @@
     getAllHistory,
   } from '@/lib/indexedDBService'
   import SidePanel from './SidePanel.svelte'
-  import TabNavigation from '@/components/TabNavigation.svelte'
-  import { marked } from 'marked'
-
-  import hljs from 'highlight.js'
   import {
     initializeTheme,
     subscribeToSystemThemeChanges,
   } from '../../stores/themeStore.svelte.js'
-
+  import SummaryDisplay from '@/components/displays/SummaryDisplay.svelte'
+  import '@fontsource-variable/geist-mono'
+  import '@fontsource-variable/noto-serif'
+  import '@fontsource/opendyslexic'
   let isSidePanelVisible = $state(true)
   let sidePanel
 
@@ -44,8 +43,8 @@
   async function loadData() {
     try {
       await openDatabase()
-      archiveList = await getAllSummaries()
-      historyList = await getAllHistory()
+      archiveList = [...(await getAllSummaries())]
+      historyList = [...(await getAllHistory())]
 
       const urlParams = new URLSearchParams(window.location.search)
       const idFromUrl = urlParams.get('summaryId')
@@ -64,6 +63,10 @@
             '',
             `?tab=archive&summaryId=${archiveList[0].id}`
           )
+        } else {
+          selectedSummary = null
+          selectedSummaryId = null
+          window.history.replaceState({}, '', `?tab=archive`)
         }
       } else {
         // Default to history tab
@@ -79,6 +82,32 @@
             '',
             `?tab=history&summaryId=${historyList[0].id}`
           )
+        } else {
+          selectedSummary = null
+          selectedSummaryId = null
+          window.history.replaceState({}, '', `?tab=history`)
+        }
+      }
+
+      // Sau khi tải lại dữ liệu, kiểm tra xem selectedSummaryId có còn tồn tại không
+      if (selectedSummaryId) {
+        const currentList = activeTab === 'archive' ? archiveList : historyList
+        const found = currentList.find((s) => s.id === selectedSummaryId)
+        if (!found) {
+          selectedSummary = null
+          selectedSummaryId = null
+          // Cập nhật URL nếu mục đã chọn không còn tồn tại
+          window.history.replaceState({}, '', `?tab=${activeTab}`)
+          // Chọn mục đầu tiên nếu có
+          if (currentList.length > 0) {
+            selectedSummary = currentList[0]
+            selectedSummaryId = currentList[0].id
+            window.history.replaceState(
+              {},
+              '',
+              `?tab=${activeTab}&summaryId=${currentList[0].id}`
+            )
+          }
         }
       }
     } catch (error) {
@@ -92,13 +121,6 @@
   })
 
   $effect(() => {
-    if (selectedSummary) {
-      document
-        .querySelectorAll('.summary-content pre code')
-        .forEach((block) => {
-          hljs.highlightElement(block)
-        })
-    }
     initializeTheme()
     const unsubscribeTheme = subscribeToSystemThemeChanges()
 
@@ -185,11 +207,6 @@
       hideSidePanel()
     }
   }
-
-  const mainTabs = $derived([
-    { id: 'history', label: 'History', show: true, isLoading: false },
-    { id: 'archive', label: 'Archive', show: true, isLoading: false },
-  ])
 </script>
 
 <main class="flex text-sm relative min-h-dvh bg-background text-text-primary">
@@ -217,69 +234,25 @@
   >
     <div class="w-px absolute z-30 top-0 right-0 h-screen bg-border/70"></div>
     {#if isSidePanelVisible}
-      <TabNavigation tabs={mainTabs} {activeTab} onSelectTab={selectTab} />
       <SidePanel
         list={activeTab === 'archive' ? archiveList : historyList}
         {selectedSummary}
         {selectSummary}
         {selectedSummaryId}
+        {activeTab}
+        {selectTab}
+        onRefresh={loadData}
       />
     {/if}
   </div>
 
   <!-- Right Column -->
   <div
-    class="flex-1 pl-0 relative transition-all bg-surface-1 duration-300 ease-out z-20 p-4 flex flex-col gap-2
+    class="flex-1 pl-0 relative bg-surface-1 z-20 p-4 flex flex-col gap-2
     {isSidePanelVisible ? 'sm:pl-80' : ''}
     "
   >
-    {#if selectedSummary}
-      <div class="mx-auto p-8">
-        <div>
-          <div class="flex flex-col gap-2">
-            <div
-              class="font-mono text-text-muted text-xs flex gap-8 justify-center items-center"
-            >
-              <div class="flex justify-center items-center gap-1">
-                <Icon height="16" width="16" icon="lucide:clock" class="" />
-                {formatDate(selectedSummary.date)}
-              </div>
-              <div class="flex justify-center items-center gap-1">
-                <Icon height="16" width="16" icon="lucide:link" class="" />
-                <a
-                  href={selectedSummary.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {selectedSummary.url
-                    ? selectedSummary.url
-                        .replace(/(^\w+:|^)\/\//, '')
-                        .split('/')[0]
-                    : 'Unknown URL'}
-                </a>
-              </div>
-            </div>
-            <h1
-              class="mx-auto my-0 p-0 max-w-3xl text-balance text-center text-3xl font-bold"
-            >
-              {selectedSummary.title}
-            </h1>
-          </div>
-          <div
-            class="prose w-full mx-auto py-16 max-w-3xl prose-xs pb-12 summary-content"
-          >
-            {#each selectedSummary.summaries as subSummary}
-              <h2 class="text-xl font-semibold mt-8 mb-4">
-                {subSummary.title}
-              </h2>
-              {@html marked.parse(subSummary.content)}
-            {/each}
-          </div>
-        </div>
-      </div>
-    {:else}
-      <p class="text-center text-text-secondary">No summary selected.</p>
-    {/if}
+    <SummaryDisplay {selectedSummary} {formatDate} />
   </div>
   <div
     class="top-stripes sticky top-0 w-8 h-screen border-l border-border/70"

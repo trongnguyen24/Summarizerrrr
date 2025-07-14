@@ -52,13 +52,13 @@
   --color-blackwhite: oklch(0 0 0);
   --color-track: oklch(0.9 0 0);
   --color-summarize: oklch(0 0 0);
-  --color-background: oklch(0.95 0.001 286);
-  --color-surface-1: oklch(0.97 0.0005 286);
+  --color-background: oklch(0.93 0.001 286);
+  --color-surface-1: oklch(0.95 0.0005 286);
   --color-surface-2: oklch(1 0 0);
-  --color-border: oklch(0.88 0 0);
-  --color-text-primary: oklch(0.2 0 0);
-  --color-text-secondary: oklch(0.41 0 0);
-  --color-muted: oklch(0.57 0 0);
+  --color-border: oklch(0.85 0 0);
+  --color-text-primary: oklch(0.17 0 0);
+  --color-text-secondary: oklch(0.39 0 0);
+  --color-muted: oklch(0.54 0 0);
   --color-primary: oklch(69.1% 0.1909 45.02);
   --color-success: oklch(0.768 0.233 130.85);
   --color-error: oklch(0.637 0.237 25.331);
@@ -120,21 +120,21 @@ html {
     var(--color-border) 8px
   );
 }
-.prose h1,
-.prose h2 {
+.prose.main-sidepanel h1,
+.prose.main-sidepanel h2 {
   font-size: var(--h-1);
 }
-.prose h3 {
+.prose.main-sidepanel h3 {
   font-size: var(--h-2);
 }
-.prose p,
-.prose h4,
-.prose h5,
-.prose ul,
-.prose ol {
+.prose.main-sidepanel p,
+.prose.main-sidepanel h4,
+.prose.main-sidepanel h5,
+.prose.main-sidepanel ul,
+.prose.main-sidepanel ol {
   font-size: var(--h-0);
 }
-.prose h5 {
+.prose.main-sidepanel h5 {
   font-weight: bold;
   color: var(--color-blackwhite);
 }

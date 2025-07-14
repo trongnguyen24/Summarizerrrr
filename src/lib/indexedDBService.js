@@ -35,6 +35,7 @@ function openDatabase() {
 
     request.onsuccess = (event) => {
       db = event.target.result
+      console.log('IndexedDB opened successfully.')
       resolve(db)
     }
 
@@ -200,6 +201,56 @@ async function getHistoryById(id) {
   })
 }
 
+async function deleteSummary(id) {
+  if (!db) {
+    db = await openDatabase()
+  }
+  return new Promise((resolve, reject) => {
+    console.log(`Attempting to delete summary with ID: ${id}`)
+    const transaction = db.transaction([STORE_NAME], 'readwrite')
+
+    transaction.oncomplete = () => {
+      console.log(
+        `Transaction completed. Summary with ID ${id} successfully deleted.`
+      )
+      resolve(true)
+    }
+
+    transaction.onerror = (event) => {
+      console.error('Transaction error deleting summary:', event.target.error)
+      reject(event.target.error)
+    }
+
+    const objectStore = transaction.objectStore(STORE_NAME)
+    objectStore.delete(id)
+  })
+}
+
+async function deleteHistory(id) {
+  if (!db) {
+    db = await openDatabase()
+  }
+  return new Promise((resolve, reject) => {
+    console.log(`Attempting to delete history with ID: ${id}`)
+    const transaction = db.transaction([HISTORY_STORE_NAME], 'readwrite')
+
+    transaction.oncomplete = () => {
+      console.log(
+        `Transaction completed. History with ID ${id} successfully deleted.`
+      )
+      resolve(true)
+    }
+
+    transaction.onerror = (event) => {
+      console.error('Transaction error deleting history:', event.target.error)
+      reject(event.target.error)
+    }
+
+    const objectStore = transaction.objectStore(HISTORY_STORE_NAME)
+    objectStore.delete(id)
+  })
+}
+
 export {
   openDatabase,
   addSummary,
@@ -208,4 +259,6 @@ export {
   getAllHistory,
   getSummaryById,
   getHistoryById,
+  deleteSummary,
+  deleteHistory,
 }

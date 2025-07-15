@@ -112,14 +112,24 @@
         A+
       </button>
       <button
-        class=" size-8 pt-1 relative flex text-xl justify-center items-center hover:bg-blackwhite/5 rounded-md"
+        class=" size-8 pt-1.5 relative flex text-xl justify-center items-center hover:bg-blackwhite/5 rounded-md"
         onclick={toggleWidth}
         title="Toggle width"
       >
-        <span class=" absolute text-sm -translate-y-2.5"
+        <span class=" absolute text-sm -translate-y-3"
           >{widthButtonTexts[$widthIndex]}</span
         >
-        ↔
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+        >
+          <path
+            fill="currentColor"
+            d="M5.825 13L7.7 14.875q.275.3.288.713T7.7 16.3t-.7.3t-.7-.3l-3.6-3.6q-.15-.15-.213-.325T2.426 12t.063-.375t.212-.325l3.6-3.6q.3-.3.7-.3t.7.3t.3.713t-.3.712L5.825 11h12.35L16.3 9.125q-.275-.3-.287-.712T16.3 7.7t.7-.3t.7.3l3.6 3.6q.15.15.213.325t.062.375t-.062.375t-.213.325l-3.6 3.6q-.3.3-.7.3t-.7-.3t-.3-.712t.3-.713L18.175 13z"
+          />
+        </svg>
       </button>
     </div>
     <div class="flex flex-col gap-2">

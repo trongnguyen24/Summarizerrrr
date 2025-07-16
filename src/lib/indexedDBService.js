@@ -251,6 +251,46 @@ async function deleteHistory(id) {
   })
 }
 
+async function updateSummary(summary) {
+  if (!db) {
+    db = await openDatabase()
+  }
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction([STORE_NAME], 'readwrite')
+    const objectStore = transaction.objectStore(STORE_NAME)
+    const request = objectStore.put(summary) // Use put for update
+
+    request.onsuccess = () => {
+      resolve(request.result)
+    }
+
+    request.onerror = (event) => {
+      console.error('Error updating summary:', event.target.errorCode)
+      reject(event.target.errorCode)
+    }
+  })
+}
+
+async function updateHistory(historyData) {
+  if (!db) {
+    db = await openDatabase()
+  }
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction([HISTORY_STORE_NAME], 'readwrite')
+    const objectStore = transaction.objectStore(HISTORY_STORE_NAME)
+    const request = objectStore.put(historyData) // Use put for update
+
+    request.onsuccess = () => {
+      resolve(request.result)
+    }
+
+    request.onerror = (event) => {
+      console.error('Error updating history:', event.target.errorCode)
+      reject(event.target.errorCode)
+    }
+  })
+}
+
 export {
   openDatabase,
   addSummary,
@@ -261,4 +301,6 @@ export {
   getHistoryById,
   deleteSummary,
   deleteHistory,
+  updateSummary,
+  updateHistory,
 }

@@ -7,7 +7,14 @@
   import { DropdownMenu } from 'bits-ui'
   import { useOverlayScrollbars } from 'overlayscrollbars-svelte'
   import { slideScaleFade } from '@/lib/slideScaleFade'
-  import { deleteSummary, deleteHistory } from '@/lib/indexedDBService' // Import addSummary, getSummaryById, deleteSummary, and getAllSummaries
+  import {
+    deleteSummary,
+    deleteHistory,
+    updateSummary,
+    updateHistory,
+    getSummaryById,
+    getHistoryById,
+  } from '@/lib/indexedDBService'
   import TabArchive from '@/components/TabArchive.svelte'
 
   const {
@@ -20,10 +27,53 @@
     onRefresh,
   } = $props()
 
+  let isOpen = $state(false)
+  let newSummaryName = $state('')
+  let currentSummaryIdToRename = $state(null)
+
   async function refreshSummaries() {
-    // list.set(await getAllSummaries()) // This line is no longer needed as onRefresh will handle it
     if (onRefresh) {
       await onRefresh()
+    }
+  }
+
+  function openRenameDialog(item) {
+    currentSummaryIdToRename = item.id
+    newSummaryName = item.title
+    isOpen = true
+  }
+
+  async function handleRename() {
+    if (!currentSummaryIdToRename || !newSummaryName.trim()) {
+      return // Không làm gì nếu không có ID hoặc tên trống
+    }
+
+    try {
+      if (activeTab === 'archive') {
+        const summaryToUpdate = await getSummaryById(currentSummaryIdToRename)
+        if (summaryToUpdate) {
+          summaryToUpdate.title = newSummaryName.trim()
+          await updateSummary(summaryToUpdate)
+          console.log(
+            `Archive item with ID ${currentSummaryIdToRename} renamed to "${newSummaryName}".`
+          )
+        }
+      } else if (activeTab === 'history') {
+        const historyToUpdate = await getHistoryById(currentSummaryIdToRename)
+        if (historyToUpdate) {
+          historyToUpdate.title = newSummaryName.trim()
+          await updateHistory(historyToUpdate)
+          console.log(
+            `History item with ID ${currentSummaryIdToRename} renamed to "${newSummaryName}".`
+          )
+        }
+      }
+      await refreshSummaries() // Cập nhật lại danh sách sau khi đổi tên
+      isOpen = false // Đóng dialog
+      newSummaryName = '' // Đặt lại tên mới
+      currentSummaryIdToRename = null // Đặt lại ID
+    } catch (error) {
+      console.error('Error renaming summary:', error)
     }
   }
 
@@ -62,59 +112,7 @@
   class="w-80 relative flex flex-col h-screen"
 >
   <h2 class="text-lg pl-12 pt-4.5 pb-2 font-bold">Summarizerrrr</h2>
-  <Dialog buttonText="Open Dialog">
-    {#snippet title()}
-      Rename
-    {/snippet}
-    <div>
-      <div class="absolute z-10 right-3 top-2.5 group flex gap-2">
-        <span class="block size-3.5 bg-muted/15 rounded-full"></span>
-        <span class="block size-3.5 bg-muted/15 rounded-full"></span>
-        <!-- svelte-ignore a11y_consider_explicit_label -->
-        <button class="block size-3.5 bg-error rounded-full">
-          <Icon
-            class="text-red-800 transition-opacity duration-150"
-            width={14}
-            icon="heroicons:x-mark-16-solid"
-          />
-        </button>
-      </div>
-      <div
-        class="relative font-mono rounded-lg text-text-primary dark:text-text-secondary text-xs bg-background dark:bg-surface-1 overflow-hidden border border-border w-full flex-shrink-0 flex flex-col"
-      >
-        <div
-          class="px-4 bg-surface-1 dark:bg-surface-2 py-2 border-b-0 border-border"
-        >
-          <p class="!text-center">Prompt enhancer</p>
-        </div>
-        <div class="flex relative p-px gap-4 flex-col">
-          <div class=" h-32 max-h-[40rem]"></div>
-          <div class="p-4 pt-0 flex justify-end gap-2">
-            <div class="flex gap-2 items-center">
-              <div class="lang overflow-hidden relative">
-                <input
-                  type="text"
-                  class="w-full pl-3 text-xs pr-9 h-7.5 bg-muted/5 dark:bg-muted/5 border border-border hover:border-blackwhite/15 focus:border-blackwhite/30 dark:border-blackwhite/10 dark:focus:border-blackwhite/20 focus:outline-none focus:ring-0 placeholder:text-muted transition-colors duration-150"
-                />
-              </div>
-              <button class=" relative overflow-hidden group">
-                <div
-                  class=" font-medium py-2 px-4 border transition-colors duration-200 bg-surface-2 group-hover:bg-surface-2/95 dark:group-hover:surface-2/90 text-orange-50 dark:text-text-primary border-border hover:border-gray-500/50 hover:text-white"
-                >
-                  Discard
-                </div>
 
-                <span
-                  class="size-4 absolute z-10 -left-2 -bottom-2 border bg-white dark:bg-surface-1 rotate-45 transition-colors duration-200 border-border group-hover:border-gray-500"
-                ></span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-      <!-- Additional dialog content here... -->
-    </div></Dialog
-  >
   <TabArchive {activeTab} onSelectTab={selectTab} />
 
   <div id="scroll-side" class="text-text-secondary flex-1 relative gap-0.5">
@@ -172,6 +170,7 @@
                 </div>
 
                 <DropdownMenu.Item
+                  onclick={() => openRenameDialog(item)}
                   class="py-1 px-3 w-28 hover:bg-blackwhite/5 rounded-sm"
                   >Rename</DropdownMenu.Item
                 >
@@ -192,6 +191,60 @@
     class=" absolute bg-linear-to-t from-background to-background/40 mask-t-from-50% left-0 right-3 bottom-0 h-4 backdrop-blur-[2px] z-30 pointer-events-none"
   ></div>
 </div>
+
+<Dialog bind:open={isOpen}>
+  <div>
+    <div class="absolute z-10 right-3 top-2.5 group flex gap-2">
+      <span class="block size-3.5 bg-muted/15 rounded-full"></span>
+      <span class="block size-3.5 bg-muted/15 rounded-full"></span>
+      <!-- svelte-ignore a11y_consider_explicit_label -->
+      <button
+        class="block size-3.5 bg-error rounded-full"
+        onclick={() => (isOpen = false)}
+      >
+        <Icon
+          class="text-red-800 transition-opacity duration-150"
+          width={14}
+          icon="heroicons:x-mark-16-solid"
+        />
+      </button>
+    </div>
+    <div
+      class="relative font-mono rounded-lg text-text-primary dark:text-text-secondary text-sm bg-background dark:bg-surface-1 overflow-hidden border border-border w-full flex-shrink-0 flex flex-col"
+    >
+      <div
+        class="px-4 bg-surface-1 dark:bg-surface-2 py-2 border-b-0 border-border"
+      >
+        <p class="!text-center">Rename summary</p>
+      </div>
+      <div class="flex relative p-px gap-4 flex-col">
+        <div class="p-4 flex justify-end gap-2">
+          <div class="lang flex-1 overflow-hidden relative">
+            <input
+              type="text"
+              class="w-full pl-3 pr-9 h-10 bg-muted/5 dark:bg-muted/5 border border-border hover:border-blackwhite/15 focus:border-blackwhite/30 dark:border-blackwhite/10 dark:focus:border-blackwhite/20 focus:outline-none focus:ring-0 placeholder:text-muted transition-colors duration-150"
+              bind:value={newSummaryName}
+              onkeydown={(e) => {
+                if (e.key === 'Enter') handleRename()
+              }}
+            />
+          </div>
+          <button class="relative overflow-hidden group" onclick={handleRename}>
+            <div
+              class=" font-medium flex justify-center items-center h-10 px-4 border transition-colors duration-200 bg-surface-2 group-hover:bg-surface-2/95 dark:group-hover:surface-2/90 text-orange-50 dark:text-text-primary border-border hover:border-gray-500/50 hover:text-white"
+            >
+              Save
+            </div>
+            <span
+              class="size-4 absolute z-10 -left-2 -bottom-2 border bg-white dark:bg-surface-1 rotate-45 transition-colors duration-200 border-border group-hover:border-gray-500"
+            ></span>
+          </button>
+        </div>
+      </div>
+    </div>
+    <!-- Additional dialog content here... -->
+  </div></Dialog
+>
 
 <style>
   .list-button::after {

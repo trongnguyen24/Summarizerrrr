@@ -125,7 +125,7 @@
   }
 
   $effect(() => {
-    initialize2(document.body)
+    // initialize2(document.body)
     loadData()
   })
 

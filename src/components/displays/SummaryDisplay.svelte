@@ -90,9 +90,9 @@
 
 {#if selectedSummary}
   <div
-    class="prose w-full {widthClasses[$widthIndex]} mx-auto {fontSizeClasses[
-      $fontSizeIndex
-    ]} py-12 summary-content"
+    class="prose px-8 w-full {widthClasses[
+      $widthIndex
+    ]} mx-auto {fontSizeClasses[$fontSizeIndex]} py-12 summary-content"
   >
     <div class="absolute text-base flex gap-2 top-2 right-2">
       <button

@@ -215,14 +215,14 @@
       <div
         class="px-4 bg-surface-1 dark:bg-surface-2 py-2 border-b-0 border-border"
       >
-        <p class="!text-center">Rename summary</p>
+        <p class="!text-center select-none">Rename summary</p>
       </div>
       <div class="flex relative p-px gap-4 flex-col">
         <div class="p-4 flex justify-end gap-2">
           <div class="lang flex-1 overflow-hidden relative">
             <input
               type="text"
-              class="w-full pl-3 pr-9 h-10 bg-muted/5 dark:bg-muted/5 border border-border hover:border-blackwhite/15 focus:border-blackwhite/30 dark:border-blackwhite/10 dark:focus:border-blackwhite/20 focus:outline-none focus:ring-0 placeholder:text-muted transition-colors duration-150"
+              class="w-full px-3 h-10 bg-muted/5 dark:bg-muted/5 border border-border hover:border-blackwhite/15 focus:border-blackwhite/30 dark:border-blackwhite/10 dark:focus:border-blackwhite/20 focus:outline-none focus:ring-0 placeholder:text-muted transition-colors duration-150"
               bind:value={newSummaryName}
               onkeydown={(e) => {
                 if (e.key === 'Enter') handleRename()

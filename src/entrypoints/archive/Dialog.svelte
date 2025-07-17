@@ -1,30 +1,51 @@
-<script lang="ts">
-  import type { Snippet } from 'svelte'
-  import { Dialog, type WithoutChild } from 'bits-ui'
-
-  type Props = Dialog.RootProps & {
-    contentProps?: WithoutChild<Dialog.ContentProps>
-    // ...other component props if you wish to pass them
-  }
+<script>
+  import { Dialog } from 'bits-ui'
+  import { fade } from 'svelte/transition'
+  import { slideScaleFade } from '@/lib/slideScaleFade.js'
 
   let {
     open = $bindable(false),
     children,
     contentProps,
     ...restProps
-  }: Props = $props()
+  } = $props()
 </script>
 
 <Dialog.Root bind:open {...restProps}>
   <Dialog.Portal>
-    <Dialog.Overlay class="fixed inset-0 z-40 bg-black/80" />
+    <Dialog.Overlay class="fixed inset-0 z-40 bg-black/80" forceMount>
+      {#snippet child({ props, open })}
+        {#if open}
+          <div {...props} transition:fade></div>
+        {/if}
+      {/snippet}
+    </Dialog.Overlay>
     <Dialog.Content
+      interactOutsideBehavior="ignore"
       preventScroll={true}
+      forceMount
       class="outline-hidden fixed left-[50%] top-1/2 w-[calc(100vw-32px)] max-w-2xl z-50 -translate-y-1/2 translate-x-[-50%]"
       {...contentProps}
+      onOpenAutoFocus={(e) => {
+        e.preventDefault()
+        nameInput?.focus()
+      }}
     >
-      {@render children?.()}
-      <!-- <Dialog.Close>Close Dialog</Dialog.Close> -->
+      {#snippet child({ props, open })}
+        {#if open}
+          <div
+            {...props}
+            transition:slideScaleFade={{
+              duration: 300,
+              slideFrom: 'bottom',
+              slideDistance: '0rem',
+              startScale: 0.95,
+            }}
+          >
+            {@render children?.()}
+          </div>
+        {/if}
+      {/snippet}
     </Dialog.Content>
   </Dialog.Portal>
 </Dialog.Root>

@@ -41,8 +41,10 @@
   <div id="web-summary-display">
     {@html marked.parse(summary)}
     {#if summary && !isLoading}
-      <SaveToArchiveButton />
-      <CopyButton textToCopy={summary} />
+      <div class="w-full my-4 flex justify-center gap-2">
+        <SaveToArchiveButton />
+        <CopyButton textToCopy={summary} />
+      </div>
     {/if}
   </div>
 

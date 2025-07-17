@@ -26,7 +26,7 @@
   <Tooltip.Root delayDuration={200}>
     <Tooltip.Trigger
       onclick={handleSave}
-      class="p-1.5 hover:bg-blackwhite/5 rounded-4xl transition-all duration-200"
+      class="p-1.5 size-8 hover:bg-blackwhite/10 rounded-4xl transition-all duration-200"
     >
       {#if isSaved}
         <Icon

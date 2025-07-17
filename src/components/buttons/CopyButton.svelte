@@ -49,7 +49,7 @@
   <Tooltip.Root delayDuration={200}>
     <Tooltip.Trigger
       onclick={copyToClipboard}
-      class="p-1.5 hover:bg-blackwhite/5 rounded-4xl transition-all duration-200"
+      class="p-1.5 ize-8 hover:bg-blackwhite/10 rounded-4xl transition-all duration-200"
     >
       {#if isCopied}
         <Icon
@@ -59,7 +59,7 @@
           class="text-blackwhite"
         />
       {:else}
-        <Icon icon="heroicons:clipboard-document" width="20" height="20" />
+        <Icon icon="heroicons:square-2-stack" width="20" height="20" />
       {/if}
     </Tooltip.Trigger>
     <Tooltip.Content sideOffset={6}>

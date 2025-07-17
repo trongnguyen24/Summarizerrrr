@@ -8,6 +8,7 @@
   import {
     fontSizeIndex,
     widthIndex,
+    fontFamilyIndex,
   } from '@/stores/displaySettingsStore.svelte'
 
   const { selectedSummary, formatDate } = $props()
@@ -25,6 +26,12 @@
 
   const widthClasses = ['max-w-3xl', 'max-w-4xl', 'max-w-5xl', 'max-w-6xl']
   const widthButtonTexts = ['.', '..', '...', '....']
+  const fontFamilyClasses = [
+    'font-default',
+    'font-noto-serif',
+    'font-opendyslexic',
+    'font-mali',
+  ]
 
   function increaseFontSize() {
     if ($fontSizeIndex < fontSizeClasses.length - 1) {
@@ -40,6 +47,10 @@
 
   function toggleWidth() {
     $widthIndex = ($widthIndex + 1) % widthClasses.length
+  }
+
+  function toggleFontFamily() {
+    $fontFamilyIndex = ($fontFamilyIndex + 1) % fontFamilyClasses.length
   }
 
   // Effect để cập nhật tabs khi selectedSummary thay đổi
@@ -92,11 +103,13 @@
   <div
     class="prose px-8 w-full {widthClasses[
       $widthIndex
-    ]} mx-auto {fontSizeClasses[$fontSizeIndex]} py-12 summary-content"
+    ]} mx-auto {fontSizeClasses[$fontSizeIndex]} {fontFamilyClasses[
+      $fontFamilyIndex
+    ]} py-12 summary-content"
   >
     <div class="absolute text-base flex gap-2 top-2 right-2">
       <button
-        class=" size-8 flex justify-center items-center hover:bg-blackwhite/5 rounded-md"
+        class=" size-8 font-mono flex justify-center items-center hover:bg-blackwhite/5 rounded-md"
         onclick={decreaseFontSize}
         disabled={$fontSizeIndex === fontSizeClasses.length + 1}
         title="Decrease font size"
@@ -104,7 +117,7 @@
         A-
       </button>
       <button
-        class=" size-8 flex justify-center items-center hover:bg-blackwhite/5 rounded-md"
+        class=" size-8 flex font-mono justify-center items-center hover:bg-blackwhite/5 rounded-md"
         onclick={increaseFontSize}
         disabled={$fontSizeIndex === fontSizeClasses.length - 1}
         title="Increase font size"
@@ -112,11 +125,18 @@
         A+
       </button>
       <button
+        class=" size-8 flex justify-center items-center hover:bg-blackwhite/5 rounded-md"
+        onclick={toggleFontFamily}
+        title="Change font"
+      >
+        aA
+      </button>
+      <button
         class=" size-8 pt-1.5 relative flex text-xl justify-center items-center hover:bg-blackwhite/5 rounded-md"
         onclick={toggleWidth}
         title="Toggle width"
       >
-        <span class=" absolute text-sm -translate-y-3"
+        <span class="font-default absolute text-sm -translate-y-3"
           >{widthButtonTexts[$widthIndex]}</span
         >
         <svg

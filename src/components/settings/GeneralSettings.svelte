@@ -57,13 +57,11 @@
         font="dyslexic"
       ></ButtonFont>
       <ButtonFont
-        title="Mix Sans Serif &  Serif"
-        class="setting-btn {settings.selectedFont === 'noto-mix'
-          ? 'active'
-          : ''}"
-        onclick={() => handleUpdateSetting('selectedFont', 'noto-mix')}
-        Description="Noto Serif for headings, Noto Sans for body."
-        font="mix"
+        title="Mali"
+        class="setting-btn {settings.selectedFont === 'mali' ? 'active' : ''}"
+        onclick={() => handleUpdateSetting('selectedFont', 'mali')}
+        Description="Mali font for all text."
+        font="mali"
       ></ButtonFont>
     </div>
   </div>

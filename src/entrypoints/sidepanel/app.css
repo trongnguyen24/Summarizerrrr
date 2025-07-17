@@ -16,9 +16,7 @@
     'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   --font-noto-serif: 'Noto Serif', serif;
   --font-opendyslexic: 'OpenDyslexic', sans-serif;
-  --font-noto-mix-heading: 'Noto Serif', serif;
-  --font-noto-mix-body: ui-sans-serif, system-ui, sans-serif,
-    'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  --font-mali: 'Mali', cursive;
 }
 
 /* Font Classes */
@@ -34,17 +32,8 @@
   font-family: var(--font-opendyslexic);
 }
 
-.font-noto-mix h1,
-.font-noto-mix h2,
-.font-noto-mix h3,
-.font-noto-mix h4,
-.font-noto-mix h5,
-.font-noto-mix h6 {
-  font-family: var(--font-noto-mix-heading);
-}
-
-.font-noto-mix {
-  font-family: var(--font-noto-mix-body);
+.font-mali {
+  font-family: var(--font-mali);
 }
 
 @theme {

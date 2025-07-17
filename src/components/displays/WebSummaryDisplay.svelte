@@ -5,6 +5,7 @@
   import TOC from '../TOC.svelte'
   import { summaryState } from '@/stores/summaryStore.svelte'
   import SaveToArchiveButton from '@/components/buttons/SaveToArchiveButton.svelte'
+  import CopyButton from '@/components/buttons/CopyButton.svelte'
 
   let { summary, isLoading, error } = $props()
 
@@ -41,6 +42,7 @@
     {@html marked.parse(summary)}
     {#if summary && !isLoading}
       <SaveToArchiveButton />
+      <CopyButton textToCopy={summary} />
     {/if}
   </div>
 

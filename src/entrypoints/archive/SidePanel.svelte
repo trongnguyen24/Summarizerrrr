@@ -3,7 +3,6 @@
   import Icon from '@iconify/svelte'
   import 'overlayscrollbars/overlayscrollbars.css'
   import Dialog from './Dialog.svelte'
-  import TextInput from '@/components/inputs/TextInput.svelte'
   import { DropdownMenu } from 'bits-ui'
   import { useOverlayScrollbars } from 'overlayscrollbars-svelte'
   import { slideScaleFade } from '@/lib/slideScaleFade'
@@ -27,14 +26,58 @@
     onRefresh,
   } = $props()
 
+  // State management
   let isOpen = $state(false)
   let newSummaryName = $state('')
   let currentSummaryIdToRename = $state(null)
 
+  // Database service
+  const dbService = {
+    async updateItem(id, title, tab) {
+      try {
+        const item =
+          tab === 'archive'
+            ? await getSummaryById(id)
+            : await getHistoryById(id)
+
+        if (item) {
+          item.title = title.trim()
+          tab === 'archive'
+            ? await updateSummary(item)
+            : await updateHistory(item)
+          console.log(`${tab} item with ID ${id} renamed to "${title}".`)
+        }
+      } catch (error) {
+        console.error('Error updating item:', error)
+        throw error
+      }
+    },
+
+    async deleteItem(id, tab) {
+      try {
+        tab === 'archive' ? await deleteSummary(id) : await deleteHistory(id)
+        console.log(`${tab} item with ID ${id} deleted.`)
+      } catch (error) {
+        console.error('Error deleting item:', error)
+        throw error
+      }
+    },
+  }
+
+  // Utility functions
+  function resetDialogState() {
+    isOpen = false
+    newSummaryName = ''
+    currentSummaryIdToRename = null
+  }
+
+  function handleKeyDown(event) {
+    if (event.key === 'Enter') handleRename()
+  }
+
+  // Event handlers
   async function refreshSummaries() {
-    if (onRefresh) {
-      await onRefresh()
-    }
+    if (onRefresh) await onRefresh()
   }
 
   function openRenameDialog(item) {
@@ -44,61 +87,45 @@
   }
 
   async function handleRename() {
-    if (!currentSummaryIdToRename || !newSummaryName.trim()) {
-      return // Không làm gì nếu không có ID hoặc tên trống
-    }
+    if (!currentSummaryIdToRename || !newSummaryName.trim()) return
 
     try {
-      if (activeTab === 'archive') {
-        const summaryToUpdate = await getSummaryById(currentSummaryIdToRename)
-        if (summaryToUpdate) {
-          summaryToUpdate.title = newSummaryName.trim()
-          await updateSummary(summaryToUpdate)
-          console.log(
-            `Archive item with ID ${currentSummaryIdToRename} renamed to "${newSummaryName}".`
-          )
-        }
-      } else if (activeTab === 'history') {
-        const historyToUpdate = await getHistoryById(currentSummaryIdToRename)
-        if (historyToUpdate) {
-          historyToUpdate.title = newSummaryName.trim()
-          await updateHistory(historyToUpdate)
-          console.log(
-            `History item with ID ${currentSummaryIdToRename} renamed to "${newSummaryName}".`
-          )
-        }
-      }
-      await refreshSummaries() // Cập nhật lại danh sách sau khi đổi tên
-      isOpen = false // Đóng dialog
-      newSummaryName = '' // Đặt lại tên mới
-      currentSummaryIdToRename = null // Đặt lại ID
+      await dbService.updateItem(
+        currentSummaryIdToRename,
+        newSummaryName,
+        activeTab
+      )
+      await refreshSummaries()
+      resetDialogState()
     } catch (error) {
       console.error('Error renaming summary:', error)
     }
   }
 
   async function handleDelete(id) {
-    if (activeTab === 'archive') {
-      await deleteSummary(id)
-      console.log(`Archive item with ID ${id} deleted.`)
-    } else if (activeTab === 'history') {
-      await deleteHistory(id)
-      console.log(`History item with ID ${id} deleted.`)
+    try {
+      await dbService.deleteItem(id, activeTab)
+      await refreshSummaries()
+    } catch (error) {
+      console.error('Error deleting item:', error)
     }
-    await refreshSummaries() // Cập nhật lại danh sách sau khi xóa
   }
 
-  const options = {
+  // Scrollbar configuration
+  const scrollOptions = {
     scrollbars: {
       visibility: 'auto',
       autoHide: 'scroll',
       theme: 'os-theme-custom-app',
     },
   }
-  const [initialize] = useOverlayScrollbars({ options, defer: true })
+  const [initializeScrollbars] = useOverlayScrollbars({
+    options: scrollOptions,
+    defer: true,
+  })
 
   $effect(() => {
-    initialize(document.getElementById('scroll-side'))
+    initializeScrollbars(document.getElementById('scroll-side'))
   })
 </script>
 
@@ -117,8 +144,9 @@
 
   <div id="scroll-side" class="text-text-secondary flex-1 relative gap-0.5">
     <div
-      class=" sticky bg-linear-to-b from-background to-background/40 mask-b-from-50% left-0 top-0 w-78 h-4 backdrop-blur-[2px] z-30 pointer-events-none"
+      class="sticky bg-linear-to-b from-background to-background/40 mask-b-from-50% left-0 top-0 w-78 h-4 backdrop-blur-[2px] z-30 pointer-events-none"
     ></div>
+
     <div
       class="flex font-mono text-xs md:text-sm absolute inset-0 px-2 pt-3 pb-6 h-full flex-col gap-px"
     >
@@ -130,6 +158,7 @@
               ? 'text-text-primary active font-bold'
               : 'hover:bg-white/50 dark:hover:bg-white/5'}"
             onclick={() => selectSummary(item)}
+            title={item.title}
           >
             <div
               class="line-clamp-1 transition-colors w-full mask-r-from-90% mask-r-to-100%"
@@ -137,10 +166,12 @@
               {item.title}
             </div>
           </button>
+
           <DropdownMenu.Root>
             <DropdownMenu.Trigger
               class="text-text-muted hover:bg-blackwhite/5 rounded-sm z-10 absolute right-0 justify-center items-center top-0 size-9"
-              ><div
+            >
+              <div
                 class="action-button hidden justify-center items-center top-0 size-9"
               >
                 <Icon
@@ -149,14 +180,14 @@
                   height="20"
                   style="color: #fff"
                 />
-              </div></DropdownMenu.Trigger
-            >
+              </div>
+            </DropdownMenu.Trigger>
 
             <DropdownMenu.Portal>
               <DropdownMenu.Content
                 sideOffset={4}
                 align="end"
-                class="z-50  p-0.5 text-sm rounded-sm bg-surface-2 border flex flex-col gap-px border-border"
+                class="z-50 p-1 text-sm rounded-sm bg-surface-2 border flex flex-col gap-1 border-border"
               >
                 <div
                   class="text-text-muted bg-blackwhite/5 rounded-sm z-10 absolute right-0 justify-center items-center flex bottom-full -translate-y-1 size-9"
@@ -171,24 +202,27 @@
 
                 <DropdownMenu.Item
                   onclick={() => openRenameDialog(item)}
-                  class="py-1 px-3 w-28 hover:bg-blackwhite/5 rounded-sm"
-                  >Rename</DropdownMenu.Item
+                  class="py-1.5 px-4 w-32 hover:bg-blackwhite/5 rounded-sm"
                 >
+                  Rename
+                </DropdownMenu.Item>
+
                 <DropdownMenu.Item
-                  class="py-1 px-3 w-28 hover:bg-blackwhite/5 rounded-sm"
+                  class="py-1.5 px-4 w-32 hover:bg-blackwhite/5 rounded-sm"
                   onclick={() => handleDelete(item.id)}
-                  >Delete</DropdownMenu.Item
                 >
+                  Delete
+                </DropdownMenu.Item>
               </DropdownMenu.Content>
             </DropdownMenu.Portal>
           </DropdownMenu.Root>
         </div>
       {/each}
-      <!-- <div class="py-2 w-full">-</div> -->
     </div>
   </div>
+
   <div
-    class=" absolute bg-linear-to-t from-background to-background/40 mask-t-from-50% left-0 right-3 bottom-0 h-4 backdrop-blur-[2px] z-30 pointer-events-none"
+    class="absolute bg-linear-to-t from-background to-background/40 mask-t-from-50% left-0 right-3 bottom-0 h-4 backdrop-blur-[2px] z-30 pointer-events-none"
   ></div>
 </div>
 
@@ -209,6 +243,7 @@
         />
       </button>
     </div>
+
     <div
       class="relative font-mono rounded-lg text-text-primary dark:text-text-secondary text-sm bg-background dark:bg-surface-1 overflow-hidden border border-border w-full flex-shrink-0 flex flex-col"
     >
@@ -217,6 +252,7 @@
       >
         <p class="!text-center select-none">Rename summary</p>
       </div>
+
       <div class="flex relative p-px gap-4 flex-col">
         <div class="p-4 flex justify-end gap-2">
           <div class="lang flex-1 overflow-hidden relative">
@@ -224,14 +260,13 @@
               type="text"
               class="w-full px-3 h-10 bg-muted/5 dark:bg-muted/5 border border-border hover:border-blackwhite/15 focus:border-blackwhite/30 dark:border-blackwhite/10 dark:focus:border-blackwhite/20 focus:outline-none focus:ring-0 placeholder:text-muted transition-colors duration-150"
               bind:value={newSummaryName}
-              onkeydown={(e) => {
-                if (e.key === 'Enter') handleRename()
-              }}
+              onkeydown={handleKeyDown}
             />
           </div>
+
           <button class="relative overflow-hidden group" onclick={handleRename}>
             <div
-              class=" font-medium flex justify-center items-center h-10 px-4 border transition-colors duration-200 bg-surface-2 group-hover:bg-surface-2/95 dark:group-hover:surface-2/90 text-orange-50 dark:text-text-primary border-border hover:border-gray-500/50 hover:text-white"
+              class="font-medium flex justify-center items-center h-10 px-4 border transition-colors duration-200 bg-surface-2 group-hover:bg-surface-2/95 dark:group-hover:surface-2/90 text-orange-50 dark:text-text-primary border-border hover:border-gray-500/50 hover:text-white"
             >
               Save
             </div>
@@ -242,9 +277,8 @@
         </div>
       </div>
     </div>
-    <!-- Additional dialog content here... -->
-  </div></Dialog
->
+  </div>
+</Dialog>
 
 <style>
   .list-button::after {
@@ -264,6 +298,7 @@
       0 0 2px #ffffff18,
       0 0 0 #ffffff18;
   }
+
   .list-button.active {
     &::after {
       transform: translateY(-50%) translateX(1px);
@@ -273,13 +308,16 @@
         0 0 3px 1px #ffffff94;
     }
   }
+
   .list-button:focus + .action-button {
     display: flex !important;
   }
+
   .group:focus-within .action-button,
   .group:hover .action-button {
     display: flex !important;
   }
+
   .lang::after {
     display: block;
     content: '';
@@ -293,9 +331,11 @@
     transition: transform 0.3s ease-out;
     transform-origin: top right;
   }
+
   .lang::after {
     transform: rotate(45deg) translate(50%, -50%);
   }
+
   .lang::before {
     display: block;
     content: '';
@@ -309,6 +349,7 @@
     transform: translateY(100%);
     transition: transform 0.3s ease-out;
   }
+
   .lang::before {
     transform: translateY(0);
   }

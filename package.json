@@ -28,6 +28,7 @@
   "dependencies": {
     "@fontsource-variable/geist-mono": "^5.2.6",
     "@fontsource-variable/noto-serif": "^5.2.7",
+    "@fontsource/mali": "^5.2.6",
     "@fontsource/opendyslexic": "^5.2.5",
     "@google/genai": "^0.12.0",
     "@tailwindcss/vite": "^4.1.8",

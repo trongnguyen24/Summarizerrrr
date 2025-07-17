@@ -554,20 +554,10 @@ export async function saveAllGeneratedSummariesToArchive() {
       'Đã lưu tất cả các bản tóm tắt đã tạo vào Archive:',
       archiveEntry
     )
-    document.dispatchEvent(
-      new CustomEvent('saveSummarySuccess', {
-        detail: { message: 'Saved to Archive successfully!' },
-      })
-    )
   } catch (error) {
     console.error(
       'Lỗi khi lưu tất cả các bản tóm tắt đã tạo vào Archive:',
       error
-    )
-    document.dispatchEvent(
-      new CustomEvent('saveSummaryError', {
-        detail: { message: `Error saving to Archive: ${error.message}` },
-      })
     )
   }
 }

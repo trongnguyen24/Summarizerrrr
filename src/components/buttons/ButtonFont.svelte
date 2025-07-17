@@ -26,7 +26,7 @@
       class="text-demo line-clamp-1 text-xs"
       class:font-default={font === 'sans'}
       class:font-noto-serif={font === 'serif'}
-      class:font-noto-mix={font === 'mix'}
+      class:font-mali={font === 'mali'}
       class:font-opendyslexic={font === 'dyslexic'}
     >
       The quick brown fox jumps over the lazy dog.

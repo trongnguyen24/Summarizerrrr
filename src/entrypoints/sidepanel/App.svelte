@@ -82,22 +82,9 @@
       applyThemeToDocument(themeSettings.theme)
     })
 
-    // Listen for custom events from summaryStore for toast messages
-    const handleSaveSuccess = (event) => {
-      displayToast(event.detail.message, 'success')
-    }
-    const handleSaveError = (event) => {
-      displayToast(event.detail.message, 'error')
-    }
-
-    document.addEventListener('saveSummarySuccess', handleSaveSuccess)
-    document.addEventListener('saveSummaryError', handleSaveError)
-
     // Cleanup function for $effect
     return () => {
       unsubscribeTheme()
-      document.removeEventListener('saveSummarySuccess', handleSaveSuccess)
-      document.removeEventListener('saveSummaryError', handleSaveError)
     }
   })
 
@@ -109,7 +96,7 @@
         'font-default',
         'font-noto-serif',
         'font-opendyslexic',
-        'font-noto-mix'
+        'font-mali'
       )
       // Add new font class
       document.body.classList.add(`font-${settings.selectedFont}`)
@@ -275,6 +262,7 @@
     <div class="bg-border"></div>
 
     <div
+      id="copy-cat"
       class="relative prose main-sidepanel prose-h2:mt-4 p z-10 flex flex-col gap-8 px-6 pt-8 pb-[50vh] max-w-[52rem] w-screen mx-auto"
     >
       {#if summaryState.lastSummaryTypeDisplayed === 'youtube'}

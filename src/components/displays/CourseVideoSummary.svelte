@@ -4,7 +4,7 @@
   import hljs from 'highlight.js'
   import TOC from '../TOC.svelte'
   import { summaryState } from '@/stores/summaryStore.svelte'
-  import SaveToArchiveButton from '@/components/buttons/SaveToArchiveButton.svelte'
+  import FoooterDisplay from './FoooterDisplay.svelte'
 
   let { summary, isLoading, error } = $props()
 
@@ -40,7 +40,7 @@
   <div id="course-video-summary-display">
     {@html marked.parse(summary)}
     {#if summaryState.courseSummary && summaryState.lastSummaryTypeDisplayed === 'course' && summaryState.activeCourseTab === 'courseSummary'}
-      <SaveToArchiveButton />
+      <FoooterDisplay />
     {/if}
   </div>
   <TOC targetDivId="course-video-summary-display" />

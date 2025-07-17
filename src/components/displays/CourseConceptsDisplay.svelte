@@ -1,7 +1,7 @@
 <!-- @ts-nocheck -->
 <script>
   import { summaryState } from '../../stores/summaryStore.svelte.js'
-  import SaveToArchiveButton from '@/components/buttons/SaveToArchiveButton.svelte'
+  import FoooterDisplay from './FoooterDisplay.svelte'
   import PlusIcon from '../PlusIcon.svelte'
   import Toc from '../TOC.svelte'
   import { marked } from 'marked'
@@ -40,7 +40,7 @@
     <div id="course-concepts-display">
       {@html marked.parse(courseConcepts)}
       {#if summaryState.courseConcepts && summaryState.lastSummaryTypeDisplayed === 'course' && summaryState.activeCourseTab === 'courseConcepts'}
-        <SaveToArchiveButton />
+        <FoooterDisplay />
       {/if}
     </div>
     <Toc targetDivId="course-concepts-display" />

@@ -3,9 +3,7 @@
   import { marked } from 'marked'
   import hljs from 'highlight.js'
   import TOC from '../TOC.svelte'
-  import { summaryState } from '@/stores/summaryStore.svelte'
-  import SaveToArchiveButton from '@/components/buttons/SaveToArchiveButton.svelte'
-  import CopyButton from '@/components/buttons/CopyButton.svelte'
+  import FoooterDisplay from './FoooterDisplay.svelte'
 
   let { summary, isLoading, error } = $props()
 
@@ -40,12 +38,7 @@
 {#if summary && !isLoading}
   <div id="web-summary-display">
     {@html marked.parse(summary)}
-    {#if summary && !isLoading}
-      <div class="w-full my-4 flex justify-center gap-2">
-        <SaveToArchiveButton />
-        <CopyButton textToCopy={summary} />
-      </div>
-    {/if}
+    <FoooterDisplay />
   </div>
 
   <TOC targetDivId="web-summary-display" />

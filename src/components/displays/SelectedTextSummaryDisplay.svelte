@@ -41,7 +41,7 @@
   <div id="selected-text-summary-display">
     {@html marked.parse(selectedTextSummary)}
     {#if summaryState.selectedTextSummary && summaryState.lastSummaryTypeDisplayed === 'selectedText'}
-      <SaveToArchiveButton />
+      <FoooterDisplay />
     {/if}
   </div>
 

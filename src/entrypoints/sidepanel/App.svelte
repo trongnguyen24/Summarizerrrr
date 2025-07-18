@@ -6,7 +6,6 @@
   import SettingButton from '../../components/buttons/SettingButton.svelte'
   import SummarizeButton from '../../components/buttons/SummarizeButton.svelte'
   import TabNavigation from '../../components/TabNavigation.svelte' // Vẫn cần cho các component wrapper
-  import SummaryDisplay from '../../components/SummaryDisplay.svelte' // Component hiển thị chung
   import CourseConceptsDisplay from '../../components/displays/CourseConceptsDisplay.svelte' // Component nội dung Course Concepts
   import CourseVideoSummary from '../../components/displays/CourseVideoSummary.svelte' // Component nội dung Course Video Summary
   import YouTubeChapterSummary from '../../components/displays/YouTubeChapterSummary.svelte' // Component nội dung YouTube Chapter
@@ -223,8 +222,10 @@
   })
 </script>
 
-<div class="flex min-w-[22.5rem] w-full flex-col">
-  <div class="grid grid-rows-[32px_1px_8px_1px_160px_1px_8px_1px_1fr] h-screen">
+<div class="flex min-w-[22.5rem] bg-surface-1 w-full flex-col">
+  <div
+    class="grid grid-rows-[32px_1px_8px_1px_160px_1px_8px_1px_1fr] min-h-screen"
+  >
     <div class=" flex justify-center items-center w-full h-full">
       <div class="text-text-secondary">
         <div class="line-clamp-1 text-[0.75rem] px-2 text-text-secondary">
@@ -301,7 +302,7 @@
   </div>
 
   <div
-    class="fixed bg-linear-to-t from-background to-background/40 bottom-0 mask-t-from-50% h-16 backdrop-blur-[2px] w-full z-30 pointer-events-none"
+    class="fixed bg-linear-to-t from-surface-1 to-surface-1/40 bottom-0 mask-t-from-50% h-16 backdrop-blur-[2px] w-full z-30 pointer-events-none"
   ></div>
   <div class="fixed z-50 top-0 right-0">
     {#if showToast}

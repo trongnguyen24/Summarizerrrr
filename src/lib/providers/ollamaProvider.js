@@ -71,6 +71,62 @@ export class OllamaProvider extends BaseProvider {
     }
   }
 
+  async *generateContentStream(prompt) {
+    try {
+      const response = await fetch(`${this.ollamaEndpoint}/api/generate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: this.model,
+          prompt: prompt,
+          stream: true, // Ensure streaming is enabled
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error(`Ollama API error: ${response.status}`)
+      }
+
+      const reader = response.body.getReader()
+      const decoder = new TextDecoder()
+      let buffer = ''
+
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) {
+          break
+        }
+        buffer += decoder.decode(value, { stream: true })
+
+        // Process buffer line by line
+        let eolIndex
+        while ((eolIndex = buffer.indexOf('\n')) >= 0) {
+          const line = buffer.slice(0, eolIndex).trim()
+          buffer = buffer.slice(eolIndex + 1)
+
+          if (line) {
+            try {
+              const parsed = JSON.parse(line)
+              if (parsed.response) {
+                yield parsed.response
+              }
+              if (parsed.done) {
+                return
+              }
+            } catch (e) {
+              console.error('Failed to parse Ollama stream chunk:', e)
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error in Ollama stream:', error)
+      throw this.handleError(error, this.model)
+    }
+  }
+
   /**
    * Handles specific error messages from the Ollama API.
    * @param {Error} error The error object.

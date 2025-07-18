@@ -24,6 +24,7 @@
     resetDisplayState,
     updateVideoActiveStates,
     fetchAndSummarize,
+    fetchAndSummarizeStream,
     updateActiveCourseTab,
     updateActiveYouTubeTab,
   } from '../../stores/summaryStore.svelte.js'
@@ -211,7 +212,7 @@
   $effect(() => {
     const handleSummarizeClick = () => {
       resetDisplayState() // Reset display state before new summarization
-      fetchAndSummarize() // Call function from summaryStore
+      fetchAndSummarizeStream() // Call function from summaryStore
     }
 
     document.addEventListener('summarizeClick', handleSummarizeClick)

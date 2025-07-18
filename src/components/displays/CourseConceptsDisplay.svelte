@@ -41,14 +41,14 @@
       <div id="copy-cat">
         {@html marked.parse(courseConcepts)}
       </div>
-      {#if !summaryState.isCourseSummaryLoading && !summaryState.isCourseConceptsLoading}
+      {#if !isCourseLoading}
         <FoooterDisplay
           summaryContent={courseConcepts}
           summaryTitle={summaryState.pageTitle}
         />
+        <Toc targetDivId="course-concepts-display" />
       {/if}
     </div>
-    <Toc targetDivId="course-concepts-display" />
   {:else}
     <div class="text-text-secondary text-center p-4">
       <p>No Course concepts available yet.</p>

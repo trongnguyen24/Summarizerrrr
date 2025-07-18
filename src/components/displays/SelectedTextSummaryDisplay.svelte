@@ -18,7 +18,7 @@
   })
 </script>
 
-{#if isSelectedTextLoading}
+{#if isSelectedTextLoading && !selectedTextSummary}
   <div class="text-center p-4 mx-auto text-text-secondary w-fit animate-pulse">
     Summarizing selected text...
   </div>
@@ -37,21 +37,17 @@
   </div>
 {/if}
 
-{#if selectedTextSummary && !isSelectedTextLoading}
+{#if selectedTextSummary}
   <div id="selected-text-summary-display">
     <div id="copy-cat">
       {@html marked.parse(selectedTextSummary)}
     </div>
-    {#if summaryState.selectedTextSummary && summaryState.lastSummaryTypeDisplayed === 'selectedText'}
+    {#if !isSelectedTextLoading}
       <FoooterDisplay
         summaryContent={selectedTextSummary}
         summaryTitle={summaryState.pageTitle}
       />
+      <TOC targetDivId="selected-text-summary-display" />
     {/if}
   </div>
-
-  <TOC targetDivId="selected-text-summary-display" />
-{:else if !isSelectedTextLoading && !selectedTextError}
-  <!-- Optional: Add a placeholder if no selected text summary and no error -->
-  <!-- <p class="text-text-secondary text-center italic">No selected text summary available.</p> -->
 {/if}

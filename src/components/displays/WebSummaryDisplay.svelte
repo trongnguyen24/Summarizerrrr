@@ -17,7 +17,7 @@
   })
 </script>
 
-{#if isLoading}
+{#if isLoading && !summary}
   <div class="text-center p-4 mx-auto text-text-secondary w-fit animate-pulse">
     Processing web summary...
   </div>
@@ -36,19 +36,17 @@
   </div>
 {/if}
 
-{#if summary && !isLoading}
+{#if summary}
   <div id="web-summary-display">
     <div id="copy-cat">
       {@html marked.parse(summary)}
     </div>
-    <FoooterDisplay
-      summaryContent={summary}
-      summaryTitle={summaryState.pageTitle}
-    />
+    {#if !isLoading}
+      <FoooterDisplay
+        summaryContent={summary}
+        summaryTitle={summaryState.pageTitle}
+      />
+      <TOC targetDivId="web-summary-display" />
+    {/if}
   </div>
-
-  <TOC targetDivId="web-summary-display" />
-{:else if !isLoading && !error}
-  <!-- Optional: Add a placeholder if no summary and no error -->
-  <!-- <p class="text-text-secondary text-center italic">No summary available.</p> -->
 {/if}

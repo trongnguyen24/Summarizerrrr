@@ -17,7 +17,7 @@
   })
 </script>
 
-{#if isLoading}
+{#if isLoading && !summary}
   <div class="text-center p-4 mx-auto text-text-secondary w-fit animate-pulse">
     Processing main Course summary...
   </div>
@@ -36,20 +36,17 @@
   </div>
 {/if}
 
-{#if summary && !isLoading}
+{#if summary}
   <div id="course-video-summary-display">
     <div id="copy-cat">
       {@html marked.parse(summary)}
     </div>
-    {#if !summaryState.isCourseSummaryLoading && !summaryState.isCourseConceptsLoading}
+    {#if !isLoading}
       <FoooterDisplay
         summaryContent={summary}
         summaryTitle={summaryState.pageTitle}
       />
+      <TOC targetDivId="course-video-summary-display" />
     {/if}
   </div>
-  <TOC targetDivId="course-video-summary-display" />
-{:else if !isLoading && !error}
-  <!-- Optional: Placeholder for main Course summary -->
-  <!-- <p class="text-text-secondary text-center italic">No main Course summary available.</p> -->
 {/if}

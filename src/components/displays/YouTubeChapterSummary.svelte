@@ -17,7 +17,7 @@
   })
 </script>
 
-{#if isChapterLoading}
+{#if isChapterLoading && !chapterSummary}
   <div class="text-center p-4 mx-auto text-text-secondary w-fit animate-pulse">
     Generating chapter summary...
   </div>
@@ -36,21 +36,17 @@
   </div>
 {/if}
 
-{#if chapterSummary && !isChapterLoading}
+{#if chapterSummary}
   <div id="youtube-chapter-summary-display">
     <div id="copy-cat">
       {@html marked.parse(chapterSummary)}
     </div>
-    {#if !summaryState.isLoading && !summaryState.isChapterLoading}
+    {#if !isChapterLoading}
       <FoooterDisplay
         summaryContent={chapterSummary}
         summaryTitle={summaryState.pageTitle}
       />
+      <TOC targetDivId="youtube-chapter-summary-display" />
     {/if}
   </div>
-
-  <TOC targetDivId="youtube-chapter-summary-display" />
-{:else if !isChapterLoading && !chapterError}
-  <!-- Optional: Add a placeholder if no chapter summary and no error -->
-  <!-- <p class="text-text-secondary text-center italic">No chapter summary available.</p> -->
 {/if}

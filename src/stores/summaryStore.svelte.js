@@ -3,7 +3,12 @@ import { marked } from 'marked'
 import { getPageContent } from '../services/contentService.js'
 import { getActiveTabInfo } from '../services/chromeService.js'
 import { settings, loadSettings } from './settingsStore.svelte.js'
-import { summarizeContent, summarizeChapters } from '../lib/api.js'
+import {
+  summarizeContent,
+  summarizeChapters,
+  summarizeContentStream,
+  summarizeChaptersStream,
+} from '../lib/api.js'
 import {
   addSummary,
   addHistory,
@@ -422,7 +427,165 @@ export async function fetchAndSummarize() {
     await logAllGeneratedSummariesToHistory()
   }
 }
+export async function fetchAndSummarizeStream() {
+  if (
+    summaryState.isLoading ||
+    summaryState.isChapterLoading ||
+    summaryState.isCourseSummaryLoading ||
+    summaryState.isCourseConceptsLoading
+  ) {
+    resetState()
+  }
 
+  await loadSettings()
+  const userSettings = settings
+  resetState()
+
+  try {
+    summaryState.isLoading = true
+    let selectedProviderId = userSettings.selectedProvider || 'gemini'
+    if (!userSettings.isAdvancedMode) {
+      selectedProviderId = 'gemini'
+    }
+    checkApiKeyConfiguration(userSettings, selectedProviderId)
+
+    const tabInfo = await getActiveTabInfo()
+    if (!tabInfo || !tabInfo.url) {
+      throw new Error('Could not get current tab information or URL.')
+    }
+
+    summaryState.pageTitle = tabInfo.title || 'Unknown Title'
+    summaryState.pageUrl = tabInfo.url
+
+    const YOUTUBE_MATCH_PATTERN = /youtube\.com\/watch/i
+    const COURSE_MATCH_PATTERN =
+      /udemy\.com\/course\/.*\/learn\/|coursera\.org\/learn\//i
+
+    summaryState.isYouTubeVideoActive = YOUTUBE_MATCH_PATTERN.test(tabInfo.url)
+    summaryState.isCourseVideoActive = COURSE_MATCH_PATTERN.test(tabInfo.url)
+
+    let mainContentTypeToFetch = 'webpageText'
+    let summaryType = 'general'
+
+    if (summaryState.isYouTubeVideoActive) {
+      mainContentTypeToFetch = 'transcript'
+      summaryType = 'youtube'
+      summaryState.lastSummaryTypeDisplayed = 'youtube'
+    } else if (summaryState.isCourseVideoActive) {
+      mainContentTypeToFetch = 'transcript'
+      summaryType = 'courseSummary'
+      summaryState.lastSummaryTypeDisplayed = 'course'
+    } else {
+      summaryState.lastSummaryTypeDisplayed = 'web'
+    }
+
+    const mainContentResult = await getPageContent(
+      mainContentTypeToFetch,
+      userSettings.summaryLang
+    )
+    if (mainContentResult.type === 'error' || !mainContentResult.content) {
+      throw new Error('Could not get main page content.')
+    }
+    summaryState.currentContentSource = mainContentResult.content
+
+    const promises = []
+
+    if (summaryState.isYouTubeVideoActive) {
+      summaryState.isChapterLoading = true
+      const chapterStreamPromise = (async () => {
+        try {
+          const chapterContentResult = await getPageContent(
+            'timestampedTranscript',
+            userSettings.summaryLang
+          )
+          if (
+            chapterContentResult.type === 'error' ||
+            !chapterContentResult.content
+          ) {
+            throw new Error(
+              'Could not get timestamped transcript for chapters.'
+            )
+          }
+          const chapterStream = summarizeChaptersStream(
+            chapterContentResult.content
+          )
+          for await (const chunk of chapterStream) {
+            summaryState.chapterSummary += chunk
+          }
+        } catch (e) {
+          summaryState.chapterError = e.message || 'Error summarizing chapters.'
+        } finally {
+          summaryState.isChapterLoading = false
+        }
+      })()
+      promises.push(chapterStreamPromise)
+
+      const videoSummaryStream = summarizeContentStream(
+        summaryState.currentContentSource,
+        'youtube'
+      )
+      for await (const chunk of videoSummaryStream) {
+        summaryState.summary += chunk
+      }
+    } else if (summaryState.isCourseVideoActive) {
+      summaryState.isCourseSummaryLoading = true
+      summaryState.isCourseConceptsLoading = true
+
+      const courseSummaryStream = summarizeContentStream(
+        summaryState.currentContentSource,
+        'courseSummary'
+      )
+      const courseSummaryPromise = (async () => {
+        try {
+          for await (const chunk of courseSummaryStream) {
+            summaryState.courseSummary += chunk
+          }
+        } catch (e) {
+          summaryState.courseSummaryError =
+            e.message || 'Error streaming course summary.'
+        } finally {
+          summaryState.isCourseSummaryLoading = false
+        }
+      })()
+      promises.push(courseSummaryPromise)
+
+      const courseConceptsStream = summarizeContentStream(
+        summaryState.currentContentSource,
+        'courseConcepts'
+      )
+      const courseConceptsPromise = (async () => {
+        try {
+          for await (const chunk of courseConceptsStream) {
+            summaryState.courseConcepts += chunk
+          }
+        } catch (e) {
+          summaryState.courseConceptsError =
+            e.message || 'Error explaining concepts.'
+        } finally {
+          summaryState.isCourseConceptsLoading = false
+        }
+      })()
+      promises.push(courseConceptsPromise)
+    } else {
+      const webSummaryStream = summarizeContentStream(
+        summaryState.currentContentSource,
+        'general'
+      )
+      for await (const chunk of webSummaryStream) {
+        summaryState.summary += chunk
+      }
+    }
+
+    await Promise.all(promises)
+  } catch (e) {
+    summaryState.error =
+      e.message || 'An unexpected error occurred. Please try again later.'
+    summaryState.lastSummaryTypeDisplayed = 'web'
+  } finally {
+    summaryState.isLoading = false
+    await logAllGeneratedSummariesToHistory()
+  }
+}
 export async function summarizeSelectedText(text) {
   if (
     summaryState.isSelectedTextLoading ||

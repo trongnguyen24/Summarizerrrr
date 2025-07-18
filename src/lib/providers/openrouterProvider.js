@@ -60,6 +60,91 @@ export class OpenrouterProvider extends BaseProvider {
     return result
   }
 
+  async *generateContentStream(
+    model,
+    contents,
+    systemInstruction,
+    generationConfig
+  ) {
+    const messages = []
+    if (systemInstruction) {
+      messages.push({ role: 'system', content: systemInstruction })
+    }
+    contents.forEach((contentPart) => {
+      if (contentPart.parts && contentPart.parts.length > 0) {
+        messages.push({ role: 'user', content: contentPart.parts[0].text })
+      }
+    })
+
+    const body = {
+      model: model,
+      messages: messages,
+      temperature: generationConfig.temperature,
+      top_p: generationConfig.topP,
+      stream: true,
+    }
+
+    const response = await fetch(this.apiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${this.apiKey}`,
+      },
+      body: JSON.stringify(body),
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json()
+      throw new Error(
+        `OpenRouter API error: ${response.status} - ${
+          errorData.error?.message || response.statusText
+        }`
+      )
+    }
+
+    const reader = response.body?.getReader()
+    if (!reader) {
+      throw new Error('Response body is not readable')
+    }
+
+    const decoder = new TextDecoder()
+    let buffer = ''
+
+    try {
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+
+        buffer += decoder.decode(value, { stream: true })
+
+        while (true) {
+          const lineEnd = buffer.indexOf('\n')
+          if (lineEnd === -1) break
+
+          const line = buffer.slice(0, lineEnd).trim()
+          buffer = buffer.slice(lineEnd + 1)
+
+          if (line.startsWith('data: ')) {
+            const data = line.slice(6)
+            if (data === '[DONE]') break
+
+            try {
+              const parsed = JSON.parse(data)
+              const content = parsed.choices[0].delta.content
+              if (content) {
+                yield content
+              }
+            } catch (e) {
+              // Ignore invalid JSON
+            }
+          }
+        }
+      }
+    } finally {
+      reader.releaseLock()
+    }
+  }
+
   parseResponse(rawResponse) {
     if (
       rawResponse &&

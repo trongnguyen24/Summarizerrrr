@@ -17,7 +17,7 @@
   })
 </script>
 
-{#if isLoading}
+{#if isLoading && !summary}
   <div class="text-center p-4 mx-auto text-text-secondary w-fit animate-pulse">
     Processing main YouTube summary...
   </div>
@@ -36,20 +36,17 @@
   </div>
 {/if}
 
-{#if summary && !isLoading}
+{#if summary}
   <div id="youtube-video-summary-display">
     <div id="copy-cat">
       {@html marked.parse(summary)}
     </div>
-    {#if !summaryState.isLoading && !summaryState.isChapterLoading}
+    {#if !isLoading}
       <FoooterDisplay
         summaryContent={summary}
         summaryTitle={summaryState.pageTitle}
       />
+      <TOC targetDivId="youtube-video-summary-display" />
     {/if}
   </div>
-  <TOC targetDivId="youtube-video-summary-display" />
-{:else if !isLoading && !error}
-  <!-- Optional: Placeholder for main YouTube summary -->
-  <!-- <p class="text-text-secondary text-center italic">No main YouTube summary available.</p> -->
 {/if}

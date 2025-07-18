@@ -10,6 +10,7 @@
     getAllSummaries,
     getAllHistory,
   } from '@/lib/indexedDBService'
+  import { onStorageChange } from '@/services/chromeService'
   import SidePanel from './SidePanel.svelte'
   import {
     loadSettings,
@@ -25,6 +26,7 @@
   import '@fontsource-variable/geist-mono'
   import '@fontsource-variable/noto-serif'
   import '@fontsource/opendyslexic'
+  import '@fontsource/mali'
 
   // State management
   let isSidePanelVisible = $state(true)
@@ -196,6 +198,14 @@
   $effect(() => {
     initializeScrollbars(document.body)
     loadData()
+
+    // Listen for archive updates
+    onStorageChange((changes, areaName) => {
+      if (areaName === 'sync' && changes.data_updated_at) {
+        console.log('Data updated, reloading data...')
+        loadData()
+      }
+    })
   })
 
   $effect(() => {
@@ -218,7 +228,8 @@
   })
 </script>
 
-<Logdev />
+<!-- 
+<Logdev /> -->
 
 <main class="flex text-sm relative min-h-dvh bg-background text-text-primary">
   <button
@@ -265,7 +276,7 @@
     class="flex-1 pl-0 relative bg-surface-1 z-20 p-4 flex flex-col gap-2
     {isSidePanelVisible ? 'sm:pl-80' : ''}"
   >
-    <SummaryDisplay {selectedSummary} {formatDate} />
+    <SummaryDisplay {selectedSummary} {formatDate} {activeTab} {archiveList} />
   </div>
 
   <div

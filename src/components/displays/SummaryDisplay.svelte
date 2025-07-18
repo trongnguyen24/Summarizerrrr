@@ -5,11 +5,16 @@
   import hljs from 'highlight.js'
   import TOC from '@/components/TOCArchive.svelte'
   import TabNavigation from '@/components/TabNavigation.svelte'
+  import FoooterDisplay from '@/components/displays/FoooterDisplay.svelte'
   import {
     fontSizeIndex,
     widthIndex,
-    fontFamilyIndex,
   } from '@/stores/displaySettingsStore.svelte'
+  import { themeSettings, setTheme } from '../../stores/themeStore.svelte.js'
+  import {
+    settings,
+    updateSettings,
+  } from '../../stores/settingsStore.svelte.js'
 
   const { selectedSummary, formatDate } = $props()
 
@@ -18,20 +23,21 @@
 
   // @ts-nocheck
   const fontSizeClasses = [
-    'prose-base prose-h1:text-3xl',
-    'prose-lg prose-h1:text-3xl prose-h2:text-2xl prose-h3:text-xl',
-    'prose-xl prose-h1:text-4xl prose-h2:text-3xl  prose-h3:text-2xl',
-    'prose-2xl prose-h1:text-5xl prose-h2:text-4xl',
+    'prose-base prose-h1:text-2xl prose-h2:text-xl prose-h3:text-lg',
+    'prose-lg prose-h1:text-[1.675rem] prose-h2:text-2xl prose-h3:text-xl',
+    'prose-xl prose-h1:text-3xl prose-h2:text-[1.675rem]  prose-h3:[1.425rem]',
+    'prose-2xl prose-h1:text-4xl prose-h2:text-3xl prose-h3:text-2xl',
   ]
 
   const widthClasses = ['max-w-3xl', 'max-w-4xl', 'max-w-5xl', 'max-w-6xl']
   const widthButtonTexts = ['.', '..', '...', '....']
-  const fontFamilyClasses = [
-    'font-default',
-    'font-noto-serif',
-    'font-opendyslexic',
-    'font-mali',
-  ]
+  const fontMap = {
+    default: 'font-default',
+    'noto-serif': 'font-noto-serif',
+    opendyslexic: 'font-opendyslexic',
+    mali: 'font-mali',
+  }
+  const fontKeys = Object.keys(fontMap)
 
   function increaseFontSize() {
     if ($fontSizeIndex < fontSizeClasses.length - 1) {
@@ -50,7 +56,16 @@
   }
 
   function toggleFontFamily() {
-    $fontFamilyIndex = ($fontFamilyIndex + 1) % fontFamilyClasses.length
+    const currentIndex = fontKeys.indexOf(settings.selectedFont)
+    const nextIndex = (currentIndex + 1) % fontKeys.length
+    updateSettings({ selectedFont: fontKeys[nextIndex] })
+  }
+
+  function toggleTheme() {
+    const themes = ['light', 'dark', 'system']
+    const currentIndex = themes.indexOf(themeSettings.theme)
+    const nextIndex = (currentIndex + 1) % themes.length
+    setTheme(themes[nextIndex])
   }
 
   // Effect để cập nhật tabs khi selectedSummary thay đổi
@@ -101,13 +116,31 @@
 
 {#if selectedSummary}
   <div
-    class="prose px-8 w-full {widthClasses[
+    class="prose px-8 md:px-12 xl:px-20 w-full {widthClasses[
       $widthIndex
-    ]} mx-auto {fontSizeClasses[$fontSizeIndex]} {fontFamilyClasses[
-      $fontFamilyIndex
+    ]} mx-auto {fontSizeClasses[$fontSizeIndex]} {fontMap[
+      settings.selectedFont
     ]} py-12 summary-content"
   >
     <div class="absolute text-base flex gap-2 top-2 right-2">
+      <button
+        class="size-8 flex justify-center items-center hover:bg-blackwhite/5 rounded-md"
+        onclick={toggleTheme}
+        title="Change theme"
+      >
+        {#if themeSettings.theme === 'light'}
+          <Icon icon="heroicons:sun-16-solid" width="20" height="20" />
+        {:else if themeSettings.theme === 'dark'}
+          <Icon icon="heroicons:moon-20-solid" width="20" height="20" />
+        {:else}
+          <Icon
+            icon="heroicons:computer-desktop-20-solid"
+            width="20"
+            height="20"
+          />
+        {/if}
+      </button>
+
       <button
         class=" size-8 font-mono flex justify-center items-center hover:bg-blackwhite/5 rounded-md"
         onclick={decreaseFontSize}
@@ -190,12 +223,22 @@
           (_, index) => `summary-tab-${index}` === activeTabId
         )}
         {#if currentSummary}
-          {@html marked.parse(currentSummary.content)}
+          <div id="copy-cat">{@html marked.parse(currentSummary.content)}</div>
         {/if}
+      {/if}
+      {#if currentSummary}
+        <FoooterDisplay
+          showSaveButton={false}
+          summaryContent={currentSummary.content}
+          summaryTitle={selectedSummary.title}
+        />
       {/if}
     </div>
   </div>
   <TOC targetDivId="summary-content" />
+  {@const currentSummary = selectedSummary.summaries.find(
+    (_, index) => `summary-tab-${index}` === activeTabId
+  )}
 {:else}
   <p class="text-center text-text-secondary">No summary selected.</p>
 {/if}

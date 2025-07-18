@@ -45,6 +45,7 @@
   import '@fontsource-variable/geist-mono'
   import '@fontsource-variable/noto-serif'
   import '@fontsource/opendyslexic'
+  import '@fontsource/mali'
 
   const options = {
     scrollbars: {
@@ -176,15 +177,28 @@
 
   // Logic to handle messages from background script (using connection port)
   $effect(() => {
+    // Establish a long-lived connection for primary communication
     const port = browser.runtime.connect({ name: 'side-panel' })
-    console.log('[App.svelte] Connected to background script.')
+    console.log('[App.svelte] Port connected to background script.')
 
+    // Listen for messages on this specific port
     port.onMessage.addListener(handleBackgroundMessage)
 
+    // Also, add a listener for general runtime messages.
+    // This acts as a fallback if the port connection is lost (e.g., service worker restarts).
+    browser.runtime.onMessage.addListener(handleBackgroundMessage)
+    console.log('[App.svelte] Added fallback runtime.onMessage listener.')
+
+    // Cleanup function when the component is destroyed
     return () => {
+      // Clean up port listener and disconnect
       port.onMessage.removeListener(handleBackgroundMessage)
       port.disconnect()
-      console.log('[App.svelte] Disconnected from background script.')
+      console.log('[App.svelte] Port disconnected from background script.')
+
+      // Clean up the general runtime message listener
+      browser.runtime.onMessage.removeListener(handleBackgroundMessage)
+      console.log('[App.svelte] Removed fallback runtime.onMessage listener.')
     }
   })
 
@@ -262,7 +276,6 @@
     <div class="bg-border"></div>
 
     <div
-      id="copy-cat"
       class="relative prose main-sidepanel prose-h2:mt-4 p z-10 flex flex-col gap-8 px-6 pt-8 pb-[50vh] max-w-[52rem] w-screen mx-auto"
     >
       {#if summaryState.lastSummaryTypeDisplayed === 'youtube'}

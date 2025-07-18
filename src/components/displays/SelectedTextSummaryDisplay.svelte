@@ -4,7 +4,7 @@
   import hljs from 'highlight.js'
   import TOC from '../TOC.svelte'
   import { summaryState } from '@/stores/summaryStore.svelte'
-  import SaveToArchiveButton from '@/components/buttons/SaveToArchiveButton.svelte'
+  import FoooterDisplay from './FoooterDisplay.svelte'
 
   let { selectedTextSummary, isSelectedTextLoading, selectedTextError } =
     $props()
@@ -39,9 +39,14 @@
 
 {#if selectedTextSummary && !isSelectedTextLoading}
   <div id="selected-text-summary-display">
-    {@html marked.parse(selectedTextSummary)}
+    <div id="copy-cat">
+      {@html marked.parse(selectedTextSummary)}
+    </div>
     {#if summaryState.selectedTextSummary && summaryState.lastSummaryTypeDisplayed === 'selectedText'}
-      <FoooterDisplay />
+      <FoooterDisplay
+        summaryContent={selectedTextSummary}
+        summaryTitle={summaryState.pageTitle}
+      />
     {/if}
   </div>
 

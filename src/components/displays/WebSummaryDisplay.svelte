@@ -4,6 +4,7 @@
   import hljs from 'highlight.js'
   import TOC from '../TOC.svelte'
   import FoooterDisplay from './FoooterDisplay.svelte'
+  import { summaryState } from '@/stores/summaryStore.svelte'
 
   let { summary, isLoading, error } = $props()
 
@@ -37,8 +38,13 @@
 
 {#if summary && !isLoading}
   <div id="web-summary-display">
-    {@html marked.parse(summary)}
-    <FoooterDisplay />
+    <div id="copy-cat">
+      {@html marked.parse(summary)}
+    </div>
+    <FoooterDisplay
+      summaryContent={summary}
+      summaryTitle={summaryState.pageTitle}
+    />
   </div>
 
   <TOC targetDivId="web-summary-display" />

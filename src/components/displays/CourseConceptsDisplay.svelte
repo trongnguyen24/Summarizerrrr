@@ -38,9 +38,14 @@
     </div>
   {:else if courseConcepts}
     <div id="course-concepts-display">
-      {@html marked.parse(courseConcepts)}
-      {#if summaryState.courseConcepts && summaryState.lastSummaryTypeDisplayed === 'course' && summaryState.activeCourseTab === 'courseConcepts'}
-        <FoooterDisplay />
+      <div id="copy-cat">
+        {@html marked.parse(courseConcepts)}
+      </div>
+      {#if !summaryState.isCourseSummaryLoading && !summaryState.isCourseConceptsLoading}
+        <FoooterDisplay
+          summaryContent={courseConcepts}
+          summaryTitle={summaryState.pageTitle}
+        />
       {/if}
     </div>
     <Toc targetDivId="course-concepts-display" />

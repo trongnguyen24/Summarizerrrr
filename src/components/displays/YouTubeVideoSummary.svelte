@@ -38,9 +38,14 @@
 
 {#if summary && !isLoading}
   <div id="youtube-video-summary-display">
-    {@html marked.parse(summary)}
-    {#if summaryState.summary && summaryState.lastSummaryTypeDisplayed === 'youtube'}
-      <FoooterDisplay />
+    <div id="copy-cat">
+      {@html marked.parse(summary)}
+    </div>
+    {#if !summaryState.isLoading && !summaryState.isChapterLoading}
+      <FoooterDisplay
+        summaryContent={summary}
+        summaryTitle={summaryState.pageTitle}
+      />
     {/if}
   </div>
   <TOC targetDivId="youtube-video-summary-display" />

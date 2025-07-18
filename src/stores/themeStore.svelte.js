@@ -138,6 +138,10 @@ export function subscribeToThemeChanges() {
       }
       if (changed) {
         Object.assign(themeSettings, updatedThemeSettings)
+        // If the theme was changed, apply it to the document
+        if (updatedThemeSettings.theme) {
+          applyThemeToDocument(updatedThemeSettings.theme)
+        }
       }
     }
   })

@@ -148,14 +148,14 @@
     ></div>
 
     <div
-      class="flex font-mono text-xs md:text-sm absolute inset-0 px-2 pt-3 pb-6 h-full flex-col gap-px"
+      class="flex font-mono text-xs md:text-sm absolute inset-0 px-2 py-4 h-full flex-col gap-0.5"
     >
       {#each list as item (item.id)}
         <div class="relative group">
           <button
             class="list-button w-full relative p-2 pr-7 text-left hover:bg-blackwhite/5 rounded-sm {selectedSummaryId ==
             item.id
-              ? 'text-text-primary active font-bold'
+              ? 'text-text-primary bg-white/60 hover:bg-white/60 dark:hover:bg-white/10 dark:bg-white/10 active font-bold'
               : 'hover:bg-white/50 dark:hover:bg-white/5'}"
             onclick={() => selectSummary(item)}
             title={item.title}
@@ -169,7 +169,7 @@
 
           <DropdownMenu.Root>
             <DropdownMenu.Trigger
-              class="text-text-muted hover:bg-blackwhite/5 rounded-sm z-10 absolute right-0 justify-center items-center top-0 size-9"
+              class="text-text-muted hover:bg-white/50 dark:hover:bg-white/5 rounded-sm z-10 absolute right-0 justify-center items-center top-0 size-9"
             >
               <div
                 class="action-button hidden justify-center items-center top-0 size-9"
@@ -178,7 +178,6 @@
                   icon="heroicons:ellipsis-horizontal-16-solid"
                   width="20"
                   height="20"
-                  style="color: #fff"
                 />
               </div>
             </DropdownMenu.Trigger>
@@ -218,6 +217,7 @@
           </DropdownMenu.Root>
         </div>
       {/each}
+      <div class="">&nbsp;</div>
     </div>
   </div>
 

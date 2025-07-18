@@ -38,9 +38,14 @@
 
 {#if chapterSummary && !isChapterLoading}
   <div id="youtube-chapter-summary-display">
-    {@html marked.parse(chapterSummary)}
-    {#if summaryState.chapterSummary && summaryState.lastSummaryTypeDisplayed === 'youtube' && summaryState.activeYouTubeTab === 'chapterSummary'}
-      <FoooterDisplay />
+    <div id="copy-cat">
+      {@html marked.parse(chapterSummary)}
+    </div>
+    {#if !summaryState.isLoading && !summaryState.isChapterLoading}
+      <FoooterDisplay
+        summaryContent={chapterSummary}
+        summaryTitle={summaryState.pageTitle}
+      />
     {/if}
   </div>
 

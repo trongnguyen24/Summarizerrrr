@@ -10,6 +10,7 @@ import {
   getSummaryById,
   getHistoryById,
 } from '../lib/indexedDBService.js'
+import { setStorage } from '../services/chromeService.js'
 import { generateUUID } from '../lib/utils.js'
 
 // --- State ---
@@ -37,6 +38,7 @@ export const summaryState = $state({
   activeCourseTab: 'courseSummary',
   pageTitle: '', // Thêm pageTitle vào state
   pageUrl: '', // Thêm pageUrl vào state
+  isArchived: false,
 })
 
 // --- Actions ---
@@ -67,6 +69,7 @@ export function resetState() {
   summaryState.activeCourseTab = 'courseSummary'
   summaryState.pageTitle = ''
   summaryState.pageUrl = ''
+  summaryState.isArchived = false
 }
 
 /**
@@ -554,6 +557,9 @@ export async function saveAllGeneratedSummariesToArchive() {
       'Đã lưu tất cả các bản tóm tắt đã tạo vào Archive:',
       archiveEntry
     )
+    summaryState.isArchived = true
+    // Notify other components that the data has been updated
+    await setStorage({ data_updated_at: new Date().getTime() })
   } catch (error) {
     console.error(
       'Lỗi khi lưu tất cả các bản tóm tắt đã tạo vào Archive:',
@@ -632,6 +638,8 @@ export async function logAllGeneratedSummariesToHistory() {
         detail: { message: 'Logged to History successfully!' },
       })
     )
+    // Notify other components that the data has been updated
+    await setStorage({ data_updated_at: new Date().getTime() })
   } catch (error) {
     console.error(
       'Lỗi khi ghi tất cả các bản tóm tắt đã tạo vào History:',

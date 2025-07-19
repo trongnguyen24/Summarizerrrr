@@ -156,7 +156,9 @@
             class="list-button w-full relative p-2 pr-7 text-left hover:bg-blackwhite/5 rounded-sm {selectedSummaryId ==
             item.id
               ? 'text-text-primary bg-white/60 hover:bg-white/60 dark:hover:bg-white/10 dark:bg-white/10 active '
-              : 'hover:bg-white/50 dark:hover:bg-white/5'}"
+              : 'hover:bg-white/50 dark:hover:bg-white/5'} {item.isArchived
+              ? 'opacity-50'
+              : ''}"
             onclick={() => selectSummary(item)}
             title={item.title}
           >
@@ -165,6 +167,14 @@
             >
               {item.title}
             </div>
+            {#if item.isArchived}
+              <Icon
+                icon="heroicons:archive-box-solid"
+                width="16"
+                height="16"
+                class="absolute right-2 top-1/2 -translate-y-1/2 text-text-primary"
+              />
+            {/if}
           </button>
 
           <DropdownMenu.Root>

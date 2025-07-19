@@ -1,7 +1,9 @@
 // @ts-nocheck
+import { generateUUID } from './utils.js'
+
 const DB_NAME = 'summarizer_db'
 const STORE_NAME = 'summaries'
-const DB_VERSION = 2
+const DB_VERSION = 3
 const HISTORY_STORE_NAME = 'history'
 const HISTORY_LIMIT = 50
 
@@ -30,6 +32,7 @@ function openDatabase() {
         objectStore.createIndex('title', 'title', { unique: false })
         objectStore.createIndex('url', 'url', { unique: false })
         objectStore.createIndex('date', 'date', { unique: false })
+        objectStore.createIndex('isArchived', 'isArchived', { unique: false })
       }
     }
 
@@ -46,17 +49,18 @@ function openDatabase() {
   })
 }
 
-async function addSummary(summary) {
+async function addSummary(summaryData) {
   if (!db) {
     db = await openDatabase()
   }
   return new Promise((resolve, reject) => {
     const transaction = db.transaction([STORE_NAME], 'readwrite')
     const objectStore = transaction.objectStore(STORE_NAME)
-    const request = objectStore.add(summary)
+    const newSummary = { ...summaryData, id: generateUUID() } // Tạo ID mới cho bản tóm tắt
+    const request = objectStore.add(newSummary)
 
     request.onsuccess = () => {
-      resolve(request.result)
+      resolve(newSummary.id) // Trả về ID mới được tạo
     }
 
     request.onerror = (event) => {
@@ -206,23 +210,47 @@ async function deleteSummary(id) {
     db = await openDatabase()
   }
   return new Promise((resolve, reject) => {
-    console.log(`Attempting to delete summary with ID: ${id}`)
     const transaction = db.transaction([STORE_NAME], 'readwrite')
-
-    transaction.oncomplete = () => {
-      console.log(
-        `Transaction completed. Summary with ID ${id} successfully deleted.`
-      )
-      resolve(true)
-    }
-
-    transaction.onerror = (event) => {
-      console.error('Transaction error deleting summary:', event.target.error)
-      reject(event.target.error)
-    }
-
     const objectStore = transaction.objectStore(STORE_NAME)
-    objectStore.delete(id)
+
+    // Lấy summary trước khi xóa để có historySourceId
+    const getRequest = objectStore.get(id)
+    getRequest.onsuccess = async () => {
+      const summaryToDelete = getRequest.result
+      if (summaryToDelete && summaryToDelete.historySourceId) {
+        // Cập nhật isArchived của mục history tương ứng
+        try {
+          await updateHistoryArchivedStatus(
+            summaryToDelete.historySourceId,
+            false
+          )
+        } catch (error) {
+          console.error(
+            'Error updating history archived status after deleting summary:',
+            error
+          )
+          // Vẫn tiếp tục xóa summary dù có lỗi cập nhật history
+        }
+      }
+
+      // Xóa summary
+      const deleteRequest = objectStore.delete(id)
+      deleteRequest.onsuccess = () => {
+        console.log(`Summary with ID ${id} successfully deleted.`)
+        resolve(true)
+      }
+      deleteRequest.onerror = (event) => {
+        console.error('Error deleting summary:', event.target.errorCode)
+        reject(event.target.errorCode)
+      }
+    }
+    getRequest.onerror = (event) => {
+      console.error(
+        'Error getting summary before deletion:',
+        event.target.errorCode
+      )
+      reject(event.target.errorCode)
+    }
   })
 }
 
@@ -291,6 +319,59 @@ async function updateHistory(historyData) {
   })
 }
 
+async function updateHistoryArchivedStatus(id, isArchivedStatus) {
+  if (!db) {
+    db = await openDatabase()
+  }
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction([HISTORY_STORE_NAME], 'readwrite')
+    const objectStore = transaction.objectStore(HISTORY_STORE_NAME)
+    const getRequest = objectStore.get(id)
+
+    getRequest.onsuccess = () => {
+      const historyItem = getRequest.result
+      if (historyItem) {
+        historyItem.isArchived = isArchivedStatus
+        const putRequest = objectStore.put(historyItem)
+        putRequest.onsuccess = () => resolve(historyItem.id)
+        putRequest.onerror = (event) =>
+          reject(
+            'Error updating history archived status:' + event.target.errorCode
+          )
+      } else {
+        reject('History item not found.')
+      }
+    }
+    getRequest.onerror = (event) =>
+      reject('Error getting history item for update:' + event.target.errorCode)
+  })
+}
+
+async function moveHistoryItemToArchive(historyId) {
+  if (!db) {
+    db = await openDatabase()
+  }
+  return new Promise(async (resolve, reject) => {
+    try {
+      const historyItem = await getHistoryById(historyId)
+      if (historyItem) {
+        // Tạo một bản sao của historyItem và thêm historySourceId
+        const summaryToArchive = { ...historyItem, historySourceId: historyId }
+        // Gọi addSummary để thêm vào kho summaries, addSummary sẽ tạo id mới
+        await addSummary(summaryToArchive)
+        // Cập nhật trạng thái isArchived của mục lịch sử gốc
+        await updateHistoryArchivedStatus(historyId, true)
+        resolve(true)
+      } else {
+        reject('History item not found.')
+      }
+    } catch (error) {
+      console.error('Error moving history item to archive:', error)
+      reject(error)
+    }
+  })
+}
+
 export {
   openDatabase,
   addSummary,
@@ -303,4 +384,6 @@ export {
   deleteHistory,
   updateSummary,
   updateHistory,
+  updateHistoryArchivedStatus,
+  moveHistoryItemToArchive,
 }

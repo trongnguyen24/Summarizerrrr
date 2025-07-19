@@ -82,6 +82,7 @@
 
   // Data management
   async function loadData() {
+    let scrollPosition = window.scrollY // Lưu vị trí cuộn hiện tại
     try {
       await openDatabase()
       archiveList = [...(await getAllSummaries())]
@@ -91,6 +92,9 @@
       await initializeFromUrl(tab, summaryId)
     } catch (error) {
       console.error('Failed to initialize DB or load data:', error)
+    } finally {
+      // Khôi phục vị trí cuộn sau khi tải dữ liệu
+      window.scrollTo({ top: scrollPosition, behavior: 'instant' })
     }
   }
 

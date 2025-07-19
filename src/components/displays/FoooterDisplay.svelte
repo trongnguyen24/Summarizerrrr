@@ -4,7 +4,7 @@
   import CopyButton from '@/components/buttons/CopyButton.svelte'
   import DownloadButton from '@/components/buttons/DownloadButton.svelte'
 
-  let { showSaveButton = true, summaryContent, summaryTitle } = $props()
+  let { summaryContent, summaryTitle } = $props()
 </script>
 
 <div
@@ -19,9 +19,7 @@
     >
   </div>
   <span class="h-px w-20 bg-border/70"></span>
-  {#if showSaveButton}
-    <SaveToArchiveButton />
-  {/if}
+  <SaveToArchiveButton />
   <CopyButton />
   <DownloadButton content={summaryContent} title={summaryTitle} />
   <span class="h-px w-20 bg-border/70"></span>

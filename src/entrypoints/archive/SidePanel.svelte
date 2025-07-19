@@ -148,14 +148,14 @@
     ></div>
 
     <div
-      class="flex font-mono text-xs md:text-sm absolute inset-0 px-2 py-4 h-full flex-col gap-0.5"
+      class="flex text-xs md:text-sm absolute inset-0 px-2 py-4 h-full flex-col gap-0.5"
     >
       {#each list as item (item.id)}
         <div class="relative group">
           <button
             class="list-button w-full relative p-2 pr-7 text-left hover:bg-blackwhite/5 rounded-sm {selectedSummaryId ==
             item.id
-              ? 'text-text-primary bg-white/60 hover:bg-white/60 dark:hover:bg-white/10 dark:bg-white/10 active font-bold'
+              ? 'text-text-primary bg-white/60 hover:bg-white/60 dark:hover:bg-white/10 dark:bg-white/10 active '
               : 'hover:bg-white/50 dark:hover:bg-white/5'}"
             onclick={() => selectSummary(item)}
             title={item.title}

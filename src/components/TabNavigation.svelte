@@ -1,7 +1,5 @@
 <!-- @ts-nocheck -->
 <script>
-  import GroupVisual from './GroupVisual.svelte'
-  import PlusIcon from './PlusIcon.svelte'
   import { onMount } from 'svelte'
 
   let { tabs, activeTab, onSelectTab } = $props()

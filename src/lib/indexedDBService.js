@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { generateUUID } from './utils.js'
+import { generateUUID } from './utils'
 
 const DB_NAME = 'summarizer_db'
 const STORE_NAME = 'summaries'
@@ -218,30 +218,42 @@ async function deleteSummary(id) {
     getRequest.onsuccess = async () => {
       const summaryToDelete = getRequest.result
       if (summaryToDelete && summaryToDelete.historySourceId) {
-        // Cập nhật isArchived của mục history tương ứng
-        try {
-          await updateHistoryArchivedStatus(
-            summaryToDelete.historySourceId,
-            false
-          )
-        } catch (error) {
-          console.error(
-            'Error updating history archived status after deleting summary:',
-            error
-          )
-          // Vẫn tiếp tục xóa summary dù có lỗi cập nhật history
-        }
-      }
+        // Lưu trữ historySourceId nếu có trước khi xóa summary
+        const historySourceId = summaryToDelete.historySourceId
 
-      // Xóa summary
-      const deleteRequest = objectStore.delete(id)
-      deleteRequest.onsuccess = () => {
-        console.log(`Summary with ID ${id} successfully deleted.`)
-        resolve(true)
-      }
-      deleteRequest.onerror = (event) => {
-        console.error('Error deleting summary:', event.target.errorCode)
-        reject(event.target.errorCode)
+        // Xóa summary
+        const deleteRequest = objectStore.delete(id)
+        deleteRequest.onsuccess = async () => {
+          console.log(`Summary with ID ${id} successfully deleted.`)
+          // Cập nhật isArchived của mục history tương ứng sau khi summary đã được xóa
+          if (historySourceId) {
+            try {
+              await updateHistoryArchivedStatus(historySourceId, false)
+            } catch (error) {
+              console.error(
+                'Error updating history archived status after deleting summary:',
+                error
+              )
+              // Vẫn tiếp tục resolve dù có lỗi cập nhật history
+            }
+          }
+          resolve(true)
+        }
+        deleteRequest.onerror = (event) => {
+          console.error('Error deleting summary:', event.target.errorCode)
+          reject(event.target.errorCode)
+        }
+      } else {
+        // Nếu không tìm thấy summary để xóa, vẫn tiến hành xóa
+        const deleteRequest = objectStore.delete(id)
+        deleteRequest.onsuccess = () => {
+          console.log(`Summary with ID ${id} successfully deleted.`)
+          resolve(true)
+        }
+        deleteRequest.onerror = (event) => {
+          console.error('Error deleting summary:', event.target.errorCode)
+          reject(event.target.errorCode)
+        }
       }
     }
     getRequest.onerror = (event) => {

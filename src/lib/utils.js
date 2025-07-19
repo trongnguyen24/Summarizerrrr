@@ -1,9 +1,17 @@
-// src/lib/utils.js
+// @ts-nocheck
 
-/**
- * Generates a UUID (Universally Unique Identifier) v4.
- * @returns {string} A UUID string.
- */
+export function formatDate(isoString) {
+  const date = new Date(isoString)
+  return date.toLocaleString('en-US', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  })
+}
+
 export function generateUUID() {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
     var r = (Math.random() * 16) | 0,

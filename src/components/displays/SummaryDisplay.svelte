@@ -9,14 +9,13 @@
   import SaveToArchiveFromHistoryButton from '@/components/buttons/SaveToArchiveFromHistoryButton.svelte'
   import CopyButton from '@/components/buttons/CopyButton.svelte'
   import DownloadButton from '@/components/buttons/DownloadButton.svelte'
+  import DisplaySettingsControls from '@/components/displays/DisplaySettingsControls.svelte'
   import {
-    fontSizeIndex,
-    widthIndex,
+    fontSizeIndex, // Giữ lại vì vẫn dùng để tính toán class cho prose
+    widthIndex, // Giữ lại vì vẫn dùng để tính toán class cho prose
   } from '@/stores/displaySettingsStore.svelte'
-  import { themeSettings, setTheme } from '../../stores/themeStore.svelte.js'
   import {
-    settings,
-    updateSettings,
+    settings, // Giữ lại vì vẫn dùng để tính toán class cho prose
   } from '../../stores/settingsStore.svelte.js'
 
   const { selectedSummary, formatDate, activeTab } = $props()
@@ -33,42 +32,11 @@
   ]
 
   const widthClasses = ['max-w-3xl', 'max-w-4xl', 'max-w-5xl', 'max-w-6xl']
-  const widthButtonTexts = ['.', '..', '...', '....']
   const fontMap = {
     default: 'font-default',
     'noto-serif': 'font-noto-serif',
     opendyslexic: 'font-opendyslexic',
     mali: 'font-mali',
-  }
-  const fontKeys = Object.keys(fontMap)
-
-  function increaseFontSize() {
-    if ($fontSizeIndex < fontSizeClasses.length - 1) {
-      $fontSizeIndex++
-    }
-  }
-
-  function decreaseFontSize() {
-    if ($fontSizeIndex > 0) {
-      $fontSizeIndex--
-    }
-  }
-
-  function toggleWidth() {
-    $widthIndex = ($widthIndex + 1) % widthClasses.length
-  }
-
-  function toggleFontFamily() {
-    const currentIndex = fontKeys.indexOf(settings.selectedFont)
-    const nextIndex = (currentIndex + 1) % fontKeys.length
-    updateSettings({ selectedFont: fontKeys[nextIndex] })
-  }
-
-  function toggleTheme() {
-    const themes = ['light', 'dark', 'system']
-    const currentIndex = themes.indexOf(themeSettings.theme)
-    const nextIndex = (currentIndex + 1) % themes.length
-    setTheme(themes[nextIndex])
   }
 
   // Effect để cập nhật tabs khi selectedSummary thay đổi
@@ -125,69 +93,7 @@
       settings.selectedFont
     ]} py-12 summary-content"
   >
-    <div class="absolute text-base flex gap-2 top-2 right-2">
-      <button
-        class="size-8 flex justify-center items-center hover:bg-blackwhite/5 rounded-md"
-        onclick={toggleTheme}
-        title="Change theme"
-      >
-        {#if themeSettings.theme === 'light'}
-          <Icon icon="heroicons:sun-16-solid" width="20" height="20" />
-        {:else if themeSettings.theme === 'dark'}
-          <Icon icon="heroicons:moon-20-solid" width="20" height="20" />
-        {:else}
-          <Icon
-            icon="heroicons:computer-desktop-20-solid"
-            width="20"
-            height="20"
-          />
-        {/if}
-      </button>
-
-      <button
-        class=" size-8 font-mono flex justify-center items-center hover:bg-blackwhite/5 rounded-md"
-        onclick={decreaseFontSize}
-        disabled={$fontSizeIndex === fontSizeClasses.length + 1}
-        title="Decrease font size"
-      >
-        A-
-      </button>
-      <button
-        class=" size-8 flex font-mono justify-center items-center hover:bg-blackwhite/5 rounded-md"
-        onclick={increaseFontSize}
-        disabled={$fontSizeIndex === fontSizeClasses.length - 1}
-        title="Increase font size"
-      >
-        A+
-      </button>
-      <button
-        class=" size-8 flex justify-center items-center hover:bg-blackwhite/5 rounded-md"
-        onclick={toggleFontFamily}
-        title="Change font"
-      >
-        aA
-      </button>
-      <button
-        class=" size-8 pt-1.5 relative flex text-xl justify-center items-center hover:bg-blackwhite/5 rounded-md"
-        onclick={toggleWidth}
-        title="Toggle width"
-      >
-        <span class="font-default absolute text-sm -translate-y-3"
-          >{widthButtonTexts[$widthIndex]}</span
-        >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-        >
-          <path
-            fill="currentColor"
-            d="M5.825 13L7.7 14.875q.275.3.288.713T7.7 16.3t-.7.3t-.7-.3l-3.6-3.6q-.15-.15-.213-.325T2.426 12t.063-.375t.212-.325l3.6-3.6q.3-.3.7-.3t.7.3t.3.713t-.3.712L5.825 11h12.35L16.3 9.125q-.275-.3-.287-.712T16.3 7.7t.7-.3t.7.3l3.6 3.6q.15.15.213.325t.062.375t-.062.375t-.213.325l-3.6 3.6q-.3.3-.7.3t-.7-.3t-.3-.712t.3-.713L18.175 13z"
-          />
-        </svg>
-      </button>
-    </div>
+    <DisplaySettingsControls />
     <div class="flex flex-col gap-2">
       <div
         class="font-mono text-text-muted text-xs flex gap-8 justify-center items-center"

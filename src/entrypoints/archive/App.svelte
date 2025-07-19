@@ -27,6 +27,7 @@
   import '@fontsource-variable/noto-serif'
   import '@fontsource/opendyslexic'
   import '@fontsource/mali'
+  import { formatDate } from '@/lib/utils.js'
 
   // State management
   let isSidePanelVisible = $state(true)
@@ -66,18 +67,6 @@
 
   function pushUrl(tab, summaryId) {
     window.history.pushState({}, '', `?tab=${tab}&summaryId=${summaryId}`)
-  }
-
-  function formatDate(isoString) {
-    const date = new Date(isoString)
-    return date.toLocaleString('en-US', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false,
-    })
   }
 
   // Data management
@@ -232,7 +221,7 @@
   })
 </script>
 
-<!-- 
+<!--
 <Logdev /> -->
 
 <main class="flex text-sm relative min-h-dvh bg-background text-text-primary">

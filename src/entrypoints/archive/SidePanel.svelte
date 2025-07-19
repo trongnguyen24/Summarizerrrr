@@ -31,38 +31,9 @@
   let newSummaryName = $state('')
   let currentSummaryIdToRename = $state(null)
 
-  // Database service
-  const dbService = {
-    async updateItem(id, title, tab) {
-      try {
-        const item =
-          tab === 'archive'
-            ? await getSummaryById(id)
-            : await getHistoryById(id)
-
-        if (item) {
-          item.title = title.trim()
-          tab === 'archive'
-            ? await updateSummary(item)
-            : await updateHistory(item)
-          console.log(`${tab} item with ID ${id} renamed to "${title}".`)
-        }
-      } catch (error) {
-        console.error('Error updating item:', error)
-        throw error
-      }
-    },
-
-    async deleteItem(id, tab) {
-      try {
-        tab === 'archive' ? await deleteSummary(id) : await deleteHistory(id)
-        console.log(`${tab} item with ID ${id} deleted.`)
-      } catch (error) {
-        console.error('Error deleting item:', error)
-        throw error
-      }
-    },
-  }
+  let deleteCandidateId = $state(null)
+  let deleteTimeoutId = $state(null)
+  let isConfirmingDelete = $state(false)
 
   // Utility functions
   function resetDialogState() {
@@ -90,11 +61,20 @@
     if (!currentSummaryIdToRename || !newSummaryName.trim()) return
 
     try {
-      await dbService.updateItem(
-        currentSummaryIdToRename,
-        newSummaryName,
-        activeTab
-      )
+      const item =
+        activeTab === 'archive'
+          ? await getSummaryById(currentSummaryIdToRename)
+          : await getHistoryById(currentSummaryIdToToRename)
+
+      if (item) {
+        item.title = newSummaryName.trim()
+        activeTab === 'archive'
+          ? await updateSummary(item)
+          : await updateHistory(item)
+        console.log(
+          `${activeTab} item with ID ${currentSummaryIdToRename} renamed to "${newSummaryName}".`
+        )
+      }
       await refreshSummaries()
       resetDialogState()
     } catch (error) {
@@ -104,10 +84,31 @@
 
   async function handleDelete(id) {
     try {
-      await dbService.deleteItem(id, activeTab)
+      activeTab === 'archive'
+        ? await deleteSummary(id)
+        : await deleteHistory(id)
+      console.log(`${activeTab} item with ID ${id} deleted.`)
       await refreshSummaries()
+      deleteCandidateId = null
+      isConfirmingDelete = false
     } catch (error) {
       console.error('Error deleting item:', error)
+    }
+  }
+
+  function handleDeleteClick(id) {
+    if (isConfirmingDelete && deleteCandidateId === id) {
+      // Second click within 3 seconds, proceed with deletion
+      clearTimeout(deleteTimeoutId)
+      handleDelete(id)
+    } else {
+      // First click, show confirmation and set timeout
+      deleteCandidateId = id
+      isConfirmingDelete = true
+      deleteTimeoutId = setTimeout(() => {
+        isConfirmingDelete = false
+        deleteCandidateId = null
+      }, 3000) // 3 seconds timeout
     }
   }
 
@@ -153,31 +154,57 @@
       {#each list as item (item.id)}
         <div class="relative group">
           <button
-            class="list-button w-full relative p-2 pr-7 text-left hover:bg-blackwhite/5 rounded-sm {selectedSummaryId ==
+            class="list-button w-full relative p-2 pr-8 text-left hover:bg-blackwhite/5 rounded-md {selectedSummaryId ==
             item.id
-              ? 'text-text-primary bg-white/60 hover:bg-white/60 dark:hover:bg-white/10 dark:bg-white/10 active '
-              : 'hover:bg-white/50 dark:hover:bg-white/5'} {item.isArchived
-              ? 'opacity-50'
-              : ''}"
+              ? 'text-text-primary bg-neutral-100 hover:bg-white/60 dark:hover:bg-white/10 dark:bg-surface-2 active '
+              : 'hover:bg-surface-1 dark:hover:bg-surface-2'}"
             onclick={() => selectSummary(item)}
             title={item.title}
           >
             <div
-              class="line-clamp-1 transition-colors w-full mask-r-from-90% mask-r-to-100%"
+              class="line-clamp-1 transition-colors w-full mask-r-from-85% mask-r-to-100%"
             >
               {item.title}
             </div>
-            {#if item.isArchived}
-              <Icon
-                icon="heroicons:archive-box-solid"
-                width="16"
-                height="16"
-                class="absolute right-2 top-1/2 -translate-y-1/2 text-text-primary"
-              />
-            {/if}
           </button>
+          <div
+            class="text-text-muted justify-center rounded-r-sm items-center bg-linear-to-l from-surface-1 dark:from-surface-2 from-80% to-surface-1/0 dark:to-surface-2/0 top-0 bottom-0 pl-4 pr-1 right-0 hidden group-hover:flex absolute"
+          >
+            <button
+              onclick={() => openRenameDialog(item)}
+              class="p-1 hover:text-text-primary"
+            >
+              <Icon icon="tabler:pencil" width="20" height="20" />
+            </button>
+            <button
+              onclick={() => handleDeleteClick(item.id)}
+              class="p-1 relative rounded-3xl transition-colors duration-150 {isConfirmingDelete &&
+              deleteCandidateId === item.id
+                ? 'text-red-50 '
+                : 'hover:text-text-primary'}"
+            >
+              <Icon
+                icon="heroicons:trash"
+                width="20"
+                height="20"
+                class=" relative z-10"
+              />
+              {#if isConfirmingDelete && deleteCandidateId === item.id}
+                <span
+                  transition:slideScaleFade={{
+                    duration: 150,
+                    slideFrom: 'bottom',
+                    startScale: 0.4,
+                    slideDistance: '0rem',
+                  }}
+                  class="rounded-sm block size-7 bg-error absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+                >
+                </span>
+              {/if}
+            </button>
+          </div>
 
-          <DropdownMenu.Root>
+          <!-- <DropdownMenu.Root>
             <DropdownMenu.Trigger
               class="text-text-muted hover:bg-white/50 dark:hover:bg-white/5 rounded-sm z-10 absolute right-0 justify-center items-center top-0 size-9"
             >
@@ -224,7 +251,7 @@
                 </DropdownMenu.Item>
               </DropdownMenu.Content>
             </DropdownMenu.Portal>
-          </DropdownMenu.Root>
+          </DropdownMenu.Root> -->
         </div>
       {/each}
       <div class="">&nbsp;</div>
@@ -276,12 +303,12 @@
 
           <button class="relative overflow-hidden group" onclick={handleRename}>
             <div
-              class="font-medium flex justify-center items-center h-10 px-4 border transition-colors duration-200 bg-surface-2 group-hover:bg-surface-2/95 dark:group-hover:surface-2/90 text-orange-50 dark:text-text-primary border-border hover:border-gray-500/50 hover:text-white"
+              class="font-medium flex justify-center items-center h-10 px-4 border transition-colors duration-200 bg-surface-2 group-hover:bg-surface-2/95 dark:group-hover:surface-2/90 text-text-secondary border-border hover:border-gray-500/50 hover:text-blackwhite"
             >
               Save
             </div>
             <span
-              class="size-4 absolute z-10 -left-2 -bottom-2 border bg-white dark:bg-surface-1 rotate-45 transition-colors duration-200 border-border group-hover:border-gray-500"
+              class="size-4 absolute z-10 -left-2 -bottom-2 border bg-background dark:bg-surface-1 rotate-45 transition-colors duration-200 border-border group-hover:border-gray-500/50"
             ></span>
           </button>
         </div>

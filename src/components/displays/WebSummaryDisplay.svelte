@@ -32,7 +32,7 @@
     <div id="copy-cat">
       <StreamingMarkdown
         sourceMarkdown={summary}
-        speed={5}
+        speed={1}
         class="custom-markdown-style"
       />
     </div>

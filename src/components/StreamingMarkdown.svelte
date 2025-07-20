@@ -70,20 +70,33 @@
 <style>
   /* CSS để tạo con trỏ nhấp nháy */
   .blinking-cursor::after {
-    content: '▋'; /* Ký tự con trỏ, bạn có thể đổi thành '|' */
-    display: inline-block;
-    margin-left: 2px;
-    animation: blink 1s step-end infinite;
+    content: '|';
+    display: block;
+    text-align: center;
+    /* Đã thay đổi animation để có hiệu ứng cyberpunk */
+    animation: cyberpunk-blink 1.2s linear infinite;
     color: var(--cursor-color, #333); /* Cho phép tùy biến màu con trỏ */
   }
 
-  @keyframes blink {
-    from,
-    to {
-      opacity: 1;
+  /* Keyframes cho hiệu ứng con trỏ cyberpunk */
+  @keyframes cyberpunk-blink {
+    0% {
+      content: '|';
     }
-    50% {
-      opacity: 0;
+    20% {
+      content: '▒';
+    }
+    40% {
+      content: '█';
+    }
+    60% {
+      content: '▓';
+    }
+    80% {
+      content: '/';
+    }
+    100% {
+      content: '|';
     }
   }
 </style>

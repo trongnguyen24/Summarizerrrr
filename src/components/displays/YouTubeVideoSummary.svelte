@@ -1,6 +1,6 @@
 <!-- @ts-nocheck -->
 <script>
-  import { marked } from 'marked'
+  import StreamingMarkdown from '../StreamingMarkdown.svelte'
   import hljs from 'highlight.js'
   import TOC from '../TOC.svelte'
   import { summaryState } from '@/stores/summaryStore.svelte'
@@ -39,7 +39,11 @@
 {#if summary}
   <div id="youtube-video-summary-display">
     <div id="copy-cat">
-      {@html marked.parse(summary)}
+      <StreamingMarkdown
+        sourceMarkdown={summary}
+        speed={1}
+        class="custom-markdown-style"
+      />
     </div>
     {#if !isLoading}
       <FoooterDisplay

@@ -41,7 +41,7 @@
   <div id="youtube-chapter-summary-display">
     <div id="copy-cat">
       <StreamingMarkdown
-        sourceMarkdown={summary}
+        sourceMarkdown={chapterSummary}
         speed={1}
         class="custom-markdown-style"
       />

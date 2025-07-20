@@ -38,18 +38,19 @@
   />
 
   <div class="youtube-content mt-6">
-    {#if activeYouTubeTab === 'videoSummary'}
+    <div hidden={activeYouTubeTab !== 'videoSummary'}>
       <YouTubeVideoSummary
         summary={summaryState.summary}
         isLoading={summaryState.isLoading}
         error={summaryState.error}
       />
-    {:else if activeYouTubeTab === 'chapterSummary'}
+    </div>
+    <div hidden={activeYouTubeTab !== 'chapterSummary'}>
       <YouTubeChapterSummary
         chapterSummary={summaryState.chapterSummary}
         isChapterLoading={summaryState.isChapterLoading}
         chapterError={summaryState.chapterError}
       />
-    {/if}
+    </div>
   </div>
 </div>

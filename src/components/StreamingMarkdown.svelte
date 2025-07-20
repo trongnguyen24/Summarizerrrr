@@ -5,9 +5,9 @@
   /**
    * Props của component, sử dụng cú pháp Svelte 5
    * @type {{
-   * sourceMarkdown: string;
-   * speed?: number;
-   * class?: string;
+   *   sourceMarkdown: string;
+   *   speed?: number;
+   *   class?: string;
    * }}
    */
   let {
@@ -23,39 +23,42 @@
   // Vị trí ký tự hiện tại đang được "gõ"
   let currentIndex = $state(0)
   // Trạng thái cho biết component có đang "gõ" hay không, dùng để hiển thị con trỏ
-  let isTyping = $state(true)
+  let isTyping = $state(false)
 
-  // $effect là "trái tim" của component này.
-  // Nó sẽ chạy lại mỗi khi các dependencies (sourceMarkdown, speed) thay đổi.
+  // Effect này chỉ chạy một lần khi component được tạo ra, và hàm dọn dẹp của nó
+  // sẽ chạy khi component bị hủy. Đây là cách tiếp cận đúng để tránh tạo/hủy interval liên tục.
   $effect(() => {
-    // Nếu sourceMarkdown rỗng, reset lại mọi thứ
-    if (sourceMarkdown.length === 0) {
-      displayedMarkdown = ''
-      currentIndex = 0
-      isTyping = false
-      return
-    }
-
-    // Thiết lập một vòng lặp để "gõ" chữ
-    const typingInterval = setInterval(() => {
-      // Nếu vẫn còn ký tự để gõ
+    const intervalId = setInterval(() => {
+      // Nếu chuỗi hiển thị chưa bắt kịp chuỗi nguồn
       if (currentIndex < sourceMarkdown.length) {
         isTyping = true
-        // Nối ký tự tiếp theo vào chuỗi hiển thị
-        displayedMarkdown += sourceMarkdown[currentIndex]
-        currentIndex++
+        // Để animation mượt mà hơn khi nhận chunk lớn, ta sẽ thêm nhiều ký tự hơn trong một lần lặp
+        // nếu đang bị bỏ lại quá xa. Ở đây ta thêm tối đa 3 ký tự mỗi lần.
+        const charsToAdd = Math.min(3, sourceMarkdown.length - currentIndex)
+        displayedMarkdown += sourceMarkdown.substring(
+          currentIndex,
+          currentIndex + charsToAdd
+        )
+        currentIndex += charsToAdd
       } else {
-        // Đã gõ xong, dừng lại
+        // Đã bắt kịp, dừng trạng thái "gõ"
         isTyping = false
-        clearInterval(typingInterval)
       }
     }, speed)
 
-    // Đây là hàm cleanup của $effect.
-    // Nó sẽ chạy trước khi effect chạy lại, hoặc khi component bị hủy.
-    // Điều này đảm bảo không có vòng lặp nào bị rò rỉ.
+    // Hàm dọn dẹp: Dừng interval khi component bị hủy
     return () => {
-      clearInterval(typingInterval)
+      clearInterval(intervalId)
+    }
+  })
+
+  // Effect này theo dõi `sourceMarkdown`. Nếu nó được reset về rỗng (bắt đầu một tóm tắt mới),
+  // chúng ta cũng reset trạng thái nội bộ của component này.
+  $effect(() => {
+    if (sourceMarkdown === '') {
+      displayedMarkdown = ''
+      currentIndex = 0
+      isTyping = false
     }
   })
 </script>

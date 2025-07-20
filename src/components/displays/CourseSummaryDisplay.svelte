@@ -38,18 +38,19 @@
   />
 
   <div class="course-content mt-6">
-    {#if activeCourseTab === 'courseSummary'}
+    <div hidden={activeCourseTab !== 'courseSummary'}>
       <CourseVideoSummary
         summary={summaryState.courseSummary}
         isLoading={summaryState.isCourseSummaryLoading}
         error={summaryState.courseSummaryError}
       />
-    {:else if activeCourseTab === 'courseConcepts'}
+    </div>
+    <div hidden={activeCourseTab !== 'courseConcepts'}>
       <CourseConceptsDisplay
         courseConcepts={summaryState.courseConcepts}
         isCourseLoading={summaryState.isCourseConceptsLoading}
         courseConceptsError={summaryState.courseConceptsError}
       />
-    {/if}
+    </div>
   </div>
 </div>

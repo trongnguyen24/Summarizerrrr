@@ -68,14 +68,6 @@
 </div>
 
 <style>
-  /* Container chính cho nội dung markdown */
-  .markdown-container {
-    position: relative;
-    white-space: pre-wrap; /* Giữ lại các khoảng trắng và xuống dòng */
-    word-wrap: break-word; /* Tự động ngắt từ nếu quá dài */
-    line-height: 1.7;
-  }
-
   /* CSS để tạo con trỏ nhấp nháy */
   .blinking-cursor::after {
     content: '▋'; /* Ký tự con trỏ, bạn có thể đổi thành '|' */

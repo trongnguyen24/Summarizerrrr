@@ -1,20 +1,11 @@
 <!-- @ts-nocheck -->
 <script>
-  import { marked } from 'marked'
-  import hljs from 'highlight.js'
+  import StreamingMarkdown from '../StreamingMarkdown.svelte'
   import TOC from '../TOC.svelte'
   import FoooterDisplay from './FoooterDisplay.svelte'
   import { summaryState } from '@/stores/summaryStore.svelte'
 
   let { summary, isLoading, error } = $props()
-
-  $effect(() => {
-    if (summary && !isLoading) {
-      document.querySelectorAll('pre code').forEach((block) => {
-        hljs.highlightElement(block)
-      })
-    }
-  })
 </script>
 
 {#if isLoading && !summary}
@@ -39,7 +30,11 @@
 {#if summary}
   <div id="web-summary-display">
     <div id="copy-cat">
-      {@html marked.parse(summary)}
+      <StreamingMarkdown
+        sourceMarkdown={summary}
+        speed={5}
+        class="custom-markdown-style"
+      />
     </div>
     {#if !isLoading}
       <FoooterDisplay

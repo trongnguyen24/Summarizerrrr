@@ -6,6 +6,12 @@
   import { summaryState } from '@/stores/summaryStore.svelte'
 
   let { summary, isLoading, error } = $props()
+
+  let isMarkdownRendered = $state(false)
+
+  function handleMarkdownFinishTyping() {
+    isMarkdownRendered = true
+  }
 </script>
 
 {#if isLoading && !summary}
@@ -29,19 +35,19 @@
 
 {#if summary}
   <div id="web-summary-display">
-    <div id="copy-cat">
-      <StreamingMarkdown
-        sourceMarkdown={summary}
-        speed={1}
-        class="custom-markdown-style"
-      />
-    </div>
-    {#if !isLoading}
-      <FoooterDisplay
-        summaryContent={summary}
-        summaryTitle={summaryState.pageTitle}
-      />
-      <TOC targetDivId="web-summary-display" />
-    {/if}
+    <StreamingMarkdown
+      sourceMarkdown={summary}
+      speed={1}
+      class="custom-markdown-style"
+      onFinishTyping={handleMarkdownFinishTyping}
+    />
   </div>
+  {#if !isLoading && isMarkdownRendered}
+    <FoooterDisplay
+      summaryContent={summary}
+      summaryTitle={summaryState.pageTitle}
+      targetId="web-summary-display"
+    />
+    <TOC targetDivId="web-summary-display" />
+  {/if}
 {/if}

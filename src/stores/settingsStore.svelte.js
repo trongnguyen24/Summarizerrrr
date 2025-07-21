@@ -137,10 +137,10 @@ export async function updateSettings(newSettings) {
     //   JSON.stringify(validUpdates)
     // )
     await setStorage(validUpdates)
-    console.log(
-      '[settingsStore] Settings updated and saved:',
-      JSON.stringify($state.snapshot(settings))
-    )
+    // console.log(
+    //   '[settingsStore] Settings updated and saved:',
+    //   JSON.stringify($state.snapshot(settings))
+    // )
   } catch (error) {
     console.error('[settingsStore] Error saving settings:', error)
   }
@@ -175,10 +175,10 @@ export function subscribeToSettingsChanges() {
         }
       }
       if (changed) {
-        console.log(
-          '[settingsStore] Storage change detected, updating state:',
-          updatedSettings
-        )
+        // console.log(
+        //   '[settingsStore] Storage change detected, updating state:',
+        //   updatedSettings
+        // )
         Object.assign(settings, updatedSettings)
       }
     }

@@ -6,6 +6,12 @@
   import { summaryState } from '@/stores/summaryStore.svelte'
 
   let { courseConcepts, isCourseLoading, courseConceptsError } = $props()
+
+  let isMarkdownRendered = $state(false)
+
+  function handleMarkdownFinishTyping() {
+    isMarkdownRendered = true
+  }
 </script>
 
 <div class="flex flex-col gap-4">
@@ -28,9 +34,13 @@
     </div>
   {:else if courseConcepts}
     <div id="course-concepts-display">
-      <StreamingMarkdown sourceMarkdown={courseConcepts} speed={1} />
+      <StreamingMarkdown
+        sourceMarkdown={courseConcepts}
+        speed={1}
+        onFinishTyping={handleMarkdownFinishTyping}
+      />
     </div>
-    {#if !isCourseLoading}
+    {#if !isCourseLoading && isMarkdownRendered}
       <FoooterDisplay
         summaryContent={courseConcepts}
         summaryTitle={summaryState.pageTitle}

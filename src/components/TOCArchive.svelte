@@ -219,11 +219,20 @@
           {/each}
         </div>
       </div>
-      <a
-        href="#top"
-        class="px-3 bg-background border border-border border-t-0 flex justify-end rounded-b-lg items-center gap-1 py-3 font-mono text-xs/4 no-underline transition-colors"
-        ><Icon width="16" icon="carbon:up-to-top" />Go to top</a
+      <div
+        class="bg-background flex border border-border overflow-hidden border-t-0 rounded-b-lg"
       >
+        <a
+          href="#footer"
+          class="px-3 w-1/2 border-border border-r flex justify-end items-center gap-1 py-3 font-mono text-xs/4 no-underline transition-colors"
+          ><Icon class=" rotate-180" width="16" icon="carbon:up-to-top" /></a
+        >
+        <a
+          href="#top"
+          class="px-3 w-1/2 flex justify-end items-center gap-1 py-3 font-mono text-xs/4 no-underline transition-colors"
+          ><Icon width="16" icon="carbon:up-to-top" />Go to top</a
+        >
+      </div>
     </div>
   </nav>
 </div>

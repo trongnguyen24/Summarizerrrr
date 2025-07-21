@@ -283,6 +283,33 @@ export default defineBackground(() => {
           )
         }
       }
+    } else if (command === 'open-archive-panel') {
+      console.log('[background.js] Open archive panel command received.')
+      if (import.meta.env.BROWSER === 'chrome') {
+        try {
+          await chrome.tabs.create({
+            url: chrome.runtime.getURL('archive.html'),
+          })
+          console.log('[background.js] Chrome: Archive panel opened.')
+        } catch (error) {
+          console.error(
+            '[background.js] Chrome: Error opening archive panel:',
+            error
+          )
+        }
+      } else if (import.meta.env.BROWSER === 'firefox') {
+        try {
+          await browser.tabs.create({
+            url: browser.runtime.getURL('archive.html'),
+          })
+          console.log('[background.js] Firefox: Archive panel opened.')
+        } catch (error) {
+          console.error(
+            '[background.js] Firefox: Error opening archive panel:',
+            error
+          )
+        }
+      }
     }
   })
 

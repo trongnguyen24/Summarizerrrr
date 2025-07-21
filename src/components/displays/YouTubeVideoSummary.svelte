@@ -7,6 +7,12 @@
 
   let { summary, isLoading, error } = $props()
 
+  let isMarkdownRendered = $state(false)
+
+  function handleMarkdownFinishTyping() {
+    isMarkdownRendered = true
+  }
+
   $effect(() => {
     if (summary && !isLoading) {
       document.querySelectorAll('pre code').forEach((block) => {
@@ -41,9 +47,10 @@
       sourceMarkdown={summary}
       speed={1}
       class="custom-markdown-style"
+      onFinishTyping={handleMarkdownFinishTyping}
     />
 
-    {#if !isLoading}
+    {#if !isLoading && isMarkdownRendered}
       <FoooterDisplay
         summaryContent={summary}
         summaryTitle={summaryState.pageTitle}

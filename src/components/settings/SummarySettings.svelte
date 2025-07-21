@@ -78,7 +78,7 @@
     >
     <div class="flex items-center">
       <Label.Root
-        class="cursor-pointer pr-2 py-2 w-20 text-right font-bold select-none transition-colors duration-1000 {settings.isSummaryAdvancedMode
+        class="cursor-pointer pr-2 py-2 w-20 !text-right font-bold select-none transition-colors duration-1000 {settings.isSummaryAdvancedMode
           ? 'text-primary'
           : 'text-text-primary'}"
         for="isSummaryAdvancedMode-toggle"

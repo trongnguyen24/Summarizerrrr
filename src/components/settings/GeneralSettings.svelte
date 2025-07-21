@@ -145,6 +145,13 @@
             {@render keyboard('Alt')}{@render keyboard('P')}
           </div>
         </div>
+        <div class="flex justify-between gap-1">
+          History
+
+          <div>
+            {@render keyboard('Alt')}{@render keyboard('X')}
+          </div>
+        </div>
       {:else}
         <div class="flex justify-between gap-1">
           Open Sidepanel
@@ -166,6 +173,13 @@
 
           <div>
             {@render keyboard('Alt')}{@render keyboard('P')}
+          </div>
+        </div>
+        <div class="flex justify-between gap-1">
+          History
+
+          <div>
+            {@render keyboard('Alt')}{@render keyboard('X')}
           </div>
         </div>
       {/if}

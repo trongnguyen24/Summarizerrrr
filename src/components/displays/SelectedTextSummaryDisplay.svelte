@@ -7,6 +7,12 @@
 
   let { selectedTextSummary, isSelectedTextLoading, selectedTextError } =
     $props()
+
+  let isMarkdownRendered = $state(false)
+
+  function handleMarkdownFinishTyping() {
+    isMarkdownRendered = true
+  }
 </script>
 
 {#if isSelectedTextLoading && !selectedTextSummary}
@@ -30,19 +36,19 @@
 
 {#if selectedTextSummary}
   <div id="selected-text-summary-display">
-    <div id="copy-cat">
-      <StreamingMarkdown
-        sourceMarkdown={selectedTextSummary}
-        speed={1}
-        class="custom-markdown-style"
-      />
-    </div>
-    {#if !isSelectedTextLoading}
-      <FoooterDisplay
-        summaryContent={selectedTextSummary}
-        summaryTitle={summaryState.pageTitle}
-      />
-      <TOC targetDivId="selected-text-summary-display" />
-    {/if}
+    <StreamingMarkdown
+      sourceMarkdown={selectedTextSummary}
+      speed={1}
+      class="custom-markdown-style"
+      onFinishTyping={handleMarkdownFinishTyping}
+    />
   </div>
+  {#if !isSelectedTextLoading && isMarkdownRendered}
+    <FoooterDisplay
+      summaryContent={selectedTextSummary}
+      summaryTitle={summaryState.pageTitle}
+      targetId="selected-text-summary-display"
+    />
+    <TOC targetDivId="selected-text-summary-display" />
+  {/if}
 {/if}

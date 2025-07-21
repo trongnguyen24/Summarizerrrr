@@ -18,12 +18,14 @@
    *   sourceMarkdown: string;
    *   speed?: number;
    *   class?: string;
+   *   onFinishTyping?: () => void; // Thêm prop mới
    * }}
    */
   let {
     sourceMarkdown, // BẮT BUỘC: Chuỗi markdown đầy đủ từ stream
     speed = 10, // TÙY CHỌN: Tốc độ gõ chữ (ms/ký tự)
     class: className = '', // TÙY CHỌN: Các class CSS để tùy chỉnh từ bên ngoài
+    onFinishTyping, // Destructure prop mới
   } = $props()
 
   // === State nội bộ của component ===
@@ -52,7 +54,13 @@
         currentIndex += charsToAdd
       } else {
         // Đã bắt kịp, dừng trạng thái "gõ"
-        isTyping = false
+        if (isTyping) {
+          // Chỉ gọi khi trạng thái thay đổi từ true sang false
+          isTyping = false
+          if (onFinishTyping) {
+            onFinishTyping()
+          }
+        }
       }
     }, speed)
 
@@ -104,19 +112,64 @@
   /* Keyframes cho hiệu ứng con trỏ cyberpunk */
   @keyframes cyberpunk-blink {
     0% {
-      content: '|';
+      content: '!';
+    }
+    5% {
+      content: '<';
+    }
+    10% {
+      content: '_';
+    }
+    15% {
+      content: '-';
     }
     20% {
-      content: '#';
+      content: '[';
+    }
+    25% {
+      content: '\\';
+    }
+    30% {
+      content: '/';
+    }
+    35% {
+      content: '>';
     }
     40% {
-      content: '#';
+      content: ']';
+    }
+    45% {
+      content: '{';
+    }
+    50% {
+      content: '=';
+    }
+    55% {
+      content: '—';
     }
     60% {
-      content: '&';
+      content: '}';
+    }
+    65% {
+      content: '+';
+    }
+    70% {
+      content: '*';
+    }
+    75% {
+      content: '^';
     }
     80% {
-      content: '@';
+      content: '?';
+    }
+    85% {
+      content: '#';
+    }
+    90% {
+      content: '%';
+    }
+    95% {
+      content: '_';
     }
     100% {
       content: '!';

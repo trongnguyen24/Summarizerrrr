@@ -5,6 +5,12 @@
   import FoooterDisplay from './FoooterDisplay.svelte'
 
   let { summary, isLoading, error } = $props()
+
+  let isMarkdownRendered = $state(false)
+
+  function handleMarkdownFinishTyping() {
+    isMarkdownRendered = true
+  }
 </script>
 
 {#if isLoading && !summary}
@@ -28,12 +34,17 @@
 
 {#if summary}
   <div id="course-video-summary-display">
-    <StreamingMarkdown sourceMarkdown={summary} speed={1} />
+    <StreamingMarkdown
+      sourceMarkdown={summary}
+      speed={1}
+      onFinishTyping={handleMarkdownFinishTyping}
+    />
   </div>
-  {#if !isLoading}
+  {#if !isLoading && isMarkdownRendered}
     <FoooterDisplay
       summaryContent={summary}
       summaryTitle={summaryState.pageTitle}
+      targetId="course-video-summary-display"
     />
   {/if}
 {/if}

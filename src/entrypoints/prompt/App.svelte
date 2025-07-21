@@ -373,7 +373,7 @@
           >
             <div
               class=" font-medium py-2 px-4 border transition-colors duration-200 {isPromptModified()
-                ? 'bg-surface-2 group-hover:bg-surface-2/95 dark:group-hover:surface-2/90 text-orange-50 dark:text-text-primary border-border hover:border-gray-500/50 hover:text-white'
+                ? 'bg-surface-2 group-hover:bg-surface-2/95 dark:group-hover:surface-2/90  text-text-primary border-border hover:border-gray-500/50 hover:text-white'
                 : ' bg-white dark:bg-surface-1 text-text-secondary border-border/40'}"
             >
               Discard

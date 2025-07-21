@@ -1,42 +1,32 @@
 <script>
   // @ts-nocheck
-  import Icon from '@iconify/svelte'
-  import 'overlayscrollbars/overlayscrollbars.css'
-  import { animate, createSpring } from 'animejs'
-  import Logdev from '@/components/settings/Logdev.svelte'
-  import { useOverlayScrollbars } from 'overlayscrollbars-svelte'
-  import {
-    openDatabase,
-    getAllSummaries,
-    getAllHistory,
-  } from '@/lib/indexedDBService'
-  import { onStorageChange } from '@/services/chromeService'
-  import SidePanel from './SidePanel.svelte'
+  import Icon from '@iconify/svelte';
+  import 'overlayscrollbars/overlayscrollbars.css';
+  import { useOverlayScrollbars } from 'overlayscrollbars-svelte';
+  import { onStorageChange } from '@/services/chromeService';
+  import SidePanel from './SidePanel.svelte';
   import {
     loadSettings,
     subscribeToSettingsChanges,
-  } from '../../stores/settingsStore.svelte.js'
+  } from '../../stores/settingsStore.svelte.js';
   import {
     initializeTheme,
     subscribeToSystemThemeChanges,
     themeSettings,
     applyThemeToDocument,
-  } from '../../stores/themeStore.svelte.js'
-  import SummaryDisplay from '@/components/displays/SummaryDisplay.svelte'
-  import '@fontsource-variable/geist-mono'
-  import '@fontsource-variable/noto-serif'
-  import '@fontsource/opendyslexic'
-  import '@fontsource/mali'
-  import { formatDate } from '@/lib/utils.js'
+  } from '../../stores/themeStore.svelte.js';
+  import SummaryDisplay from '@/components/displays/SummaryDisplay.svelte';
+  import '@fontsource-variable/geist-mono';
+  import '@fontsource-variable/noto-serif';
+  import '@fontsource/opendyslexic';
+  import '@fontsource/mali';
+  import { formatDate } from '@/lib/utils.js';
+  import { archiveStore } from '../../stores/archiveStore.svelte.js';
+  import { animationService } from '../../services/animationService.js';
 
   // State management
-  let isSidePanelVisible = $state(true)
-  let sidePanel
-  let activeTab = $state('history')
-  let archiveList = $state([])
-  let historyList = $state([])
-  let selectedSummary = $state(null)
-  let selectedSummaryId = $state(null)
+  let isSidePanelVisible = $state(true);
+  let sidePanel;
 
   // Overlay scrollbars configuration
   const scrollOptions = {
@@ -45,180 +35,54 @@
       autoHide: 'scroll',
       theme: 'os-theme-custom-app',
     },
-  }
+  };
   const [initializeScrollbars] = useOverlayScrollbars({
     options: scrollOptions,
     defer: true,
-  })
-
-  // Utility functions
-  function getUrlParams() {
-    const params = new URLSearchParams(window.location.search)
-    return {
-      summaryId: params.get('summaryId'),
-      tab: params.get('tab'),
-    }
-  }
-
-  function updateUrl(tab, summaryId = null) {
-    const url = summaryId ? `?tab=${tab}&summaryId=${summaryId}` : `?tab=${tab}`
-    window.history.replaceState({}, '', url)
-  }
-
-  function pushUrl(tab, summaryId) {
-    window.history.pushState({}, '', `?tab=${tab}&summaryId=${summaryId}`)
-  }
-
-  // Data management
-  async function loadData() {
-    let scrollPosition = window.scrollY // Lưu vị trí cuộn hiện tại
-    try {
-      await openDatabase()
-      archiveList = [...(await getAllSummaries())]
-      historyList = [...(await getAllHistory())]
-
-      const { tab, summaryId } = getUrlParams()
-      await initializeFromUrl(tab, summaryId)
-    } catch (error) {
-      console.error('Failed to initialize DB or load data:', error)
-    } finally {
-      // Khôi phục vị trí cuộn sau khi tải dữ liệu
-      window.scrollTo({ top: scrollPosition, behavior: 'instant' })
-    }
-  }
-
-  async function initializeFromUrl(urlTab, urlSummaryId) {
-    const targetTab = urlTab === 'archive' ? 'archive' : 'history'
-    activeTab = targetTab
-
-    const currentList = targetTab === 'archive' ? archiveList : historyList
-
-    if (urlSummaryId) {
-      const found = currentList.find((s) => s.id === urlSummaryId)
-      if (found) {
-        selectedSummary = found
-        selectedSummaryId = urlSummaryId
-        return
-      }
-    }
-
-    // Auto-select first item if available
-    if (currentList.length > 0) {
-      selectedSummary = currentList[0]
-      selectedSummaryId = currentList[0].id
-      updateUrl(targetTab, currentList[0].id)
-    } else {
-      selectedSummary = null
-      selectedSummaryId = null
-      updateUrl(targetTab)
-    }
-  }
-
-  function validateSelectedItem() {
-    if (!selectedSummaryId) return
-
-    const currentList = activeTab === 'archive' ? archiveList : historyList
-    const found = currentList.find((s) => s.id === selectedSummaryId)
-
-    if (!found) {
-      selectedSummary = null
-      selectedSummaryId = null
-      updateUrl(activeTab)
-
-      if (currentList.length > 0) {
-        selectedSummary = currentList[0]
-        selectedSummaryId = currentList[0].id
-        updateUrl(activeTab, currentList[0].id)
-      }
-    }
-  }
-
-  // Animation service
-  const animationService = {
-    show(element) {
-      if (!element) return
-      animate(element, {
-        width: ['20rem'],
-        duration: 200,
-        ease: createSpring({ stiffness: 125, damping: 14 }),
-        alternate: false,
-      })
-    },
-
-    hide(element) {
-      if (!element) return
-      animate(element, {
-        width: [0],
-        duration: 300,
-        ease: 'outExpo',
-        alternate: false,
-      })
-    },
-  }
+  });
 
   // Event handlers
-  function selectSummary(summary) {
-    selectedSummary = summary
-    selectedSummaryId = summary.id
-    pushUrl(activeTab, summary.id)
-  }
-
-  function selectTab(tabName) {
-    activeTab = tabName
-    selectedSummary = null
-    selectedSummaryId = null
-
-    const newList = tabName === 'archive' ? archiveList : historyList
-    if (newList.length > 0) {
-      selectedSummary = newList[0]
-      selectedSummaryId = newList[0].id
-      updateUrl(tabName, newList[0].id)
-    } else {
-      updateUrl(tabName)
-    }
-  }
-
   function toggleSidePanel() {
-    isSidePanelVisible = !isSidePanelVisible
+    isSidePanelVisible = !isSidePanelVisible;
     if (isSidePanelVisible) {
-      animationService.show(sidePanel)
+      animationService.show(sidePanel);
     } else {
-      animationService.hide(sidePanel)
+      animationService.hide(sidePanel);
     }
   }
 
   // Effects
   $effect(() => {
-    initializeScrollbars(document.body)
-    loadData()
+    initializeScrollbars(document.body);
+    archiveStore.loadData();
 
     // Listen for archive updates
     onStorageChange((changes, areaName) => {
       if (areaName === 'sync' && changes.data_updated_at) {
-        console.log('Data updated, reloading data...')
-        loadData()
+        console.log('Data updated, reloading data...');
+        archiveStore.loadData();
       }
-    })
-  })
+    });
+  });
 
   $effect(() => {
-    initializeTheme()
-    const unsubscribeTheme = subscribeToSystemThemeChanges()
+    initializeTheme();
+    const unsubscribeTheme = subscribeToSystemThemeChanges();
 
     $effect(() => {
-      applyThemeToDocument(themeSettings.theme)
-    })
+      applyThemeToDocument(themeSettings.theme);
+    });
 
-    return unsubscribeTheme
-  })
+    return unsubscribeTheme;
+  });
 
   $effect(() => {
-    validateSelectedItem()
-  })
+    archiveStore.validateSelectedItem();
+  });
 
   loadSettings().then(() => {
-    subscribeToSettingsChanges()
-  })
+    subscribeToSettingsChanges();
+  });
 </script>
 
 <!--
@@ -253,13 +117,13 @@
 
     {#if isSidePanelVisible}
       <SidePanel
-        list={activeTab === 'archive' ? archiveList : historyList}
-        {selectedSummary}
-        {selectSummary}
-        {selectedSummaryId}
-        {activeTab}
-        {selectTab}
-        onRefresh={loadData}
+        list={archiveStore.activeTab === 'archive' ? archiveStore.archiveList : archiveStore.historyList}
+        selectedSummary={archiveStore.selectedSummary}
+        selectSummary={archiveStore.selectSummary}
+        selectedSummaryId={archiveStore.selectedSummaryId}
+        activeTab={archiveStore.activeTab}
+        selectTab={archiveStore.selectTab}
+        onRefresh={archiveStore.loadData}
       />
     {/if}
   </div>
@@ -269,7 +133,7 @@
     class="flex-1 relative pl-0 bg-surface-1 z-20 p-4 flex flex-col gap-2
     {isSidePanelVisible ? 'sm:pl-80' : ''}"
   >
-    <SummaryDisplay {selectedSummary} {formatDate} {activeTab} {archiveList} />
+    <SummaryDisplay selectedSummary={archiveStore.selectedSummary} {formatDate} activeTab={archiveStore.activeTab} archiveList={archiveStore.archiveList} />
     <div
       class="sticky bg-linear-to-t from-surface-1 to-surface-1/40 bottom-0 mask-t-from-50% h-16 backdrop-blur-[2px] w-full z-10 pointer-events-none"
     ></div>

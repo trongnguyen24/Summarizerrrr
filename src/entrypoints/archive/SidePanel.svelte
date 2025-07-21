@@ -64,7 +64,7 @@
       const item =
         activeTab === 'archive'
           ? await getSummaryById(currentSummaryIdToRename)
-          : await getHistoryById(currentSummaryIdToToRename)
+          : await getHistoryById(currentSummaryIdToRename)
 
       if (item) {
         item.title = newSummaryName.trim()
@@ -344,15 +344,6 @@
         4px 0 8px 2px #ffffff71,
         0 0 3px 1px #ffffff94;
     }
-  }
-
-  .list-button:focus + .action-button {
-    display: flex !important;
-  }
-
-  .group:focus-within .action-button,
-  .group:hover .action-button {
-    display: flex !important;
   }
 
   .lang::after {

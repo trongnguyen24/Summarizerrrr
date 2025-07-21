@@ -10,9 +10,10 @@ import {
   basicModeSettings,
   loadBasicModeSettings,
 } from '../stores/basicModeSettingsStore.svelte.js'
-import { getProvider, providersConfig } from './providersConfig.js'
-import { promptBuilders } from './promptBuilders.js'
-import { DEFAULT_OLLAMA_ENDPOINT } from './ollamaConfig.js'
+import { getProvider, providersConfig } from './providersConfig.js';
+import { promptBuilders } from './promptBuilders.js';
+import { systemInstructions } from './systemInstructions.js';
+import { DEFAULT_OLLAMA_ENDPOINT } from './ollamaConfig.js';
 
 /**
  * Helper function to get provider-specific configuration (API key, model, model config).
@@ -94,7 +95,7 @@ export async function summarizeContent(text, contentType) {
 
   const contentConfig = promptBuilders[contentType] || promptBuilders['general'] // Fallback to general
 
-  if (!contentConfig.buildPrompt || !contentConfig.systemInstruction) {
+  if (!contentConfig.buildPrompt) {
     throw new Error(
       `Configuration for content type "${contentType}" is incomplete.`
     )
@@ -175,7 +176,7 @@ export async function* summarizeContentStream(text, contentType) {
 
   const contentConfig = promptBuilders[contentType] || promptBuilders['general'] // Fallback to general
 
-  if (!contentConfig.buildPrompt || !contentConfig.systemInstruction) {
+  if (!contentConfig.buildPrompt) {
     throw new Error(
       `Configuration for content type "${contentType}" is incomplete.`
     )
@@ -258,7 +259,7 @@ export async function enhancePrompt(userPrompt) {
 
   const contentConfig = promptBuilders['promptEnhance']
 
-  if (!contentConfig.buildPrompt || !contentConfig.systemInstruction) {
+  if (!contentConfig.buildPrompt) {
     throw new Error(
       `Configuration for content type "promptEnhance" is incomplete.`
     )
@@ -339,7 +340,7 @@ export async function summarizeChapters(timestampedTranscript) {
 
   const chapterConfig = promptBuilders['chapter']
 
-  if (!chapterConfig.buildPrompt || !chapterConfig.systemInstruction) {
+  if (!chapterConfig.buildPrompt) {
     throw new Error(`Configuration for chapter summary is incomplete.`)
   }
 
@@ -418,7 +419,7 @@ export async function* summarizeChaptersStream(timestampedTranscript) {
 
   const chapterConfig = promptBuilders['chapter']
 
-  if (!chapterConfig.buildPrompt || !chapterConfig.systemInstruction) {
+  if (!chapterConfig.buildPrompt) {
     throw new Error(`Configuration for chapter summary is incomplete.`)
   }
 

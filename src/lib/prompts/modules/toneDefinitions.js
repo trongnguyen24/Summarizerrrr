@@ -1,11 +1,11 @@
 // @ts-nocheck
 export const toneDefinitions = {
   simple:
-    'Dễ hiểu, thân thiện như đang giải thích cho bạn bè. Sử dụng ngôn ngữ đời thường, ví dụ cụ thể. Phù hợp khi muốn tiếp thu nhanh hoặc chia sẻ cho người khác.',
+    'Easy to understand, friendly as if explaining to a friend. Uses everyday language and concrete examples. Suitable for quick comprehension or sharing with others.',
 
   expert:
-    'Chuyên nghiệp, phân tích sâu với thuật ngữ chính xác. Giữ nguyên độ phức tạp của nội dung gốc. Phù hợp cho mục đích nghiên cứu, học tập chuyên sâu.',
+    'Professional, in-depth analysis with precise terminology. Maintains the complexity of the original content. Suitable for research and in-depth study.',
 
   alien:
-    'Góc nhìn tò mò, khách quan như người ngoài cuộc quan sát. Đặt câu hỏi về những điều hiển nhiên, tạo ra cách hiểu mới lạ về nội dung quen thuộc.',
+    'A curious, objective perspective like an outsider observing. Questions the obvious, creating new and unusual understandings of familiar content.',
 }

@@ -115,19 +115,6 @@
 
   // Sử dụng $effect để thay thế onMount và onDestroy
   $effect(() => {
-    animate('.toc', {
-      opacity: [0, 0, 1],
-      translateX: ['2rem', '2rem', '2rem', '2rem', 0],
-      scale: [0, 1, 1, 1, 1, 1],
-      ease: 'inOutQuad',
-      autoplay: onScroll({
-        container: 'body',
-        enter: 'bottom-=290px',
-        leave: 'bottom-=300px',
-        sync: 0.5,
-      }),
-    })
-
     const init = async () => {
       await delay(100) // Thêm delay để đảm bảo DOM đã render
 
@@ -180,14 +167,15 @@
 </script>
 
 <div
-  class="toc fixed z-20 right-0 bottom-18 group p-2 pr-3 origin-bottom-right"
+  id="toc"
+  class="fixed z-20 right-8 bottom-8 group p-2 pr-3 origin-bottom-right"
 >
   <div
-    class="flex items-end group-hover:opacity-0 transition-all flex-col gap-1.5"
+    class="flex items-end group-hover:opacity-0 transition-all flex-col gap-2"
   >
     {#each headings as heading}
       <span
-        class="w-1 flex h-px dark:bg-white {heading.id === activeHeadingId
+        class="w-2 flex h-px dark:bg-white {heading.id === activeHeadingId
           ? 'opacity-100 bg-primary'
           : 'opacity-50 bg-text-secondary'} lvs{heading.level}"
       >
@@ -198,18 +186,18 @@
       </span>
     {/each}
     <span
-      class="w-1 text-[0.5rem] mt-0.5 select-none flex justify-center items-center h-px text-primary dark:text-white"
+      class="w-1.5 text-[0.65rem] mt-0.5 select-none flex justify-center items-center h-px text-primary dark:text-white"
     >
       ^
     </span>
   </div>
   <nav
-    class="fixed bottom-0 pt-4 px-3 right-0 hidden group-hover:block opacity-0 group-hover:opacity-100"
+    class="fixed bottom-6 pt-4 px-3 right-8 hidden group-hover:block opacity-0 group-hover:opacity-100"
   >
     <div class="relative">
       <div
         id="toc-scroll"
-        class="w-64 xs:w-80 overflow-auto max-h-[calc(100vh-150px)] border rounded-t-lg border-border bg-surface-1"
+        class="w-80 xs:w-108 overflow-auto max-h-[calc(100vh-150px)] border rounded-t-lg border-border bg-background"
       >
         <div
           class="flex flex-col divide-y divide-border/50 dark:divide-border/70"
@@ -218,7 +206,7 @@
             <a
               href="#{heading.id}"
               onclick={() => scrollToHeading(heading.id)}
-              class="px-3 py-2 font-mono text-xs/4 no-underline transition-colors
+              class="px-3 py-2 font-mono text-sm/5 no-underline transition-colors
           {heading.id === activeHeadingId
                 ? 'text-text-primary bg-black/5 dark:bg-white/5'
                 : 'text-text-secondary hover:text-text-primary'}
@@ -232,16 +220,16 @@
         </div>
       </div>
       <div
-        class="bg-surface-1 flex border border-border overflow-hidden border-t-0 rounded-b-lg"
+        class="bg-background flex border border-border overflow-hidden border-t-0 rounded-b-lg"
       >
         <a
           href="#footer"
-          class="px-3 border-border border-r flex justify-end items-center gap-1 py-3 font-mono text-xs/4 no-underline transition-colors"
+          class="px-3 w-1/2 border-border border-r flex justify-end items-center gap-1 py-3 font-mono text-xs/4 no-underline transition-colors"
           ><Icon class=" rotate-180" width="16" icon="carbon:up-to-top" /></a
         >
         <a
           href="#top"
-          class="px-3 w-full flex justify-end items-center gap-1 py-3 font-mono text-xs/4 no-underline transition-colors"
+          class="px-3 w-1/2 flex justify-end items-center gap-1 py-3 font-mono text-xs/4 no-underline transition-colors"
           ><Icon width="16" icon="carbon:up-to-top" />Go to top</a
         >
       </div>
@@ -255,9 +243,9 @@
   }
   .lvs2,
   .lvs3 {
-    width: 0.25rem;
+    width: 0.35rem;
   }
   .lvs4 {
-    width: 0.125rem;
+    width: 0.25rem;
   }
 </style>

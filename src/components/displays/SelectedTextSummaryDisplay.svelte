@@ -1,22 +1,21 @@
 <!-- @ts-nocheck -->
 <script>
-  import { marked } from 'marked'
-  import hljs from 'highlight.js'
+  import StreamingMarkdown from '../StreamingMarkdown.svelte'
   import TOC from '../TOC.svelte'
+  import { summaryState } from '@/stores/summaryStore.svelte'
+  import FoooterDisplay from './FoooterDisplay.svelte'
 
   let { selectedTextSummary, isSelectedTextLoading, selectedTextError } =
     $props()
 
-  $effect(() => {
-    if (selectedTextSummary && !isSelectedTextLoading) {
-      document.querySelectorAll('pre code').forEach((block) => {
-        hljs.highlightElement(block)
-      })
-    }
-  })
+  let isMarkdownRendered = $state(false)
+
+  function handleMarkdownFinishTyping() {
+    isMarkdownRendered = true
+  }
 </script>
 
-{#if isSelectedTextLoading}
+{#if isSelectedTextLoading && !selectedTextSummary}
   <div class="text-center p-4 mx-auto text-text-secondary w-fit animate-pulse">
     Summarizing selected text...
   </div>
@@ -35,13 +34,21 @@
   </div>
 {/if}
 
-{#if selectedTextSummary && !isSelectedTextLoading}
-  <div id="selected-text-summary">
-    {@html marked.parse(selectedTextSummary)}
+{#if selectedTextSummary}
+  <div id="selected-text-summary-display">
+    <StreamingMarkdown
+      sourceMarkdown={selectedTextSummary}
+      speed={1}
+      class="custom-markdown-style"
+      onFinishTyping={handleMarkdownFinishTyping}
+    />
   </div>
-
-  <TOC targetDivId="selected-text-summary" />
-{:else if !isSelectedTextLoading && !selectedTextError}
-  <!-- Optional: Add a placeholder if no selected text summary and no error -->
-  <!-- <p class="text-text-secondary text-center italic">No selected text summary available.</p> -->
+  {#if !isSelectedTextLoading && isMarkdownRendered}
+    <FoooterDisplay
+      summaryContent={selectedTextSummary}
+      summaryTitle={summaryState.pageTitle}
+      targetId="selected-text-summary-display"
+    />
+    <TOC targetDivId="selected-text-summary-display" />
+  {/if}
 {/if}

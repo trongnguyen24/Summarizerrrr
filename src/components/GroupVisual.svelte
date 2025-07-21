@@ -135,7 +135,7 @@
 <!-- svelte-ignore event_directive_deprecated -->
 <div class="wrapcross" bind:this={wrapcrossElement} on:click={handleClick}>
   <div
-    class="shadow-run border border-white/40 bg-white/70 border-t-white dark:bg-muted/15 dark:border-muted/10 dark:border-t-muted/25"
+    class="shadow-run flex justify-center items-end"
     style="
     top: {shadowStyle.top}px;
     left: {shadowStyle.left}px;
@@ -144,7 +144,6 @@
     opacity: {shadowStyle.opacity};
   "
   ></div>
-
   {@render children()}
 </div>
 

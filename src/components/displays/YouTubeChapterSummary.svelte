@@ -1,10 +1,17 @@
 <!-- @ts-nocheck -->
 <script>
-  import { marked } from 'marked'
   import hljs from 'highlight.js'
-  import TOC from '../TOC.svelte'
+  import StreamingMarkdown from '../StreamingMarkdown.svelte'
+  import { summaryState } from '@/stores/summaryStore.svelte'
+  import FoooterDisplay from './FoooterDisplay.svelte'
 
   let { chapterSummary, isChapterLoading, chapterError } = $props()
+
+  let isMarkdownRendered = $state(false)
+
+  function handleMarkdownFinishTyping() {
+    isMarkdownRendered = true
+  }
 
   $effect(() => {
     if (chapterSummary && !isChapterLoading) {
@@ -15,7 +22,7 @@
   })
 </script>
 
-{#if isChapterLoading}
+{#if isChapterLoading && !chapterSummary}
   <div class="text-center p-4 mx-auto text-text-secondary w-fit animate-pulse">
     Generating chapter summary...
   </div>
@@ -34,13 +41,20 @@
   </div>
 {/if}
 
-{#if chapterSummary && !isChapterLoading}
-  <div id="chaptersummary">
-    {@html marked.parse(chapterSummary)}
+{#if chapterSummary}
+  <div id="youtube-chapter-summary-display">
+    <StreamingMarkdown
+      sourceMarkdown={chapterSummary}
+      speed={1}
+      class="custom-markdown-style"
+      onFinishTyping={handleMarkdownFinishTyping}
+    />
   </div>
-
-  <TOC targetDivId="chaptersummary" />
-{:else if !isChapterLoading && !chapterError}
-  <!-- Optional: Add a placeholder if no chapter summary and no error -->
-  <!-- <p class="text-text-secondary text-center italic">No chapter summary available.</p> -->
+  {#if !isChapterLoading && isMarkdownRendered}
+    <FoooterDisplay
+      summaryContent={chapterSummary}
+      summaryTitle={summaryState.pageTitle}
+      targetId="youtube-chapter-summary-display"
+    />
+  {/if}
 {/if}

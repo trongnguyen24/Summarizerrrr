@@ -1,9 +1,9 @@
 <script>
   // @ts-nocheck
   import TabNavigation from '../TabNavigation.svelte'
-  import CourseVideoSummary from './CourseVideoSummary.svelte' // New: for Course video summary content
+  import CourseVideoSummary from './CourseVideoSummary.svelte'
   import CourseConceptsDisplay from './CourseConceptsDisplay.svelte'
-  // Import trực tiếp updateActiveCourseTab từ summaryStore.svelte.js
+  import TOC from '../TOC.svelte'
   import {
     summaryState,
     updateActiveCourseTab,
@@ -39,18 +39,25 @@
   />
 
   <div class="course-content mt-6">
-    {#if activeCourseTab === 'courseSummary'}
+    <div hidden={activeCourseTab !== 'courseSummary'}>
       <CourseVideoSummary
         summary={summaryState.courseSummary}
         isLoading={summaryState.isCourseSummaryLoading}
         error={summaryState.courseSummaryError}
       />
-    {:else if activeCourseTab === 'courseConcepts'}
+    </div>
+    <div hidden={activeCourseTab !== 'courseConcepts'}>
       <CourseConceptsDisplay
         courseConcepts={summaryState.courseConcepts}
         isCourseLoading={summaryState.isCourseConceptsLoading}
         courseConceptsError={summaryState.courseConceptsError}
       />
+    </div>
+    {#if activeCourseTab === 'courseSummary' && !summaryState.isCourseSummaryLoading}
+      <TOC targetDivId="course-video-summary-display" />
+    {/if}
+    {#if activeCourseTab === 'courseConcepts' && !summaryState.isCourseConceptsLoading}
+      <TOC targetDivId="course-concepts-display" />
     {/if}
   </div>
 </div>

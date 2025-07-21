@@ -113,75 +113,48 @@ export default defineBackground(() => {
   }
 
   // Hàm helper để gửi tin nhắn đến side panel hoặc tab
-  async function sendMessageToSidePanel(message, tabId = null) {
-    const target = tabId ? browser.tabs : browser.runtime
+  // Helper function to send messages, preferring the side panel port but falling back to runtime.sendMessage.
+  // This is more robust against the service worker going inactive.
+  async function sendMessageToSidePanel(message) {
     const logPrefix = `[background.js] ${
       import.meta.env.BROWSER === 'chrome' ? 'Chrome' : 'Firefox'
     }:`
 
+    // First, try to send via the long-lived port if it exists.
     if (sidePanelPort) {
       try {
-        console.log(
-          `${logPrefix} Side panel connected. Sending message via port.`,
-          message
-        )
         sidePanelPort.postMessage(message)
+        // If the message is sent successfully, we're done.
+        return
       } catch (error) {
-        console.error(`${logPrefix} Error sending message via port:`, error)
-        // Fallback to sendMessage if port fails
-        if (tabId) {
-          target.sendMessage(tabId, message).catch((err) => {
-            console.warn(
-              `${logPrefix} Fallback sendMessage to tab failed:`,
-              err
-            )
-          })
-        } else {
-          target.sendMessage(message).catch((err) => {
-            console.warn(
-              `${logPrefix} Fallback sendMessage to runtime failed:`,
-              err
-            )
-          })
-        }
+        console.warn(
+          `${logPrefix} Side panel port failed, likely disconnected. Error: ${error.message}. Falling back to runtime.sendMessage.`
+        )
+        sidePanelPort = null // Port is no longer valid.
       }
-    } else {
-      console.log(
-        `${logPrefix} Side panel not connected. Sending message via sendMessage.`,
-        message
-      )
-      if (tabId) {
-        target.sendMessage(tabId, message).catch((error) => {
-          if (
-            error.message.includes('Could not establish connection') ||
-            error.message.includes('Receiving end does not exist')
-          ) {
-            console.warn(
-              `${logPrefix} Side panel not open or no listener for message.`
-            )
-          } else {
-            console.error(
-              `${logPrefix} Error sending message via sendMessage:`,
-              error
-            )
-          }
-        })
+    }
+
+    // If the port doesn't exist or failed, use runtime.sendMessage.
+    // This will be received by the side panel if it's open.
+    console.log(
+      `${logPrefix} Side panel port not available. Sending message via runtime.sendMessage.`
+    )
+    try {
+      await browser.runtime.sendMessage(message)
+    } catch (error) {
+      // This error is expected if the side panel is not open.
+      if (
+        error.message.includes('Could not establish connection') ||
+        error.message.includes('Receiving end does not exist')
+      ) {
+        console.warn(
+          `${logPrefix} Side panel not open or no listener for runtime message.`
+        )
       } else {
-        target.sendMessage(message).catch((error) => {
-          if (
-            error.message.includes('Could not establish connection') ||
-            error.message.includes('Receiving end does not exist')
-          ) {
-            console.warn(
-              `${logPrefix} Side panel not open or no listener for message.`
-            )
-          } else {
-            console.error(
-              `${logPrefix} Error sending message via sendMessage:`,
-              error
-            )
-          }
-        })
+        console.error(
+          `${logPrefix} Error sending message via runtime.sendMessage:`,
+          error
+        )
       }
     }
   }
@@ -222,7 +195,7 @@ export default defineBackground(() => {
       isCoursera: isCoursera,
     }
 
-    await sendMessageToSidePanel(currentTabInfo, tab.id)
+    await sendMessageToSidePanel(currentTabInfo)
 
     if (isYouTube) {
       await injectContentScriptIntoTab(tab.id, YOUTUBE_CONTENT_SCRIPT_PATH)
@@ -261,7 +234,7 @@ export default defineBackground(() => {
         isUdemy: isUdemy,
         isCoursera: isCoursera,
       }
-      await sendMessageToSidePanel(summarizePageInfo, activeTab.id)
+      await sendMessageToSidePanel(summarizePageInfo)
 
       // Đảm bảo side panel mở để hiển thị kết quả tóm tắt
       if (import.meta.env.BROWSER === 'chrome') {
@@ -306,6 +279,33 @@ export default defineBackground(() => {
         } catch (error) {
           console.error(
             '[background.js] Firefox: Error opening prompt page:',
+            error
+          )
+        }
+      }
+    } else if (command === 'open-archive-panel') {
+      console.log('[background.js] Open archive panel command received.')
+      if (import.meta.env.BROWSER === 'chrome') {
+        try {
+          await chrome.tabs.create({
+            url: chrome.runtime.getURL('archive.html'),
+          })
+          console.log('[background.js] Chrome: Archive panel opened.')
+        } catch (error) {
+          console.error(
+            '[background.js] Chrome: Error opening archive panel:',
+            error
+          )
+        }
+      } else if (import.meta.env.BROWSER === 'firefox') {
+        try {
+          await browser.tabs.create({
+            url: browser.runtime.getURL('archive.html'),
+          })
+          console.log('[background.js] Firefox: Archive panel opened.')
+        } catch (error) {
+          console.error(
+            '[background.js] Firefox: Error opening archive panel:',
             error
           )
         }
@@ -396,8 +396,10 @@ export default defineBackground(() => {
     if (changeInfo.status === 'complete') {
       if (isYouTube) {
         await injectContentScriptIntoTab(tabId, YOUTUBE_CONTENT_SCRIPT_PATH)
-      } else if (isCourse) {
-        await injectContentScriptIntoTab(tabId, COURSE_CONTENT_SCRIPT_PATH)
+      } else if (isUdemy) {
+        await injectContentScriptIntoTab(tabId, UDEMY_CONTENT_SCRIPT_PATH)
+      } else if (isCoursera) {
+        await injectContentScriptIntoTab(tabId, COURSERA_CONTENT_SCRIPT_PATH)
       }
     }
   })

@@ -21,7 +21,7 @@ import { cubicOut } from 'svelte/easing'
 export function slideScaleFade(node, params = {}) {
   const {
     delay = 0,
-    duration = 400, // Giảm duration mặc định một chút
+    duration = 500, // Giảm duration mặc định một chút
     easing = cubicOut,
     slideFrom = 'top',
     slideDistance = '2rem',

@@ -1,21 +1,19 @@
 <!-- @ts-nocheck -->
 <script>
-  import { marked } from 'marked'
-  import hljs from 'highlight.js'
-  import TOC from '../TOC.svelte'
+  import StreamingMarkdown from '../StreamingMarkdown.svelte'
+  import { summaryState } from '@/stores/summaryStore.svelte'
+  import FoooterDisplay from './FoooterDisplay.svelte'
 
   let { summary, isLoading, error } = $props()
 
-  $effect(() => {
-    if (summary && !isLoading) {
-      document.querySelectorAll('pre code').forEach((block) => {
-        hljs.highlightElement(block)
-      })
-    }
-  })
+  let isMarkdownRendered = $state(false)
+
+  function handleMarkdownFinishTyping() {
+    isMarkdownRendered = true
+  }
 </script>
 
-{#if isLoading}
+{#if isLoading && !summary}
   <div class="text-center p-4 mx-auto text-text-secondary w-fit animate-pulse">
     Processing main Course summary...
   </div>
@@ -34,12 +32,19 @@
   </div>
 {/if}
 
-{#if summary && !isLoading}
-  <div id="course-summary">
-    {@html marked.parse(summary)}
+{#if summary}
+  <div id="course-video-summary-display">
+    <StreamingMarkdown
+      sourceMarkdown={summary}
+      speed={1}
+      onFinishTyping={handleMarkdownFinishTyping}
+    />
   </div>
-  <TOC targetDivId="course-summary" />
-{:else if !isLoading && !error}
-  <!-- Optional: Placeholder for main Course summary -->
-  <!-- <p class="text-text-secondary text-center italic">No main Course summary available.</p> -->
+  {#if !isLoading && isMarkdownRendered}
+    <FoooterDisplay
+      summaryContent={summary}
+      summaryTitle={summaryState.pageTitle}
+      targetId="course-video-summary-display"
+    />
+  {/if}
 {/if}

@@ -7,7 +7,11 @@
     settings,
     updateSettings,
   } from '../../stores/settingsStore.svelte.js'
-  import { getTheme, setTheme } from '../../stores/themeStore.svelte'
+  import {
+    themeSettings,
+    setTheme,
+    updateThemeSettings as updateThemeStoreSettings,
+  } from '../../stores/themeStore.svelte' // Import themeSettings và updateThemeSettings
 
   function handleUpdateSetting(key, value) {
     updateSettings({ [key]: value })
@@ -53,13 +57,11 @@
         font="dyslexic"
       ></ButtonFont>
       <ButtonFont
-        title="Mix Sans Serif &  Serif"
-        class="setting-btn {settings.selectedFont === 'noto-mix'
-          ? 'active'
-          : ''}"
-        onclick={() => handleUpdateSetting('selectedFont', 'noto-mix')}
-        Description="Noto Serif for headings, Noto Sans for body."
-        font="mix"
+        title="Mali"
+        class="setting-btn {settings.selectedFont === 'mali' ? 'active' : ''}"
+        onclick={() => handleUpdateSetting('selectedFont', 'mali')}
+        Description="Mali font for all text."
+        font="mali"
       ></ButtonFont>
     </div>
   </div>
@@ -69,24 +71,24 @@
     <div class="flexw-full gap-1">
       <ButtonIcon
         title="Light"
-        class="setting-btn {getTheme() === 'light' ? 'active' : ''}"
-        onclick={() => setTheme('light')}
+        class="setting-btn {themeSettings.theme === 'light' ? 'active' : ''}"
+        onclick={() => updateThemeStoreSettings({ theme: 'light' })}
         Description="Light theme."
       >
         <Icon icon="heroicons:sun-16-solid" width="20" height="20" />
       </ButtonIcon>
       <ButtonIcon
         title="Dark"
-        class="setting-btn {getTheme() === 'dark' ? 'active' : ''}"
-        onclick={() => setTheme('dark')}
+        class="setting-btn {themeSettings.theme === 'dark' ? 'active' : ''}"
+        onclick={() => updateThemeStoreSettings({ theme: 'dark' })}
         Description="Dark theme."
       >
         <Icon icon="heroicons:moon-20-solid" width="20" height="20" />
       </ButtonIcon>
       <ButtonIcon
         title="System"
-        class="setting-btn {getTheme() === 'system' ? 'active' : ''}"
-        onclick={() => setTheme('system')}
+        class="setting-btn {themeSettings.theme === 'system' ? 'active' : ''}"
+        onclick={() => updateThemeStoreSettings({ theme: 'system' })}
         Description="System theme."
       >
         <Icon
@@ -143,6 +145,13 @@
             {@render keyboard('Alt')}{@render keyboard('P')}
           </div>
         </div>
+        <div class="flex justify-between gap-1">
+          History
+
+          <div>
+            {@render keyboard('Alt')}{@render keyboard('X')}
+          </div>
+        </div>
       {:else}
         <div class="flex justify-between gap-1">
           Open Sidepanel
@@ -164,6 +173,13 @@
 
           <div>
             {@render keyboard('Alt')}{@render keyboard('P')}
+          </div>
+        </div>
+        <div class="flex justify-between gap-1">
+          History
+
+          <div>
+            {@render keyboard('Alt')}{@render keyboard('X')}
           </div>
         </div>
       {/if}

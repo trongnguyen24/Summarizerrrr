@@ -40,9 +40,10 @@ function getProviderConfig(userSettings, selectedProviderId) {
     case 'openrouter':
       apiKey = userSettings.openrouterApiKey
       model = userSettings.selectedOpenrouterModel || 'openrouter/auto'
-      modelConfig =
-        openrouterModelsConfig[model] ||
-        openrouterModelsConfig['openrouter/auto']
+      // OpenRouter models do not have specific generation configs stored locally.
+      // The generationConfig will be pulled from user settings (advancedModeSettings/basicModeSettings)
+      // and passed directly to the provider.
+      modelConfig = { generationConfig: { temperature: 0.6, topP: 0.91 } } // Default values, will be overridden
       break
     case 'ollama':
       apiKey = userSettings.ollamaEndpoint || DEFAULT_OLLAMA_ENDPOINT // Ollama uses endpoint as 'key'
@@ -141,6 +142,91 @@ export async function summarizeContent(text, contentType) {
     return provider.parseResponse(rawResult)
   } catch (e) {
     console.error(`${providersConfig[selectedProviderId].name} API Error:`, e)
+    throw new Error(provider.handleError(e, model))
+  }
+}
+
+export async function* summarizeContentStream(text, contentType) {
+  // Ensure settings are initialized
+  await loadSettings()
+  await loadAdvancedModeSettings()
+  await loadBasicModeSettings()
+
+  const userSettings = settings
+  // Determine the actual provider to use based on isAdvancedMode
+  let selectedProviderId = userSettings.selectedProvider || 'gemini'
+  if (!userSettings.isAdvancedMode) {
+    selectedProviderId = 'gemini' // Force Gemini in basic mode
+  }
+
+  const { apiKey, model, modelConfig } = getProviderConfig(
+    userSettings,
+    selectedProviderId
+  )
+
+  const provider = getProvider(selectedProviderId, userSettings) // Pass full settings object
+
+  // Check if the provider supports streaming
+  if (typeof provider.generateContentStream !== 'function') {
+    throw new Error(
+      `The selected provider "${providersConfig[selectedProviderId].name}" does not support streaming.`
+    )
+  }
+
+  const contentConfig = promptBuilders[contentType] || promptBuilders['general'] // Fallback to general
+
+  if (!contentConfig.buildPrompt || !contentConfig.systemInstruction) {
+    throw new Error(
+      `Configuration for content type "${contentType}" is incomplete.`
+    )
+  }
+
+  const { systemInstruction, userPrompt } = contentConfig.buildPrompt(
+    text,
+    userSettings.summaryLang,
+    userSettings.summaryLength,
+    userSettings.summaryFormat,
+    userSettings.summaryTone
+  )
+
+  try {
+    // Apply user settings to generationConfig, overriding defaults
+    const finalGenerationConfig = {
+      ...modelConfig.generationConfig,
+      temperature: userSettings.isAdvancedMode
+        ? advancedModeSettings.temperature
+        : basicModeSettings.temperature,
+      topP: userSettings.isAdvancedMode
+        ? advancedModeSettings.topP
+        : basicModeSettings.topP,
+    }
+
+    let contentsForProvider
+    if (selectedProviderId === 'gemini') {
+      contentsForProvider = [{ parts: [{ text: userPrompt }] }] // Gemini specific content format
+    } else if (selectedProviderId === 'openrouter') {
+      contentsForProvider = [{ parts: [{ text: userPrompt }] }] // OpenRouter expects messages array, but our provider handles this mapping
+    } else if (selectedProviderId === 'ollama') {
+      contentsForProvider = userPrompt // Ollama expects raw prompt string
+    } else {
+      contentsForProvider = [{ parts: [{ text: userPrompt }] }] // Default for other providers
+    }
+
+    const stream = provider.generateContentStream(
+      model,
+      contentsForProvider,
+      systemInstruction,
+      finalGenerationConfig
+    )
+
+    for await (const chunk of stream) {
+      yield chunk
+    }
+  } catch (e) {
+    console.error(
+      `${providersConfig[selectedProviderId].name} API Stream Error:`,
+      e
+    )
     throw new Error(provider.handleError(e, model))
   }
 }
@@ -298,6 +384,86 @@ export async function summarizeChapters(timestampedTranscript) {
   } catch (e) {
     console.error(
       `${providersConfig[selectedProviderId].name} API Error (Chapters):`,
+      e
+    )
+    throw new Error(provider.handleError(e, model))
+  }
+}
+
+export async function* summarizeChaptersStream(timestampedTranscript) {
+  // Ensure settings are initialized
+  await loadSettings()
+  await loadAdvancedModeSettings()
+  await loadBasicModeSettings()
+
+  const userSettings = settings
+  // Determine the actual provider to use based on isAdvancedMode
+  let selectedProviderId = userSettings.selectedProvider || 'gemini'
+  if (!userSettings.isAdvancedMode) {
+    selectedProviderId = 'gemini' // Force Gemini in basic mode
+  }
+
+  const { apiKey, model, modelConfig } = getProviderConfig(
+    userSettings,
+    selectedProviderId
+  )
+
+  if (!apiKey) {
+    throw new Error(
+      `${providersConfig[selectedProviderId].name} API key is not configured. Click the settings icon on the right to add your API key.`
+    )
+  }
+
+  const provider = getProvider(selectedProviderId, userSettings) // Pass full settings object
+
+  const chapterConfig = promptBuilders['chapter']
+
+  if (!chapterConfig.buildPrompt || !chapterConfig.systemInstruction) {
+    throw new Error(`Configuration for chapter summary is incomplete.`)
+  }
+
+  const { systemInstruction, userPrompt } = chapterConfig.buildPrompt(
+    timestampedTranscript,
+    userSettings.summaryLang,
+    userSettings.summaryLength,
+    userSettings.summaryTone
+  )
+
+  try {
+    const finalGenerationConfig = {
+      ...modelConfig.generationConfig,
+      temperature: userSettings.isAdvancedMode
+        ? advancedModeSettings.temperature
+        : basicModeSettings.temperature,
+      topP: userSettings.isAdvancedMode
+        ? advancedModeSettings.topP
+        : basicModeSettings.topP,
+    }
+
+    let contentsForProvider
+    if (selectedProviderId === 'gemini') {
+      contentsForProvider = [{ parts: [{ text: userPrompt }] }] // Gemini specific content format
+    } else if (selectedProviderId === 'openrouter') {
+      contentsForProvider = [{ parts: [{ text: userPrompt }] }] // OpenRouter expects messages array, but our provider handles this mapping
+    } else if (selectedProviderId === 'ollama') {
+      contentsForProvider = userPrompt // Ollama expects raw prompt string
+    } else {
+      contentsForProvider = [{ parts: [{ text: userPrompt }] }] // Default for other providers
+    }
+
+    const stream = provider.generateContentStream(
+      model,
+      contentsForProvider,
+      systemInstruction,
+      finalGenerationConfig
+    )
+
+    for await (const chunk of stream) {
+      yield chunk
+    }
+  } catch (e) {
+    console.error(
+      `${providersConfig[selectedProviderId].name} API Stream Error (Chapters):`,
       e
     )
     throw new Error(provider.handleError(e, model))

@@ -1,10 +1,17 @@
 <!-- @ts-nocheck -->
 <script>
-  import { marked } from 'marked'
+  import StreamingMarkdown from '../StreamingMarkdown.svelte'
   import hljs from 'highlight.js'
-  import TOC from '../TOC.svelte'
+  import { summaryState } from '@/stores/summaryStore.svelte'
+  import FoooterDisplay from './FoooterDisplay.svelte'
 
   let { summary, isLoading, error } = $props()
+
+  let isMarkdownRendered = $state(false)
+
+  function handleMarkdownFinishTyping() {
+    isMarkdownRendered = true
+  }
 
   $effect(() => {
     if (summary && !isLoading) {
@@ -15,7 +22,7 @@
   })
 </script>
 
-{#if isLoading}
+{#if isLoading && !summary}
   <div class="text-center p-4 mx-auto text-text-secondary w-fit animate-pulse">
     Processing main YouTube summary...
   </div>
@@ -34,12 +41,21 @@
   </div>
 {/if}
 
-{#if summary && !isLoading}
-  <div id="youtube-summary">
-    {@html marked.parse(summary)}
+{#if summary}
+  <div id="youtube-video-summary-display">
+    <StreamingMarkdown
+      sourceMarkdown={summary}
+      speed={1}
+      class="custom-markdown-style"
+      onFinishTyping={handleMarkdownFinishTyping}
+    />
+
+    {#if !isLoading && isMarkdownRendered}
+      <FoooterDisplay
+        summaryContent={summary}
+        summaryTitle={summaryState.pageTitle}
+        targetId="youtube-video-summary-display"
+      />
+    {/if}
   </div>
-  <TOC targetDivId="youtube-summary" />
-{:else if !isLoading && !error}
-  <!-- Optional: Placeholder for main YouTube summary -->
-  <!-- <p class="text-text-secondary text-center italic">No main YouTube summary available.</p> -->
 {/if}

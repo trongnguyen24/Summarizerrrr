@@ -45,6 +45,12 @@ export default defineConfig({
             },
             description: 'Open prompt editer',
           },
+          'open-archive-panel': {
+            suggested_key: {
+              default: 'Alt+X',
+            },
+            description: 'Open archive panel',
+          },
         },
       }
     } else if (browser === 'firefox') {
@@ -83,6 +89,12 @@ export default defineConfig({
               default: 'Alt+P',
             },
             description: 'Open prompt page',
+          },
+          'open-archive-panel': {
+            suggested_key: {
+              default: 'Alt+X',
+            },
+            description: 'Open archive panel',
           },
         },
       }

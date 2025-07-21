@@ -1,9 +1,9 @@
 <!-- @ts-nocheck -->
 <script>
   import { updateSettings } from '../../stores/settingsStore.svelte.js' // Chỉ import updateSettings
-  import { settings } from '../../stores/settingsStore.svelte.js'
   import ApiKeyInput from '../inputs/ApiKeyInput.svelte'
   import { fade } from 'svelte/transition'
+  import Icon from '@iconify/svelte'
 
   let {
     openrouterApiKey = $bindable(),
@@ -81,6 +81,14 @@
           Saved!
         </p>
       {/if}
+      <a
+        href="https://openrouter.ai/models"
+        target="_blank"
+        class="text-xs flex items-center gap-0.5 text-primary outline-gray-500 hover:underline"
+      >
+        View Models
+        <Icon width={12} icon="heroicons:arrow-up-right-16-solid" />
+      </a>
     </div>
     {#if modelLoadError}
       <p class="text-red-500">Error loading models: {modelLoadError.message}</p>

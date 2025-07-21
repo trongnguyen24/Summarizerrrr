@@ -2,8 +2,8 @@
 <script>
   import TabNavigation from '../TabNavigation.svelte'
   import YouTubeVideoSummary from './YouTubeVideoSummary.svelte'
+  import TOC from '../TOC.svelte'
   import YouTubeChapterSummary from './YouTubeChapterSummary.svelte'
-  // Import trực tiếp updateActiveYouTubeTab từ summaryStore.svelte.js
   import {
     summaryState,
     updateActiveYouTubeTab,
@@ -39,18 +39,25 @@
   />
 
   <div class="youtube-content mt-6">
-    {#if activeYouTubeTab === 'videoSummary'}
+    <div hidden={activeYouTubeTab !== 'videoSummary'}>
       <YouTubeVideoSummary
         summary={summaryState.summary}
         isLoading={summaryState.isLoading}
         error={summaryState.error}
       />
-    {:else if activeYouTubeTab === 'chapterSummary'}
+    </div>
+    <div hidden={activeYouTubeTab !== 'chapterSummary'}>
       <YouTubeChapterSummary
         chapterSummary={summaryState.chapterSummary}
         isChapterLoading={summaryState.isChapterLoading}
         chapterError={summaryState.chapterError}
       />
+    </div>
+    {#if activeYouTubeTab === 'chapterSummary' && summaryState.chapterSummary}
+      <TOC targetDivId="youtube-chapter-summary-display" />
+    {/if}
+    {#if activeYouTubeTab === 'videoSummary' && summaryState.summary}
+      <TOC targetDivId="youtube-video-summary-display" />
     {/if}
   </div>
 </div>

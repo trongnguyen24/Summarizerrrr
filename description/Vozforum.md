@@ -22,10 +22,10 @@ Nếu có thì xin giới thiệu với các thím **Summarizerrrr** - người 
 
 ## Summarizerrrr làm được gì? Nói nhanh cho vuông!
 
-- 📺 **VIDEO YOUTUBE:** Hiểu ngay nội dung video mà không cần xem hết. Tóm tắt theo ý chính hoặc theo từng chương (chapter) của video. Tiết kiệm thời gian cực đỉnh!
-- 📝 **BÀI VIẾT & BÌNH LUẬN:** Nắm bắt ý chính của các bài báo dài ngoằng, hay hóng hớt xem cộng đồng đang bàn tán gì trên Reddit, các trang tin, VOZ,...
-- ✂️ **BÔI ĐEN & TÓM TẮT:** Chọn bất kỳ đoạn văn bản nào, một cú click là có ngay tóm tắt. Tiện lợi cho việc nghiên cứu, học tập.
-- 🎓 **KHOÁ HỌC ONLINE (UDEMY):** Chắt lọc kiến thức cốt lõi từ các bài giảng trên Udemy. Học nhanh, nhớ lâu hơn.
+- 📺 **VIDEO YOUTUBE:** Hiểu ngay nội dung video mà không cần xem hết. Tóm tắt theo ý chính hoặc theo từng chương (chapter) của video.
+- 📝 **BÀI VIẾT & BÌNH LUẬN:** Nắm bắt ý chính của các bài báo dài ngoằng, hay hóng hớt xem cộng đồng đang bàn tán gì trên Reddit, các trang tin, VOZ,... Có khả năng tóm tắt cả bình luận để nắm bắt drama và luận điểm chính.
+- ✂️ **BÔI ĐEN & TÓM TẮT:** Chọn bất kỳ đoạn văn bản nào, một cú click là có ngay tóm tắt, kèm theo **Bình luận chuyên gia** để có cái nhìn sâu sắc hơn. Tiện lợi cho việc nghiên cứu, học tập.
+- 🎓 **KHOÁ HỌC ONLINE (UDEMY, COURSERA):** Chắt lọc kiến thức cốt lõi từ các bài giảng trên Udemy, Coursera. Tóm tắt toàn bộ khóa học, tóm tắt video riêng lẻ, và trích xuất các khái niệm chính. Học nhanh, nhớ lâu hơn, hiệu quả hơn!
 
 ---
 

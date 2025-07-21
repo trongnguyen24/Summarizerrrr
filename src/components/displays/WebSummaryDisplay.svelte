@@ -1,24 +1,20 @@
 <!-- @ts-nocheck -->
 <script>
-  import { marked } from 'marked'
-  import hljs from 'highlight.js'
+  import StreamingMarkdown from '../StreamingMarkdown.svelte'
   import TOC from '../TOC.svelte'
+  import FoooterDisplay from './FoooterDisplay.svelte'
+  import { summaryState } from '@/stores/summaryStore.svelte'
 
   let { summary, isLoading, error } = $props()
 
-  $effect(() => {
-    if (summary && !isLoading) {
-      // Đảm bảo DOM đã được cập nhật trước khi làm nổi bật
-      // Có thể cần một setTimeout nhỏ nếu DOM chưa sẵn sàng ngay lập tức
-      // Tuy nhiên, $effect thường chạy sau khi DOM được cập nhật
-      document.querySelectorAll('pre code').forEach((block) => {
-        hljs.highlightElement(block)
-      })
-    }
-  })
+  let isMarkdownRendered = $state(false)
+
+  function handleMarkdownFinishTyping() {
+    isMarkdownRendered = true
+  }
 </script>
 
-{#if isLoading}
+{#if isLoading && !summary}
   <div class="text-center p-4 mx-auto text-text-secondary w-fit animate-pulse">
     Processing web summary...
   </div>
@@ -29,7 +25,7 @@
     class="flex relative flex-col w-fit mx-auto text-red-400 px-4 bg-red-500/10 border border-red-500/20"
   >
     <p class="text-sm">
-      <span class="font-bold block">Wed summary error</span>
+      <span class="font-bold block">Web summary error</span>
       {error}
     </p>
     <div class="plus-icon red-plus-icon top-left"></div>
@@ -37,13 +33,21 @@
   </div>
 {/if}
 
-{#if summary && !isLoading}
-  <div id="summary">
-    {@html marked.parse(summary)}
+{#if summary}
+  <div id="web-summary-display">
+    <StreamingMarkdown
+      sourceMarkdown={summary}
+      speed={1}
+      class="custom-markdown-style"
+      onFinishTyping={handleMarkdownFinishTyping}
+    />
   </div>
-
-  <TOC targetDivId="summary" />
-{:else if !isLoading && !error}
-  <!-- Optional: Add a placeholder if no summary and no error -->
-  <!-- <p class="text-text-secondary text-center italic">No summary available.</p> -->
+  {#if !isLoading && isMarkdownRendered}
+    <FoooterDisplay
+      summaryContent={summary}
+      summaryTitle={summaryState.pageTitle}
+      targetId="web-summary-display"
+    />
+    <TOC targetDivId="web-summary-display" />
+  {/if}
 {/if}

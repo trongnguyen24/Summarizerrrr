@@ -13,7 +13,7 @@ The input content is a video transcript with timestamps. Specific examples, illu
 </INPUT_PARAMETERS>
 
 <OUTPUT_STRUCTURE>
-## Video Summary by Chapter:
+## [Video title or main topic]
 
 ### [Timestamp] - [Chapter Name]
 [Summary content presented scientifically using paragraphs, #### and bullet points]
@@ -34,7 +34,7 @@ The input content is a video transcript with timestamps. Specific examples, illu
 </KEY_REQUIREMENTS>
 
 <EXAMPLE>
-## Video Summary by Chapter:
+## Growth Mindset
 
 ### 0:00 - Introduction to Growth Mindset
 #### Carol Dweck's concept of **Growth Mindset** vs **Fixed Mindset**

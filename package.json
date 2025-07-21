@@ -2,7 +2,7 @@
   "name": "Summarizerrrr",
   "description": "FREE Deep Summarizes content from YouTube, Udemy, Coursera, Websites, Reddit, and any text-based page online.",
   "private": true,
-  "version": "1.5.1",
+  "version": "1.6.0",
   "type": "module",
   "scripts": {
     "dev": "wxt",
@@ -28,6 +28,7 @@
   "dependencies": {
     "@fontsource-variable/geist-mono": "^5.2.6",
     "@fontsource-variable/noto-serif": "^5.2.7",
+    "@fontsource/mali": "^5.2.6",
     "@fontsource/opendyslexic": "^5.2.5",
     "@google/genai": "^0.12.0",
     "@tailwindcss/vite": "^4.1.8",

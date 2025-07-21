@@ -1,20 +1,17 @@
 <!-- @ts-nocheck -->
 <script>
-  import { summaryState } from '../../stores/summaryStore.svelte.js' // Keep for isCourseConceptsLoading and courseConcepts
+  import StreamingMarkdown from '../StreamingMarkdown.svelte'
+  import FoooterDisplay from './FoooterDisplay.svelte'
   import PlusIcon from '../PlusIcon.svelte'
-  import Toc from '../TOC.svelte'
-  import { marked } from 'marked'
-  import hljs from 'highlight.js'
+  import { summaryState } from '@/stores/summaryStore.svelte'
 
   let { courseConcepts, isCourseLoading, courseConceptsError } = $props()
 
-  $effect(() => {
-    if (courseConcepts && !isCourseLoading) {
-      document.querySelectorAll('pre code').forEach((block) => {
-        hljs.highlightElement(block)
-      })
-    }
-  })
+  let isMarkdownRendered = $state(false)
+
+  function handleMarkdownFinishTyping() {
+    isMarkdownRendered = true
+  }
 </script>
 
 <div class="flex flex-col gap-4">
@@ -36,10 +33,20 @@
       <PlusIcon color="red" position="bottom-right" />
     </div>
   {:else if courseConcepts}
-    <div id="course-summary">
-      {@html courseConcepts}
+    <div id="course-concepts-display">
+      <StreamingMarkdown
+        sourceMarkdown={courseConcepts}
+        speed={1}
+        onFinishTyping={handleMarkdownFinishTyping}
+      />
     </div>
-    <Toc targetDivId="course-summary" />
+    {#if !isCourseLoading && isMarkdownRendered}
+      <FoooterDisplay
+        summaryContent={courseConcepts}
+        summaryTitle={summaryState.pageTitle}
+        targetId="course-concepts-display"
+      />
+    {/if}
   {:else}
     <div class="text-text-secondary text-center p-4">
       <p>No Course concepts available yet.</p>

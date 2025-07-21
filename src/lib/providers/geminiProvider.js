@@ -26,6 +26,33 @@ export class GeminiProvider extends BaseProvider {
     return result
   }
 
+  async *generateContentStream(
+    model,
+    contents,
+    systemInstruction,
+    generationConfig
+  ) {
+    console.log('Gemini generateContentStream:', {
+      model,
+      contents,
+      systemInstruction,
+      generationConfig,
+    })
+    const result = await this.genAI.models.generateContentStream({
+      model: model,
+      contents: contents,
+      systemInstruction: systemInstruction,
+      generationConfig: generationConfig,
+    })
+
+    for await (const chunk of result) {
+      const text = chunk.text
+      if (text) {
+        yield text
+      }
+    }
+  }
+
   parseResponse(rawResponse) {
     if (
       rawResponse &&

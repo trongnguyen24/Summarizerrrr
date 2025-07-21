@@ -14,7 +14,6 @@
   import SelectedTextSummaryDisplay from '../../components/displays/SelectedTextSummaryDisplay.svelte'
   import YouTubeSummaryDisplay from '../../components/displays/YouTubeSummaryDisplay.svelte'
   import CourseSummaryDisplay from '../../components/displays/CourseSummaryDisplay.svelte'
-  import CustomToast from '../../components/CustomToast.svelte' // Import CustomToast
   import 'webextension-polyfill'
 
   // Import direct variables and functions from refactored stores
@@ -305,9 +304,5 @@
   <div
     class="fixed bg-linear-to-t from-surface-1 to-surface-1/40 bottom-0 mask-t-from-50% h-16 backdrop-blur-[2px] w-full z-30 pointer-events-none"
   ></div>
-  <div class="fixed z-50 top-0 right-0">
-    {#if showToast}
-      <CustomToast message={toastMessage} type={toastType} />
-    {/if}
-  </div>
+  <div class="fixed z-50 top-0 right-0"></div>
 </div>

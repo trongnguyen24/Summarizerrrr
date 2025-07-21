@@ -3,6 +3,7 @@
   import TabNavigation from '../TabNavigation.svelte'
   import CourseVideoSummary from './CourseVideoSummary.svelte'
   import CourseConceptsDisplay from './CourseConceptsDisplay.svelte'
+  import TOC from '../TOC.svelte'
   import {
     summaryState,
     updateActiveCourseTab,
@@ -52,5 +53,11 @@
         courseConceptsError={summaryState.courseConceptsError}
       />
     </div>
+    {#if activeCourseTab === 'courseSummary' && !summaryState.isCourseSummaryLoading}
+      <TOC targetDivId="course-video-summary-display" />
+    {/if}
+    {#if activeCourseTab === 'courseConcepts' && !summaryState.isCourseConceptsLoading}
+      <TOC targetDivId="course-concepts-display" />
+    {/if}
   </div>
 </div>

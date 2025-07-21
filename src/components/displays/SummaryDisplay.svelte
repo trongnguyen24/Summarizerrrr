@@ -91,7 +91,7 @@
       $widthIndex
     ]} mx-auto {fontSizeClasses[$fontSizeIndex]} {fontMap[
       settings.selectedFont
-    ]} py-12 summary-content"
+    ]} pt-12 pb-[35vh] summary-content"
   >
     <DisplaySettingsControls />
     <div class="flex flex-col gap-2">

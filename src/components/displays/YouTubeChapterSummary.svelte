@@ -1,9 +1,7 @@
 <!-- @ts-nocheck -->
 <script>
-  import { marked } from 'marked'
   import hljs from 'highlight.js'
   import StreamingMarkdown from '../StreamingMarkdown.svelte'
-  import TOC from '../TOC.svelte'
   import { summaryState } from '@/stores/summaryStore.svelte'
   import FoooterDisplay from './FoooterDisplay.svelte'
 
@@ -39,19 +37,17 @@
 
 {#if chapterSummary}
   <div id="youtube-chapter-summary-display">
-    <div id="copy-cat">
-      <StreamingMarkdown
-        sourceMarkdown={chapterSummary}
-        speed={1}
-        class="custom-markdown-style"
-      />
-    </div>
-    {#if !isChapterLoading}
-      <FoooterDisplay
-        summaryContent={chapterSummary}
-        summaryTitle={summaryState.pageTitle}
-      />
-      <TOC targetDivId="youtube-chapter-summary-display" />
-    {/if}
+    <StreamingMarkdown
+      sourceMarkdown={chapterSummary}
+      speed={1}
+      class="custom-markdown-style"
+    />
   </div>
+  {#if !isChapterLoading}
+    <FoooterDisplay
+      summaryContent={chapterSummary}
+      summaryTitle={summaryState.pageTitle}
+      targetId="youtube-chapter-summary-display"
+    />
+  {/if}
 {/if}

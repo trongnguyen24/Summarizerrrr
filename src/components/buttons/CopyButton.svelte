@@ -4,12 +4,14 @@
   import Icon from '@iconify/svelte'
   import { slideScaleFade } from '@/lib/slideScaleFade'
 
+  let { targetId = 'copy-cat' } = $props()
+
   let isCopied = $state(false)
 
   async function copyToClipboard() {
-    const element = document.getElementById('copy-cat')
+    const element = document.getElementById(targetId)
     if (!element) {
-      console.error('Element with id "copy-cat" not found')
+      console.error(`Element with id "${targetId}" not found`)
 
       return
     }

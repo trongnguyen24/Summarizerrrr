@@ -2,7 +2,6 @@
 <script>
   import StreamingMarkdown from '../StreamingMarkdown.svelte'
   import hljs from 'highlight.js'
-  import TOC from '../TOC.svelte'
   import { summaryState } from '@/stores/summaryStore.svelte'
   import FoooterDisplay from './FoooterDisplay.svelte'
 
@@ -38,19 +37,18 @@
 
 {#if summary}
   <div id="youtube-video-summary-display">
-    <div id="copy-cat">
-      <StreamingMarkdown
-        sourceMarkdown={summary}
-        speed={1}
-        class="custom-markdown-style"
-      />
-    </div>
+    <StreamingMarkdown
+      sourceMarkdown={summary}
+      speed={1}
+      class="custom-markdown-style"
+    />
+
     {#if !isLoading}
       <FoooterDisplay
         summaryContent={summary}
         summaryTitle={summaryState.pageTitle}
+        targetId="youtube-video-summary-display"
       />
-      <TOC targetDivId="youtube-video-summary-display" />
     {/if}
   </div>
 {/if}

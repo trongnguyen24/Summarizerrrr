@@ -1,6 +1,16 @@
 <!-- @ts-nocheck -->
 <script>
   import { marked } from 'marked'
+  import hljs from 'highlight.js'
+
+  // Cấu hình marked để highlight code
+  marked.setOptions({
+    highlight: function (code, lang) {
+      const language = hljs.getLanguage(lang) ? lang : 'plaintext'
+      return hljs.highlight(code, { language }).value
+    },
+    langPrefix: 'hljs language-', // class for unhighlighted code blocks
+  })
 
   /**
    * Props của component, sử dụng cú pháp Svelte 5
@@ -61,6 +71,16 @@
       isTyping = false
     }
   })
+
+  // Effect này chạy mỗi khi displayedMarkdown thay đổi để highlight code
+  $effect(() => {
+    // Đảm bảo rằng component đã render nội dung HTML
+    if (displayedMarkdown) {
+      document.querySelectorAll('pre code').forEach((block) => {
+        hljs.highlightElement(block)
+      })
+    }
+  })
 </script>
 
 <div
@@ -87,19 +107,19 @@
       content: '|';
     }
     20% {
-      content: '▒';
+      content: '#';
     }
     40% {
-      content: '█';
+      content: '#';
     }
     60% {
-      content: '▓';
+      content: '&';
     }
     80% {
-      content: '/';
+      content: '@';
     }
     100% {
-      content: '|';
+      content: '!';
     }
   }
 </style>

@@ -2,6 +2,7 @@
 <script>
   import TabNavigation from '../TabNavigation.svelte'
   import YouTubeVideoSummary from './YouTubeVideoSummary.svelte'
+  import TOC from '../TOC.svelte'
   import YouTubeChapterSummary from './YouTubeChapterSummary.svelte'
   import {
     summaryState,
@@ -52,5 +53,11 @@
         chapterError={summaryState.chapterError}
       />
     </div>
+    {#if activeYouTubeTab === 'chapterSummary' && summaryState.chapterSummary}
+      <TOC targetDivId="youtube-chapter-summary-display" />
+    {/if}
+    {#if activeYouTubeTab === 'videoSummary' && summaryState.summary}
+      <TOC targetDivId="youtube-video-summary-display" />
+    {/if}
   </div>
 </div>

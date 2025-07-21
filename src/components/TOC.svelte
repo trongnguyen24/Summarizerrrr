@@ -115,15 +115,15 @@
 
   // Sử dụng $effect để thay thế onMount và onDestroy
   $effect(() => {
-    animate('#toc', {
-      opacity: [0, 1],
-      translateX: ['2rem', 0],
+    animate('.toc', {
+      opacity: [0, 0, 1],
+      translateX: ['2rem', '2rem', '2rem', '2rem', 0],
       scale: [0, 1, 1, 1, 1, 1],
       ease: 'inOutQuad',
       autoplay: onScroll({
         container: 'body',
-        enter: 'bottom-=280px',
-        leave: 'bottom-=330px',
+        enter: 'bottom-=290px',
+        leave: 'bottom-=300px',
         sync: 0.5,
       }),
     })
@@ -180,8 +180,7 @@
 </script>
 
 <div
-  id="toc"
-  class="fixed z-20 right-0 bottom-18 group p-2 pr-3 origin-bottom-right"
+  class="toc fixed z-20 right-0 bottom-18 group p-2 pr-3 origin-bottom-right"
 >
   <div
     class="flex items-end group-hover:opacity-0 transition-all flex-col gap-1.5"

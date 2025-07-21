@@ -1,20 +1,10 @@
 <!-- @ts-nocheck -->
 <script>
-  import { marked } from 'marked'
-  import hljs from 'highlight.js'
-  import TOC from '../TOC.svelte'
+  import StreamingMarkdown from '../StreamingMarkdown.svelte'
   import { summaryState } from '@/stores/summaryStore.svelte'
   import FoooterDisplay from './FoooterDisplay.svelte'
 
   let { summary, isLoading, error } = $props()
-
-  $effect(() => {
-    if (summary && !isLoading) {
-      document.querySelectorAll('pre code').forEach((block) => {
-        hljs.highlightElement(block)
-      })
-    }
-  })
 </script>
 
 {#if isLoading && !summary}
@@ -38,15 +28,12 @@
 
 {#if summary}
   <div id="course-video-summary-display">
-    <div id="copy-cat">
-      {@html marked.parse(summary)}
-    </div>
-    {#if !isLoading}
-      <FoooterDisplay
-        summaryContent={summary}
-        summaryTitle={summaryState.pageTitle}
-      />
-      <TOC targetDivId="course-video-summary-display" />
-    {/if}
+    <StreamingMarkdown sourceMarkdown={summary} speed={1} />
   </div>
+  {#if !isLoading}
+    <FoooterDisplay
+      summaryContent={summary}
+      summaryTitle={summaryState.pageTitle}
+    />
+  {/if}
 {/if}

@@ -242,7 +242,7 @@
 
   <!-- Left Column: Prompt Menu -->
   <div
-    class="top-stripes sticky top-0 w-8 h-screen border-r border-border/70"
+    class="top-stripes sticky shrink-0 top-0 w-8 h-screen border-r border-border/70"
   ></div>
 
   <div
@@ -266,13 +266,16 @@
 
   <!-- Right Column -->
   <div
-    class="flex-1 pl-0 relative bg-surface-1 z-20 p-4 flex flex-col gap-2
+    class="flex-1 relative pl-0 bg-surface-1 z-20 p-4 flex flex-col gap-2
     {isSidePanelVisible ? 'sm:pl-80' : ''}"
   >
     <SummaryDisplay {selectedSummary} {formatDate} {activeTab} {archiveList} />
+    <div
+      class="sticky bg-linear-to-t from-surface-1 to-surface-1/40 bottom-0 mask-t-from-50% h-16 backdrop-blur-[2px] w-full z-10 pointer-events-none"
+    ></div>
   </div>
 
   <div
-    class="top-stripes sticky top-0 w-8 h-screen border-l border-border/70"
+    class="top-stripes shrink-0 sticky top-0 w-8 h-screen border-l border-border/70"
   ></div>
 </main>

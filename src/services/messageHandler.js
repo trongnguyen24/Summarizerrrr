@@ -45,6 +45,7 @@ function handleBackgroundMessage(request) {
       } else {
         summaryState.lastSummaryTypeDisplayed = 'web';
       }
+      fetchAndSummarize();
       break;
     default:
       console.warn('[messageHandler.js] Unknown message action:', request.action);

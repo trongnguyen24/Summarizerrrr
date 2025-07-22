@@ -55,7 +55,6 @@
 
   // Apply font family based on settings
   $effect(() => {
-    console.log('Settings selectedFont changed:', settings.selectedFont)
     const fontClass =
       {
         default: 'font-geist-mono',
@@ -64,11 +63,14 @@
         mali: 'font-mali',
       }[settings.selectedFont] || 'font-geist-mono'
 
-    document.documentElement.className = document.documentElement.className
-      .split(' ')
-      .filter((c) => !c.startsWith('font-'))
-      .join(' ')
-    document.documentElement.classList.add(fontClass)
+    const mainSidepanel = document.querySelector('.main-sidepanel')
+    if (mainSidepanel) {
+      mainSidepanel.className = mainSidepanel.className
+        .split(' ')
+        .filter((c) => !c.startsWith('font-'))
+        .join(' ')
+      mainSidepanel.classList.add(fontClass)
+    }
   })
 
   // Apply theme based on settings

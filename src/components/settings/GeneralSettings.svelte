@@ -3,6 +3,7 @@
   import Icon from '@iconify/svelte'
   import ButtonFont from '../buttons/ButtonFont.svelte'
   import ButtonIcon from '../buttons/ButtonIcon.svelte'
+  import ButtonSet from '../buttons/ButtonSet.svelte'
   import {
     settings,
     updateSettings,
@@ -65,32 +66,7 @@
       ></ButtonFont>
     </div>
   </div>
-  <div class="flex flex-col gap-2 p-5">
-    <!-- svelte-ignore a11y_label_has_associated_control -->
-    <label class="block text-text-secondary">Response Mode</label>
-    <div class="grid grid-cols-2 w-full gap-1">
-      <ButtonIcon
-        title="⚡ Streaming"
-        class="setting-btn {settings.enableStreaming ? 'active' : ''}"
-        onclick={() => handleUpdateSetting('enableStreaming', true)}
-        Description="Real-time response display, better experience."
-      >
-        <Icon icon="heroicons:bolt-20-solid" width="20" height="20" />
-      </ButtonIcon>
-      <ButtonIcon
-        title="📱 Non-streaming"
-        class="setting-btn {!settings.enableStreaming ? 'active' : ''}"
-        onclick={() => handleUpdateSetting('enableStreaming', false)}
-        Description="Suitable for low-end devices, reduce lag."
-      >
-        <Icon
-          icon="heroicons:device-phone-mobile-20-solid"
-          width="20"
-          height="20"
-        />
-      </ButtonIcon>
-    </div>
-  </div>
+
   <div class="flex flex-col gap-2 px-5">
     <!-- svelte-ignore a11y_label_has_associated_control -->
     <label class="block text-text-secondary">Theme</label>
@@ -123,6 +99,32 @@
           height="20"
         />
       </ButtonIcon>
+    </div>
+  </div>
+  <div class="flex flex-col gap-2 p-5">
+    <!-- svelte-ignore a11y_label_has_associated_control -->
+    <label class="block text-text-secondary">Response Mode</label>
+    <div class="grid grid-cols-2 w-full gap-1">
+      <ButtonSet
+        title="Streaming"
+        class="setting-btn {settings.enableStreaming ? 'active' : ''}"
+        onclick={() => handleUpdateSetting('enableStreaming', true)}
+        Description="Real-time response display, better experience."
+      >
+        <Icon icon="heroicons:bolt-20-solid" width="20" height="20" />
+      </ButtonSet>
+      <ButtonSet
+        title="Non-streaming"
+        class="setting-btn {!settings.enableStreaming ? 'active' : ''}"
+        onclick={() => handleUpdateSetting('enableStreaming', false)}
+        Description="Suitable for low-end devices, reduce lag."
+      >
+        <Icon
+          icon="heroicons:device-phone-mobile-20-solid"
+          width="20"
+          height="20"
+        />
+      </ButtonSet>
     </div>
   </div>
   <div class="flex flex-col gap-2 p-5">

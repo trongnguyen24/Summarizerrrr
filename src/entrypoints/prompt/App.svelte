@@ -373,7 +373,7 @@
           >
             <div
               class=" font-medium py-2 px-4 border transition-colors duration-200 {isPromptModified()
-                ? 'bg-surface-2 group-hover:bg-surface-2/95 dark:group-hover:surface-2/90  text-text-primary border-border hover:border-gray-500/50 hover:text-white'
+                ? 'bg-surface-2 group-hover:bg-surface-2/95 dark:group-hover:surface-2/90  text-text-secondary border-border hover:border-gray-500/50 hover:text-text-primary dark:hover:text-white'
                 : ' bg-white dark:bg-surface-1 text-text-secondary border-border/40'}"
             >
               Discard
@@ -509,13 +509,13 @@
                       onclick={() => (isOpen = false)}
                     >
                       <div
-                        class=" font-medium py-2 px-4 border transition-colors duration-200 bg-surface-2 group-hover:bg-surface-2/95 dark:group-hover:surface-2/90 text-orange-50 dark:text-text-primary border-border hover:border-gray-500/50 hover:text-white"
+                        class=" font-medium py-2 px-4 border transition-colors duration-200 bg-surface-2 group-hover:bg-surface-2/95 dark:group-hover:surface-2/90 text-text-primary border-border hover:border-gray-500 dark:hover:text-white"
                       >
                         Discard
                       </div>
 
                       <span
-                        class="size-4 absolute z-10 -left-2 -bottom-2 border bg-white dark:bg-surface-1 rotate-45 transition-colors duration-200 border-border group-hover:border-gray-500"
+                        class="size-4 absolute z-10 -left-2 -bottom-2 border bg-background dark:bg-surface-1 rotate-45 transition-colors duration-200 border-border group-hover:border-gray-500"
                       ></span>
                     </button>
                     <button
@@ -526,12 +526,12 @@
                       <div
                         class=" font-medium py-2 px-4 border transition-colors duration-200 {!loading
                           ? 'bg-primary group-hover:bg-primary/95 dark:group-hover:bg-orange-500 text-orange-50 dark:text-orange-100/90 border-orange-400 hover:border-orange-300/75 hover:text-white'
-                          : ' bg-white dark:bg-surface-1 text-text-secondary border-border/40'}"
+                          : ' bg-surface-2 dark:bg-surface-1 text-text-secondary border-border/40'}"
                       >
                         Apply prompt
                       </div>
                       <span
-                        class="size-4 absolute z-10 -left-2 -bottom-2 border bg-white dark:bg-surface-1 rotate-45 transition-colors duration-200 {!loading
+                        class="size-4 absolute z-10 -left-2 -bottom-2 border bg-background dark:bg-surface-1 rotate-45 transition-colors duration-200 {!loading
                           ? ' border-orange-400 group-hover:border-orange-300/75'
                           : ' border-border/40'}"
                       ></span>

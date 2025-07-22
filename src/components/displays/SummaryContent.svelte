@@ -29,4 +29,6 @@
     {targetId}
   />
 {/if}
-<TOC targetDivId={targetId} />
+{#if showTOC}
+  <TOC targetDivId={targetId} />
+{/if}

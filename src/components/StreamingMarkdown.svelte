@@ -227,14 +227,16 @@
 <style>
   /* CSS để tạo con trỏ nhấp nháy được tối ưu */
   .blinking-cursor::after {
-    content: '|';
-    display: inline-block;
+    content: '✢';
+    display: block;
+    margin: auto;
+    text-align: center !important;
     /* Sử dụng transform thay vì thay đổi content để tối ưu hiệu năng */
     animation: cyberpunk-blink 1.2s linear infinite;
-    margin: auto;
+
     color: var(--cursor-color, #333);
     /* GPU acceleration */
-    will-change: transform, opacity;
+    will-change: transform;
     transform: translateZ(0);
   }
 
@@ -242,37 +244,35 @@
   @keyframes cyberpunk-blink {
     0%,
     10% {
-      content: '|';
-      opacity: 1;
+      content: '×';
     }
     15% {
-      content: '_';
+      content: '✢';
     }
     25% {
-      content: '-';
+      content: '✣';
     }
     35% {
-      content: '/';
+      content: '✥';
     }
     45% {
-      content: '\\';
+      content: '✶';
     }
     55% {
-      content: '|';
+      content: '❉';
     }
     65% {
-      content: '+';
+      content: '❆';
     }
     75% {
-      content: '*';
+      content: '✺';
     }
     85% {
-      content: '#';
+      content: '❃';
     }
     95%,
     100% {
-      content: '|';
-      opacity: 0.7;
+      content: '✽';
     }
   }
 

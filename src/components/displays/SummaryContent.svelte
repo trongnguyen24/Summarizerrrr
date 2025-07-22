@@ -4,6 +4,7 @@
   import FoooterDisplay from './FoooterDisplay.svelte'
   import TOC from '../TOC.svelte'
   import { summaryState } from '@/stores/summaryStore.svelte'
+  import { settings } from '@/stores/settingsStore.svelte.js' // Import settings
 
   let { summary, isLoading, targetId, showTOC = false } = $props()
 
@@ -17,7 +18,8 @@
 <div id={targetId}>
   <StreamingMarkdown
     sourceMarkdown={summary}
-    speed={50}
+    speed={settings.enableStreaming ? 50 : 0}
+    instantDisplay={!settings.enableStreaming}
     onFinishTyping={handleMarkdownFinishTyping}
     class="custom-markdown-style"
   />

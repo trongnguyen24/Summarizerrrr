@@ -8,6 +8,7 @@ import {
   summarizeChapters,
   summarizeContentStream,
   summarizeChaptersStream,
+  providerSupportsStreaming,
 } from '../lib/api.js'
 import {
   addSummary,
@@ -171,6 +172,7 @@ function checkApiKeyConfiguration(userSettings, selectedProviderId) {
  * Fetches content from the current tab and triggers the summarization process.
  */
 export async function fetchAndSummarize() {
+  console.log('[summaryStore] fetchAndSummarize called.')
   // If a summarization process is already ongoing, reset state and start a new one
   if (summaryState.isLoading || summaryState.isChapterLoading) {
     resetState() // Reset state before starting a new summarization
@@ -184,18 +186,37 @@ export async function fetchAndSummarize() {
   // Reset state before starting
   resetState()
 
+  // Determine the actual provider to use based on isAdvancedMode
+  let selectedProviderId = userSettings.selectedProvider || 'gemini'
+  if (!userSettings.isAdvancedMode) {
+    selectedProviderId = 'gemini' // Force Gemini in basic mode
+  }
+
+  // Check if we should use streaming mode
+  const shouldUseStreaming =
+    userSettings.enableStreaming &&
+    providerSupportsStreaming(selectedProviderId)
+
+  if (shouldUseStreaming) {
+    // Use streaming mode
+    await fetchAndSummarizeStream()
+    // Ensure all loading states are set to false after streaming completes
+    summaryState.isLoading = false
+    summaryState.isChapterLoading = false
+    summaryState.isCourseSummaryLoading = false
+    summaryState.isCourseConceptsLoading = false
+    // Log all generated summaries to history after all loading is complete
+    await logAllGeneratedSummariesToHistory()
+    return // Exit the function after streaming
+  }
+
+  // Use non-streaming mode (existing logic)
   try {
     // Immediately set loading states inside try block
     summaryState.isLoading = true
     summaryState.isChapterLoading = true
     summaryState.isCourseSummaryLoading = true
     summaryState.isCourseConceptsLoading = true
-
-    // Determine the actual provider to use based on isAdvancedMode
-    let selectedProviderId = userSettings.selectedProvider || 'gemini'
-    if (!userSettings.isAdvancedMode) {
-      selectedProviderId = 'gemini' // Force Gemini in basic mode
-    }
 
     // Check API key configuration
     checkApiKeyConfiguration(userSettings, selectedProviderId)
@@ -428,6 +449,7 @@ export async function fetchAndSummarize() {
   }
 }
 export async function fetchAndSummarizeStream() {
+  console.log('[summaryStore] fetchAndSummarizeStream called.')
   if (
     summaryState.isLoading ||
     summaryState.isChapterLoading ||

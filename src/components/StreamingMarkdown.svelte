@@ -10,6 +10,7 @@
    *   speed?: number;
    *   class?: string;
    *   onFinishTyping?: () => void;
+   *   instantDisplay?: boolean;
    * }}
    */
   let {
@@ -17,6 +18,7 @@
     speed = 10, // TÙY CHỌN: Tốc độ gõ chữ (ms/ký tự)
     class: className = '', // TÙY CHỌN: Các class CSS để tùy chỉnh từ bên ngoài
     onFinishTyping, // Callback khi hoàn thành typing
+    instantDisplay = false, // TÙY CHỌN: Hiển thị ngay lập tức không có typing effect
   } = $props()
 
   // === State nội bộ của component ===
@@ -30,7 +32,7 @@
   // Cache cho highlighted code blocks
   const highlightCache = new Map()
   let highlightTimeout = null
-  const highlightedElements = new WeakSet() // Track đã highlight elements
+  const highlightedElements = new Set() // Track đã highlight elements
 
   // Debounce function cho markdown parsing
   function debouncedParse(markdown, delay = 16) {
@@ -115,6 +117,16 @@
   let typingInterval = null
 
   function startTyping() {
+    if (instantDisplay) {
+      displayedMarkdown = sourceMarkdown
+      currentIndex = sourceMarkdown.length
+      isTyping = false
+      if (onFinishTyping) {
+        onFinishTyping()
+      }
+      return
+    }
+
     if (typingInterval) {
       clearInterval(typingInterval)
     }
@@ -163,10 +175,11 @@
 
   // Effect để start/restart typing khi sourceMarkdown thay đổi
   let previousSourceMarkdown = ''
+  let previousInstantDisplay = false
 
   $effect(() => {
-    // Reset nếu sourceMarkdown bị clear
-    if (sourceMarkdown === '') {
+    // Reset nếu sourceMarkdown bị clear hoặc instantDisplay thay đổi
+    if (sourceMarkdown === '' || instantDisplay !== previousInstantDisplay) {
       displayedMarkdown = ''
       currentIndex = 0
       isTyping = false
@@ -176,17 +189,18 @@
         clearInterval(typingInterval)
         typingInterval = null
       }
-      return
     }
 
-    // Chỉ restart typing khi có thay đổi thực sự
-    if (sourceMarkdown !== previousSourceMarkdown) {
-      previousSourceMarkdown = sourceMarkdown
+    previousInstantDisplay = instantDisplay
 
-      // Nếu content mới dài hơn content hiện tại, tiếp tục typing
-      if (sourceMarkdown.length > displayedMarkdown.length) {
-        startTyping()
-      }
+    // Chỉ restart typing khi có thay đổi thực sự trong sourceMarkdown
+    // hoặc khi chuyển sang instantDisplay và chưa hiển thị
+    if (
+      sourceMarkdown !== previousSourceMarkdown ||
+      (instantDisplay && displayedMarkdown !== sourceMarkdown)
+    ) {
+      previousSourceMarkdown = sourceMarkdown
+      startTyping()
     }
   })
 

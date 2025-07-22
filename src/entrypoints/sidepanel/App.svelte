@@ -35,19 +35,6 @@
   import '@fontsource/opendyslexic'
   import '@fontsource/mali'
 
-  let showToast = $state(false)
-  let toastMessage = $state('')
-  let toastType = $state('success')
-
-  function displayToast(message, type = 'success') {
-    toastMessage = message
-    toastType = type
-    showToast = true
-    setTimeout(() => {
-      showToast = false
-    }, 3000) // Hide toast after 3 seconds
-  }
-
   // Use $effect to initialize the app and set up listeners
   $effect(() => {
     const cleanupInitialization = initializeApp()
@@ -101,7 +88,7 @@
   $effect(() => {
     const handleSummarizeClick = () => {
       resetDisplayState() // Reset display state before new summarization
-      fetchAndSummarizeStream() // Call function from summaryStore
+      fetchAndSummarize() // Call the main summarization function
     }
 
     document.addEventListener('summarizeClick', handleSummarizeClick)

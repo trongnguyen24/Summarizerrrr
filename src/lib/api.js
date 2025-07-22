@@ -10,10 +10,10 @@ import {
   basicModeSettings,
   loadBasicModeSettings,
 } from '../stores/basicModeSettingsStore.svelte.js'
-import { getProvider, providersConfig } from './providersConfig.js';
-import { promptBuilders } from './promptBuilders.js';
-import { systemInstructions } from './systemInstructions.js';
-import { DEFAULT_OLLAMA_ENDPOINT } from './ollamaConfig.js';
+import { getProvider, providersConfig } from './providersConfig.js'
+import { promptBuilders } from './promptBuilders.js'
+import { systemInstructions } from './systemInstructions.js'
+import { DEFAULT_OLLAMA_ENDPOINT } from './ollamaConfig.js'
 
 /**
  * Helper function to get provider-specific configuration (API key, model, model config).
@@ -65,6 +65,25 @@ function getProviderConfig(userSettings, selectedProviderId) {
   }
 
   return { apiKey, model, modelConfig }
+}
+
+/**
+ * Checks if the selected provider supports streaming.
+ * @param {string} selectedProviderId - The ID of the selected provider.
+ * @returns {boolean} - True if provider supports streaming, false otherwise.
+ */
+export function providerSupportsStreaming(selectedProviderId) {
+  try {
+    const userSettings = settings
+    const provider = getProvider(selectedProviderId, userSettings)
+    return typeof provider.generateContentStream === 'function'
+  } catch (error) {
+    console.warn(
+      `[api.js] Error checking streaming support for provider ${selectedProviderId}:`,
+      error
+    )
+    return false
+  }
 }
 
 /**

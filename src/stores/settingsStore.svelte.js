@@ -25,6 +25,7 @@ const DEFAULT_SETTINGS = {
   selectedModel: 'gemini-2.5-flash', // Default model
   isAdvancedMode: false, // Default to basic mode
   selectedFont: 'default', // Default font setting
+  enableStreaming: true, // Enable streaming by default
   isSummaryAdvancedMode: false, // Chế độ tóm tắt nâng cao mới
 
   // Lựa chọn prompt cho từng tính năng (chỉ còn 'default', 'custom1', 'custom2')

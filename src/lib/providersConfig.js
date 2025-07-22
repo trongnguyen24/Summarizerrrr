@@ -2,6 +2,7 @@
 import { GeminiProvider } from './providers/geminiProvider.js'
 import { OpenrouterProvider } from './providers/openrouterProvider.js'
 import { OllamaProvider } from './providers/ollamaProvider.js'
+import { OpenAICompatibleProvider } from './providers/openaiCompatibleProvider.js'
 // Import other providers here as they are implemented
 
 export const providersConfig = {
@@ -26,6 +27,10 @@ export const providersConfig = {
   ollama: {
     name: 'Ollama',
     providerClass: OllamaProvider,
+  },
+  openaiCompatible: {
+    name: 'OpenAI Compatible',
+    providerClass: OpenAICompatibleProvider,
   },
 }
 
@@ -64,6 +69,12 @@ export function getProvider(providerId, currentSettings) {
       return new config.providerClass(
         currentSettings.openrouterApiKey,
         currentSettings.selectedOpenrouterModel
+      )
+    case 'openaiCompatible':
+      return new config.providerClass(
+        currentSettings.openaiCompatibleApiKey,
+        currentSettings.openaiCompatibleBaseUrl,
+        currentSettings.selectedOpenAICompatibleModel
       )
     // Add cases for other providers as they are implemented
     default:

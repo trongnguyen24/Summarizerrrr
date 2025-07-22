@@ -205,8 +205,7 @@ export async function fetchAndSummarize() {
     summaryState.isChapterLoading = false
     summaryState.isCourseSummaryLoading = false
     summaryState.isCourseConceptsLoading = false
-    // Log all generated summaries to history after all loading is complete
-    await logAllGeneratedSummariesToHistory()
+    // logAllGeneratedSummariesToHistory() is called within fetchAndSummarizeStream
     return // Exit the function after streaming
   }
 

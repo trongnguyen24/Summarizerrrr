@@ -9,6 +9,7 @@
   import GeminiAdvancedConfig from '../providerConfigs/GeminiAdvancedConfig.svelte'
   import OpenrouterConfig from '../providerConfigs/OpenrouterConfig.svelte'
   import OllamaConfig from '../providerConfigs/OllamaConfig.svelte'
+  import OpenAICompatibleConfig from '../providerConfigs/OpenAICompatibleConfig.svelte'
   import { Label, Switch } from 'bits-ui'
   import {
     settings,
@@ -105,6 +106,14 @@
         />
       {:else if settings.selectedProvider === 'ollama'}
         <OllamaConfig />
+      {:else if settings.selectedProvider === 'openaiCompatible'}
+        <OpenAICompatibleConfig
+          bind:openaiCompatibleApiKey={settings.openaiCompatibleApiKey}
+          bind:openaiCompatibleBaseUrl={settings.openaiCompatibleBaseUrl}
+          bind:selectedOpenAICompatibleModel={
+            settings.selectedOpenAICompatibleModel
+          }
+        />
       {/if}
 
       <div class="grid grid-cols-2 gap-4">

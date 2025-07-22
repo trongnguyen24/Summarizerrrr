@@ -1,19 +1,11 @@
-<!-- @ts-nocheck -->
 <script>
-  import TabNavigation from '../TabNavigation.svelte'
-  import YouTubeVideoSummary from './YouTubeVideoSummary.svelte'
-  import TOC from '../TOC.svelte'
-  import YouTubeChapterSummary from './YouTubeChapterSummary.svelte'
-  import {
-    summaryState,
-    updateActiveYouTubeTab,
-  } from '../../stores/summaryStore.svelte.js'
+  // @ts-nocheck
+  import TabbedSummaryDisplay from './TabbedSummaryDisplay.svelte';
+  import GenericSummaryDisplay from './GenericSummaryDisplay.svelte';
+  import TOC from '../TOC.svelte';
+  import { summaryState, updateActiveYouTubeTab } from '../../stores/summaryStore.svelte.js';
 
-  let { activeYouTubeTab } = $props()
-
-  function selectYouTubeTab(tabName) {
-    updateActiveYouTubeTab(tabName)
-  }
+  let { activeYouTubeTab } = $props();
 
   const youtubeTabs = $derived([
     {
@@ -28,36 +20,38 @@
       show: true,
       isLoading: summaryState.isChapterLoading,
     },
-  ])
+  ]);
 </script>
 
-<div class="youtube-summary-container">
-  <TabNavigation
-    tabs={youtubeTabs}
-    activeTab={activeYouTubeTab}
-    onSelectTab={selectYouTubeTab}
-  />
-
-  <div class="youtube-content mt-6">
-    <div hidden={activeYouTubeTab !== 'videoSummary'}>
-      <YouTubeVideoSummary
-        summary={summaryState.summary}
-        isLoading={summaryState.isLoading}
-        error={summaryState.error}
-      />
-    </div>
-    <div hidden={activeYouTubeTab !== 'chapterSummary'}>
-      <YouTubeChapterSummary
-        chapterSummary={summaryState.chapterSummary}
-        isChapterLoading={summaryState.isChapterLoading}
-        chapterError={summaryState.chapterError}
-      />
-    </div>
-    {#if activeYouTubeTab === 'chapterSummary' && summaryState.chapterSummary}
-      <TOC targetDivId="youtube-chapter-summary-display" />
-    {/if}
+<TabbedSummaryDisplay
+  tabs={youtubeTabs}
+  activeTab={activeYouTubeTab}
+  onSelectTab={updateActiveYouTubeTab}
+>
+  <div hidden={activeYouTubeTab !== 'videoSummary'}>
+    <GenericSummaryDisplay
+      summary={summaryState.summary}
+      isLoading={summaryState.isLoading}
+      error={summaryState.error}
+      loadingText="Processing main YouTube summary..."
+      errorTitle="Main YouTube summary error"
+      targetId="youtube-video-summary-display"
+    />
     {#if activeYouTubeTab === 'videoSummary' && summaryState.summary}
       <TOC targetDivId="youtube-video-summary-display" />
     {/if}
   </div>
-</div>
+  <div hidden={activeYouTubeTab !== 'chapterSummary'}>
+    <GenericSummaryDisplay
+      summary={summaryState.chapterSummary}
+      isLoading={summaryState.isChapterLoading}
+      error={summaryState.chapterError}
+      loadingText="Generating chapter summary..."
+      errorTitle="Chapters summary error"
+      targetId="youtube-chapter-summary-display"
+    />
+    {#if activeYouTubeTab === 'chapterSummary' && summaryState.chapterSummary}
+      <TOC targetDivId="youtube-chapter-summary-display" />
+    {/if}
+  </div>
+</TabbedSummaryDisplay>

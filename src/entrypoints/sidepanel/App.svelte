@@ -1,19 +1,14 @@
 <script>
   // @ts-nocheck
-  import Icon from '@iconify/svelte';
-  import 'overlayscrollbars/overlayscrollbars.css';
-  import SettingButton from '../../components/buttons/SettingButton.svelte';
-  import SummarizeButton from '../../components/buttons/SummarizeButton.svelte';
-  import TabNavigation from '../../components/TabNavigation.svelte'; // Vẫn cần cho các component wrapper
-  import CourseConceptsDisplay from '../../components/displays/CourseConceptsDisplay.svelte'; // Component nội dung Course Concepts
-  import CourseVideoSummary from '../../components/displays/CourseVideoSummary.svelte'; // Component nội dung Course Video Summary
-  import YouTubeChapterSummary from '../../components/displays/YouTubeChapterSummary.svelte'; // Component nội dung YouTube Chapter
-  import YouTubeVideoSummary from '../../components/displays/YouTubeVideoSummary.svelte';
-  import WebSummaryDisplay from '../../components/displays/WebSummaryDisplay.svelte';
-  import SelectedTextSummaryDisplay from '../../components/displays/SelectedTextSummaryDisplay.svelte';
-  import YouTubeSummaryDisplay from '../../components/displays/YouTubeSummaryDisplay.svelte';
-  import CourseSummaryDisplay from '../../components/displays/CourseSummaryDisplay.svelte';
-  import 'webextension-polyfill';
+  import Icon from '@iconify/svelte'
+  import 'overlayscrollbars/overlayscrollbars.css'
+  import SettingButton from '../../components/buttons/SettingButton.svelte'
+  import SummarizeButton from '../../components/buttons/SummarizeButton.svelte'
+  import TabNavigation from '../../components/TabNavigation.svelte' // Vẫn cần cho các component wrapper
+  import GenericSummaryDisplay from '../../components/displays/GenericSummaryDisplay.svelte'
+  import YouTubeSummaryDisplay from '../../components/displays/YouTubeSummaryDisplay.svelte'
+  import CourseSummaryDisplay from '../../components/displays/CourseSummaryDisplay.svelte'
+  import 'webextension-polyfill'
 
   // Import direct variables and functions from refactored stores
   import {
@@ -25,59 +20,59 @@
     fetchAndSummarizeStream,
     updateActiveCourseTab,
     updateActiveYouTubeTab,
-  } from '../../stores/summaryStore.svelte.js';
-  import { tabTitle } from '../../stores/tabTitleStore.svelte.js';
-  import { setupMessageListener } from '../../services/messageHandler.js';
-  import { initializeApp } from '../../services/initialization.js';
+  } from '../../stores/summaryStore.svelte.js'
+  import { tabTitle } from '../../stores/tabTitleStore.svelte.js'
+  import { setupMessageListener } from '../../services/messageHandler.js'
+  import { initializeApp } from '../../services/initialization.js'
 
-  import '@fontsource-variable/geist-mono';
-  import '@fontsource-variable/noto-serif';
-  import '@fontsource/opendyslexic';
-  import '@fontsource/mali';
+  import '@fontsource-variable/geist-mono'
+  import '@fontsource-variable/noto-serif'
+  import '@fontsource/opendyslexic'
+  import '@fontsource/mali'
 
-  let showToast = $state(false);
-  let toastMessage = $state('');
-  let toastType = $state('success');
+  let showToast = $state(false)
+  let toastMessage = $state('')
+  let toastType = $state('success')
 
   function displayToast(message, type = 'success') {
-    toastMessage = message;
-    toastType = type;
-    showToast = true;
+    toastMessage = message
+    toastType = type
+    showToast = true
     setTimeout(() => {
-      showToast = false;
-    }, 3000); // Hide toast after 3 seconds
+      showToast = false
+    }, 3000) // Hide toast after 3 seconds
   }
 
   // Use $effect to initialize the app and set up listeners
   $effect(() => {
-    const cleanupInitialization = initializeApp();
-    const cleanupMessageListener = setupMessageListener();
+    const cleanupInitialization = initializeApp()
+    const cleanupMessageListener = setupMessageListener()
 
     return () => {
-      cleanupInitialization();
-      cleanupMessageListener();
-    };
-  });
+      cleanupInitialization()
+      cleanupMessageListener()
+    }
+  })
 
   // Create derived variable to check if any Course summary is loading
   const isAnyCourseLoading = $derived(
     summaryState.isCourseSummaryLoading || summaryState.isCourseConceptsLoading
-  );
+  )
 
   // Handle summarize button click
   // Register global event listener and ensure it's cleaned up when component is destroyed
   $effect(() => {
     const handleSummarizeClick = () => {
-      resetDisplayState(); // Reset display state before new summarization
-      fetchAndSummarizeStream(); // Call function from summaryStore
-    };
+      resetDisplayState() // Reset display state before new summarization
+      fetchAndSummarizeStream() // Call function from summaryStore
+    }
 
-    document.addEventListener('summarizeClick', handleSummarizeClick);
+    document.addEventListener('summarizeClick', handleSummarizeClick)
 
     return () => {
-      document.removeListener('summarizeClick', handleSummarizeClick);
-    };
-  });
+      document.removeListener('summarizeClick', handleSummarizeClick)
+    }
+  })
 </script>
 
 <div class="flex min-w-[22.5rem] bg-surface-1 w-full flex-col">
@@ -144,23 +139,31 @@
       {:else if summaryState.lastSummaryTypeDisplayed === 'course'}
         <CourseSummaryDisplay activeCourseTab={summaryState.activeCourseTab} />
       {:else if summaryState.lastSummaryTypeDisplayed === 'selectedText'}
-        <SelectedTextSummaryDisplay
-          selectedTextSummary={summaryState.selectedTextSummary}
-          isSelectedTextLoading={summaryState.isSelectedTextLoading}
-          selectedTextError={summaryState.selectedTextError}
+        <GenericSummaryDisplay
+          summary={summaryState.selectedTextSummary}
+          isLoading={summaryState.isSelectedTextLoading}
+          error={summaryState.selectedTextError}
+          loadingText="Summarizing selected text..."
+          errorTitle="Selected text summary error"
+          targetId="selected-text-summary-display"
+          showTOC={true}
         />
       {:else if summaryState.lastSummaryTypeDisplayed === 'web'}
-        <WebSummaryDisplay
+        <GenericSummaryDisplay
           summary={summaryState.summary}
           isLoading={summaryState.isLoading}
           error={summaryState.error}
+          loadingText="Processing web summary..."
+          errorTitle="Web summary error"
+          targetId="web-summary-display"
+          showTOC={true}
         />
       {/if}
     </div>
+    <div id="footer"></div>
   </div>
 
   <div
     class="fixed bg-linear-to-t from-surface-1 to-surface-1/40 bottom-0 mask-t-from-50% h-16 backdrop-blur-[2px] w-full z-30 pointer-events-none"
   ></div>
-  <div class="fixed z-50 top-0 right-0"></div>
 </div>

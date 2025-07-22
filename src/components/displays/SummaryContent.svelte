@@ -1,32 +1,23 @@
 <script>
   // @ts-nocheck
-  import StreamingMarkdown from '../StreamingMarkdown.svelte';
-  import FoooterDisplay from './FoooterDisplay.svelte';
-  import TOC from '../TOC.svelte';
-  import { summaryState } from '@/stores/summaryStore.svelte';
-  import hljs from 'highlight.js';
+  import StreamingMarkdown from '../StreamingMarkdown.svelte'
+  import FoooterDisplay from './FoooterDisplay.svelte'
+  import TOC from '../TOC.svelte'
+  import { summaryState } from '@/stores/summaryStore.svelte'
 
-  let { summary, isLoading, targetId, showTOC = false } = $props();
+  let { summary, isLoading, targetId, showTOC = false } = $props()
 
-  let isMarkdownRendered = $state(false);
+  let isMarkdownRendered = $state(false)
 
   function handleMarkdownFinishTyping() {
-    isMarkdownRendered = true;
+    isMarkdownRendered = true
   }
-
-  $effect(() => {
-    if (summary && !isLoading) {
-      document.querySelectorAll(`#${targetId} pre code`).forEach((block) => {
-        hljs.highlightElement(block);
-      });
-    }
-  });
 </script>
 
 <div id={targetId}>
   <StreamingMarkdown
     sourceMarkdown={summary}
-    speed={1}
+    speed={50}
     onFinishTyping={handleMarkdownFinishTyping}
     class="custom-markdown-style"
   />
@@ -37,7 +28,5 @@
     summaryTitle={summaryState.pageTitle}
     {targetId}
   />
-  {#if showTOC}
-    <TOC {targetId} />
-  {/if}
 {/if}
+<TOC targetDivId={targetId} />

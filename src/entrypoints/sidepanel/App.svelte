@@ -24,7 +24,12 @@
   import { tabTitle } from '../../stores/tabTitleStore.svelte.js'
   import { setupMessageListener } from '../../services/messageHandler.js'
   import { initializeApp } from '../../services/initialization.js'
-
+  import { settings } from '../../stores/settingsStore.svelte.js'
+  import {
+    themeSettings,
+    initializeTheme,
+    subscribeToSystemThemeChanges,
+  } from '../../stores/themeStore.svelte.js'
   import '@fontsource-variable/geist-mono'
   import '@fontsource-variable/noto-serif'
   import '@fontsource/opendyslexic'
@@ -52,6 +57,38 @@
       cleanupInitialization()
       cleanupMessageListener()
     }
+  })
+
+  $effect(() => {
+    initializeTheme()
+    const unsubscribeTheme = subscribeToSystemThemeChanges()
+
+    return unsubscribeTheme
+  })
+
+  // Apply font family based on settings
+  $effect(() => {
+    console.log('Settings selectedFont changed:', settings.selectedFont)
+    const fontClass =
+      {
+        default: 'font-geist-mono',
+        'noto-serif': 'font-noto-serif',
+        opendyslexic: 'font-opendyslexic',
+        mali: 'font-mali',
+      }[settings.selectedFont] || 'font-geist-mono'
+
+    document.documentElement.className = document.documentElement.className
+      .split(' ')
+      .filter((c) => !c.startsWith('font-'))
+      .join(' ')
+    document.documentElement.classList.add(fontClass)
+  })
+
+  // Apply theme based on settings
+  $effect(() => {
+    console.log('Theme settings changed:', themeSettings.theme)
+    // The actual theme application logic is handled by initializeTheme and subscribeToSystemThemeChanges
+    // which are called in the initial $effect. This effect is mainly for logging.
   })
 
   // Create derived variable to check if any Course summary is loading

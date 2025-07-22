@@ -10,7 +10,7 @@
   import {
     themeSettings,
     setTheme,
-    updateThemeSettings as updateThemeStoreSettings,
+    // updateThemeSettings as updateThemeStoreSettings, // Không còn cần thiết, dùng setTheme thay thế
   } from '../../stores/themeStore.svelte' // Import themeSettings và updateThemeSettings
 
   function handleUpdateSetting(key, value) {
@@ -72,7 +72,7 @@
       <ButtonIcon
         title="Light"
         class="setting-btn {themeSettings.theme === 'light' ? 'active' : ''}"
-        onclick={() => updateThemeStoreSettings({ theme: 'light' })}
+        onclick={() => setTheme('light')}
         Description="Light theme."
       >
         <Icon icon="heroicons:sun-16-solid" width="20" height="20" />
@@ -80,7 +80,7 @@
       <ButtonIcon
         title="Dark"
         class="setting-btn {themeSettings.theme === 'dark' ? 'active' : ''}"
-        onclick={() => updateThemeStoreSettings({ theme: 'dark' })}
+        onclick={() => setTheme('dark')}
         Description="Dark theme."
       >
         <Icon icon="heroicons:moon-20-solid" width="20" height="20" />
@@ -88,7 +88,7 @@
       <ButtonIcon
         title="System"
         class="setting-btn {themeSettings.theme === 'system' ? 'active' : ''}"
-        onclick={() => updateThemeStoreSettings({ theme: 'system' })}
+        onclick={() => setTheme('system')}
         Description="System theme."
       >
         <Icon

@@ -69,9 +69,7 @@
     initializeTheme();
     const unsubscribeTheme = subscribeToSystemThemeChanges();
 
-    $effect(() => {
-      applyThemeToDocument(themeSettings.theme);
-    });
+    
 
     return unsubscribeTheme;
   });

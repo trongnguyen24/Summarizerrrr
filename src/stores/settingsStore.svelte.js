@@ -18,7 +18,11 @@ const DEFAULT_SETTINGS = {
   openrouterApiKey: '', // OpenRouter API Key
   selectedOpenrouterModel: 'deepseek/deepseek-r1-0528:free', // Default OpenRouter model
   deepseekApiKey: '', // DeepSeek API Key
+  deepseekBaseUrl: 'https://api.deepseek.com/', // Deepseek Base URL
+  selectedDeepseekModel: 'deepseek-chat', // Deepseek Model
   chatgptApiKey: '', // ChatGPT API Key
+  chatgptBaseUrl: 'https://api.openai.com/v1', // ChatGPT Base URL
+  selectedChatgptModel: 'gpt-3.5-turbo', // ChatGPT Model
   ollamaEndpoint: 'http://localhost:11434', // Ollama Endpoint
   selectedOllamaModel: 'llama2', // Default Ollama model
   summaryLength: 'long', // short, medium, long

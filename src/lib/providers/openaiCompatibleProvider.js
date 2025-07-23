@@ -1,11 +1,17 @@
 // @ts-nocheck
 import { BaseProvider } from './baseProvider.js'
+import OpenAI from 'openai'
 
 export class OpenAICompatibleProvider extends BaseProvider {
   constructor(apiKey, baseUrl) {
     super()
     this.apiKey = apiKey
-    this.apiUrl = baseUrl || 'https://api.openai.com/v1/chat/completions'
+    this.baseUrl = baseUrl || 'https://api.openai.com/v1'
+    this.openai = new OpenAI({
+      apiKey: this.apiKey,
+      baseURL: this.baseUrl,
+      dangerouslyAllowBrowser: true, // Required for client-side usage
+    })
   }
 
   async generateContent(model, contents, systemInstruction, generationConfig) {
@@ -21,33 +27,25 @@ export class OpenAICompatibleProvider extends BaseProvider {
       }
     })
 
-    const body = {
-      model: model,
-      messages: messages,
-      temperature: generationConfig.temperature,
-      top_p: generationConfig.topP,
+    try {
+      console.log('--- OpenAICompatibleProvider Request Payload ---')
+      console.log('Model:', model)
+      console.log('Messages:', messages)
+      console.log('Temperature:', generationConfig.temperature)
+      console.log('Top P:', generationConfig.topP)
+      console.log('-------------------------------------------')
+
+      const response = await this.openai.chat.completions.create({
+        model: model,
+        messages: messages,
+        temperature: generationConfig.temperature,
+        top_p: generationConfig.topP,
+        stream: false,
+      })
+      return response
+    } catch (error) {
+      throw this.handleError(error, model)
     }
-
-    const response = await fetch(this.apiUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${this.apiKey}`,
-      },
-      body: JSON.stringify(body),
-    })
-
-    if (!response.ok) {
-      const errorData = await response.json()
-      throw new Error(
-        `OpenAI Compatible API error: ${response.status} - ${
-          errorData.message || response.statusText
-        }`
-      )
-    }
-
-    const result = await response.json()
-    return result
   }
 
   async *generateContentStream(
@@ -66,72 +64,30 @@ export class OpenAICompatibleProvider extends BaseProvider {
       }
     })
 
-    const body = {
-      model: model,
-      messages: messages,
-      temperature: generationConfig.temperature,
-      top_p: generationConfig.topP,
-      stream: true,
-    }
-
-    const response = await fetch(this.apiUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${this.apiKey}`,
-      },
-      body: JSON.stringify(body),
-    })
-
-    if (!response.ok) {
-      const errorData = await response.json()
-      throw new Error(
-        `OpenAI Compatible API error: ${response.status} - ${
-          errorData.error?.message || response.statusText
-        }`
-      )
-    }
-
-    const reader = response.body?.getReader()
-    if (!reader) {
-      throw new Error('Response body is not readable')
-    }
-
-    const decoder = new TextDecoder()
-    let buffer = ''
-
     try {
-      while (true) {
-        const { done, value } = await reader.read()
-        if (done) break
+      console.log('--- OpenAICompatibleProvider Stream Request Payload ---')
+      console.log('Model:', model)
+      console.log('Messages:', messages)
+      console.log('Temperature:', generationConfig.temperature)
+      console.log('Top P:', generationConfig.topP)
+      console.log('---------------------------------------------------')
 
-        buffer += decoder.decode(value, { stream: true })
+      const stream = await this.openai.chat.completions.create({
+        model: model,
+        messages: messages,
+        temperature: generationConfig.temperature,
+        top_p: generationConfig.topP,
+        stream: true,
+      })
 
-        while (true) {
-          const lineEnd = buffer.indexOf('\n')
-          if (lineEnd === -1) break
-
-          const line = buffer.slice(0, lineEnd).trim()
-          buffer = buffer.slice(lineEnd + 1)
-
-          if (line.startsWith('data: ')) {
-            const data = line.slice(6)
-            if (data === '[DONE]') break
-
-            try {
-              const parsed = JSON.parse(data)
-              const content = parsed.choices[0].delta.content
-              if (content) {
-                yield content
-              }
-            } catch (e) {
-              // Ignore invalid JSON
-            }
-          }
+      for await (const chunk of stream) {
+        const content = chunk.choices[0]?.delta?.content || ''
+        if (content) {
+          yield content
         }
       }
-    } finally {
-      reader.releaseLock()
+    } catch (error) {
+      throw this.handleError(error, model)
     }
   }
 
@@ -150,32 +106,48 @@ export class OpenAICompatibleProvider extends BaseProvider {
   }
 
   handleError(error, model) {
-    let errorMessage = 'An error occurred while calling the OpenAI Compatible API.'
+    let errorMessage =
+      error.message ||
+      'An error occurred while calling the OpenAI Compatible API.'
 
-    if (error.message.includes('400')) {
-      errorMessage =
-        'OpenAI Compatible API: Bad Request. Invalid or missing parameters, or a CORS issue. Please check your request.'
-    } else if (error.message.includes('401')) {
-      errorMessage =
-        'OpenAI Compatible API: Invalid credentials. Your API key might be disabled or invalid. Please check your API key in the settings.'
-    } else if (error.message.includes('402')) {
-      errorMessage =
-        'OpenAI Compatible API: Insufficient credits. Your account or API key has insufficient credits. Please add more credits and retry the request.'
-    } else if (error.message.includes('403')) {
-      errorMessage =
-        'OpenAI Compatible API: Forbidden. Your chosen model requires moderation and your input was flagged.'
-    } else if (error.message.includes('408')) {
-      errorMessage =
-        'OpenAI Compatible API: Request Timeout. Your request timed out. Please try again.'
-    } else if (error.message.includes('429')) {
-      errorMessage =
-        'OpenAI Compatible API: Rate Limited. You are being rate limited. Please try again in a few minutes or check your account.'
-    } else if (error.message.includes('502')) {
-      errorMessage =
-        'OpenAI Compatible API: Bad Gateway. Your chosen model is down or we received an invalid response from it. Please try again in 30 seconds.'
-    } else if (error.message.includes('503')) {
-      errorMessage =
-        'OpenAI Compatible API: Service Unavailable. There is no available model provider that meets your routing requirements. Please try again later.'
+    // Check if the error is an OpenAI APIError
+    if (error instanceof OpenAI.APIError) {
+      // console.error('OpenAI API Error:', error.status, error.message, error.code, error.type);
+      switch (error.status) {
+        case 400:
+          errorMessage = `OpenAI Compatible API: Bad Request (${error.code}). Invalid or missing parameters, or a CORS issue. Please check your request.`
+          break
+        case 401:
+          errorMessage = `OpenAI Compatible API: Invalid credentials (${error.code}). Your API key might be disabled or invalid. Please check your API key in the settings.`
+          break
+        case 402:
+          errorMessage = `OpenAI Compatible API: Insufficient credits (${error.code}). Your account or API key has insufficient credits. Please add more credits and retry the request.`
+          break
+        case 403:
+          errorMessage = `OpenAI Compatible API: Forbidden (${error.code}). Your chosen model requires moderation and your input was flagged.`
+          break
+        case 404:
+          errorMessage = `OpenAI Compatible API: Not Found (${error.code}). The model '${model}' was not found or is not accessible with your API key.`
+          break
+        case 408:
+          errorMessage = `OpenAI Compatible API: Request Timeout (${error.code}). Your request timed out. Please try again.`
+          break
+        case 429:
+          errorMessage = `OpenAI Compatible API: Rate Limited (${error.code}). You are being rate limited. Please try again in a few minutes or check your account.`
+          break
+        case 500:
+          errorMessage = `OpenAI Compatible API: Server Error (${error.code}). An unexpected error occurred on the API server. Please try again later.`
+          break
+        case 502:
+          errorMessage = `OpenAI Compatible API: Bad Gateway (${error.code}). Your chosen model is down or we received an invalid response from it. Please try again in 30 seconds.`
+          break
+        case 503:
+          errorMessage = `OpenAI Compatible API: Service Unavailable (${error.code}). There is no available model provider that meets your routing requirements. Please try again later.`
+          break
+        default:
+          errorMessage = `OpenAI Compatible API: An unexpected API error occurred (Status: ${error.status}, Code: ${error.code}). ${error.message}`
+          break
+      }
     } else if (
       error instanceof TypeError &&
       error.message.includes('Failed to fetch')
@@ -183,9 +155,10 @@ export class OpenAICompatibleProvider extends BaseProvider {
       errorMessage =
         'Network error. Please check your internet connection and try again.'
     } else {
+      // Ensure error.message is not undefined
       errorMessage =
-        'An unexpected error occurred while calling the OpenAI Compatible API: ' +
-        error.message
+        error.message ||
+        'An unexpected error occurred while calling the OpenAI Compatible API.'
     }
 
     return errorMessage

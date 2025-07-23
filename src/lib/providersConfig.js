@@ -12,14 +12,14 @@ export const providersConfig = {
     // Add other provider-specific configurations here if needed
   },
   // Add other providers here
-  // deepseek: {
-  //   name: 'DeepSeek',
-  //   providerClass: DeepSeekProvider,
-  // },
-  // chatgpt: {
-  //   name: 'ChatGPT',
-  //   providerClass: ChatGPTProvider,
-  // },
+  deepseek: {
+    name: 'DeepSeek',
+    providerClass: OpenAICompatibleProvider,
+  },
+  chatgpt: {
+    name: 'ChatGPT',
+    providerClass: OpenAICompatibleProvider,
+  },
   openrouter: {
     name: 'OpenRouter',
     providerClass: OpenrouterProvider,
@@ -76,10 +76,20 @@ export function getProvider(providerId, currentSettings) {
         currentSettings.openaiCompatibleBaseUrl,
         currentSettings.selectedOpenAICompatibleModel
       )
-    // Add cases for other providers as they are implemented
+    case 'chatgpt':
+      return new config.providerClass(
+        currentSettings.chatgptApiKey,
+        currentSettings.chatgptBaseUrl,
+        currentSettings.selectedChatgptModel // Thêm tham số model nếu cần
+      )
+    case 'deepseek':
+      return new config.providerClass(
+        currentSettings.deepseekApiKey,
+        currentSettings.deepseekBaseUrl,
+        currentSettings.selectedDeepseekModel // Thêm tham số model nếu cần
+      )
     default:
-      // For providers that only need an API key (e.g., DeepSeek, ChatGPT if implemented)
-      // This assumes a generic 'apiKey' property in settings for other providers
+      // For providers that only need an API key (e.g., if a new provider is added without a specific case)
       const apiKey = currentSettings[`${providerId}ApiKey`]
       return new config.providerClass(apiKey)
   }

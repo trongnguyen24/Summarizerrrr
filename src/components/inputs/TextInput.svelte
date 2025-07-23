@@ -4,19 +4,25 @@
   import Icon from '@iconify/svelte'
   import PlusIcon from '../PlusIcon.svelte'
 
-  let { apiKey = $bindable(), label = '', onSave = () => {} } = $props()
+  let {
+    value = $bindable(), // Đổi tên từ apiKey thành value
+    label = '',
+    placeholder = '',
+    onSave = () => {},
+  } = $props()
 
   let saveStatus = $state('')
-  let apiKeyDebounceTimer = null
+  let valueDebounceTimer = null // Đổi tên biến debounce timer
 
   /**
-   * Schedules the API key save operation with a debounce.
+   * Schedules the input value save operation with a debounce.
    * Clears any existing timer and sets a new one.
    */
-  function scheduleApiKeySave() {
-    clearTimeout(apiKeyDebounceTimer)
-    apiKeyDebounceTimer = setTimeout(() => {
-      onSave(apiKey.trim())
+  function scheduleValueSave() {
+    // Đổi tên hàm
+    clearTimeout(valueDebounceTimer)
+    valueDebounceTimer = setTimeout(() => {
+      onSave(value.trim())
       saveStatus = 'saved!'
       setTimeout(() => (saveStatus = ''), 2000)
     }, 300)
@@ -25,7 +31,7 @@
 
 <div class="flex flex-col gap-2">
   <div class="flex items-center gap-1 justify-between">
-    <label for="api-key-input" class="block">
+    <label for="text-input" class="block">
       {label}
     </label>
     {#if saveStatus}
@@ -38,10 +44,11 @@
   <div class="lang overflow-hidden relative">
     <input
       type="text"
-      id="api-key-input"
-      bind:value={apiKey}
-      class="w-full pl-3 text-xs pr-9 h-7.5 bg-muted/5 dark:bg-muted/5 border border-border hover:border-blackwhite/15 focus:border-blackwhite/30 dark:border-blackwhite/10 dark:focus:border-blackwhite/20 focus:outline-none focus:ring-0 placeholder:text-muted transition-colors duration-150"
-      oninput={scheduleApiKeySave}
+      {placeholder}
+      id="text-input"
+      bind:value
+      class="w-full pl-3 text-xs pr-9 h-7.5 bg-muted/5 dark:bg-muted/5 border border-border hover:border-blackwhite/15 focus:border-blackwhite/30 dark:border-blackwhite/20 focus:outline-none focus:ring-0 placeholder:text-muted transition-colors duration-150"
+      oninput={scheduleValueSave}
     />
   </div>
 </div>

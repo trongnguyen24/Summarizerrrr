@@ -313,9 +313,7 @@ export async function fetchAndSummarize() {
           console.log('[summaryStore] Chapter summary processed.')
         } catch (e) {
           console.error('[summaryStore] Chapter summarization error:', e)
-          summaryState.chapterError =
-            e.message ||
-            'Unexpected error when summarizing chapters. Please try again later.'
+          summaryState.chapterError = e.message
         } finally {
           summaryState.isChapterLoading = false
         }
@@ -341,9 +339,7 @@ export async function fetchAndSummarize() {
           console.log('[summaryStore] YouTube video summary processed.')
         } catch (e) {
           console.error('[summaryStore] YouTube video summarization error:', e)
-          summaryState.error =
-            e.message ||
-            'Unexpected error when summarizing YouTube video. Please try again later.'
+          summaryState.error = e.message
         } finally {
           summaryState.isLoading = false
         }
@@ -374,9 +370,7 @@ export async function fetchAndSummarize() {
           console.log('[summaryStore] Course summary processed.')
         } catch (e) {
           console.error('[summaryStore] Course summarization error:', e)
-          summaryState.courseSummaryError =
-            e.message ||
-            'Unexpected error when summarizing Course video. Please try again later.'
+          summaryState.courseSummaryError = e.message
         } finally {
           summaryState.isCourseSummaryLoading = false
         }
@@ -402,9 +396,7 @@ export async function fetchAndSummarize() {
           console.log('[summaryStore] Course concept explanation processed.')
         } catch (e) {
           console.error('[summaryStore] Course concept explanation error:', e)
-          summaryState.courseConceptsError =
-            e.message ||
-            'Unexpected error when explaining Course concepts. Please try again later.'
+          summaryState.courseConceptsError = e.message
         } finally {
           summaryState.isCourseConceptsLoading = false
         }
@@ -433,8 +425,7 @@ export async function fetchAndSummarize() {
     }
   } catch (e) {
     console.error('[summaryStore] Error during main summarization process:', e)
-    summaryState.error =
-      e.message || 'An unexpected error occurred. Please try again later.'
+    summaryState.error = e.message
     summaryState.lastSummaryTypeDisplayed = 'web'
   } finally {
     // Ensure all loading states are set to false
@@ -534,7 +525,7 @@ export async function fetchAndSummarizeStream() {
             summaryState.chapterSummary += chunk
           }
         } catch (e) {
-          summaryState.chapterError = e.message || 'Error summarizing chapters.'
+          summaryState.chapterError = e.message
         } finally {
           summaryState.isChapterLoading = false
         }
@@ -562,8 +553,7 @@ export async function fetchAndSummarizeStream() {
             summaryState.courseSummary += chunk
           }
         } catch (e) {
-          summaryState.courseSummaryError =
-            e.message || 'Error streaming course summary.'
+          summaryState.courseSummaryError = e.message
         } finally {
           summaryState.isCourseSummaryLoading = false
         }
@@ -580,8 +570,7 @@ export async function fetchAndSummarizeStream() {
             summaryState.courseConcepts += chunk
           }
         } catch (e) {
-          summaryState.courseConceptsError =
-            e.message || 'Error explaining concepts.'
+          summaryState.courseConceptsError = e.message
         } finally {
           summaryState.isCourseConceptsLoading = false
         }
@@ -599,8 +588,7 @@ export async function fetchAndSummarizeStream() {
 
     await Promise.all(promises)
   } catch (e) {
-    summaryState.error =
-      e.message || 'An unexpected error occurred. Please try again later.'
+    summaryState.error = e.message
     summaryState.lastSummaryTypeDisplayed = 'web'
   } finally {
     summaryState.isLoading = false
@@ -665,9 +653,7 @@ export async function summarizeSelectedText(text) {
     console.log('[summaryStore] Selected text summary processed.')
   } catch (e) {
     console.error('[summaryStore] Selected text summarization error:', e)
-    summaryState.selectedTextError =
-      e.message ||
-      'An unexpected error occurred during selected text summarization. Please try again later.'
+    summaryState.selectedTextError = e.message
     summaryState.lastSummaryTypeDisplayed = 'selectedText'
   } finally {
     summaryState.isSelectedTextLoading = false
@@ -831,7 +817,7 @@ export async function logAllGeneratedSummariesToHistory() {
     )
     document.dispatchEvent(
       new CustomEvent('saveSummaryError', {
-        detail: { message: `Error logging to History: ${error.message}` },
+        detail: { message: `Error logging to History: ${error}` },
       })
     )
   }

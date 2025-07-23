@@ -53,6 +53,16 @@ function getProviderConfig(userSettings, selectedProviderId) {
       model = userSettings.selectedOpenAICompatibleModel || 'gpt-3.5-turbo'
       modelConfig = { generationConfig: { temperature: 0.6, topP: 0.91 } }
       break
+    case 'chatgpt':
+      apiKey = userSettings.chatgptApiKey
+      model = userSettings.selectedChatgptModel || 'gpt-3.5-turbo'
+      modelConfig = { generationConfig: { temperature: 0.6, topP: 0.91 } }
+      break
+    case 'deepseek':
+      apiKey = userSettings.deepseekApiKey
+      model = userSettings.selectedDeepseekModel || 'deepseek-chat'
+      modelConfig = { generationConfig: { temperature: 0.6, topP: 0.91 } }
+      break
     default:
       // Fallback for other providers or if model config is not found
       apiKey = userSettings[`${selectedProviderId}ApiKey`]
@@ -142,7 +152,7 @@ export async function summarizeContent(text, contentType) {
         : basicModeSettings.topP,
     }
 
-        let contentsForProvider
+    let contentsForProvider
     if (selectedProviderId === 'gemini') {
       contentsForProvider = [{ parts: [{ text: userPrompt }] }] // Gemini specific content format
     } else if (selectedProviderId === 'openrouter') {
@@ -225,7 +235,7 @@ export async function* summarizeContentStream(text, contentType) {
         : basicModeSettings.topP,
     }
 
-        let contentsForProvider
+    let contentsForProvider
     if (selectedProviderId === 'gemini') {
       contentsForProvider = [{ parts: [{ text: userPrompt }] }] // Gemini specific content format
     } else if (selectedProviderId === 'openrouter') {
@@ -387,7 +397,7 @@ export async function summarizeChapters(timestampedTranscript) {
         : basicModeSettings.topP,
     }
 
-        let contentsForProvider
+    let contentsForProvider
     if (selectedProviderId === 'gemini') {
       contentsForProvider = [{ parts: [{ text: userPrompt }] }] // Gemini specific content format
     } else if (selectedProviderId === 'openrouter') {
@@ -468,7 +478,7 @@ export async function* summarizeChaptersStream(timestampedTranscript) {
         : basicModeSettings.topP,
     }
 
-        let contentsForProvider
+    let contentsForProvider
     if (selectedProviderId === 'gemini') {
       contentsForProvider = [{ parts: [{ text: userPrompt }] }] // Gemini specific content format
     } else if (selectedProviderId === 'openrouter') {

@@ -6,7 +6,22 @@ export class OpenAICompatibleProvider extends BaseProvider {
   constructor(apiKey, baseUrl) {
     super()
     this.apiKey = apiKey
-    this.baseUrl = baseUrl || 'https://api.openai.com/v1'
+    let processedBaseUrl = baseUrl || 'https://api.openai.com/v1'
+
+    // Chỉ loại bỏ /chat/completions nếu nó có ở cuối baseURL
+    if (processedBaseUrl.endsWith('/chat/completions')) {
+      processedBaseUrl = processedBaseUrl.substring(
+        0,
+        processedBaseUrl.length - '/chat/completions'.length
+      )
+    }
+
+    // Đảm bảo baseUrl không kết thúc bằng dấu gạch chéo '/' (trừ trường hợp URL chỉ là '/')
+    if (processedBaseUrl.endsWith('/') && processedBaseUrl !== '/') {
+      processedBaseUrl = processedBaseUrl.slice(0, -1)
+    }
+
+    this.baseUrl = processedBaseUrl
     this.openai = new OpenAI({
       apiKey: this.apiKey,
       baseURL: this.baseUrl,

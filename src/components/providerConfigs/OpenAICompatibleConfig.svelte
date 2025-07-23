@@ -26,7 +26,7 @@
     id="openaiCompatibleBaseUrl"
     bind:value={settings.openaiCompatibleBaseUrl}
     onSave={(value) => updateSettings({ openaiCompatibleBaseUrl: value })}
-    placeholder="http://127.0.0.1:1234/v1/chat/completions"
+    placeholder="http://127.0.0.1:1234/v1/"
   />
   <TextInput
     label="Model Name"

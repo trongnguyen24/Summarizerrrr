@@ -51,11 +51,11 @@
   let saveStatus = $state('')
   let openrouterModelDebounceTimer = null
 
-  function scheduleOpenrouterModelSave() {
+  function scheduleOpenrouterModelSave(value) {
     clearTimeout(openrouterModelDebounceTimer)
     openrouterModelDebounceTimer = setTimeout(() => {
       updateSettings({
-        selectedOpenrouterModel: selectedOpenrouterModel.trim(),
+        selectedOpenrouterModel: value.trim(),
       })
       saveStatus = 'saved!'
       setTimeout(() => (saveStatus = ''), 2000)
@@ -100,7 +100,7 @@
         bind:value={selectedOpenrouterModel}
         class="select-none font-mono w-full relative text-xs overflow-hidden flex flex-col gap-0 px-3 text-text-primary text-left py-1.5 bg-muted/5 dark:bg-muted/5 border border-border hover:border-blackwhite/15 focus:border-blackwhite/30 dark:border-blackwhite/10 dark:focus:border-blackwhite/20 focus:outline-none focus:ring-0 transition-colors duration-150 openrouter-model-input"
         placeholder="Enter OpenRouter Model"
-        oninput={scheduleOpenrouterModelSave}
+        oninput={(e) => scheduleOpenrouterModelSave(e.target.value)}
       />
 
       <datalist id="openrouter-model-list">

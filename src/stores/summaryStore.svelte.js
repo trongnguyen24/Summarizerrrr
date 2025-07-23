@@ -8,6 +8,7 @@ import {
   summarizeChapters,
   summarizeContentStream,
   summarizeChaptersStream,
+  providerSupportsStreaming,
 } from '../lib/api.js'
 import {
   addSummary,
@@ -171,6 +172,7 @@ function checkApiKeyConfiguration(userSettings, selectedProviderId) {
  * Fetches content from the current tab and triggers the summarization process.
  */
 export async function fetchAndSummarize() {
+  console.log('[summaryStore] fetchAndSummarize called.')
   // If a summarization process is already ongoing, reset state and start a new one
   if (summaryState.isLoading || summaryState.isChapterLoading) {
     resetState() // Reset state before starting a new summarization
@@ -184,18 +186,36 @@ export async function fetchAndSummarize() {
   // Reset state before starting
   resetState()
 
+  // Determine the actual provider to use based on isAdvancedMode
+  let selectedProviderId = userSettings.selectedProvider || 'gemini'
+  if (!userSettings.isAdvancedMode) {
+    selectedProviderId = 'gemini' // Force Gemini in basic mode
+  }
+
+  // Check if we should use streaming mode
+  const shouldUseStreaming =
+    userSettings.enableStreaming &&
+    providerSupportsStreaming(selectedProviderId)
+
+  if (shouldUseStreaming) {
+    // Use streaming mode
+    await fetchAndSummarizeStream()
+    // Ensure all loading states are set to false after streaming completes
+    summaryState.isLoading = false
+    summaryState.isChapterLoading = false
+    summaryState.isCourseSummaryLoading = false
+    summaryState.isCourseConceptsLoading = false
+    // logAllGeneratedSummariesToHistory() is called within fetchAndSummarizeStream
+    return // Exit the function after streaming
+  }
+
+  // Use non-streaming mode (existing logic)
   try {
     // Immediately set loading states inside try block
     summaryState.isLoading = true
     summaryState.isChapterLoading = true
     summaryState.isCourseSummaryLoading = true
     summaryState.isCourseConceptsLoading = true
-
-    // Determine the actual provider to use based on isAdvancedMode
-    let selectedProviderId = userSettings.selectedProvider || 'gemini'
-    if (!userSettings.isAdvancedMode) {
-      selectedProviderId = 'gemini' // Force Gemini in basic mode
-    }
 
     // Check API key configuration
     checkApiKeyConfiguration(userSettings, selectedProviderId)
@@ -293,9 +313,7 @@ export async function fetchAndSummarize() {
           console.log('[summaryStore] Chapter summary processed.')
         } catch (e) {
           console.error('[summaryStore] Chapter summarization error:', e)
-          summaryState.chapterError =
-            e.message ||
-            'Unexpected error when summarizing chapters. Please try again later.'
+          summaryState.chapterError = e.message
         } finally {
           summaryState.isChapterLoading = false
         }
@@ -321,9 +339,7 @@ export async function fetchAndSummarize() {
           console.log('[summaryStore] YouTube video summary processed.')
         } catch (e) {
           console.error('[summaryStore] YouTube video summarization error:', e)
-          summaryState.error =
-            e.message ||
-            'Unexpected error when summarizing YouTube video. Please try again later.'
+          summaryState.error = e.message
         } finally {
           summaryState.isLoading = false
         }
@@ -354,9 +370,7 @@ export async function fetchAndSummarize() {
           console.log('[summaryStore] Course summary processed.')
         } catch (e) {
           console.error('[summaryStore] Course summarization error:', e)
-          summaryState.courseSummaryError =
-            e.message ||
-            'Unexpected error when summarizing Course video. Please try again later.'
+          summaryState.courseSummaryError = e.message
         } finally {
           summaryState.isCourseSummaryLoading = false
         }
@@ -382,9 +396,7 @@ export async function fetchAndSummarize() {
           console.log('[summaryStore] Course concept explanation processed.')
         } catch (e) {
           console.error('[summaryStore] Course concept explanation error:', e)
-          summaryState.courseConceptsError =
-            e.message ||
-            'Unexpected error when explaining Course concepts. Please try again later.'
+          summaryState.courseConceptsError = e.message
         } finally {
           summaryState.isCourseConceptsLoading = false
         }
@@ -413,8 +425,7 @@ export async function fetchAndSummarize() {
     }
   } catch (e) {
     console.error('[summaryStore] Error during main summarization process:', e)
-    summaryState.error =
-      e.message || 'An unexpected error occurred. Please try again later.'
+    summaryState.error = e.message
     summaryState.lastSummaryTypeDisplayed = 'web'
   } finally {
     // Ensure all loading states are set to false
@@ -428,6 +439,7 @@ export async function fetchAndSummarize() {
   }
 }
 export async function fetchAndSummarizeStream() {
+  console.log('[summaryStore] fetchAndSummarizeStream called.')
   if (
     summaryState.isLoading ||
     summaryState.isChapterLoading ||
@@ -513,7 +525,7 @@ export async function fetchAndSummarizeStream() {
             summaryState.chapterSummary += chunk
           }
         } catch (e) {
-          summaryState.chapterError = e.message || 'Error summarizing chapters.'
+          summaryState.chapterError = e.message
         } finally {
           summaryState.isChapterLoading = false
         }
@@ -541,8 +553,7 @@ export async function fetchAndSummarizeStream() {
             summaryState.courseSummary += chunk
           }
         } catch (e) {
-          summaryState.courseSummaryError =
-            e.message || 'Error streaming course summary.'
+          summaryState.courseSummaryError = e.message
         } finally {
           summaryState.isCourseSummaryLoading = false
         }
@@ -559,8 +570,7 @@ export async function fetchAndSummarizeStream() {
             summaryState.courseConcepts += chunk
           }
         } catch (e) {
-          summaryState.courseConceptsError =
-            e.message || 'Error explaining concepts.'
+          summaryState.courseConceptsError = e.message
         } finally {
           summaryState.isCourseConceptsLoading = false
         }
@@ -578,8 +588,7 @@ export async function fetchAndSummarizeStream() {
 
     await Promise.all(promises)
   } catch (e) {
-    summaryState.error =
-      e.message || 'An unexpected error occurred. Please try again later.'
+    summaryState.error = e.message
     summaryState.lastSummaryTypeDisplayed = 'web'
   } finally {
     summaryState.isLoading = false
@@ -644,9 +653,7 @@ export async function summarizeSelectedText(text) {
     console.log('[summaryStore] Selected text summary processed.')
   } catch (e) {
     console.error('[summaryStore] Selected text summarization error:', e)
-    summaryState.selectedTextError =
-      e.message ||
-      'An unexpected error occurred during selected text summarization. Please try again later.'
+    summaryState.selectedTextError = e.message
     summaryState.lastSummaryTypeDisplayed = 'selectedText'
   } finally {
     summaryState.isSelectedTextLoading = false
@@ -810,7 +817,7 @@ export async function logAllGeneratedSummariesToHistory() {
     )
     document.dispatchEvent(
       new CustomEvent('saveSummaryError', {
-        detail: { message: `Error logging to History: ${error.message}` },
+        detail: { message: `Error logging to History: ${error}` },
       })
     )
   }

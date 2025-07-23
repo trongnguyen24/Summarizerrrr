@@ -9,6 +9,9 @@
   import GeminiAdvancedConfig from '../providerConfigs/GeminiAdvancedConfig.svelte'
   import OpenrouterConfig from '../providerConfigs/OpenrouterConfig.svelte'
   import OllamaConfig from '../providerConfigs/OllamaConfig.svelte'
+  import OpenAICompatibleConfig from '../providerConfigs/OpenAICompatibleConfig.svelte'
+  import ChatGPTConfig from '../providerConfigs/ChatGPTConfig.svelte'
+  import DeepseekConfig from '../providerConfigs/DeepseekConfig.svelte'
   import { Label, Switch } from 'bits-ui'
   import {
     settings,
@@ -105,6 +108,26 @@
         />
       {:else if settings.selectedProvider === 'ollama'}
         <OllamaConfig />
+      {:else if settings.selectedProvider === 'openaiCompatible'}
+        <OpenAICompatibleConfig
+          bind:openaiCompatibleApiKey={settings.openaiCompatibleApiKey}
+          bind:openaiCompatibleBaseUrl={settings.openaiCompatibleBaseUrl}
+          bind:selectedOpenAICompatibleModel={
+            settings.selectedOpenAICompatibleModel
+          }
+        />
+      {:else if settings.selectedProvider === 'chatgpt'}
+        <ChatGPTConfig
+          bind:chatgptApiKey={settings.chatgptApiKey}
+          bind:chatgptBaseUrl={settings.chatgptBaseUrl}
+          bind:selectedChatgptModel={settings.selectedChatgptModel}
+        />
+      {:else if settings.selectedProvider === 'deepseek'}
+        <DeepseekConfig
+          bind:deepseekApiKey={settings.deepseekApiKey}
+          bind:deepseekBaseUrl={settings.deepseekBaseUrl}
+          bind:selectedDeepseekModel={settings.selectedDeepseekModel}
+        />
       {/if}
 
       <div class="grid grid-cols-2 gap-4">

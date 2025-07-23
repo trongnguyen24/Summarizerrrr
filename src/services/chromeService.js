@@ -238,6 +238,7 @@ export async function getStorage(keys) {
   // browser.storage.sync.get() đã trả về Promise sẵn
   try {
     const result = await browser.storage.sync.get(keys)
+    console.log('[chromeService] getStorage result:', result)
     return result || {}
   } catch (error) {
     console.error(`Lỗi khi lấy storage: ${error.message}`)

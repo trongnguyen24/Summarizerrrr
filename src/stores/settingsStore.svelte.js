@@ -12,10 +12,17 @@ const DEFAULT_SETTINGS = {
   selectedGeminiModel: 'gemini-2.5-flash', // Default Gemini model for basic mode
   geminiAdvancedApiKey: '', // Gemini API Key for advanced mode
   selectedGeminiAdvancedModel: 'gemini-2.5-flash', // Default Gemini model for advanced mode
+  openaiCompatibleApiKey: '', // OpenAI Compatible API Key
+  openaiCompatibleBaseUrl: '', // OpenAI Compatible Base URL
+  selectedOpenAICompatibleModel: '', // OpenAI Compatible Model
   openrouterApiKey: '', // OpenRouter API Key
   selectedOpenrouterModel: 'deepseek/deepseek-r1-0528:free', // Default OpenRouter model
   deepseekApiKey: '', // DeepSeek API Key
+  deepseekBaseUrl: 'https://api.deepseek.com/', // Deepseek Base URL
+  selectedDeepseekModel: 'deepseek-chat', // Deepseek Model
   chatgptApiKey: '', // ChatGPT API Key
+  chatgptBaseUrl: 'https://api.openai.com/v1', // ChatGPT Base URL
+  selectedChatgptModel: 'gpt-3.5-turbo', // ChatGPT Model
   ollamaEndpoint: 'http://localhost:11434', // Ollama Endpoint
   selectedOllamaModel: 'llama2', // Default Ollama model
   summaryLength: 'long', // short, medium, long
@@ -25,6 +32,7 @@ const DEFAULT_SETTINGS = {
   selectedModel: 'gemini-2.5-flash', // Default model
   isAdvancedMode: false, // Default to basic mode
   selectedFont: 'default', // Default font setting
+  enableStreaming: true, // Enable streaming by default
   isSummaryAdvancedMode: false, // Chế độ tóm tắt nâng cao mới
 
   // Lựa chọn prompt cho từng tính năng (chỉ còn 'default', 'custom1', 'custom2')
@@ -132,10 +140,10 @@ export async function updateSettings(newSettings) {
   Object.assign(settings, validUpdates)
 
   try {
-    // console.log(
-    //   '[settingsStore] Updating and saving the following settings:',
-    //   JSON.stringify(validUpdates)
-    // )
+    console.log(
+      '[settingsStore] Updating and saving the following settings:',
+      JSON.stringify(validUpdates)
+    )
     await setStorage(validUpdates)
     // console.log(
     //   '[settingsStore] Settings updated and saved:',

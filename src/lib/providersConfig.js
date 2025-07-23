@@ -2,6 +2,7 @@
 import { GeminiProvider } from './providers/geminiProvider.js'
 import { OpenrouterProvider } from './providers/openrouterProvider.js'
 import { OllamaProvider } from './providers/ollamaProvider.js'
+import { OpenAICompatibleProvider } from './providers/openaiCompatibleProvider.js'
 // Import other providers here as they are implemented
 
 export const providersConfig = {
@@ -11,14 +12,14 @@ export const providersConfig = {
     // Add other provider-specific configurations here if needed
   },
   // Add other providers here
-  // deepseek: {
-  //   name: 'DeepSeek',
-  //   providerClass: DeepSeekProvider,
-  // },
-  // chatgpt: {
-  //   name: 'ChatGPT',
-  //   providerClass: ChatGPTProvider,
-  // },
+  deepseek: {
+    name: 'DeepSeek',
+    providerClass: OpenAICompatibleProvider,
+  },
+  chatgpt: {
+    name: 'ChatGPT',
+    providerClass: OpenAICompatibleProvider,
+  },
   openrouter: {
     name: 'OpenRouter',
     providerClass: OpenrouterProvider,
@@ -26,6 +27,10 @@ export const providersConfig = {
   ollama: {
     name: 'Ollama',
     providerClass: OllamaProvider,
+  },
+  openaiCompatible: {
+    name: 'OpenAI Compatible',
+    providerClass: OpenAICompatibleProvider,
   },
 }
 
@@ -65,10 +70,26 @@ export function getProvider(providerId, currentSettings) {
         currentSettings.openrouterApiKey,
         currentSettings.selectedOpenrouterModel
       )
-    // Add cases for other providers as they are implemented
+    case 'openaiCompatible':
+      return new config.providerClass(
+        currentSettings.openaiCompatibleApiKey,
+        currentSettings.openaiCompatibleBaseUrl,
+        currentSettings.selectedOpenAICompatibleModel
+      )
+    case 'chatgpt':
+      return new config.providerClass(
+        currentSettings.chatgptApiKey,
+        currentSettings.chatgptBaseUrl,
+        currentSettings.selectedChatgptModel // Thêm tham số model nếu cần
+      )
+    case 'deepseek':
+      return new config.providerClass(
+        currentSettings.deepseekApiKey,
+        currentSettings.deepseekBaseUrl,
+        currentSettings.selectedDeepseekModel // Thêm tham số model nếu cần
+      )
     default:
-      // For providers that only need an API key (e.g., DeepSeek, ChatGPT if implemented)
-      // This assumes a generic 'apiKey' property in settings for other providers
+      // For providers that only need an API key (e.g., if a new provider is added without a specific case)
       const apiKey = currentSettings[`${providerId}ApiKey`]
       return new config.providerClass(apiKey)
   }

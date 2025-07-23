@@ -1,19 +1,11 @@
 <script>
   // @ts-nocheck
-  import TabNavigation from '../TabNavigation.svelte'
-  import CourseVideoSummary from './CourseVideoSummary.svelte'
-  import CourseConceptsDisplay from './CourseConceptsDisplay.svelte'
-  import TOC from '../TOC.svelte'
-  import {
-    summaryState,
-    updateActiveCourseTab,
-  } from '../../stores/summaryStore.svelte.js'
+  import TabbedSummaryDisplay from './TabbedSummaryDisplay.svelte';
+  import GenericSummaryDisplay from './GenericSummaryDisplay.svelte';
+  import TOC from '../TOC.svelte';
+  import { summaryState, updateActiveCourseTab } from '../../stores/summaryStore.svelte.js';
 
-  let { activeCourseTab } = $props()
-
-  function selectCourseTab(tabName) {
-    updateActiveCourseTab(tabName)
-  }
+  let { activeCourseTab } = $props();
 
   const courseTabs = $derived([
     {
@@ -26,38 +18,50 @@
       id: 'courseConcepts',
       label: 'Concepts',
       show: true,
-      isLoading: summaryState.isCourseConceptsLoading, // Sử dụng trạng thái loading riêng cho Concepts
+      isLoading: summaryState.isCourseConceptsLoading,
     },
-  ])
+  ]);
 </script>
 
-<div class="course-summary-container">
-  <TabNavigation
-    tabs={courseTabs}
-    activeTab={activeCourseTab}
-    onSelectTab={selectCourseTab}
-  />
+{#snippet noDataContent()}
+  <div class="text-text-secondary text-center p-4">
+    <p>No Course concepts available yet.</p>
+    <p>
+      Click the "Summarize" button to generate concepts for this Course lecture.
+    </p>
+  </div>
+{/snippet}
 
-  <div class="course-content mt-6">
-    <div hidden={activeCourseTab !== 'courseSummary'}>
-      <CourseVideoSummary
-        summary={summaryState.courseSummary}
-        isLoading={summaryState.isCourseSummaryLoading}
-        error={summaryState.courseSummaryError}
-      />
-    </div>
-    <div hidden={activeCourseTab !== 'courseConcepts'}>
-      <CourseConceptsDisplay
-        courseConcepts={summaryState.courseConcepts}
-        isCourseLoading={summaryState.isCourseConceptsLoading}
-        courseConceptsError={summaryState.courseConceptsError}
-      />
-    </div>
+<TabbedSummaryDisplay
+  tabs={courseTabs}
+  activeTab={activeCourseTab}
+  onSelectTab={updateActiveCourseTab}
+>
+  <div hidden={activeCourseTab !== 'courseSummary'}>
+    <GenericSummaryDisplay
+      summary={summaryState.courseSummary}
+      isLoading={summaryState.isCourseSummaryLoading}
+      error={summaryState.courseSummaryError}
+      loadingText="Processing main Course summary..."
+      errorTitle="Main Course summary error"
+      targetId="course-video-summary-display"
+    />
     {#if activeCourseTab === 'courseSummary' && !summaryState.isCourseSummaryLoading}
       <TOC targetDivId="course-video-summary-display" />
     {/if}
+  </div>
+  <div hidden={activeCourseTab !== 'courseConcepts'}>
+    <GenericSummaryDisplay
+      summary={summaryState.courseConcepts}
+      isLoading={summaryState.isCourseConceptsLoading}
+      error={summaryState.courseConceptsError}
+      loadingText="Processing Course Concepts..."
+      errorTitle="Course concepts error"
+      targetId="course-concepts-display"
+      {noDataContent}
+    />
     {#if activeCourseTab === 'courseConcepts' && !summaryState.isCourseConceptsLoading}
       <TOC targetDivId="course-concepts-display" />
     {/if}
   </div>
-</div>
+</TabbedSummaryDisplay>

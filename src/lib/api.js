@@ -12,6 +12,7 @@ import {
 } from '../stores/basicModeSettingsStore.svelte.js'
 import { getProvider, providersConfig } from './providersConfig.js'
 import { promptBuilders } from './promptBuilders.js'
+import { systemInstructions } from './systemInstructions.js'
 import { DEFAULT_OLLAMA_ENDPOINT } from './ollamaConfig.js'
 
 /**
@@ -40,15 +41,27 @@ function getProviderConfig(userSettings, selectedProviderId) {
     case 'openrouter':
       apiKey = userSettings.openrouterApiKey
       model = userSettings.selectedOpenrouterModel || 'openrouter/auto'
-      // OpenRouter models do not have specific generation configs stored locally.
-      // The generationConfig will be pulled from user settings (advancedModeSettings/basicModeSettings)
-      // and passed directly to the provider.
       modelConfig = { generationConfig: { temperature: 0.6, topP: 0.91 } } // Default values, will be overridden
       break
     case 'ollama':
       apiKey = userSettings.ollamaEndpoint || DEFAULT_OLLAMA_ENDPOINT // Ollama uses endpoint as 'key'
       model = userSettings.selectedOllamaModel || 'llama2' // Default Ollama model
       modelConfig = { generationConfig: { temperature: 0.6, topP: 0.91 } } // Ollama doesn't use these directly, but keep for consistency
+      break
+    case 'openaiCompatible':
+      apiKey = userSettings.openaiCompatibleApiKey
+      model = userSettings.selectedOpenAICompatibleModel || 'gpt-3.5-turbo'
+      modelConfig = { generationConfig: { temperature: 0.6, topP: 0.91 } }
+      break
+    case 'chatgpt':
+      apiKey = userSettings.chatgptApiKey
+      model = userSettings.selectedChatgptModel || 'gpt-3.5-turbo'
+      modelConfig = { generationConfig: { temperature: 0.6, topP: 0.91 } }
+      break
+    case 'deepseek':
+      apiKey = userSettings.deepseekApiKey
+      model = userSettings.selectedDeepseekModel || 'deepseek-chat'
+      modelConfig = { generationConfig: { temperature: 0.6, topP: 0.91 } }
       break
     default:
       // Fallback for other providers or if model config is not found
@@ -64,6 +77,25 @@ function getProviderConfig(userSettings, selectedProviderId) {
   }
 
   return { apiKey, model, modelConfig }
+}
+
+/**
+ * Checks if the selected provider supports streaming.
+ * @param {string} selectedProviderId - The ID of the selected provider.
+ * @returns {boolean} - True if provider supports streaming, false otherwise.
+ */
+export function providerSupportsStreaming(selectedProviderId) {
+  try {
+    const userSettings = settings
+    const provider = getProvider(selectedProviderId, userSettings)
+    return typeof provider.generateContentStream === 'function'
+  } catch (error) {
+    console.warn(
+      `[api.js] Error checking streaming support for provider ${selectedProviderId}:`,
+      error
+    )
+    return false
+  }
 }
 
 /**
@@ -94,7 +126,7 @@ export async function summarizeContent(text, contentType) {
 
   const contentConfig = promptBuilders[contentType] || promptBuilders['general'] // Fallback to general
 
-  if (!contentConfig.buildPrompt || !contentConfig.systemInstruction) {
+  if (!contentConfig.buildPrompt) {
     throw new Error(
       `Configuration for content type "${contentType}" is incomplete.`
     )
@@ -127,6 +159,8 @@ export async function summarizeContent(text, contentType) {
       contentsForProvider = [{ parts: [{ text: userPrompt }] }] // OpenRouter expects messages array, but our provider handles this mapping
     } else if (selectedProviderId === 'ollama') {
       contentsForProvider = userPrompt // Ollama expects raw prompt string
+    } else if (selectedProviderId === 'openaiCompatible') {
+      contentsForProvider = [{ parts: [{ text: userPrompt }] }]
     } else {
       contentsForProvider = [{ parts: [{ text: userPrompt }] }] // Default for other providers
     }
@@ -175,7 +209,7 @@ export async function* summarizeContentStream(text, contentType) {
 
   const contentConfig = promptBuilders[contentType] || promptBuilders['general'] // Fallback to general
 
-  if (!contentConfig.buildPrompt || !contentConfig.systemInstruction) {
+  if (!contentConfig.buildPrompt) {
     throw new Error(
       `Configuration for content type "${contentType}" is incomplete.`
     )
@@ -208,6 +242,8 @@ export async function* summarizeContentStream(text, contentType) {
       contentsForProvider = [{ parts: [{ text: userPrompt }] }] // OpenRouter expects messages array, but our provider handles this mapping
     } else if (selectedProviderId === 'ollama') {
       contentsForProvider = userPrompt // Ollama expects raw prompt string
+    } else if (selectedProviderId === 'openaiCompatible') {
+      contentsForProvider = [{ parts: [{ text: userPrompt }] }]
     } else {
       contentsForProvider = [{ parts: [{ text: userPrompt }] }] // Default for other providers
     }
@@ -258,7 +294,7 @@ export async function enhancePrompt(userPrompt) {
 
   const contentConfig = promptBuilders['promptEnhance']
 
-  if (!contentConfig.buildPrompt || !contentConfig.systemInstruction) {
+  if (!contentConfig.buildPrompt) {
     throw new Error(
       `Configuration for content type "promptEnhance" is incomplete.`
     )
@@ -339,7 +375,7 @@ export async function summarizeChapters(timestampedTranscript) {
 
   const chapterConfig = promptBuilders['chapter']
 
-  if (!chapterConfig.buildPrompt || !chapterConfig.systemInstruction) {
+  if (!chapterConfig.buildPrompt) {
     throw new Error(`Configuration for chapter summary is incomplete.`)
   }
 
@@ -368,6 +404,8 @@ export async function summarizeChapters(timestampedTranscript) {
       contentsForProvider = [{ parts: [{ text: userPrompt }] }] // OpenRouter expects messages array, but our provider handles this mapping
     } else if (selectedProviderId === 'ollama') {
       contentsForProvider = userPrompt // Ollama expects raw prompt string
+    } else if (selectedProviderId === 'openaiCompatible') {
+      contentsForProvider = [{ parts: [{ text: userPrompt }] }]
     } else {
       contentsForProvider = [{ parts: [{ text: userPrompt }] }] // Default for other providers
     }
@@ -418,7 +456,7 @@ export async function* summarizeChaptersStream(timestampedTranscript) {
 
   const chapterConfig = promptBuilders['chapter']
 
-  if (!chapterConfig.buildPrompt || !chapterConfig.systemInstruction) {
+  if (!chapterConfig.buildPrompt) {
     throw new Error(`Configuration for chapter summary is incomplete.`)
   }
 
@@ -447,6 +485,8 @@ export async function* summarizeChaptersStream(timestampedTranscript) {
       contentsForProvider = [{ parts: [{ text: userPrompt }] }] // OpenRouter expects messages array, but our provider handles this mapping
     } else if (selectedProviderId === 'ollama') {
       contentsForProvider = userPrompt // Ollama expects raw prompt string
+    } else if (selectedProviderId === 'openaiCompatible') {
+      contentsForProvider = [{ parts: [{ text: userPrompt }] }]
     } else {
       contentsForProvider = [{ parts: [{ text: userPrompt }] }] // Default for other providers
     }

@@ -66,7 +66,7 @@
         {#if open}
           <div {...wrapperProps}>
             <div
-              class="py-1.5 px-2 font-mono text-xs bg-surface-2 rounded-sm dark:bg-surface-1"
+              class="py-1.5 px-2 font-mono text-xs bg-surface-2 rounded-sm"
               transition:slideScaleFade={{
                 duration: 200,
                 slideFrom: 'bottom',

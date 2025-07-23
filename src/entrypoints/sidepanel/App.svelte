@@ -57,13 +57,13 @@
   $effect(() => {
     const fontClass =
       {
-        default: 'font-geist-mono',
+        default: 'font-default',
         'noto-serif': 'font-noto-serif',
         opendyslexic: 'font-opendyslexic',
         mali: 'font-mali',
-      }[settings.selectedFont] || 'font-geist-mono'
+      }[settings.selectedFont] || 'font-default'
 
-    const mainSidepanel = document.querySelector('.main-sidepanel')
+    const mainSidepanel = document.querySelector('body')
     if (mainSidepanel) {
       mainSidepanel.className = mainSidepanel.className
         .split(' ')

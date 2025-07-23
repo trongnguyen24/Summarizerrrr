@@ -36,7 +36,6 @@
     onSave={handleApiKeySave}
     placeholder="Enter your OpenAI-compatible API key"
   />
-  {settings.openaiCompatibleApiKey}
   <TextInput
     label="Base URL"
     id="openaiCompatibleBaseUrl"

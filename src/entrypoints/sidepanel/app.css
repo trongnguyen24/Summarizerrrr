@@ -131,7 +131,7 @@ html {
   margin-top: 0.5em;
 }
 .prose pre {
-  padding: 0;
+  padding: 0 !important;
 }
 
 .prose pre code {

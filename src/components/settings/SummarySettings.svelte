@@ -118,7 +118,9 @@
     <!-- Summary Length Section -->
     <div class="flex flex-col gap-2">
       <!-- svelte-ignore a11y_label_has_associated_control -->
-      <label class="block text-text-secondary">{$t('summary.size')}</label>
+      <label class="block text-text-secondary"
+        >{$t('settings.summary.size')}</label
+      >
       <div class="grid grid-cols-3 w-full gap-1">
         <ButtonSet
           title={$t('settings.summary.size_mode.short')}
@@ -150,7 +152,9 @@
     <!-- Summary Tone Section -->
     <div class="flex flex-col gap-2">
       <!-- svelte-ignore a11y_label_has_associated_control -->
-      <label class="block text-text-secondary">{$t('summary.tone')}</label>
+      <label class="block text-text-secondary"
+        >{$t('settings.summary.tone')}</label
+      >
       <div class="grid grid-cols-3 w-full gap-1">
         <ButtonSet
           title={$t('settings.summary.tone_mode.simple')}

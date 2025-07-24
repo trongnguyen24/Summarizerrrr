@@ -15,7 +15,6 @@
   } from '../../stores/themeStore.svelte' // Import themeSettings và updateThemeSettings
   import UILanguageSelect from '../inputs/UILanguageSelect.svelte'
   import { t } from 'svelte-i18n'
-  import '../../lib/i18n.js' // Import to initialize
 
   function handleUpdateSetting(key, value) {
     updateSettings({ [key]: value })

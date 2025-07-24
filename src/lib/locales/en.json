@@ -13,7 +13,7 @@
         "mali": "Mali",
         "mali_desc": "Mali font for all text."
       },
-      "theme": "Theme",
+      "theme": "Language",
       "theme_mode": {
         "light": "Light",
         "light_desc": "Light theme.",
@@ -31,6 +31,65 @@
       },
       "shortcuts": "Shortcuts",
       "shortcuts_settings": "Shortcut Settings"
+    },
+    "ai_model": {
+      "title": "Provider Settings",
+      "mode": {
+        "basic": "Basic",
+        "advanced": "Advanced"
+      },
+      "selected_provider": "Selected Provider",
+      "temperature": "Temperature",
+      "top_p": "Top P",
+      "temperature_basic": {
+        "precise": "Precise",
+        "precise_desc": "0.3 - Less creative.",
+        "balanced": "Balanced",
+        "balanced_desc": "0.7 - Balanced.",
+        "creative": "Creative",
+        "creative_desc": "0.9 - More creative."
+      },
+      "top_p_basic": {
+        "narrow": "Narrow",
+        "narrow_desc": "0.9 - Focus on most likely tokens.",
+        "balanced": "Balanced",
+        "balanced_desc": "0.95 - Broader range of tokens.",
+        "wide": "Wide",
+        "wide_desc": "0.98 - Wider range of tokens."
+      }
+    },
+    "summary": {
+      "title": "Summary Settings",
+      "size": "Summary Size",
+      "size_mode": {
+        "short": "Short",
+        "short_desc": "Short summary.",
+        "medium": "Medium",
+        "medium_desc": "Medium length summary.",
+        "deep": "Deep",
+        "deep_desc": "Detailed summary."
+      },
+      "tone": "Tone",
+      "tone_mode": {
+        "simple": "Simple",
+        "simple_desc": "Easy to understand, friendly.",
+        "expert": "Expert",
+        "expert_desc": "Professional, technical, authoritative.",
+        "alien": "Alien",
+        "alien_desc": "Curious, analytical, detached."
+      },
+      "language_output": "Language output",
+      "custom_prompts": {
+        "title": "Active custom prompts",
+        "editor_button": "Prompt Editor",
+        "youtube_summary": "Youtube Summary",
+        "youtube_chapter": "Youtube Chapter",
+        "course_summary": "Course Summary",
+        "course_concepts": "Course Concepts",
+        "web_summary": "Web Summary",
+        "selected_text": "Selected Text",
+        "override_note": "* Basic settings are overridden by active custom prompts."
+      }
     }
   }
 }

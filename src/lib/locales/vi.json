@@ -4,16 +4,16 @@
       "title": "Cài đặt Chung",
       "fontFamily": "Phông chữ",
       "font": {
-        "sans": "Không chân (Sans Serif)",
+        "sans": "Không chân",
         "sans_desc": "Phông chữ mặc định.",
-        "serif": "Có chân (Serif)",
+        "serif": "Có chân",
         "serif_desc": "Phông chữ Noto Serif.",
         "dyslexic": "OpenDyslexic",
         "dyslexic_desc": "Phông chữ OpenDyslexic cho người khó đọc.",
         "mali": "Mali",
         "mali_desc": "Phông chữ Mali cho toàn bộ văn bản."
       },
-      "theme": "Giao diện",
+      "theme": "Ngôn ngữ hiển thị",
       "theme_mode": {
         "light": "Sáng",
         "light_desc": "Giao diện sáng.",
@@ -24,13 +24,72 @@
       },
       "responseMode": "Chế độ Phản hồi",
       "response_mode": {
-        "streaming": "Luồng (Streaming)",
+        "streaming": "Luồng",
         "streaming_desc": "Hiển thị phản hồi thời gian thực, trải nghiệm tốt hơn.",
         "non_streaming": "Không luồng",
         "non_streaming_desc": "Phù hợp cho thiết bị yếu, giảm giật lag."
       },
       "shortcuts": "Phím tắt",
-      "shortcuts_settings": "Cài đặt Phím tắt"
+      "shortcuts_settings": "Cài Phím tắt"
+    },
+    "ai_model": {
+      "title": "Cài đặt Nhà cung cấp",
+      "mode": {
+        "basic": "Cơ bản",
+        "advanced": "Nâng cao"
+      },
+      "selected_provider": "Nhà cung cấp đã chọn",
+      "temperature": "Nhiệt độ",
+      "top_p": "Top P",
+      "temperature_basic": {
+        "precise": "Chính xác",
+        "precise_desc": "0.3 - Ít sáng tạo.",
+        "balanced": "Cân bằng",
+        "balanced_desc": "0.7 - Cân bằng.",
+        "creative": "Sáng tạo",
+        "creative_desc": "0.9 - Sáng tạo hơn."
+      },
+      "top_p_basic": {
+        "narrow": "Hẹp",
+        "narrow_desc": "0.9 - Tập trung vào các token có khả năng cao nhất.",
+        "balanced": "Cân bằng",
+        "balanced_desc": "0.95 - Phạm vi token rộng hơn.",
+        "wide": "Rộng",
+        "wide_desc": "0.98 - Phạm vi token rất rộng."
+      }
+    },
+    "summary": {
+      "title": "Cài đặt Tóm tắt",
+      "size": "Kiểu tóm tắt",
+      "size_mode": {
+        "short": "Ngắn",
+        "short_desc": "Tóm tắt ngắn gọn.",
+        "medium": "Vừa",
+        "medium_desc": "Tóm tắt độ dài trung bình.",
+        "deep": "Chi tiết",
+        "deep_desc": "Tóm tắt chi tiết."
+      },
+      "tone": "Văn phong",
+      "tone_mode": {
+        "simple": "Dễ hiểu",
+        "simple_desc": "Dễ hiểu, thân thiện.",
+        "expert": "Chuyên",
+        "expert_desc": "Chuyên nghiệp, kỹ thuật, có thẩm quyền.",
+        "alien": "Alien",
+        "alien_desc": "Tò mò, phân tích, khách quan."
+      },
+      "language_output": "Ngôn ngữ tóm tắt",
+      "custom_prompts": {
+        "title": "Prompt tùy chỉnh",
+        "editor_button": "Trình sửa Prompt",
+        "youtube_summary": "Tóm tắt Youtube",
+        "youtube_chapter": "Chương Youtube",
+        "course_summary": "Tóm tắt Khóa học",
+        "course_concepts": "Khái niệm Khóa học",
+        "web_summary": "Tóm tắt Web",
+        "selected_text": "Văn bản đã chọn",
+        "override_note": "* Cài đặt cơ bản sẽ bị ghi đè bởi các prompt tùy chỉnh đang hoạt động."
+      }
     }
   }
 }

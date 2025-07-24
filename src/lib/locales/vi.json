@@ -1,0 +1,36 @@
+{
+  "settings": {
+    "general": {
+      "title": "Cài đặt Chung",
+      "fontFamily": "Phông chữ",
+      "font": {
+        "sans": "Không chân (Sans Serif)",
+        "sans_desc": "Phông chữ mặc định.",
+        "serif": "Có chân (Serif)",
+        "serif_desc": "Phông chữ Noto Serif.",
+        "dyslexic": "OpenDyslexic",
+        "dyslexic_desc": "Phông chữ OpenDyslexic cho người khó đọc.",
+        "mali": "Mali",
+        "mali_desc": "Phông chữ Mali cho toàn bộ văn bản."
+      },
+      "theme": "Giao diện",
+      "theme_mode": {
+        "light": "Sáng",
+        "light_desc": "Giao diện sáng.",
+        "dark": "Tối",
+        "dark_desc": "Giao diện tối.",
+        "system": "Hệ thống",
+        "system_desc": "Sử dụng giao diện hệ thống."
+      },
+      "responseMode": "Chế độ Phản hồi",
+      "response_mode": {
+        "streaming": "Luồng (Streaming)",
+        "streaming_desc": "Hiển thị phản hồi thời gian thực, trải nghiệm tốt hơn.",
+        "non_streaming": "Không luồng",
+        "non_streaming_desc": "Phù hợp cho thiết bị yếu, giảm giật lag."
+      },
+      "shortcuts": "Phím tắt",
+      "shortcuts_settings": "Cài đặt Phím tắt"
+    }
+  }
+}

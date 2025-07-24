@@ -1,0 +1,36 @@
+{
+  "settings": {
+    "general": {
+      "title": "Paramètres Généraux",
+      "fontFamily": "Police de Caractères",
+      "font": {
+        "sans": "Sans Serif",
+        "sans_desc": "Police par défaut.",
+        "serif": "Serif",
+        "serif_desc": "Police Noto Serif.",
+        "dyslexic": "OpenDyslexic",
+        "dyslexic_desc": "Police OpenDyslexic pour la dyslexie.",
+        "mali": "Mali",
+        "mali_desc": "Police Mali pour tout le texte."
+      },
+      "theme": "Thème",
+      "theme_mode": {
+        "light": "Clair",
+        "light_desc": "Thème clair.",
+        "dark": "Sombre",
+        "dark_desc": "Thème sombre.",
+        "system": "Système",
+        "system_desc": "Thème du système."
+      },
+      "responseMode": "Mode de Réponse",
+      "response_mode": {
+        "streaming": "Streaming",
+        "streaming_desc": "Affichage de la réponse en temps réel, meilleure expérience.",
+        "non_streaming": "Non-streaming",
+        "non_streaming_desc": "Convient aux appareils bas de gamme, réduit le décalage."
+      },
+      "shortcuts": "Raccourcis",
+      "shortcuts_settings": "Paramètres des Raccourcis"
+    }
+  }
+}

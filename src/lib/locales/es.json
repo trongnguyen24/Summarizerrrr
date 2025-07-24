@@ -1,0 +1,36 @@
+{
+  "settings": {
+    "general": {
+      "title": "Configuración General",
+      "fontFamily": "Familia de Fuentes",
+      "font": {
+        "sans": "Sans Serif",
+        "sans_desc": "Fuente predeterminada.",
+        "serif": "Serif",
+        "serif_desc": "Fuente Noto Serif.",
+        "dyslexic": "OpenDyslexic",
+        "dyslexic_desc": "Fuente OpenDyslexic para dislexia.",
+        "mali": "Mali",
+        "mali_desc": "Fuente Mali para todo el texto."
+      },
+      "theme": "Tema",
+      "theme_mode": {
+        "light": "Claro",
+        "light_desc": "Tema claro.",
+        "dark": "Oscuro",
+        "dark_desc": "Tema oscuro.",
+        "system": "Sistema",
+        "system_desc": "Tema del sistema."
+      },
+      "responseMode": "Modo de Respuesta",
+      "response_mode": {
+        "streaming": "Streaming",
+        "streaming_desc": "Visualización de respuesta en tiempo real, mejor experiencia.",
+        "non_streaming": "Sin Streaming",
+        "non_streaming_desc": "Adecuado para dispositivos de gama baja, reduce el lag."
+      },
+      "shortcuts": "Atajos",
+      "shortcuts_settings": "Configuración de Atajos"
+    }
+  }
+}

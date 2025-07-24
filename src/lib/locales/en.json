@@ -1,0 +1,36 @@
+{
+  "settings": {
+    "general": {
+      "title": "General Settings",
+      "fontFamily": "Font Family",
+      "font": {
+        "sans": "Sans Serif",
+        "sans_desc": "Default font.",
+        "serif": "Serif",
+        "serif_desc": "Noto Serif font.",
+        "dyslexic": "OpenDyslexic",
+        "dyslexic_desc": "OpenDyslexic font for dyslexia.",
+        "mali": "Mali",
+        "mali_desc": "Mali font for all text."
+      },
+      "theme": "Theme",
+      "theme_mode": {
+        "light": "Light",
+        "light_desc": "Light theme.",
+        "dark": "Dark",
+        "dark_desc": "Dark theme.",
+        "system": "System",
+        "system_desc": "System theme."
+      },
+      "responseMode": "Response Mode",
+      "response_mode": {
+        "streaming": "Streaming",
+        "streaming_desc": "Real-time response display, better experience.",
+        "non_streaming": "Non-streaming",
+        "non_streaming_desc": "Suitable for low-end devices, reduce lag."
+      },
+      "shortcuts": "Shortcuts",
+      "shortcuts_settings": "Shortcut Settings"
+    }
+  }
+}

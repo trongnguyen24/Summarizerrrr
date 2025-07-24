@@ -1,0 +1,36 @@
+{
+  "settings": {
+    "general": {
+      "title": "通用设置",
+      "fontFamily": "字体",
+      "font": {
+        "sans": "无衬线体",
+        "sans_desc": "默认字体。",
+        "serif": "衬线体",
+        "serif_desc": "Noto Serif 字体。",
+        "dyslexic": "OpenDyslexic",
+        "dyslexic_desc": "为阅读障碍者设计的 OpenDyslexic 字体。",
+        "mali": "Mali",
+        "mali_desc": "适用于所有文本的 Mali 字体。"
+      },
+      "theme": "主题",
+      "theme_mode": {
+        "light": "浅色",
+        "light_desc": "浅色主题。",
+        "dark": "深色",
+        "dark_desc": "深色主题。",
+        "system": "系统",
+        "system_desc": "跟随系统主题。"
+      },
+      "responseMode": "响应模式",
+      "response_mode": {
+        "streaming": "流式",
+        "streaming_desc": "实时显示响应，体验更佳。",
+        "non_streaming": "非流式",
+        "non_streaming_desc": "适用于低端设备，减少延迟。"
+      },
+      "shortcuts": "快捷键",
+      "shortcuts_settings": "快捷键设置"
+    }
+  }
+}

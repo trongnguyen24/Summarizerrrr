@@ -1,0 +1,36 @@
+{
+  "settings": {
+    "general": {
+      "title": "Allgemeine Einstellungen",
+      "fontFamily": "Schriftart",
+      "font": {
+        "sans": "Sans Serif",
+        "sans_desc": "Standardschriftart.",
+        "serif": "Serif",
+        "serif_desc": "Noto Serif Schriftart.",
+        "dyslexic": "OpenDyslexic",
+        "dyslexic_desc": "OpenDyslexic-Schriftart für Legastheniker.",
+        "mali": "Mali",
+        "mali_desc": "Mali-Schriftart für den gesamten Text."
+      },
+      "theme": "Thema",
+      "theme_mode": {
+        "light": "Hell",
+        "light_desc": "Helles Thema.",
+        "dark": "Dunkel",
+        "dark_desc": "Dunkles Thema.",
+        "system": "System",
+        "system_desc": "Systemthema verwenden."
+      },
+      "responseMode": "Antwortmodus",
+      "response_mode": {
+        "streaming": "Streaming",
+        "streaming_desc": "Echtzeit-Antwortanzeige, bessere Erfahrung.",
+        "non_streaming": "Nicht-Streaming",
+        "non_streaming_desc": "Geeignet für leistungsschwächere Geräte, reduziert Verzögerungen."
+      },
+      "shortcuts": "Tastenkürzel",
+      "shortcuts_settings": "Tastenkürzel-Einstellungen"
+    }
+  }
+}

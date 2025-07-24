@@ -34,6 +34,8 @@
   import '@fontsource-variable/noto-serif'
   import '@fontsource/opendyslexic'
   import '@fontsource/mali'
+  import { locale } from 'svelte-i18n'
+  import '../../lib/i18n.js' // Import to initialize
 
   // Use $effect to initialize the app and set up listeners
   $effect(() => {
@@ -97,6 +99,13 @@
 
     return () => {
       document.removeListener('summarizeClick', handleSummarizeClick)
+    }
+  })
+  // Sync i18n locale with settings store
+  $effect(() => {
+    const newLocale = settings.uiLang || 'en' // Fallback to 'en'
+    if (newLocale && newLocale !== $state.snapshot(locale)) {
+      locale.set(newLocale)
     }
   })
 </script>

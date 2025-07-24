@@ -34,6 +34,7 @@ const DEFAULT_SETTINGS = {
   selectedFont: 'default', // Default font setting
   enableStreaming: true, // Enable streaming by default
   isSummaryAdvancedMode: false, // Chế độ tóm tắt nâng cao mới
+  uiLang: 'en', // 'en', 'vi', etc.
 
   // Lựa chọn prompt cho từng tính năng (chỉ còn 'default', 'custom1', 'custom2')
   youtubePromptSelection: false, // Thay đổi thành boolean để điều khiển SwitchButton

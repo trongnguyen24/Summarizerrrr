@@ -1,36 +1,97 @@
 {
   "settings": {
+    "title": "Einstellungen",
     "general": {
       "title": "Allgemeine Einstellungen",
       "fontFamily": "Schriftart",
       "font": {
-        "sans": "Sans Serif",
-        "sans_desc": "Standardschriftart.",
+        "sans": "Serifenlos",
+        "sans_desc": "Standardschrift.",
         "serif": "Serif",
-        "serif_desc": "Noto Serif Schriftart.",
+        "serif_desc": "Noto Serif Schrift.",
         "dyslexic": "OpenDyslexic",
-        "dyslexic_desc": "OpenDyslexic-Schriftart für Legastheniker.",
+        "dyslexic_desc": "OpenDyslexic Schrift für Legasthenie.",
         "mali": "Mali",
-        "mali_desc": "Mali-Schriftart für den gesamten Text."
+        "mali_desc": "Mali Schrift für den gesamten Text."
       },
-      "theme": "Thema",
+      "lang_ui": "Sprache",
+      "theme": "Design",
       "theme_mode": {
         "light": "Hell",
-        "light_desc": "Helles Thema.",
+        "light_desc": "Helles Design.",
         "dark": "Dunkel",
-        "dark_desc": "Dunkles Thema.",
+        "dark_desc": "Dunkles Design.",
         "system": "System",
-        "system_desc": "Systemthema verwenden."
+        "system_desc": "System-Design verwenden."
       },
       "responseMode": "Antwortmodus",
       "response_mode": {
         "streaming": "Streaming",
-        "streaming_desc": "Echtzeit-Antwortanzeige, bessere Erfahrung.",
-        "non_streaming": "Nicht-Streaming",
-        "non_streaming_desc": "Geeignet für leistungsschwächere Geräte, reduziert Verzögerungen."
+        "streaming_desc": "Echtzeitanzeige, bessere Erfahrung.",
+        "non_streaming": "Ohne Streaming",
+        "non_streaming_desc": "Für schwächere Geräte, weniger Verzögerung."
       },
       "shortcuts": "Tastenkürzel",
-      "shortcuts_settings": "Tastenkürzel-Einstellungen"
+      "shortcuts_settings": "Tastenkürzel"
+    },
+    "ai_model": {
+      "title": "KI-Einstellungen",
+      "mode": {
+        "basic": "Basis",
+        "advanced": "Erweitert"
+      },
+      "selected_provider": "Ausgewählter Anbieter",
+      "temperature": "Kreativität",
+      "top_p": "Top P",
+      "temperature_basic": {
+        "precise": "Präzise",
+        "precise_desc": "0.3 - Weniger kreativ.",
+        "balanced": "Ausgewogen",
+        "balanced_desc": "0.7 - Ausgewogen.",
+        "creative": "Kreativ",
+        "creative_desc": "0.9 - Kreativer."
+      },
+      "top_p_basic": {
+        "narrow": "Eng",
+        "narrow_desc": "0.9 - Fokus auf wahrscheinlichste Ergebnisse.",
+        "balanced": "Ausgewogen",
+        "balanced_desc": "0.95 - Breiterer Token-Bereich.",
+        "wide": "Weit",
+        "wide_desc": "0.98 - Sehr breiter Token-Bereich."
+      }
+    },
+    "summary": {
+      "title": "Zusammenfassung",
+      "size": "Länge der",
+      "size_mode": {
+        "short": "Kurz",
+        "short_desc": "Kurze Zusammenfassung.",
+        "medium": "Mittel",
+        "medium_desc": "Mittlere Zusammenfassung.",
+        "deep": "Detailliert",
+        "deep_desc": "Detaillierte Zusammenfassung."
+      },
+      "tone": "Tonfall",
+      "tone_mode": {
+        "simple": "Einfach",
+        "simple_desc": "Leicht verständlich, freundlich.",
+        "expert": "Experte",
+        "expert_desc": "Professionell, technisch, autoritativ.",
+        "alien": "Alien",
+        "alien_desc": "Neugierig, analytisch, distanziert."
+      },
+      "language_output": "Ausgabesprache",
+      "custom_prompts": {
+        "title": "Eigene Prompts",
+        "editor_button": "Prompt-Editor",
+        "youtube_summary": "YouTube-Zusammenfassung",
+        "youtube_chapter": "YouTube-Kapitel",
+        "course_summary": "Kurs-Zusammenfassung",
+        "course_concepts": "Schlüsselkonzepte",
+        "web_summary": "Web-Zusammenfassung",
+        "selected_text": "Ausgewählter Text",
+        "override_note": "* Benutzerdefinierte Prompts haben Vorrang vor den Basis-Einstellungen."
+      }
     }
   }
 }

@@ -1,18 +1,20 @@
 {
   "settings": {
+    "title": "設定",
     "general": {
       "title": "一般設定",
       "fontFamily": "フォント",
       "font": {
         "sans": "サンセリフ",
-        "sans_desc": "デフォルトのフォント。",
+        "sans_desc": "デフォルトフォント。",
         "serif": "セリフ",
-        "serif_desc": "Noto Serif フォント。",
+        "serif_desc": "Noto Serifフォント。",
         "dyslexic": "OpenDyslexic",
-        "dyslexic_desc": "失読症用の OpenDyslexic フォント。",
+        "dyslexic_desc": "失読症向けOpenDyslexicフォント。",
         "mali": "Mali",
-        "mali_desc": "すべてのテキストに Mali フォントを使用。"
+        "mali_desc": "全テキスト用Maliフォント。"
       },
+      "lang_ui": "表示言語",
       "theme": "テーマ",
       "theme_mode": {
         "light": "ライト",
@@ -20,17 +22,76 @@
         "dark": "ダーク",
         "dark_desc": "ダークテーマ。",
         "system": "システム",
-        "system_desc": "システムのテーマに従う。"
+        "system_desc": "システムテーマ。"
       },
       "responseMode": "応答モード",
       "response_mode": {
         "streaming": "ストリーミング",
-        "streaming_desc": "リアルタイムで応答を表示し、より良い体験を提供します。",
+        "streaming_desc": "リアルタイム表示、より良い体験。",
         "non_streaming": "非ストリーミング",
-        "non_streaming_desc": "低スペックのデバイスに適しており、遅延を減らします。"
+        "non_streaming_desc": "低性能デバイス向け、遅延軽減。"
       },
       "shortcuts": "ショートカット",
       "shortcuts_settings": "ショートカット設定"
+    },
+    "ai_model": {
+      "title": "AI設定",
+      "mode": {
+        "basic": "基本",
+        "advanced": "上級"
+      },
+      "selected_provider": "プロバイダー",
+      "temperature": "創造性",
+      "top_p": "Top P",
+      "temperature_basic": {
+        "precise": "正確",
+        "precise_desc": "0.3 - 創造性低め。",
+        "balanced": "バランス",
+        "balanced_desc": "0.7 - バランス良好。",
+        "creative": "創造的",
+        "creative_desc": "0.9 - より創造的。"
+      },
+      "top_p_basic": {
+        "narrow": "狭い",
+        "narrow_desc": "0.9 - 出力範囲を狭める。",
+        "balanced": "バランス",
+        "balanced_desc": "0.95 - バランスの取れた出力。",
+        "wide": "広い",
+        "wide_desc": "0.98 - 出力範囲を広げる。"
+      }
+    },
+    "summary": {
+      "title": "要約設定",
+      "size": "要約の長さ",
+      "size_mode": {
+        "short": "短い",
+        "short_desc": "短い要約。",
+        "medium": "中程度",
+        "medium_desc": "中程度の長さの要約。",
+        "deep": "詳細",
+        "deep_desc": "詳細な要約。"
+      },
+      "tone": "トーン",
+      "tone_mode": {
+        "simple": "シンプル",
+        "simple_desc": "理解しやすく、親しみやすい。",
+        "expert": "専門家",
+        "expert_desc": "専門的、技術的、権威的。",
+        "alien": "エイリアン",
+        "alien_desc": "好奇心旺盛、分析的、客観的。"
+      },
+      "language_output": "出力言語",
+      "custom_prompts": {
+        "title": "有効なプロンプト",
+        "editor_button": "プロンプト編集",
+        "youtube_summary": "YouTube要約",
+        "youtube_chapter": "YouTubeチャプター",
+        "course_summary": "コース要約",
+        "course_concepts": "コースの要点",
+        "web_summary": "Web要約",
+        "selected_text": "選択テキスト",
+        "override_note": "* カスタムプロンプトが基本設定より優先されます。"
+      }
     }
   }
 }

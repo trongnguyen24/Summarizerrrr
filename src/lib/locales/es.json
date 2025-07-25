@@ -1,36 +1,97 @@
 {
   "settings": {
+    "title": "Ajustes",
     "general": {
-      "title": "Configuración General",
-      "fontFamily": "Familia de Fuentes",
+      "title": "General",
+      "fontFamily": "Fuente",
       "font": {
         "sans": "Sans Serif",
-        "sans_desc": "Fuente predeterminada.",
+        "sans_desc": "Fuente predeterminada del sistema.",
         "serif": "Serif",
-        "serif_desc": "Fuente Noto Serif.",
+        "serif_desc": "Fuente con serifa, estilo clásico.",
         "dyslexic": "OpenDyslexic",
-        "dyslexic_desc": "Fuente OpenDyslexic para dislexia.",
+        "dyslexic_desc": "Facilita la lectura para personas con dislexia.",
         "mali": "Mali",
-        "mali_desc": "Fuente Mali para todo el texto."
+        "mali_desc": "Fuente con estilo de escritura a mano."
       },
+      "lang_ui": "Idioma",
       "theme": "Tema",
       "theme_mode": {
         "light": "Claro",
-        "light_desc": "Tema claro.",
+        "light_desc": "Interfaz con tonos claros.",
         "dark": "Oscuro",
-        "dark_desc": "Tema oscuro.",
+        "dark_desc": "Interfaz con tonos oscuros.",
         "system": "Sistema",
-        "system_desc": "Tema del sistema."
+        "system_desc": "Usa el tema de tu dispositivo."
       },
-      "responseMode": "Modo de Respuesta",
+      "responseMode": "Modo de respuesta",
       "response_mode": {
         "streaming": "Streaming",
-        "streaming_desc": "Visualización de respuesta en tiempo real, mejor experiencia.",
-        "non_streaming": "Sin Streaming",
-        "non_streaming_desc": "Adecuado para dispositivos de gama baja, reduce el lag."
+        "streaming_desc": "Respuestas instantáneas. Recomendado.",
+        "non_streaming": "Normal",
+        "non_streaming_desc": "Para conexiones lentas. Evita pausas."
       },
       "shortcuts": "Atajos",
-      "shortcuts_settings": "Configuración de Atajos"
+      "shortcuts_settings": "Gestionar atajos"
+    },
+    "ai_model": {
+      "title": "Modelo IA",
+      "mode": {
+        "basic": "Básico",
+        "advanced": "Avanzado"
+      },
+      "selected_provider": "Proveedor",
+      "temperature": "Temperatura",
+      "top_p": "Top P",
+      "temperature_basic": {
+        "precise": "Preciso",
+        "precise_desc": "Respuestas más fácticas y directas.",
+        "balanced": "Equilibrado",
+        "balanced_desc": "Balance entre precisión y creatividad.",
+        "creative": "Creativo",
+        "creative_desc": "Respuestas más originales e imaginativas."
+      },
+      "top_p_basic": {
+        "narrow": "Enfocado",
+        "narrow_desc": "Respuestas más seguras y predecibles.",
+        "balanced": "Equilibrado",
+        "balanced_desc": "Balance entre seguridad y variedad.",
+        "wide": "Amplio",
+        "wide_desc": "Respuestas más diversas e inesperadas."
+      }
+    },
+    "summary": {
+      "title": "Resumen",
+      "size": "Longitud",
+      "size_mode": {
+        "short": "Corto",
+        "short_desc": "Un resumen breve y conciso.",
+        "medium": "Medio",
+        "medium_desc": "Un resumen de longitud estándar.",
+        "deep": "Detallado",
+        "deep_desc": "Un análisis más exhaustivo."
+      },
+      "tone": "Tono",
+      "tone_mode": {
+        "simple": "Simple",
+        "simple_desc": "Lenguaje claro y fácil de entender.",
+        "expert": "Experto",
+        "expert_desc": "Lenguaje formal y técnico.",
+        "alien": "Alien",
+        "alien_desc": "Perspectiva curiosa y objetiva."
+      },
+      "language_output": "Idioma de salida",
+      "custom_prompts": {
+        "title": "Prompts",
+        "editor_button": "Editor de Prompts",
+        "youtube_summary": "Resumen de YouTube",
+        "youtube_chapter": "Capítulos de YouTube",
+        "course_summary": "Resumen de curso",
+        "course_concepts": "Conceptos de curso",
+        "web_summary": "Resumen web",
+        "selected_text": "Texto seleccionado",
+        "override_note": "* Los prompts activos anulan los ajustes básicos."
+      }
     }
   }
 }

@@ -1,7 +1,9 @@
 {
   "settings": {
+    "title": "Settings",
+    "open_settings": "Open settings",
     "general": {
-      "title": "General Settings",
+      "title": "General",
       "fontFamily": "Font Family",
       "font": {
         "sans": "Sans Serif",
@@ -13,7 +15,8 @@
         "mali": "Mali",
         "mali_desc": "Mali font for all text."
       },
-      "theme": "Language",
+      "lang_ui": "Language UI",
+      "theme": "Theme",
       "theme_mode": {
         "light": "Light",
         "light_desc": "Light theme.",
@@ -33,7 +36,7 @@
       "shortcuts_settings": "Shortcut Settings"
     },
     "ai_model": {
-      "title": "Provider Settings",
+      "title": "Provider",
       "mode": {
         "basic": "Basic",
         "advanced": "Advanced"
@@ -82,6 +85,7 @@
       "custom_prompts": {
         "title": "Active custom prompts",
         "editor_button": "Prompt Editor",
+
         "youtube_summary": "Youtube Summary",
         "youtube_chapter": "Youtube Chapter",
         "course_summary": "Course Summary",

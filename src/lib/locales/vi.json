@@ -1,5 +1,7 @@
 {
   "settings": {
+    "title": "Cài đặt",
+    "open_settings": "Mở cài đặt",
     "general": {
       "title": "Cài đặt Chung",
       "fontFamily": "Phông chữ",
@@ -13,7 +15,8 @@
         "mali": "Mali",
         "mali_desc": "Phông chữ Mali cho toàn bộ văn bản."
       },
-      "theme": "Ngôn ngữ hiển thị",
+      "lang_ui": "Ngôn ngữ hiển thị",
+      "theme": "Giao diện",
       "theme_mode": {
         "light": "Sáng",
         "light_desc": "Giao diện sáng.",
@@ -22,7 +25,7 @@
         "system": "Hệ thống",
         "system_desc": "Sử dụng giao diện hệ thống."
       },
-      "responseMode": "Chế độ Phản hồi",
+      "responseMode": "Cách Phản hồi",
       "response_mode": {
         "streaming": "Luồng",
         "streaming_desc": "Hiển thị phản hồi thời gian thực, trải nghiệm tốt hơn.",
@@ -33,12 +36,12 @@
       "shortcuts_settings": "Cài Phím tắt"
     },
     "ai_model": {
-      "title": "Cài đặt Nhà cung cấp",
+      "title": "Nhà cung cấp",
       "mode": {
         "basic": "Cơ bản",
         "advanced": "Nâng cao"
       },
-      "selected_provider": "Nhà cung cấp đã chọn",
+      "selected_provider": "Chọn nhà cung cấp",
       "temperature": "Nhiệt độ",
       "top_p": "Top P",
       "temperature_basic": {

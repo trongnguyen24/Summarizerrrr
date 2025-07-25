@@ -11,7 +11,7 @@
 <button
   onclick={() => (isOpen = true)}
   class="p-1 setting-animation transition-colors hover:bg-surface-1 rounded-full hover:text-text-primary"
-  title="Open settings"
+  title="Open Settings"
 >
   <Icon width={24} icon="heroicons:cog-6-tooth" />
 </button>

@@ -2,6 +2,7 @@
   // @ts-nocheck
   import { fade } from 'svelte/transition'
   import Icon from '@iconify/svelte'
+  import { t } from 'svelte-i18n'
   import 'overlayscrollbars/overlayscrollbars.css'
   import { useOverlayScrollbars } from 'overlayscrollbars-svelte'
   import {
@@ -67,7 +68,7 @@
   <div
     class="px-4 bg-surface-1 dark:bg-surface-2 py-2 border-b-0 border-border"
   >
-    <p class="!text-center">Settings</p>
+    <p class="!text-center">{$t('settings.title')}</p>
   </div>
 
   <div

@@ -1,5 +1,6 @@
 <script>
   // @ts-nocheck
+  import '../../lib/i18n.js' // Import to initialize
   import Icon from '@iconify/svelte'
   import 'overlayscrollbars/overlayscrollbars.css'
   import SettingButton from '../../components/buttons/SettingButton.svelte'
@@ -35,7 +36,6 @@
   import '@fontsource/opendyslexic'
   import '@fontsource/mali'
   import { locale } from 'svelte-i18n'
-  import '../../lib/i18n.js' // Import to initialize
 
   // Use $effect to initialize the app and set up listeners
   $effect(() => {

@@ -74,7 +74,7 @@
   <div class="flex flex-col gap-2 px-5 pb-4">
     <!-- svelte-ignore a11y_label_has_associated_control -->
     <label class="block text-text-secondary"
-      >{$t('settings.general.theme')}</label
+      >{$t('settings.general.lang_ui')}</label
     >
     <div class="flex w-full gap-1">
       <UILanguageSelect />

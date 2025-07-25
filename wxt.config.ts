@@ -5,6 +5,9 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig({
   vite: () => ({
     plugins: [tailwindcss()],
+    optimizeDeps: {
+      exclude: ['@wxt-dev/module-svelte'],
+    },
   }),
   srcDir: 'src',
   modules: ['@wxt-dev/module-svelte'],

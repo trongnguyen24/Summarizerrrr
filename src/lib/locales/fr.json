@@ -1,36 +1,97 @@
 {
   "settings": {
+    "title": "Paramètres",
     "general": {
-      "title": "Paramètres Généraux",
-      "fontFamily": "Police de Caractères",
+      "title": "Général",
+      "fontFamily": "Police",
       "font": {
         "sans": "Sans Serif",
-        "sans_desc": "Police par défaut.",
+        "sans_desc": "Police par défaut du système.",
         "serif": "Serif",
-        "serif_desc": "Police Noto Serif.",
+        "serif_desc": "Police avec empattements, style classique.",
         "dyslexic": "OpenDyslexic",
-        "dyslexic_desc": "Police OpenDyslexic pour la dyslexie.",
+        "dyslexic_desc": "Facilite la lecture pour les personnes dyslexiques.",
         "mali": "Mali",
-        "mali_desc": "Police Mali pour tout le texte."
+        "mali_desc": "Police avec un style d'écriture manuscrite."
       },
+      "lang_ui": "Langue",
       "theme": "Thème",
       "theme_mode": {
         "light": "Clair",
-        "light_desc": "Thème clair.",
+        "light_desc": "Interface aux tons clairs.",
         "dark": "Sombre",
-        "dark_desc": "Thème sombre.",
+        "dark_desc": "Interface aux tons sombres.",
         "system": "Système",
-        "system_desc": "Thème du système."
+        "system_desc": "Utilise le thème de votre appareil."
       },
-      "responseMode": "Mode de Réponse",
+      "responseMode": "Mode de réponse",
       "response_mode": {
         "streaming": "Streaming",
-        "streaming_desc": "Affichage de la réponse en temps réel, meilleure expérience.",
-        "non_streaming": "Non-streaming",
-        "non_streaming_desc": "Convient aux appareils bas de gamme, réduit le décalage."
+        "streaming_desc": "Réponses instantanées. Recommandé.",
+        "non_streaming": "Normal",
+        "non_streaming_desc": "Pour les connexions lentes. Évite les pauses."
       },
       "shortcuts": "Raccourcis",
-      "shortcuts_settings": "Paramètres des Raccourcis"
+      "shortcuts_settings": "Gérer les raccourcis"
+    },
+    "ai_model": {
+      "title": "Modèle IA",
+      "mode": {
+        "basic": "Basique",
+        "advanced": "Avancé"
+      },
+      "selected_provider": "Fournisseur",
+      "temperature": "Température",
+      "top_p": "Top P",
+      "temperature_basic": {
+        "precise": "Précis",
+        "precise_desc": "Réponses plus factuelles et directes.",
+        "balanced": "Équilibré",
+        "balanced_desc": "Équilibre entre précision et créativité.",
+        "creative": "Créatif",
+        "creative_desc": "Réponses plus originales et imaginatives."
+      },
+      "top_p_basic": {
+        "narrow": "Focalisé",
+        "narrow_desc": "Réponses plus sûres et prévisibles.",
+        "balanced": "Équilibré",
+        "balanced_desc": "Équilibre entre sécurité et variété.",
+        "wide": "Large",
+        "wide_desc": "Réponses plus diverses et inattendues."
+      }
+    },
+    "summary": {
+      "title": "Résumé",
+      "size": "Longueur",
+      "size_mode": {
+        "short": "Court",
+        "short_desc": "Un résumé bref et concis.",
+        "medium": "Moyen",
+        "medium_desc": "Un résumé de longueur standard.",
+        "deep": "Détaillé",
+        "deep_desc": "Une analyse plus approfondie."
+      },
+      "tone": "Ton",
+      "tone_mode": {
+        "simple": "Simple",
+        "simple_desc": "Langage clair et facile à comprendre.",
+        "expert": "Expert",
+        "expert_desc": "Langage formel et technique.",
+        "alien": "Alien",
+        "alien_desc": "Perspective curieuse et objective."
+      },
+      "language_output": "Langue de sortie",
+      "custom_prompts": {
+        "title": "Prompts",
+        "editor_button": "Éditeur de prompts",
+        "youtube_summary": "Résumé YouTube",
+        "youtube_chapter": "Chapitres YouTube",
+        "course_summary": "Résumé de cours",
+        "course_concepts": "Concepts de cours",
+        "web_summary": "Résumé web",
+        "selected_text": "Texte sélectionné",
+        "override_note": "* Les prompts actifs remplacent les réglages de base."
+      }
     }
   }
 }

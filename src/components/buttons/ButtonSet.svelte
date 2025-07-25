@@ -12,7 +12,7 @@
   <div
     class="relative overflow-hidden flex flex-col gap-0 px-3 text-text-secondary text-left py-1.5 font-mono bg-muted/5 dark:bg-muted/5 border border-transparent hover:border-blackwhite/15 focus:border-blackwhite/30 dark:focus:border-blackwhite/10 focus:outline-none focus:ring-0 transition-colors duration-150"
   >
-    <div class="title">{title}</div>
+    <div class="title"><span class="line-clamp-1 block">{title}</span></div>
   </div>
   <span
     class="absolute size-4 rotate-45 bottom-0 left-0 bg-muted/5 group-hover:bg-border -translate-x-1/2 translate-y-1/2 transition-colors duration-150"

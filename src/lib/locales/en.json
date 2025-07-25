@@ -85,7 +85,6 @@
       "custom_prompts": {
         "title": "Active custom prompts",
         "editor_button": "Prompt Editor",
-
         "youtube_summary": "Youtube Summary",
         "youtube_chapter": "Youtube Chapter",
         "course_summary": "Course Summary",
@@ -94,6 +93,55 @@
         "selected_text": "Selected Text",
         "override_note": "* Basic settings are overridden by active custom prompts."
       }
+    },
+    "chatgpt_config": {
+      "api_key_label": "API Key",
+      "api_key_placeholder": "Enter your ChatGPT API key",
+      "model_name_label": "Model Name",
+      "saved_status": "Saved!",
+      "view_models": "View Models",
+      "model_placeholder": "Enter ChatGPT Model"
+    },
+    "deepseek_config": {
+      "api_key_label": "API Key",
+      "api_key_placeholder": "Enter your Deepseek API key",
+      "model_name_label": "Model Name",
+      "saved_status": "Saved!",
+      "view_models": "View Models",
+      "model_placeholder": "Enter Deepseek Model"
+    },
+    "gemini_advanced_config": {
+      "api_key_label": "Gemini API Key",
+      "get_a_key": "Get a key",
+      "select_model_label": "Gemini Advanced Model",
+      "select_model_placeholder": "Select a model",
+      "select_gemini_model_aria_label": "Select Gemini Model"
+    },
+    "gemini_basic_config": {
+      "api_key_label": "Gemini API Key",
+      "get_a_key": "Get a key",
+      "select_model_label": "Select Gemini Model"
+    },
+    "ollama_config": {
+      "endpoint_label": "Ollama Endpoint",
+      "endpoint_placeholder": "http://localhost:11434",
+      "model_label": "Ollama Model",
+      "model_placeholder": "llama2"
+    },
+    "openai_compatible_config": {
+      "api_key_label": "API Key",
+      "api_key_placeholder": "API Key",
+      "base_url_label": "Base URL",
+      "base_url_placeholder": "http://127.0.0.1:1234/v1/",
+      "model_name_label": "Model Name",
+      "model_placeholder": "qwen/qwen2.5-vl-7b"
+    },
+    "openrouter_config": {
+      "api_key_label": "OpenRouter API Key",
+      "get_a_key": "Get a key",
+      "model_label": "OpenRouter Model",
+      "saved_status": "Saved!",
+      "view_models": "View Models"
     }
   }
 }

@@ -93,6 +93,55 @@
         "selected_text": "Văn bản đã chọn",
         "override_note": "* Cài đặt cơ bản sẽ bị ghi đè bởi các prompt tùy chỉnh đang hoạt động."
       }
+    },
+    "chatgpt_config": {
+      "api_key_label": "Khóa API",
+      "api_key_placeholder": "Nhập khóa API ChatGPT của bạn",
+      "model_name_label": "Tên mô hình",
+      "saved_status": "Đã lưu!",
+      "view_models": "Xem mô hình",
+      "model_placeholder": "Nhập mô hình ChatGPT"
+    },
+    "deepseek_config": {
+      "api_key_label": "Khóa API",
+      "api_key_placeholder": "Nhập khóa API Deepseek của bạn",
+      "model_name_label": "Tên mô hình",
+      "saved_status": "Đã lưu!",
+      "view_models": "Xem mô hình",
+      "model_placeholder": "Nhập mô hình Deepseek"
+    },
+    "gemini_advanced_config": {
+      "api_key_label": "Khóa API Gemini",
+      "get_a_key": "Lấy khóa",
+      "select_model_label": "Mô hình Gemini Advanced",
+      "select_model_placeholder": "Chọn một mô hình",
+      "select_gemini_model_aria_label": "Chọn mô hình Gemini"
+    },
+    "gemini_basic_config": {
+      "api_key_label": "Khóa API Gemini",
+      "get_a_key": "Lấy khóa",
+      "select_model_label": "Chọn mô hình Gemini"
+    },
+    "ollama_config": {
+      "endpoint_label": "Điểm cuối Ollama",
+      "endpoint_placeholder": "http://localhost:11434",
+      "model_label": "Mô hình Ollama",
+      "model_placeholder": "llama2"
+    },
+    "openai_compatible_config": {
+      "api_key_label": "Khóa API",
+      "api_key_placeholder": "Khóa API",
+      "base_url_label": "URL cơ sở",
+      "base_url_placeholder": "http://127.0.0.1:1234/v1/",
+      "model_name_label": "Tên mô hình",
+      "model_placeholder": "qwen/qwen2.5-vl-7b"
+    },
+    "openrouter_config": {
+      "api_key_label": "Khóa API OpenRouter",
+      "get_a_key": "Lấy khóa",
+      "model_label": "Mô hình OpenRouter",
+      "saved_status": "Đã lưu!",
+      "view_models": "Xem mô hình"
     }
   }
 }

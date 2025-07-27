@@ -1,6 +1,7 @@
 <script>
   // @ts-nocheck
   import Icon from '@iconify/svelte'
+  import { t } from 'svelte-i18n'
   import 'overlayscrollbars/overlayscrollbars.css'
   import Dialog from './Dialog.svelte'
   import { DropdownMenu } from 'bits-ui'
@@ -203,55 +204,6 @@
               {/if}
             </button>
           </div>
-
-          <!-- <DropdownMenu.Root>
-            <DropdownMenu.Trigger
-              class="text-text-muted hover:bg-white/50 dark:hover:bg-white/5 rounded-sm z-10 absolute right-0 justify-center items-center top-0 size-9"
-            >
-              <div
-                class="action-button hidden justify-center items-center top-0 size-9"
-              >
-                <Icon
-                  icon="heroicons:ellipsis-horizontal-16-solid"
-                  width="20"
-                  height="20"
-                />
-              </div>
-            </DropdownMenu.Trigger>
-
-            <DropdownMenu.Portal>
-              <DropdownMenu.Content
-                sideOffset={4}
-                align="end"
-                class="z-50 p-1 text-sm rounded-sm bg-surface-2 border flex flex-col gap-1 border-border"
-              >
-                <div
-                  class="text-text-muted bg-blackwhite/5 rounded-sm z-10 absolute right-0 justify-center items-center flex bottom-full -translate-y-1 size-9"
-                >
-                  <Icon
-                    icon="heroicons:ellipsis-horizontal-16-solid"
-                    width="20"
-                    height="20"
-                    style="color: #fff"
-                  />
-                </div>
-
-                <DropdownMenu.Item
-                  onclick={() => openRenameDialog(item)}
-                  class="py-1.5 px-4 w-32 hover:bg-blackwhite/5 rounded-sm"
-                >
-                  Rename
-                </DropdownMenu.Item>
-
-                <DropdownMenu.Item
-                  class="py-1.5 px-4 w-32 hover:bg-blackwhite/5 rounded-sm"
-                  onclick={() => handleDelete(item.id)}
-                >
-                  Delete
-                </DropdownMenu.Item>
-              </DropdownMenu.Content>
-            </DropdownMenu.Portal>
-          </DropdownMenu.Root> -->
         </div>
       {/each}
       <div class="">&nbsp;</div>

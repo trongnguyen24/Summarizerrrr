@@ -1,7 +1,6 @@
 <script>
   // @ts-nocheck
-  import { t, locale } from 'svelte-i18n'
-  import '../../lib/i18n.js' // Import to initialize
+  import { t } from 'svelte-i18n'
   import { promptTemplates } from '@/lib/promptTemplates.js'
   import 'overlayscrollbars/overlayscrollbars.css'
   import { useOverlayScrollbars } from 'overlayscrollbars-svelte'
@@ -40,14 +39,6 @@
   const showEnhanceButton = $derived(
     currentUserPrompt.trim().split(/\s+/).filter(Boolean).length > 2
   )
-
-  // Sync i18n locale with settings store
-  $effect(() => {
-    const newLocale = settings.uiLang
-    if (newLocale && newLocale !== $state.snapshot(locale)) {
-      locale.set(newLocale)
-    }
-  })
 
   const handlePromptEnhance = async () => {
     loading = true
@@ -116,29 +107,24 @@
   })
 
   let promptTitles = $state({})
-
   $effect(() => {
-    if ($locale) {
-      promptTitles = {
-        youtubeCustomPromptContent: $t(
-          'settings.summary.custom_prompts.youtube_summary'
-        ),
-        chapterCustomPromptContent: $t(
-          'settings.summary.custom_prompts.youtube_chapter'
-        ),
-        webCustomPromptContent: $t(
-          'settings.summary.custom_prompts.web_summary'
-        ),
-        courseSummaryCustomPromptContent: $t(
-          'settings.summary.custom_prompts.course_summary'
-        ),
-        courseConceptsCustomPromptContent: $t(
-          'settings.summary.custom_prompts.course_concepts'
-        ),
-        selectedTextCustomPromptContent: $t(
-          'settings.summary.custom_prompts.selected_text'
-        ),
-      }
+    promptTitles = {
+      youtubeCustomPromptContent: $t(
+        'settings.summary.custom_prompts.youtube_summary'
+      ),
+      chapterCustomPromptContent: $t(
+        'settings.summary.custom_prompts.youtube_chapter'
+      ),
+      webCustomPromptContent: $t('settings.summary.custom_prompts.web_summary'),
+      courseSummaryCustomPromptContent: $t(
+        'settings.summary.custom_prompts.course_summary'
+      ),
+      courseConceptsCustomPromptContent: $t(
+        'settings.summary.custom_prompts.course_concepts'
+      ),
+      selectedTextCustomPromptContent: $t(
+        'settings.summary.custom_prompts.selected_text'
+      ),
     }
   })
 

@@ -1,4 +1,5 @@
 // @ts-nocheck
+import { locale } from 'svelte-i18n'
 import {
   getStorage,
   setStorage,
@@ -189,6 +190,9 @@ export function subscribeToSettingsChanges() {
         //   updatedSettings
         // )
         Object.assign(settings, updatedSettings)
+        if (updatedSettings.uiLang) {
+          locale.set(updatedSettings.uiLang)
+        }
       }
     }
   })

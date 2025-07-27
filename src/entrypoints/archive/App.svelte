@@ -7,6 +7,7 @@
   import { onStorageChange } from '@/services/chromeService'
   import SidePanel from './SidePanel.svelte'
   import {
+    settings,
     loadSettings,
     subscribeToSettingsChanges,
   } from '../../stores/settingsStore.svelte.js'

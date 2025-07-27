@@ -1,31 +1,19 @@
 <script>
-  import { t, locale } from 'svelte-i18n'
-  import '../../lib/i18n.js' // Import to initialize
+  import { t } from 'svelte-i18n'
   import Icon from '@iconify/svelte'
   import Setting from '../Setting.svelte' // Assuming Setting.svelte will also be refactored
   import { Dialog } from 'bits-ui'
   import { fade } from 'svelte/transition'
-  import { settings } from '../../stores/settingsStore.svelte.js'
 
   import { slideScaleFade } from '../../lib/slideScaleFade.js' // Corrected path if needed
-  // Sync i18n locale with settings store
 
-  let title = $state('')
-
-  $effect(() => {
-    const newLocale = settings.uiLang
-    if (newLocale && newLocale !== $state.snapshot(locale)) {
-      locale.set(newLocale)
-    }
-    title = $t('settings.open_settings')
-  })
   let isOpen = $state(false) // State for the dialog
 </script>
 
 <button
   onclick={() => (isOpen = true)}
   class="p-1 setting-animation transition-colors hover:bg-surface-1 rounded-full hover:text-text-primary"
-  {title}
+  title={$t('settings.open_settings')}
 >
   <Icon width={24} icon="heroicons:cog-6-tooth" />
 </button>

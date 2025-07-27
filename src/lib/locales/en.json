@@ -163,5 +163,9 @@
       "The \"Prompt Enhancement\" feature just formats and explains based on your prompt input.",
       "To prompt in a different language, adjust the output language in Settings > Summary."
     ]
+  },
+  "archive": {
+    "tab_history": "History",
+    "tab_archive": "Archive"
   }
 }

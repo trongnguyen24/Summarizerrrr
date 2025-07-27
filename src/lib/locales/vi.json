@@ -163,5 +163,9 @@
       "Tính năng Cải thiện Prompt chỉ nâng cấp và định dạng dựa trên đầu vào prompt gốc của bạn.",
       "Để tạo prompt bằng ngôn ngữ khác, hãy điều chỉnh ngôn ngữ đầu ra trong Cài đặt > Summary."
     ]
+  },
+  "archive": {
+    "tab_history": "Lịch sử",
+    "tab_archive": "Lưu trữ"
   }
 }

@@ -1,5 +1,7 @@
 <script>
   // @ts-nocheck
+  import { t, locale } from 'svelte-i18n'
+  import '../../lib/i18n.js' // Import to initialize
   import { promptTemplates } from '@/lib/promptTemplates.js'
   import 'overlayscrollbars/overlayscrollbars.css'
   import { useOverlayScrollbars } from 'overlayscrollbars-svelte'
@@ -38,6 +40,14 @@
   const showEnhanceButton = $derived(
     currentUserPrompt.trim().split(/\s+/).filter(Boolean).length > 2
   )
+
+  // Sync i18n locale with settings store
+  $effect(() => {
+    const newLocale = settings.uiLang
+    if (newLocale && newLocale !== $state.snapshot(locale)) {
+      locale.set(newLocale)
+    }
+  })
 
   const handlePromptEnhance = async () => {
     loading = true
@@ -105,14 +115,32 @@
     }
   })
 
-  const promptTitles = {
-    youtubeCustomPromptContent: 'Youtube Summary',
-    chapterCustomPromptContent: 'Youtube Chapter',
-    webCustomPromptContent: 'Web Summary',
-    courseSummaryCustomPromptContent: 'Course Summary',
-    courseConceptsCustomPromptContent: 'Course Concepts',
-    selectedTextCustomPromptContent: 'Selected Text',
-  }
+  let promptTitles = $state({})
+
+  $effect(() => {
+    if ($locale) {
+      promptTitles = {
+        youtubeCustomPromptContent: $t(
+          'settings.summary.custom_prompts.youtube_summary'
+        ),
+        chapterCustomPromptContent: $t(
+          'settings.summary.custom_prompts.youtube_chapter'
+        ),
+        webCustomPromptContent: $t(
+          'settings.summary.custom_prompts.web_summary'
+        ),
+        courseSummaryCustomPromptContent: $t(
+          'settings.summary.custom_prompts.course_summary'
+        ),
+        courseConceptsCustomPromptContent: $t(
+          'settings.summary.custom_prompts.course_concepts'
+        ),
+        selectedTextCustomPromptContent: $t(
+          'settings.summary.custom_prompts.selected_text'
+        ),
+      }
+    }
+  })
 
   function getPromptTitle(key) {
     return promptTitles[key] || 'Unknown Prompt'
@@ -209,15 +237,10 @@
     }
   }
 
-  const phrases = [
-    'This feature works best with the Gemini 2.5 Flash model or higher.',
-    'The "Prompt Enhancement" feature just formats and explains based on your prompt input.',
-    'To prompt in a different language, adjust the output language in Settings > Summary.',
-  ]
-
   $effect(() => {
     let fx
     if (isOpen) {
+      let phrases = $t('prompts.tip')
       const el = document.querySelector('#scramble-info')
       if (el) {
         fx = new TextScramble(el)
@@ -272,10 +295,10 @@
         <label
           for="currentSystemPrompt"
           class="text-text-secondary bg-blackwhite/5 rounded-t-lg top-0 px-2 pt-1 pb-5 absolute w-fit"
-          >System Instruction</label
+          >{$t('prompts.system_instruction')}</label
         >
         <div class=" text-text-secondary absolute top-0 right-0">
-          Optional: Skip if not needed.
+          {$t('prompts.system_note')}
         </div>
         <textarea
           id="currentSystemPrompt"
@@ -290,12 +313,13 @@
         <label
           for="currentUserPrompt"
           class="text-text-secondary bg-blackwhite/5 rounded-t-lg top-0 px-2 pt-1 pb-5 absolute w-fit"
-          >User Prompt
+          >{$t('prompts.user_prompt')}
         </label>
         <div class=" text-text-secondary absolute top-0 right-0">
-          !Use the
+          {$t('prompts.user_note')}
+          <!-- !Use the
           <code class="bg-blackwhite/5 px-1 py-0.5 rounded">__CONTENT__</code>
-          to insert the dynamic content
+          to insert the dynamic content -->
         </div>
         <textarea
           id="currentUserPrompt"
@@ -311,7 +335,7 @@
               handlePromptEnhance()
             }}
             class="absolute bottom-6 right-4"
-            title="Prompt Enhance"
+            title={$t('prompts.prompt_enhance')}
           >
             <div
               transition:slideScaleFade={{
@@ -343,8 +367,8 @@
               class="dark:bg-surface-1"
               onchange={handleTemplateChange}
             >
-              <option value="" disabled selected class="dark:bg-surface-1"
-                >Select a template</option
+              <option value="" disabled selected class="dark:bg-surface-1">
+                {$t('prompts.select_template')}</option
               >
               {#each promptTemplates[promptKey] || [] as template}
                 <option value={template.title}>{template.title}</option>
@@ -358,7 +382,7 @@
             <div
               class="font-medium py-2 px-4 border border-transparent group-hover:border-border/40 transition-colors duration-200 group-hover:bg-surface-2 dark:group-hover:surface-2/90 hover:text-white"
             >
-              Import
+              {$t('prompts.buttons.import')}
             </div>
 
             <span
@@ -376,7 +400,7 @@
                 ? 'bg-surface-2 group-hover:bg-surface-2/95 dark:group-hover:surface-2/90  text-text-secondary border-border hover:border-gray-500/50 hover:text-text-primary dark:hover:text-white'
                 : ' bg-white dark:bg-surface-1 text-text-secondary border-border/40'}"
             >
-              Discard
+              {$t('prompts.buttons.discard')}
             </div>
 
             <span
@@ -395,7 +419,7 @@
                 ? 'bg-primary group-hover:bg-primary/95 dark:group-hover:bg-orange-500 text-orange-50 dark:text-orange-100/90 border-orange-400 hover:border-orange-300/75 hover:text-white'
                 : ' bg-white dark:bg-surface-1 text-text-secondary border-border/40'}"
             >
-              Save
+              {$t('prompts.buttons.save')}
             </div>
             <span
               class="size-4 absolute z-10 -left-2 -bottom-2 border bg-white dark:bg-surface-1 rotate-45 transition-colors duration-200 {isPromptModified()
@@ -451,7 +475,7 @@
               <div
                 class="px-4 bg-surface-1 dark:bg-surface-2 py-2 border-b-0 border-border"
               >
-                <p class="!text-center">Prompt enhancer</p>
+                <p class="!text-center">{$t('prompts.prompt_enhance')}</p>
               </div>
               <div class="flex relative p-px gap-4 flex-col">
                 <div class=" min-h-48 h-[calc(100vh-10rem)] max-h-[40rem]">
@@ -511,7 +535,7 @@
                       <div
                         class=" font-medium py-2 px-4 border transition-colors duration-200 bg-surface-2 group-hover:bg-surface-2/95 dark:group-hover:surface-2/90 text-text-primary border-border hover:border-gray-500 dark:hover:text-white"
                       >
-                        Discard
+                        {$t('prompts.buttons.discard')}
                       </div>
 
                       <span
@@ -528,7 +552,7 @@
                           ? 'bg-primary group-hover:bg-primary/95 dark:group-hover:bg-orange-500 text-orange-50 dark:text-orange-100/90 border-orange-400 hover:border-orange-300/75 hover:text-white'
                           : ' bg-surface-2 dark:bg-surface-1 text-text-secondary border-border/40'}"
                       >
-                        Apply prompt
+                        {$t('prompts.buttons.apply_prompt')}
                       </div>
                       <span
                         class="size-4 absolute z-10 -left-2 -bottom-2 border bg-background dark:bg-surface-1 rotate-45 transition-colors duration-200 {!loading

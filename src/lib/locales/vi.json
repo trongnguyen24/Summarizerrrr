@@ -143,5 +143,25 @@
       "saved_status": "Đã lưu!",
       "view_models": "Xem mô hình"
     }
+  },
+  "prompts": {
+    "title": "Prompts",
+    "system_instruction": "Prompt Hệ thống",
+    "system_note": "Bổ sung, có thể bỏ qua",
+    "user_prompt": "Prompt người dùng",
+    "user_note": "Chèn __CONTENT__ để thêm nội dung ngữ cảnh",
+    "select_template": "Chọn mẫu prompt",
+    "prompt_enhance": "Nâng cấp Prompt",
+    "buttons": {
+      "import": "Nhập",
+      "discard": "Loại",
+      "save": "Lưu",
+      "apply_prompt": "Áp dụng Prompt"
+    },
+    "tip": [
+      "Tính năng này hoạt động tốt nhất với mô hình Gemini 2.5 Flash trở lên.",
+      "Tính năng Cải thiện Prompt chỉ nâng cấp và định dạng dựa trên đầu vào prompt gốc của bạn.",
+      "Để tạo prompt bằng ngôn ngữ khác, hãy điều chỉnh ngôn ngữ đầu ra trong Cài đặt > Summary."
+    ]
   }
 }

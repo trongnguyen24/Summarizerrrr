@@ -19,3 +19,39 @@ export function generateUUID() {
     return v.toString(16)
   })
 }
+
+/**
+ * A simple sleep utility.
+ * @param {number} ms - Milliseconds to sleep.
+ * @returns {Promise<void>}
+ */
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+/**
+ * A higher-order function that adds retry logic with exponential backoff to an async function.
+ * @param {Function} fn The async function to retry.
+ * @param {number} maxRetries Maximum number of retries.
+ * @param {number} initialDelay Initial delay in ms.
+ * @returns {Function} A new function with retry logic.
+ */
+export function withRetry(fn, maxRetries = 3, initialDelay = 1000) {
+  return async function (...args) {
+    for (let i = 0; i < maxRetries; i++) {
+      try {
+        return await fn(...args)
+      } catch (error) {
+        if (i === maxRetries - 1 || !error.canRetry) {
+          throw error
+        }
+        const delay = initialDelay * Math.pow(2, i)
+        console.warn(
+          `[withRetry] Attempt ${i + 1} failed. Retrying in ${delay}ms...`,
+          error.message
+        )
+        await sleep(delay)
+      }
+    }
+  }
+}

@@ -31,14 +31,4 @@ export class BaseProvider {
   parseResponse(rawResponse) {
     throw new Error('Method "parseResponse" must be implemented by subclasses.')
   }
-
-  /**
-   * Handles API-specific errors and returns a user-friendly error message.
-   * @param {Error} error - The original error object.
-   * @param {string} model - The model that was used.
-   * @returns {string} - A user-friendly error message.
-   */
-  handleError(error, model) {
-    throw new Error('Method "handleError" must be implemented by subclasses.')
-  }
 }

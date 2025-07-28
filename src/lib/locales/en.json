@@ -181,5 +181,18 @@
     "downloaded": "Downloaded!",
     "save_to_archive": "Save to archive",
     "saved": "Saved!"
+  },
+
+  "errors": {
+    "api_key": "API Key not configured. Please check your API key in the settings.",
+    "unauthorized": "Unauthorized access. Please check your API key and permissions.",
+    "quota": "API quota exceeded. Please check your usage limits or try again later.",
+    "network": "Network error. Please check your internet connection.",
+    "server": "API server error. Please try again later.",
+    "content": "Content not found or could not be processed.",
+    "permission": "Missing browser permissions. Please check extension settings.",
+    "timeout": "Request timed out. Please try again.",
+    "streaming": "Streaming error. Data might be incomplete.",
+    "unknown": "An unexpected error occurred. Please try again."
   }
 }

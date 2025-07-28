@@ -181,5 +181,17 @@
     "downloaded": "Đã tải xuống!",
     "save_to_archive": "Lưu vào lưu trữ",
     "saved": "Đã lưu!"
+  },
+  "errors": {
+    "api_key": "Chưa định cấu hình Khóa API. Vui lòng kiểm tra Khóa API của bạn trong cài đặt.",
+    "unauthorized": "Truy cập trái phép. Vui lòng kiểm tra Khóa API và quyền của bạn.",
+    "quota": "Đã vượt quá hạn mức API. Vui lòng kiểm tra giới hạn sử dụng của bạn hoặc thử lại sau.",
+    "network": "Lỗi mạng. Vui lòng kiểm tra kết nối internet của bạn.",
+    "server": "Lỗi máy chủ API. Vui lòng thử lại sau.",
+    "content": "Không tìm thấy hoặc không thể xử lý nội dung.",
+    "permission": "Thiếu quyền trình duyệt. Vui lòng kiểm tra cài đặt tiện ích mở rộng.",
+    "timeout": "Yêu cầu hết thời gian. Vui lòng thử lại.",
+    "streaming": "Lỗi truyền dữ liệu. Dữ liệu có thể không đầy đủ.",
+    "unknown": "Đã xảy ra lỗi không mong muốn. Vui lòng thử lại."
   }
 }

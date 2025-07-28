@@ -29,16 +29,16 @@ export const summaryState = $state({
   isChapterLoading: false,
   isCourseSummaryLoading: false,
   isCourseConceptsLoading: false,
-  error: '',
-  chapterError: '',
-  courseSummaryError: '',
-  courseConceptsError: '',
+  summaryError: null, // Will hold the structured error object
+  chapterError: null,
+  courseSummaryError: null,
+  courseConceptsError: null,
   isYouTubeVideoActive: false,
   isCourseVideoActive: false,
   currentContentSource: '',
   selectedTextSummary: '',
   isSelectedTextLoading: false,
-  selectedTextError: '',
+  selectedTextError: null,
   lastSummaryTypeDisplayed: null,
   activeYouTubeTab: 'videoSummary',
   activeCourseTab: 'courseSummary',
@@ -63,10 +63,11 @@ export function resetState() {
   summaryState.isCourseSummaryLoading = false
   summaryState.isCourseConceptsLoading = false
   summaryState.isSelectedTextLoading = false
-  summaryState.error = ''
-  summaryState.chapterError = ''
-  summaryState.courseSummaryError = ''
-  summaryState.courseConceptsError = ''
+  summaryState.summaryError = null
+  summaryState.chapterError = null
+  summaryState.courseSummaryError = null
+  summaryState.courseConceptsError = null
+  summaryState.selectedTextError = null
   summaryState.isYouTubeVideoActive = false
   summaryState.isCourseVideoActive = false
   summaryState.currentContentSource = ''
@@ -87,10 +88,11 @@ export function resetDisplayState() {
   summaryState.courseSummary = ''
   summaryState.courseConcepts = ''
   summaryState.selectedTextSummary = ''
-  summaryState.error = ''
-  summaryState.chapterError = ''
-  summaryState.courseSummaryError = ''
-  summaryState.courseConceptsError = ''
+  summaryState.summaryError = null
+  summaryState.chapterError = null
+  summaryState.courseSummaryError = null
+  summaryState.courseConceptsError = null
+  summaryState.selectedTextError = null
   summaryState.lastSummaryTypeDisplayed = null
   summaryState.activeYouTubeTab = 'videoSummary'
   summaryState.activeCourseTab = 'courseSummary'
@@ -123,49 +125,6 @@ export function updateActiveYouTubeTab(tabName) {
  */
 export function updateActiveCourseTab(tabName) {
   summaryState.activeCourseTab = tabName
-}
-
-/**
- * Checks if the API key for the selected provider is configured.
- * @param {object} userSettings - The current settings object.
- * @param {string} selectedProviderId - The ID of the selected provider.
- * @throws {Error} If the API key is not configured.
- */
-function checkApiKeyConfiguration(userSettings, selectedProviderId) {
-  let apiKey
-  if (selectedProviderId === 'ollama') {
-    apiKey = userSettings.ollamaEndpoint
-    if (!apiKey || apiKey.trim() === '') {
-      throw new Error(
-        'Ollama Endpoint not configured in settings. Please add your Ollama Endpoint in the settings.'
-      )
-    }
-    if (
-      !userSettings.selectedOllamaModel ||
-      userSettings.selectedOllamaModel.trim() === ''
-    ) {
-      throw new Error(
-        'Ollama Model not configured in settings. Please select an Ollama Model in the settings.'
-      )
-    }
-  } else if (selectedProviderId === 'gemini') {
-    apiKey = userSettings.isAdvancedMode
-      ? userSettings.geminiAdvancedApiKey
-      : userSettings.geminiApiKey
-    if (!apiKey || apiKey.trim() === '') {
-      throw new Error(
-        'Gemini API Key not configured in settings. Please add your API Key in the settings.'
-      )
-    }
-  } else {
-    // For other providers that use API keys
-    apiKey = userSettings[`${selectedProviderId}ApiKey`]
-    if (!apiKey || apiKey.trim() === '') {
-      throw new Error(
-        `${selectedProviderId} API Key not configured in settings. Please add your API Key in the settings.`
-      )
-    }
-  }
 }
 
 /**
@@ -217,15 +176,10 @@ export async function fetchAndSummarize() {
     summaryState.isCourseSummaryLoading = true
     summaryState.isCourseConceptsLoading = true
 
-    // Check API key configuration
-    checkApiKeyConfiguration(userSettings, selectedProviderId)
-
     console.log('[summaryStore] Checking tab type...')
     const tabInfo = await getActiveTabInfo()
     if (!tabInfo || !tabInfo.url) {
-      throw new Error(
-        'Could not get current tab information or URL. Please try switching to a different tab and back, or ing the extension. if this error persists, please clear your cookie.'
-      )
+      throw new Error('Could not get current tab information or URL.')
     }
 
     // LƯU TIÊU ĐỀ VÀ URL VÀO STATE NGAY TẠI ĐÂY
@@ -265,167 +219,101 @@ export async function fetchAndSummarize() {
       mainContentTypeToFetch,
       userSettings.summaryLang
     )
-
-    if (mainContentResult.type === 'error' || !mainContentResult.content) {
-      throw new Error(
-        'Could not get main page content. Please try refreshing the page or reopening the extension. If the error persists, please clear your browser cookies and site data for this site.'
-      )
-    }
-
     summaryState.currentContentSource = mainContentResult.content
 
     if (summaryState.isYouTubeVideoActive) {
-      console.log(
-        '[summaryStore] Starting to fetch timestamped transcript for chapters and video summary...'
-      )
       const chapterPromise = (async () => {
-        summaryState.chapterError = ''
+        summaryState.chapterError = null
         try {
           const chapterContentResult = await getPageContent(
             'timestampedTranscript',
             userSettings.summaryLang
           )
-          if (
-            chapterContentResult.type === 'error' ||
-            !chapterContentResult.content
-          ) {
-            throw new Error(
-              'Could not get timestamped transcript for chapters. Please try refreshing the page or reopening the extension. If the error persists, please clear your YouTube cookies and site data.'
-            )
-          }
-          console.log(
-            '[summaryStore] Fetched timestamped transcript, starting chapter summarization...'
-          )
-
           const chapterSummarizedText = await summarizeChapters(
             chapterContentResult.content
           )
-
-          if (!chapterSummarizedText || chapterSummarizedText.trim() === '') {
-            console.warn(
-              '[summaryStore] Gemini returned empty result for chapter summary.'
-            )
-            summaryState.chapterSummary =
-              '<p><i>Could not generate chapter summary from this content.</i></p>'
-          } else {
-            summaryState.chapterSummary = chapterSummarizedText
-          }
-          console.log('[summaryStore] Chapter summary processed.')
+          summaryState.chapterSummary =
+            chapterSummarizedText ||
+            '<p><i>Could not generate chapter summary.</i></p>'
         } catch (e) {
           console.error('[summaryStore] Chapter summarization error:', e)
-          summaryState.chapterError = e.message
+          summaryState.chapterError = e
         } finally {
           summaryState.isChapterLoading = false
         }
       })()
 
       const videoSummaryPromise = (async () => {
-        summaryState.error = ''
+        summaryState.summaryError = null
         try {
           const videoSummarizedText = await summarizeContent(
             summaryState.currentContentSource,
             'youtube'
           )
-
-          if (!videoSummarizedText || videoSummarizedText.trim() === '') {
-            console.warn(
-              '[summaryStore] Gemini returned empty result for YouTube video summary.'
-            )
-            summaryState.summary =
-              '<p><i>Could not generate YouTube video summary from this content.</i></p>'
-          } else {
-            summaryState.summary = videoSummarizedText
-          }
-          console.log('[summaryStore] YouTube video summary processed.')
+          summaryState.summary =
+            videoSummarizedText ||
+            '<p><i>Could not generate video summary.</i></p>'
         } catch (e) {
           console.error('[summaryStore] YouTube video summarization error:', e)
-          summaryState.error = e.message
+          summaryState.summaryError = e
         } finally {
           summaryState.isLoading = false
         }
       })()
       await Promise.all([chapterPromise, videoSummaryPromise])
     } else if (summaryState.isCourseVideoActive) {
-      console.log(
-        '[summaryStore] Starting Course summary and concept explanation...'
-      )
-
       const courseSummaryPromise = (async () => {
-        summaryState.courseSummaryError = ''
+        summaryState.courseSummaryError = null
         try {
           const courseSummarizedText = await summarizeContent(
             summaryState.currentContentSource,
             'courseSummary'
           )
-
-          if (!courseSummarizedText || courseSummarizedText.trim() === '') {
-            console.warn(
-              '[summaryStore] Gemini returned empty result for Course summary.'
-            )
-            summaryState.courseSummary =
-              '<p><i>Could not generate Course lecture summary from this content.</i></p>'
-          } else {
-            summaryState.courseSummary = courseSummarizedText
-          }
-          console.log('[summaryStore] Course summary processed.')
+          summaryState.courseSummary =
+            courseSummarizedText ||
+            '<p><i>Could not generate course summary.</i></p>'
         } catch (e) {
           console.error('[summaryStore] Course summarization error:', e)
-          summaryState.courseSummaryError = e.message
+          summaryState.courseSummaryError = e
         } finally {
           summaryState.isCourseSummaryLoading = false
         }
       })()
 
       const courseConceptsPromise = (async () => {
-        summaryState.courseConceptsError = ''
+        summaryState.courseConceptsError = null
         try {
           const courseConceptsText = await summarizeContent(
             summaryState.currentContentSource,
             'courseConcepts'
           )
-
-          if (!courseConceptsText || courseConceptsText.trim() === '') {
-            console.warn(
-              '[summaryStore] Gemini returned empty result for Course concept explanation.'
-            )
-            summaryState.courseConcepts =
-              '<p><i>Could not explain terms from this content.</i></p>'
-          } else {
-            summaryState.courseConcepts = courseConceptsText
-          }
-          console.log('[summaryStore] Course concept explanation processed.')
+          summaryState.courseConcepts =
+            courseConceptsText ||
+            '<p><i>Could not explain course concepts.</i></p>'
         } catch (e) {
           console.error('[summaryStore] Course concept explanation error:', e)
-          summaryState.courseConceptsError = e.message
+          summaryState.courseConceptsError = e
         } finally {
           summaryState.isCourseConceptsLoading = false
         }
       })()
-
       await Promise.allSettled([courseSummaryPromise, courseConceptsPromise])
     } else {
-      // For general webpages, this is the primary summarization.
-      console.log(
-        '[summaryStore] Starting main summarization for general webpage...'
-      )
-      const summarizedText = await summarizeContent(
-        summaryState.currentContentSource,
-        summaryType
-      )
-
-      if (!summarizedText || summarizedText.trim() === '') {
-        console.warn(
-          '[summaryStore] Gemini returned empty result for main summary.'
+      summaryState.summaryError = null
+      try {
+        const summarizedText = await summarizeContent(
+          summaryState.currentContentSource,
+          summaryType
         )
         summaryState.summary =
-          '<p><i>Could not generate summary from this content.</i></p>'
-      } else {
-        summaryState.summary = summarizedText
+          summarizedText || '<p><i>Could not generate summary.</i></p>'
+      } catch (e) {
+        summaryState.summaryError = e
       }
     }
   } catch (e) {
     console.error('[summaryStore] Error during main summarization process:', e)
-    summaryState.error = e.message
+    summaryState.summaryError = e
     summaryState.lastSummaryTypeDisplayed = 'web'
   } finally {
     // Ensure all loading states are set to false
@@ -455,12 +343,6 @@ export async function fetchAndSummarizeStream() {
 
   try {
     summaryState.isLoading = true
-    let selectedProviderId = userSettings.selectedProvider || 'gemini'
-    if (!userSettings.isAdvancedMode) {
-      selectedProviderId = 'gemini'
-    }
-    checkApiKeyConfiguration(userSettings, selectedProviderId)
-
     const tabInfo = await getActiveTabInfo()
     if (!tabInfo || !tabInfo.url) {
       throw new Error('Could not get current tab information or URL.')
@@ -495,9 +377,6 @@ export async function fetchAndSummarizeStream() {
       mainContentTypeToFetch,
       userSettings.summaryLang
     )
-    if (mainContentResult.type === 'error' || !mainContentResult.content) {
-      throw new Error('Could not get main page content.')
-    }
     summaryState.currentContentSource = mainContentResult.content
 
     const promises = []
@@ -505,19 +384,12 @@ export async function fetchAndSummarizeStream() {
     if (summaryState.isYouTubeVideoActive) {
       summaryState.isChapterLoading = true
       const chapterStreamPromise = (async () => {
+        summaryState.chapterError = null
         try {
           const chapterContentResult = await getPageContent(
             'timestampedTranscript',
             userSettings.summaryLang
           )
-          if (
-            chapterContentResult.type === 'error' ||
-            !chapterContentResult.content
-          ) {
-            throw new Error(
-              'Could not get timestamped transcript for chapters.'
-            )
-          }
           const chapterStream = summarizeChaptersStream(
             chapterContentResult.content
           )
@@ -525,7 +397,7 @@ export async function fetchAndSummarizeStream() {
             summaryState.chapterSummary += chunk
           }
         } catch (e) {
-          summaryState.chapterError = e.message
+          summaryState.chapterError = e
         } finally {
           summaryState.isChapterLoading = false
         }
@@ -536,6 +408,7 @@ export async function fetchAndSummarizeStream() {
         summaryState.currentContentSource,
         'youtube'
       )
+      summaryState.summaryError = null
       for await (const chunk of videoSummaryStream) {
         summaryState.summary += chunk
       }
@@ -543,40 +416,43 @@ export async function fetchAndSummarizeStream() {
       summaryState.isCourseSummaryLoading = true
       summaryState.isCourseConceptsLoading = true
 
-      const courseSummaryStream = summarizeContentStream(
-        summaryState.currentContentSource,
-        'courseSummary'
-      )
       const courseSummaryPromise = (async () => {
+        summaryState.courseSummaryError = null
         try {
+          const courseSummaryStream = summarizeContentStream(
+            summaryState.currentContentSource,
+            'courseSummary'
+          )
           for await (const chunk of courseSummaryStream) {
             summaryState.courseSummary += chunk
           }
         } catch (e) {
-          summaryState.courseSummaryError = e.message
+          summaryState.courseSummaryError = e
         } finally {
           summaryState.isCourseSummaryLoading = false
         }
       })()
       promises.push(courseSummaryPromise)
 
-      const courseConceptsStream = summarizeContentStream(
-        summaryState.currentContentSource,
-        'courseConcepts'
-      )
       const courseConceptsPromise = (async () => {
+        summaryState.courseConceptsError = null
         try {
+          const courseConceptsStream = summarizeContentStream(
+            summaryState.currentContentSource,
+            'courseConcepts'
+          )
           for await (const chunk of courseConceptsStream) {
             summaryState.courseConcepts += chunk
           }
         } catch (e) {
-          summaryState.courseConceptsError = e.message
+          summaryState.courseConceptsError = e
         } finally {
           summaryState.isCourseConceptsLoading = false
         }
       })()
       promises.push(courseConceptsPromise)
     } else {
+      summaryState.summaryError = null
       const webSummaryStream = summarizeContentStream(
         summaryState.currentContentSource,
         'general'
@@ -588,7 +464,8 @@ export async function fetchAndSummarizeStream() {
 
     await Promise.all(promises)
   } catch (e) {
-    summaryState.error = e.message
+    console.error('[summaryStore] Error during stream summarization:', e)
+    summaryState.summaryError = e
     summaryState.lastSummaryTypeDisplayed = 'web'
   } finally {
     summaryState.isLoading = false
@@ -602,37 +479,23 @@ export async function summarizeSelectedText(text) {
     summaryState.isChapterLoading
   ) {
     console.warn(
-      '[summaryStore] Existing summarization in progress. Resetting and starting new selected text summarization.'
+      '[summaryStore] Summarization in progress, resetting for selected text.'
     )
     resetState()
   }
 
-  // Wait for settings to be initialized
   await loadSettings()
-
-  const userSettings = settings
-
   resetDisplayState()
   summaryState.selectedTextSummary = ''
-  summaryState.selectedTextError = ''
+  summaryState.selectedTextError = null
   summaryState.lastSummaryTypeDisplayed = 'selectedText'
 
   try {
     summaryState.isSelectedTextLoading = true
 
-    // Get current tab info for title and URL
     const tabInfo = await getActiveTabInfo()
     summaryState.pageTitle = tabInfo.title || 'Selected Text Summary'
     summaryState.pageUrl = tabInfo.url || 'Unknown URL'
-
-    // Determine the actual provider to use based on isAdvancedMode
-    let selectedProviderId = userSettings.selectedProvider || 'gemini'
-    if (!userSettings.isAdvancedMode) {
-      selectedProviderId = 'gemini' // Force Gemini in basic mode
-    }
-
-    // Check API key configuration
-    checkApiKeyConfiguration(userSettings, selectedProviderId)
 
     if (!text || text.trim() === '') {
       throw new Error('No text selected for summarization.')
@@ -641,19 +504,13 @@ export async function summarizeSelectedText(text) {
     console.log('[summaryStore] Starting selected text summarization...')
     const summarizedText = await summarizeContent(text, 'selectedText')
 
-    if (!summarizedText || summarizedText.trim() === '') {
-      console.warn(
-        '[summaryStore] Gemini returned empty result for selected text summary.'
-      )
-      summaryState.selectedTextSummary =
-        '<p><i>Could not generate summary from this selected text.</i></p>'
-    } else {
-      summaryState.selectedTextSummary = summarizedText
-    }
+    summaryState.selectedTextSummary =
+      summarizedText ||
+      '<p><i>Could not generate summary from this selected text.</i></p>'
     console.log('[summaryStore] Selected text summary processed.')
   } catch (e) {
     console.error('[summaryStore] Selected text summarization error:', e)
-    summaryState.selectedTextError = e.message
+    summaryState.selectedTextError = e
     summaryState.lastSummaryTypeDisplayed = 'selectedText'
   } finally {
     summaryState.isSelectedTextLoading = false

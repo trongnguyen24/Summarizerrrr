@@ -1,6 +1,7 @@
 // @ts-nocheck
 // @ts-nocheck
 import { BaseProvider } from './baseProvider'
+import { ErrorHandler } from '../errorHandler.js'
 
 export class OllamaProvider extends BaseProvider {
   constructor(ollamaEndpoint, model) {
@@ -30,35 +31,21 @@ export class OllamaProvider extends BaseProvider {
       })
 
       if (!response.ok) {
-        let errorDetails = `Ollama API error: ${response.status} ${response.statusText}`
-        const contentType = response.headers.get('content-type')
-
-        if (contentType && contentType.includes('application/json')) {
-          try {
-            const errorData = await response.json()
-            errorDetails += ` - ${
-              errorData.message || JSON.stringify(errorData)
-            }`
-          } catch (jsonError) {
-            errorDetails += ` - Failed to parse error JSON: ${jsonError.message}`
-          }
-        } else {
-          const errorText = await response.text()
-          errorDetails += ` - Response: ${errorText.substring(0, 200)}` // Limit to first 200 chars
+        // Create a new error object to pass more context
+        const error = new Error(`Ollama API error`)
+        error.status = response.status
+        try {
+          const errorData = await response.json()
+          error.message += ` - ${
+            errorData.message || JSON.stringify(errorData)
+          }`
+        } catch (e) {
+          error.message += ` - ${response.statusText}`
         }
-        throw new Error(errorDetails)
+        throw error
       }
 
-      const responseText = await response.text()
-      let data
-
-      try {
-        data = JSON.parse(responseText)
-      } catch (jsonError) {
-        throw new Error(
-          `Failed to parse JSON response from Ollama API: ${jsonError.message}. Response text: ${responseText}`
-        )
-      }
+      const data = await response.json()
 
       // Remove <think> tags and their content
       const cleanedResponse = data.response
@@ -66,8 +53,11 @@ export class OllamaProvider extends BaseProvider {
         .trim()
       return cleanedResponse
     } catch (error) {
-      console.error('Error generating content with Ollama:', error)
-      throw error
+      throw ErrorHandler.handle(error, {
+        provider: 'Ollama',
+        model: this.model,
+        operation: 'generateContent',
+      })
     }
   }
 
@@ -86,7 +76,9 @@ export class OllamaProvider extends BaseProvider {
       })
 
       if (!response.ok) {
-        throw new Error(`Ollama API error: ${response.status}`)
+        const error = new Error(`Ollama API error`)
+        error.status = response.status
+        throw error
       }
 
       const reader = response.body.getReader()
@@ -116,37 +108,23 @@ export class OllamaProvider extends BaseProvider {
                 return
               }
             } catch (e) {
-              console.error('Failed to parse Ollama stream chunk:', e)
+              // This is a stream parsing error, we can throw a specific error
+              const streamError = new Error(
+                'Failed to parse Ollama stream chunk'
+              )
+              streamError.cause = e
+              throw streamError
             }
           }
         }
       }
     } catch (error) {
-      console.error('Error in Ollama stream:', error)
-      throw this.handleError(error, this.model)
+      throw ErrorHandler.handle(error, {
+        provider: 'Ollama',
+        model: this.model,
+        operation: 'generateContentStream',
+      })
     }
-  }
-
-  /**
-   * Handles specific error messages from the Ollama API.
-   * @param {Error} error The error object.
-   * @param {string} model The model name that was used.
-   * @returns {string} A user-friendly error message.
-   */
-  handleError(error, model) {
-    // Implement specific error handling for Ollama API errors
-    if (error.message.includes('Failed to fetch')) {
-      return `Could not connect to Ollama server at ${this.ollamaEndpoint}. Please ensure Ollama is running and the endpoint is correct.`
-    } else if (error.message.includes('403')) {
-      return `Ollama API returned a 403 Forbidden error. Please check your Ollama server configuration and permissions.`
-    } else if (error.message.includes('404')) {
-      return `Ollama API returned a 404 Not Found error. Please check your Ollama Endpoint and Model name.`
-    } else if (error.message.includes('Unexpected end of JSON input')) {
-      return `Ollama API returned an invalid response. This might indicate a server issue or an incorrect model name.`
-    } else if (error.message.includes('model not found')) {
-      return `Ollama model "${model}" not found. Please ensure the model is downloaded and available on your Ollama server.`
-    }
-    return `An unexpected Ollama API error occurred: ${error.message}.`
   }
 
   /**

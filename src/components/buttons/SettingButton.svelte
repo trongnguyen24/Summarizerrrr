@@ -8,6 +8,16 @@
   import { slideScaleFade } from '../../lib/slideScaleFade.js' // Corrected path if needed
 
   let isOpen = $state(false) // State for the dialog
+
+  $effect(() => {
+    const handleOpenSettings = () => {
+      isOpen = true
+    }
+    document.addEventListener('openSettings', handleOpenSettings)
+    return () => {
+      document.removeEventListener('openSettings', handleOpenSettings)
+    }
+  })
 </script>
 
 <button

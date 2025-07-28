@@ -175,8 +175,10 @@ export async function summarizeContent(text, contentType) {
         ))
     return provider.parseResponse(rawResult)
   } catch (e) {
+    // The provider's generateContent method should already be throwing a structured error
+    // so we just re-throw it up to the store.
     console.error(`${providersConfig[selectedProviderId].name} API Error:`, e)
-    throw new Error(provider.handleError(e, model))
+    throw e
   }
 }
 
@@ -263,7 +265,8 @@ export async function* summarizeContentStream(text, contentType) {
       `${providersConfig[selectedProviderId].name} API Stream Error:`,
       e
     )
-    throw new Error(provider.handleError(e, model))
+    // Re-throw the structured error
+    throw e
   }
 }
 
@@ -337,7 +340,7 @@ export async function enhancePrompt(userPrompt) {
     return provider.parseResponse(rawResult)
   } catch (e) {
     console.error(`${providersConfig[selectedProviderId].name} API Error:`, e)
-    throw new Error(provider.handleError(e, model))
+    throw e
   }
 }
 
@@ -424,7 +427,7 @@ export async function summarizeChapters(timestampedTranscript) {
       `${providersConfig[selectedProviderId].name} API Error (Chapters):`,
       e
     )
-    throw new Error(provider.handleError(e, model))
+    throw e
   }
 }
 
@@ -506,6 +509,6 @@ export async function* summarizeChaptersStream(timestampedTranscript) {
       `${providersConfig[selectedProviderId].name} API Stream Error (Chapters):`,
       e
     )
-    throw new Error(provider.handleError(e, model))
+    throw e
   }
 }

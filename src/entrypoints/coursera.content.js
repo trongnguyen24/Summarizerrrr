@@ -15,9 +15,19 @@ export default defineContentScript({
        * @param {number} timeout - Thời gian chờ tối đa bằng milliseconds.
        * @returns {Promise<Element|null>} - Phần tử hoặc null nếu hết thời gian chờ.
        */
-      async waitForElement(selector, timeout = 15000, interval = 500) {
+      async waitForElement(selector, timeout = 15000, initialInterval = 50) {
         const startTime = Date.now()
+
+        // Immediate check trước khi bắt đầu polling
+        const immediateElement = document.querySelector(selector)
+        if (immediateElement) {
+          return immediateElement
+        }
+
         return new Promise((resolve) => {
+          let currentInterval = initialInterval
+          const maxInterval = 200
+
           const check = () => {
             const element = document.querySelector(selector)
             if (element) {
@@ -25,10 +35,12 @@ export default defineContentScript({
             } else if (Date.now() - startTime > timeout) {
               resolve(null)
             } else {
-              setTimeout(check, interval)
+              // Dynamic interval: tăng dần để giảm CPU usage
+              currentInterval = Math.min(currentInterval * 1.2, maxInterval)
+              setTimeout(check, currentInterval)
             }
           }
-          check()
+          setTimeout(check, currentInterval)
         })
       }
 
@@ -41,10 +53,38 @@ export default defineContentScript({
           { type: 'reading', selector: '[data-testid="cml-viewer"]' },
         ]
 
+        // Immediate check - kiểm tra ngay lập tức xem có element nào đã có sẵn không
+        for (const finder of contentFinders) {
+          const immediateElement = document.querySelector(finder.selector)
+          if (immediateElement) {
+            console.log(`Found immediate content of type: ${finder.type}`)
+            // Process ngay lập tức mà không cần wait
+            if (finder.type === 'transcript') {
+              const transcriptText = Array.from(
+                immediateElement.querySelectorAll('.rc-Phrase span')
+              )
+                .map((element) => element.textContent?.trim())
+                .filter(Boolean)
+                .join('\n')
+
+              if (transcriptText) {
+                return transcriptText
+              }
+            } else if (finder.type === 'reading') {
+              const readingText = immediateElement.textContent?.trim()
+              if (readingText) {
+                return readingText
+              }
+            }
+          }
+        }
+
+        // Nếu không tìm thấy immediate element, fallback về parallel search
+        console.log('No immediate content found, starting parallel search...')
         // Tạo một mảng các promise, mỗi promise sẽ tìm một selector
-        // Tất cả sẽ chạy song song, với timeout là 5 giây
+        // Tất cả sẽ chạy song song, với timeout được tối ưu xuống 3 giây
         const searchPromises = contentFinders.map((finder) =>
-          this.waitForElement(finder.selector, 5000)
+          this.waitForElement(finder.selector, 3000)
         )
 
         try {
@@ -159,7 +199,11 @@ export default defineContentScript({
                       retries + 1
                     }/${maxRetries})...`
                   )
-                  await new Promise((resolve) => setTimeout(resolve, 2000))
+                  // Exponential backoff: 500ms, 750ms, 1000ms
+                  const retryDelay = Math.min(500 * (1 + retries * 0.5), 1000)
+                  await new Promise((resolve) =>
+                    setTimeout(resolve, retryDelay)
+                  )
                 }
                 try {
                   content = await courseraContentExtractor.getPlainContent(lang)

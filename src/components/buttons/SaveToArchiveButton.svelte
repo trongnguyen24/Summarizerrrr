@@ -4,6 +4,7 @@
     summaryState,
     saveAllGeneratedSummariesToArchive,
   } from '@/stores/summaryStore.svelte.js'
+  import { t } from 'svelte-i18n'
   import { Tooltip } from 'bits-ui'
   import Icon from '@iconify/svelte'
   import { slideScaleFade } from '@/lib/slideScaleFade'
@@ -60,7 +61,9 @@
               }}
               {...props}
             >
-              {summaryState.isArchived ? 'Saved!' : 'Save to archive'}
+              {summaryState.isArchived
+                ? $t('button.saved')
+                : $t('button.save_to_archive')}
             </div>
           </div>
         {/if}

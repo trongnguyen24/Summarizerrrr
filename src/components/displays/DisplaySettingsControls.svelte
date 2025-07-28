@@ -1,6 +1,7 @@
 <script>
   // @ts-nocheck
   import Icon from '@iconify/svelte'
+  import { t } from 'svelte-i18n'
   import {
     fontSizeIndex,
     widthIndex,
@@ -10,6 +11,7 @@
     settings,
     updateSettings,
   } from '../../stores/settingsStore.svelte.js'
+  import { archiveStore } from '@/stores/archiveStore.svelte.js'
 
   const fontSizeClasses = [
     'prose-base prose-h1:text-2xl prose-h2:text-xl prose-h3:text-lg',
@@ -60,9 +62,9 @@
 
 <div class="absolute text-base flex gap-2 top-2 right-2">
   <button
-    class="size-8 flex justify-center items-center hover:bg-blackwhite/5 rounded-md"
+    class="size-8 flex justify-center items-center hover:bg-blackwhite/5 rounded-2xl"
     onclick={toggleTheme}
-    title="Change theme"
+    title={$t('archive.change_theme')}
   >
     {#if themeSettings.theme === 'light'}
       <Icon icon="heroicons:sun-16-solid" width="20" height="20" />
@@ -74,32 +76,32 @@
   </button>
 
   <button
-    class=" size-8 font-mono flex justify-center items-center hover:bg-blackwhite/5 rounded-md"
+    class=" size-8 font-mono flex justify-center items-center hover:bg-blackwhite/5 rounded-2xl"
     onclick={decreaseFontSize}
     disabled={$fontSizeIndex === fontSizeClasses.length + 1}
-    title="Decrease font size"
+    title={$t('archive.font_dec')}
   >
     A-
   </button>
   <button
-    class=" size-8 flex font-mono justify-center items-center hover:bg-blackwhite/5 rounded-md"
+    class=" size-8 flex font-mono justify-center items-center hover:bg-blackwhite/5 rounded-2xl"
     onclick={increaseFontSize}
     disabled={$fontSizeIndex === fontSizeClasses.length - 1}
-    title="Increase font size"
+    title={$t('archive.font_inc')}
   >
     A+
   </button>
   <button
-    class=" size-8 flex justify-center items-center hover:bg-blackwhite/5 rounded-md"
+    class=" size-8 flex justify-center items-center hover:bg-blackwhite/5 rounded-2xl"
     onclick={toggleFontFamily}
-    title="Change font"
+    title={$t('archive.change_font')}
   >
     aA
   </button>
   <button
-    class=" size-8 pt-1.5 relative flex text-xl justify-center items-center hover:bg-blackwhite/5 rounded-md"
+    class=" size-8 pt-1.5 relative flex text-xl justify-center items-center hover:bg-blackwhite/5 rounded-2xl"
     onclick={toggleWidth}
-    title="Toggle width"
+    title={$t('archive.toggle_width')}
   >
     <span class="font-default absolute text-sm -translate-y-3"
       >{widthButtonTexts[$widthIndex]}</span

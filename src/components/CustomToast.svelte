@@ -2,35 +2,27 @@
   import TextScramble from '@/lib/textScramble.js'
   import { onMount } from 'svelte'
 
-  export let message = 'Saved successfully!'
-  export let type = 'success' // 'success' or 'error'
-
   let textElement
   let textScramble
 
   onMount(() => {
     textScramble = new TextScramble(textElement)
-    textScramble.setText(message)
+    textScramble.setText('Saved successfully!')
   })
-
-  let borderColorClass =
-    type === 'success' ? 'border-green-500/20' : 'border-red-500/20'
-  let bgColorClass = type === 'success' ? 'bg-green-500/10' : 'bg-red-500/10'
-  let textColorClass = type === 'success' ? 'text-green-400' : 'text-red-400'
 </script>
 
 <div class="toast-wrap w-1 relative z-10">
   <div
-    class="relative w-48 overflow-hidden flex flex-col h-13 justify-center px-6 text-left border {borderColorClass} {bgColorClass} {textColorClass}"
+    class="relative w-48 overflow-hidden flex flex-col h-13 justify-center px-6 text-text-secondary text-left border bg-surface-2 border-blackwhite/10"
   >
-    <div bind:this={textElement}>{message}</div>
+    <div bind:this={textElement}>Saved successfully!</div>
   </div>
   <span
-    class="absolute size-4 rotate-45 bottom-px left-px border {borderColorClass} {bgColorClass} -translate-x-1/2 translate-y-1/2"
+    class="absolute size-4 rotate-45 bottom-px left-px border border-blackwhite/10 bg-surface-2 -translate-x-1/2 translate-y-1/2"
   ></span>
 </div>
 <div
-  class="absolute inset-0 left-3 shadow-2xl shadow-gray-950 {bgColorClass}"
+  class="absolute inset-0 left-3 shadow-2xl shadow-gray-950 bg-surface-2"
 ></div>
 
 <style>

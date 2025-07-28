@@ -141,6 +141,11 @@ export async function updateSettings(newSettings) {
 
   Object.assign(settings, validUpdates)
 
+  // If uiLang is updated, also update the i18n locale
+  if (validUpdates.uiLang) {
+    locale.set(validUpdates.uiLang)
+  }
+
   try {
     console.log(
       '[settingsStore] Updating and saving the following settings:',

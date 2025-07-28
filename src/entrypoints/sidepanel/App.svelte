@@ -1,7 +1,7 @@
 <script>
   // @ts-nocheck
-  import '../../lib/i18n.js' // Import to initialize
   import Icon from '@iconify/svelte'
+  import { t } from 'svelte-i18n'
   import 'overlayscrollbars/overlayscrollbars.css'
   import SettingButton from '../../components/buttons/SettingButton.svelte'
   import SummarizeButton from '../../components/buttons/SummarizeButton.svelte'
@@ -35,7 +35,6 @@
   import '@fontsource-variable/noto-serif'
   import '@fontsource/opendyslexic'
   import '@fontsource/mali'
-  import { locale } from 'svelte-i18n'
 
   // Use $effect to initialize the app and set up listeners
   $effect(() => {
@@ -101,13 +100,6 @@
       document.removeListener('summarizeClick', handleSummarizeClick)
     }
   })
-  // Sync i18n locale with settings store
-  $effect(() => {
-    const newLocale = settings.uiLang || 'en' // Fallback to 'en'
-    if (newLocale && newLocale !== $state.snapshot(locale)) {
-      locale.set(newLocale)
-    }
-  })
 </script>
 
 <div class="flex min-w-[22.5rem] bg-surface-1 w-full flex-col">
@@ -135,7 +127,7 @@
             browser.tabs.create({ url: 'archive.html' })
           }}
           class="p-1 setting-animation transition-colors hover:bg-surface-1 rounded-full hover:text-text-primary"
-          title="Open Archive"
+          title={$t('archive.open_archive')}
         >
           <Icon
             icon="heroicons:bars-3-bottom-left-solid"

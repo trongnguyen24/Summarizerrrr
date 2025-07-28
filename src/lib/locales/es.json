@@ -1,6 +1,7 @@
 {
   "settings": {
     "title": "Ajustes",
+    "open_settings": "Abrir ajustes",
     "general": {
       "title": "General",
       "fontFamily": "Fuente",
@@ -92,6 +93,93 @@
         "selected_text": "Texto seleccionado",
         "override_note": "* Los prompts activos anulan los ajustes básicos."
       }
+    },
+    "chatgpt_config": {
+      "api_key_label": "Clave API",
+      "api_key_placeholder": "Introduce tu clave API de ChatGPT",
+      "model_name_label": "Nombre del modelo",
+      "saved_status": "¡Guardado!",
+      "view_models": "Ver modelos",
+      "model_placeholder": "Introduce modelo ChatGPT"
+    },
+    "deepseek_config": {
+      "api_key_label": "Clave API",
+      "api_key_placeholder": "Introduce tu clave API de Deepseek",
+      "model_name_label": "Nombre del modelo",
+      "saved_status": "¡Guardado!",
+      "view_models": "Ver modelos",
+      "model_placeholder": "Introduce modelo Deepseek"
+    },
+    "gemini_advanced_config": {
+      "api_key_label": "Clave API de Gemini",
+      "get_a_key": "Obtener clave",
+      "select_model_label": "Modelo Gemini Advanced",
+      "select_model_placeholder": "Selecciona un modelo",
+      "select_gemini_model_aria_label": "Seleccionar modelo Gemini"
+    },
+    "gemini_basic_config": {
+      "api_key_label": "Clave API de Gemini",
+      "get_a_key": "Obtener clave",
+      "select_model_label": "Seleccionar modelo Gemini"
+    },
+    "ollama_config": {
+      "endpoint_label": "Endpoint Ollama",
+      "endpoint_placeholder": "http://localhost:11434",
+      "model_label": "Modelo Ollama",
+      "model_placeholder": "llama2"
+    },
+    "openai_compatible_config": {
+      "api_key_label": "Clave API",
+      "api_key_placeholder": "Clave API",
+      "base_url_label": "URL base",
+      "base_url_placeholder": "http://127.0.0.1:1234/v1/",
+      "model_name_label": "Nombre del modelo",
+      "model_placeholder": "qwen/qwen2.5-vl-7b"
+    },
+    "openrouter_config": {
+      "api_key_label": "Clave API de OpenRouter",
+      "get_a_key": "Obtener clave",
+      "model_label": "Modelo OpenRouter",
+      "saved_status": "¡Guardado!",
+      "view_models": "Ver modelos"
     }
+  },
+  "prompts": {
+    "title": "Prompts",
+    "system_instruction": "Prompt del sistema",
+    "system_note": "Opcional: Omitir si no es necesario.",
+    "user_prompt": "Prompt del usuario",
+    "user_note": "Usa __CONTENT__ para insertar contenido dinámico",
+    "select_template": "Seleccionar plantilla",
+    "prompt_enhance": "Mejorar prompt",
+    "buttons": {
+      "import": "Importar",
+      "discard": "Descartar",
+      "save": "Guardar",
+      "apply_prompt": "Aplicar prompt"
+    },
+    "tip": [
+      "Esta función funciona mejor con Gemini 2.5 Flash o superior.",
+      "La \"Mejorar prompt\" solo formatea y explica basándose en tu entrada.",
+      "Para usar otro idioma, ajusta el idioma de salida en Ajustes > Resumen."
+    ]
+  },
+  "archive": {
+    "open_archive": "Abrir archivo",
+    "tab_history": "Historial",
+    "tab_archive": "Archivo",
+    "change_theme": "Cambiar tema",
+    "font_dec": "Reducir fuente",
+    "font_inc": "Aumentar fuente",
+    "change_font": "Cambiar fuente",
+    "toggle_width": "Alternar ancho"
+  },
+  "button": {
+    "copy": "Copiar al portapapeles",
+    "copied": "¡Copiado!",
+    "download": "Descargar como Markdown",
+    "downloaded": "¡Descargado!",
+    "save_to_archive": "Guardar en archivo",
+    "saved": "¡Guardado!"
   }
 }

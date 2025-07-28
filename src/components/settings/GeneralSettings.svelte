@@ -74,16 +74,6 @@
   <div class="flex flex-col gap-2 px-5 pb-4">
     <!-- svelte-ignore a11y_label_has_associated_control -->
     <label class="block text-text-secondary"
-      >{$t('settings.general.lang_ui')}</label
-    >
-    <div class="flex w-full gap-1">
-      <UILanguageSelect />
-    </div>
-  </div>
-
-  <div class="flex flex-col gap-2 px-5">
-    <!-- svelte-ignore a11y_label_has_associated_control -->
-    <label class="block text-text-secondary"
       >{$t('settings.general.theme')}</label
     >
     <div class="flexw-full gap-1">
@@ -117,7 +107,18 @@
       </ButtonIcon>
     </div>
   </div>
-  <div class="flex flex-col gap-2 p-5">
+
+  <div class="flex flex-col gap-2 px-5 py-4">
+    <!-- svelte-ignore a11y_label_has_associated_control -->
+    <label class="block text-text-secondary"
+      >{$t('settings.general.lang_ui')}</label
+    >
+    <div class="flex w-full gap-1">
+      <UILanguageSelect />
+    </div>
+  </div>
+
+  <div class="flex flex-col gap-2 px-5 py-4">
     <!-- svelte-ignore a11y_label_has_associated_control -->
     <label class="block text-text-secondary"
       >{$t('settings.general.responseMode')}</label
@@ -145,7 +146,7 @@
       </ButtonSet>
     </div>
   </div>
-  <div class="flex flex-col gap-2 p-5">
+  <div class="flex flex-col gap-2 px-5 py-4">
     <!-- svelte-ignore a11y_label_has_associated_control -->
     <div class="flex items-center gap-1 justify-between">
       {$t('settings.general.shortcuts')}

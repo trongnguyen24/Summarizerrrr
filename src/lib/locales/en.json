@@ -165,7 +165,21 @@
     ]
   },
   "archive": {
+    "open_archive": "Open archive",
     "tab_history": "History",
-    "tab_archive": "Archive"
+    "tab_archive": "Archive",
+    "change_theme": "Change theme",
+    "font_dec": "Font Decrease",
+    "font_inc": "Font Increase",
+    "change_font": "Change font",
+    "toggle_width": "Toggle width"
+  },
+  "button": {
+    "copy": "Copy to clipboard",
+    "copied": "Copied!",
+    "download": "Download as Markdown",
+    "downloaded": "Downloaded!",
+    "save_to_archive": "Save to archive",
+    "saved": "Saved!"
   }
 }

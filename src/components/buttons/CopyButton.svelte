@@ -1,6 +1,7 @@
 <!-- @ts-nocheck -->
 <script>
   import { Tooltip } from 'bits-ui'
+  import { t } from 'svelte-i18n'
   import Icon from '@iconify/svelte'
   import { slideScaleFade } from '@/lib/slideScaleFade'
 
@@ -94,7 +95,7 @@
               }}
               {...props}
             >
-              {isCopied ? 'Copied!' : 'Copy to clipboard'}
+              {isCopied ? $t('button.copied') : $t('button.copy')}
             </div>
           </div>
         {/if}

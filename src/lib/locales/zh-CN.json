@@ -1,6 +1,7 @@
 {
   "settings": {
     "title": "设置",
+    "open_settings": "打开设置",
     "general": {
       "title": "通用",
       "fontFamily": "字体",
@@ -92,6 +93,93 @@
         "selected_text": "选中文本",
         "override_note": "* 激活的提示将覆盖基础设置。"
       }
+    },
+    "chatgpt_config": {
+      "api_key_label": "API 密钥",
+      "api_key_placeholder": "输入您的 ChatGPT API 密钥",
+      "model_name_label": "模型名称",
+      "saved_status": "已保存！",
+      "view_models": "查看模型",
+      "model_placeholder": "输入 ChatGPT 模型"
+    },
+    "deepseek_config": {
+      "api_key_label": "API 密钥",
+      "api_key_placeholder": "输入您的 Deepseek API 密钥",
+      "model_name_label": "模型名称",
+      "saved_status": "已保存！",
+      "view_models": "查看模型",
+      "model_placeholder": "输入 Deepseek 模型"
+    },
+    "gemini_advanced_config": {
+      "api_key_label": "Gemini API 密钥",
+      "get_a_key": "获取密钥",
+      "select_model_label": "Gemini Advanced 模型",
+      "select_model_placeholder": "选择模型",
+      "select_gemini_model_aria_label": "选择 Gemini 模型"
+    },
+    "gemini_basic_config": {
+      "api_key_label": "Gemini API 密钥",
+      "get_a_key": "获取密钥",
+      "select_model_label": "选择 Gemini 模型"
+    },
+    "ollama_config": {
+      "endpoint_label": "Ollama 端点",
+      "endpoint_placeholder": "http://localhost:11434",
+      "model_label": "Ollama 模型",
+      "model_placeholder": "llama2"
+    },
+    "openai_compatible_config": {
+      "api_key_label": "API 密钥",
+      "api_key_placeholder": "API 密钥",
+      "base_url_label": "基础 URL",
+      "base_url_placeholder": "http://127.0.0.1:1234/v1/",
+      "model_name_label": "模型名称",
+      "model_placeholder": "qwen/qwen2.5-vl-7b"
+    },
+    "openrouter_config": {
+      "api_key_label": "OpenRouter API 密钥",
+      "get_a_key": "获取密钥",
+      "model_label": "OpenRouter 模型",
+      "saved_status": "已保存！",
+      "view_models": "查看模型"
     }
+  },
+  "prompts": {
+    "title": "提示词",
+    "system_instruction": "系统提示词",
+    "system_note": "可选：如不需要可跳过。",
+    "user_prompt": "用户提示词",
+    "user_note": "使用 __CONTENT__ 插入动态内容",
+    "select_template": "选择模板",
+    "prompt_enhance": "优化提示词",
+    "buttons": {
+      "import": "导入",
+      "discard": "丢弃",
+      "save": "保存",
+      "apply_prompt": "应用提示词"
+    },
+    "tip": [
+      "该功能在 Gemini 2.5 Flash 或更高版本上效果最佳。",
+      "\"优化提示词\"功能仅基于您的输入进行格式化和解释。",
+      "要使用其他语言提示，请在 设置 > 摘要 中调整输出语言。"
+    ]
+  },
+  "archive": {
+    "open_archive": "打开归档",
+    "tab_history": "历史记录",
+    "tab_archive": "归档",
+    "change_theme": "切换主题",
+    "font_dec": "缩小字体",
+    "font_inc": "放大字体",
+    "change_font": "切换字体",
+    "toggle_width": "切换宽度"
+  },
+  "button": {
+    "copy": "复制到剪贴板",
+    "copied": "已复制！",
+    "download": "下载为 Markdown",
+    "downloaded": "已下载！",
+    "save_to_archive": "保存到归档",
+    "saved": "已保存！"
   }
 }

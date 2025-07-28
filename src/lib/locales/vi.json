@@ -165,7 +165,21 @@
     ]
   },
   "archive": {
+    "open_archive": "Mở lưu trữ",
     "tab_history": "Lịch sử",
-    "tab_archive": "Lưu trữ"
+    "tab_archive": "Lưu trữ",
+    "change_theme": "Đổi theme",
+    "font_dec": "Giảm kích thước chữ",
+    "font_inc": "Tăng kích thước chữ",
+    "change_font": "Đổi kiểu chữ",
+    "toggle_width": "Đổi độ rộng vùng đọc"
+  },
+  "button": {
+    "copy": "Sao chép vào bộ nhớ đệm",
+    "copied": "Đã sao chép!",
+    "download": "Tải xuống dạng Markdown",
+    "downloaded": "Đã tải xuống!",
+    "save_to_archive": "Lưu vào lưu trữ",
+    "saved": "Đã lưu!"
   }
 }

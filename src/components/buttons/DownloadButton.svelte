@@ -1,6 +1,7 @@
 <!-- @ts-nocheck -->
 <script>
   import { Tooltip } from 'bits-ui'
+  import { t } from 'svelte-i18n'
   import Icon from '@iconify/svelte'
   import { slideScaleFade } from '@/lib/slideScaleFade'
 
@@ -91,7 +92,7 @@
               }}
               {...props}
             >
-              {isDownloaded ? 'Downloaded!' : 'Download as Markdown'}
+              {isDownloaded ? $t('button.downloaded') : $t('button.download')}
             </div>
           </div>
         {/if}

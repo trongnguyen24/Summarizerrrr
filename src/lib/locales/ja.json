@@ -1,6 +1,7 @@
 {
   "settings": {
     "title": "設定",
+    "open_settings": "設定を開く",
     "general": {
       "title": "一般設定",
       "fontFamily": "フォント",
@@ -92,6 +93,93 @@
         "selected_text": "選択テキスト",
         "override_note": "* カスタムプロンプトが基本設定より優先されます。"
       }
+    },
+    "chatgpt_config": {
+      "api_key_label": "APIキー",
+      "api_key_placeholder": "ChatGPT APIキーを入力",
+      "model_name_label": "モデル名",
+      "saved_status": "保存完了！",
+      "view_models": "モデル一覧",
+      "model_placeholder": "ChatGPTモデルを入力"
+    },
+    "deepseek_config": {
+      "api_key_label": "APIキー",
+      "api_key_placeholder": "Deepseek APIキーを入力",
+      "model_name_label": "モデル名",
+      "saved_status": "保存完了！",
+      "view_models": "モデル一覧",
+      "model_placeholder": "Deepseekモデルを入力"
+    },
+    "gemini_advanced_config": {
+      "api_key_label": "Gemini APIキー",
+      "get_a_key": "キーを取得",
+      "select_model_label": "Gemini Advancedモデル",
+      "select_model_placeholder": "モデルを選択",
+      "select_gemini_model_aria_label": "Geminiモデルを選択"
+    },
+    "gemini_basic_config": {
+      "api_key_label": "Gemini APIキー",
+      "get_a_key": "キーを取得",
+      "select_model_label": "Geminiモデルを選択"
+    },
+    "ollama_config": {
+      "endpoint_label": "Ollamaエンドポイント",
+      "endpoint_placeholder": "http://localhost:11434",
+      "model_label": "Ollamaモデル",
+      "model_placeholder": "llama2"
+    },
+    "openai_compatible_config": {
+      "api_key_label": "APIキー",
+      "api_key_placeholder": "APIキー",
+      "base_url_label": "ベースURL",
+      "base_url_placeholder": "http://127.0.0.1:1234/v1/",
+      "model_name_label": "モデル名",
+      "model_placeholder": "qwen/qwen2.5-vl-7b"
+    },
+    "openrouter_config": {
+      "api_key_label": "OpenRouter APIキー",
+      "get_a_key": "キーを取得",
+      "model_label": "OpenRouterモデル",
+      "saved_status": "保存完了！",
+      "view_models": "モデル一覧"
     }
+  },
+  "prompts": {
+    "title": "プロンプト",
+    "system_instruction": "システムプロンプト",
+    "system_note": "オプション：不要な場合はスキップ。",
+    "user_prompt": "ユーザープロンプト",
+    "user_note": "__CONTENT__を使用して動的コンテンツを挿入",
+    "select_template": "テンプレートを選択",
+    "prompt_enhance": "プロンプト改善",
+    "buttons": {
+      "import": "インポート",
+      "discard": "破棄",
+      "save": "保存",
+      "apply_prompt": "プロンプト適用"
+    },
+    "tip": [
+      "この機能はGemini 2.5 Flash以上で最適に動作します。",
+      "\"プロンプト改善\"機能は入力に基づいてフォーマットと説明のみを行います。",
+      "他の言語でプロンプトを使用するには、設定 > 要約で出力言語を調整してください。"
+    ]
+  },
+  "archive": {
+    "open_archive": "アーカイブを開く",
+    "tab_history": "履歴",
+    "tab_archive": "アーカイブ",
+    "change_theme": "テーマ変更",
+    "font_dec": "文字サイズ縮小",
+    "font_inc": "文字サイズ拡大",
+    "change_font": "フォント変更",
+    "toggle_width": "幅切り替え"
+  },
+  "button": {
+    "copy": "クリップボードにコピー",
+    "copied": "コピー完了！",
+    "download": "Markdownでダウンロード",
+    "downloaded": "ダウンロード完了！",
+    "save_to_archive": "アーカイブに保存",
+    "saved": "保存完了！"
   }
 }

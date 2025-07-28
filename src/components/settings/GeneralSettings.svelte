@@ -76,7 +76,7 @@
     <label class="block text-text-secondary"
       >{$t('settings.general.theme')}</label
     >
-    <div class="flexw-full gap-1">
+    <div class="flex w-full gap-1">
       <ButtonIcon
         title={$t('settings.general.theme_mode.light')}
         class="setting-btn {themeSettings.theme === 'light' ? 'active' : ''}"

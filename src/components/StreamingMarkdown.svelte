@@ -289,14 +289,4 @@
       content: '✽';
     }
   }
-
-  /* Optimize code block rendering */
-  :global(.markdown-container pre) {
-    contain: layout;
-    overflow-x: auto;
-    background-color: #f8f8f8;
-    border-radius: 4px;
-    padding: 1rem;
-    margin: 0.5rem 0;
-  }
 </style>

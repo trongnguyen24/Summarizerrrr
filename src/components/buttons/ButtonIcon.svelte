@@ -12,7 +12,7 @@
 <button
   type="button"
   title={Description}
-  class={`group overflow-hidden relative w-16 ${className}`}
+  class={`group overflow-hidden relative w-20 ${className}`}
   {onclick}
   {...rest}
 >

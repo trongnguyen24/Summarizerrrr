@@ -14,6 +14,7 @@ import { getProvider, providersConfig } from './providersConfig.js'
 import { promptBuilders } from '@/lib/prompting/promptBuilders.js'
 import { systemInstructions } from '@/lib/prompting/systemInstructions.js'
 import { DEFAULT_OLLAMA_ENDPOINT } from './ollamaConfig.js'
+import { ErrorTypes } from '../error/errorTypes.js'
 
 /**
  * Helper function to get provider-specific configuration (API key, model, model config).
@@ -71,9 +72,12 @@ function getProviderConfig(userSettings, selectedProviderId) {
   }
 
   if (!apiKey) {
-    throw new Error(
-      `${providersConfig[selectedProviderId].name} API key is not configured. Click the settings icon on the right to add your API key.`
-    )
+    const providerName =
+      providersConfig[selectedProviderId]?.name || selectedProviderId
+    throw {
+      message: `${providerName} API key is not configured. Click the settings icon on the right to add your API key.`,
+      type: ErrorTypes.API_KEY,
+    }
   }
 
   return { apiKey, model, modelConfig }

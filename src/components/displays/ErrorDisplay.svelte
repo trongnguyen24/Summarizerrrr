@@ -54,7 +54,7 @@
         </ul>
       {/if}
     </div>
-    <div class="flex justify-end mt-4 space-x-2">
+    <!-- <div class="flex justify-end mt-4 space-x-2">
       {#if error.canRetry}
         <button
           onclick={handleRetry}
@@ -63,6 +63,6 @@
           Thử lại
         </button>
       {/if}
-    </div>
+    </div> -->
   </div>
 {/if}

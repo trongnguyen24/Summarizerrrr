@@ -9,12 +9,12 @@
     settings,
     loadSettings,
     updateSettings,
-  } from '../stores/settingsStore.svelte.js'
-  import { loadAdvancedModeSettings } from '../stores/advancedModeSettingsStore.svelte.js'
-  import { loadBasicModeSettings } from '../stores/basicModeSettingsStore.svelte.js'
-  import AIModelSettings from './settings/AIModelSettings.svelte'
-  import SummarySettings from './settings/SummarySettings.svelte'
-  import GeneralSettings from './settings/GeneralSettings.svelte'
+  } from '@/stores/settingsStore.svelte.js'
+  import { loadAdvancedModeSettings } from '@/stores/advancedModeSettingsStore.svelte.js'
+  import { loadBasicModeSettings } from '@/stores/basicModeSettingsStore.svelte.js'
+  import AIModelSettings from '@/components/settings/AIModelSettings.svelte'
+  import SummarySettings from '@/components/settings/SummarySettings.svelte'
+  import GeneralSettings from '@/components/settings/GeneralSettings.svelte'
 
   let activeTab = $state('ai-model') // State variable for current tab
   let activeBarTransformClass = $state('-translate-x-18') // New variable to control transform

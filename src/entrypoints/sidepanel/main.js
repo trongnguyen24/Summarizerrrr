@@ -6,8 +6,8 @@ import {
   loadSettings,
   settings,
   subscribeToSettingsChanges,
-} from '../../stores/settingsStore.svelte.js'
-import '../../lib/i18n.js' // Ensure locales are registered
+} from '@/stores/settingsStore.svelte.js'
+import '@/lib/i18n/i18n.js' // Ensure locales are registered
 
 async function startup() {
   await loadSettings()

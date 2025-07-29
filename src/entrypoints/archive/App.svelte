@@ -10,21 +10,21 @@
     settings,
     loadSettings,
     subscribeToSettingsChanges,
-  } from '../../stores/settingsStore.svelte.js'
+  } from '@/stores/settingsStore.svelte.js'
   import {
     initializeTheme,
     subscribeToSystemThemeChanges,
     themeSettings,
     applyThemeToDocument,
-  } from '../../stores/themeStore.svelte.js'
+  } from '@/stores/themeStore.svelte.js'
   import SummaryDisplay from '@/components/displays/SummaryDisplay.svelte'
   import '@fontsource-variable/geist-mono'
   import '@fontsource-variable/noto-serif'
   import '@fontsource/opendyslexic'
   import '@fontsource/mali'
-  import { formatDate } from '@/lib/utils.js'
-  import { archiveStore } from '../../stores/archiveStore.svelte.js'
-  import { animationService } from '../../services/animationService.js'
+  import { formatDate } from '@/lib/utils/utils.js'
+  import { archiveStore } from '@/stores/archiveStore.svelte.js'
+  import { animationService } from '@/services/animationService.js'
 
   // State management
   let isSidePanelVisible = $state(true)

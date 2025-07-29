@@ -4,7 +4,7 @@ import {
   getStorage,
   setStorage,
   onStorageChange,
-} from '../services/chromeService.js'
+} from '@/services/chromeService.js'
 
 // --- Default Settings ---
 const DEFAULT_SETTINGS = {

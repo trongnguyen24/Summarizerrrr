@@ -1,7 +1,7 @@
 // @ts-nocheck
 // @ts-nocheck
 import { BaseProvider } from './baseProvider'
-import { ErrorHandler } from '../errorHandler.js'
+import { ErrorHandler } from '@/lib/error/errorHandler.js'
 
 export class OllamaProvider extends BaseProvider {
   constructor(ollamaEndpoint, model) {

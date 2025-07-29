@@ -3,7 +3,7 @@
   import { Tooltip } from 'bits-ui'
   import { t } from 'svelte-i18n'
   import Icon from '@iconify/svelte'
-  import { slideScaleFade } from '@/lib/slideScaleFade'
+  import { slideScaleFade } from '../../lib/ui/slideScaleFade.js'
 
   let { content, title = 'summary' } = $props()
   let isDownloaded = $state(false)

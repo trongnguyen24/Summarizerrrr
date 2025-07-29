@@ -6,7 +6,7 @@
   import Dialog from './Dialog.svelte'
   import { DropdownMenu } from 'bits-ui'
   import { useOverlayScrollbars } from 'overlayscrollbars-svelte'
-  import { slideScaleFade } from '@/lib/slideScaleFade'
+  import { slideScaleFade } from '@/lib/ui/slideScaleFade.js'
   import {
     deleteSummary,
     deleteHistory,
@@ -14,8 +14,8 @@
     updateHistory,
     getSummaryById,
     getHistoryById,
-  } from '@/lib/indexedDBService'
-  import TabArchive from '@/components/TabArchive.svelte'
+  } from '@/lib/db/indexedDBService'
+  import TabArchive from '@/components/navigation/TabArchive.svelte'
 
   const {
     list,

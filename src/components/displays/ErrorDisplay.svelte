@@ -1,7 +1,7 @@
 <script>
   // @ts-nocheck
   import { fetchAndSummarize } from '../../stores/summaryStore.svelte.js'
-  import { getHelpInfo } from '../../lib/helpSystem.js'
+  import { getHelpInfo } from '../../lib/error/helpSystem.js'
   import { settings } from '../../stores/settingsStore.svelte.js'
 
   let { error } = $props()

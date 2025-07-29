@@ -2,7 +2,7 @@
   // @ts-nocheck
   import TabbedSummaryDisplay from './TabbedSummaryDisplay.svelte'
   import GenericSummaryDisplay from './GenericSummaryDisplay.svelte'
-  import TOC from '../TOC.svelte'
+  import TOC from '@/components/navigation/TOC.svelte'
   import {
     summaryState,
     updateActiveCourseTab,

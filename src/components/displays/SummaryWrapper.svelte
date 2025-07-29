@@ -1,6 +1,6 @@
 <script>
   // @ts-nocheck
-  import PlusIcon from '../PlusIcon.svelte';
+  import PlusIcon from '@/components/icon/PlusIcon.svelte'
 
   let {
     isLoading,
@@ -9,17 +9,21 @@
     loadingText,
     errorTitle,
     children,
-    'no-data': noDataSlot
-  } = $props();
+    'no-data': noDataSlot,
+  } = $props()
 </script>
 
 <div class="flex flex-col gap-4">
   {#if isLoading && !data}
-    <div class="text-center p-4 mx-auto text-text-secondary w-fit animate-pulse">
+    <div
+      class="text-center p-4 mx-auto text-text-secondary w-fit animate-pulse"
+    >
       {loadingText || 'Loading...'}
     </div>
   {:else if error}
-    <div class="flex relative flex-col w-fit mx-auto text-red-400 px-4 bg-red-500/10 border border-red-500/20">
+    <div
+      class="flex relative flex-col w-fit mx-auto text-red-400 px-4 bg-red-500/10 border border-red-500/20"
+    >
       <p class="text-sm">
         <span class="font-bold block">{errorTitle || 'Error'}</span>
         {error}
@@ -29,9 +33,7 @@
     </div>
   {:else if data}
     {@render children()}
-  {:else}
-    {#if noDataSlot}
-      {@render noDataSlot()}
-    {/if}
+  {:else if noDataSlot}
+    {@render noDataSlot()}
   {/if}
 </div>

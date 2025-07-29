@@ -1,8 +1,8 @@
 <script>
   // @ts-nocheck
-  import TabNavigation from '../TabNavigation.svelte';
+  import TabNavigation from '@/components/navigation/TabNavigation.svelte'
 
-  let { tabs, activeTab, onSelectTab, children } = $props();
+  let { tabs, activeTab, onSelectTab, children } = $props()
 </script>
 
 <div class="summary-container">

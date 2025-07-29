@@ -3,8 +3,8 @@
   import { Tooltip } from 'bits-ui'
   import Icon from '@iconify/svelte'
   import { t } from 'svelte-i18n'
-  import { slideScaleFade } from '@/lib/slideScaleFade'
-  import { moveHistoryItemToArchive } from '@/lib/indexedDBService'
+  import { slideScaleFade } from '@/lib/ui/slideScaleFade.js'
+  import { moveHistoryItemToArchive } from '@/lib/db/indexedDBService.js'
   import { setStorage } from '@/services/chromeService'
 
   let { selectedSummary } = $props()

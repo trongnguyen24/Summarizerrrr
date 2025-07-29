@@ -1,5 +1,5 @@
 <script>
-  import TextScramble from '@/lib/textScramble.js'
+  import TextScramble from '@/lib/ui/textScramble.js'
   import { onMount } from 'svelte'
 
   let textElement

@@ -1,18 +1,18 @@
 // @ts-nocheck
 import { geminiModelsConfig } from './geminiConfig.js'
 import { openrouterModelsConfig } from './openrouterConfig.js'
-import { settings, loadSettings } from '../stores/settingsStore.svelte.js'
+import { settings, loadSettings } from '@/stores/settingsStore.svelte.js'
 import {
   advancedModeSettings,
   loadAdvancedModeSettings,
-} from '../stores/advancedModeSettingsStore.svelte.js'
+} from '@/stores/advancedModeSettingsStore.svelte.js'
 import {
   basicModeSettings,
   loadBasicModeSettings,
-} from '../stores/basicModeSettingsStore.svelte.js'
+} from '@/stores/basicModeSettingsStore.svelte.js'
 import { getProvider, providersConfig } from './providersConfig.js'
-import { promptBuilders } from './promptBuilders.js'
-import { systemInstructions } from './systemInstructions.js'
+import { promptBuilders } from '@/lib/prompting/promptBuilders.js'
+import { systemInstructions } from '@/lib/prompting/systemInstructions.js'
 import { DEFAULT_OLLAMA_ENDPOINT } from './ollamaConfig.js'
 
 /**

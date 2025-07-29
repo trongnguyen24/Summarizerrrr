@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { generateUUID } from './utils'
+import { generateUUID } from '../utils/utils'
 
 const DB_NAME = 'summarizer_db'
 const STORE_NAME = 'summaries'

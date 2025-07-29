@@ -5,7 +5,7 @@
   import ButtonSet from '../buttons/ButtonSet.svelte'
   import LanguageSelect from '../inputs/LanguageSelect.svelte'
   import ProvidersSelect from '../inputs/ProvidersSelect.svelte'
-  import TextScramble from '@/lib/textScramble.js'
+  import TextScramble from '../../lib/ui/textScramble.js'
   import GeminiBasicConfig from '../providerConfigs/GeminiBasicConfig.svelte'
   import GeminiAdvancedConfig from '../providerConfigs/GeminiAdvancedConfig.svelte'
   import OpenrouterConfig from '../providerConfigs/OpenrouterConfig.svelte'

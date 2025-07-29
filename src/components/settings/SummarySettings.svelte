@@ -4,7 +4,7 @@
   import Icon from '@iconify/svelte'
   import ButtonSet from '../buttons/ButtonSet.svelte'
   import LanguageSelect from '../inputs/LanguageSelect.svelte'
-  import TextScramble from '@/lib/textScramble.js'
+  import TextScramble from '../../lib/ui/textScramble.js'
   import SwitchButton from '../inputs/Switch.svelte'
   import { Label, Switch } from 'bits-ui'
   import {

@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { GoogleGenAI } from '@google/genai'
 import { BaseProvider } from './baseProvider.js'
-import { ErrorHandler } from '../errorHandler.js'
+import { ErrorHandler } from '@/lib/error/errorHandler.js'
 
 export class GeminiProvider extends BaseProvider {
   constructor(apiKey) {

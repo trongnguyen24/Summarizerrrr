@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { marked } from 'marked'
-import { getPageContent } from '../services/contentService.js'
-import { getActiveTabInfo } from '../services/chromeService.js'
+import { getPageContent } from '@/services/contentService.js'
+import { getActiveTabInfo } from '@/services/chromeService.js'
 import { settings, loadSettings } from './settingsStore.svelte.js'
 import {
   summarizeContent,
@@ -9,15 +9,15 @@ import {
   summarizeContentStream,
   summarizeChaptersStream,
   providerSupportsStreaming,
-} from '../lib/api.js'
+} from '@/lib/api/api.js'
 import {
   addSummary,
   addHistory,
   getSummaryById,
   getHistoryById,
-} from '../lib/indexedDBService.js'
-import { setStorage } from '../services/chromeService.js'
-import { generateUUID } from '../lib/utils.js'
+} from '@/lib/db/indexedDBService.js'
+import { setStorage } from '@/services/chromeService.js'
+import { generateUUID } from '@/lib/utils/utils.js'
 
 // --- State ---
 export const summaryState = $state({

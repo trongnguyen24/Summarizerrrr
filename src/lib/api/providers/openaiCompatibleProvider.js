@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { BaseProvider } from './baseProvider.js'
 import OpenAI from 'openai'
-import { ErrorHandler } from '../errorHandler.js'
+import { ErrorHandler } from '@/lib/error/errorHandler.js'
 
 export class OpenAICompatibleProvider extends BaseProvider {
   constructor(apiKey, baseUrl) {

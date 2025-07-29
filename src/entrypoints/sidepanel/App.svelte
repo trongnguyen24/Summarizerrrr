@@ -3,13 +3,13 @@
   import Icon from '@iconify/svelte'
   import { t } from 'svelte-i18n'
   import 'overlayscrollbars/overlayscrollbars.css'
-  import SettingButton from '../../components/buttons/SettingButton.svelte'
-  import SummarizeButton from '../../components/buttons/SummarizeButton.svelte'
-  import TabNavigation from '../../components/TabNavigation.svelte'
-  import GenericSummaryDisplay from '../../components/displays/GenericSummaryDisplay.svelte'
-  import YouTubeSummaryDisplay from '../../components/displays/YouTubeSummaryDisplay.svelte'
-  import CourseSummaryDisplay from '../../components/displays/CourseSummaryDisplay.svelte'
-  import ErrorDisplay from '../../components/displays/ErrorDisplay.svelte'
+  import SettingButton from '@/components/buttons/SettingButton.svelte'
+  import SummarizeButton from '@/components/buttons/SummarizeButton.svelte'
+  import TabNavigation from '@/components/navigation/TabNavigation.svelte'
+  import GenericSummaryDisplay from '@/components/displays/GenericSummaryDisplay.svelte'
+  import YouTubeSummaryDisplay from '@/components/displays/YouTubeSummaryDisplay.svelte'
+  import CourseSummaryDisplay from '@/components/displays/CourseSummaryDisplay.svelte'
+  import ErrorDisplay from '@/components/displays/ErrorDisplay.svelte'
   import 'webextension-polyfill'
 
   // Import direct variables and functions from refactored stores
@@ -22,16 +22,16 @@
     fetchAndSummarizeStream,
     updateActiveCourseTab,
     updateActiveYouTubeTab,
-  } from '../../stores/summaryStore.svelte.js'
-  import { tabTitle } from '../../stores/tabTitleStore.svelte.js'
-  import { setupMessageListener } from '../../services/messageHandler.js'
-  import { initializeApp } from '../../services/initialization.js'
-  import { settings } from '../../stores/settingsStore.svelte.js'
+  } from '@/stores/summaryStore.svelte.js'
+  import { tabTitle } from '@/stores/tabTitleStore.svelte.js'
+  import { setupMessageListener } from '@/services/messageHandler.js'
+  import { initializeApp } from '@/services/initialization.js'
+  import { settings } from '@/stores/settingsStore.svelte.js'
   import {
     themeSettings,
     initializeTheme,
     subscribeToSystemThemeChanges,
-  } from '../../stores/themeStore.svelte.js'
+  } from '@/stores/themeStore.svelte.js'
   import '@fontsource-variable/geist-mono'
   import '@fontsource-variable/noto-serif'
   import '@fontsource/opendyslexic'

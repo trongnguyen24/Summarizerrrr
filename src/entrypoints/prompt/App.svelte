@@ -1,14 +1,14 @@
 <script>
   // @ts-nocheck
   import { t } from 'svelte-i18n'
-  import { promptTemplates } from '@/lib/promptTemplates.js'
+  import { promptTemplates } from '@/lib/prompting/promptTemplates.js'
   import 'overlayscrollbars/overlayscrollbars.css'
   import { useOverlayScrollbars } from 'overlayscrollbars-svelte'
   import Icon from '@iconify/svelte'
-  import PlusIcon from '@/components/PlusIcon.svelte'
-  import TextScramble from '@/lib/textScramble.js'
+  import PlusIcon from '@/components/icon/PlusIcon.svelte'
+  import TextScramble from '@/lib/ui/textScramble.js'
   import PromptMenu from './PromptMenu.svelte'
-  import CustomToast from '@/components/CustomToast.svelte'
+  import CustomToast from '@/components/feedback/CustomToast.svelte'
   import Logdev from '@/components/settings/Logdev.svelte'
   import { Toaster, toast } from 'svelte-sonner'
   import {
@@ -16,18 +16,18 @@
     loadSettings,
     updateSettings,
     subscribeToSettingsChanges,
-  } from '../../stores/settingsStore.svelte.js'
+  } from '@/stores/settingsStore.svelte.js'
   import {
     initializeTheme,
     subscribeToSystemThemeChanges,
     themeSettings, // Import đối tượng themeSettings
-  } from '../../stores/themeStore.svelte.js'
+  } from '@/stores/themeStore.svelte.js'
   import '@fontsource-variable/geist-mono'
   import { Dialog } from 'bits-ui'
   import { fade } from 'svelte/transition'
-  import { slideScaleFade } from '../../lib/slideScaleFade.js' // Corrected path if needed
-  import { enhancePrompt } from '../../lib/api.js'
-  import aiPrompt from '../../lib/prompts/aiPrompt.js'
+  import { slideScaleFade } from '@/lib/ui/slideScaleFade.js'
+  import { enhancePrompt } from '@/lib/api/api.js'
+  import aiPrompt from '@/lib/prompts/aiPrompt.js'
 
   let isOpen = $state(false) // State for the dialog
   let enhancedUserPrompt = $state('')

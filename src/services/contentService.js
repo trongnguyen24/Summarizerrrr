@@ -4,8 +4,8 @@ import {
   sendMessageToTab,
   executeFunction,
 } from './chromeService.js'
-import { ErrorHandler } from '../lib/errorHandler.js'
-import { ErrorTypes } from '../lib/errorTypes.js'
+import { ErrorHandler } from '../lib/error/errorHandler.js'
+import { ErrorTypes } from '../lib/error/errorTypes.js'
 
 const YOUTUBE_MATCH_PATTERN = /youtube\.com\/watch/i
 const COURSE_MATCH_PATTERN =

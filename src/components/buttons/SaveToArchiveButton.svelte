@@ -7,7 +7,7 @@
   import { t } from 'svelte-i18n'
   import { Tooltip } from 'bits-ui'
   import Icon from '@iconify/svelte'
-  import { slideScaleFade } from '@/lib/slideScaleFade'
+  import { slideScaleFade } from '@/lib/ui/slideScaleFade.js'
 
   async function handleSave() {
     if (summaryState.isArchived) return

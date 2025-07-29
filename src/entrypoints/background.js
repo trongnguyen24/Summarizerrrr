@@ -22,9 +22,10 @@ export default defineBackground(() => {
   const UDEMY_REGEX = /udemy\.com\/course\/.*\/learn\//i
   const COURSERA_REGEX = /coursera\.org\/learn\//i
 
-  const YOUTUBE_CONTENT_SCRIPT_PATH = 'content-scripts/youtubetranscript.js'
-  const UDEMY_CONTENT_SCRIPT_PATH = 'content-scripts/udemy.js'
-  const COURSERA_CONTENT_SCRIPT_PATH = 'content-scripts/coursera.js'
+  const YOUTUBE_CONTENT_SCRIPT_PATH =
+    'src/entrypoints/youtubetranscript.content.js'
+  const UDEMY_CONTENT_SCRIPT_PATH = 'src/entrypoints/udemy.content.js'
+  const COURSERA_CONTENT_SCRIPT_PATH = 'src/entrypoints/coursera.content.js'
 
   // Hàm helper để inject content script
   async function injectContentScriptIntoTab(tabId, scriptPath) {

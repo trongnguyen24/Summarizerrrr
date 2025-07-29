@@ -2,7 +2,7 @@
 <script>
   import Icon from '@iconify/svelte'
   import { t, locale } from 'svelte-i18n'
-  import { settings } from '../stores/settingsStore.svelte.js'
+  import { settings } from '@/stores/settingsStore.svelte.js'
 
   let { activeTab, onSelectTab } = $props()
 

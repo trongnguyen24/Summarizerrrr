@@ -34,7 +34,7 @@ export const providersConfig = {
   },
 }
 
-import { settings } from '../stores/settingsStore.svelte'
+import { settings } from '@/stores/settingsStore.svelte.js'
 
 /**
  * Retrieves a provider instance based on the provider ID and current settings.

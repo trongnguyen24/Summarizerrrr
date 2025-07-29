@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { BaseProvider } from './baseProvider.js'
-import { ErrorHandler } from '../errorHandler.js'
+import { ErrorHandler } from '@/lib/error/errorHandler.js'
 
 export class OpenrouterProvider extends BaseProvider {
   constructor(apiKey) {

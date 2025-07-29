@@ -1,11 +1,11 @@
 <script>
   import { t } from 'svelte-i18n'
   import Icon from '@iconify/svelte'
-  import Setting from '../Setting.svelte' // Assuming Setting.svelte will also be refactored
+  import Setting from '@/components/settings/Setting.svelte'
   import { Dialog } from 'bits-ui'
   import { fade } from 'svelte/transition'
 
-  import { slideScaleFade } from '../../lib/slideScaleFade.js' // Corrected path if needed
+  import { slideScaleFade } from '../../lib/ui/slideScaleFade.js' // Corrected path if needed
 
   let isOpen = $state(false) // State for the dialog
 

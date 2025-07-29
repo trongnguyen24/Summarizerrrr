@@ -199,62 +199,63 @@
     "apiKey": {
       "title": "Invalid API Key",
       "message": "The API key you provided is invalid or has been disabled. Please check the key in the settings and try again.",
-      "actions": {
-        "openSettings": "Open Settings"
-      }
+      "suggestions": ["Verify your API key in the settings."]
     },
     "unauthorized": {
       "title": "Unauthorized Access",
       "message": "Your API key does not have the required permissions for this operation. This can happen with tuned models or specific API restrictions.",
-      "actions": {
-        "openSettings": "Open Settings",
-        "checkApiPermissions": "Check API Permissions"
-      }
+      "suggestions": [
+        "Check your API permissions and ensure they are sufficient.",
+        "Contact the API provider's support for assistance."
+      ]
     },
     "quota": {
       "title": "API Quota Exceeded",
       "message": "You have exceeded your usage limit for the selected API. Please check your account billing or try again later.",
-      "actions": {
-        "checkBilling": "Check Billing",
-        "switchProvider": "Switch Provider"
-      }
+      "suggestions": [
+        "Review your API usage and billing details.",
+        "Consider upgrading your plan if you frequently hit limits."
+      ]
     },
     "network": {
       "title": "Network Connection Error",
       "message": "Could not connect to the server. Please check your internet connection and any firewall or proxy settings.",
-      "actions": {
-        "retry": "Retry"
-      }
+      "suggestions": [
+        "Ensure you have a stable internet connection and disable any VPN/proxy if active."
+      ]
     },
     "server": {
       "title": "API Server Error",
       "message": "The AI provider's server encountered an internal error (5xx). This is usually a temporary issue. Please wait a moment and try again.",
-      "actions": {
-        "retry": "Retry",
-        "switchProvider": "Switch Provider"
-      }
+      "suggestions": [
+        "Wait a few moments and try your request again.",
+        "Check the provider's status page for known outages."
+      ]
     },
     "content": {
       "title": "Content Error",
       "message": "The extension could not retrieve the necessary content from this page (e.g., transcript not found, page text too short).",
-      "actions": {
-        "refreshPage": "Refresh Page"
-      }
+      "suggestions": [
+        "Ensure the video has a transcript available and is not private.",
+        "Make sure the web page is fully loaded and accessible."
+      ]
     },
     "permission": {
       "title": "Permission Denied",
       "message": "The extension lacks the necessary browser permissions to perform this action. Please check the extension settings.",
-      "actions": {
-        "checkPermissions": "Check Permissions"
-      }
+      "suggestions": [
+        "Review and grant necessary permissions in your browser's extension settings."
+      ]
     },
     "unknown": {
       "title": "Unknown Error",
       "message": "An unexpected error occurred. If this problem persists, please consider reporting it.",
-      "actions": {
-        "retry": "Retry",
-        "reportIssue": "Report Issue"
-      }
+      "suggestions": [
+        "Check if the video has a transcript.",
+        "Ensure the page has fully loaded.",
+        "Try again with a different page or video.",
+        "Report this issue to the developer."
+      ]
     }
   }
 }

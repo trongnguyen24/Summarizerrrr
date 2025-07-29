@@ -198,62 +198,63 @@
     "apiKey": {
       "title": "Khóa API không hợp lệ",
       "message": "Khóa API đã cung cấp không hợp lệ hoặc đã bị vô hiệu hóa. Vui lòng kiểm tra khóa trong cài đặt.",
-      "actions": {
-        "openSettings": "Mở cài đặt"
-      }
+      "suggestions": ["Kiểm tra khóa API của bạn trong cài đặt."]
     },
     "unauthorized": {
       "title": "Truy cập không được phép",
       "message": "Khóa API của bạn không có quyền cần thiết cho thao tác này. Điều này có thể xảy ra với các mô hình được tinh chỉnh hoặc các hạn chế API cụ thể.",
-      "actions": {
-        "openSettings": "Mở cài đặt",
-        "checkApiPermissions": "Kiểm tra quyền API"
-      }
+      "suggestions": [
+        "Kiểm tra quyền API của bạn và đảm bảo chúng đủ.",
+        "Liên hệ bộ phận hỗ trợ của nhà cung cấp API để được hỗ trợ."
+      ]
     },
     "quota": {
       "title": "Vượt quá hạn mức API",
       "message": "Bạn đã vượt quá giới hạn sử dụng cho API đã chọn. Vui lòng kiểm tra thanh toán tài khoản của bạn hoặc thử lại sau.",
-      "actions": {
-        "checkBilling": "Kiểm tra thanh toán",
-        "switchProvider": "Chuyển nhà cung cấp"
-      }
+      "suggestions": [
+        "Xem lại mức sử dụng API và chi tiết thanh toán của bạn.",
+        "Cân nhắc nâng cấp gói của bạn nếu bạn thường xuyên đạt giới hạn."
+      ]
     },
     "network": {
       "title": "Lỗi kết nối mạng",
       "message": "Không thể kết nối với máy chủ. Vui lòng kiểm tra kết nối internet và cài đặt tường lửa hoặc proxy của bạn.",
-      "actions": {
-        "retry": "Thử lại"
-      }
+      "suggestions": [
+        "Đảm bảo bạn có kết nối internet ổn định và tắt mọi VPN/proxy nếu đang hoạt động."
+      ]
     },
     "server": {
       "title": "Lỗi máy chủ API",
       "message": "Máy chủ của nhà cung cấp AI gặp lỗi nội bộ (5xx). Đây thường là sự cố tạm thời. Vui lòng đợi một lát và thử lại.",
-      "actions": {
-        "retry": "Thử lại",
-        "switchProvider": "Chuyển nhà cung cấp"
-      }
+      "suggestions": [
+        "Đợi vài phút và thử lại yêu cầu của bạn.",
+        "Kiểm tra trang trạng thái của nhà cung cấp để biết các sự cố đã biết."
+      ]
     },
     "content": {
       "title": "Lỗi nội dung",
       "message": "Tiện ích không thể truy xuất nội dung cần thiết từ trang này (ví dụ: không tìm thấy bản ghi, văn bản trang quá ngắn).",
-      "actions": {
-        "refreshPage": "Làm mới trang"
-      }
+      "suggestions": [
+        "Đảm bảo video có bản chép lời và không phải là riêng tư.",
+        "Đảm bảo trang web đã tải hoàn toàn và có thể truy cập được."
+      ]
     },
     "permission": {
       "title": "Quyền bị từ chối",
       "message": "Tiện ích thiếu quyền trình duyệt cần thiết để thực hiện thao tác này. Vui lòng kiểm tra cài đặt tiện ích.",
-      "actions": {
-        "checkPermissions": "Kiểm tra quyền"
-      }
+      "suggestions": [
+        "Xem lại và cấp các quyền cần thiết trong cài đặt tiện ích của trình duyệt của bạn."
+      ]
     },
     "unknown": {
       "title": "Lỗi không xác định",
       "message": "Đã xảy ra lỗi không mong muốn. Nếu vấn đề này vẫn tiếp diễn, vui lòng cân nhắc báo cáo.",
-      "actions": {
-        "retry": "Thử lại",
-        "reportIssue": "Báo cáo sự cố"
-      }
+      "suggestions": [
+        "Kiểm tra xem video có bản chép lời không.",
+        "Đảm bảo trang web đã tải hoàn toàn.",
+        "Thử lại với một trang hoặc video khác.",
+        "Báo cáo sự cố này cho nhà phát triển."
+      ]
     }
   }
 }

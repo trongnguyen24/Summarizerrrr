@@ -198,62 +198,65 @@
     "apiKey": {
       "title": "Ungültiger API-Schlüssel",
       "message": "Der bereitgestellte API-Schlüssel ist ungültig oder deaktiviert. Bitte überprüfen Sie den Schlüssel in den Einstellungen.",
-      "actions": {
-        "openSettings": "Einstellungen öffnen"
-      }
+      "suggestions": [
+        "Überprüfen Sie Ihren API-Schlüssel in den Einstellungen."
+      ]
     },
     "unauthorized": {
       "title": "Unautorisierter Zugriff",
       "message": "Ihr API-Schlüssel hat nicht die erforderlichen Berechtigungen. Dies kann bei bestimmten Modellen oder API-Einschränkungen auftreten.",
-      "actions": {
-        "openSettings": "Einstellungen öffnen",
-        "checkApiPermissions": "API-Berechtigungen prüfen"
-      }
+      "suggestions": [
+        "Überprüfen Sie Ihre API-Berechtigungen und stellen Sie sicher, dass sie ausreichend sind.",
+        "Kontaktieren Sie den Support des API-Anbieters."
+      ]
     },
     "quota": {
       "title": "API-Kontingent überschritten",
       "message": "Sie haben Ihr Nutzungslimit für die ausgewählte API überschritten. Überprüfen Sie Ihr Konto oder versuchen Sie es später erneut.",
-      "actions": {
-        "checkBilling": "Abrechnung prüfen",
-        "switchProvider": "Anbieter wechseln"
-      }
+      "suggestions": [
+        "Überprüfen Sie Ihre API-Nutzung und Abrechnungsdetails.",
+        "Erwägen Sie ein Upgrade Ihres Plans, wenn Sie häufig an die Grenzen stoßen."
+      ]
     },
     "network": {
       "title": "Netzwerkverbindungsfehler",
       "message": "Verbindung zum Server konnte nicht hergestellt werden. Überprüfen Sie Ihre Internetverbindung und Firewall/Proxy-Einstellungen.",
-      "actions": {
-        "retry": "Wiederholen"
-      }
+      "suggestions": [
+        "Stellen Sie sicher, dass Sie eine stabile Internetverbindung haben und deaktivieren Sie VPN/Proxy, falls aktiv."
+      ]
     },
     "server": {
       "title": "API-Serverfehler",
       "message": "Der Server des AI-Anbieters hat einen internen Fehler (5xx) festgestellt. Dies ist meist ein temporäres Problem. Versuchen Sie es später erneut.",
-      "actions": {
-        "retry": "Wiederholen",
-        "switchProvider": "Anbieter wechseln"
-      }
+      "suggestions": [
+        "Warten Sie einen Moment und versuchen Sie Ihre Anfrage erneut.",
+        "Überprüfen Sie die Statusseite des Anbieters auf bekannte Ausfälle."
+      ]
     },
     "content": {
       "title": "Inhaltsfehler",
       "message": "Die Erweiterung konnte den notwendigen Inhalt (z.B. Transkript, Text) nicht abrufen.",
-      "actions": {
-        "refreshPage": "Seite neu laden"
-      }
+      "suggestions": [
+        "Stellen Sie sicher, dass für das Video ein Transkript verfügbar und nicht privat ist.",
+        "Stellen Sie sicher, dass die Webseite vollständig geladen und zugänglich ist."
+      ]
     },
     "permission": {
       "title": "Berechtigung verweigert",
       "message": "Der Erweiterung fehlen die notwendigen Browserberechtigungen. Überprüfen Sie die Erweiterungseinstellungen.",
-      "actions": {
-        "checkPermissions": "Berechtigungen prüfen"
-      }
+      "suggestions": [
+        "Überprüfen und erteilen Sie die notwendigen Berechtigungen in den Erweiterungseinstellungen Ihres Browsers."
+      ]
     },
     "unknown": {
       "title": "Unbekannter Fehler",
       "message": "Ein unerwarteter Fehler ist aufgetreten. Falls das Problem weiterhin besteht, melden Sie es bitte.",
-      "actions": {
-        "retry": "Wiederholen",
-        "reportIssue": "Problem melden"
-      }
+      "suggestions": [
+        "Überprüfen Sie, ob das Video ein Transkript hat.",
+        "Stellen Sie sicher, dass die Seite vollständig geladen ist.",
+        "Versuchen Sie es mit einer anderen Seite oder einem anderen Video.",
+        "Melden Sie dieses Problem dem Entwickler."
+      ]
     }
   }
 }

@@ -5,7 +5,7 @@ import { ErrorTypes } from './errorTypes.js'
  * @typedef {object} HelpInfo
  * @property {string} title - The title of the help message.
  * @property {string} message - The detailed help message.
- * @property {string[]} [actions] - Suggested user actions (e.g., button labels).
+ * @property {string[]} [suggestions] - Suggested user actions or troubleshooting steps.
  */
 
 /**
@@ -16,53 +16,58 @@ export const HelpMessages = {
   [ErrorTypes.API_KEY]: {
     title: 'helpSystem.apiKey.title',
     message: 'helpSystem.apiKey.message',
-    actions: ['helpSystem.apiKey.actions.openSettings'],
+    suggestions: ['helpSystem.apiKey.suggestions.0'],
   },
   [ErrorTypes.UNAUTHORIZED]: {
     title: 'helpSystem.unauthorized.title',
     message: 'helpSystem.unauthorized.message',
-    actions: [
-      'helpSystem.unauthorized.actions.openSettings',
-      'helpSystem.unauthorized.actions.checkApiPermissions',
+    suggestions: [
+      'helpSystem.unauthorized.suggestions.0',
+      'helpSystem.unauthorized.suggestions.1',
     ],
   },
   [ErrorTypes.QUOTA]: {
     title: 'helpSystem.quota.title',
     message: 'helpSystem.quota.message',
-    actions: [
-      'helpSystem.quota.actions.checkBilling',
-      'helpSystem.quota.actions.switchProvider',
+    suggestions: [
+      'helpSystem.quota.suggestions.0',
+      'helpSystem.quota.suggestions.1',
     ],
   },
   [ErrorTypes.NETWORK]: {
     title: 'helpSystem.network.title',
     message: 'helpSystem.network.message',
-    actions: ['helpSystem.network.actions.retry'],
+    suggestions: ['helpSystem.network.suggestions.0'],
   },
   [ErrorTypes.SERVER]: {
     title: 'helpSystem.server.title',
     message: 'helpSystem.server.message',
-    actions: [
-      'helpSystem.server.actions.retry',
-      'helpSystem.server.actions.switchProvider',
+    suggestions: [
+      'helpSystem.server.suggestions.0',
+      'helpSystem.server.suggestions.1',
     ],
   },
   [ErrorTypes.CONTENT]: {
     title: 'helpSystem.content.title',
     message: 'helpSystem.content.message',
-    actions: ['helpSystem.content.actions.refreshPage'],
+    suggestions: [
+      'helpSystem.content.suggestions.0',
+      'helpSystem.content.suggestions.1',
+    ],
   },
   [ErrorTypes.PERMISSION]: {
     title: 'helpSystem.permission.title',
     message: 'helpSystem.permission.message',
-    actions: ['helpSystem.permission.actions.checkPermissions'],
+    suggestions: ['helpSystem.permission.suggestions.0'],
   },
   [ErrorTypes.UNKNOWN]: {
     title: 'helpSystem.unknown.title',
     message: 'helpSystem.unknown.message',
-    actions: [
-      'helpSystem.unknown.actions.retry',
-      'helpSystem.unknown.actions.reportIssue',
+    suggestions: [
+      'helpSystem.unknown.suggestions.0',
+      'helpSystem.unknown.suggestions.1',
+      'helpSystem.unknown.suggestions.2',
+      'helpSystem.unknown.suggestions.3',
     ],
   },
   // Add other error types as needed

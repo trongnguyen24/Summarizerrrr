@@ -12,71 +12,14 @@
   // Translated properties for display
   const translatedTitle = $derived($t(helpInfo.title))
   const translatedMessage = $derived($t(helpInfo.message))
-  // Map actions to an array of objects containing both original key and translated text
-  const translatedActions = $derived(
-    helpInfo.actions.map((actionKey) => ({
-      key: actionKey, // Keep original key for handling
-      text: $t(actionKey), // Translate for display
-    }))
+  // Map suggestions to an array of translated texts
+  const translatedSuggestions = $derived(
+    helpInfo.suggestions?.map((suggestionKey) => $t(suggestionKey)) || []
   )
 
   function handleRetry() {
     if (error.canRetry) {
       fetchAndSummarize()
-    }
-  }
-
-  // Modify handleHelpAction to use the original key
-  function handleHelpAction(actionKey) {
-    switch (actionKey) {
-      case 'helpSystem.apiKey.actions.openSettings':
-      case 'helpSystem.unauthorized.actions.openSettings':
-        document.dispatchEvent(new CustomEvent('openSettings'))
-        break
-      case 'helpSystem.content.actions.refreshPage':
-        browser.tabs.reload()
-        break
-      case 'helpSystem.network.actions.retry':
-      case 'helpSystem.server.actions.retry':
-      case 'helpSystem.unknown.actions.retry':
-        handleRetry() // Use the existing retry handler
-        break
-      // Add other specific action handlers here
-      case 'helpSystem.unauthorized.actions.checkApiPermissions':
-        alert(
-          $t('helpSystem.unauthorized.actions.checkApiPermissions') +
-            '\n\n' +
-            $t(helpInfo.message)
-        )
-        break
-      case 'helpSystem.quota.actions.checkBilling':
-        alert(
-          $t('helpSystem.quota.actions.checkBilling') +
-            '\n\n' +
-            $t(helpInfo.message)
-        )
-        break
-      case 'helpSystem.quota.actions.switchProvider':
-      case 'helpSystem.server.actions.switchProvider':
-        alert($t(actionKey) + '\n\n' + $t(helpInfo.message))
-        break
-      case 'helpSystem.permission.actions.checkPermissions':
-        alert(
-          $t('helpSystem.permission.actions.checkPermissions') +
-            '\n\n' +
-            $t(helpInfo.message)
-        )
-        break
-      case 'helpSystem.unknown.actions.reportIssue':
-        alert(
-          $t('helpSystem.unknown.actions.reportIssue') +
-            '\n\n' +
-            $t(helpInfo.message)
-        )
-        break
-      default:
-        alert(`Action: ${actionKey}\n\n${$t(helpInfo.message)}`) // Fallback for unhandled actions
-        break
     }
   }
 </script>
@@ -102,24 +45,22 @@
       <p class="text-sm">
         {translatedMessage || 'Something went wrong.'}
       </p>
+
+      {#if translatedSuggestions.length > 0}
+        <ul class="list-disc !m-0 list-inside pl-4">
+          {#each translatedSuggestions as suggestion}
+            <li>{suggestion}</li>
+          {/each}
+        </ul>
+      {/if}
     </div>
     <div class="flex justify-end mt-4 space-x-2">
-      {#if translatedActions}
-        {#each translatedActions as action}
-          <button
-            onclick={() => handleHelpAction(action.key)}
-            class="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm"
-          >
-            {action.text}
-          </button>
-        {/each}
-      {/if}
-      {#if error.canRetry && !helpInfo.actions?.includes('helpSystem.network.actions.retry') && !helpInfo.actions?.includes('helpSystem.server.actions.retry') && !helpInfo.actions?.includes('helpSystem.unknown.actions.retry')}
+      {#if error.canRetry}
         <button
           onclick={handleRetry}
           class="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 text-sm"
         >
-          Retry
+          Thử lại
         </button>
       {/if}
     </div>

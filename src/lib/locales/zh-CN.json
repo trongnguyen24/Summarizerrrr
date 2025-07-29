@@ -198,62 +198,61 @@
     "apiKey": {
       "title": "无效的API密钥",
       "message": "您提供的API密钥无效或已被禁用。请在设置中检查密钥。",
-      "actions": {
-        "openSettings": "打开设置"
-      }
+      "suggestions": ["在设置中检查您的API密钥。"]
     },
     "unauthorized": {
       "title": "未经授权的访问",
       "message": "您的API密钥没有执行此操作所需的权限。这可能发生在调整后的模型或特定的API限制下。",
-      "actions": {
-        "openSettings": "打开设置",
-        "checkApiPermissions": "检查API权限"
-      }
+      "suggestions": [
+        "检查您的API权限并确保它们足够。",
+        "联系API提供商的支持以获取帮助。"
+      ]
     },
     "quota": {
       "title": "API配额超出",
       "message": "您已超出所选API的使用限制。请检查您的帐户账单或稍后重试。",
-      "actions": {
-        "checkBilling": "检查账单",
-        "switchProvider": "切换提供商"
-      }
+      "suggestions": [
+        "查看您的API使用情况和账单明细。",
+        "如果您经常达到限制，请考虑升级您的计划。"
+      ]
     },
     "network": {
       "title": "网络连接错误",
       "message": "无法连接到服务器。请检查您的互联网连接以及任何防火墙或代理设置。",
-      "actions": {
-        "retry": "重试"
-      }
+      "suggestions": [
+        "确保您有稳定的互联网连接，如果正在使用VPN/代理，请禁用它。"
+      ]
     },
     "server": {
       "title": "API服务器错误",
       "message": "AI提供商的服务器遇到内部错误（5xx）。这通常是临时问题。请稍等片刻，然后重试。",
-      "actions": {
-        "retry": "重试",
-        "switchProvider": "切换提供商"
-      }
+      "suggestions": [
+        "稍等片刻，然后重试您的请求。",
+        "检查提供商的状态页面以了解已知中断。"
+      ]
     },
     "content": {
       "title": "内容错误",
       "message": "扩展程序无法从本页检索到所需内容（例如，找不到转录，页面文本太短）。",
-      "actions": {
-        "refreshPage": "刷新页面"
-      }
+      "suggestions": [
+        "确保视频有可用的转录且不是私有的。",
+        "确保网页完全加载且可访问。"
+      ]
     },
     "permission": {
       "title": "权限被拒绝",
       "message": "扩展程序缺少执行此操作所需的浏览器权限。请检查扩展设置。",
-      "actions": {
-        "checkPermissions": "检查权限"
-      }
+      "suggestions": ["在浏览器的扩展设置中查看并授予必要的权限。"]
     },
     "unknown": {
       "title": "未知错误",
       "message": "发生了一个意外错误。如果此问题仍然存在，请考虑报告。",
-      "actions": {
-        "retry": "重试",
-        "reportIssue": "报告问题"
-      }
+      "suggestions": [
+        "检查视频是否有字幕。",
+        "确保网页已完全加载。",
+        "尝试不同的页面或视频。",
+        "向开发者报告此问题。"
+      ]
     }
   }
 }

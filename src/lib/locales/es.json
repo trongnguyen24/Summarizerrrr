@@ -198,62 +198,63 @@
     "apiKey": {
       "title": "Clave API inválida",
       "message": "La clave API proporcionada es inválida o ha sido deshabilitada. Verifique la clave en la configuración.",
-      "actions": {
-        "openSettings": "Abrir configuración"
-      }
+      "suggestions": ["Verifique su clave API en la configuración."]
     },
     "unauthorized": {
       "title": "Acceso no autorizado",
       "message": "Su clave API no tiene los permisos requeridos. Esto puede ocurrir con modelos ajustados o restricciones de API específicas.",
-      "actions": {
-        "openSettings": "Abrir configuración",
-        "checkApiPermissions": "Verificar permisos API"
-      }
+      "suggestions": [
+        "Verifique sus permisos API y asegúrese de que sean suficientes.",
+        "Contacte al soporte del proveedor de API para obtener ayuda."
+      ]
     },
     "quota": {
       "title": "Cuota de API excedida",
       "message": "Ha excedido su límite de uso para la API seleccionada. Verifique su facturación o inténtelo más tarde.",
-      "actions": {
-        "checkBilling": "Verificar facturación",
-        "switchProvider": "Cambiar proveedor"
-      }
+      "suggestions": [
+        "Revise su uso de API y los detalles de facturación.",
+        "Considere actualizar su plan si frecuentemente alcanza los límites."
+      ]
     },
     "network": {
       "title": "Error de conexión de red",
       "message": "No se pudo conectar al servidor. Verifique su conexión a internet y la configuración de firewall o proxy.",
-      "actions": {
-        "retry": "Reintentar"
-      }
+      "suggestions": [
+        "Asegúrese de tener una conexión a Internet estable y desactive cualquier VPN/proxy si está activo."
+      ]
     },
     "server": {
       "title": "Error del servidor API",
       "message": "El servidor del proveedor de IA encontró un error interno (5xx). Esto suele ser un problema temporal. Espere un momento y vuelva a intentarlo.",
-      "actions": {
-        "retry": "Reintentar",
-        "switchProvider": "Cambiar proveedor"
-      }
+      "suggestions": [
+        "Espere unos momentos y vuelva a intentar su solicitud.",
+        "Verifique la página de estado del proveedor para ver si hay interrupciones conocidas."
+      ]
     },
     "content": {
       "title": "Error de contenido",
       "message": "La extensión no pudo recuperar el contenido necesario de esta página (ej., transcripción no encontrada, texto de página demasiado corto).",
-      "actions": {
-        "refreshPage": "Actualizar página"
-      }
+      "suggestions": [
+        "Asegúrese de que el video tenga una transcripción disponible y no sea privado.",
+        "Asegúrese de que la página web esté completamente cargada y accesible."
+      ]
     },
     "permission": {
       "title": "Permiso denegado",
       "message": "La extensión carece de los permisos de navegador necesarios para realizar esta acción. Verifique la configuración de la extensión.",
-      "actions": {
-        "checkPermissions": "Verificar permisos"
-      }
+      "suggestions": [
+        "Revise y otorgue los permisos necesarios en la configuración de la extensión de su navegador."
+      ]
     },
     "unknown": {
       "title": "Error desconocido",
       "message": "Ocurrió un error inesperado. Si este problema persiste, considere reportarlo.",
-      "actions": {
-        "retry": "Reintentar",
-        "reportIssue": "Reportar problema"
-      }
+      "suggestions": [
+        "Compruebe si el vídeo tiene transcripción.",
+        "Asegúrese de que la página web esté completamente cargada.",
+        "Pruebe con otra página o vídeo.",
+        "Informe de este problema al desarrollador."
+      ]
     }
   }
 }

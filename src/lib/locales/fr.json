@@ -198,62 +198,63 @@
     "apiKey": {
       "title": "Clé API invalide",
       "message": "La clé API fournie est invalide ou a été désactivée. Veuillez vérifier la clé dans les paramètres.",
-      "actions": {
-        "openSettings": "Ouvrir les paramètres"
-      }
+      "suggestions": ["Vérifiez votre clé API dans les paramètres."]
     },
     "unauthorized": {
       "title": "Accès non autorisé",
       "message": "Votre clé API n'a pas les autorisations requises. Cela peut se produire avec des modèles ajustés ou des restrictions d'API spécifiques.",
-      "actions": {
-        "openSettings": "Ouvrir les paramètres",
-        "checkApiPermissions": "Vérifier les autorisations API"
-      }
+      "suggestions": [
+        "Vérifiez vos autorisations API et assurez-vous qu'elles sont suffisantes.",
+        "Contactez le support du fournisseur d'API pour obtenir de l'aide."
+      ]
     },
     "quota": {
       "title": "Quota API dépassé",
       "message": "Vous avez dépassé votre limite d'utilisation pour l'API sélectionnée. Veuillez vérifier votre facturation ou réessayer plus tard.",
-      "actions": {
-        "checkBilling": "Vérifier la facturation",
-        "switchProvider": "Changer de fournisseur"
-      }
+      "suggestions": [
+        "Vérifiez votre utilisation de l'API et les détails de facturation.",
+        "Envisagez de mettre à niveau votre plan si vous atteignez fréquemment les limites."
+      ]
     },
     "network": {
       "title": "Erreur de connexion réseau",
       "message": "Impossible de se connecter au serveur. Veuillez vérifier votre connexion Internet et les paramètres de pare-feu ou de proxy.",
-      "actions": {
-        "retry": "Réessayer"
-      }
+      "suggestions": [
+        "Assurez-vous d'avoir une connexion Internet stable et désactivez tout VPN/proxy si actif."
+      ]
     },
     "server": {
       "title": "Erreur de serveur API",
       "message": "Le serveur du fournisseur d'IA a rencontré une erreur interne (5xx). C'est généralement un problème temporaire. Veuillez patienter un instant et réessayer.",
-      "actions": {
-        "retry": "Réessayer",
-        "switchProvider": "Changer de fournisseur"
-      }
+      "suggestions": [
+        "Attendez quelques instants et réessayez votre demande.",
+        "Vérifiez la page d'état du fournisseur pour les pannes connues."
+      ]
     },
     "content": {
       "title": "Erreur de contenu",
       "message": "L'extension n'a pas pu récupérer le contenu nécessaire de cette page (par exemple, transcription introuvable, texte de page trop court).",
-      "actions": {
-        "refreshPage": "Actualiser la page"
-      }
+      "suggestions": [
+        "Assurez-vous que la vidéo a une transcription disponible et n'est pas privée.",
+        "Assurez-vous que la page web est entièrement chargée et accessible."
+      ]
     },
     "permission": {
       "title": "Autorisation refusée",
       "message": "L'extension ne dispose pas des autorisations de navigateur nécessaires pour effectuer cette action. Veuillez vérifier les paramètres de l'extension.",
-      "actions": {
-        "checkPermissions": "Vérifier les autorisations"
-      }
+      "suggestions": [
+        "Vérifiez et accordez les autorisations nécessaires dans les paramètres d'extension de votre navigateur."
+      ]
     },
     "unknown": {
       "title": "Erreur inconnue",
       "message": "Une erreur inattendue est survenue. Si ce problème persiste, veuillez envisager de le signaler.",
-      "actions": {
-        "retry": "Réessayer",
-        "reportIssue": "Signaler un problème"
-      }
+      "suggestions": [
+        "Vérifiez si la vidéo a une transcription.",
+        "Assurez-vous que la page est entièrement chargée.",
+        "Essayez avec une autre page ou vidéo.",
+        "Signalez ce problème au développeur."
+      ]
     }
   }
 }

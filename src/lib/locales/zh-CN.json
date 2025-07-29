@@ -181,5 +181,79 @@
     "downloaded": "已下载！",
     "save_to_archive": "保存到归档",
     "saved": "已保存！"
+  },
+  "errors": {
+    "api_key": "API 密钥未配置。请在设置中检查您的 API 密钥。",
+    "unauthorized": "未经授权的访问。请检查您的 API 密钥和权限。",
+    "quota": "API 配额超出。请检查您的使用限制或稍后重试。",
+    "network": "网络错误。请检查您的互联网连接。",
+    "server": "API 服务器错误。请稍后重试。",
+    "content": "内容未找到或无法处理。",
+    "permission": "缺少浏览器权限。请检查扩展设置。",
+    "timeout": "请求超时。请重试。",
+    "streaming": "流式传输错误。数据可能不完整。",
+    "unknown": "发生未知错误。请重试。"
+  },
+  "helpSystem": {
+    "apiKey": {
+      "title": "无效的API密钥",
+      "message": "您提供的API密钥无效或已被禁用。请在设置中检查密钥。",
+      "actions": {
+        "openSettings": "打开设置"
+      }
+    },
+    "unauthorized": {
+      "title": "未经授权的访问",
+      "message": "您的API密钥没有执行此操作所需的权限。这可能发生在调整后的模型或特定的API限制下。",
+      "actions": {
+        "openSettings": "打开设置",
+        "checkApiPermissions": "检查API权限"
+      }
+    },
+    "quota": {
+      "title": "API配额超出",
+      "message": "您已超出所选API的使用限制。请检查您的帐户账单或稍后重试。",
+      "actions": {
+        "checkBilling": "检查账单",
+        "switchProvider": "切换提供商"
+      }
+    },
+    "network": {
+      "title": "网络连接错误",
+      "message": "无法连接到服务器。请检查您的互联网连接以及任何防火墙或代理设置。",
+      "actions": {
+        "retry": "重试"
+      }
+    },
+    "server": {
+      "title": "API服务器错误",
+      "message": "AI提供商的服务器遇到内部错误（5xx）。这通常是临时问题。请稍等片刻，然后重试。",
+      "actions": {
+        "retry": "重试",
+        "switchProvider": "切换提供商"
+      }
+    },
+    "content": {
+      "title": "内容错误",
+      "message": "扩展程序无法从本页检索到所需内容（例如，找不到转录，页面文本太短）。",
+      "actions": {
+        "refreshPage": "刷新页面"
+      }
+    },
+    "permission": {
+      "title": "权限被拒绝",
+      "message": "扩展程序缺少执行此操作所需的浏览器权限。请检查扩展设置。",
+      "actions": {
+        "checkPermissions": "检查权限"
+      }
+    },
+    "unknown": {
+      "title": "未知错误",
+      "message": "发生了一个意外错误。如果此问题仍然存在，请考虑报告。",
+      "actions": {
+        "retry": "重试",
+        "reportIssue": "报告问题"
+      }
+    }
   }
 }

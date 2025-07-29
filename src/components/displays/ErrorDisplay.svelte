@@ -3,10 +3,22 @@
   import { fetchAndSummarize } from '../../stores/summaryStore.svelte.js'
   import { getHelpInfo } from '../../lib/error/helpSystem.js'
   import { settings } from '../../stores/settingsStore.svelte.js'
+  import { t } from 'svelte-i18n' // Import t for i18n
 
   let { error } = $props()
 
   const helpInfo = $derived(getHelpInfo(error?.type))
+
+  // Translated properties for display
+  const translatedTitle = $derived($t(helpInfo.title))
+  const translatedMessage = $derived($t(helpInfo.message))
+  // Map actions to an array of objects containing both original key and translated text
+  const translatedActions = $derived(
+    helpInfo.actions.map((actionKey) => ({
+      key: actionKey, // Keep original key for handling
+      text: $t(actionKey), // Translate for display
+    }))
+  )
 
   function handleRetry() {
     if (error.canRetry) {
@@ -14,18 +26,56 @@
     }
   }
 
-  function handleHelpAction(action) {
-    switch (action) {
-      case 'Open Settings':
-        // This is a simple way to trigger settings. A more robust way would be a dedicated store action.
+  // Modify handleHelpAction to use the original key
+  function handleHelpAction(actionKey) {
+    switch (actionKey) {
+      case 'helpSystem.apiKey.actions.openSettings':
+      case 'helpSystem.unauthorized.actions.openSettings':
         document.dispatchEvent(new CustomEvent('openSettings'))
         break
-      case 'Refresh Page':
+      case 'helpSystem.content.actions.refreshPage':
         browser.tabs.reload()
         break
-      // Other actions can be handled here
+      case 'helpSystem.network.actions.retry':
+      case 'helpSystem.server.actions.retry':
+      case 'helpSystem.unknown.actions.retry':
+        handleRetry() // Use the existing retry handler
+        break
+      // Add other specific action handlers here
+      case 'helpSystem.unauthorized.actions.checkApiPermissions':
+        alert(
+          $t('helpSystem.unauthorized.actions.checkApiPermissions') +
+            '\n\n' +
+            $t(helpInfo.message)
+        )
+        break
+      case 'helpSystem.quota.actions.checkBilling':
+        alert(
+          $t('helpSystem.quota.actions.checkBilling') +
+            '\n\n' +
+            $t(helpInfo.message)
+        )
+        break
+      case 'helpSystem.quota.actions.switchProvider':
+      case 'helpSystem.server.actions.switchProvider':
+        alert($t(actionKey) + '\n\n' + $t(helpInfo.message))
+        break
+      case 'helpSystem.permission.actions.checkPermissions':
+        alert(
+          $t('helpSystem.permission.actions.checkPermissions') +
+            '\n\n' +
+            $t(helpInfo.message)
+        )
+        break
+      case 'helpSystem.unknown.actions.reportIssue':
+        alert(
+          $t('helpSystem.unknown.actions.reportIssue') +
+            '\n\n' +
+            $t(helpInfo.message)
+        )
+        break
       default:
-        alert(`Action: ${action}\n\n${helpInfo.message}`)
+        alert(`Action: ${actionKey}\n\n${$t(helpInfo.message)}`) // Fallback for unhandled actions
         break
     }
   }
@@ -44,27 +94,27 @@
           ></span>
           <div class="text-xs font-bold text-error">Error</div>
           <div class=" ">
-            {helpInfo.title}
+            {translatedTitle}
           </div>
         </div>
       </div>
 
       <p class="text-sm">
-        {error.message || 'Something went wrong.'}
+        {translatedMessage || 'Something went wrong.'}
       </p>
     </div>
-    <!-- <div class="flex justify-end mt-4 space-x-2">
-      {#if helpInfo.actions}
-        {#each helpInfo.actions as action}
+    <div class="flex justify-end mt-4 space-x-2">
+      {#if translatedActions}
+        {#each translatedActions as action}
           <button
-            onclick={() => handleHelpAction(action)}
+            onclick={() => handleHelpAction(action.key)}
             class="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm"
           >
-            {action}
+            {action.text}
           </button>
         {/each}
       {/if}
-      {#if error.canRetry && !helpInfo.actions?.includes('Retry')}
+      {#if error.canRetry && !helpInfo.actions?.includes('helpSystem.network.actions.retry') && !helpInfo.actions?.includes('helpSystem.server.actions.retry') && !helpInfo.actions?.includes('helpSystem.unknown.actions.retry')}
         <button
           onclick={handleRetry}
           class="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 text-sm"
@@ -72,6 +122,6 @@
           Retry
         </button>
       {/if}
-    </div> -->
+    </div>
   </div>
 {/if}

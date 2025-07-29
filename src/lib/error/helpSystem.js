@@ -14,52 +14,56 @@ import { ErrorTypes } from './errorTypes.js'
  */
 export const HelpMessages = {
   [ErrorTypes.API_KEY]: {
-    title: 'Invalid API Key',
-    message:
-      'The API key you provided is invalid or has been disabled. Please check the key in the settings and try again.',
-    actions: ['Open Settings'],
+    title: 'helpSystem.apiKey.title',
+    message: 'helpSystem.apiKey.message',
+    actions: ['helpSystem.apiKey.actions.openSettings'],
   },
   [ErrorTypes.UNAUTHORIZED]: {
-    title: 'Unauthorized Access',
-    message:
-      'Your API key does not have the required permissions for this operation. This can happen with tuned models or specific API restrictions.',
-    actions: ['Open Settings', 'Check API Permissions'],
+    title: 'helpSystem.unauthorized.title',
+    message: 'helpSystem.unauthorized.message',
+    actions: [
+      'helpSystem.unauthorized.actions.openSettings',
+      'helpSystem.unauthorized.actions.checkApiPermissions',
+    ],
   },
   [ErrorTypes.QUOTA]: {
-    title: 'API Quota Exceeded',
-    message:
-      'You have exceeded your usage limit for the selected API. Please check your account billing or try again later.',
-    actions: ['Check Billing', 'Switch Provider'],
+    title: 'helpSystem.quota.title',
+    message: 'helpSystem.quota.message',
+    actions: [
+      'helpSystem.quota.actions.checkBilling',
+      'helpSystem.quota.actions.switchProvider',
+    ],
   },
   [ErrorTypes.NETWORK]: {
-    title: 'Network Connection Error',
-    message:
-      'Could not connect to the server. Please check your internet connection and any firewall or proxy settings.',
-    actions: ['Retry'],
+    title: 'helpSystem.network.title',
+    message: 'helpSystem.network.message',
+    actions: ['helpSystem.network.actions.retry'],
   },
   [ErrorTypes.SERVER]: {
-    title: 'API Server Error',
-    message:
-      "The AI provider's server encountered an internal error (5xx). This is usually a temporary issue. Please wait a moment and try again.",
-    actions: ['Retry', 'Switch Provider'],
+    title: 'helpSystem.server.title',
+    message: 'helpSystem.server.message',
+    actions: [
+      'helpSystem.server.actions.retry',
+      'helpSystem.server.actions.switchProvider',
+    ],
   },
   [ErrorTypes.CONTENT]: {
-    title: 'Content Error',
-    message:
-      'The extension could not retrieve the necessary content from this page (e.g., transcript not found, page text too short).',
-    actions: ['Refresh Page'],
+    title: 'helpSystem.content.title',
+    message: 'helpSystem.content.message',
+    actions: ['helpSystem.content.actions.refreshPage'],
   },
   [ErrorTypes.PERMISSION]: {
-    title: 'Permission Denied',
-    message:
-      'The extension lacks the necessary browser permissions to perform this action. Please check the extension settings.',
-    actions: ['Check Permissions'],
+    title: 'helpSystem.permission.title',
+    message: 'helpSystem.permission.message',
+    actions: ['helpSystem.permission.actions.checkPermissions'],
   },
   [ErrorTypes.UNKNOWN]: {
-    title: 'Unknown Error',
-    message:
-      'An unexpected error occurred. If this problem persists, please consider reporting it.',
-    actions: ['Retry', 'Report Issue'],
+    title: 'helpSystem.unknown.title',
+    message: 'helpSystem.unknown.message',
+    actions: [
+      'helpSystem.unknown.actions.retry',
+      'helpSystem.unknown.actions.reportIssue',
+    ],
   },
   // Add other error types as needed
 }

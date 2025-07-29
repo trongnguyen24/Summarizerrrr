@@ -181,5 +181,79 @@
     "downloaded": "Heruntergeladen!",
     "save_to_archive": "Im Archiv speichern",
     "saved": "Gespeichert!"
+  },
+  "errors": {
+    "api_key": "API-Schlüssel nicht konfiguriert. Bitte überprüfen Sie Ihren API-Schlüssel in den Einstellungen.",
+    "unauthorized": "Unautorisierter Zugriff. Bitte überprüfen Sie Ihren API-Schlüssel und Ihre Berechtigungen.",
+    "quota": "API-Kontingent überschritten. Bitte überprüfen Sie Ihre Nutzungslimits oder versuchen Sie es später erneut.",
+    "network": "Netzwerkfehler. Bitte überprüfen Sie Ihre Internetverbindung.",
+    "server": "API-Serverfehler. Bitte versuchen Sie es später erneut.",
+    "content": "Inhalt nicht gefunden oder konnte nicht verarbeitet werden.",
+    "permission": "Fehlende Browserberechtigungen. Bitte überprüfen Sie die Erweiterungseinstellungen.",
+    "timeout": "Anfragezeitüberschreitung. Bitte versuchen Sie es erneut.",
+    "streaming": "Streaming-Fehler. Daten könnten unvollständig sein.",
+    "unknown": "Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es erneut."
+  },
+  "helpSystem": {
+    "apiKey": {
+      "title": "Ungültiger API-Schlüssel",
+      "message": "Der bereitgestellte API-Schlüssel ist ungültig oder deaktiviert. Bitte überprüfen Sie den Schlüssel in den Einstellungen.",
+      "actions": {
+        "openSettings": "Einstellungen öffnen"
+      }
+    },
+    "unauthorized": {
+      "title": "Unautorisierter Zugriff",
+      "message": "Ihr API-Schlüssel hat nicht die erforderlichen Berechtigungen. Dies kann bei bestimmten Modellen oder API-Einschränkungen auftreten.",
+      "actions": {
+        "openSettings": "Einstellungen öffnen",
+        "checkApiPermissions": "API-Berechtigungen prüfen"
+      }
+    },
+    "quota": {
+      "title": "API-Kontingent überschritten",
+      "message": "Sie haben Ihr Nutzungslimit für die ausgewählte API überschritten. Überprüfen Sie Ihr Konto oder versuchen Sie es später erneut.",
+      "actions": {
+        "checkBilling": "Abrechnung prüfen",
+        "switchProvider": "Anbieter wechseln"
+      }
+    },
+    "network": {
+      "title": "Netzwerkverbindungsfehler",
+      "message": "Verbindung zum Server konnte nicht hergestellt werden. Überprüfen Sie Ihre Internetverbindung und Firewall/Proxy-Einstellungen.",
+      "actions": {
+        "retry": "Wiederholen"
+      }
+    },
+    "server": {
+      "title": "API-Serverfehler",
+      "message": "Der Server des AI-Anbieters hat einen internen Fehler (5xx) festgestellt. Dies ist meist ein temporäres Problem. Versuchen Sie es später erneut.",
+      "actions": {
+        "retry": "Wiederholen",
+        "switchProvider": "Anbieter wechseln"
+      }
+    },
+    "content": {
+      "title": "Inhaltsfehler",
+      "message": "Die Erweiterung konnte den notwendigen Inhalt (z.B. Transkript, Text) nicht abrufen.",
+      "actions": {
+        "refreshPage": "Seite neu laden"
+      }
+    },
+    "permission": {
+      "title": "Berechtigung verweigert",
+      "message": "Der Erweiterung fehlen die notwendigen Browserberechtigungen. Überprüfen Sie die Erweiterungseinstellungen.",
+      "actions": {
+        "checkPermissions": "Berechtigungen prüfen"
+      }
+    },
+    "unknown": {
+      "title": "Unbekannter Fehler",
+      "message": "Ein unerwarteter Fehler ist aufgetreten. Falls das Problem weiterhin besteht, melden Sie es bitte.",
+      "actions": {
+        "retry": "Wiederholen",
+        "reportIssue": "Problem melden"
+      }
+    }
   }
 }

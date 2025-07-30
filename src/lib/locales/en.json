@@ -236,7 +236,7 @@
       "title": "Content Error",
       "message": "The extension could not retrieve the necessary content from this page (e.g., transcript not found, page text too short).",
       "suggestions": [
-        "Ensure the video has a transcript available and is not private.",
+        "Ensure the video has a transcript available",
         "Make sure the web page is fully loaded and accessible."
       ]
     },
@@ -254,7 +254,7 @@
         "Check if the video has a transcript.",
         "Ensure the page has fully loaded.",
         "Try again with a different page or video.",
-        "Report this issue to the developer."
+        "No access to this URL."
       ]
     }
   }

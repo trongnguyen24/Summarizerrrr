@@ -8,12 +8,13 @@
 
   const languages = [
     { value: 'en', label: 'English' },
-    { value: 'vi', label: 'Tiếng Việt' },
-    { value: 'es', label: 'Español' },
-    { value: 'zh-CN', label: '简体中文' },
-    { value: 'de', label: 'Deutsch' },
-    { value: 'fr', label: 'Français' },
-    { value: 'ja', label: '日本語' },
+    { value: 'vi', label: 'Vietnamese' },
+    { value: 'es', label: 'Spanish' },
+    { value: 'zh-CN', label: 'Chinese (Simplified)' },
+    { value: 'de', label: 'German' },
+    { value: 'fr', label: 'French' },
+    { value: 'ja', label: 'Japanese' },
+    { value: 'ko', label: 'Korean' },
   ]
 
   function handleChange(newValue) {

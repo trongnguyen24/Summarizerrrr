@@ -1,0 +1,260 @@
+{
+  "settings": {
+    "title": "設定",
+    "open_settings": "設定を開く",
+    "general": {
+      "title": "一般設定",
+      "fontFamily": "フォント",
+      "font": {
+        "sans": "サンセリフ",
+        "sans_desc": "デフォルトフォント。",
+        "serif": "セリフ",
+        "serif_desc": "Noto Serifフォント。",
+        "dyslexic": "OpenDyslexic",
+        "dyslexic_desc": "失読症向けOpenDyslexicフォント。",
+        "mali": "Mali",
+        "mali_desc": "全テキスト用Maliフォント。"
+      },
+      "lang_ui": "表示言語",
+      "theme": "テーマ",
+      "theme_mode": {
+        "light": "ライト",
+        "light_desc": "ライトテーマ。",
+        "dark": "ダーク",
+        "dark_desc": "ダークテーマ。",
+        "system": "システム",
+        "system_desc": "システムテーマ。"
+      },
+      "responseMode": "応答モード",
+      "response_mode": {
+        "streaming": "ストリーミング",
+        "streaming_desc": "リアルタイム表示、より良い体験。",
+        "non_streaming": "非ストリーミング",
+        "non_streaming_desc": "低性能デバイス向け、遅延軽減。"
+      },
+      "shortcuts": "ショートカット",
+      "shortcuts_settings": "ショートカット設定"
+    },
+    "ai_model": {
+      "title": "AI設定",
+      "mode": {
+        "basic": "基本",
+        "advanced": "上級"
+      },
+      "selected_provider": "プロバイダー",
+      "temperature": "創造性",
+      "top_p": "Top P",
+      "temperature_basic": {
+        "precise": "正確",
+        "precise_desc": "0.3 - 創造性低め。",
+        "balanced": "バランス",
+        "balanced_desc": "0.7 - バランス良好。",
+        "creative": "創造的",
+        "creative_desc": "0.9 - より創造的。"
+      },
+      "top_p_basic": {
+        "narrow": "狭い",
+        "narrow_desc": "0.9 - 出力範囲を狭める。",
+        "balanced": "バランス",
+        "balanced_desc": "0.95 - バランスの取れた出力。",
+        "wide": "広い",
+        "wide_desc": "0.98 - 出力範囲を広げる。"
+      }
+    },
+    "summary": {
+      "title": "要約設定",
+      "size": "要約の長さ",
+      "size_mode": {
+        "short": "短い",
+        "short_desc": "短い要約。",
+        "medium": "中程度",
+        "medium_desc": "中程度の長さの要約。",
+        "deep": "詳細",
+        "deep_desc": "詳細な要約。"
+      },
+      "tone": "トーン",
+      "tone_mode": {
+        "simple": "シンプル",
+        "simple_desc": "理解しやすく、親しみやすい。",
+        "expert": "専門家",
+        "expert_desc": "専門的、技術的、権威的。",
+        "alien": "エイリアン",
+        "alien_desc": "好奇心旺盛、分析的、客観的。"
+      },
+      "language_output": "出力言語",
+      "custom_prompts": {
+        "title": "有効なプロンプト",
+        "editor_button": "プロンプト編集",
+        "youtube_summary": "YouTube要約",
+        "youtube_chapter": "YouTubeチャプター",
+        "course_summary": "コース要約",
+        "course_concepts": "コースの要点",
+        "web_summary": "Web要約",
+        "selected_text": "選択テキスト",
+        "override_note": "* カスタムプロンプトが基本設定より優先されます。"
+      }
+    },
+    "chatgpt_config": {
+      "api_key_label": "APIキー",
+      "api_key_placeholder": "ChatGPT APIキーを入力",
+      "model_name_label": "モデル名",
+      "saved_status": "保存完了！",
+      "view_models": "モデル一覧",
+      "model_placeholder": "ChatGPTモデルを入力"
+    },
+    "deepseek_config": {
+      "api_key_label": "APIキー",
+      "api_key_placeholder": "Deepseek APIキーを入力",
+      "model_name_label": "モデル名",
+      "saved_status": "保存完了！",
+      "view_models": "モデル一覧",
+      "model_placeholder": "Deepseekモデルを入力"
+    },
+    "gemini_advanced_config": {
+      "api_key_label": "Gemini APIキー",
+      "get_a_key": "キーを取得",
+      "select_model_label": "Gemini Advancedモデル",
+      "select_model_placeholder": "モデルを選択",
+      "select_gemini_model_aria_label": "Geminiモデルを選択"
+    },
+    "gemini_basic_config": {
+      "api_key_label": "Gemini APIキー",
+      "get_a_key": "キーを取得",
+      "select_model_label": "Geminiモデルを選択"
+    },
+    "ollama_config": {
+      "endpoint_label": "Ollamaエンドポイント",
+      "endpoint_placeholder": "http://localhost:11434",
+      "model_label": "Ollamaモデル",
+      "model_placeholder": "llama2"
+    },
+    "openai_compatible_config": {
+      "api_key_label": "APIキー",
+      "api_key_placeholder": "APIキー",
+      "base_url_label": "ベースURL",
+      "base_url_placeholder": "http://127.0.0.1:1234/v1/",
+      "model_name_label": "モデル名",
+      "model_placeholder": "qwen/qwen2.5-vl-7b"
+    },
+    "openrouter_config": {
+      "api_key_label": "OpenRouter APIキー",
+      "get_a_key": "キーを取得",
+      "model_label": "OpenRouterモデル",
+      "saved_status": "保存完了！",
+      "view_models": "モデル一覧"
+    }
+  },
+  "prompts": {
+    "title": "プロンプト",
+    "system_instruction": "システムプロンプト",
+    "system_note": "オプション：不要な場合はスキップ。",
+    "user_prompt": "ユーザープロンプト",
+    "user_note": "__CONTENT__を使用して動的コンテンツを挿入",
+    "select_template": "テンプレートを選択",
+    "prompt_enhance": "プロンプト改善",
+    "buttons": {
+      "import": "インポート",
+      "discard": "破棄",
+      "save": "保存",
+      "apply_prompt": "プロンプト適用"
+    },
+    "tip": [
+      "この機能はGemini 2.5 Flash以上で最適に動作します。",
+      "\"プロンプト改善\"機能は入力に基づいてフォーマットと説明のみを行います。",
+      "他の言語でプロンプトを使用するには、設定 > 要約で出力言語を調整してください。"
+    ]
+  },
+  "archive": {
+    "open_archive": "アーカイブを開く",
+    "tab_history": "履歴",
+    "tab_archive": "アーカイブ",
+    "change_theme": "テーマ変更",
+    "font_dec": "文字サイズ縮小",
+    "font_inc": "文字サイズ拡大",
+    "change_font": "フォント変更",
+    "toggle_width": "幅切り替え"
+  },
+  "button": {
+    "copy": "クリップボードにコピー",
+    "copied": "コピー完了！",
+    "download": "Markdownでダウンロード",
+    "downloaded": "ダウンロード完了！",
+    "save_to_archive": "アーカイブに保存",
+    "saved": "保存完了！"
+  },
+  "errors": {
+    "api_key": "APIキーが設定されていません。設定でAPIキーを確認してください。",
+    "unauthorized": "認証されていません。APIキーと権限を確認してください。",
+    "quota": "APIクォータを超過しました。使用制限を確認するか、後で再試行してください。",
+    "network": "ネットワークエラー。インターネット接続を確認してください。",
+    "server": "APIサーバーエラー。後で再試行してください。",
+    "content": "コンテンツが見つからないか、処理できませんでした。",
+    "permission": "ブラウザの権限が不足しています。拡張機能の設定を確認してください。",
+    "timeout": "リクエストがタイムアウトしました。再試行してください。",
+    "streaming": "ストリーミングエラー。データが不完全な可能性があります。",
+    "unknown": "予期せぬエラーが発生しました。再試行してください。"
+  },
+  "helpSystem": {
+    "apiKey": {
+      "title": "無効なAPIキー",
+      "message": "提供されたAPIキーが無効であるか、無効になっています。設定でキーを確認してください。",
+      "suggestions": ["設定でAPIキーを確認してください。"]
+    },
+    "unauthorized": {
+      "title": "不正なアクセス",
+      "message": "お使いのAPIキーには、この操作に必要な権限がありません。これは、チューニングされたモデルや特定のAPI制限で発生する可能性があります。",
+      "suggestions": [
+        "API権限を確認し、十分であることを確認してください。",
+        "APIプロバイダーのサポートに連絡して支援を求めてください。"
+      ]
+    },
+    "quota": {
+      "title": "APIクォータ超過",
+      "message": "選択したAPIの使用制限を超過しました。アカウントの請求を確認するか、後で再試行してください。",
+      "suggestions": [
+        "APIの使用状況と請求の詳細を確認してください。",
+        "頻繁に制限に達する場合は、プランのアップグレードを検討してください。"
+      ]
+    },
+    "network": {
+      "title": "ネットワーク接続エラー",
+      "message": "サーバーに接続できませんでした。インターネット接続とファイアウォールまたはプロキシの設定を確認してください。",
+      "suggestions": [
+        "安定したインターネット接続があることを確認し、VPN/プロキシがアクティブな場合は無効にしてください。"
+      ]
+    },
+    "server": {
+      "title": "APIサーバーエラー",
+      "message": "AIプロバイダーのサーバーで内部エラー（5xx）が発生しました。これは通常、一時的な問題です。しばらく待ってから再試行してください。",
+      "suggestions": [
+        "しばらく待ってからリクエストを再試行してください。",
+        "既知の停止については、プロバイダーのステータスページを確認してください。"
+      ]
+    },
+    "content": {
+      "title": "コンテンツエラー",
+      "message": "拡張機能はこのページから必要なコンテンツ（例：トランスクリプトが見つからない、ページテキストが短すぎる）を取得できませんでした。",
+      "suggestions": [
+        "ビデオにトランスクリプトが利用可能で、プライベートでないことを確認してください。",
+        "ウェブページが完全にロードされ、アクセス可能であることを確認してください。"
+      ]
+    },
+    "permission": {
+      "title": "権限が拒否されました",
+      "message": "拡張機能には、この操作を実行するために必要なブラウザの権限がありません。拡張機能の設定を確認してください。",
+      "suggestions": [
+        "ブラウザの拡張機能設定で必要な権限を確認し、付与してください。"
+      ]
+    },
+    "unknown": {
+      "title": "不明なエラー",
+      "message": "予期せぬエラーが発生しました。この問題が解決しない場合は、報告を検討してください。",
+      "suggestions": [
+        "動画にトランスクリプトがあるか確認してください。",
+        "ウェブページが完全に読み込まれていることを確認してください。",
+        "別のページまたは動画で試してください。",
+        "この問題を開発者に報告してください。"
+      ]
+    }
+  }
+}

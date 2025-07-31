@@ -2,7 +2,7 @@
   // @ts-nocheck
   import { fade } from 'svelte/transition'
   import Icon from '@iconify/svelte'
-  import PlusIcon from '../PlusIcon.svelte'
+  import PlusIcon from '@/components/icon/PlusIcon.svelte'
 
   let {
     value = $bindable(), // Đổi tên từ apiKey thành value

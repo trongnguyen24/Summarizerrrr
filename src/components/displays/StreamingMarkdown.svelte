@@ -41,8 +41,7 @@
     parseTimeout = setTimeout(() => {
       try {
         parsedHtml = marked.parse(markdown)
-        // Schedule highlight sau khi parse xong
-        scheduleHighlight()
+        // Highlight sẽ được trigger riêng sau khi typing xong
       } catch (error) {
         console.warn('Markdown parse error:', error)
         parsedHtml = markdown // Fallback to raw text
@@ -213,6 +212,14 @@
     }
   })
 
+  // Effect để highlight code sau khi typing hoàn tất
+  $effect(() => {
+    if (!isTyping && container) {
+      // Chỉ chạy highlight khi typing đã dừng và component đã được mount
+      scheduleHighlight()
+    }
+  })
+
   // Cleanup khi component bị destroy
   $effect(() => {
     return () => {
@@ -288,15 +295,5 @@
     100% {
       content: '✽';
     }
-  }
-
-  /* Optimize code block rendering */
-  :global(.markdown-container pre) {
-    contain: layout;
-    overflow-x: auto;
-    background-color: #f8f8f8;
-    border-radius: 4px;
-    padding: 1rem;
-    margin: 0.5rem 0;
   }
 </style>

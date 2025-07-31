@@ -1,10 +1,11 @@
 <script>
   // @ts-nocheck
-  import { geminiBasicModels } from '../../lib/models/geminiModels.js'
+  import { geminiBasicModels } from '../../lib/prompting/models/geminiModels.js'
   import { updateSettings } from '../../stores/settingsStore.svelte.js'
   import ButtonSet from '../buttons/ButtonSet.svelte'
   import ApiKeyInput from '../inputs/ApiKeyInput.svelte'
   import Icon from '@iconify/svelte'
+  import { t } from 'svelte-i18n'
 
   let { geminiApiKey = $bindable(), selectedGeminiModel = $bindable() } =
     $props()
@@ -33,15 +34,17 @@
 
 <ApiKeyInput
   apiKey={geminiApiKey}
-  label="Gemini API Key"
+  label={$t('settings.gemini_basic_config.api_key_label')}
   onSave={(apiKey) => updateSettings({ geminiApiKey: apiKey })}
   linkHref="https://aistudio.google.com/app/apikey"
-  linkText="Get a key"
+  linkText={$t('settings.gemini_basic_config.get_a_key')}
 />
 
 <div class="flex flex-col gap-2">
   <!-- svelte-ignore a11y_label_has_associated_control -->
-  <label class="block">Select Gemini Model</label>
+  <label class="block"
+    >{$t('settings.gemini_basic_config.select_model_label')}</label
+  >
   <div class="grid grid-cols-3 w-full gap-1">
     {#each modelOptions as model}
       <ButtonSet

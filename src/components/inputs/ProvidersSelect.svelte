@@ -1,6 +1,6 @@
 <script>
   import ReusableSelect from '../inputs/ReusableSelect.svelte'
-  import { providersConfig } from '../../lib/providersConfig.js'
+  import { providersConfig } from '../../lib/api/providersConfig.js'
   import {
     settings,
     updateSettings,

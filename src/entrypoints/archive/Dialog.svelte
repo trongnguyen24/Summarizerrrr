@@ -1,7 +1,7 @@
 <script>
   import { Dialog } from 'bits-ui'
   import { fade } from 'svelte/transition'
-  import { slideScaleFade } from '@/lib/slideScaleFade.js'
+  import { slideScaleFade } from '@/lib/ui/slideScaleFade.js'
 
   let {
     open = $bindable(false),

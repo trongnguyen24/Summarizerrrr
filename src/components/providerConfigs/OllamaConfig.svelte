@@ -2,15 +2,16 @@
   // @ts-nocheck
   import TextInput from '../inputs/TextInput.svelte'
   import { settings, updateSettings } from '../../stores/settingsStore.svelte'
+  import { t } from 'svelte-i18n'
 
   // @ts-nocheck
 </script>
 
 <div class="flex flex-col gap-2">
   <TextInput
-    label="Ollama Endpoint"
+    label={$t('settings.ollama_config.endpoint_label')}
     id="Endpoint"
-    placeholder="http://localhost:11434"
+    placeholder={$t('settings.ollama_config.endpoint_placeholder')}
     bind:value={settings.ollamaEndpoint}
     onSave={(value) => {
       let cleanedEndpoint = value || ''
@@ -25,8 +26,8 @@
     }}
   />
   <TextInput
-    label="Ollama Model"
-    placeholder="llama2"
+    label={$t('settings.ollama_config.model_label')}
+    placeholder={$t('settings.ollama_config.model_placeholder')}
     id="model"
     bind:value={settings.selectedOllamaModel}
     onSave={(value) => {

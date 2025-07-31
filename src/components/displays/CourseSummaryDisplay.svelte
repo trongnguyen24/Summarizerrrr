@@ -1,11 +1,14 @@
 <script>
   // @ts-nocheck
-  import TabbedSummaryDisplay from './TabbedSummaryDisplay.svelte';
-  import GenericSummaryDisplay from './GenericSummaryDisplay.svelte';
-  import TOC from '../TOC.svelte';
-  import { summaryState, updateActiveCourseTab } from '../../stores/summaryStore.svelte.js';
+  import TabbedSummaryDisplay from './TabbedSummaryDisplay.svelte'
+  import GenericSummaryDisplay from './GenericSummaryDisplay.svelte'
+  import TOC from '@/components/navigation/TOC.svelte'
+  import {
+    summaryState,
+    updateActiveCourseTab,
+  } from '../../stores/summaryStore.svelte.js'
 
-  let { activeCourseTab } = $props();
+  let { activeCourseTab } = $props()
 
   const courseTabs = $derived([
     {
@@ -20,7 +23,7 @@
       show: true,
       isLoading: summaryState.isCourseConceptsLoading,
     },
-  ]);
+  ])
 </script>
 
 {#snippet noDataContent()}
@@ -41,9 +44,7 @@
     <GenericSummaryDisplay
       summary={summaryState.courseSummary}
       isLoading={summaryState.isCourseSummaryLoading}
-      error={summaryState.courseSummaryError}
       loadingText="Processing main Course summary..."
-      errorTitle="Main Course summary error"
       targetId="course-video-summary-display"
     />
     {#if activeCourseTab === 'courseSummary' && !summaryState.isCourseSummaryLoading}
@@ -54,9 +55,7 @@
     <GenericSummaryDisplay
       summary={summaryState.courseConcepts}
       isLoading={summaryState.isCourseConceptsLoading}
-      error={summaryState.courseConceptsError}
       loadingText="Processing Course Concepts..."
-      errorTitle="Course concepts error"
       targetId="course-concepts-display"
       {noDataContent}
     />

@@ -1,9 +1,30 @@
 import { mount } from 'svelte'
 import App from './App.svelte'
 import './app.css'
+import { init, getLocaleFromNavigator } from 'svelte-i18n'
+import {
+  loadSettings,
+  settings,
+  subscribeToSettingsChanges,
+} from '@/stores/settingsStore.svelte.js'
+import '@/lib/i18n/i18n.js' // Ensure locales are registered
 
-const app = mount(App, {
-  target: document.getElementById('app'),
-})
+async function startup() {
+  await loadSettings()
+  subscribeToSettingsChanges()
 
-export default app
+  const initialLocale = settings.uiLang || getLocaleFromNavigator()
+
+  await init({
+    fallbackLocale: 'en',
+    initialLocale,
+  })
+
+  const app = mount(App, {
+    target: document.getElementById('app'),
+  })
+
+  return app
+}
+
+export default startup()

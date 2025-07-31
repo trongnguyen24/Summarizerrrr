@@ -1,0 +1,261 @@
+{
+  "settings": {
+    "title": "설정",
+    "open_settings": "설정 열기",
+    "general": {
+      "title": "일반",
+      "fontFamily": "글꼴",
+      "font": {
+        "sans": "Sans Serif",
+        "sans_desc": "기본 글꼴",
+        "serif": "Serif",
+        "serif_desc": "Noto Serif 글꼴",
+        "dyslexic": "OpenDyslexic",
+        "dyslexic_desc": "난독증을 위한 OpenDyslexic 글꼴",
+        "mali": "Mali",
+        "mali_desc": "모든 텍스트용 Mali 글꼴"
+      },
+      "lang_ui": "UI 언어",
+      "theme": "테마",
+      "theme_mode": {
+        "light": "밝음",
+        "light_desc": "밝은 테마",
+        "dark": "어둠",
+        "dark_desc": "어두운 테마",
+        "system": "시스템",
+        "system_desc": "시스템 테마"
+      },
+      "responseMode": "응답 모드",
+      "response_mode": {
+        "streaming": "스트리밍",
+        "streaming_desc": "실시간 응답 표시, 더 나은 경험",
+        "non_streaming": "비스트리밍",
+        "non_streaming_desc": "저사양 기기에 적합, 지연 감소"
+      },
+      "shortcuts": "단축키",
+      "shortcuts_settings": "단축키 설정"
+    },
+    "ai_model": {
+      "title": "제공자",
+      "mode": {
+        "basic": "기본",
+        "advanced": "고급"
+      },
+      "selected_provider": "선택된 제공자",
+      "temperature": "온도",
+      "top_p": "Top P",
+      "temperature_basic": {
+        "precise": "정확",
+        "precise_desc": "0.3 - 창의성 낮음",
+        "balanced": "균형",
+        "balanced_desc": "0.7 - 균형잡힌",
+        "creative": "창의적",
+        "creative_desc": "0.9 - 창의성 높음"
+      },
+      "top_p_basic": {
+        "narrow": "좁음",
+        "narrow_desc": "0.9 - 가능성 높은 토큰에 집중",
+        "balanced": "균형",
+        "balanced_desc": "0.95 - 더 넓은 토큰 범위",
+        "wide": "넓음",
+        "wide_desc": "0.98 - 더 넓은 토큰 범위"
+      }
+    },
+    "summary": {
+      "title": "요약 설정",
+      "size": "요약 크기",
+      "size_mode": {
+        "short": "짧음",
+        "short_desc": "짧은 요약",
+        "medium": "보통",
+        "medium_desc": "중간 길이 요약",
+        "deep": "심화",
+        "deep_desc": "상세한 요약"
+      },
+      "tone": "어조",
+      "tone_mode": {
+        "simple": "단순",
+        "simple_desc": "이해하기 쉽고 친근한",
+        "expert": "전문가",
+        "expert_desc": "전문적이고 기술적이며 권위적",
+        "alien": "외계인",
+        "alien_desc": "호기심 많고 분석적이며 초연한"
+      },
+      "language_output": "출력 언어",
+      "custom_prompts": {
+        "title": "활성 사용자 지정 프롬프트",
+        "editor_button": "프롬프트 편집기",
+        "youtube_summary": "YouTube 요약",
+        "youtube_chapter": "YouTube 챕터",
+        "course_summary": "강의 요약",
+        "course_concepts": "강의 개념",
+        "web_summary": "웹 요약",
+        "selected_text": "선택된 텍스트",
+        "override_note": "* 기본 설정은 활성 사용자 지정 프롬프트로 재정의됩니다."
+      }
+    },
+    "chatgpt_config": {
+      "api_key_label": "API 키",
+      "api_key_placeholder": "ChatGPT API 키를 입력하세요",
+      "model_name_label": "모델명",
+      "saved_status": "저장됨!",
+      "view_models": "모델 보기",
+      "model_placeholder": "ChatGPT 모델 입력"
+    },
+    "deepseek_config": {
+      "api_key_label": "API 키",
+      "api_key_placeholder": "Deepseek API 키를 입력하세요",
+      "model_name_label": "모델명",
+      "saved_status": "저장됨!",
+      "view_models": "모델 보기",
+      "model_placeholder": "Deepseek 모델 입력"
+    },
+    "gemini_advanced_config": {
+      "api_key_label": "Gemini API 키",
+      "get_a_key": "키 얻기",
+      "select_model_label": "Gemini 고급 모델",
+      "select_model_placeholder": "모델 선택",
+      "select_gemini_model_aria_label": "Gemini 모델 선택"
+    },
+    "gemini_basic_config": {
+      "api_key_label": "Gemini API 키",
+      "get_a_key": "키 얻기",
+      "select_model_label": "Gemini 모델 선택"
+    },
+    "ollama_config": {
+      "endpoint_label": "Ollama 엔드포인트",
+      "endpoint_placeholder": "http://localhost:11434",
+      "model_label": "Ollama 모델",
+      "model_placeholder": "llama2"
+    },
+    "openai_compatible_config": {
+      "api_key_label": "API 키",
+      "api_key_placeholder": "API 키",
+      "base_url_label": "Base URL",
+      "base_url_placeholder": "http://127.0.0.1:1234/v1/",
+      "model_name_label": "모델명",
+      "model_placeholder": "qwen/qwen2.5-vl-7b"
+    },
+    "openrouter_config": {
+      "api_key_label": "OpenRouter API 키",
+      "get_a_key": "키 얻기",
+      "model_label": "OpenRouter 모델",
+      "saved_status": "저장됨!",
+      "view_models": "모델 보기"
+    }
+  },
+  "prompts": {
+    "title": "프롬프트",
+    "system_instruction": "시스템 프롬프트",
+    "system_note": "선택사항: 필요하지 않으면 건너뛰기",
+    "user_prompt": "사용자 프롬프트",
+    "user_note": "__CONTENT__를 사용하여 동적 콘텐츠 삽입",
+    "select_template": "템플릿 선택",
+    "prompt_enhance": "프롬프트 향상",
+    "buttons": {
+      "import": "가져오기",
+      "discard": "취소",
+      "save": "저장",
+      "apply_prompt": "프롬프트 적용"
+    },
+    "tip": [
+      "이 기능은 Gemini 2.5 Flash 모델 이상에서 최적으로 작동합니다.",
+      "\"프롬프트 향상\" 기능은 입력된 프롬프트를 기반으로 형식화하고 설명합니다.",
+      "다른 언어로 프롬프트하려면 설정 > 요약에서 출력 언어를 조정하세요."
+    ]
+  },
+  "archive": {
+    "open_archive": "아카이브 열기",
+    "tab_history": "기록",
+    "tab_archive": "아카이브",
+    "change_theme": "테마 변경",
+    "font_dec": "글꼴 축소",
+    "font_inc": "글꼴 확대",
+    "change_font": "글꼴 변경",
+    "toggle_width": "너비 전환"
+  },
+  "button": {
+    "copy": "클립보드에 복사",
+    "copied": "복사됨!",
+    "download": "마크다운으로 다운로드",
+    "downloaded": "다운로드됨!",
+    "save_to_archive": "아카이브에 저장",
+    "saved": "저장됨!"
+  },
+
+  "errors": {
+    "api_key": "API 키가 구성되지 않았습니다. 설정에서 API 키를 확인하세요.",
+    "unauthorized": "무단 액세스입니다. API 키와 권한을 확인하세요.",
+    "quota": "API 할당량을 초과했습니다. 사용량 한도를 확인하거나 나중에 다시 시도하세요.",
+    "network": "네트워크 오류입니다. 인터넷 연결을 확인하세요.",
+    "server": "API 서버 오류입니다. 나중에 다시 시도하세요.",
+    "content": "콘텐츠를 찾을 수 없거나 처리할 수 없습니다.",
+    "permission": "브라우저 권한이 없습니다. 확장 프로그램 설정을 확인하세요.",
+    "timeout": "요청 시간이 초과되었습니다. 다시 시도하세요.",
+    "streaming": "스트리밍 오류입니다. 데이터가 불완전할 수 있습니다.",
+    "unknown": "예상치 못한 오류가 발생했습니다. 다시 시도하세요."
+  },
+  "helpSystem": {
+    "apiKey": {
+      "title": "유효하지 않은 API 키",
+      "message": "제공한 API 키가 유효하지 않거나 비활성화되었습니다. 설정에서 키를 확인하고 다시 시도하세요.",
+      "suggestions": ["설정에서 API 키를 확인하세요."]
+    },
+    "unauthorized": {
+      "title": "무단 액세스",
+      "message": "API 키에 이 작업에 필요한 권한이 없습니다. 튜닝된 모델이나 특정 API 제한으로 인해 발생할 수 있습니다.",
+      "suggestions": [
+        "API 권한을 확인하고 충분한지 확인하세요.",
+        "지원을 위해 API 제공자에게 문의하세요."
+      ]
+    },
+    "quota": {
+      "title": "API 할당량 초과",
+      "message": "선택한 API의 사용량 한도를 초과했습니다. 계정 청구를 확인하거나 나중에 다시 시도하세요.",
+      "suggestions": [
+        "API 사용량 및 청구 세부 정보를 검토하세요.",
+        "한도에 자주 도달하는 경우 플랜 업그레이드를 고려하세요."
+      ]
+    },
+    "network": {
+      "title": "네트워크 연결 오류",
+      "message": "서버에 연결할 수 없습니다. 인터넷 연결과 방화벽 또는 프록시 설정을 확인하세요.",
+      "suggestions": [
+        "안정적인 인터넷 연결을 확인하고 활성화된 VPN/프록시를 비활성화하세요."
+      ]
+    },
+    "server": {
+      "title": "API 서버 오류",
+      "message": "AI 제공자의 서버에서 내부 오류(5xx)가 발생했습니다. 일반적으로 일시적인 문제입니다. 잠시 기다린 후 다시 시도하세요.",
+      "suggestions": [
+        "잠시 기다린 후 요청을 다시 시도하세요.",
+        "알려진 장애에 대해 제공자의 상태 페이지를 확인하세요."
+      ]
+    },
+    "content": {
+      "title": "콘텐츠 오류",
+      "message": "확장 프로그램이 이 페이지에서 필요한 콘텐츠를 검색할 수 없습니다(예: 자막을 찾을 수 없음, 페이지 텍스트가 너무 짧음).",
+      "suggestions": [
+        "비디오에 자막이 있는지 확인하세요",
+        "웹 페이지가 완전히 로드되고 접근 가능한지 확인하세요."
+      ]
+    },
+    "permission": {
+      "title": "권한 거부됨",
+      "message": "확장 프로그램에 이 작업을 수행하는 데 필요한 브라우저 권한이 없습니다. 확장 프로그램 설정을 확인하세요.",
+      "suggestions": [
+        "브라우저의 확장 프로그램 설정에서 필요한 권한을 검토하고 부여하세요."
+      ]
+    },
+    "unknown": {
+      "title": "알 수 없는 오류",
+      "message": "예상치 못한 오류가 발생했습니다. 이 문제가 지속되면 신고를 고려하세요.",
+      "suggestions": [
+        "비디오에 자막이 있는지 확인하세요.",
+        "페이지가 완전히 로드되었는지 확인하세요.",
+        "다른 페이지나 비디오로 다시 시도하세요.",
+        "이 URL에 액세스할 수 없습니다."
+      ]
+    }
+  }
+}

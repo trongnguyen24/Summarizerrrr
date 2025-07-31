@@ -1,10 +1,11 @@
 <script>
   // @ts-nocheck
-  import { geminiAdvancedModels } from '../../lib/models/geminiModels.js'
+  import { geminiAdvancedModels } from '../../lib/prompting/models/geminiModels.js'
   import { updateSettings } from '../../stores/settingsStore.svelte.js' // Chỉ import updateSettings
   import ApiKeyInput from '../inputs/ApiKeyInput.svelte'
   import Icon from '@iconify/svelte'
   import ReusableSelect from '../inputs/ReusableSelect.svelte'
+  import { t } from 'svelte-i18n'
 
   let {
     geminiAdvancedApiKey = $bindable(),
@@ -32,19 +33,25 @@
 
 <ApiKeyInput
   apiKey={geminiAdvancedApiKey}
-  label="Gemini API Key"
+  label={$t('settings.gemini_advanced_config.api_key_label')}
   onSave={handleGeminiAdvancedApiKeySave}
   linkHref="https://aistudio.google.com/app/apikey"
-  linkText="Get a key"
+  linkText={$t('settings.gemini_advanced_config.get_a_key')}
 ></ApiKeyInput>
 
 <div class="flex flex-col gap-2">
-  <label for="Select a model" class="block">Gemini Advanced Model</label>
+  <label for="Select a model" class="block"
+    >{$t('settings.gemini_advanced_config.select_model_label')}</label
+  >
   <ReusableSelect
     items={geminiAdvancedModels}
     bindValue={selectedGeminiAdvancedModel}
-    defaultLabel="Select a model"
-    ariaLabel="Select Gemini Model"
+    defaultLabel={$t(
+      'settings.gemini_advanced_config.select_model_placeholder'
+    )}
+    ariaLabel={$t(
+      'settings.gemini_advanced_config.select_gemini_model_aria_label'
+    )}
     onValueChangeCallback={handleGeminiAdvancedModelChange}
   />
 </div>

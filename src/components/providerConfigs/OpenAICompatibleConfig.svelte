@@ -2,6 +2,7 @@
   import ApiKeyInput from '../inputs/ApiKeyInput.svelte'
   import TextInput from '../inputs/TextInput.svelte'
   import { settings, updateSettings } from '../../stores/settingsStore.svelte'
+  import { t } from 'svelte-i18n'
 
   // @ts-nocheck
   /**
@@ -15,24 +16,24 @@
 
 <div class="space-y-4">
   <ApiKeyInput
-    label="API Key"
+    label={$t('settings.openai_compatible_config.api_key_label')}
     id="openaiCompatibleApiKey"
     apiKey={settings.openaiCompatibleApiKey}
     onSave={handleApiKeySave}
-    placeholder="API Key"
+    placeholder={$t('settings.openai_compatible_config.api_key_placeholder')}
   />
   <TextInput
-    label="Base URL"
+    label={$t('settings.openai_compatible_config.base_url_label')}
     id="openaiCompatibleBaseUrl"
     bind:value={settings.openaiCompatibleBaseUrl}
     onSave={(value) => updateSettings({ openaiCompatibleBaseUrl: value })}
-    placeholder="http://127.0.0.1:1234/v1/"
+    placeholder={$t('settings.openai_compatible_config.base_url_placeholder')}
   />
   <TextInput
-    label="Model Name"
+    label={$t('settings.openai_compatible_config.model_name_label')}
     id="openaiCompatibleModel"
     bind:value={settings.selectedOpenAICompatibleModel}
     onSave={(value) => updateSettings({ selectedOpenAICompatibleModel: value })}
-    placeholder="qwen/qwen2.5-vl-7b"
+    placeholder={$t('settings.openai_compatible_config.model_placeholder')}
   />
 </div>

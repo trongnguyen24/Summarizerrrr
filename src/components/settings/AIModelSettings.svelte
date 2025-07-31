@@ -1,10 +1,11 @@
 <script>
   // @ts-nocheck
+  import { t } from 'svelte-i18n'
   import Icon from '@iconify/svelte'
   import ButtonSet from '../buttons/ButtonSet.svelte'
   import LanguageSelect from '../inputs/LanguageSelect.svelte'
   import ProvidersSelect from '../inputs/ProvidersSelect.svelte'
-  import TextScramble from '@/lib/textScramble.js'
+  import TextScramble from '../../lib/ui/textScramble.js'
   import GeminiBasicConfig from '../providerConfigs/GeminiBasicConfig.svelte'
   import GeminiAdvancedConfig from '../providerConfigs/GeminiAdvancedConfig.svelte'
   import OpenrouterConfig from '../providerConfigs/OpenrouterConfig.svelte'
@@ -42,7 +43,11 @@
 
   $effect(() => {
     textScramble = new TextScramble(textElement)
-    textScramble.setText(settings.isAdvancedMode ? 'Advanced' : 'Basic')
+    textScramble.setText(
+      settings.isAdvancedMode
+        ? $t('settings.ai_model.mode.advanced')
+        : $t('settings.ai_model.mode.basic')
+    )
   })
 </script>
 
@@ -50,7 +55,7 @@
 <div class="setting-block flex gap-5 pb-6 pt-5 flex-col">
   <div class="flex items-center h-6 justify-between px-5">
     <label for="advanced-mode-toggle" class="block font-bold text-text-primary"
-      >Provider settings</label
+      >{$t('settings.ai_model.title')}</label
     >
     <div class="flex items-center">
       <Label.Root
@@ -60,7 +65,9 @@
         for="provider-toggle"
       >
         <span bind:this={textElement}>
-          {settings.isAdvancedMode ? 'Advanced' : 'Basic'}
+          {settings.isAdvancedMode
+            ? $t('settings.ai_model.mode.advanced')
+            : $t('settings.ai_model.mode.basic')}
         </span>
       </Label.Root>
       <Switch.Root
@@ -89,7 +96,9 @@
       <!-- Providers Select Section -->
       <div class="flex flex-col gap-2">
         <!-- svelte-ignore a11y_label_has_associated_control -->
-        <label class="block text-text-secondary">Selected Provider</label>
+        <label class="block text-text-secondary"
+          >{$t('settings.ai_model.selected_provider')}</label
+        >
         <ProvidersSelect bind:value={settings.selectedProvider} />
       </div>
 
@@ -135,7 +144,7 @@
         <div class="flex flex-col gap-2">
           <!-- svelte-ignore a11y_label_has_associated_control -->
           <label class=" text-text-secondary flex justify-between items-center">
-            <span>Temperature</span>
+            <span>{$t('settings.ai_model.temperature')}</span>
             <span class="text-text-primary font-bold"
               >{advancedModeSettings.temperature.toFixed(2)}</span
             >
@@ -161,7 +170,7 @@
           <!-- Added relative here -->
           <!-- svelte-ignore a11y_label_has_associated_control -->
           <label class=" text-text-secondary flex justify-between items-center">
-            <span>Top P</span>
+            <span>{$t('settings.ai_model.top_p')}</span>
             <span class="text-text-primary font-bold"
               >{advancedModeSettings.topP.toFixed(2)}</span
             >
@@ -189,35 +198,41 @@
         <div class="flex flex-col gap-2">
           <!-- svelte-ignore a11y_label_has_associated_control -->
           <label class=" text-text-secondary flex justify-between items-center">
-            <span>Temperature</span>
+            <span>{$t('settings.ai_model.temperature')}</span>
             <span class="text-text-primary block font-bold"
               >{basicModeSettings.temperature.toFixed(2)}</span
             >
           </label>
           <div class="grid grid-cols-3 w-full gap-1">
             <ButtonSet
-              title="Precise"
+              title={$t('settings.ai_model.temperature_basic.precise')}
               class="setting-btn {basicModeSettings.temperature === 0.3
                 ? 'active'
                 : ''}"
               onclick={() => handleUpdateSetting('temperature', 0.3)}
-              Description="0.3 - Less creative."
+              Description={$t(
+                'settings.ai_model.temperature_basic.precise_desc'
+              )}
             ></ButtonSet>
             <ButtonSet
-              title="Balanced"
+              title={$t('settings.ai_model.temperature_basic.balanced')}
               class="setting-btn {basicModeSettings.temperature === 0.7
                 ? 'active'
                 : ''}"
               onclick={() => handleUpdateSetting('temperature', 0.7)}
-              Description="0.7 - Balanced."
+              Description={$t(
+                'settings.ai_model.temperature_basic.balanced_desc'
+              )}
             ></ButtonSet>
             <ButtonSet
-              title="Creative"
+              title={$t('settings.ai_model.temperature_basic.creative')}
               class="setting-btn {basicModeSettings.temperature === 0.9
                 ? 'active'
                 : ''}"
               onclick={() => handleUpdateSetting('temperature', 0.9)}
-              Description="0.9 - More creative."
+              Description={$t(
+                'settings.ai_model.temperature_basic.creative_desc'
+              )}
             ></ButtonSet>
           </div>
         </div>
@@ -226,35 +241,35 @@
         <div class="flex flex-col gap-2">
           <!-- svelte-ignore a11y_label_has_associated_control -->
           <label class=" text-text-secondary flex justify-between items-center">
-            <span>Top P</span>
+            <span>{$t('settings.ai_model.top_p')}</span>
             <span class="text-text-primary block font-bold"
               >{basicModeSettings.topP.toFixed(2)}</span
             >
           </label>
           <div class="grid grid-cols-3 w-full gap-1">
             <ButtonSet
-              title="Narrow"
+              title={$t('settings.ai_model.top_p_basic.narrow')}
               class="setting-btn {basicModeSettings.topP === 0.9
                 ? 'active'
                 : ''}"
               onclick={() => handleUpdateSetting('topP', 0.9)}
-              Description="0.9 - Focus on most likely tokens."
+              Description={$t('settings.ai_model.top_p_basic.narrow_desc')}
             ></ButtonSet>
             <ButtonSet
-              title="Balanced"
+              title={$t('settings.ai_model.top_p_basic.balanced')}
               class="setting-btn {basicModeSettings.topP === 0.95
                 ? 'active'
                 : ''}"
               onclick={() => handleUpdateSetting('topP', 0.95)}
-              Description="0.95 - Broader range of tokens."
+              Description={$t('settings.ai_model.top_p_basic.balanced_desc')}
             ></ButtonSet>
             <ButtonSet
-              title="Wide"
+              title={$t('settings.ai_model.top_p_basic.wide')}
               class="setting-btn {basicModeSettings.topP === 0.98
                 ? 'active'
                 : ''}"
               onclick={() => handleUpdateSetting('topP', 0.98)}
-              Description="0.98 - Wider range of tokens."
+              Description={$t('settings.ai_model.top_p_basic.wide_desc')}
             ></ButtonSet>
           </div>
         </div>

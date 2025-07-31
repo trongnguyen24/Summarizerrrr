@@ -2,228 +2,126 @@
 import {
   getActiveTabInfo,
   sendMessageToTab,
-  executeFunction, // Hàm này giờ đã tương thích với MV2/MV3
+  executeFunction,
 } from './chromeService.js'
+import { ErrorHandler } from '../lib/error/errorHandler.js'
+import { ErrorTypes } from '../lib/error/errorTypes.js'
 
 const YOUTUBE_MATCH_PATTERN = /youtube\.com\/watch/i
 const COURSE_MATCH_PATTERN =
   /(udemy\.com\/course\/.*\/learn\/|coursera\.org\/learn\/.*\/lecture\/|coursera\.org\/learn\/.*\/supplement\/)/i
 
-/**
- * Lấy nội dung text từ body của trang web.
- * Thử lấy innerText trước, nếu không đủ dài thì fallback về textContent.
- * @returns {string | null} Nội dung text hoặc null nếu không lấy được.
- */
 function getWebpageText() {
-  // Hàm này sẽ được thực thi trong context của trang web bởi executeFunction
-  const minLength = 50 // Độ dài tối thiểu để coi là nội dung hợp lệ
+  const minLength = 50
   let content = document.body?.innerText?.trim()
-
   if (content && content.length >= minLength) {
     return content
   }
-
-  // Fallback to textContent if innerText is too short or unavailable
   console.log('innerText không đủ dài hoặc không có, thử textContent...')
   content = document.body?.textContent?.trim()
-
   if (content && content.length >= minLength) {
     return content
   }
-
   console.warn('Không thể lấy đủ nội dung text từ trang web.')
   return null
 }
 
 /**
  * Lấy nội dung từ tab hiện tại.
- * Tự động xác định là trang YouTube hay trang web thường dựa trên URL.
+ * Tự động xác định là trang YouTube, khóa học hay trang web thường dựa trên URL.
  * @param {'transcript' | 'timestampedTranscript' | 'webpageText'} contentType Loại nội dung cần lấy.
- * 'transcript': Chỉ lấy text transcript từ YouTube (nếu là trang YouTube).
- * 'timestampedTranscript': Lấy transcript kèm timestamp từ YouTube (nếu là trang YouTube).
- * 'webpageText': Lấy text từ body trang web (áp dụng cho mọi loại trang).
- * @param {string} [preferredLang='en'] Ngôn ngữ ưu tiên cho transcript YouTube.
- * @returns {Promise<{ type: 'youtube' | 'webpage' | 'error', content: string | null, error?: string }>}
- * Object chứa loại trang (dựa trên URL), nội dung và lỗi (nếu có).
- * Lưu ý: `type` trả về ('youtube' hoặc 'webpage') phản ánh loại trang thực tế, không phải `contentType` yêu cầu.
+ * @param {string} [preferredLang='en'] Ngôn ngữ ưu tiên cho transcript.
+ * @returns {Promise<{ type: 'youtube' | 'course' | 'webpage', content: string }>}
+ * Object chứa loại trang và nội dung. Throws a structured error on failure.
  */
 export async function getPageContent(
   contentType = 'webpageText',
   preferredLang = 'en'
 ) {
-  const tab = await getActiveTabInfo()
-  if (!tab || !tab.id || !tab.url) {
-    return {
-      type: 'error',
-      content: null,
-      error: 'Không thể lấy thông tin tab hiện tại.',
+  try {
+    const tab = await getActiveTabInfo()
+    if (!tab || !tab.id || !tab.url) {
+      throw new Error('Could not get active tab information.')
     }
-  }
 
-  const isYouTubeVideo = YOUTUBE_MATCH_PATTERN.test(tab.url)
-  const isCourseVideo = COURSE_MATCH_PATTERN.test(tab.url)
-  let actualPageType = 'webpage'
-  if (isYouTubeVideo) {
-    actualPageType = 'youtube'
-  } else if (isCourseVideo) {
-    actualPageType = 'course'
-  }
+    const isYouTubeVideo = YOUTUBE_MATCH_PATTERN.test(tab.url)
+    const isCourseVideo = COURSE_MATCH_PATTERN.test(tab.url)
+    let actualPageType = 'webpage'
+    if (isYouTubeVideo) actualPageType = 'youtube'
+    else if (isCourseVideo) actualPageType = 'course'
 
-  console.log(
-    `[contentService] Tab ID: ${tab.id}, URL: ${tab.url}, Is YouTube: ${isYouTubeVideo}, Is Course: ${isCourseVideo}, Requested Type: ${contentType}`
-  )
-
-  if (contentType === 'webpageText') {
     console.log(
-      '[contentService] Yêu cầu lấy nội dung text từ trang web (webpageText)...'
+      `[contentService] Processing tab ${tab.id} (${tab.url}) as ${actualPageType} for ${contentType}`
     )
-    try {
-      const pageText = await executeFunction(tab.id, getWebpageText)
-      if (pageText) {
-        console.log('[contentService] Lấy nội dung webpageText thành công.')
-        return { type: actualPageType, content: pageText }
-      } else {
-        console.warn('[contentService] Không lấy đủ nội dung webpageText.')
-        return {
-          type: 'error',
-          content: null,
-          error: 'Không thể lấy đủ nội dung text từ trang web.',
-        }
-      }
-    } catch (error) {
-      console.error(
-        '[contentService] Lỗi khi thực thi script lấy webpageText:',
-        error
-      )
-      return {
-        type: 'error',
-        content: null,
-        error: `Lỗi khi lấy nội dung webpageText: ${error.message}`,
-      }
-    }
-  }
 
-  if (
-    isYouTubeVideo &&
-    (contentType === 'transcript' || contentType === 'timestampedTranscript')
-  ) {
-    const action =
-      contentType === 'timestampedTranscript'
-        ? 'fetchTranscriptWithTimestamp'
-        : 'fetchTranscript'
-    try {
-      console.log(
-        `[contentService] Gửi yêu cầu ${action} (vì là YouTube và yêu cầu ${contentType}) đến tab ${tab.id} với ngôn ngữ ${preferredLang}`
+    if (contentType === 'webpageText') {
+      const pageText = await executeFunction(tab.id, getWebpageText)
+      if (pageText) return { type: actualPageType, content: pageText }
+      throw new Error(
+        'Failed to retrieve sufficient text content from the webpage.'
       )
+    }
+
+    if (
+      isYouTubeVideo &&
+      (contentType === 'transcript' || contentType === 'timestampedTranscript')
+    ) {
+      const action =
+        contentType === 'timestampedTranscript'
+          ? 'fetchTranscriptWithTimestamp'
+          : 'fetchTranscript'
       const response = await sendMessageToTab(tab.id, {
-        action: action,
+        action,
         lang: preferredLang,
       })
-
-      if (response && response.success && response.transcript) {
-        console.log(
-          `[contentService] Nhận được transcript (${action}) thành công.`
-        )
-        return {
-          type: 'youtube',
-          content: response.transcript,
-        }
-      } else {
-        console.error(
-          `[contentService] Lỗi từ content script (${action}):`,
-          response?.error
-        )
-        return {
-          type: 'error',
-          content: null,
-          error:
-            response?.error ||
-            `Không thể lấy ${contentType} từ content script YouTube.`,
-        }
+      if (response?.success && response.transcript) {
+        return { type: 'youtube', content: response.transcript }
       }
-    } catch (error) {
-      console.error(`[contentService] Lỗi khi gửi message (${action}):`, error)
-      return {
-        type: 'error',
-        content: null,
-        error: `Lỗi giao tiếp với content script YouTube: ${error.message}`,
-      }
-    }
-  }
-
-  if (isCourseVideo && contentType === 'transcript') {
-    const action = 'fetchCourseContent' // Luôn gọi action chung
-
-    try {
-      console.log(
-        `[contentService] Gửi yêu cầu ${action} (vì là Course và yêu cầu ${contentType}) đến tab ${tab.id} với ngôn ngữ ${preferredLang}`
+      throw new Error(
+        response?.error ||
+          `Failed to get ${contentType} from YouTube content script.`
       )
+    }
+
+    if (isCourseVideo && contentType === 'transcript') {
       const response = await sendMessageToTab(
         tab.id,
-        {
-          action: action,
-          lang: preferredLang,
-        },
-        15000 // Tăng timeout lên 15 giây
+        { action: 'fetchCourseContent', lang: preferredLang },
+        15000
       )
-
-      if (
-        response &&
-        response.success &&
-        (response.content || response.transcript)
-      ) {
-        // Xử lý cả response.content (từ Coursera) và response.transcript (từ Udemy)
-        console.log(
-          `[contentService] Nhận được content/transcript (${action}) thành công.`
-        )
+      if (response?.success && (response.content || response.transcript)) {
         return {
           type: 'course',
           content: response.content || response.transcript,
         }
-      } else {
-        console.error(
-          `[contentService] Lỗi từ content script (${action}):`,
-          response?.error
-        )
-        return {
-          type: 'error',
-          content: null,
-          error:
-            response?.error ||
-            `Không thể lấy ${contentType} từ content script Course.`,
-        }
       }
-    } catch (error) {
-      console.error(`[contentService] Lỗi khi gửi message (${action}):`, error)
-      return {
-        type: 'error',
-        content: null,
-        error: `Lỗi giao tiếp với content script Course: ${error.message}`,
-      }
+      throw new Error(
+        response?.error ||
+          `Failed to get ${contentType} from Course content script.`
+      )
     }
-  }
 
-  if (
-    !isYouTubeVideo &&
-    !isCourseVideo &&
-    (contentType === 'transcript' || contentType === 'timestampedTranscript')
-  ) {
-    console.warn(
-      `[contentService] Yêu cầu lấy ${contentType} nhưng đây không phải trang YouTube hoặc Course. URL: ${tab.url}`
-    )
-    return {
-      type: 'error',
-      content: null,
-      error: `Không thể lấy ${contentType} vì đây không phải trang YouTube hoặc Course.`,
+    // Handle cases where transcript is requested on a non-video page
+    if (
+      !isYouTubeVideo &&
+      !isCourseVideo &&
+      (contentType === 'transcript' || contentType === 'timestampedTranscript')
+    ) {
+      const error = new Error(
+        `Cannot get ${contentType} from a non-video page.`
+      )
+      error.type = ErrorTypes.CONTENT // Assign a specific type for better classification
+      throw error
     }
-  }
 
-  console.error(
-    `[contentService] Trường hợp không xử lý được: isYouTube=${isYouTubeVideo}, isCourse=${isCourseVideo}, contentType=${contentType}`
-  )
-  return {
-    type: 'error',
-    content: null,
-    error: 'Logic không xác định trong getPageContent.',
+    throw new Error('Unhandled case in getPageContent logic.')
+  } catch (error) {
+    console.error('[contentService] Error:', error)
+    // Pass the error to the centralized handler
+    throw ErrorHandler.handle(error, {
+      source: 'contentService',
+      contentType,
+      preferredLang,
+    })
   }
 }

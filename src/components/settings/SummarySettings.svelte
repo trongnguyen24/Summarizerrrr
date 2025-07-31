@@ -1,9 +1,10 @@
 <script>
   // @ts-nocheck
+  import { t } from 'svelte-i18n'
   import Icon from '@iconify/svelte'
   import ButtonSet from '../buttons/ButtonSet.svelte'
   import LanguageSelect from '../inputs/LanguageSelect.svelte'
-  import TextScramble from '@/lib/textScramble.js'
+  import TextScramble from '../../lib/ui/textScramble.js'
   import SwitchButton from '../inputs/Switch.svelte'
   import { Label, Switch } from 'bits-ui'
   import {
@@ -24,7 +25,9 @@
     }
     if (textScramble) {
       textScramble.setText(
-        settings.isSummaryAdvancedMode ? 'Advanced' : 'Basic'
+        settings.isSummaryAdvancedMode
+          ? $t('settings.ai_model.mode.advanced')
+          : $t('settings.ai_model.mode.basic')
       )
     }
   })
@@ -32,38 +35,38 @@
   const customPrompts = [
     {
       id: 'youtubep',
-      name: 'Youtube Summary',
+      name: $t('settings.summary.custom_prompts.youtube_summary'),
       settingKey: 'youtubePromptSelection',
       promptKey: 'youtubeCustomPromptContent',
     },
     {
       id: 'chapterp',
-      name: 'Youtube Chapter',
+      name: $t('settings.summary.custom_prompts.youtube_chapter'),
       settingKey: 'chapterPromptSelection',
       promptKey: 'chapterCustomPromptContent',
     },
 
     {
       id: 'coursesummaryp',
-      name: 'Course Summary',
+      name: $t('settings.summary.custom_prompts.course_summary'),
       settingKey: 'courseSummaryPromptSelection',
       promptKey: 'courseSummaryCustomPromptContent',
     },
     {
       id: 'courseconceptsp',
-      name: 'Course Concepts',
+      name: $t('settings.summary.custom_prompts.course_concepts'),
       settingKey: 'courseConceptsPromptSelection',
       promptKey: 'courseConceptsCustomPromptContent',
     },
     {
       id: 'webp',
-      name: 'Web Summary',
+      name: $t('settings.summary.custom_prompts.web_summary'),
       settingKey: 'webPromptSelection',
       promptKey: 'webCustomPromptContent',
     },
     {
       id: 'selectedtextp',
-      name: 'Selected Text',
+      name: $t('settings.summary.custom_prompts.selected_text'),
       settingKey: 'selectedTextPromptSelection',
       promptKey: 'selectedTextCustomPromptContent',
     },
@@ -74,7 +77,7 @@
 <div class="setting-block flex flex-col gap-5 pb-6 pt-5">
   <div class="flex items-center h-6 justify-between px-5">
     <label for="isSummaryAdvancedMode" class="block font-bold text-text-primary"
-      >Summary settings</label
+      >{$t('settings.summary.title')}</label
     >
     <div class="flex items-center">
       <Label.Root
@@ -84,7 +87,9 @@
         for="isSummaryAdvancedMode-toggle"
       >
         <span bind:this={textElement}>
-          {settings.isSummaryAdvancedMode ? 'Advanced' : 'Basic'}
+          {settings.isSummaryAdvancedMode
+            ? $t('settings.ai_model.mode.advanced')
+            : $t('settings.ai_model.mode.basic')}
         </span>
       </Label.Root>
 
@@ -113,31 +118,33 @@
     <!-- Summary Length Section -->
     <div class="flex flex-col gap-2">
       <!-- svelte-ignore a11y_label_has_associated_control -->
-      <label class="block text-text-secondary">Summary Size</label>
+      <label class="block text-text-secondary"
+        >{$t('settings.summary.size')}</label
+      >
       <div class="grid grid-cols-3 w-full gap-1">
         <ButtonSet
-          title="Short"
+          title={$t('settings.summary.size_mode.short')}
           class="setting-btn {settings.summaryLength === 'short'
             ? 'active'
             : ''}"
           onclick={() => handleUpdateSetting('summaryLength', 'short')}
-          Description="Short summary."
+          Description={$t('settings.summary.size_mode.short_desc')}
         ></ButtonSet>
         <ButtonSet
-          title="Medium"
+          title={$t('settings.summary.size_mode.medium')}
           class="setting-btn {settings.summaryLength === 'medium'
             ? 'active'
             : ''}"
           onclick={() => handleUpdateSetting('summaryLength', 'medium')}
-          Description="Medium length summary."
+          Description={$t('settings.summary.size_mode.medium_desc')}
         ></ButtonSet>
         <ButtonSet
-          title="Deep"
+          title={$t('settings.summary.size_mode.deep')}
           class="setting-btn {settings.summaryLength === 'long'
             ? 'active'
             : ''}"
           onclick={() => handleUpdateSetting('summaryLength', 'long')}
-          Description="Detailed summary."
+          Description={$t('settings.summary.size_mode.deep_desc')}
         ></ButtonSet>
       </div>
     </div>
@@ -145,29 +152,31 @@
     <!-- Summary Tone Section -->
     <div class="flex flex-col gap-2">
       <!-- svelte-ignore a11y_label_has_associated_control -->
-      <label class="block text-text-secondary">Tone</label>
+      <label class="block text-text-secondary"
+        >{$t('settings.summary.tone')}</label
+      >
       <div class="grid grid-cols-3 w-full gap-1">
         <ButtonSet
-          title="Simple"
+          title={$t('settings.summary.tone_mode.simple')}
           class="setting-btn {settings.summaryTone === 'simple'
             ? 'active'
             : ''}"
           onclick={() => handleUpdateSetting('summaryTone', 'simple')}
-          Description="Easy to understand, friendly."
+          Description={$t('settings.summary.tone_mode.simple_desc')}
         ></ButtonSet>
         <ButtonSet
-          title="Expert"
+          title={$t('settings.summary.tone_mode.expert')}
           class="setting-btn {settings.summaryTone === 'expert'
             ? 'active'
             : ''}"
           onclick={() => handleUpdateSetting('summaryTone', 'expert')}
-          Description="Professional, technical, authoritative."
+          Description={$t('settings.summary.tone_mode.expert_desc')}
         ></ButtonSet>
         <ButtonSet
-          title="Alien"
+          title={$t('settings.summary.tone_mode.alien')}
           class="setting-btn {settings.summaryTone === 'alien' ? 'active' : ''}"
           onclick={() => handleUpdateSetting('summaryTone', 'alien')}
-          Description="Curious, analytical, detached."
+          Description={$t('settings.summary.tone_mode.alien_desc')}
         ></ButtonSet>
       </div>
     </div>
@@ -175,7 +184,9 @@
     <!-- Summary Language Section -->
     <div class="flex flex-col gap-2">
       <!-- svelte-ignore a11y_label_has_associated_control -->
-      <label class="block text-text-secondary">Language output</label>
+      <label class="block text-text-secondary"
+        >{$t('settings.summary.language_output')}</label
+      >
       <LanguageSelect
         bind:value={settings.summaryLang}
         onchange={(event) => handleUpdateSetting('summaryLang', event.detail)}
@@ -187,7 +198,7 @@
     <div class="@container setting-secsion flex flex-col gap-4 px-5">
       <!-- Prompt settings -->
       <div class="flex items-center gap-1 text-text-primary justify-between">
-        Active custom prompts
+        {$t('settings.summary.custom_prompts.title')}
         <a
           href={browser.runtime.getURL(
             'prompt.html?promptKey=youtubeCustomPromptContent'
@@ -195,7 +206,7 @@
           target="_blank"
           class="text-xs flex items-center gap-0.5 text-primary outline-gray-500 hover:underline"
         >
-          Prompt Editer
+          {$t('settings.summary.custom_prompts.editor_button')}
           <Icon width={12} icon="heroicons:arrow-up-right-16-solid" />
         </a>
       </div>
@@ -217,7 +228,7 @@
           />
         {/each}
       </div>
-      <p>* Basic settings are overridden by active custom prompts.</p>
+      <p>{$t('settings.summary.custom_prompts.override_note')}</p>
     </div>
   {/if}
 </div>

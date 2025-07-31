@@ -2,7 +2,7 @@
   "name": "Summarizerrrr",
   "description": "FREE Deep Summarizes content from YouTube, Udemy, Coursera, Websites, Reddit, and any text-based page online.",
   "private": true,
-  "version": "1.6.2",
+  "version": "1.6.3",
   "type": "module",
   "scripts": {
     "dev": "wxt",
@@ -39,6 +39,7 @@
     "openai": "^5.10.2",
     "overlayscrollbars": "^2.11.1",
     "overlayscrollbars-svelte": "^0.5.5",
+    "svelte-i18n": "^4.0.1",
     "svelte-sonner": "^1.0.5",
     "tailwindcss": "^4.1.8",
     "webextension-polyfill": "^0.12.0"

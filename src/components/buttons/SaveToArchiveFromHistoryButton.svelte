@@ -2,8 +2,9 @@
 <script>
   import { Tooltip } from 'bits-ui'
   import Icon from '@iconify/svelte'
-  import { slideScaleFade } from '@/lib/slideScaleFade'
-  import { moveHistoryItemToArchive } from '@/lib/indexedDBService'
+  import { t } from 'svelte-i18n'
+  import { slideScaleFade } from '@/lib/ui/slideScaleFade.js'
+  import { moveHistoryItemToArchive } from '@/lib/db/indexedDBService.js'
   import { setStorage } from '@/services/chromeService'
 
   let { selectedSummary } = $props()
@@ -33,7 +34,6 @@
     <Tooltip.Trigger
       onclick={handleSave}
       class="p-1.5 size-8 relative hover:bg-blackwhite/10 rounded-4xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-      disabled={isItemArchived}
     >
       {#if isItemArchived}
         <span
@@ -75,7 +75,9 @@
               }}
               {...props}
             >
-              {isItemArchived ? 'Saved!' : 'Save to archive'}
+              {isItemArchived
+                ? $t('button.saved')
+                : $t('button.save_to_archive')}
             </div>
           </div>
         {/if}

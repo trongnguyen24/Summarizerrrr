@@ -1,19 +1,20 @@
 // @ts-nocheck
 import { geminiModelsConfig } from './geminiConfig.js'
 import { openrouterModelsConfig } from './openrouterConfig.js'
-import { settings, loadSettings } from '../stores/settingsStore.svelte.js'
+import { settings, loadSettings } from '@/stores/settingsStore.svelte.js'
 import {
   advancedModeSettings,
   loadAdvancedModeSettings,
-} from '../stores/advancedModeSettingsStore.svelte.js'
+} from '@/stores/advancedModeSettingsStore.svelte.js'
 import {
   basicModeSettings,
   loadBasicModeSettings,
-} from '../stores/basicModeSettingsStore.svelte.js'
+} from '@/stores/basicModeSettingsStore.svelte.js'
 import { getProvider, providersConfig } from './providersConfig.js'
-import { promptBuilders } from './promptBuilders.js'
-import { systemInstructions } from './systemInstructions.js'
+import { promptBuilders } from '@/lib/prompting/promptBuilders.js'
+import { systemInstructions } from '@/lib/prompting/systemInstructions.js'
 import { DEFAULT_OLLAMA_ENDPOINT } from './ollamaConfig.js'
+import { ErrorTypes } from '../error/errorTypes.js'
 
 /**
  * Helper function to get provider-specific configuration (API key, model, model config).
@@ -71,9 +72,12 @@ function getProviderConfig(userSettings, selectedProviderId) {
   }
 
   if (!apiKey) {
-    throw new Error(
-      `${providersConfig[selectedProviderId].name} API key is not configured. Click the settings icon on the right to add your API key.`
-    )
+    const providerName =
+      providersConfig[selectedProviderId]?.name || selectedProviderId
+    throw {
+      message: `${providerName} API key is not configured. Click the settings icon on the right to add your API key.`,
+      type: ErrorTypes.API_KEY,
+    }
   }
 
   return { apiKey, model, modelConfig }
@@ -175,8 +179,10 @@ export async function summarizeContent(text, contentType) {
         ))
     return provider.parseResponse(rawResult)
   } catch (e) {
+    // The provider's generateContent method should already be throwing a structured error
+    // so we just re-throw it up to the store.
     console.error(`${providersConfig[selectedProviderId].name} API Error:`, e)
-    throw new Error(provider.handleError(e, model))
+    throw e
   }
 }
 
@@ -248,12 +254,15 @@ export async function* summarizeContentStream(text, contentType) {
       contentsForProvider = [{ parts: [{ text: userPrompt }] }] // Default for other providers
     }
 
-    const stream = provider.generateContentStream(
-      model,
-      contentsForProvider,
-      systemInstruction,
-      finalGenerationConfig
-    )
+    const stream =
+      selectedProviderId === 'ollama'
+        ? provider.generateContentStream(contentsForProvider) // Ollama's generateContentStream expects only prompt
+        : provider.generateContentStream(
+            model,
+            contentsForProvider,
+            systemInstruction,
+            finalGenerationConfig
+          )
 
     for await (const chunk of stream) {
       yield chunk
@@ -263,7 +272,8 @@ export async function* summarizeContentStream(text, contentType) {
       `${providersConfig[selectedProviderId].name} API Stream Error:`,
       e
     )
-    throw new Error(provider.handleError(e, model))
+    // Re-throw the structured error
+    throw e
   }
 }
 
@@ -337,7 +347,7 @@ export async function enhancePrompt(userPrompt) {
     return provider.parseResponse(rawResult)
   } catch (e) {
     console.error(`${providersConfig[selectedProviderId].name} API Error:`, e)
-    throw new Error(provider.handleError(e, model))
+    throw e
   }
 }
 
@@ -424,7 +434,7 @@ export async function summarizeChapters(timestampedTranscript) {
       `${providersConfig[selectedProviderId].name} API Error (Chapters):`,
       e
     )
-    throw new Error(provider.handleError(e, model))
+    throw e
   }
 }
 
@@ -506,6 +516,6 @@ export async function* summarizeChaptersStream(timestampedTranscript) {
       `${providersConfig[selectedProviderId].name} API Stream Error (Chapters):`,
       e
     )
-    throw new Error(provider.handleError(e, model))
+    throw e
   }
 }

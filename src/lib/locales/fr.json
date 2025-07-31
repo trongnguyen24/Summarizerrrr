@@ -1,0 +1,260 @@
+{
+  "settings": {
+    "title": "Paramètres",
+    "open_settings": "Ouvrir les paramètres",
+    "general": {
+      "title": "Général",
+      "fontFamily": "Police",
+      "font": {
+        "sans": "Sans Serif",
+        "sans_desc": "Police par défaut du système.",
+        "serif": "Serif",
+        "serif_desc": "Police avec empattements, style classique.",
+        "dyslexic": "OpenDyslexic",
+        "dyslexic_desc": "Facilite la lecture pour les personnes dyslexiques.",
+        "mali": "Mali",
+        "mali_desc": "Police avec un style d'écriture manuscrite."
+      },
+      "lang_ui": "Langue",
+      "theme": "Thème",
+      "theme_mode": {
+        "light": "Clair",
+        "light_desc": "Interface aux tons clairs.",
+        "dark": "Sombre",
+        "dark_desc": "Interface aux tons sombres.",
+        "system": "Système",
+        "system_desc": "Utilise le thème de votre appareil."
+      },
+      "responseMode": "Mode de réponse",
+      "response_mode": {
+        "streaming": "Streaming",
+        "streaming_desc": "Réponses instantanées. Recommandé.",
+        "non_streaming": "Normal",
+        "non_streaming_desc": "Pour les connexions lentes. Évite les pauses."
+      },
+      "shortcuts": "Raccourcis",
+      "shortcuts_settings": "Gérer les raccourcis"
+    },
+    "ai_model": {
+      "title": "Modèle IA",
+      "mode": {
+        "basic": "Basique",
+        "advanced": "Avancé"
+      },
+      "selected_provider": "Fournisseur",
+      "temperature": "Température",
+      "top_p": "Top P",
+      "temperature_basic": {
+        "precise": "Précis",
+        "precise_desc": "Réponses plus factuelles et directes.",
+        "balanced": "Équilibré",
+        "balanced_desc": "Équilibre entre précision et créativité.",
+        "creative": "Créatif",
+        "creative_desc": "Réponses plus originales et imaginatives."
+      },
+      "top_p_basic": {
+        "narrow": "Focalisé",
+        "narrow_desc": "Réponses plus sûres et prévisibles.",
+        "balanced": "Équilibré",
+        "balanced_desc": "Équilibre entre sécurité et variété.",
+        "wide": "Large",
+        "wide_desc": "Réponses plus diverses et inattendues."
+      }
+    },
+    "summary": {
+      "title": "Résumé",
+      "size": "Longueur",
+      "size_mode": {
+        "short": "Court",
+        "short_desc": "Un résumé bref et concis.",
+        "medium": "Moyen",
+        "medium_desc": "Un résumé de longueur standard.",
+        "deep": "Détaillé",
+        "deep_desc": "Une analyse plus approfondie."
+      },
+      "tone": "Ton",
+      "tone_mode": {
+        "simple": "Simple",
+        "simple_desc": "Langage clair et facile à comprendre.",
+        "expert": "Expert",
+        "expert_desc": "Langage formel et technique.",
+        "alien": "Alien",
+        "alien_desc": "Perspective curieuse et objective."
+      },
+      "language_output": "Langue de sortie",
+      "custom_prompts": {
+        "title": "Prompts",
+        "editor_button": "Éditeur de prompts",
+        "youtube_summary": "Résumé YouTube",
+        "youtube_chapter": "Chapitres YouTube",
+        "course_summary": "Résumé de cours",
+        "course_concepts": "Concepts de cours",
+        "web_summary": "Résumé web",
+        "selected_text": "Texte sélectionné",
+        "override_note": "* Les prompts actifs remplacent les réglages de base."
+      }
+    },
+    "chatgpt_config": {
+      "api_key_label": "Clé API",
+      "api_key_placeholder": "Entrez votre clé API ChatGPT",
+      "model_name_label": "Nom du modèle",
+      "saved_status": "Sauvegardé !",
+      "view_models": "Voir les modèles",
+      "model_placeholder": "Entrez le modèle ChatGPT"
+    },
+    "deepseek_config": {
+      "api_key_label": "Clé API",
+      "api_key_placeholder": "Entrez votre clé API Deepseek",
+      "model_name_label": "Nom du modèle",
+      "saved_status": "Sauvegardé !",
+      "view_models": "Voir les modèles",
+      "model_placeholder": "Entrez le modèle Deepseek"
+    },
+    "gemini_advanced_config": {
+      "api_key_label": "Clé API Gemini",
+      "get_a_key": "Obtenir une clé",
+      "select_model_label": "Modèle Gemini Advanced",
+      "select_model_placeholder": "Sélectionnez un modèle",
+      "select_gemini_model_aria_label": "Sélectionner un modèle Gemini"
+    },
+    "gemini_basic_config": {
+      "api_key_label": "Clé API Gemini",
+      "get_a_key": "Obtenir une clé",
+      "select_model_label": "Sélectionner un modèle Gemini"
+    },
+    "ollama_config": {
+      "endpoint_label": "Point de terminaison Ollama",
+      "endpoint_placeholder": "http://localhost:11434",
+      "model_label": "Modèle Ollama",
+      "model_placeholder": "llama2"
+    },
+    "openai_compatible_config": {
+      "api_key_label": "Clé API",
+      "api_key_placeholder": "Clé API",
+      "base_url_label": "URL de base",
+      "base_url_placeholder": "http://127.0.0.1:1234/v1/",
+      "model_name_label": "Nom du modèle",
+      "model_placeholder": "qwen/qwen2.5-vl-7b"
+    },
+    "openrouter_config": {
+      "api_key_label": "Clé API OpenRouter",
+      "get_a_key": "Obtenir une clé",
+      "model_label": "Modèle OpenRouter",
+      "saved_status": "Sauvegardé !",
+      "view_models": "Voir les modèles"
+    }
+  },
+  "prompts": {
+    "title": "Prompts",
+    "system_instruction": "Prompt système",
+    "system_note": "Optionnel : Ignorer si pas nécessaire.",
+    "user_prompt": "Prompt utilisateur",
+    "user_note": "Utilisez __CONTENT__ pour insérer du contenu dynamique",
+    "select_template": "Sélectionner un modèle",
+    "prompt_enhance": "Améliorer le prompt",
+    "buttons": {
+      "import": "Importer",
+      "discard": "Ignorer",
+      "save": "Sauvegarder",
+      "apply_prompt": "Appliquer le prompt"
+    },
+    "tip": [
+      "Cette fonction fonctionne mieux avec Gemini 2.5 Flash ou supérieur.",
+      "La \"Améliorer le prompt\" ne fait que formater et expliquer selon votre entrée.",
+      "Pour utiliser une autre langue, ajustez la langue de sortie dans Paramètres > Résumé."
+    ]
+  },
+  "archive": {
+    "open_archive": "Ouvrir l'archive",
+    "tab_history": "Historique",
+    "tab_archive": "Archive",
+    "change_theme": "Changer de thème",
+    "font_dec": "Réduire la police",
+    "font_inc": "Augmenter la police",
+    "change_font": "Changer de police",
+    "toggle_width": "Basculer la largeur"
+  },
+  "button": {
+    "copy": "Copier dans le presse-papiers",
+    "copied": "Copié !",
+    "download": "Télécharger en Markdown",
+    "downloaded": "Téléchargé !",
+    "save_to_archive": "Sauvegarder dans l'archive",
+    "saved": "Sauvegardé !"
+  },
+  "errors": {
+    "api_key": "Clé API non configurée. Veuillez vérifier votre clé API dans les paramètres.",
+    "unauthorized": "Accès non autorisé. Veuillez vérifier votre clé API et vos autorisations.",
+    "quota": "Quota API dépassé. Veuillez vérifier vos limites d'utilisation ou réessayer plus tard.",
+    "network": "Erreur réseau. Veuillez vérifier votre connexion Internet.",
+    "server": "Erreur de serveur API. Veuillez réessayer plus tard.",
+    "content": "Contenu introuvable ou n'a pas pu être traité.",
+    "permission": "Autorisations du navigateur manquantes. Veuillez vérifier les paramètres de l'extension.",
+    "timeout": "Délai de requête dépassé. Veuillez réessayer.",
+    "streaming": "Erreur de streaming. Les données peuvent être incomplètes.",
+    "unknown": "Une erreur inattendue est survenue. Veuillez réessayer."
+  },
+  "helpSystem": {
+    "apiKey": {
+      "title": "Clé API invalide",
+      "message": "La clé API fournie est invalide ou a été désactivée. Veuillez vérifier la clé dans les paramètres.",
+      "suggestions": ["Vérifiez votre clé API dans les paramètres."]
+    },
+    "unauthorized": {
+      "title": "Accès non autorisé",
+      "message": "Votre clé API n'a pas les autorisations requises. Cela peut se produire avec des modèles ajustés ou des restrictions d'API spécifiques.",
+      "suggestions": [
+        "Vérifiez vos autorisations API et assurez-vous qu'elles sont suffisantes.",
+        "Contactez le support du fournisseur d'API pour obtenir de l'aide."
+      ]
+    },
+    "quota": {
+      "title": "Quota API dépassé",
+      "message": "Vous avez dépassé votre limite d'utilisation pour l'API sélectionnée. Veuillez vérifier votre facturation ou réessayer plus tard.",
+      "suggestions": [
+        "Vérifiez votre utilisation de l'API et les détails de facturation.",
+        "Envisagez de mettre à niveau votre plan si vous atteignez fréquemment les limites."
+      ]
+    },
+    "network": {
+      "title": "Erreur de connexion réseau",
+      "message": "Impossible de se connecter au serveur. Veuillez vérifier votre connexion Internet et les paramètres de pare-feu ou de proxy.",
+      "suggestions": [
+        "Assurez-vous d'avoir une connexion Internet stable et désactivez tout VPN/proxy si actif."
+      ]
+    },
+    "server": {
+      "title": "Erreur de serveur API",
+      "message": "Le serveur du fournisseur d'IA a rencontré une erreur interne (5xx). C'est généralement un problème temporaire. Veuillez patienter un instant et réessayer.",
+      "suggestions": [
+        "Attendez quelques instants et réessayez votre demande.",
+        "Vérifiez la page d'état du fournisseur pour les pannes connues."
+      ]
+    },
+    "content": {
+      "title": "Erreur de contenu",
+      "message": "L'extension n'a pas pu récupérer le contenu nécessaire de cette page (par exemple, transcription introuvable, texte de page trop court).",
+      "suggestions": [
+        "Assurez-vous que la vidéo a une transcription disponible et n'est pas privée.",
+        "Assurez-vous que la page web est entièrement chargée et accessible."
+      ]
+    },
+    "permission": {
+      "title": "Autorisation refusée",
+      "message": "L'extension ne dispose pas des autorisations de navigateur nécessaires pour effectuer cette action. Veuillez vérifier les paramètres de l'extension.",
+      "suggestions": [
+        "Vérifiez et accordez les autorisations nécessaires dans les paramètres d'extension de votre navigateur."
+      ]
+    },
+    "unknown": {
+      "title": "Erreur inconnue",
+      "message": "Une erreur inattendue est survenue. Si ce problème persiste, veuillez envisager de le signaler.",
+      "suggestions": [
+        "Vérifiez si la vidéo a une transcription.",
+        "Assurez-vous que la page est entièrement chargée.",
+        "Essayez avec une autre page ou vidéo.",
+        "Signalez ce problème au développeur."
+      ]
+    }
+  }
+}

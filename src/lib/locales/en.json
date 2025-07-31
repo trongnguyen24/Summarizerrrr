@@ -1,0 +1,261 @@
+{
+  "settings": {
+    "title": "Settings",
+    "open_settings": "Open settings",
+    "general": {
+      "title": "General",
+      "fontFamily": "Font Family",
+      "font": {
+        "sans": "Sans Serif",
+        "sans_desc": "Default font.",
+        "serif": "Serif",
+        "serif_desc": "Noto Serif font.",
+        "dyslexic": "OpenDyslexic",
+        "dyslexic_desc": "OpenDyslexic font for dyslexia.",
+        "mali": "Mali",
+        "mali_desc": "Mali font for all text."
+      },
+      "lang_ui": "Language UI",
+      "theme": "Theme",
+      "theme_mode": {
+        "light": "Light",
+        "light_desc": "Light theme.",
+        "dark": "Dark",
+        "dark_desc": "Dark theme.",
+        "system": "System",
+        "system_desc": "System theme."
+      },
+      "responseMode": "Response Mode",
+      "response_mode": {
+        "streaming": "Streaming",
+        "streaming_desc": "Real-time response display, better experience.",
+        "non_streaming": "Non-streaming",
+        "non_streaming_desc": "Suitable for low-end devices, reduce lag."
+      },
+      "shortcuts": "Shortcuts",
+      "shortcuts_settings": "Shortcut Settings"
+    },
+    "ai_model": {
+      "title": "Provider",
+      "mode": {
+        "basic": "Basic",
+        "advanced": "Advanced"
+      },
+      "selected_provider": "Selected Provider",
+      "temperature": "Temperature",
+      "top_p": "Top P",
+      "temperature_basic": {
+        "precise": "Precise",
+        "precise_desc": "0.3 - Less creative.",
+        "balanced": "Balanced",
+        "balanced_desc": "0.7 - Balanced.",
+        "creative": "Creative",
+        "creative_desc": "0.9 - More creative."
+      },
+      "top_p_basic": {
+        "narrow": "Narrow",
+        "narrow_desc": "0.9 - Focus on most likely tokens.",
+        "balanced": "Balanced",
+        "balanced_desc": "0.95 - Broader range of tokens.",
+        "wide": "Wide",
+        "wide_desc": "0.98 - Wider range of tokens."
+      }
+    },
+    "summary": {
+      "title": "Summary Settings",
+      "size": "Summary Size",
+      "size_mode": {
+        "short": "Short",
+        "short_desc": "Short summary.",
+        "medium": "Medium",
+        "medium_desc": "Medium length summary.",
+        "deep": "Deep",
+        "deep_desc": "Detailed summary."
+      },
+      "tone": "Tone",
+      "tone_mode": {
+        "simple": "Simple",
+        "simple_desc": "Easy to understand, friendly.",
+        "expert": "Expert",
+        "expert_desc": "Professional, technical, authoritative.",
+        "alien": "Alien",
+        "alien_desc": "Curious, analytical, detached."
+      },
+      "language_output": "Language output",
+      "custom_prompts": {
+        "title": "Active custom prompts",
+        "editor_button": "Prompt Editor",
+        "youtube_summary": "Youtube Summary",
+        "youtube_chapter": "Youtube Chapter",
+        "course_summary": "Course Summary",
+        "course_concepts": "Course Concepts",
+        "web_summary": "Web Summary",
+        "selected_text": "Selected Text",
+        "override_note": "* Basic settings are overridden by active custom prompts."
+      }
+    },
+    "chatgpt_config": {
+      "api_key_label": "API Key",
+      "api_key_placeholder": "Enter your ChatGPT API key",
+      "model_name_label": "Model Name",
+      "saved_status": "Saved!",
+      "view_models": "View Models",
+      "model_placeholder": "Enter ChatGPT Model"
+    },
+    "deepseek_config": {
+      "api_key_label": "API Key",
+      "api_key_placeholder": "Enter your Deepseek API key",
+      "model_name_label": "Model Name",
+      "saved_status": "Saved!",
+      "view_models": "View Models",
+      "model_placeholder": "Enter Deepseek Model"
+    },
+    "gemini_advanced_config": {
+      "api_key_label": "Gemini API Key",
+      "get_a_key": "Get a key",
+      "select_model_label": "Gemini Advanced Model",
+      "select_model_placeholder": "Select a model",
+      "select_gemini_model_aria_label": "Select Gemini Model"
+    },
+    "gemini_basic_config": {
+      "api_key_label": "Gemini API Key",
+      "get_a_key": "Get a key",
+      "select_model_label": "Select Gemini Model"
+    },
+    "ollama_config": {
+      "endpoint_label": "Ollama Endpoint",
+      "endpoint_placeholder": "http://localhost:11434",
+      "model_label": "Ollama Model",
+      "model_placeholder": "llama2"
+    },
+    "openai_compatible_config": {
+      "api_key_label": "API Key",
+      "api_key_placeholder": "API Key",
+      "base_url_label": "Base URL",
+      "base_url_placeholder": "http://127.0.0.1:1234/v1/",
+      "model_name_label": "Model Name",
+      "model_placeholder": "qwen/qwen2.5-vl-7b"
+    },
+    "openrouter_config": {
+      "api_key_label": "OpenRouter API Key",
+      "get_a_key": "Get a key",
+      "model_label": "OpenRouter Model",
+      "saved_status": "Saved!",
+      "view_models": "View Models"
+    }
+  },
+  "prompts": {
+    "title": "Prompts",
+    "system_instruction": "Prompt Hệ thống",
+    "system_note": "Optional: Skip if not needed.",
+    "user_prompt": "Prompt người dùng",
+    "user_note": "Use the __CONTENT__ to insert the dynamic content",
+    "select_template": "Select a template",
+    "prompt_enhance": "Prompt enhance",
+    "buttons": {
+      "import": "Import",
+      "discard": "Discard",
+      "save": "Save",
+      "apply_prompt": "Apply Prompt"
+    },
+    "tip": [
+      "This feature works best with the Gemini 2.5 Flash model or higher.",
+      "The \"Prompt Enhancement\" feature just formats and explains based on your prompt input.",
+      "To prompt in a different language, adjust the output language in Settings > Summary."
+    ]
+  },
+  "archive": {
+    "open_archive": "Open archive",
+    "tab_history": "History",
+    "tab_archive": "Archive",
+    "change_theme": "Change theme",
+    "font_dec": "Font Decrease",
+    "font_inc": "Font Increase",
+    "change_font": "Change font",
+    "toggle_width": "Toggle width"
+  },
+  "button": {
+    "copy": "Copy to clipboard",
+    "copied": "Copied!",
+    "download": "Download as Markdown",
+    "downloaded": "Downloaded!",
+    "save_to_archive": "Save to archive",
+    "saved": "Saved!"
+  },
+
+  "errors": {
+    "api_key": "API Key not configured. Please check your API key in the settings.",
+    "unauthorized": "Unauthorized access. Please check your API key and permissions.",
+    "quota": "API quota exceeded. Please check your usage limits or try again later.",
+    "network": "Network error. Please check your internet connection.",
+    "server": "API server error. Please try again later.",
+    "content": "Content not found or could not be processed.",
+    "permission": "Missing browser permissions. Please check extension settings.",
+    "timeout": "Request timed out. Please try again.",
+    "streaming": "Streaming error. Data might be incomplete.",
+    "unknown": "An unexpected error occurred. Please try again."
+  },
+  "helpSystem": {
+    "apiKey": {
+      "title": "Invalid API Key",
+      "message": "The API key you provided is invalid or has been disabled. Please check the key in the settings and try again.",
+      "suggestions": ["Verify your API key in the settings."]
+    },
+    "unauthorized": {
+      "title": "Unauthorized Access",
+      "message": "Your API key does not have the required permissions for this operation. This can happen with tuned models or specific API restrictions.",
+      "suggestions": [
+        "Check your API permissions and ensure they are sufficient.",
+        "Contact the API provider's support for assistance."
+      ]
+    },
+    "quota": {
+      "title": "API Quota Exceeded",
+      "message": "You have exceeded your usage limit for the selected API. Please check your account billing or try again later.",
+      "suggestions": [
+        "Review your API usage and billing details.",
+        "Consider upgrading your plan if you frequently hit limits."
+      ]
+    },
+    "network": {
+      "title": "Network Connection Error",
+      "message": "Could not connect to the server. Please check your internet connection and any firewall or proxy settings.",
+      "suggestions": [
+        "Ensure you have a stable internet connection and disable any VPN/proxy if active."
+      ]
+    },
+    "server": {
+      "title": "API Server Error",
+      "message": "The AI provider's server encountered an internal error (5xx). This is usually a temporary issue. Please wait a moment and try again.",
+      "suggestions": [
+        "Wait a few moments and try your request again.",
+        "Check the provider's status page for known outages."
+      ]
+    },
+    "content": {
+      "title": "Content Error",
+      "message": "The extension could not retrieve the necessary content from this page (e.g., transcript not found, page text too short).",
+      "suggestions": [
+        "Ensure the video has a transcript available",
+        "Make sure the web page is fully loaded and accessible."
+      ]
+    },
+    "permission": {
+      "title": "Permission Denied",
+      "message": "The extension lacks the necessary browser permissions to perform this action. Please check the extension settings.",
+      "suggestions": [
+        "Review and grant necessary permissions in your browser's extension settings."
+      ]
+    },
+    "unknown": {
+      "title": "Unknown Error",
+      "message": "An unexpected error occurred. If this problem persists, please consider reporting it.",
+      "suggestions": [
+        "Check if the video has a transcript.",
+        "Ensure the page has fully loaded.",
+        "Try again with a different page or video.",
+        "No access to this URL."
+      ]
+    }
+  }
+}

@@ -1,17 +1,29 @@
 <script>
+  import { t } from 'svelte-i18n'
   import Icon from '@iconify/svelte'
-  import Setting from '../Setting.svelte' // Assuming Setting.svelte will also be refactored
+  import Setting from '@/components/settings/Setting.svelte'
   import { Dialog } from 'bits-ui'
   import { fade } from 'svelte/transition'
-  import { slideScaleFade } from '../../lib/slideScaleFade.js' // Corrected path if needed
+
+  import { slideScaleFade } from '../../lib/ui/slideScaleFade.js' // Corrected path if needed
 
   let isOpen = $state(false) // State for the dialog
+
+  $effect(() => {
+    const handleOpenSettings = () => {
+      isOpen = true
+    }
+    document.addEventListener('openSettings', handleOpenSettings)
+    return () => {
+      document.removeEventListener('openSettings', handleOpenSettings)
+    }
+  })
 </script>
 
 <button
   onclick={() => (isOpen = true)}
   class="p-1 setting-animation transition-colors hover:bg-surface-1 rounded-full hover:text-text-primary"
-  title="Open settings"
+  title={$t('settings.open_settings')}
 >
   <Icon width={24} icon="heroicons:cog-6-tooth" />
 </button>

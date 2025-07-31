@@ -1,32 +1,34 @@
 <script>
   // @ts-nocheck
-  import Icon from '@iconify/svelte';
-  import 'overlayscrollbars/overlayscrollbars.css';
-  import { useOverlayScrollbars } from 'overlayscrollbars-svelte';
-  import { onStorageChange } from '@/services/chromeService';
-  import SidePanel from './SidePanel.svelte';
+  import { t } from 'svelte-i18n'
+  import Icon from '@iconify/svelte'
+  import 'overlayscrollbars/overlayscrollbars.css'
+  import { useOverlayScrollbars } from 'overlayscrollbars-svelte'
+  import { onStorageChange } from '@/services/chromeService'
+  import SidePanel from './SidePanel.svelte'
   import {
+    settings,
     loadSettings,
     subscribeToSettingsChanges,
-  } from '../../stores/settingsStore.svelte.js';
+  } from '@/stores/settingsStore.svelte.js'
   import {
     initializeTheme,
     subscribeToSystemThemeChanges,
     themeSettings,
     applyThemeToDocument,
-  } from '../../stores/themeStore.svelte.js';
-  import SummaryDisplay from '@/components/displays/SummaryDisplay.svelte';
-  import '@fontsource-variable/geist-mono';
-  import '@fontsource-variable/noto-serif';
-  import '@fontsource/opendyslexic';
-  import '@fontsource/mali';
-  import { formatDate } from '@/lib/utils.js';
-  import { archiveStore } from '../../stores/archiveStore.svelte.js';
-  import { animationService } from '../../services/animationService.js';
+  } from '@/stores/themeStore.svelte.js'
+  import SummaryDisplay from '@/components/displays/SummaryDisplay.svelte'
+  import '@fontsource-variable/geist-mono'
+  import '@fontsource-variable/noto-serif'
+  import '@fontsource/opendyslexic'
+  import '@fontsource/mali'
+  import { formatDate } from '@/lib/utils/utils.js'
+  import { archiveStore } from '@/stores/archiveStore.svelte.js'
+  import { animationService } from '@/services/animationService.js'
 
   // State management
-  let isSidePanelVisible = $state(true);
-  let sidePanel;
+  let isSidePanelVisible = $state(true)
+  let sidePanel
 
   // Overlay scrollbars configuration
   const scrollOptions = {
@@ -35,52 +37,50 @@
       autoHide: 'scroll',
       theme: 'os-theme-custom-app',
     },
-  };
+  }
   const [initializeScrollbars] = useOverlayScrollbars({
     options: scrollOptions,
     defer: true,
-  });
+  })
 
   // Event handlers
   function toggleSidePanel() {
-    isSidePanelVisible = !isSidePanelVisible;
+    isSidePanelVisible = !isSidePanelVisible
     if (isSidePanelVisible) {
-      animationService.show(sidePanel);
+      animationService.show(sidePanel)
     } else {
-      animationService.hide(sidePanel);
+      animationService.hide(sidePanel)
     }
   }
 
   // Effects
   $effect(() => {
-    initializeScrollbars(document.body);
-    archiveStore.loadData();
+    initializeScrollbars(document.body)
+    archiveStore.loadData()
 
     // Listen for archive updates
     onStorageChange((changes, areaName) => {
       if (areaName === 'sync' && changes.data_updated_at) {
-        console.log('Data updated, reloading data...');
-        archiveStore.loadData();
+        console.log('Data updated, reloading data...')
+        archiveStore.loadData()
       }
-    });
-  });
+    })
+  })
 
   $effect(() => {
-    initializeTheme();
-    const unsubscribeTheme = subscribeToSystemThemeChanges();
+    initializeTheme()
+    const unsubscribeTheme = subscribeToSystemThemeChanges()
 
-    
-
-    return unsubscribeTheme;
-  });
+    return unsubscribeTheme
+  })
 
   $effect(() => {
-    archiveStore.validateSelectedItem();
-  });
+    archiveStore.validateSelectedItem()
+  })
 
   loadSettings().then(() => {
-    subscribeToSettingsChanges();
-  });
+    subscribeToSettingsChanges()
+  })
 </script>
 
 <!--
@@ -115,7 +115,9 @@
 
     {#if isSidePanelVisible}
       <SidePanel
-        list={archiveStore.activeTab === 'archive' ? archiveStore.archiveList : archiveStore.historyList}
+        list={archiveStore.activeTab === 'archive'
+          ? archiveStore.archiveList
+          : archiveStore.historyList}
         selectedSummary={archiveStore.selectedSummary}
         selectSummary={archiveStore.selectSummary}
         selectedSummaryId={archiveStore.selectedSummaryId}
@@ -131,7 +133,12 @@
     class="flex-1 relative pl-0 bg-surface-1 z-20 p-4 flex flex-col gap-2
     {isSidePanelVisible ? 'sm:pl-80' : ''}"
   >
-    <SummaryDisplay selectedSummary={archiveStore.selectedSummary} {formatDate} activeTab={archiveStore.activeTab} archiveList={archiveStore.archiveList} />
+    <SummaryDisplay
+      selectedSummary={archiveStore.selectedSummary}
+      {formatDate}
+      activeTab={archiveStore.activeTab}
+      archiveList={archiveStore.archiveList}
+    />
     <div
       class="sticky bg-linear-to-t from-surface-1 to-surface-1/40 bottom-0 mask-t-from-50% h-16 backdrop-blur-[2px] w-full z-10 pointer-events-none"
     ></div>

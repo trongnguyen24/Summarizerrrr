@@ -2,18 +2,19 @@
   // @ts-nocheck
   import { fade } from 'svelte/transition'
   import Icon from '@iconify/svelte'
+  import { t } from 'svelte-i18n'
   import 'overlayscrollbars/overlayscrollbars.css'
   import { useOverlayScrollbars } from 'overlayscrollbars-svelte'
   import {
     settings,
     loadSettings,
     updateSettings,
-  } from '../stores/settingsStore.svelte.js'
-  import { loadAdvancedModeSettings } from '../stores/advancedModeSettingsStore.svelte.js'
-  import { loadBasicModeSettings } from '../stores/basicModeSettingsStore.svelte.js'
-  import AIModelSettings from './settings/AIModelSettings.svelte'
-  import SummarySettings from './settings/SummarySettings.svelte'
-  import GeneralSettings from './settings/GeneralSettings.svelte'
+  } from '@/stores/settingsStore.svelte.js'
+  import { loadAdvancedModeSettings } from '@/stores/advancedModeSettingsStore.svelte.js'
+  import { loadBasicModeSettings } from '@/stores/basicModeSettingsStore.svelte.js'
+  import AIModelSettings from '@/components/settings/AIModelSettings.svelte'
+  import SummarySettings from '@/components/settings/SummarySettings.svelte'
+  import GeneralSettings from '@/components/settings/GeneralSettings.svelte'
 
   let activeTab = $state('ai-model') // State variable for current tab
   let activeBarTransformClass = $state('-translate-x-18') // New variable to control transform
@@ -67,7 +68,7 @@
   <div
     class="px-4 bg-surface-1 dark:bg-surface-2 py-2 border-b-0 border-border"
   >
-    <p class="!text-center">Settings</p>
+    <p class="!text-center">{$t('settings.title')}</p>
   </div>
 
   <div

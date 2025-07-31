@@ -1,9 +1,20 @@
 <!-- @ts-nocheck -->
 <script>
   import Icon from '@iconify/svelte'
+  import { t, locale } from 'svelte-i18n'
+  import { settings } from '@/stores/settingsStore.svelte.js'
+
   let { activeTab, onSelectTab } = $props()
 
   let activeBarTransformClass = $state('-translate-x-9') // Initial position for 'history'
+
+  // Sync i18n locale with settings store
+  $effect(() => {
+    const newLocale = settings.uiLang
+    if (newLocale && newLocale !== $state.snapshot(locale)) {
+      locale.set(newLocale)
+    }
+  })
 
   $effect(() => {
     switch (activeTab) {
@@ -37,7 +48,7 @@
           <Icon icon="heroicons:clock" width="20" height="20" />
         {/if}
       </div>
-      <span>History</span>
+      <span>{$t('archive.tab_history')}</span>
     </button>
 
     <button
@@ -54,7 +65,7 @@
           <Icon icon="heroicons:archive-box" width="20" height="20" />
         {/if}
       </div>
-      <span>Archive</span>
+      <span>{$t('archive.tab_archive')}</span>
     </button>
   </div>
 

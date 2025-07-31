@@ -1,13 +1,15 @@
 <script>
   // @ts-nocheck
   import Icon from '@iconify/svelte'
+  import { t } from 'svelte-i18n'
   import 'overlayscrollbars/overlayscrollbars.css'
-  import SettingButton from '../../components/buttons/SettingButton.svelte'
-  import SummarizeButton from '../../components/buttons/SummarizeButton.svelte'
-  import TabNavigation from '../../components/TabNavigation.svelte' // Vẫn cần cho các component wrapper
-  import GenericSummaryDisplay from '../../components/displays/GenericSummaryDisplay.svelte'
-  import YouTubeSummaryDisplay from '../../components/displays/YouTubeSummaryDisplay.svelte'
-  import CourseSummaryDisplay from '../../components/displays/CourseSummaryDisplay.svelte'
+  import SettingButton from '@/components/buttons/SettingButton.svelte'
+  import SummarizeButton from '@/components/buttons/SummarizeButton.svelte'
+  import TabNavigation from '@/components/navigation/TabNavigation.svelte'
+  import GenericSummaryDisplay from '@/components/displays/GenericSummaryDisplay.svelte'
+  import YouTubeSummaryDisplay from '@/components/displays/YouTubeSummaryDisplay.svelte'
+  import CourseSummaryDisplay from '@/components/displays/CourseSummaryDisplay.svelte'
+  import ErrorDisplay from '@/components/displays/ErrorDisplay.svelte'
   import 'webextension-polyfill'
 
   // Import direct variables and functions from refactored stores
@@ -20,16 +22,16 @@
     fetchAndSummarizeStream,
     updateActiveCourseTab,
     updateActiveYouTubeTab,
-  } from '../../stores/summaryStore.svelte.js'
-  import { tabTitle } from '../../stores/tabTitleStore.svelte.js'
-  import { setupMessageListener } from '../../services/messageHandler.js'
-  import { initializeApp } from '../../services/initialization.js'
-  import { settings } from '../../stores/settingsStore.svelte.js'
+  } from '@/stores/summaryStore.svelte.js'
+  import { tabTitle } from '@/stores/tabTitleStore.svelte.js'
+  import { setupMessageListener } from '@/services/messageHandler.js'
+  import { initializeApp } from '@/services/initialization.js'
+  import { settings } from '@/stores/settingsStore.svelte.js'
   import {
     themeSettings,
     initializeTheme,
     subscribeToSystemThemeChanges,
-  } from '../../stores/themeStore.svelte.js'
+  } from '@/stores/themeStore.svelte.js'
   import '@fontsource-variable/geist-mono'
   import '@fontsource-variable/noto-serif'
   import '@fontsource/opendyslexic'
@@ -85,6 +87,15 @@
     summaryState.isCourseSummaryLoading || summaryState.isCourseConceptsLoading
   )
 
+  // Derived state to find the first active error object
+  const anyError = $derived(
+    summaryState.summaryError ||
+      summaryState.chapterError ||
+      summaryState.courseSummaryError ||
+      summaryState.courseConceptsError ||
+      summaryState.selectedTextError
+  )
+
   // Handle summarize button click
   // Register global event listener and ensure it's cleaned up when component is destroyed
   $effect(() => {
@@ -126,7 +137,7 @@
             browser.tabs.create({ url: 'archive.html' })
           }}
           class="p-1 setting-animation transition-colors hover:bg-surface-1 rounded-full hover:text-text-primary"
-          title="Open Archive"
+          title={$t('archive.open_archive')}
         >
           <Icon
             icon="heroicons:bars-3-bottom-left-solid"
@@ -158,7 +169,9 @@
     <div
       class="relative prose main-sidepanel prose-h2:mt-4 p z-10 flex flex-col gap-8 px-6 pt-8 pb-[50vh] max-w-[52rem] w-screen mx-auto"
     >
-      {#if summaryState.lastSummaryTypeDisplayed === 'youtube'}
+      {#if anyError}
+        <ErrorDisplay error={anyError} />
+      {:else if summaryState.lastSummaryTypeDisplayed === 'youtube'}
         <YouTubeSummaryDisplay
           activeYouTubeTab={summaryState.activeYouTubeTab}
         />
@@ -168,9 +181,7 @@
         <GenericSummaryDisplay
           summary={summaryState.selectedTextSummary}
           isLoading={summaryState.isSelectedTextLoading}
-          error={summaryState.selectedTextError}
           loadingText="Summarizing selected text..."
-          errorTitle="Selected text summary error"
           targetId="selected-text-summary-display"
           showTOC={true}
         />
@@ -178,9 +189,7 @@
         <GenericSummaryDisplay
           summary={summaryState.summary}
           isLoading={summaryState.isLoading}
-          error={summaryState.error}
           loadingText="Processing web summary..."
-          errorTitle="Web summary error"
           targetId="web-summary-display"
           showTOC={true}
         />

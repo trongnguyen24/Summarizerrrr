@@ -1,8 +1,8 @@
 <script>
   // @ts-nocheck
-  import StreamingMarkdown from '../StreamingMarkdown.svelte'
+  import StreamingMarkdown from '@/components/displays/StreamingMarkdown.svelte'
   import FoooterDisplay from './FoooterDisplay.svelte'
-  import TOC from '../TOC.svelte'
+  import TOC from '@/components/navigation/TOC.svelte'
   import { summaryState } from '@/stores/summaryStore.svelte'
   import { settings } from '@/stores/settingsStore.svelte.js' // Import settings
 

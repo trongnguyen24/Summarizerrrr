@@ -1,9 +1,10 @@
 // @ts-nocheck
+import { locale } from 'svelte-i18n'
 import {
   getStorage,
   setStorage,
   onStorageChange,
-} from '../services/chromeService.js'
+} from '@/services/chromeService.js'
 
 // --- Default Settings ---
 const DEFAULT_SETTINGS = {
@@ -34,6 +35,7 @@ const DEFAULT_SETTINGS = {
   selectedFont: 'default', // Default font setting
   enableStreaming: true, // Enable streaming by default
   isSummaryAdvancedMode: false, // Chế độ tóm tắt nâng cao mới
+  uiLang: 'en', // 'en', 'vi', etc.
 
   // Lựa chọn prompt cho từng tính năng (chỉ còn 'default', 'custom1', 'custom2')
   youtubePromptSelection: false, // Thay đổi thành boolean để điều khiển SwitchButton
@@ -139,6 +141,11 @@ export async function updateSettings(newSettings) {
 
   Object.assign(settings, validUpdates)
 
+  // If uiLang is updated, also update the i18n locale
+  if (validUpdates.uiLang) {
+    locale.set(validUpdates.uiLang)
+  }
+
   try {
     console.log(
       '[settingsStore] Updating and saving the following settings:',
@@ -188,6 +195,9 @@ export function subscribeToSettingsChanges() {
         //   updatedSettings
         // )
         Object.assign(settings, updatedSettings)
+        if (updatedSettings.uiLang) {
+          locale.set(updatedSettings.uiLang)
+        }
       }
     }
   })

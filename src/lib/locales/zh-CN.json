@@ -1,0 +1,258 @@
+{
+  "settings": {
+    "title": "设置",
+    "open_settings": "打开设置",
+    "general": {
+      "title": "通用",
+      "fontFamily": "字体",
+      "font": {
+        "sans": "无衬线体",
+        "sans_desc": "系统默认字体。",
+        "serif": "衬线体",
+        "serif_desc": "经典的衬线样式字体。",
+        "dyslexic": "OpenDyslexic",
+        "dyslexic_desc": "为阅读障碍用户优化，提升阅读体验。",
+        "mali": "Mali",
+        "mali_desc": "手写风格字体。"
+      },
+      "lang_ui": "语言",
+      "theme": "主题",
+      "theme_mode": {
+        "light": "浅色",
+        "light_desc": "明亮的浅色界面。",
+        "dark": "深色",
+        "dark_desc": "沉稳的深色界面。",
+        "system": "跟随系统",
+        "system_desc": "自动匹配您设备的主题。"
+      },
+      "responseMode": "响应模式",
+      "response_mode": {
+        "streaming": "流式",
+        "streaming_desc": "即时显示回答，推荐使用。",
+        "non_streaming": "普通",
+        "non_streaming_desc": "适用于网络较慢的情况，避免卡顿。"
+      },
+      "shortcuts": "快捷键",
+      "shortcuts_settings": "管理快捷键"
+    },
+    "ai_model": {
+      "title": "AI 模型",
+      "mode": {
+        "basic": "基础",
+        "advanced": "高级"
+      },
+      "selected_provider": "服务商",
+      "temperature": "温度",
+      "top_p": "Top P",
+      "temperature_basic": {
+        "precise": "精确",
+        "precise_desc": "回答更具事实性、更直接。",
+        "balanced": "平衡",
+        "balanced_desc": "在精确与创意之间取得平衡。",
+        "creative": "创意",
+        "creative_desc": "回答更具原创性和想象力。"
+      },
+      "top_p_basic": {
+        "narrow": "聚焦",
+        "narrow_desc": "回答更安全、更可预测。",
+        "balanced": "平衡",
+        "balanced_desc": "在安全与多样性之间取得平衡。",
+        "wide": "广泛",
+        "wide_desc": "回答更多样、更出人意料。"
+      }
+    },
+    "summary": {
+      "title": "摘要",
+      "size": "长度",
+      "size_mode": {
+        "short": "简短",
+        "short_desc": "简明扼要的摘要。",
+        "medium": "中等",
+        "medium_desc": "标准长度的摘要。",
+        "deep": "详细",
+        "deep_desc": "更深入、更详尽的分析。"
+      },
+      "tone": "语调",
+      "tone_mode": {
+        "simple": "简单",
+        "simple_desc": "语言清晰，易于理解。",
+        "expert": "专家",
+        "expert_desc": "使用正式、专业的技术语言。",
+        "alien": "外星人",
+        "alien_desc": "以好奇、客观的视角进行分析。"
+      },
+      "language_output": "输出语言",
+      "custom_prompts": {
+        "title": "提示",
+        "editor_button": "提示编辑器",
+        "youtube_summary": "YouTube 摘要",
+        "youtube_chapter": "YouTube 章节",
+        "course_summary": "课程摘要",
+        "course_concepts": "课程概念",
+        "web_summary": "网页摘要",
+        "selected_text": "选中文本",
+        "override_note": "* 激活的提示将覆盖基础设置。"
+      }
+    },
+    "chatgpt_config": {
+      "api_key_label": "API 密钥",
+      "api_key_placeholder": "输入您的 ChatGPT API 密钥",
+      "model_name_label": "模型名称",
+      "saved_status": "已保存！",
+      "view_models": "查看模型",
+      "model_placeholder": "输入 ChatGPT 模型"
+    },
+    "deepseek_config": {
+      "api_key_label": "API 密钥",
+      "api_key_placeholder": "输入您的 Deepseek API 密钥",
+      "model_name_label": "模型名称",
+      "saved_status": "已保存！",
+      "view_models": "查看模型",
+      "model_placeholder": "输入 Deepseek 模型"
+    },
+    "gemini_advanced_config": {
+      "api_key_label": "Gemini API 密钥",
+      "get_a_key": "获取密钥",
+      "select_model_label": "Gemini Advanced 模型",
+      "select_model_placeholder": "选择模型",
+      "select_gemini_model_aria_label": "选择 Gemini 模型"
+    },
+    "gemini_basic_config": {
+      "api_key_label": "Gemini API 密钥",
+      "get_a_key": "获取密钥",
+      "select_model_label": "选择 Gemini 模型"
+    },
+    "ollama_config": {
+      "endpoint_label": "Ollama 端点",
+      "endpoint_placeholder": "http://localhost:11434",
+      "model_label": "Ollama 模型",
+      "model_placeholder": "llama2"
+    },
+    "openai_compatible_config": {
+      "api_key_label": "API 密钥",
+      "api_key_placeholder": "API 密钥",
+      "base_url_label": "基础 URL",
+      "base_url_placeholder": "http://127.0.0.1:1234/v1/",
+      "model_name_label": "模型名称",
+      "model_placeholder": "qwen/qwen2.5-vl-7b"
+    },
+    "openrouter_config": {
+      "api_key_label": "OpenRouter API 密钥",
+      "get_a_key": "获取密钥",
+      "model_label": "OpenRouter 模型",
+      "saved_status": "已保存！",
+      "view_models": "查看模型"
+    }
+  },
+  "prompts": {
+    "title": "提示词",
+    "system_instruction": "系统提示词",
+    "system_note": "可选：如不需要可跳过。",
+    "user_prompt": "用户提示词",
+    "user_note": "使用 __CONTENT__ 插入动态内容",
+    "select_template": "选择模板",
+    "prompt_enhance": "优化提示词",
+    "buttons": {
+      "import": "导入",
+      "discard": "丢弃",
+      "save": "保存",
+      "apply_prompt": "应用提示词"
+    },
+    "tip": [
+      "该功能在 Gemini 2.5 Flash 或更高版本上效果最佳。",
+      "\"优化提示词\"功能仅基于您的输入进行格式化和解释。",
+      "要使用其他语言提示，请在 设置 > 摘要 中调整输出语言。"
+    ]
+  },
+  "archive": {
+    "open_archive": "打开归档",
+    "tab_history": "历史记录",
+    "tab_archive": "归档",
+    "change_theme": "切换主题",
+    "font_dec": "缩小字体",
+    "font_inc": "放大字体",
+    "change_font": "切换字体",
+    "toggle_width": "切换宽度"
+  },
+  "button": {
+    "copy": "复制到剪贴板",
+    "copied": "已复制！",
+    "download": "下载为 Markdown",
+    "downloaded": "已下载！",
+    "save_to_archive": "保存到归档",
+    "saved": "已保存！"
+  },
+  "errors": {
+    "api_key": "API 密钥未配置。请在设置中检查您的 API 密钥。",
+    "unauthorized": "未经授权的访问。请检查您的 API 密钥和权限。",
+    "quota": "API 配额超出。请检查您的使用限制或稍后重试。",
+    "network": "网络错误。请检查您的互联网连接。",
+    "server": "API 服务器错误。请稍后重试。",
+    "content": "内容未找到或无法处理。",
+    "permission": "缺少浏览器权限。请检查扩展设置。",
+    "timeout": "请求超时。请重试。",
+    "streaming": "流式传输错误。数据可能不完整。",
+    "unknown": "发生未知错误。请重试。"
+  },
+  "helpSystem": {
+    "apiKey": {
+      "title": "无效的API密钥",
+      "message": "您提供的API密钥无效或已被禁用。请在设置中检查密钥。",
+      "suggestions": ["在设置中检查您的API密钥。"]
+    },
+    "unauthorized": {
+      "title": "未经授权的访问",
+      "message": "您的API密钥没有执行此操作所需的权限。这可能发生在调整后的模型或特定的API限制下。",
+      "suggestions": [
+        "检查您的API权限并确保它们足够。",
+        "联系API提供商的支持以获取帮助。"
+      ]
+    },
+    "quota": {
+      "title": "API配额超出",
+      "message": "您已超出所选API的使用限制。请检查您的帐户账单或稍后重试。",
+      "suggestions": [
+        "查看您的API使用情况和账单明细。",
+        "如果您经常达到限制，请考虑升级您的计划。"
+      ]
+    },
+    "network": {
+      "title": "网络连接错误",
+      "message": "无法连接到服务器。请检查您的互联网连接以及任何防火墙或代理设置。",
+      "suggestions": [
+        "确保您有稳定的互联网连接，如果正在使用VPN/代理，请禁用它。"
+      ]
+    },
+    "server": {
+      "title": "API服务器错误",
+      "message": "AI提供商的服务器遇到内部错误（5xx）。这通常是临时问题。请稍等片刻，然后重试。",
+      "suggestions": [
+        "稍等片刻，然后重试您的请求。",
+        "检查提供商的状态页面以了解已知中断。"
+      ]
+    },
+    "content": {
+      "title": "内容错误",
+      "message": "扩展程序无法从本页检索到所需内容（例如，找不到转录，页面文本太短）。",
+      "suggestions": [
+        "确保视频有可用的转录且不是私有的。",
+        "确保网页完全加载且可访问。"
+      ]
+    },
+    "permission": {
+      "title": "权限被拒绝",
+      "message": "扩展程序缺少执行此操作所需的浏览器权限。请检查扩展设置。",
+      "suggestions": ["在浏览器的扩展设置中查看并授予必要的权限。"]
+    },
+    "unknown": {
+      "title": "未知错误",
+      "message": "发生了一个意外错误。如果此问题仍然存在，请考虑报告。",
+      "suggestions": [
+        "检查视频是否有字幕。",
+        "确保网页已完全加载。",
+        "尝试不同的页面或视频。",
+        "向开发者报告此问题。"
+      ]
+    }
+  }
+}

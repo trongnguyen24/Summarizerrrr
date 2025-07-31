@@ -13,6 +13,8 @@
     setTheme,
     // updateThemeSettings as updateThemeStoreSettings, // Không còn cần thiết, dùng setTheme thay thế
   } from '../../stores/themeStore.svelte' // Import themeSettings và updateThemeSettings
+  import UILanguageSelect from '../inputs/UILanguageSelect.svelte'
+  import { t } from 'svelte-i18n'
 
   function handleUpdateSetting(key, value) {
     updateSettings({ [key]: value })
@@ -23,75 +25,79 @@
 <div class="setting-block flex pb-6 pt-5 flex-col">
   <div class="flex items-center h-6 justify-between px-5">
     <label for="advanced-mode-toggle" class="block font-bold text-text-primary"
-      >General Settings</label
+      >{$t('settings.general.title')}</label
     >
   </div>
   <div class="flex flex-col gap-2 p-5">
     <!-- svelte-ignore a11y_label_has_associated_control -->
-    <label class="block text-text-secondary">Font Family</label>
+    <label class="block text-text-secondary"
+      >{$t('settings.general.fontFamily')}</label
+    >
     <div class="flex flex-col w-full gap-1">
       <ButtonFont
-        title="Sans Serif"
+        title={$t('settings.general.font.sans')}
         class="setting-btn  {settings.selectedFont === 'default'
           ? 'active'
           : ''}"
         onclick={() => handleUpdateSetting('selectedFont', 'default')}
-        Description="Default font."
+        Description={$t('settings.general.font.sans_desc')}
         font="sans"
       ></ButtonFont>
       <ButtonFont
-        title="Serif"
+        title={$t('settings.general.font.serif')}
         class="setting-btn {settings.selectedFont === 'noto-serif'
           ? 'active'
           : ''}"
         onclick={() => handleUpdateSetting('selectedFont', 'noto-serif')}
-        Description="Noto Serif font."
+        Description={$t('settings.general.font.serif_desc')}
         font="serif"
       ></ButtonFont>
       <ButtonFont
-        title="OpenDyslexic"
+        title={$t('settings.general.font.dyslexic')}
         class="setting-btn {settings.selectedFont === 'opendyslexic'
           ? 'active'
           : ''}"
         onclick={() => handleUpdateSetting('selectedFont', 'opendyslexic')}
-        Description="OpenDyslexic font for dyslexia."
+        Description={$t('settings.general.font.dyslexic_desc')}
         font="dyslexic"
       ></ButtonFont>
       <ButtonFont
-        title="Mali"
+        title={$t('settings.general.font.mali')}
         class="setting-btn {settings.selectedFont === 'mali' ? 'active' : ''}"
         onclick={() => handleUpdateSetting('selectedFont', 'mali')}
-        Description="Mali font for all text."
+        Description={$t('settings.general.font.mali_desc')}
         font="mali"
       ></ButtonFont>
     </div>
   </div>
 
-  <div class="flex flex-col gap-2 px-5">
+  <div class="flex flex-col gap-2 px-5 pb-4">
     <!-- svelte-ignore a11y_label_has_associated_control -->
-    <label class="block text-text-secondary">Theme</label>
-    <div class="flexw-full gap-1">
+    <label class="block text-text-secondary"
+      >{$t('settings.general.theme')}</label
+    >
+    <div class="flex w-full gap-1">
       <ButtonIcon
-        title="Light"
+        title={$t('settings.general.theme_mode.light')}
         class="setting-btn {themeSettings.theme === 'light' ? 'active' : ''}"
         onclick={() => setTheme('light')}
-        Description="Light theme."
+        Description={$t('settings.general.theme_mode.light_desc')}
       >
         <Icon icon="heroicons:sun-16-solid" width="20" height="20" />
       </ButtonIcon>
       <ButtonIcon
-        title="Dark"
+        title={$t('settings.general.theme_mode.dark')}
         class="setting-btn {themeSettings.theme === 'dark' ? 'active' : ''}"
         onclick={() => setTheme('dark')}
-        Description="Dark theme."
+        Description={$t('settings.general.theme_mode.dark_desc')}
       >
         <Icon icon="heroicons:moon-20-solid" width="20" height="20" />
       </ButtonIcon>
       <ButtonIcon
-        title="System"
+        title={$t('settings.general.theme_mode.system')}
         class="setting-btn {themeSettings.theme === 'system' ? 'active' : ''}"
         onclick={() => setTheme('system')}
-        Description="System theme."
+        Description={$t('settings.general.theme_mode.system_desc')}
       >
         <Icon
           icon="heroicons:computer-desktop-20-solid"
@@ -101,23 +107,36 @@
       </ButtonIcon>
     </div>
   </div>
-  <div class="flex flex-col gap-2 p-5">
+
+  <div class="flex flex-col gap-2 px-5 pb-4">
     <!-- svelte-ignore a11y_label_has_associated_control -->
-    <label class="block text-text-secondary">Response Mode</label>
+    <label class="block text-text-secondary"
+      >{$t('settings.general.lang_ui')}</label
+    >
+    <div class="flex w-full gap-1">
+      <UILanguageSelect />
+    </div>
+  </div>
+
+  <div class="flex flex-col gap-2 px-5 pb-4">
+    <!-- svelte-ignore a11y_label_has_associated_control -->
+    <label class="block text-text-secondary"
+      >{$t('settings.general.responseMode')}</label
+    >
     <div class="grid grid-cols-2 w-full gap-1">
       <ButtonSet
-        title="Streaming"
+        title={$t('settings.general.response_mode.streaming')}
         class="setting-btn {settings.enableStreaming ? 'active' : ''}"
         onclick={() => handleUpdateSetting('enableStreaming', true)}
-        Description="Real-time response display, better experience."
+        Description={$t('settings.general.response_mode.streaming_desc')}
       >
         <Icon icon="heroicons:bolt-20-solid" width="20" height="20" />
       </ButtonSet>
       <ButtonSet
-        title="Non-streaming"
+        title={$t('settings.general.response_mode.non_streaming')}
         class="setting-btn {!settings.enableStreaming ? 'active' : ''}"
         onclick={() => handleUpdateSetting('enableStreaming', false)}
-        Description="Suitable for low-end devices, reduce lag."
+        Description={$t('settings.general.response_mode.non_streaming_desc')}
       >
         <Icon
           icon="heroicons:device-phone-mobile-20-solid"
@@ -127,17 +146,17 @@
       </ButtonSet>
     </div>
   </div>
-  <div class="flex flex-col gap-2 p-5">
+  <div class="flex flex-col gap-2 px-5 pb-4">
     <!-- svelte-ignore a11y_label_has_associated_control -->
     <div class="flex items-center gap-1 justify-between">
-      Shortcuts
+      {$t('settings.general.shortcuts')}
       {#if import.meta.env.BROWSER === 'chrome'}
         <button
           on:click|preventDefault={() =>
             chrome.tabs.create({ url: 'chrome://extensions/shortcuts' })}
           class="text-xs flex items-center gap-0.5 text-primary outline-gray-500 hover:underline"
         >
-          Shortcut Settings
+          {$t('settings.general.shortcuts_settings')}
           <Icon width={12} icon="heroicons:arrow-up-right-16-solid" />
         </button>
       {/if}

@@ -2,7 +2,7 @@
   "name": "Summarizerrrr",
   "description": "FREE Deep Summarizes content from YouTube, Udemy, Coursera, Websites, Reddit, and any text-based page online.",
   "private": true,
-  "version": "1.6.2",
+  "version": "1.6.3",
   "type": "module",
   "scripts": {
     "dev": "wxt",

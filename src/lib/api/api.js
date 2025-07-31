@@ -254,12 +254,15 @@ export async function* summarizeContentStream(text, contentType) {
       contentsForProvider = [{ parts: [{ text: userPrompt }] }] // Default for other providers
     }
 
-    const stream = provider.generateContentStream(
-      model,
-      contentsForProvider,
-      systemInstruction,
-      finalGenerationConfig
-    )
+    const stream =
+      selectedProviderId === 'ollama'
+        ? provider.generateContentStream(contentsForProvider) // Ollama's generateContentStream expects only prompt
+        : provider.generateContentStream(
+            model,
+            contentsForProvider,
+            systemInstruction,
+            finalGenerationConfig
+          )
 
     for await (const chunk of stream) {
       yield chunk

@@ -7,6 +7,10 @@ export class OllamaProvider extends BaseProvider {
   constructor(ollamaEndpoint, model) {
     super('ollama', model) // 'ollama' is the providerId, model is the model name
     this.ollamaEndpoint = ollamaEndpoint
+    // console.log('OllamaProvider: Initialized with', {
+    //   ollamaEndpoint: this.ollamaEndpoint,
+    //   model: this.model,
+    // })
   }
 
   /**
@@ -15,21 +19,28 @@ export class OllamaProvider extends BaseProvider {
    * @returns {Promise<string>} The generated content.
    */
   async generateContent(prompt) {
-    console.log('Ollama generateContent:', { prompt })
+    // console.log('Ollama generateContent: Requesting with', {
+    //   prompt,
+    //   endpoint: `${this.ollamaEndpoint}/api/generate`,
+    //   model: this.model,
+    // })
     try {
+      const requestBody = {
+        model: this.model,
+        prompt: prompt,
+        stream: false,
+        think: false,
+      }
+      // console.log('Ollama generateContent: Request body', requestBody)
       const response = await fetch(`${this.ollamaEndpoint}/api/generate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          model: this.model, // Use this.model from the constructor
-          prompt: prompt,
-          stream: false,
-          think: false,
-        }),
+        body: JSON.stringify(requestBody),
       })
 
+      // console.log('Ollama generateContent: Response status', response.status)
       if (!response.ok) {
         // Create a new error object to pass more context
         const error = new Error(`Ollama API error`)
@@ -39,13 +50,19 @@ export class OllamaProvider extends BaseProvider {
           error.message += ` - ${
             errorData.message || JSON.stringify(errorData)
           }`
+          // console.error(
+          //   'Ollama generateContent: Error response data',
+          //   errorData
+          // )
         } catch (e) {
           error.message += ` - ${response.statusText}`
+          // console.error('Ollama generateContent: Error parsing response', e)
         }
         throw error
       }
 
       const data = await response.json()
+      // console.log('Ollama generateContent: API response data', data)
 
       // Remove <think> tags and their content
       const cleanedResponse = data.response
@@ -62,22 +79,49 @@ export class OllamaProvider extends BaseProvider {
   }
 
   async *generateContentStream(prompt) {
+    // console.log('Ollama generateContentStream: Requesting with', {
+    //   prompt,
+    //   endpoint: `${this.ollamaEndpoint}/api/generate`,
+    //   model: this.model,
+    // })
     try {
+      const requestBody = {
+        model: this.model,
+        prompt: prompt,
+        stream: true, // Ensure streaming is enabled
+      }
+      // console.log('Ollama generateContentStream: Request body', requestBody)
       const response = await fetch(`${this.ollamaEndpoint}/api/generate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          model: this.model,
-          prompt: prompt,
-          stream: true, // Ensure streaming is enabled
-        }),
+        body: JSON.stringify(requestBody),
       })
 
+      // console.log(
+      //   'Ollama generateContentStream: Response status',
+      //   response.status
+      // )
       if (!response.ok) {
         const error = new Error(`Ollama API error`)
         error.status = response.status
+        try {
+          const errorData = await response.json()
+          error.message += ` - ${
+            errorData.message || JSON.stringify(errorData)
+          }`
+          // console.error(
+          //   'Ollama generateContentStream: Error response data',
+          //   errorData
+          // )
+        } catch (e) {
+          error.message += ` - ${response.statusText}`
+          // console.error(
+          //   'Ollama generateContentStream: Error parsing response',
+          //   e
+          // )
+        }
         throw error
       }
 
@@ -101,6 +145,10 @@ export class OllamaProvider extends BaseProvider {
           if (line) {
             try {
               const parsed = JSON.parse(line)
+              // console.log(
+              //   'Ollama generateContentStream: Parsed stream chunk',
+              //   parsed
+              // ) // Thêm log này
               if (parsed.response) {
                 yield parsed.response
               }

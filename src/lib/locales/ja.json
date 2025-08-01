@@ -124,7 +124,7 @@
     },
     "ollama_config": {
       "endpoint_label": "Ollamaエンドポイント",
-      "endpoint_placeholder": "http://localhost:11434",
+      "endpoint_placeholder": "http://localhost:11434/api",
       "model_label": "Ollamaモデル",
       "model_placeholder": "llama2"
     },

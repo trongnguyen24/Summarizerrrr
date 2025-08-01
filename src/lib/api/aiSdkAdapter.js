@@ -5,7 +5,7 @@ import { openai } from '@ai-sdk/openai'
 import { anthropic } from '@ai-sdk/anthropic'
 import { createOpenAICompatible } from '@ai-sdk/openai-compatible'
 import { createOpenRouter } from '@openrouter/ai-sdk-provider'
-import { ollama } from 'ollama-ai-provider'
+import { createOllama } from 'ollama-ai-provider'
 
 /**
  * Maps provider ID and settings to AI SDK model instance
@@ -23,21 +23,6 @@ export function getAISDKModel(providerId, settings) {
         ? settings.selectedGeminiAdvancedModel || 'gemini-2.0-flash'
         : settings.selectedGeminiModel || 'gemini-2.0-flash'
 
-      console.log('[aiSdkAdapter] Gemini Debug:', {
-        isAdvancedMode: settings.isAdvancedMode,
-        geminiApiKey: geminiApiKey ? 'Present' : 'Missing',
-        geminiAdvancedApiKey: settings.geminiAdvancedApiKey
-          ? 'Present'
-          : 'Missing',
-        basicGeminiApiKey: settings.geminiApiKey ? 'Present' : 'Missing',
-        model: geminiModel,
-        actualApiKeyLength: geminiApiKey ? geminiApiKey.length : 0,
-        apiKeyType: typeof geminiApiKey,
-        apiKeyValue: geminiApiKey
-          ? `${geminiApiKey.substring(0, 10)}...`
-          : 'null/undefined',
-      })
-
       if (!geminiApiKey || geminiApiKey.trim() === '') {
         throw new Error(
           `Gemini API key is not configured. Please add your API key in settings.`
@@ -46,11 +31,6 @@ export function getAISDKModel(providerId, settings) {
 
       // Đảm bảo API key là string và không có khoảng trắng thừa
       const cleanApiKey = geminiApiKey.trim()
-
-      console.log(
-        '[aiSdkAdapter] Creating Google model with clean API key length:',
-        cleanApiKey.length
-      )
 
       try {
         // Tạo Google provider instance với API key
@@ -93,9 +73,10 @@ export function getAISDKModel(providerId, settings) {
       return deepseek(settings.selectedDeepseekModel || 'deepseek-chat')
 
     case 'ollama':
-      return ollama(settings.selectedOllamaModel || 'llama2', {
-        baseURL: settings.ollamaEndpoint || 'http://localhost:11434',
+      const ollamaProvider = createOllama({
+        baseURL: settings.ollamaEndpoint || 'http://localhost:11434/api',
       })
+      return ollamaProvider(settings.selectedOllamaModel || 'llama2')
 
     case 'openaiCompatible':
       const openaiCompatible = createOpenAICompatible({

@@ -24,7 +24,7 @@ const DEFAULT_SETTINGS = {
   chatgptApiKey: '', // ChatGPT API Key
   chatgptBaseUrl: 'https://api.openai.com/v1', // ChatGPT Base URL
   selectedChatgptModel: 'gpt-3.5-turbo', // ChatGPT Model
-  ollamaEndpoint: 'http://localhost:11434', // Ollama Endpoint
+  ollamaEndpoint: 'http://localhost:11434/api', // Ollama Endpoint
   selectedOllamaModel: 'llama2', // Default Ollama model
   summaryLength: 'long', // short, medium, long
   summaryFormat: 'heading', // heading, paragraph

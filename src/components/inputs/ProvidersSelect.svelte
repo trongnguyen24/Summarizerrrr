@@ -1,15 +1,19 @@
 <script>
   import ReusableSelect from '../inputs/ReusableSelect.svelte'
-  import { providersConfig } from '../../lib/api/providersConfig.js'
   import {
     settings,
     updateSettings,
   } from '../../stores/settingsStore.svelte.js' // Import updateSettings
 
-  const providers = Object.keys(providersConfig).map((key) => ({
-    value: key,
-    label: providersConfig[key].name,
-  }))
+  // Hardcode danh sách providers vì providersConfig đã bị xóa
+  const providers = [
+    { value: 'gemini', label: 'Google Gemini' },
+    { value: 'openrouter', label: 'OpenRouter' },
+    { value: 'ollama', label: 'Ollama' },
+    { value: 'openaiCompatible', label: 'OpenAI Compatible' },
+    { value: 'chatgpt', label: 'ChatGPT' },
+    { value: 'deepseek', label: 'DeepSeek' },
+  ]
 
   let { value = $bindable() } = $props()
 

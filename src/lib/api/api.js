@@ -1,6 +1,4 @@
 // @ts-nocheck
-import { geminiModelsConfig } from './geminiConfig.js'
-import { openrouterModelsConfig } from './openrouterConfig.js'
 import { settings, loadSettings } from '@/stores/settingsStore.svelte.js'
 import {
   advancedModeSettings,
@@ -10,95 +8,78 @@ import {
   basicModeSettings,
   loadBasicModeSettings,
 } from '@/stores/basicModeSettingsStore.svelte.js'
-import { getProvider, providersConfig } from './providersConfig.js'
 import { promptBuilders } from '@/lib/prompting/promptBuilders.js'
-import { systemInstructions } from '@/lib/prompting/systemInstructions.js'
-import { DEFAULT_OLLAMA_ENDPOINT } from './ollamaConfig.js'
 import { ErrorTypes } from '../error/errorTypes.js'
+import {
+  generateContent as aiSdkGenerateContent,
+  generateContentStream as aiSdkGenerateContentStream,
+} from './aiSdkAdapter.js'
 
 /**
- * Helper function to get provider-specific configuration (API key, model, model config).
- * @param {object} userSettings - The current settings object.
+ * Checks if the selected provider supports streaming.
+ * AI SDK 5 supports streaming for all providers.
  * @param {string} selectedProviderId - The ID of the selected provider.
- * @returns {{apiKey: string, model: string, modelConfig: object}} - Object containing provider config.
- * @throws {Error} If API key is not configured.
+ * @returns {boolean} - True if provider supports streaming, false otherwise.
  */
-function getProviderConfig(userSettings, selectedProviderId) {
+export function providerSupportsStreaming(selectedProviderId) {
+  // AI SDK 5 supports streaming for all providers
+  const supportedProviders = [
+    'gemini',
+    'openrouter',
+    'ollama',
+    'openaiCompatible',
+    'chatgpt',
+    'deepseek',
+  ]
+  return supportedProviders.includes(selectedProviderId)
+}
+
+/**
+ * Validates API key for the selected provider
+ * @param {object} userSettings - The current settings object
+ * @param {string} selectedProviderId - The ID of the selected provider
+ * @throws {Error} If API key is not configured
+ */
+function validateApiKey(userSettings, selectedProviderId) {
   let apiKey
-  let model
-  let modelConfig
+  let providerName
 
   switch (selectedProviderId) {
     case 'gemini':
       apiKey = userSettings.isAdvancedMode
         ? userSettings.geminiAdvancedApiKey
         : userSettings.geminiApiKey
-      model = userSettings.isAdvancedMode
-        ? userSettings.selectedGeminiAdvancedModel || 'gemini-2.0-flash'
-        : userSettings.selectedGeminiModel || 'gemini-2.0-flash'
-      modelConfig =
-        geminiModelsConfig[model] || geminiModelsConfig['gemini-2.0-flash']
+      providerName = 'Google Gemini'
       break
     case 'openrouter':
       apiKey = userSettings.openrouterApiKey
-      model = userSettings.selectedOpenrouterModel || 'openrouter/auto'
-      modelConfig = { generationConfig: { temperature: 0.6, topP: 0.91 } } // Default values, will be overridden
+      providerName = 'OpenRouter'
       break
     case 'ollama':
-      apiKey = userSettings.ollamaEndpoint || DEFAULT_OLLAMA_ENDPOINT // Ollama uses endpoint as 'key'
-      model = userSettings.selectedOllamaModel || 'llama2' // Default Ollama model
-      modelConfig = { generationConfig: { temperature: 0.6, topP: 0.91 } } // Ollama doesn't use these directly, but keep for consistency
-      break
+      // Ollama doesn't require API key, but needs endpoint
+      return // Skip validation for Ollama
     case 'openaiCompatible':
       apiKey = userSettings.openaiCompatibleApiKey
-      model = userSettings.selectedOpenAICompatibleModel || 'gpt-3.5-turbo'
-      modelConfig = { generationConfig: { temperature: 0.6, topP: 0.91 } }
+      providerName = 'OpenAI Compatible'
       break
     case 'chatgpt':
       apiKey = userSettings.chatgptApiKey
-      model = userSettings.selectedChatgptModel || 'gpt-3.5-turbo'
-      modelConfig = { generationConfig: { temperature: 0.6, topP: 0.91 } }
+      providerName = 'ChatGPT'
       break
     case 'deepseek':
       apiKey = userSettings.deepseekApiKey
-      model = userSettings.selectedDeepseekModel || 'deepseek-chat'
-      modelConfig = { generationConfig: { temperature: 0.6, topP: 0.91 } }
+      providerName = 'DeepSeek'
       break
     default:
-      // Fallback for other providers or if model config is not found
       apiKey = userSettings[`${selectedProviderId}ApiKey`]
-      model = userSettings.selectedModel || 'gemini-2.0-flash' // Keep a generic selectedModel for other cases
-      modelConfig = { generationConfig: { temperature: 0.6, topP: 0.91 } }
+      providerName = selectedProviderId
   }
 
   if (!apiKey) {
-    const providerName =
-      providersConfig[selectedProviderId]?.name || selectedProviderId
     throw {
       message: `${providerName} API key is not configured. Click the settings icon on the right to add your API key.`,
       type: ErrorTypes.API_KEY,
     }
-  }
-
-  return { apiKey, model, modelConfig }
-}
-
-/**
- * Checks if the selected provider supports streaming.
- * @param {string} selectedProviderId - The ID of the selected provider.
- * @returns {boolean} - True if provider supports streaming, false otherwise.
- */
-export function providerSupportsStreaming(selectedProviderId) {
-  try {
-    const userSettings = settings
-    const provider = getProvider(selectedProviderId, userSettings)
-    return typeof provider.generateContentStream === 'function'
-  } catch (error) {
-    console.warn(
-      `[api.js] Error checking streaming support for provider ${selectedProviderId}:`,
-      error
-    )
-    return false
   }
 }
 
@@ -121,12 +102,8 @@ export async function summarizeContent(text, contentType) {
     selectedProviderId = 'gemini' // Force Gemini in basic mode
   }
 
-  const { apiKey, model, modelConfig } = getProviderConfig(
-    userSettings,
-    selectedProviderId
-  )
-
-  const provider = getProvider(selectedProviderId, userSettings) // Pass full settings object
+  // Validate API key
+  validateApiKey(userSettings, selectedProviderId)
 
   const contentConfig = promptBuilders[contentType] || promptBuilders['general'] // Fallback to general
 
@@ -145,43 +122,17 @@ export async function summarizeContent(text, contentType) {
   )
 
   try {
-    // Apply user settings to generationConfig, overriding defaults
-    const finalGenerationConfig = {
-      ...modelConfig.generationConfig,
-      temperature: userSettings.isAdvancedMode
-        ? advancedModeSettings.temperature
-        : basicModeSettings.temperature,
-      topP: userSettings.isAdvancedMode
-        ? advancedModeSettings.topP
-        : basicModeSettings.topP,
-    }
-
-    let contentsForProvider
-    if (selectedProviderId === 'gemini') {
-      contentsForProvider = [{ parts: [{ text: userPrompt }] }] // Gemini specific content format
-    } else if (selectedProviderId === 'openrouter') {
-      contentsForProvider = [{ parts: [{ text: userPrompt }] }] // OpenRouter expects messages array, but our provider handles this mapping
-    } else if (selectedProviderId === 'ollama') {
-      contentsForProvider = userPrompt // Ollama expects raw prompt string
-    } else if (selectedProviderId === 'openaiCompatible') {
-      contentsForProvider = [{ parts: [{ text: userPrompt }] }]
-    } else {
-      contentsForProvider = [{ parts: [{ text: userPrompt }] }] // Default for other providers
-    }
-
-    const rawResult = await (selectedProviderId === 'ollama'
-      ? provider.generateContent(contentsForProvider) // Ollama's generateContent expects only prompt
-      : provider.generateContent(
-          model, // Pass model for other providers
-          contentsForProvider,
-          systemInstruction,
-          finalGenerationConfig
-        ))
-    return provider.parseResponse(rawResult)
+    // Use AI SDK adapter for unified content generation
+    return await aiSdkGenerateContent(
+      selectedProviderId,
+      userSettings,
+      advancedModeSettings,
+      basicModeSettings,
+      systemInstruction,
+      userPrompt
+    )
   } catch (e) {
-    // The provider's generateContent method should already be throwing a structured error
-    // so we just re-throw it up to the store.
-    console.error(`${providersConfig[selectedProviderId].name} API Error:`, e)
+    console.error(`AI SDK Error for ${selectedProviderId}:`, e)
     throw e
   }
 }
@@ -199,19 +150,8 @@ export async function* summarizeContentStream(text, contentType) {
     selectedProviderId = 'gemini' // Force Gemini in basic mode
   }
 
-  const { apiKey, model, modelConfig } = getProviderConfig(
-    userSettings,
-    selectedProviderId
-  )
-
-  const provider = getProvider(selectedProviderId, userSettings) // Pass full settings object
-
-  // Check if the provider supports streaming
-  if (typeof provider.generateContentStream !== 'function') {
-    throw new Error(
-      `The selected provider "${providersConfig[selectedProviderId].name}" does not support streaming.`
-    )
-  }
+  // Validate API key
+  validateApiKey(userSettings, selectedProviderId)
 
   const contentConfig = promptBuilders[contentType] || promptBuilders['general'] // Fallback to general
 
@@ -230,49 +170,21 @@ export async function* summarizeContentStream(text, contentType) {
   )
 
   try {
-    // Apply user settings to generationConfig, overriding defaults
-    const finalGenerationConfig = {
-      ...modelConfig.generationConfig,
-      temperature: userSettings.isAdvancedMode
-        ? advancedModeSettings.temperature
-        : basicModeSettings.temperature,
-      topP: userSettings.isAdvancedMode
-        ? advancedModeSettings.topP
-        : basicModeSettings.topP,
-    }
+    // Use AI SDK adapter for unified streaming
+    const streamGenerator = aiSdkGenerateContentStream(
+      selectedProviderId,
+      userSettings,
+      advancedModeSettings,
+      basicModeSettings,
+      systemInstruction,
+      userPrompt
+    )
 
-    let contentsForProvider
-    if (selectedProviderId === 'gemini') {
-      contentsForProvider = [{ parts: [{ text: userPrompt }] }] // Gemini specific content format
-    } else if (selectedProviderId === 'openrouter') {
-      contentsForProvider = [{ parts: [{ text: userPrompt }] }] // OpenRouter expects messages array, but our provider handles this mapping
-    } else if (selectedProviderId === 'ollama') {
-      contentsForProvider = userPrompt // Ollama expects raw prompt string
-    } else if (selectedProviderId === 'openaiCompatible') {
-      contentsForProvider = [{ parts: [{ text: userPrompt }] }]
-    } else {
-      contentsForProvider = [{ parts: [{ text: userPrompt }] }] // Default for other providers
-    }
-
-    const stream =
-      selectedProviderId === 'ollama'
-        ? provider.generateContentStream(contentsForProvider) // Ollama's generateContentStream expects only prompt
-        : provider.generateContentStream(
-            model,
-            contentsForProvider,
-            systemInstruction,
-            finalGenerationConfig
-          )
-
-    for await (const chunk of stream) {
+    for await (const chunk of streamGenerator) {
       yield chunk
     }
   } catch (e) {
-    console.error(
-      `${providersConfig[selectedProviderId].name} API Stream Error:`,
-      e
-    )
-    // Re-throw the structured error
+    console.error(`AI SDK Stream Error for ${selectedProviderId}:`, e)
     throw e
   }
 }
@@ -295,12 +207,8 @@ export async function enhancePrompt(userPrompt) {
     selectedProviderId = 'gemini' // Force Gemini in basic mode
   }
 
-  const { apiKey, model, modelConfig } = getProviderConfig(
-    userSettings,
-    selectedProviderId
-  )
-
-  const provider = getProvider(selectedProviderId, userSettings) // Pass full settings object
+  // Validate API key
+  validateApiKey(userSettings, selectedProviderId)
 
   const contentConfig = promptBuilders['promptEnhance']
 
@@ -314,45 +222,22 @@ export async function enhancePrompt(userPrompt) {
     contentConfig.buildPrompt(userPrompt, userSettings.summaryLang)
 
   try {
-    // Apply user settings to generationConfig, overriding defaults
-    const finalGenerationConfig = {
-      ...modelConfig.generationConfig,
-      temperature: userSettings.isAdvancedMode
-        ? advancedModeSettings.temperature
-        : basicModeSettings.temperature,
-      topP: userSettings.isAdvancedMode
-        ? advancedModeSettings.topP
-        : basicModeSettings.topP,
-    }
-
-    let contentsForProvider
-    if (selectedProviderId === 'gemini') {
-      contentsForProvider = [{ parts: [{ text: enhancedPrompt }] }] // Gemini specific content format
-    } else if (selectedProviderId === 'openrouter') {
-      contentsForProvider = [{ parts: [{ text: enhancedPrompt }] }] // OpenRouter expects messages array, but our provider handles this mapping
-    } else if (selectedProviderId === 'ollama') {
-      contentsForProvider = enhancedPrompt // Ollama expects raw prompt string
-    } else {
-      contentsForProvider = [{ parts: [{ text: enhancedPrompt }] }] // Default for other providers
-    }
-
-    const rawResult = await (selectedProviderId === 'ollama'
-      ? provider.generateContent(contentsForProvider) // Ollama's generateContent expects only prompt
-      : provider.generateContent(
-          model, // Pass model for other providers
-          contentsForProvider,
-          systemInstruction,
-          finalGenerationConfig
-        ))
-    return provider.parseResponse(rawResult)
+    // Use AI SDK adapter for unified content generation
+    return await aiSdkGenerateContent(
+      selectedProviderId,
+      userSettings,
+      advancedModeSettings,
+      basicModeSettings,
+      systemInstruction,
+      enhancedPrompt
+    )
   } catch (e) {
-    console.error(`${providersConfig[selectedProviderId].name} API Error:`, e)
+    console.error(`AI SDK Error for ${selectedProviderId}:`, e)
     throw e
   }
 }
 
 /**
- * Summarizes YouTube video content by chapter using the selected AI provider.
  * Summarizes YouTube video content by chapter using the selected AI provider.
  * @param {string} timestampedTranscript - Video transcript with timestamps.
  * @returns {Promise<string>} - Promise that resolves with the chapter summary in Markdown format.
@@ -370,18 +255,8 @@ export async function summarizeChapters(timestampedTranscript) {
     selectedProviderId = 'gemini' // Force Gemini in basic mode
   }
 
-  const { apiKey, model, modelConfig } = getProviderConfig(
-    userSettings,
-    selectedProviderId
-  )
-
-  if (!apiKey) {
-    throw new Error(
-      `${providersConfig[selectedProviderId].name} API key is not configured. Click the settings icon on the right to add your API key.`
-    )
-  }
-
-  const provider = getProvider(selectedProviderId, userSettings) // Pass full settings object
+  // Validate API key
+  validateApiKey(userSettings, selectedProviderId)
 
   const chapterConfig = promptBuilders['chapter']
 
@@ -397,43 +272,17 @@ export async function summarizeChapters(timestampedTranscript) {
   )
 
   try {
-    const finalGenerationConfig = {
-      ...modelConfig.generationConfig,
-      temperature: userSettings.isAdvancedMode
-        ? advancedModeSettings.temperature
-        : basicModeSettings.temperature,
-      topP: userSettings.isAdvancedMode
-        ? advancedModeSettings.topP
-        : basicModeSettings.topP,
-    }
-
-    let contentsForProvider
-    if (selectedProviderId === 'gemini') {
-      contentsForProvider = [{ parts: [{ text: userPrompt }] }] // Gemini specific content format
-    } else if (selectedProviderId === 'openrouter') {
-      contentsForProvider = [{ parts: [{ text: userPrompt }] }] // OpenRouter expects messages array, but our provider handles this mapping
-    } else if (selectedProviderId === 'ollama') {
-      contentsForProvider = userPrompt // Ollama expects raw prompt string
-    } else if (selectedProviderId === 'openaiCompatible') {
-      contentsForProvider = [{ parts: [{ text: userPrompt }] }]
-    } else {
-      contentsForProvider = [{ parts: [{ text: userPrompt }] }] // Default for other providers
-    }
-
-    const rawResult = await (selectedProviderId === 'ollama'
-      ? provider.generateContent(contentsForProvider) // Ollama's generateContent expects only prompt
-      : provider.generateContent(
-          model, // Pass model for other providers
-          contentsForProvider,
-          systemInstruction, // Use the systemInstruction from the buildPrompt result
-          finalGenerationConfig
-        ))
-    return provider.parseResponse(rawResult)
-  } catch (e) {
-    console.error(
-      `${providersConfig[selectedProviderId].name} API Error (Chapters):`,
-      e
+    // Use AI SDK adapter for unified content generation
+    return await aiSdkGenerateContent(
+      selectedProviderId,
+      userSettings,
+      advancedModeSettings,
+      basicModeSettings,
+      systemInstruction,
+      userPrompt
     )
+  } catch (e) {
+    console.error(`AI SDK Error for ${selectedProviderId} (Chapters):`, e)
     throw e
   }
 }
@@ -451,18 +300,8 @@ export async function* summarizeChaptersStream(timestampedTranscript) {
     selectedProviderId = 'gemini' // Force Gemini in basic mode
   }
 
-  const { apiKey, model, modelConfig } = getProviderConfig(
-    userSettings,
-    selectedProviderId
-  )
-
-  if (!apiKey) {
-    throw new Error(
-      `${providersConfig[selectedProviderId].name} API key is not configured. Click the settings icon on the right to add your API key.`
-    )
-  }
-
-  const provider = getProvider(selectedProviderId, userSettings) // Pass full settings object
+  // Validate API key
+  validateApiKey(userSettings, selectedProviderId)
 
   const chapterConfig = promptBuilders['chapter']
 
@@ -478,42 +317,22 @@ export async function* summarizeChaptersStream(timestampedTranscript) {
   )
 
   try {
-    const finalGenerationConfig = {
-      ...modelConfig.generationConfig,
-      temperature: userSettings.isAdvancedMode
-        ? advancedModeSettings.temperature
-        : basicModeSettings.temperature,
-      topP: userSettings.isAdvancedMode
-        ? advancedModeSettings.topP
-        : basicModeSettings.topP,
-    }
-
-    let contentsForProvider
-    if (selectedProviderId === 'gemini') {
-      contentsForProvider = [{ parts: [{ text: userPrompt }] }] // Gemini specific content format
-    } else if (selectedProviderId === 'openrouter') {
-      contentsForProvider = [{ parts: [{ text: userPrompt }] }] // OpenRouter expects messages array, but our provider handles this mapping
-    } else if (selectedProviderId === 'ollama') {
-      contentsForProvider = userPrompt // Ollama expects raw prompt string
-    } else if (selectedProviderId === 'openaiCompatible') {
-      contentsForProvider = [{ parts: [{ text: userPrompt }] }]
-    } else {
-      contentsForProvider = [{ parts: [{ text: userPrompt }] }] // Default for other providers
-    }
-
-    const stream = provider.generateContentStream(
-      model,
-      contentsForProvider,
+    // Use AI SDK adapter for unified streaming
+    const streamGenerator = aiSdkGenerateContentStream(
+      selectedProviderId,
+      userSettings,
+      advancedModeSettings,
+      basicModeSettings,
       systemInstruction,
-      finalGenerationConfig
+      userPrompt
     )
 
-    for await (const chunk of stream) {
+    for await (const chunk of streamGenerator) {
       yield chunk
     }
   } catch (e) {
     console.error(
-      `${providersConfig[selectedProviderId].name} API Stream Error (Chapters):`,
+      `AI SDK Stream Error for ${selectedProviderId} (Chapters):`,
       e
     )
     throw e

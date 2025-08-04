@@ -10,18 +10,11 @@
 <TextInput
   label={$t('settings.ollama_config.endpoint_label')}
   id="Endpoint"
-  placeholder={$t('settings.ollama_config.endpoint_placeholder')}
+  placeholder="http://localhost:11434/v1"
   bind:value={settings.ollamaEndpoint}
   onSave={(value) => {
-    let cleanedEndpoint = value || ''
-    if (cleanedEndpoint.endsWith('/api/generate')) {
-      cleanedEndpoint = cleanedEndpoint.substring(
-        0,
-        cleanedEndpoint.length - '/api/generate'.length
-      )
-    }
-    console.log('OllamaConfig: Saving ollamaEndpoint', cleanedEndpoint)
-    updateSettings({ ollamaEndpoint: cleanedEndpoint })
+    console.log('OllamaConfig: Saving ollamaEndpoint', value)
+    updateSettings({ ollamaEndpoint: value })
   }}
 />
 <TextInput

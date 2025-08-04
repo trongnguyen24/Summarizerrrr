@@ -5,7 +5,6 @@ import { createOpenAI } from '@ai-sdk/openai'
 import { anthropic } from '@ai-sdk/anthropic'
 import { createOpenAICompatible } from '@ai-sdk/openai-compatible'
 import { createOpenRouter } from '@openrouter/ai-sdk-provider'
-import { createOllama } from 'ollama-ai-provider'
 
 /**
  * Maps provider ID and settings to AI SDK model instance
@@ -81,10 +80,12 @@ export function getAISDKModel(providerId, settings) {
       return deepseek(settings.selectedDeepseekModel || 'deepseek-chat')
 
     case 'ollama':
-      const ollamaProvider = createOllama({
-        baseURL: settings.ollamaEndpoint || 'http://localhost:11434/api',
+      const ollama = createOpenAICompatible({
+        name: 'ollama',
+        apiKey: settings.ollamaApiKey || 'ollama',
+        baseURL: settings.ollamaEndpoint || 'http://localhost:11434/v1',
       })
-      return ollamaProvider(settings.selectedOllamaModel || 'llama2')
+      return ollama(settings.selectedOllamaModel || 'llama2')
 
     case 'openaiCompatible':
       const openaiCompatible = createOpenAICompatible({

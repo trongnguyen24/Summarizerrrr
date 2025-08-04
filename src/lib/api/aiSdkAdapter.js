@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { generateText, streamText } from 'ai'
 import { createGoogleGenerativeAI } from '@ai-sdk/google'
-import { openai } from '@ai-sdk/openai'
+import { createOpenAI } from '@ai-sdk/openai'
 import { anthropic } from '@ai-sdk/anthropic'
 import { createOpenAICompatible } from '@ai-sdk/openai-compatible'
 import { createOpenRouter } from '@openrouter/ai-sdk-provider'
@@ -51,10 +51,18 @@ export function getAISDKModel(providerId, settings) {
 
     case 'openai':
     case 'chatgpt':
-      return openai(settings.selectedChatgptModel || 'gpt-3.5-turbo', {
+      return createOpenAI(settings.selectedChatgptModel || 'gpt-3.5-turbo', {
         apiKey: settings.chatgptApiKey,
         baseURL: settings.chatgptBaseUrl,
       })
+
+    case 'groq':
+      const groq = createOpenAICompatible({
+        name: 'groq',
+        apiKey: settings.groqApiKey,
+        baseURL: 'https://api.groq.com/openai/v1',
+      })
+      return groq(settings.selectedGroqModel || 'mixtral-8x7b-32768')
 
     case 'openrouter':
       const openrouter = createOpenAICompatible({

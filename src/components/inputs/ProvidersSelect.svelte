@@ -13,6 +13,8 @@
     { value: 'openaiCompatible', label: 'OpenAI Compatible' },
     { value: 'chatgpt', label: 'ChatGPT' },
     { value: 'deepseek', label: 'DeepSeek' },
+    { value: 'lmstudio', label: 'LM Studio' },
+    { value: 'groq', label: 'Groq' },
   ]
 
   let { value = $bindable() } = $props()
@@ -43,6 +45,12 @@
         break
       case 'deepseek':
         settings.selectedModel = settings.selectedDeepseekModel
+        break
+      case 'lmstudio':
+        settings.selectedModel = settings.selectedLmStudioModel
+        break
+      case 'groq':
+        settings.selectedModel = settings.groqApiKey
         break
       default:
         // Fallback or error handling

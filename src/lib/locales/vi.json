@@ -128,6 +128,20 @@
       "model_label": "Mô hình Ollama",
       "model_placeholder": "llama2"
     },
+    "lmstudio_config": {
+      "endpoint_label": "End point",
+      "endpoint_placeholder": "http://localhost:1234/v1",
+      "model_label": "Mô hình",
+      "model_placeholder": "lmstudio-community/gemma-2b-it-GGUF"
+    },
+    "groq_config": {
+      "api_key_label": "Khóa API",
+      "api_key_placeholder": "Nhập khóa API Groq của bạn",
+      "model_label": "Tên mô hình",
+      "model_placeholder": "mixtral-8x7b-32768",
+      "saved_status": "Đã lưu!",
+      "view_models": "Xem mô hình"
+    },
     "openai_compatible_config": {
       "api_key_label": "Khóa API",
       "api_key_placeholder": "Khóa API",

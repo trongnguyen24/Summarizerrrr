@@ -13,6 +13,8 @@
   import OpenAICompatibleConfig from '../providerConfigs/OpenAICompatibleConfig.svelte'
   import ChatGPTConfig from '../providerConfigs/ChatGPTConfig.svelte'
   import DeepseekConfig from '../providerConfigs/DeepseekConfig.svelte'
+  import LMStudioConfig from '../providerConfigs/LMStudioConfig.svelte'
+  import GroqConfig from '../providerConfigs/GroqConfig.svelte'
   import { Label, Switch } from 'bits-ui'
   import {
     settings,
@@ -137,6 +139,10 @@
           bind:deepseekBaseUrl={settings.deepseekBaseUrl}
           bind:selectedDeepseekModel={settings.selectedDeepseekModel}
         />
+      {:else if settings.selectedProvider === 'lmstudio'}
+        <LMStudioConfig />
+      {:else if settings.selectedProvider === 'groq'}
+        <GroqConfig />
       {/if}
 
       <div class="grid grid-cols-2 gap-4">

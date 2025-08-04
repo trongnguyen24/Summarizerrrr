@@ -14,26 +14,24 @@
   }
 </script>
 
-<div class="space-y-4">
-  <ApiKeyInput
-    label={$t('settings.openai_compatible_config.api_key_label')}
-    id="openaiCompatibleApiKey"
-    apiKey={settings.openaiCompatibleApiKey}
-    onSave={handleApiKeySave}
-    placeholder={$t('settings.openai_compatible_config.api_key_placeholder')}
-  />
-  <TextInput
-    label={$t('settings.openai_compatible_config.base_url_label')}
-    id="openaiCompatibleBaseUrl"
-    bind:value={settings.openaiCompatibleBaseUrl}
-    onSave={(value) => updateSettings({ openaiCompatibleBaseUrl: value })}
-    placeholder={$t('settings.openai_compatible_config.base_url_placeholder')}
-  />
-  <TextInput
-    label={$t('settings.openai_compatible_config.model_name_label')}
-    id="openaiCompatibleModel"
-    bind:value={settings.selectedOpenAICompatibleModel}
-    onSave={(value) => updateSettings({ selectedOpenAICompatibleModel: value })}
-    placeholder={$t('settings.openai_compatible_config.model_placeholder')}
-  />
-</div>
+<ApiKeyInput
+  label={$t('settings.openai_compatible_config.api_key_label')}
+  id="openaiCompatibleApiKey"
+  apiKey={settings.openaiCompatibleApiKey}
+  onSave={handleApiKeySave}
+  placeholder={$t('settings.openai_compatible_config.api_key_placeholder')}
+/>
+<TextInput
+  label={$t('settings.openai_compatible_config.base_url_label')}
+  id="openaiCompatibleBaseUrl"
+  bind:value={settings.openaiCompatibleBaseUrl}
+  onSave={(value) => updateSettings({ openaiCompatibleBaseUrl: value })}
+  placeholder={$t('settings.openai_compatible_config.base_url_placeholder')}
+/>
+<TextInput
+  label={$t('settings.openai_compatible_config.model_name_label')}
+  id="openaiCompatibleModel"
+  bind:value={settings.selectedOpenAICompatibleModel}
+  onSave={(value) => updateSettings({ selectedOpenAICompatibleModel: value })}
+  placeholder={$t('settings.openai_compatible_config.model_placeholder')}
+/>

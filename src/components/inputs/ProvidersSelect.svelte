@@ -9,7 +9,7 @@
   const providers = [
     { value: 'gemini', label: 'Google Gemini' },
     { value: 'openrouter', label: 'OpenRouter' },
-    { value: 'ollama', label: 'Ollama' },
+    // { value: 'ollama', label: 'Ollama' },
     { value: 'openaiCompatible', label: 'OpenAI Compatible' },
     { value: 'chatgpt', label: 'ChatGPT' },
     { value: 'deepseek', label: 'DeepSeek' },
@@ -34,9 +34,9 @@
       case 'openrouter':
         settings.selectedModel = settings.selectedOpenrouterModel
         break
-      case 'ollama':
-        settings.selectedModel = settings.selectedOllamaModel
-        break
+      // case 'ollama':
+      //   settings.selectedModel = settings.selectedOllamaModel
+      //   break
       case 'openaiCompatible':
         settings.selectedModel = settings.selectedOpenAICompatibleModel
         break

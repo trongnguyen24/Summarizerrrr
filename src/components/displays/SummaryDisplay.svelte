@@ -3,6 +3,9 @@
   import Icon from '@iconify/svelte'
   import { marked } from 'marked'
   import hljs from 'highlight.js'
+  import svelte from 'highlightjs-svelte'
+
+  svelte(hljs)
   import TOC from '@/components/navigation/TOCArchive.svelte'
   import TabNavigation from '@/components/navigation/TabNavigation.svelte'
   import FoooterDisplay from '@/components/displays/FoooterDisplay.svelte'
@@ -68,14 +71,18 @@
     }
   })
 
-  // Effect để highlight code và cuộn trang khi selectedSummary thay đổi
+  // Effect để highlight code và cuộn trang khi selectedSummary hoặc activeTabId thay đổi
   $effect(() => {
-    if (selectedSummary) {
+    if (selectedSummary && activeTabId) {
+      // Svelte 5 $effect chạy sau khi DOM đã được cập nhật,
+      // vì vậy các phần tử sẽ có sẵn để tô sáng.
       document
         .querySelectorAll('.summary-content pre code')
         .forEach((block) => {
           hljs.highlightElement(block)
         })
+
+      // Cuộn lên đầu trang khi tab thay đổi
       window.scrollTo({ top: 0, behavior: 'instant' })
     }
   })

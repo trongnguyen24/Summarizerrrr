@@ -1,16 +1,17 @@
 <!-- @ts-nocheck -->
 <script>
-  import { marked } from 'marked'
+  import 'highlight.js/styles/github-dark.css'
   import hljs from 'highlight.js'
+  import SvelteMarkdown from 'svelte-markdown'
 
   /**
-   * Props của component - Hybrid approach với AI SDK v5 smoothing
+   * Props của component - Hybrid approach: svelte-markdown cho DOM stability
+   * và manual highlight.js cho highlighting đáng tin cậy.
    * @type {{
    *   sourceMarkdown: string;
    *   class?: string;
    *   onFinishTyping?: () => void;
    *   enableCursor?: boolean;
-   *   enableHighlight?: boolean;
    * }}
    */
   let {
@@ -18,162 +19,80 @@
     class: className = '', // TÙY CHỌN: CSS classes
     onFinishTyping, // Callback khi hoàn thành
     enableCursor = true, // TÙY CHỌN: Hiển thị cursor animation
-    enableHighlight = true, // TÙY CHỌN: Enable code highlighting
   } = $props()
 
   // === State nội bộ ===
   let container = $state()
-  let parsedHtml = $state('')
   let isStreaming = $state(true)
-  let parseTimeout = null
-
-  // Cache cho highlighted code blocks
-  const highlightCache = new Map()
-  let highlightTimeout = null
-  const highlightedElements = new Set()
-
-  // Debounced markdown parsing - tối ưu cho smoothing streams
-  function debouncedParse(markdown, delay = 8) {
-    // Faster parsing cho smoothing streams
-    clearTimeout(parseTimeout)
-    parseTimeout = setTimeout(() => {
-      try {
-        parsedHtml = marked.parse(markdown)
-      } catch (error) {
-        console.warn('Markdown parse error:', error)
-        parsedHtml = markdown // Fallback
-      }
-    }, delay)
-  }
-
-  // Configure marked với optimized settings cho smoothing
-  marked.setOptions({
-    highlight: function (code, lang) {
-      if (!enableHighlight) return code
-
-      const cacheKey = `${lang}:${code.substring(0, 50)}`
-
-      if (highlightCache.has(cacheKey)) {
-        return highlightCache.get(cacheKey)
-      }
-
-      const language = hljs.getLanguage(lang) ? lang : 'plaintext'
-      const result = hljs.highlight(code, { language }).value
-
-      // Manage cache size
-      if (highlightCache.size > 50) {
-        const firstKey = highlightCache.keys().next().value
-        highlightCache.delete(firstKey)
-      }
-      highlightCache.set(cacheKey, result)
-
-      return result
-    },
-    langPrefix: 'hljs language-',
-    breaks: true,
-    gfm: true,
-  })
-
-  // Optimized highlight function cho smoothing streams
-  function scheduleHighlight() {
-    if (!enableHighlight) return
-
-    clearTimeout(highlightTimeout)
-    highlightTimeout = setTimeout(() => {
-      if (container) {
-        const codeBlocks = Array.from(
-          container.querySelectorAll('pre code:not(.hljs)')
-        ).filter((el) => !highlightedElements.has(el))
-
-        // Batch processing với smaller delays cho smoothing
-        let index = 0
-        function processNext() {
-          if (index < codeBlocks.length) {
-            const element = codeBlocks[index]
-            try {
-              hljs.highlightElement(element)
-              highlightedElements.add(element)
-            } catch (error) {
-              console.warn('Highlight error:', error)
-            }
-            index++
-
-            if (index < codeBlocks.length) {
-              requestAnimationFrame(processNext)
-            }
-          }
-        }
-
-        if (codeBlocks.length > 0) {
-          requestAnimationFrame(processNext)
-        }
-      }
-    }, 50) // Reduced debounce cho smoothing
-  }
-
-  // Simplified completion detection
-  let hasCalledFinish = false
   let completionTimeout = null
+  let hasCalledFinish = false
+  let highlightTimeout = null
+
+  // --- Logic phát hiện hoàn thành stream ---
 
   function markComplete() {
     if (!hasCalledFinish) {
       hasCalledFinish = true
       isStreaming = false
-      console.log(
-        '[StreamingMarkdownV2] Marking complete, calling onFinishTyping'
-      )
       if (onFinishTyping) {
         onFinishTyping()
       }
+      // Chạy highlight lần cuối sau khi stream kết thúc
+      scheduleHighlight()
     }
   }
 
   function scheduleCompletion() {
     clearTimeout(completionTimeout)
     if (sourceMarkdown && sourceMarkdown.length > 0) {
-      completionTimeout = setTimeout(() => {
-        markComplete()
-      }, 500) // Wait 500ms after last change
+      completionTimeout = setTimeout(markComplete, 500)
     }
   }
 
-  // Effect để parse markdown khi sourceMarkdown thay đổi
+  // --- Logic highlight thủ công ---
+  function scheduleHighlight() {
+    clearTimeout(highlightTimeout)
+    highlightTimeout = setTimeout(() => {
+      if (container) {
+        const blocks = container.querySelectorAll('pre code:not(.hljs)')
+        blocks.forEach((block) => {
+          try {
+            hljs.highlightElement(block)
+          } catch (error) {
+            console.warn('Highlight.js error:', error)
+          }
+        })
+      }
+    }, 100) // Đợi 100ms sau khi DOM cập nhật
+  }
+
+  // Effect để theo dõi sourceMarkdown và lên lịch các tác vụ
   $effect(() => {
     if (sourceMarkdown) {
-      debouncedParse(sourceMarkdown)
-      scheduleCompletion()
-    } else {
-      parsedHtml = ''
       isStreaming = true
       hasCalledFinish = false
-      highlightedElements.clear()
+      scheduleCompletion()
+      // scheduleHighlight() // Bỏ đi để tránh race condition
+    } else {
+      isStreaming = true
+      hasCalledFinish = false
       clearTimeout(completionTimeout)
+      clearTimeout(highlightTimeout)
     }
   })
 
-  // Effect để highlight sau khi parse
-  $effect(() => {
-    if (parsedHtml && container) {
-      scheduleHighlight()
-    }
-  })
-
-  // Immediate completion for non-cursor mode
+  // Effect để hoàn thành ngay lập tức nếu cursor bị tắt
   $effect(() => {
     if (sourceMarkdown && !enableCursor) {
-      setTimeout(() => {
-        markComplete()
-      }, 100)
+      setTimeout(markComplete, 100)
     }
   })
 
   // Cleanup
   $effect(() => {
     return () => {
-      if (highlightTimeout) clearTimeout(highlightTimeout)
-      if (parseTimeout) clearTimeout(parseTimeout)
       if (completionTimeout) clearTimeout(completionTimeout)
-      highlightCache.clear()
+      if (highlightTimeout) clearTimeout(highlightTimeout)
     }
   })
 </script>
@@ -184,13 +103,12 @@
     ? 'blinking-cursor'
     : ''} {className}"
 >
-  {@html parsedHtml}
+  <SvelteMarkdown source={sourceMarkdown} />
 </div>
 
 <style>
   .markdown-container-v2 {
-    /* Smooth transitions cho AI SDK smoothing */
-    transition: opacity 0.2s ease-in-out;
+    position: relative; /* Cần cho blinking-cursor */
   }
 
   /* CSS để tạo con trỏ nhấp nháy được tối ưu */
@@ -202,10 +120,16 @@
     /* Sử dụng transform thay vì thay đổi content để tối ưu hiệu năng */
     animation: cyberpunk-blink 1.2s linear infinite;
 
-    color: var(--cursor-color, #333);
+    color: var(--cursor-color, #4b4b4b);
     /* GPU acceleration */
     will-change: transform;
     transform: translateZ(0);
+
+    /* Đảm bảo con trỏ luôn ở cuối */
+    position: absolute;
+    bottom: -5rem;
+    left: 50%;
+    transform: translateX(-50%);
   }
 
   /* Optimized keyframes - giảm số frame để tối ưu hiệu năng */
@@ -244,19 +168,16 @@
     }
   }
 
-  /* Enhanced markdown styling */
-  .markdown-container-v2 :global(h1),
-  .markdown-container-v2 :global(h2),
-  .markdown-container-v2 :global(h3) {
-    transition: all 0.3s ease-in-out;
-  }
-
   .markdown-container-v2 :global(pre) {
     border-radius: 8px;
-    transition: background-color 0.2s ease-in-out;
+    transition:
+      background-color 0.2s ease-in-out,
+      padding 0.2s ease-in-out;
   }
 
   .markdown-container-v2 :global(code) {
-    transition: all 0.2s ease-in-out;
+    transition:
+      background-color 0.2s ease-in-out,
+      padding 0.2s ease-in-out;
   }
 </style>

@@ -13,6 +13,7 @@ import { ErrorTypes } from '../error/errorTypes.js'
 import {
   generateContent as aiSdkGenerateContent,
   generateContentStream as aiSdkGenerateContentStream,
+  generateContentStreamEnhanced as aiSdkGenerateContentStreamEnhanced,
 } from './aiSdkAdapter.js'
 
 /**
@@ -170,14 +171,15 @@ export async function* summarizeContentStream(text, contentType) {
   )
 
   try {
-    // Use AI SDK adapter for unified streaming
+    // Use AI SDK adapter for unified streaming với smoothing
     const streamGenerator = aiSdkGenerateContentStream(
       selectedProviderId,
       userSettings,
       advancedModeSettings,
       basicModeSettings,
       systemInstruction,
-      userPrompt
+      userPrompt,
+      { useSmoothing: true }
     )
 
     for await (const chunk of streamGenerator) {
@@ -317,14 +319,15 @@ export async function* summarizeChaptersStream(timestampedTranscript) {
   )
 
   try {
-    // Use AI SDK adapter for unified streaming
+    // Use AI SDK adapter for unified streaming với smoothing
     const streamGenerator = aiSdkGenerateContentStream(
       selectedProviderId,
       userSettings,
       advancedModeSettings,
       basicModeSettings,
       systemInstruction,
-      userPrompt
+      userPrompt,
+      { useSmoothing: true }
     )
 
     for await (const chunk of streamGenerator) {
@@ -335,6 +338,60 @@ export async function* summarizeChaptersStream(timestampedTranscript) {
       `AI SDK Stream Error for ${selectedProviderId} (Chapters):`,
       e
     )
+    throw e
+  }
+}
+
+/**
+ * Enhanced streaming for content with full text accumulation
+ * Useful cho hybrid approach với StreamingMarkdownV2
+ */
+export async function* summarizeContentStreamEnhanced(text, contentType) {
+  // Ensure settings are initialized
+  await loadSettings()
+  await loadAdvancedModeSettings()
+  await loadBasicModeSettings()
+
+  const userSettings = settings
+  let selectedProviderId = userSettings.selectedProvider || 'gemini'
+  if (!userSettings.isAdvancedMode) {
+    selectedProviderId = 'gemini'
+  }
+
+  validateApiKey(userSettings, selectedProviderId)
+
+  const contentConfig = promptBuilders[contentType] || promptBuilders['general']
+
+  if (!contentConfig.buildPrompt) {
+    throw new Error(
+      `Configuration for content type "${contentType}" is incomplete.`
+    )
+  }
+
+  const { systemInstruction, userPrompt } = contentConfig.buildPrompt(
+    text,
+    userSettings.summaryLang,
+    userSettings.summaryLength,
+    userSettings.summaryFormat,
+    userSettings.summaryTone
+  )
+
+  try {
+    const streamGenerator = aiSdkGenerateContentStreamEnhanced(
+      selectedProviderId,
+      userSettings,
+      advancedModeSettings,
+      basicModeSettings,
+      systemInstruction,
+      userPrompt,
+      { useSmoothing: true }
+    )
+
+    for await (const streamData of streamGenerator) {
+      yield streamData
+    }
+  } catch (e) {
+    console.error(`AI SDK Enhanced Stream Error for ${selectedProviderId}:`, e)
     throw e
   }
 }

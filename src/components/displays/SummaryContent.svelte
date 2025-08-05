@@ -1,6 +1,6 @@
 <script>
   // @ts-nocheck
-  import StreamingMarkdown from '@/components/displays/StreamingMarkdown.svelte'
+  import StreamingMarkdownV2 from '@/components/displays/StreamingMarkdownV2.svelte'
   import FoooterDisplay from './FoooterDisplay.svelte'
   import TOC from '@/components/navigation/TOC.svelte'
   import { summaryState } from '@/stores/summaryStore.svelte'
@@ -16,11 +16,11 @@
 </script>
 
 <div id={targetId}>
-  <StreamingMarkdown
+  <StreamingMarkdownV2
     sourceMarkdown={summary}
-    speed={settings.enableStreaming ? 50 : 0}
-    instantDisplay={!settings.enableStreaming}
     onFinishTyping={handleMarkdownFinishTyping}
+    enableCursor={settings.enableStreaming}
+    enableHighlight={true}
     class="custom-markdown-style"
   />
 </div>

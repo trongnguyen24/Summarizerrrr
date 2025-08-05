@@ -173,6 +173,7 @@ export async function generateContent(
  * @param {object} basicModeSettings - Basic mode settings
  * @param {string} systemInstruction - System instruction/prompt
  * @param {string} userPrompt - User prompt
+ * @param {object} [streamOptions] - Additional streaming options
  * @returns {AsyncIterable<string>} Stream of generated content chunks
  */
 export async function* generateContentStream(
@@ -181,7 +182,8 @@ export async function* generateContentStream(
   advancedModeSettings,
   basicModeSettings,
   systemInstruction,
-  userPrompt
+  userPrompt,
+  streamOptions = {}
 ) {
   const model = getAISDKModel(providerId, settings)
   const generationConfig = mapGenerationConfig(
@@ -190,19 +192,92 @@ export async function* generateContentStream(
     basicModeSettings
   )
 
-  try {
-    const { textStream } = await streamText({
-      model,
-      system: systemInstruction,
-      prompt: userPrompt,
-      ...generationConfig,
-    })
+  // Default smoothing options
+  const defaultSmoothingOptions = {
+    smoothing: {
+      minDelayMs: 15,
+      maxDelayMs: 80,
+    },
+  }
 
-    for await (const chunk of textStream) {
+  const streamConfig = {
+    model,
+    system: systemInstruction,
+    prompt: userPrompt,
+    ...generationConfig,
+    ...(streamOptions.useSmoothing !== false ? defaultSmoothingOptions : {}),
+    ...streamOptions,
+  }
+
+  try {
+    const result = await streamText(streamConfig)
+
+    // Use smoothTextStream if available (AI SDK v5 feature)
+    const streamToUse =
+      streamOptions.useSmoothing !== false && result.smoothTextStream
+        ? result.smoothTextStream
+        : result.textStream
+
+    for await (const chunk of streamToUse) {
       yield chunk
     }
   } catch (error) {
     console.error('AI SDK Stream Error:', error)
+    throw error
+  }
+}
+
+/**
+ * Enhanced streaming with full text accumulation for hybrid approach
+ * @param {string} providerId - Provider identifier
+ * @param {object} settings - User settings
+ * @param {object} advancedModeSettings - Advanced mode settings
+ * @param {object} basicModeSettings - Basic mode settings
+ * @param {string} systemInstruction - System instruction/prompt
+ * @param {string} userPrompt - User prompt
+ * @param {object} [streamOptions] - Additional streaming options
+ * @returns {AsyncIterable<{chunk: string, fullText: string, isComplete: boolean}>} Enhanced stream with full text
+ */
+export async function* generateContentStreamEnhanced(
+  providerId,
+  settings,
+  advancedModeSettings,
+  basicModeSettings,
+  systemInstruction,
+  userPrompt,
+  streamOptions = {}
+) {
+  let fullText = ''
+  let isComplete = false
+
+  try {
+    const streamGenerator = generateContentStream(
+      providerId,
+      settings,
+      advancedModeSettings,
+      basicModeSettings,
+      systemInstruction,
+      userPrompt,
+      streamOptions
+    )
+
+    for await (const chunk of streamGenerator) {
+      fullText += chunk
+      yield {
+        chunk,
+        fullText,
+        isComplete: false,
+      }
+    }
+
+    // Final yield with completion flag
+    yield {
+      chunk: '',
+      fullText,
+      isComplete: true,
+    }
+  } catch (error) {
+    console.error('AI SDK Enhanced Stream Error:', error)
     throw error
   }
 }

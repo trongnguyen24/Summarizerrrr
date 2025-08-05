@@ -27,9 +27,9 @@
       },
       "responseMode": "Cách Phản hồi",
       "response_mode": {
-        "streaming": "Luồng",
+        "streaming": "Streaming",
         "streaming_desc": "Hiển thị phản hồi thời gian thực, trải nghiệm tốt hơn.",
-        "non_streaming": "Không luồng",
+        "non_streaming": "Blocking",
         "non_streaming_desc": "Phù hợp cho thiết bị yếu, giảm giật lag."
       },
       "shortcuts": "Phím tắt",

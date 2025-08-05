@@ -29,7 +29,7 @@
       "response_mode": {
         "streaming": "Streaming",
         "streaming_desc": "Respuestas instantáneas. Recomendado.",
-        "non_streaming": "Normal",
+        "non_streaming": "Blocking",
         "non_streaming_desc": "Para conexiones lentas. Evita pausas."
       },
       "shortcuts": "Atajos",

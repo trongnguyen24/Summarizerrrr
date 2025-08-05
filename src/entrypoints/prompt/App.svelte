@@ -212,9 +212,7 @@
 
   function handleImportTemplate() {
     if (selectedTemplate) {
-      const template = promptTemplates[promptKey].find(
-        (t) => t.title === selectedTemplate
-      )
+      const template = promptTemplates.find((t) => t.title === selectedTemplate)
       if (template) {
         currentSystemPrompt = template.systemInstruction
         currentUserPrompt = template.userPrompt
@@ -347,32 +345,30 @@
       <div class="flex justify-between gap-2 mt-auto">
         <div class="flex gap-2 items-center">
           <!-- add key re render when promptKey Changes -->
-          {#key promptKey}
-            <select
-              id="templateSelect"
-              class="dark:bg-surface-1"
-              onchange={handleTemplateChange}
+          <select
+            id="templateSelect"
+            class="dark:bg-surface-1"
+            onchange={handleTemplateChange}
+          >
+            <option value="" disabled selected class="dark:bg-surface-1">
+              {$t('prompts.select_template')}</option
             >
-              <option value="" disabled selected class="dark:bg-surface-1">
-                {$t('prompts.select_template')}</option
-              >
-              {#each promptTemplates[promptKey] || [] as template}
-                <option value={template.title}>{template.title}</option>
-              {/each}
-            </select>
-          {/key}
+            {#each promptTemplates as template}
+              <option value={template.title}>{template.title}</option>
+            {/each}
+          </select>
           <button
             class="relative shrink-0 overflow-hidden group"
             onclick={handleImportTemplate}
           >
             <div
-              class="font-medium py-2 px-4 border border-transparent group-hover:border-border/40 transition-colors duration-200 group-hover:bg-surface-2 dark:group-hover:surface-2/90 hover:text-white"
+              class="font-medium py-2 px-4 border border-transparent group-hover:border-border/40 transition-colors duration-200 group-hover:bg-surface-2 dark:group-hover:surface-2/90 hover:text-blackwhite"
             >
               {$t('prompts.buttons.import')}
             </div>
 
             <span
-              class="size-4 absolute z-10 -left-2 -bottom-2 border bg-white dark:bg-surface-1 rotate-45 transition-colors duration-200 border-border/40"
+              class="size-4 absolute z-10 -left-2 -bottom-2 border bg-white dark:bg-surface-1 rotate-45 transition-colors duration-200 border-border/0 group-hover:border-border/40"
             ></span>
           </button>
         </div>

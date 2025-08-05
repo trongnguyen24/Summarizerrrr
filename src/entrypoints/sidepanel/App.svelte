@@ -112,7 +112,7 @@
   })
 </script>
 
-<div class="flex min-w-[22.5rem] bg-surface-1 w-full flex-col">
+<div class="main-container flex min-w-[22.5rem] bg-surface-1 w-full flex-col">
   <div
     class="grid grid-rows-[32px_1px_8px_1px_160px_1px_8px_1px_1fr] min-h-screen"
   >

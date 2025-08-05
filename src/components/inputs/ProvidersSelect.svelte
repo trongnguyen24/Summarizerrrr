@@ -1,15 +1,21 @@
 <script>
   import ReusableSelect from '../inputs/ReusableSelect.svelte'
-  import { providersConfig } from '../../lib/api/providersConfig.js'
   import {
     settings,
     updateSettings,
   } from '../../stores/settingsStore.svelte.js' // Import updateSettings
 
-  const providers = Object.keys(providersConfig).map((key) => ({
-    value: key,
-    label: providersConfig[key].name,
-  }))
+  // Hardcode danh sách providers vì providersConfig đã bị xóa
+  const providers = [
+    { value: 'gemini', label: 'Google Gemini' },
+    { value: 'openrouter', label: 'OpenRouter' },
+    { value: 'ollama', label: 'Ollama' },
+    { value: 'openaiCompatible', label: 'OpenAI Compatible' },
+    { value: 'chatgpt', label: 'ChatGPT' },
+    { value: 'deepseek', label: 'DeepSeek' },
+    { value: 'lmstudio', label: 'LM Studio' },
+    { value: 'groq', label: 'Groq' },
+  ]
 
   let { value = $bindable() } = $props()
 
@@ -39,6 +45,12 @@
         break
       case 'deepseek':
         settings.selectedModel = settings.selectedDeepseekModel
+        break
+      case 'lmstudio':
+        settings.selectedModel = settings.selectedLmStudioModel
+        break
+      case 'groq':
+        settings.selectedModel = settings.groqApiKey
         break
       default:
         // Fallback or error handling

@@ -24,8 +24,12 @@ const DEFAULT_SETTINGS = {
   chatgptApiKey: '', // ChatGPT API Key
   chatgptBaseUrl: 'https://api.openai.com/v1', // ChatGPT Base URL
   selectedChatgptModel: 'gpt-3.5-turbo', // ChatGPT Model
-  ollamaEndpoint: 'http://localhost:11434', // Ollama Endpoint
+  ollamaEndpoint: 'http://localhost:11434/api', // Ollama Endpoint
   selectedOllamaModel: 'llama2', // Default Ollama model
+  lmStudioEndpoint: 'http://localhost:1234/v1', // LM Studio Endpoint
+  selectedLmStudioModel: 'lmstudio-community/gemma-2b-it-GGUF', // Default LM Studio model
+  groqApiKey: '', // Groq API Key
+  selectedGroqModel: 'mixtral-8x7b-32768', // Default Groq model
   summaryLength: 'long', // short, medium, long
   summaryFormat: 'heading', // heading, paragraph
   summaryLang: 'Vietnamese', // Default language Vietnamese
@@ -97,6 +101,17 @@ export async function loadSettings() {
       if (mergedSettings.selectedOllamaModel === '') {
         mergedSettings.selectedOllamaModel =
           DEFAULT_SETTINGS.selectedOllamaModel
+      }
+
+      // Ensure selectedLmStudioModel is not an empty string if loaded from storage
+      if (mergedSettings.selectedLmStudioModel === '') {
+        mergedSettings.selectedLmStudioModel =
+          DEFAULT_SETTINGS.selectedLmStudioModel
+      }
+
+      // Ensure selectedGroqModel is not an empty string if loaded from storage
+      if (mergedSettings.selectedGroqModel === '') {
+        mergedSettings.selectedGroqModel = DEFAULT_SETTINGS.selectedGroqModel
       }
 
       Object.assign(settings, mergedSettings)

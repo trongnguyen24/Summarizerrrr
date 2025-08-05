@@ -29,7 +29,7 @@
       "response_mode": {
         "streaming": "Streaming",
         "streaming_desc": "Echtzeitanzeige, bessere Erfahrung.",
-        "non_streaming": "Ohne Streaming",
+        "non_streaming": "Blocking",
         "non_streaming_desc": "Für schwächere Geräte, weniger Verzögerung."
       },
       "shortcuts": "Tastenkürzel",
@@ -124,7 +124,7 @@
     },
     "ollama_config": {
       "endpoint_label": "Ollama-Endpunkt",
-      "endpoint_placeholder": "http://localhost:11434",
+      "endpoint_placeholder": "http://localhost:11434/api",
       "model_label": "Ollama-Modell",
       "model_placeholder": "llama2"
     },

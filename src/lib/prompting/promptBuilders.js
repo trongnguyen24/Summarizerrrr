@@ -1,6 +1,10 @@
 import { settings } from '@/stores/settingsStore.svelte.js'
 import { youTubePromptTemplate } from '@/lib/prompts/youTubePromptTemplate.js'
+import { youTubePromptTemplate_short } from '@/lib/prompts/youTubePromptTemplate_short.js'
+import { youTubePromptTemplate_medium } from '@/lib/prompts/youTubePromptTemplate_medium.js'
 import { generalPromptTemplate } from '@/lib/prompts/generalPromptTemplate.js'
+import { generalPromptTemplate_short } from '@/lib/prompts/generalPromptTemplate_short.js'
+import { generalPromptTemplate_medium } from '@/lib/prompts/generalPromptTemplate_medium.js'
 import { chapterPromptTemplate } from '@/lib/prompts/chapterPromptTemplate.js'
 import { selectedTextPromptTemplate } from '@/lib/prompts/selectedTextPromptTemplate.js'
 import { courseSummaryPromptTemplate } from '@/lib/prompts/courseSummaryPromptTemplate.js'
@@ -18,10 +22,20 @@ export const promptBuilders = {
         systemInstruction = settings.youtubeCustomSystemInstructionContent || ''
         userPrompt = settings.youtubeCustomPromptContent || ''
       } else {
+        // Select template based on length
+        if (length === 'short') {
+          userPrompt = youTubePromptTemplate_short
+        } else if (length === 'medium') {
+          userPrompt = youTubePromptTemplate_medium
+        } else {
+          userPrompt = youTubePromptTemplate // long version
+        }
         userPrompt = replacePlaceholders(userPrompt, lang, length, format, tone)
       }
 
-      userPrompt = userPrompt.replace(/__CONTENT__/g, text)
+      userPrompt = userPrompt
+        .replace(/__CONTENT__/g, text)
+        .replace(/__LANG__/g, lang)
       return { systemInstruction, userPrompt }
     },
   },
@@ -34,10 +48,20 @@ export const promptBuilders = {
         systemInstruction = settings.webCustomSystemInstructionContent || ''
         userPrompt = settings.webCustomPromptContent || ''
       } else {
+        // Select template based on length
+        if (length === 'short') {
+          userPrompt = generalPromptTemplate_short
+        } else if (length === 'medium') {
+          userPrompt = generalPromptTemplate_medium
+        } else {
+          userPrompt = generalPromptTemplate // long version
+        }
         userPrompt = replacePlaceholders(userPrompt, lang, length, format, tone)
       }
 
-      userPrompt = userPrompt.replace(/__CONTENT__/g, text)
+      userPrompt = userPrompt
+        .replace(/__CONTENT__/g, text)
+        .replace(/__LANG__/g, lang)
       return { systemInstruction, userPrompt }
     },
   },
@@ -53,7 +77,9 @@ export const promptBuilders = {
         userPrompt = replacePlaceholders(userPrompt, lang, length, null, tone)
       }
 
-      userPrompt = userPrompt.replace(/__CONTENT__/g, timestampedTranscript)
+      userPrompt = userPrompt
+        .replace(/__CONTENT__/g, timestampedTranscript)
+        .replace(/__LANG__/g, lang)
       return { systemInstruction, userPrompt }
     },
   },
@@ -73,7 +99,9 @@ export const promptBuilders = {
         userPrompt = replacePlaceholders(userPrompt, lang, length, format, tone)
       }
 
-      userPrompt = userPrompt.replace(/__CONTENT__/g, text)
+      userPrompt = userPrompt
+        .replace(/__CONTENT__/g, text)
+        .replace(/__LANG__/g, lang)
       return { systemInstruction, userPrompt }
     },
   },
@@ -93,7 +121,9 @@ export const promptBuilders = {
         userPrompt = replacePlaceholders(userPrompt, lang, length, format, tone)
       }
 
-      userPrompt = userPrompt.replace(/__CONTENT__/g, text)
+      userPrompt = userPrompt
+        .replace(/__CONTENT__/g, text)
+        .replace(/__LANG__/g, lang)
       return { systemInstruction, userPrompt }
     },
   },
@@ -113,7 +143,9 @@ export const promptBuilders = {
         userPrompt = replacePlaceholders(userPrompt, lang, null, format, tone)
       }
 
-      userPrompt = userPrompt.replace(/__CONTENT__/g, text)
+      userPrompt = userPrompt
+        .replace(/__CONTENT__/g, text)
+        .replace(/__LANG__/g, lang)
       return { systemInstruction, userPrompt }
     },
   },

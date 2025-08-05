@@ -99,6 +99,9 @@ html {
   scroll-padding-top: 0.5rem;
   background-color: var(--color-background);
 }
+body {
+  user-select: text !important;
+}
 
 .top-stripes {
   background-image: repeating-linear-gradient(
@@ -109,6 +112,7 @@ html {
     var(--color-border) 8px
   );
 }
+
 .prose.main-sidepanel h1,
 .prose.main-sidepanel h2 {
   font-size: var(--h-1);

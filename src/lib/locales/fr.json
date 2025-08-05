@@ -29,7 +29,7 @@
       "response_mode": {
         "streaming": "Streaming",
         "streaming_desc": "Réponses instantanées. Recommandé.",
-        "non_streaming": "Normal",
+        "non_streaming": "Blocking",
         "non_streaming_desc": "Pour les connexions lentes. Évite les pauses."
       },
       "shortcuts": "Raccourcis",
@@ -124,7 +124,7 @@
     },
     "ollama_config": {
       "endpoint_label": "Point de terminaison Ollama",
-      "endpoint_placeholder": "http://localhost:11434",
+      "endpoint_placeholder": "http://localhost:11434/api",
       "model_label": "Modèle Ollama",
       "model_placeholder": "llama2"
     },

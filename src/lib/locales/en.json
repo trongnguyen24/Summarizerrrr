@@ -29,7 +29,7 @@
       "response_mode": {
         "streaming": "Streaming",
         "streaming_desc": "Real-time response display, better experience.",
-        "non_streaming": "Non-streaming",
+        "non_streaming": "Blocking",
         "non_streaming_desc": "Suitable for low-end devices, reduce lag."
       },
       "shortcuts": "Shortcuts",
@@ -124,9 +124,24 @@
     },
     "ollama_config": {
       "endpoint_label": "Ollama Endpoint",
-      "endpoint_placeholder": "http://localhost:11434",
-      "model_label": "Ollama Model",
+      "endpoint_placeholder": "http://localhost:11434/api",
+      "model_label": "Model Name",
       "model_placeholder": "llama2"
+    },
+    "lmstudio_config": {
+      "endpoint_label": "Endpoint",
+      "endpoint_placeholder": "http://localhost:1234/v1",
+      "model_label": "Model Name",
+      "model_placeholder": "lmstudio-community/gemma-2b-it-GGUF"
+    },
+    "groq_config": {
+      "api_key_label": "API Key",
+      "api_key_placeholder": "Enter your Groq API key",
+      "model_label": "Model Name",
+      "get_a_key": "Get a key",
+      "model_placeholder": "mixtral-8x7b-32768",
+      "saved_status": "Saved!",
+      "view_models": "View Models"
     },
     "openai_compatible_config": {
       "api_key_label": "API Key",

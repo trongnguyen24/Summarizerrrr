@@ -5,6 +5,13 @@ import {
   loadSettings,
   subscribeToSettingsChanges,
 } from '../stores/settingsStore.svelte.js'
+import {
+  summaryState,
+  summarizeSelectedText,
+  logAllGeneratedSummariesToHistory,
+} from '../stores/summaryStore.svelte.js'
+import { get } from 'svelte/store'
+import { getUrlSummaryType } from '../lib/utils/utils.js'
 
 export default defineBackground(() => {
   let sidePanelPort = null
@@ -407,127 +414,211 @@ export default defineBackground(() => {
   })
 
   // 5. Listen for messages from other parts of the extension (e.g., side panel)
-  browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    if (message.action === 'getTranscript' && message.tabId) {
-      const targetTabId = message.tabId
+  browser.runtime.onMessage.addListener(
+    async (message, sender, sendResponse) => {
+      if (message.action === 'getTranscript' && message.tabId) {
+        const targetTabId = message.tabId
 
-      ;(async () => {
-        try {
-          // Gửi message đến content script để yêu cầu transcript
-          const response = await browser.tabs.sendMessage(targetTabId, {
-            action: 'fetchTranscript',
-            lang: message.lang, // Truyền ngôn ngữ nếu có
-          })
+        ;(async () => {
+          try {
+            // Gửi message đến content script để yêu cầu transcript
+            const response = await browser.tabs.sendMessage(targetTabId, {
+              action: 'fetchTranscript',
+              lang: message.lang, // Truyền ngôn ngữ nếu có
+            })
 
-          if (response && response.success) {
-            sendResponse({ transcript: response.transcript })
-          } else {
-            console.warn(
-              `[background.js] Content script failed to get transcript for tab ${targetTabId}:`,
-              response?.error || 'Unknown error.'
+            if (response && response.success) {
+              sendResponse({ transcript: response.transcript })
+            } else {
+              console.warn(
+                `[background.js] Content script failed to get transcript for tab ${targetTabId}:`,
+                response?.error || 'Unknown error.'
+              )
+              sendResponse({
+                error:
+                  response?.error ||
+                  'Failed to get transcript from content script.',
+              })
+            }
+          } catch (err) {
+            console.error(
+              `[background.js] Error executing script for tab ${targetTabId}:`,
+              err
             )
             sendResponse({
               error:
-                response?.error ||
-                'Failed to get transcript from content script.',
+                err.message ||
+                'Unknown error occurred during script execution.',
             })
           }
-        } catch (err) {
-          console.error(
-            `[background.js] Error executing script for tab ${targetTabId}:`,
-            err
-          )
-          sendResponse({
-            error:
-              err.message || 'Unknown error occurred during script execution.',
-          })
-        }
-      })()
-      return true
-    } else if (message.action === 'courseContentFetched') {
-      // Xử lý nội dung Course đã lấy được từ content script (Udemy hoặc Coursera)
-      console.log(
-        '[background.js] Received courseContentFetched from content script.'
-      )
-      if (sidePanelPort) {
-        sidePanelPort.postMessage({
-          action: 'courseContentAvailable',
-          content: message.content,
-          lang: message.lang,
-          courseType: message.courseType, // Thêm loại khóa học (udemy/coursera)
-        })
+        })()
+        return true
+      } else if (message.action === 'courseContentFetched') {
+        // Xử lý nội dung Course đã lấy được từ content script (Udemy hoặc Coursera)
         console.log(
-          '[background.js] Sent courseContentAvailable to side panel.'
+          '[background.js] Received courseContentFetched from content script.'
         )
-      } else {
-        console.warn(
-          '[background.js] Side panel not connected, cannot send courseContentAvailable.'
-        )
-      }
-      return true
-    } else if (message.action === 'requestCurrentTabInfo') {
-      ;(async () => {
-        const tabs = await browser.tabs.query({
-          active: true,
-          currentWindow: true,
-        })
-        const activeTab = tabs[0]
-        const isYouTube = YOUTUBE_REGEX.test(activeTab?.url)
-        const isUdemy = UDEMY_REGEX.test(activeTab?.url)
-        const isCoursera = COURSERA_REGEX.test(activeTab?.url)
-
-        const currentTabInfo = activeTab
-          ? {
-              action: 'currentTabInfo',
-              tabId: activeTab.id,
-              tabUrl: activeTab.url,
-              tabTitle: activeTab.title,
-              isYouTube: isYouTube,
-              isUdemy: isUdemy,
-              isCoursera: isCoursera,
-            }
-          : {
-              action: 'currentTabInfo',
-              error: 'No active tab found.',
-            }
-
         if (sidePanelPort) {
-          try {
-            sidePanelPort.postMessage(currentTabInfo)
-            console.log('[background.js] Sent currentTabInfo via port.')
-          } catch (error) {
-            console.error(
-              '[background.js] Error sending currentTabInfo via port:',
-              error
-            )
-            // Fallback to sendMessage if port fails (though less ideal for connect-based messages)
-            browser.runtime.sendMessage(currentTabInfo).catch((err) => {
-              console.warn('[background.js] Fallback sendMessage failed:', err)
-            })
-          }
+          sidePanelPort.postMessage({
+            action: 'courseContentAvailable',
+            content: message.content,
+            lang: message.lang,
+            courseType: message.courseType, // Thêm loại khóa học (udemy/coursera)
+          })
+          console.log(
+            '[background.js] Sent courseContentAvailable to side panel.'
+          )
         } else {
-          // If sidePanelPort is not available, send via runtime.sendMessage as a fallback
-          // This might happen if the side panel connects and immediately requests info before onConnect fully processes
-          browser.runtime.sendMessage(currentTabInfo).catch((error) => {
-            if (
-              error.message.includes('Could not establish connection') ||
-              error.message.includes('Receiving end does not exist')
-            ) {
-              console.warn(
-                '[background.js] Side panel not open or no listener for currentTabInfo message.'
-              )
-            } else {
+          console.warn(
+            '[background.js] Side panel not connected, cannot send courseContentAvailable.'
+          )
+        }
+        return true
+      } else if (message.action === 'requestCurrentTabInfo') {
+        ;(async () => {
+          const tabs = await browser.tabs.query({
+            active: true,
+            currentWindow: true,
+          })
+          const activeTab = tabs[0]
+          const isYouTube = YOUTUBE_REGEX.test(activeTab?.url)
+          const isUdemy = UDEMY_REGEX.test(activeTab?.url)
+          const isCoursera = COURSERA_REGEX.test(activeTab?.url)
+
+          const currentTabInfo = activeTab
+            ? {
+                action: 'currentTabInfo',
+                tabId: activeTab.id,
+                tabUrl: activeTab.url,
+                tabTitle: activeTab.title,
+                isYouTube: isYouTube,
+                isUdemy: isUdemy,
+                isCoursera: isCoursera,
+              }
+            : {
+                action: 'currentTabInfo',
+                error: 'No active tab found.',
+              }
+
+          if (sidePanelPort) {
+            try {
+              sidePanelPort.postMessage(currentTabInfo)
+              console.log('[background.js] Sent currentTabInfo via port.')
+            } catch (error) {
               console.error(
-                '[background.js] Error sending currentTabInfo message via sendMessage:',
+                '[background.js] Error sending currentTabInfo via port:',
                 error
               )
+              // Fallback to sendMessage if port fails (though less ideal for connect-based messages)
+              browser.runtime.sendMessage(currentTabInfo).catch((err) => {
+                console.warn(
+                  '[background.js] Fallback sendMessage failed:',
+                  err
+                )
+              })
             }
-          })
+          } else {
+            // If sidePanelPort is not available, send via runtime.sendMessage as a fallback
+            // This might happen if the side panel connects and immediately requests info before onConnect fully processes
+            browser.runtime.sendMessage(currentTabInfo).catch((error) => {
+              if (
+                error.message.includes('Could not establish connection') ||
+                error.message.includes('Receiving end does not exist')
+              ) {
+                console.warn(
+                  '[background.js] Side panel not open or no listener for currentTabInfo message.'
+                )
+              } else {
+                console.error(
+                  '[background.js] Error sending currentTabInfo message via sendMessage:',
+                  error
+                )
+              }
+            })
+          }
+        })()
+        return true
+      } else if (message.action === 'REQUEST_SUMMARY') {
+        console.log(
+          '[background.js] Received REQUEST_SUMMARY message:',
+          message
+        )
+
+        const { type, payload, requestId } = message
+        const currentUrl = payload.url || sender.tab?.url || ''
+
+        // Set loading state
+        if (type === 'selectedText') {
+          summaryState.isSelectedTextLoading.set(true)
+          summaryState.selectedTextError.set(null)
+        } else {
+          // Assuming pageSummary or other types
+          summaryState.isLoading.set(true)
+          summaryState.summaryError.set(null)
         }
-      })()
-      return true
+
+        try {
+          if (type === 'selectedText') {
+            const selectedText = payload.text
+            if (!selectedText) {
+              throw new Error('No text selected for summarization.')
+            }
+            await summarizeSelectedText(selectedText)
+            const summary = get(summaryState.selectedTextSummary)
+            sendResponse({
+              action: 'SUMMARY_RESPONSE',
+              summary: summary,
+              requestId: requestId,
+            })
+          } else if (type === 'pageSummary') {
+            // Delegate page summarization to side panel if open
+            if (sidePanelPort) {
+              sidePanelPort.postMessage({ action: 'summarizeCurrentPage' })
+              sendResponse({ action: 'SUMMARY_STARTED', requestId: requestId })
+            } else {
+              // Fallback if side panel not open, or handle directly in background
+              // For now, we'll just throw an error or handle a simpler page summary
+              // without streaming, if that's an option.
+              // This part needs more concrete implementation based on how page summaries are done without side panel.
+              console.warn(
+                'Side panel not open. Cannot delegate page summarization.'
+              )
+              throw new Error(
+                'Side panel not open. Please open the side panel to summarize the page.'
+              )
+            }
+          } else {
+            throw new Error(`Unknown summarization type: ${type}`)
+          }
+        } catch (error) {
+          console.error(
+            '[background.js] Error processing summary request:',
+            error
+          )
+          if (type === 'selectedText') {
+            summaryState.selectedTextError.set(error.message)
+          } else {
+            summaryState.summaryError.set(error.message)
+          }
+          sendResponse({
+            action: 'SUMMARY_ERROR',
+            error: error.message,
+            requestId: requestId,
+          })
+        } finally {
+          // Reset loading states
+          if (type === 'selectedText') {
+            summaryState.isSelectedTextLoading.set(false)
+          } else {
+            summaryState.isLoading.set(false)
+          }
+          // Log history for all types of summaries
+          logAllGeneratedSummariesToHistory()
+        }
+        return true // Important: Return true to indicate that sendResponse will be called asynchronously
+      }
     }
-  })
+  )
 
   // 6. Listen for connections from side panel
   browser.runtime.onConnect.addListener((port) => {

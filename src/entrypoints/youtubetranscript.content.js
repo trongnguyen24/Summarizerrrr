@@ -175,11 +175,17 @@ export default defineContentScript({
     const transcriptExtractor = new YouTubeTranscriptExtractor('vi')
 
     chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+      console.log(
+        'youtubetranscript.content.js received a message:',
+        request,
+        'from sender:',
+        sender
+      )
       const handleRequest = async () => {
         switch (request.action) {
           case 'fetchTranscript':
             console.log(
-              'Content script received fetchTranscript request',
+              'youtubetranscript.content.js: Content script received fetchTranscript request',
               request
             )
             try {

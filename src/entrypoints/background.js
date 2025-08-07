@@ -11,7 +11,6 @@ import {
   logAllGeneratedSummariesToHistory,
 } from '../stores/summaryStore.svelte.js'
 import { get } from 'svelte/store'
-import { getUrlSummaryType } from '../lib/utils/utils.js'
 
 export default defineBackground(() => {
   let sidePanelPort = null

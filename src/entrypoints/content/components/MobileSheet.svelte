@@ -1,16 +1,12 @@
 <script>
   // @ts-nocheck
-  import { createEventDispatcher, onMount, onDestroy } from 'svelte'
-  export let visible = false
-  export let summary = ''
-  export let status = 'idle'
-
-  const dispatch = createEventDispatcher()
+  import { onMount, onDestroy } from 'svelte'
+  let { visible, summary, status, onclose, children } = $props()
 
   let touchStartY = 0
   let touchMoveY = 0
-  let translateY = 0
-  let isDragging = false
+  let translateY = $state(0)
+  let isDragging = $state(false)
 
   onMount(() => {
     window.addEventListener('keydown', handleKeyDown)
@@ -40,18 +36,18 @@
     document.body.style.overflow = '' // Restore body scroll
     if (translateY > 100) {
       // If dragged more than 100px, close the sheet
-      dispatch('close')
+      onclose?.()
     }
     translateY = 0 // Reset position
   }
 
   function closeSheet() {
-    dispatch('close')
+    onclose?.()
   }
 
   function handleKeyDown(event) {
     if (visible && event.key === 'Escape') {
-      dispatch('close')
+      onclose?.()
     }
   }
 </script>
@@ -71,7 +67,9 @@
   >
     <div class="sheet-header">
       <div class="handle"></div>
-      <slot name="action-button"></slot>
+      {#if children?.actionButton}
+        {@render children.actionButton()}
+      {/if}
     </div>
     <div class="sheet-content">
       {#if status === 'loading'}
@@ -83,7 +81,9 @@
       {:else}
         <p>No summary available.</p>
       {/if}
-      <slot name="settings-mini"></slot>
+      {#if children?.settingsMini}
+        {@render children.settingsMini()}
+      {/if}
     </div>
   </div>
 {/if}

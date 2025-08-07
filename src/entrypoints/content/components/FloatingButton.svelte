@@ -1,11 +1,11 @@
 <script>
   // @ts-nocheck
-  import { createEventDispatcher } from 'svelte'
-
-  const dispatch = createEventDispatcher()
+  let { toggle } = $props()
 
   function handleClick() {
-    dispatch('toggle')
+    if (toggle) {
+      toggle()
+    }
   }
 </script>
 
@@ -13,22 +13,13 @@
 <button onclick={handleClick} class="floating-button" title="Toggle Summarizer">
   <svg
     xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    stroke-width="2"
-    stroke-linecap="round"
-    stroke-linejoin="round"
+    width="16"
+    height="16"
+    viewBox="0 0 16 16"
   >
-    <path d="M12 3c-1.1 0-2 .9-2 2v2h4V5c0-1.1-.9-2-2-2z" />
     <path
-      d="M5 10v1c0 3.9 3.1 7 7 7s7-3.1 7-7v-1h-2v1c0 2.8-2.2 5-5 5s-5-2.2-5-5v-1H5z"
-    />
-    <path d="M10 18v2h4v-2h-4z" />
-    <path
-      d="M5 10V7c0-1.7 1.3-3 3-3h8c1.7 0 3 1.3 3 3v3h-2V7c0-.6-.4-1-1-1H9c-.6 0-1 .4-1 1v3H5z"
+      fill="currentColor"
+      d="M7.53 1.282a.5.5 0 0 1 .94 0l.478 1.306a7.5 7.5 0 0 0 4.464 4.464l1.305.478a.5.5 0 0 1 0 .94l-1.305.478a7.5 7.5 0 0 0-4.464 4.464l-.478 1.305a.5.5 0 0 1-.94 0l-.478-1.305a7.5 7.5 0 0 0-4.464-4.464L1.282 8.47a.5.5 0 0 1 0-.94l1.306-.478a7.5 7.5 0 0 0 4.464-4.464Z"
     />
   </svg>
 </button>
@@ -38,8 +29,8 @@
     position: fixed;
     bottom: 2rem;
     right: 2rem;
-    width: 56px;
-    height: 56px;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
     background-color: #1a73e8;
     color: white;

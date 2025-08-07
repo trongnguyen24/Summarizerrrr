@@ -8,6 +8,7 @@ declare module "wxt/browser" {
     | "/Sumarizzerrrr.png"
     | "/archive.html"
     | "/background.js"
+    | "/content-scripts/content.js"
     | "/content-scripts/coursera.js"
     | "/content-scripts/udemy.js"
     | "/content-scripts/youtubetranscript.js"

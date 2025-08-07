@@ -1,14 +1,14 @@
 <script>
   // @ts-nocheck
   import { onMount } from 'svelte'
-  import { summaryStore } from '../../stores/summaryStore.svelte.js'
+  import { summaryState } from '../../stores/summaryStore.svelte.js'
   import FloatingButton from './components/FloatingButton.svelte'
   import FloatingPanel from './components/FloatingPanel.svelte'
   import MobileSheet from './components/MobileSheet.svelte'
   import SettingsMini from './components/SettingsMini.svelte' // Import SettingsMini
 
-  let isPanelVisible = false
-  let isMobile = false
+  let isPanelVisible = $state(false) // Add $state
+  let isMobile = $state(false) // Add $state
 
   onMount(() => {
     const checkMobile = () => {
@@ -42,31 +42,44 @@
 </script>
 
 <div class="floating-ui-root">
-  <FloatingButton on:toggle={togglePanel} />
+  <FloatingButton toggle={togglePanel} />
 
   {#if isMobile}
     <MobileSheet
       visible={isPanelVisible}
-      on:close={() => (isPanelVisible = false)}
-      summary={$summaryStore.summary}
-      status={$summaryStore.status}
+      onclose={() => (isPanelVisible = false)}
+      summary={summaryState.summary}
+      status={summaryState.isLoading
+        ? 'loading'
+        : summaryState.summaryError
+          ? 'error'
+          : 'idle'}
     >
-      <button slot="action-button" on:click={requestSummary}
-        >Summarize Mobile</button
-      >
-      <SettingsMini slot="settings-mini" />
+      {#snippet actionButton()}
+        <button onclick={requestSummary}>Summarize Mobile</button>
+      {/snippet}
+      {#snippet settingsMini()}
+        <SettingsMini />
+      {/snippet}
     </MobileSheet>
   {:else}
     <FloatingPanel
       visible={isPanelVisible}
-      on:close={() => (isPanelVisible = false)}
-      summary={$summaryStore.summary}
-      status={$summaryStore.status}
+      onclose={() => (isPanelVisible = false)}
+      summary={summaryState.summary}
+      status={summaryState.isLoading
+        ? 'loading'
+        : summaryState.summaryError
+          ? 'error'
+          : 'idle'}
     >
-      <button slot="action-button" on:click={requestSummary}
-        >Summarize Desktop</button
-      >
-      <SettingsMini slot="settings-mini" />
+      {#snippet actionButton()}
+        <!-- FloatingPanel now has its own summarizePageContent function -->
+        <button onclick={requestSummary}>Summarize (Global)</button>
+      {/snippet}
+      {#snippet settingsMini()}
+        <SettingsMini />
+      {/snippet}
     </FloatingPanel>
   {/if}
 </div>

@@ -10,7 +10,12 @@
         "ide-assistant"
       ],
       "alwaysAllow": [
-        "list_dir"
+        "list_dir",
+        "check_onboarding_performed",
+        "activate_project",
+        "get_symbols_overview",
+        "read_memory",
+        "write_memory"
       ]
     },
     "context7": {

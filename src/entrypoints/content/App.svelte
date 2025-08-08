@@ -42,7 +42,7 @@
   }
 </script>
 
-<div class="floating-ui-root">
+<div class="floating-ui-root absolute top-0 left-0">
   <FloatingButton toggle={togglePanel} />
 
   {#if isMobile}

@@ -110,8 +110,8 @@
     justify-content: center;
     z-index: 10000;
     /* Start position */
-    top: calc(100vh - 80px);
-    left: calc(100vw - 80px);
+    top: 500px;
+    left: 0;
   }
 
   .floating-button:hover {

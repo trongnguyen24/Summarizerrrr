@@ -1,8 +1,42 @@
 <script>
   // @ts-nocheck
-  let { toggle } = $props()
+  import { onMount, onDestroy } from 'svelte'
+  import { useFloatingButtonDraggable } from '../composables/useFloatingButtonDraggable.svelte.js'
 
-  function handleClick() {
+  let { toggle } = $props()
+  let buttonElement
+  let buttonDraggable = $state()
+
+  onMount(() => {
+    if (buttonElement) {
+      buttonDraggable = useFloatingButtonDraggable(buttonElement)
+      buttonDraggable.initializeDraggable()
+      buttonDraggable.loadPosition()
+
+      // Add entrance animation after a short delay
+      setTimeout(() => {
+        buttonDraggable.animateEntrance()
+      }, 100)
+
+      // Handle window resize
+      window.addEventListener('resize', buttonDraggable.handleResize)
+    }
+  })
+
+  onDestroy(() => {
+    if (buttonDraggable) {
+      window.removeEventListener('resize', buttonDraggable.handleResize)
+      buttonDraggable.destroy()
+    }
+  })
+
+  function handleClick(event) {
+    // Prevent click when dragging
+    if (buttonDraggable?.isDragging()) {
+      event.preventDefault()
+      return
+    }
+
     if (toggle) {
       toggle()
     }
@@ -10,7 +44,12 @@
 </script>
 
 <!-- svelte-ignore a11y_consider_explicit_label -->
-<button onclick={handleClick} class="floating-button" title="Toggle Summarizer">
+<button
+  bind:this={buttonElement}
+  onclick={handleClick}
+  class="floating-button"
+  title="Toggle Summarizer"
+>
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width="16"
@@ -26,9 +65,7 @@
 
 <style>
   .floating-button {
-    position: fixed;
-    bottom: 2rem;
-    right: 2rem;
+    position: absolute;
     width: 36px;
     height: 36px;
     border-radius: 50%;
@@ -44,10 +81,17 @@
     transition:
       transform 0.2s ease-in-out,
       box-shadow 0.2s ease-in-out;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: none;
   }
 
   .floating-button:hover {
     transform: scale(1.05);
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+  }
+
+  .floating-button:active {
+    transform: scale(0.95);
   }
 </style>

@@ -1,31 +1,33 @@
 // @ts-nocheck
 /**
- * Service quản lý localStorage cho FloatingPanel
+ * Service to manage extension storage for the FloatingPanel.
+ * Uses `browser.storage.local` for cross-tab synchronization.
  */
 export class FloatingPanelStorageService {
-  static STORAGE_KEY = 'floatingPanelPosition'
+  static POSITION_KEY = 'floatingPanelPosition'
 
   /**
-   * Lưu vị trí panel
+   * Saves the panel's position.
    * @param {number} x
    * @param {number} y
+   * @returns {Promise<void>}
    */
-  static savePosition(x, y) {
+  static async savePosition(x, y) {
     const position = { x, y }
-    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(position))
+    await browser.storage.local.set({ [this.POSITION_KEY]: position })
   }
 
   /**
-   * Lấy vị trí đã lưu
-   * @returns {{x: number, y: number} | null}
+   * Retrieves the saved position.
+   * @returns {Promise<{x: number, y: number} | null>}
    */
-  static getPosition() {
+  static async getPosition() {
     try {
-      const saved = localStorage.getItem(this.STORAGE_KEY)
-      return saved ? JSON.parse(saved) : null
+      const data = await browser.storage.local.get(this.POSITION_KEY)
+      return data[this.POSITION_KEY] || null
     } catch (error) {
       console.warn(
-        '[FloatingPanelStorageService] Failed to parse position:',
+        '[FloatingPanelStorageService] Failed to get position:',
         error
       )
       return null
@@ -33,9 +35,17 @@ export class FloatingPanelStorageService {
   }
 
   /**
-   * Xóa vị trí đã lưu
+   * Clears the saved position.
+   * @returns {Promise<void>}
    */
-  static clearPosition() {
-    localStorage.removeItem(this.STORAGE_KEY)
+  static async clearPosition() {
+    try {
+      await browser.storage.local.remove(this.POSITION_KEY)
+    } catch (error) {
+      console.warn(
+        '[FloatingPanelStorageService] Failed to clear position:',
+        error
+      )
+    }
   }
 }

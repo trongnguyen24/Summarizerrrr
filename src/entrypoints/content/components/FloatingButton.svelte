@@ -1,52 +1,83 @@
 <script>
   // @ts-nocheck
-  import { onMount, onDestroy } from 'svelte'
   import { useFloatingButtonDraggable } from '../composables/useFloatingButtonDraggable.svelte.js'
 
   let { toggle } = $props()
   let buttonElement
-  let buttonDraggable = $state()
 
-  onMount(() => {
+  let startX, startY, isDragging
+
+  const DRAG_THRESHOLD = 10 // pixels
+
+  $effect(() => {
     if (buttonElement) {
-      buttonDraggable = useFloatingButtonDraggable(buttonElement)
-      buttonDraggable.initializeDraggable()
-      buttonDraggable.loadPosition()
+      const { initializeDraggable, destroy } =
+        useFloatingButtonDraggable(buttonElement)
+      initializeDraggable()
 
-      // Add entrance animation after a short delay
-      setTimeout(() => {
-        buttonDraggable.animateEntrance()
-      }, 100)
+      function handleStart(e) {
+        // e.preventDefault() // Let's not prevent default on start, might interfere with other things
+        isDragging = false
+        const touch = e.type === 'touchstart' ? e.touches[0] : e
+        startX = touch.clientX
+        startY = touch.clientY
+        window.addEventListener('mousemove', handleMove, { passive: false })
+        window.addEventListener('touchmove', handleMove, { passive: false })
+        window.addEventListener('mouseup', handleEnd)
+        window.addEventListener('touchend', handleEnd)
+      }
 
-      // Handle window resize
-      window.addEventListener('resize', buttonDraggable.handleResize)
+      function handleMove(e) {
+        // e.preventDefault() // Prevent scroll while dragging
+        const touch = e.type === 'touchmove' ? e.touches[0] : e
+        const deltaX = Math.abs(touch.clientX - startX)
+        const deltaY = Math.abs(touch.clientY - startY)
+        if (deltaX > DRAG_THRESHOLD || deltaY > DRAG_THRESHOLD) {
+          isDragging = true
+        }
+      }
+
+      function handleEnd(e) {
+        // This is the key fix: prevent the browser from firing a "ghost" click event
+        // after a touchend event.
+        if (e.type === 'touchend') {
+          e.preventDefault()
+        }
+
+        if (!isDragging) {
+          toggle?.()
+        }
+
+        // Cleanup listeners
+        window.removeEventListener('mousemove', handleMove)
+        window.removeEventListener('touchmove', handleMove)
+        window.removeEventListener('mouseup', handleEnd)
+        window.removeEventListener('touchend', handleEnd)
+      }
+
+      buttonElement.addEventListener('mousedown', handleStart)
+      buttonElement.addEventListener('touchstart', handleStart, {
+        passive: true,
+      })
+
+      return () => {
+        destroy()
+        buttonElement.removeEventListener('mousedown', handleStart)
+        buttonElement.removeEventListener('touchstart', handleStart)
+        window.removeEventListener('mousemove', handleMove)
+        window.removeEventListener('touchmove', handleMove)
+        window.removeEventListener('mouseup', handleEnd)
+        window.removeEventListener('touchend', handleEnd)
+      }
     }
   })
-
-  onDestroy(() => {
-    if (buttonDraggable) {
-      window.removeEventListener('resize', buttonDraggable.handleResize)
-      buttonDraggable.destroy()
-    }
-  })
-
-  function handleClick(event) {
-    // Prevent click when dragging
-    if (buttonDraggable?.isDragging()) {
-      event.preventDefault()
-      return
-    }
-
-    if (toggle) {
-      toggle()
-    }
-  }
 </script>
+
+<div class="snapedge"></div>
 
 <!-- svelte-ignore a11y_consider_explicit_label -->
 <button
   bind:this={buttonElement}
-  onclick={handleClick}
   class="floating-button"
   title="Toggle Summarizer"
 >
@@ -65,7 +96,7 @@
 
 <style>
   .floating-button {
-    position: absolute;
+    position: fixed;
     width: 36px;
     height: 36px;
     border-radius: 50%;
@@ -73,17 +104,14 @@
     color: white;
     border: none;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    cursor: pointer;
+    cursor: pointer !important;
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 10000;
-    transition:
-      transform 0.2s ease-in-out,
-      box-shadow 0.2s ease-in-out;
-    user-select: none;
-    -webkit-user-select: none;
-    touch-action: none;
+    /* Start position */
+    top: calc(100vh - 80px);
+    left: calc(100vw - 80px);
   }
 
   .floating-button:hover {
@@ -93,5 +121,14 @@
 
   .floating-button:active {
     transform: scale(0.95);
+  }
+  .snapedge {
+    position: fixed;
+    right: 0;
+    bottom: 2rem;
+    top: 6rem;
+    width: 36px;
+    overflow: hidden;
+    pointer-events: none;
   }
 </style>

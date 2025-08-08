@@ -1,19 +1,20 @@
 // @ts-nocheck
-import { FloatingPanelStorageService } from '../services/FloatingPanelStorageService.js'
+import { FloatingPanelStorageService } from '../services/FloatingPanelStorageService'
 
 /**
- * Composable xử lý drag & drop functionality cho FloatingPanel
- * @param {Object} panelElement - Svelte binding element
+ * Composable for making a panel draggable.
+ * @param {HTMLElement} panelElement - The panel element to make draggable.
+ * @returns {object} - The composable object with methods.
  */
 export function useDraggable(panelElement) {
-  let isDragging = $state(false)
-  let startX, startY, initialX, initialY
+  let isDragging = false
+  let offsetX, offsetY
 
   /**
-   * Load position từ localStorage
+   * Loads the panel's position from storage and applies it.
    */
-  function loadPosition() {
-    const savedPosition = FloatingPanelStorageService.getPosition()
+  async function loadPosition() {
+    const savedPosition = await FloatingPanelStorageService.getPosition()
     if (savedPosition && panelElement) {
       panelElement.style.left = `${savedPosition.x}px`
       panelElement.style.top = `${savedPosition.y}px`
@@ -21,43 +22,45 @@ export function useDraggable(panelElement) {
   }
 
   /**
-   * Save position vào localStorage
+   * Saves the panel's current position to storage.
    */
-  function savePosition() {
+  async function savePosition() {
     if (panelElement) {
-      FloatingPanelStorageService.savePosition(
+      await FloatingPanelStorageService.savePosition(
         panelElement.offsetLeft,
         panelElement.offsetTop
       )
     }
   }
 
-  /**
-   * Handle mouse down event
-   */
   function handleMouseDown(event) {
+    if (
+      event.target.closest('button, a, input, select, textarea, [data-nodrag]')
+    ) {
+      return // Don't drag if a button or interactive element was clicked
+    }
+
     isDragging = true
-    startX = event.clientX
-    startY = event.clientY
-    initialX = panelElement.offsetLeft
-    initialY = panelElement.offsetTop
+    offsetX = event.clientX - panelElement.offsetLeft
+    offsetY = event.clientY - panelElement.offsetTop
     panelElement.style.transition = 'none' // Disable transition during drag
   }
 
-  /**
-   * Handle mouse move event
-   */
   function handleMouseMove(event) {
     if (!isDragging) return
-    const dx = event.clientX - startX
-    const dy = event.clientY - startY
-    panelElement.style.left = `${initialX + dx}px`
-    panelElement.style.top = `${initialY + dy}px`
+    let newX = event.clientX - offsetX
+    let newY = event.clientY - offsetY
+
+    // Clamp position to be within the viewport
+    const maxX = window.innerWidth - panelElement.offsetWidth
+    const maxY = window.innerHeight - panelElement.offsetHeight
+    newX = Math.max(0, Math.min(newX, maxX))
+    newY = Math.max(0, Math.min(newY, maxY))
+
+    panelElement.style.left = `${newX}px`
+    panelElement.style.top = `${newY}px`
   }
 
-  /**
-   * Handle mouse up event
-   */
   function handleMouseUp() {
     isDragging = false
     panelElement.style.transition = '' // Re-enable transition
@@ -65,7 +68,6 @@ export function useDraggable(panelElement) {
   }
 
   return {
-    isDragging: () => isDragging,
     loadPosition,
     savePosition,
     handleMouseDown,

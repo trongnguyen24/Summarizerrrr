@@ -1,6 +1,7 @@
 <script>
   // @ts-nocheck
   import { onMount } from 'svelte'
+  import './styles/floating-ui.css'
   import { summaryState } from '../../stores/summaryStore.svelte.js'
   import FloatingButton from './components/FloatingButton.svelte'
   import FloatingPanel from './components/FloatingPanel.svelte'

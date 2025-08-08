@@ -1,18 +1,5 @@
 @import '../../../styles/base.css';
 
-:host {
-  font-size: 16px; /* Reset về giá trị mặc định */
-}
-
-/* Hoặc nếu bạn muốn đảm bảo không bị ảnh hưởng */
-* {
-  font-size: initial;
-}
-
-/* Font Classes in base */
-.prose {
-  font-size: 16px !important;
-}
 .floating-panel {
   position: fixed;
   /* Default position if not saved */

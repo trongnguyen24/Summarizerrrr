@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { createDraggable } from 'animejs'
+import { createDraggable, utils } from 'animejs'
 
 /**
  * Composable to handle drag & drop functionality for the FloatingButton.
@@ -9,42 +9,44 @@ export function useFloatingButtonDraggable(buttonElement) {
   let draggableInstance = null
 
   /**
-   * Destroys and recreates the draggable instance to update its bounds.
-   * This is necessary when the window is resized.
+   * Gets the current window width for dynamic snap points.
+   * @returns {number} The current window width in pixels
    */
-  function update() {
-    if (draggableInstance) {
-      draggableInstance.destroy()
-    }
+  function getWindowWidth() {
+    return (
+      window.innerWidth ||
+      document.documentElement.clientWidth ||
+      document.body.clientWidth
+    )
+  }
+
+  /**
+   * Initializes draggable with onResize callback.
+   */
+  function initializeDraggable() {
+    if (!buttonElement) return
+
     const draggables = createDraggable(buttonElement, {
       container: '.snapedge',
+      x: { snap: [0, getWindowWidth()] },
       onGrab: () => {
         buttonElement.style.cursor = 'grabbing'
       },
       onRelease: () => {
         buttonElement.style.cursor = 'pointer'
       },
+      onResize: (self) => {},
     })
+
     if (draggables && draggables.length > 0) {
       draggableInstance = draggables[0]
     }
   }
 
   /**
-   * Initializes draggable and sets up listeners.
-   */
-  function initializeDraggable() {
-    if (!buttonElement) return
-
-    update()
-    window.addEventListener('resize', update)
-  }
-
-  /**
    * Cleanup function to prevent memory leaks.
    */
   function destroy() {
-    window.removeEventListener('resize', update)
     if (draggableInstance) {
       draggableInstance.destroy()
     }

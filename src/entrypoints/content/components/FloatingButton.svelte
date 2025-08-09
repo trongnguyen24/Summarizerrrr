@@ -73,8 +73,6 @@
   })
 </script>
 
-<div class="snapedge"></div>
-
 <!-- svelte-ignore a11y_consider_explicit_label -->
 <button
   bind:this={buttonElement}
@@ -94,6 +92,8 @@
   </svg>
 </button>
 
+<div class="snapedge"></div>
+
 <style>
   .floating-button {
     position: fixed;
@@ -108,7 +108,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 10000;
+    z-index: 1000000;
     /* Start position */
     top: 500px;
     left: 0;
@@ -127,8 +127,13 @@
     right: 0;
     bottom: 2rem;
     top: 6rem;
-    width: 36px;
+    left: 0;
     overflow: hidden;
     pointer-events: none;
+    z-index: 100000;
+  }
+
+  .floating-button:hover ~ .snapedge {
+    pointer-events: visible;
   }
 </style>

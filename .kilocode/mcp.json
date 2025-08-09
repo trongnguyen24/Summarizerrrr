@@ -15,7 +15,8 @@
         "activate_project",
         "get_symbols_overview",
         "read_memory",
-        "write_memory"
+        "write_memory",
+        "search_for_pattern"
       ]
     },
     "context7": {
@@ -26,7 +27,10 @@
       ],
       "env": {
         "DEFAULT_MINIMUM_TOKENS": ""
-      }
+      },
+      "alwaysAllow": [
+        "resolve-library-id"
+      ]
     }
   }
 }

@@ -1,6 +1,44 @@
 // @ts-nocheck
 import 'webextension-polyfill'
-import { injectScript, executeFunction } from '../services/browserService.js'
+import { browser } from 'wxt/browser'
+
+// These functions were previously imported from browserService.js.
+// WXT provides the global `browser` object directly, which is webextension-polyfill compatible.
+
+export async function injectScript(tabId, files) {
+  if (!browser.scripting) {
+    console.warn('Browser Scripting API not available.')
+    return false
+  }
+  try {
+    await browser.scripting.executeScript({
+      target: { tabId: tabId },
+      files: files,
+    })
+    return true
+  } catch (error) {
+    console.error(`Error injecting script into tab ${tabId}:`, error)
+    return false
+  }
+}
+
+export async function executeFunction(tabId, func, args = []) {
+  if (!browser.scripting) {
+    console.warn('Browser Scripting API not available.')
+    return null
+  }
+  try {
+    const results = await browser.scripting.executeScript({
+      target: { tabId: tabId },
+      func: func,
+      args: args,
+    })
+    return results?.[0]?.result ?? null
+  } catch (error) {
+    console.error(`Error executing function in tab ${tabId}:`, error)
+    return null
+  }
+}
 import {
   loadSettings,
   subscribeToSettingsChanges,

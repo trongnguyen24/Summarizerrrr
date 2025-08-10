@@ -1,9 +1,5 @@
 // @ts-nocheck
-import {
-  getActiveTabInfo,
-  sendMessageToTab,
-  executeFunction,
-} from './browserService.js'
+import { browser } from 'wxt/browser'
 import { ErrorHandler } from '../lib/error/errorHandler.js'
 import { ErrorTypes } from '../lib/error/errorTypes.js'
 
@@ -39,7 +35,10 @@ export async function getPageContent(
   preferredLang = 'en'
 ) {
   try {
-    const tab = await getActiveTabInfo()
+    const [tab] = await browser.tabs.query({
+      active: true,
+      currentWindow: true,
+    })
     if (!tab || !tab.id || !tab.url) {
       throw new Error('Could not get active tab information.')
     }
@@ -55,7 +54,12 @@ export async function getPageContent(
     )
 
     if (contentType === 'webpageText') {
-      const pageText = await executeFunction(tab.id, getWebpageText)
+      const pageText = await browser.scripting.executeScript({
+        target: { tabId: tab.id },
+        func: getWebpageText,
+      })
+      if (pageText && pageText[0] && pageText[0].result)
+        return { type: actualPageType, content: pageText[0].result }
       if (pageText) return { type: actualPageType, content: pageText }
       throw new Error(
         'Failed to retrieve sufficient text content from the webpage.'
@@ -70,7 +74,7 @@ export async function getPageContent(
         contentType === 'timestampedTranscript'
           ? 'fetchTranscriptWithTimestamp'
           : 'fetchTranscript'
-      const response = await sendMessageToTab(tab.id, {
+      const response = await browser.tabs.sendMessage(tab.id, {
         action,
         lang: preferredLang,
       })
@@ -84,11 +88,10 @@ export async function getPageContent(
     }
 
     if (isCourseVideo && contentType === 'transcript') {
-      const response = await sendMessageToTab(
-        tab.id,
-        { action: 'fetchCourseContent', lang: preferredLang },
-        15000
-      )
+      const response = await browser.tabs.sendMessage(tab.id, {
+        action: 'fetchCourseContent',
+        lang: preferredLang,
+      })
       if (response?.success && (response.content || response.transcript)) {
         return {
           type: 'course',

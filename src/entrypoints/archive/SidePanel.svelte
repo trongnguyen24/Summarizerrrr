@@ -159,7 +159,7 @@
             item.id
               ? 'text-text-primary bg-neutral-100 hover:bg-white/60 dark:hover:bg-white/10 dark:bg-surface-2 active '
               : 'hover:bg-surface-1 dark:hover:bg-surface-2'}"
-            onclick={() => selectSummary(item)}
+            onclick={() => selectSummary(item, activeTab)}
             title={item.title}
           >
             <div

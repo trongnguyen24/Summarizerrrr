@@ -5,7 +5,7 @@ const DB_NAME = 'summarizer_db'
 const STORE_NAME = 'summaries'
 const DB_VERSION = 3
 const HISTORY_STORE_NAME = 'history'
-const HISTORY_LIMIT = 50
+const HISTORY_LIMIT = 60
 
 let db
 
@@ -109,25 +109,26 @@ async function addHistory(historyData) {
 
     const request = objectStore.add(historyData)
 
-    request.onsuccess = async () => {
+    request.onsuccess = () => {
       // Check history limit and delete oldest if exceeded
       const countRequest = objectStore.count()
-      countRequest.onsuccess = async () => {
-        if (countRequest.result > HISTORY_LIMIT) {
-          const oldestRequest = objectStore.index('date').openCursor('next')
-          oldestRequest.onsuccess = (event) => {
+      countRequest.onsuccess = () => {
+        let count = countRequest.result
+        if (count > HISTORY_LIMIT) {
+          const overage = count - HISTORY_LIMIT
+          const cursorRequest = objectStore.index('date').openCursor() // Ascending order
+          let deletedCount = 0
+          cursorRequest.onsuccess = (event) => {
             const cursor = event.target.result
-            if (cursor) {
-              objectStore.delete(cursor.primaryKey)
+            if (cursor && deletedCount < overage) {
+              cursor.delete()
+              deletedCount++
+              cursor.continue()
             }
           }
         }
-        resolve(request.result)
       }
-      countRequest.onerror = (event) => {
-        console.error('Error counting history:', event.target.errorCode)
-        reject(event.target.errorCode)
-      }
+      resolve(request.result)
     }
 
     request.onerror = (event) => {

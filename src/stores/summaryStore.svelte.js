@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { marked } from 'marked'
 import { getPageContent } from '@/services/contentService.js'
-import { getActiveTabInfo } from '@/services/browserService.js'
+import { browser } from 'wxt/browser'
 import { settings, loadSettings } from './settingsStore.svelte.js'
 import {
   summarizeContent,
@@ -16,7 +16,7 @@ import {
   getSummaryById,
   getHistoryById,
 } from '@/lib/db/indexedDBService.js'
-import { setStorage } from '@/services/wxtStorageService.js'
+import { appStateStorage } from '@/services/wxtStorageService.js'
 import { generateUUID } from '@/lib/utils/utils.js'
 
 // --- State ---
@@ -177,7 +177,10 @@ export async function fetchAndSummarize() {
     summaryState.isCourseConceptsLoading = true
 
     console.log('[summaryStore] Checking tab type...')
-    const tabInfo = await getActiveTabInfo()
+    const [tabInfo] = await browser.tabs.query({
+      active: true,
+      currentWindow: true,
+    })
     if (!tabInfo || !tabInfo.url) {
       throw new Error('Could not get current tab information or URL.')
     }
@@ -343,7 +346,10 @@ export async function fetchAndSummarizeStream() {
 
   try {
     summaryState.isLoading = true
-    const tabInfo = await getActiveTabInfo()
+    const [tabInfo] = await browser.tabs.query({
+      active: true,
+      currentWindow: true,
+    })
     if (!tabInfo || !tabInfo.url) {
       throw new Error('Could not get current tab information or URL.')
     }
@@ -493,7 +499,10 @@ export async function summarizeSelectedText(text) {
   try {
     summaryState.isSelectedTextLoading = true
 
-    const tabInfo = await getActiveTabInfo()
+    const [tabInfo] = await browser.tabs.query({
+      active: true,
+      currentWindow: true,
+    })
     summaryState.pageTitle = tabInfo.title || 'Selected Text Summary'
     summaryState.pageUrl = tabInfo.url || 'Unknown URL'
 
@@ -586,7 +595,7 @@ export async function saveAllGeneratedSummariesToArchive() {
     )
     summaryState.isArchived = true
     // Notify other components that the data has been updated
-    await setStorage({ data_updated_at: new Date().getTime() })
+    await appStateStorage.setValue({ data_updated_at: new Date().getTime() })
   } catch (error) {
     console.error(
       'Lỗi khi lưu tất cả các bản tóm tắt đã tạo vào Archive:',
@@ -666,7 +675,7 @@ export async function logAllGeneratedSummariesToHistory() {
       })
     )
     // Notify other components that the data has been updated
-    await setStorage({ data_updated_at: new Date().getTime() })
+    await appStateStorage.setValue({ data_updated_at: new Date().getTime() })
   } catch (error) {
     console.error(
       'Lỗi khi ghi tất cả các bản tóm tắt đã tạo vào History:',

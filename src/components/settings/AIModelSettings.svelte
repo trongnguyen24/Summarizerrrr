@@ -20,25 +20,9 @@
     settings,
     updateSettings,
   } from '../../stores/settingsStore.svelte.js'
-  import {
-    advancedModeSettings,
-    updateAdvancedModeSettings,
-  } from '../../stores/advancedModeSettingsStore.svelte.js'
-  import {
-    basicModeSettings,
-    updateBasicModeSettings,
-  } from '../../stores/basicModeSettingsStore.svelte.js'
 
   function handleUpdateSetting(key, value) {
-    if (key === 'temperature' || key === 'topP') {
-      if (settings.isAdvancedMode) {
-        updateAdvancedModeSettings({ [key]: value })
-      } else {
-        updateBasicModeSettings({ [key]: value })
-      }
-    } else {
-      updateSettings({ [key]: value })
-    }
+    updateSettings({ [key]: value })
   }
   let textElement
   let textScramble
@@ -152,7 +136,7 @@
           <label class=" text-text-secondary flex justify-between items-center">
             <span>{$t('settings.ai_model.temperature')}</span>
             <span class="text-text-primary font-bold"
-              >{advancedModeSettings.temperature.toFixed(2)}</span
+              >{settings.temperature.toFixed(2)}</span
             >
           </label>
           <input
@@ -161,12 +145,9 @@
             min="0"
             max="1"
             step="0.05"
-            bind:value={advancedModeSettings.temperature}
+            bind:value={settings.temperature}
             onchange={() =>
-              handleUpdateSetting(
-                'temperature',
-                advancedModeSettings.temperature
-              )}
+              handleUpdateSetting('temperature', settings.temperature)}
             class="range range-primary"
           />
         </div>
@@ -178,7 +159,7 @@
           <label class=" text-text-secondary flex justify-between items-center">
             <span>{$t('settings.ai_model.top_p')}</span>
             <span class="text-text-primary font-bold"
-              >{advancedModeSettings.topP.toFixed(2)}</span
+              >{settings.topP.toFixed(2)}</span
             >
           </label>
           <input
@@ -187,9 +168,8 @@
             min="0"
             max="1"
             step="0.01"
-            bind:value={advancedModeSettings.topP}
-            onchange={() =>
-              handleUpdateSetting('topP', advancedModeSettings.topP)}
+            bind:value={settings.topP}
+            onchange={() => handleUpdateSetting('topP', settings.topP)}
             class="range range-primary"
           />
         </div>
@@ -206,15 +186,13 @@
           <label class=" text-text-secondary flex justify-between items-center">
             <span>{$t('settings.ai_model.temperature')}</span>
             <span class="text-text-primary block font-bold"
-              >{basicModeSettings.temperature.toFixed(2)}</span
+              >{settings.temperature.toFixed(2)}</span
             >
           </label>
           <div class="grid grid-cols-3 w-full gap-1">
             <ButtonSet
               title={$t('settings.ai_model.temperature_basic.precise')}
-              class="setting-btn {basicModeSettings.temperature === 0.3
-                ? 'active'
-                : ''}"
+              class="setting-btn {settings.temperature === 0.3 ? 'active' : ''}"
               onclick={() => handleUpdateSetting('temperature', 0.3)}
               Description={$t(
                 'settings.ai_model.temperature_basic.precise_desc'
@@ -222,9 +200,7 @@
             ></ButtonSet>
             <ButtonSet
               title={$t('settings.ai_model.temperature_basic.balanced')}
-              class="setting-btn {basicModeSettings.temperature === 0.7
-                ? 'active'
-                : ''}"
+              class="setting-btn {settings.temperature === 0.7 ? 'active' : ''}"
               onclick={() => handleUpdateSetting('temperature', 0.7)}
               Description={$t(
                 'settings.ai_model.temperature_basic.balanced_desc'
@@ -232,9 +208,7 @@
             ></ButtonSet>
             <ButtonSet
               title={$t('settings.ai_model.temperature_basic.creative')}
-              class="setting-btn {basicModeSettings.temperature === 0.9
-                ? 'active'
-                : ''}"
+              class="setting-btn {settings.temperature === 0.9 ? 'active' : ''}"
               onclick={() => handleUpdateSetting('temperature', 0.9)}
               Description={$t(
                 'settings.ai_model.temperature_basic.creative_desc'
@@ -249,31 +223,25 @@
           <label class=" text-text-secondary flex justify-between items-center">
             <span>{$t('settings.ai_model.top_p')}</span>
             <span class="text-text-primary block font-bold"
-              >{basicModeSettings.topP.toFixed(2)}</span
+              >{settings.topP.toFixed(2)}</span
             >
           </label>
           <div class="grid grid-cols-3 w-full gap-1">
             <ButtonSet
               title={$t('settings.ai_model.top_p_basic.narrow')}
-              class="setting-btn {basicModeSettings.topP === 0.9
-                ? 'active'
-                : ''}"
+              class="setting-btn {settings.topP === 0.9 ? 'active' : ''}"
               onclick={() => handleUpdateSetting('topP', 0.9)}
               Description={$t('settings.ai_model.top_p_basic.narrow_desc')}
             ></ButtonSet>
             <ButtonSet
               title={$t('settings.ai_model.top_p_basic.balanced')}
-              class="setting-btn {basicModeSettings.topP === 0.95
-                ? 'active'
-                : ''}"
+              class="setting-btn {settings.topP === 0.95 ? 'active' : ''}"
               onclick={() => handleUpdateSetting('topP', 0.95)}
               Description={$t('settings.ai_model.top_p_basic.balanced_desc')}
             ></ButtonSet>
             <ButtonSet
               title={$t('settings.ai_model.top_p_basic.wide')}
-              class="setting-btn {basicModeSettings.topP === 0.98
-                ? 'active'
-                : ''}"
+              class="setting-btn {settings.topP === 0.98 ? 'active' : ''}"
               onclick={() => handleUpdateSetting('topP', 0.98)}
               Description={$t('settings.ai_model.top_p_basic.wide_desc')}
             ></ButtonSet>

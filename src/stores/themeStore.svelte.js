@@ -1,10 +1,5 @@
 // @ts-nocheck
-import {
-  getStorage,
-  setStorage,
-  onStorageChange,
-  themeStorage,
-} from '../services/wxtStorageService.js'
+import { themeStorage } from '../services/wxtStorageService.js'
 
 // --- Default Theme Settings ---
 const DEFAULT_THEME_SETTINGS = {
@@ -13,150 +8,105 @@ const DEFAULT_THEME_SETTINGS = {
 
 // --- State ---
 export let themeSettings = $state({ ...DEFAULT_THEME_SETTINGS })
-let _isThemeInitializedPromise = null // Use a Promise to track initialization
-
-// Initialize storage with default values if it's empty
-;(async () => {
-  const currentSettings = await themeStorage.getValue()
-  if (!currentSettings || Object.keys(currentSettings).length === 0) {
-    await themeStorage.setValue(DEFAULT_THEME_SETTINGS)
-  }
-})()
-
-// Hàm áp dụng theme vào document.documentElement
-export function applyThemeToDocument(themeValue) {
-  if (themeValue === 'system') {
-    localStorage.removeItem('theme')
-    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      document.documentElement.classList.add('dark')
-      document.documentElement.style.colorScheme = 'dark'
-    } else {
-      document.documentElement.classList.remove('dark')
-      document.documentElement.style.colorScheme = 'light'
-    }
-  } else {
-    localStorage.setItem('theme', themeValue)
-    if (themeValue === 'dark') {
-      document.documentElement.classList.add('dark')
-      document.documentElement.style.colorScheme = 'dark'
-    } else {
-      document.documentElement.classList.remove('dark')
-      document.documentElement.style.colorScheme = 'light'
-    }
-  }
-}
+let _isThemeInitializedPromise = null
 
 // --- Actions ---
 
 /**
- * Loads theme settings from chrome.storage.sync when the store is initialized.
- * Ensures settings are loaded only once.
+ * Loads theme settings from storage.
  */
 export async function loadThemeSettings() {
   if (_isThemeInitializedPromise) {
-    return _isThemeInitializedPromise // Return existing promise if already loading/loaded
+    return _isThemeInitializedPromise
   }
-
   _isThemeInitializedPromise = (async () => {
     try {
-      const storedThemeSettings = await getStorage(
-        Object.keys(DEFAULT_THEME_SETTINGS)
-      )
-      const mergedThemeSettings = { ...DEFAULT_THEME_SETTINGS }
-      for (const key in DEFAULT_THEME_SETTINGS) {
-        if (
-          storedThemeSettings[key] !== undefined &&
-          storedThemeSettings[key] !== null
-        ) {
-          mergedThemeSettings[key] = storedThemeSettings[key]
-        }
+      const storedSettings = await themeStorage.getValue()
+      if (storedSettings && Object.keys(storedSettings).length > 0) {
+        const mergedSettings = { ...DEFAULT_THEME_SETTINGS, ...storedSettings }
+        Object.assign(themeSettings, mergedSettings)
+      } else {
+        await themeStorage.setValue(DEFAULT_THEME_SETTINGS)
+        Object.assign(themeSettings, DEFAULT_THEME_SETTINGS)
       }
-      Object.assign(themeSettings, mergedThemeSettings)
     } catch (error) {
       console.error('[themeStore] Error loading theme settings:', error)
-      Object.assign(themeSettings, DEFAULT_THEME_SETTINGS) // Fallback to defaults on error
+      Object.assign(themeSettings, DEFAULT_THEME_SETTINGS)
     }
   })()
-
   return _isThemeInitializedPromise
 }
 
 /**
- * Updates one or more theme settings and saves them to chrome.storage.sync.
- * Ensures the store is initialized before updating.
- * @param {Partial<typeof DEFAULT_THEME_SETTINGS>} newThemeSettings Object containing settings to update.
+ * Updates theme settings and saves to storage.
+ * @param {Partial<typeof DEFAULT_THEME_SETTINGS>} newThemeSettings
  */
 export async function updateThemeSettings(newThemeSettings) {
   if (!_isThemeInitializedPromise) {
-    console.warn(
-      '[themeStore] Store not initialized, cannot update theme settings. Call loadThemeSettings() first.'
-    )
-    return
+    await loadThemeSettings()
   }
-  await _isThemeInitializedPromise // Wait for initialization to complete
+  await _isThemeInitializedPromise
 
-  const validUpdates = {}
-  for (const key in newThemeSettings) {
-    if (key in DEFAULT_THEME_SETTINGS) {
-      validUpdates[key] = newThemeSettings[key]
-    }
-  }
-
-  if (Object.keys(validUpdates).length === 0) {
-    console.warn('[themeStore] No valid theme settings to update.')
-    return
-  }
-
-  Object.assign(themeSettings, validUpdates)
+  const updatedSettings = { ...themeSettings, ...newThemeSettings }
+  Object.assign(themeSettings, updatedSettings)
 
   try {
-    await setStorage(validUpdates)
+    await themeStorage.setValue(updatedSettings)
   } catch (error) {
     console.error('[themeStore] Error saving theme settings:', error)
   }
 }
 
-// --- Initialization and Listeners ---
-
 /**
- * Subscribes to changes in chrome.storage.sync and updates the store's state.
- * Ensures the store is initialized before processing changes.
+ * Subscribes to changes in theme storage.
  */
 export function subscribeToThemeChanges() {
-  onStorageChange(async (changes, areaName) => {
-    if (areaName === 'sync') {
-      if (!_isThemeInitializedPromise) {
-        console.warn(
-          '[themeStore] Store not initialized, skipping storage change processing.'
-        )
-        return
-      }
-      await _isThemeInitializedPromise // Wait for initialization to complete
-
-      let changed = false
-      const updatedThemeSettings = {}
-      for (const key in changes) {
-        if (
-          key in DEFAULT_THEME_SETTINGS &&
-          changes[key].newValue !== themeSettings[key]
-        ) {
-          updatedThemeSettings[key] =
-            changes[key].newValue ?? DEFAULT_THEME_SETTINGS[key]
-          changed = true
-        }
-      }
-      if (changed) {
-        Object.assign(themeSettings, updatedThemeSettings)
-        // If the theme was changed, apply it to the document
-        if (updatedThemeSettings.theme) {
-          applyThemeToDocument(updatedThemeSettings.theme)
-        }
-      }
+  return themeStorage.watch((newValue) => {
+    if (JSON.stringify(newValue) !== JSON.stringify(themeSettings)) {
+      const mergedSettings = { ...DEFAULT_THEME_SETTINGS, ...newValue }
+      Object.assign(themeSettings, mergedSettings)
+      applyThemeToDocument(mergedSettings.theme)
     }
   })
 }
 
-// Hàm khởi tạo theme khi ứng dụng load
+// --- Helpers ---
+
+/**
+ * Applies the theme to the document.
+ * @param {'light' | 'dark' | 'system'} themeValue
+ */
+export function applyThemeToDocument(themeValue) {
+  if (typeof window === 'undefined') return
+
+  const apply = (theme) => {
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark')
+      document.documentElement.style.colorScheme = 'dark'
+    } else {
+      document.documentElement.classList.remove('dark')
+      document.documentElement.style.colorScheme = 'light'
+    }
+  }
+
+  if (themeValue === 'system') {
+    localStorage.removeItem('theme')
+    const systemTheme = window.matchMedia('(prefers-color-scheme: dark)')
+      .matches
+      ? 'dark'
+      : 'light'
+    apply(systemTheme)
+  } else {
+    localStorage.setItem('theme', themeValue)
+    apply(themeValue)
+  }
+}
+
+// --- Initialization ---
+
+/**
+ * Initializes the theme by loading settings and applying the theme.
+ */
 export function initializeTheme() {
   loadThemeSettings().then(() => {
     applyThemeToDocument(themeSettings.theme)
@@ -164,18 +114,25 @@ export function initializeTheme() {
   })
 }
 
-// Hàm để các component gọi khi muốn thay đổi theme
+/**
+ * Sets a new theme and updates storage.
+ * @param {'light' | 'dark' | 'system'} themeValue
+ */
 export function setTheme(themeValue) {
   updateThemeSettings({ theme: themeValue })
-  applyThemeToDocument(themeValue)
+  // The watcher will call applyThemeToDocument
 }
 
-// THÊM HÀM NÀY ĐỂ EXPORT LOGIC LẮNG NGHE THAY ĐỔI HỆ THỐNG
+/**
+ * Listens for system theme changes.
+ */
 export function subscribeToSystemThemeChanges() {
+  if (typeof window === 'undefined') return () => {}
+
   const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
   const listener = () => {
     if (themeSettings.theme === 'system') {
-      setTheme('system') // Sử dụng setTheme để cập nhật qua storage
+      applyThemeToDocument('system')
     }
   }
   mediaQuery.addEventListener('change', listener)

@@ -10,8 +10,6 @@
     loadSettings,
     updateSettings,
   } from '@/stores/settingsStore.svelte.js'
-  import { loadAdvancedModeSettings } from '@/stores/advancedModeSettingsStore.svelte.js'
-  import { loadBasicModeSettings } from '@/stores/basicModeSettingsStore.svelte.js'
   import AIModelSettings from '@/components/settings/AIModelSettings.svelte'
   import SummarySettings from '@/components/settings/SummarySettings.svelte'
   import GeneralSettings from '@/components/settings/GeneralSettings.svelte'
@@ -36,12 +34,9 @@
   // Use $effect to load settings from stores when the component mounts
   $effect(async () => {
     await loadSettings()
-    await loadAdvancedModeSettings()
-    await loadBasicModeSettings()
   })
 
   // Use $effect to save settings when they change
-  $effect(() => updateSettings(settings))
 
   // Effect to update transform class for activebar
   $effect(() => {

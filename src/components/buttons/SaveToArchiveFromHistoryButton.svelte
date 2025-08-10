@@ -5,7 +5,7 @@
   import { t } from 'svelte-i18n'
   import { slideScaleFade } from '@/lib/ui/slideScaleFade.js'
   import { moveHistoryItemToArchive } from '@/lib/db/indexedDBService.js'
-  import { setStorage } from '@/services/wxtStorageService.js'
+  import { appStateStorage } from '@/services/wxtStorageService.js'
 
   let { selectedSummary } = $props()
   let isItemArchived = $state(selectedSummary.isArchived || false)
@@ -21,7 +21,7 @@
       await moveHistoryItemToArchive(selectedSummary.id)
       isItemArchived = true // Cập nhật trạng thái cục bộ
       // Thông báo cho các component khác rằng dữ liệu đã được cập nhật
-      await setStorage({ data_updated_at: new Date().getTime() })
+      await appStateStorage.setValue({ data_updated_at: new Date().getTime() })
     } catch (error) {
       console.error('Error saving to archive from history:', error)
       // Có thể thêm thông báo lỗi cho người dùng ở đây

@@ -6,7 +6,6 @@ import {
 
 let archiveList = $state([])
 let historyList = $state([])
-let activeTab = $state('history')
 let selectedSummary = $state(null)
 let selectedSummaryId = $state(null)
 
@@ -35,9 +34,11 @@ async function loadData() {
     historyList = [...(await getAllHistory())]
 
     const { tab, summaryId } = getUrlParams()
-    await initializeFromUrl(tab, summaryId)
+    const result = await initializeFromUrl(tab, summaryId)
+    return result
   } catch (error) {
     console.error('Failed to initialize DB or load data:', error)
+    return { activeTab: 'history' }
   } finally {
     window.scrollTo({ top: scrollPosition, behavior: 'instant' })
   }
@@ -45,8 +46,6 @@ async function loadData() {
 
 async function initializeFromUrl(urlTab, urlSummaryId) {
   const targetTab = urlTab === 'archive' ? 'archive' : 'history'
-  activeTab = targetTab
-
   const currentList = targetTab === 'archive' ? archiveList : historyList
 
   if (urlSummaryId) {
@@ -54,7 +53,7 @@ async function initializeFromUrl(urlTab, urlSummaryId) {
     if (found) {
       selectedSummary = found
       selectedSummaryId = urlSummaryId
-      return
+      return { activeTab: targetTab }
     }
   }
 
@@ -67,9 +66,11 @@ async function initializeFromUrl(urlTab, urlSummaryId) {
     selectedSummaryId = null
     updateUrl(targetTab)
   }
+
+  return { activeTab: targetTab }
 }
 
-function validateSelectedItem() {
+function validateSelectedItem(activeTab) {
   if (!selectedSummaryId) return
 
   const currentList = activeTab === 'archive' ? archiveList : historyList
@@ -88,14 +89,13 @@ function validateSelectedItem() {
   }
 }
 
-function selectSummary(summary) {
+function selectSummary(summary, activeTab) {
   selectedSummary = summary
   selectedSummaryId = summary.id
   pushUrl(activeTab, summary.id)
 }
 
 function selectTab(tabName) {
-  activeTab = tabName
   selectedSummary = null
   selectedSummaryId = null
 
@@ -115,9 +115,6 @@ export const archiveStore = {
   },
   get historyList() {
     return historyList
-  },
-  get activeTab() {
-    return activeTab
   },
   get selectedSummary() {
     return selectedSummary

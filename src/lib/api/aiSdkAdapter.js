@@ -109,18 +109,10 @@ export function getAISDKModel(providerId, settings) {
  * @param {object} basicModeSettings - Basic mode settings
  * @returns {object} Generation configuration for AI SDK
  */
-export function mapGenerationConfig(
-  settings,
-  advancedModeSettings,
-  basicModeSettings
-) {
+export function mapGenerationConfig(settings) {
   return {
-    temperature: settings.isAdvancedMode
-      ? advancedModeSettings.temperature
-      : basicModeSettings.temperature,
-    topP: settings.isAdvancedMode
-      ? advancedModeSettings.topP
-      : basicModeSettings.topP,
+    temperature: settings.temperature,
+    topP: settings.topP,
     maxTokens: 4000, // Default max tokens
   }
 }
@@ -138,17 +130,11 @@ export function mapGenerationConfig(
 export async function generateContent(
   providerId,
   settings,
-  advancedModeSettings,
-  basicModeSettings,
   systemInstruction,
   userPrompt
 ) {
   const model = getAISDKModel(providerId, settings)
-  const generationConfig = mapGenerationConfig(
-    settings,
-    advancedModeSettings,
-    basicModeSettings
-  )
+  const generationConfig = mapGenerationConfig(settings)
 
   try {
     const { text } = await generateText({
@@ -179,18 +165,12 @@ export async function generateContent(
 export async function* generateContentStream(
   providerId,
   settings,
-  advancedModeSettings,
-  basicModeSettings,
   systemInstruction,
   userPrompt,
   streamOptions = {}
 ) {
   const model = getAISDKModel(providerId, settings)
-  const generationConfig = mapGenerationConfig(
-    settings,
-    advancedModeSettings,
-    basicModeSettings
-  )
+  const generationConfig = mapGenerationConfig(settings)
 
   // Default smoothing options
   const defaultSmoothingOptions = {
@@ -241,8 +221,6 @@ export async function* generateContentStream(
 export async function* generateContentStreamEnhanced(
   providerId,
   settings,
-  advancedModeSettings,
-  basicModeSettings,
   systemInstruction,
   userPrompt,
   streamOptions = {}
@@ -254,8 +232,6 @@ export async function* generateContentStreamEnhanced(
     const streamGenerator = generateContentStream(
       providerId,
       settings,
-      advancedModeSettings,
-      basicModeSettings,
       systemInstruction,
       userPrompt,
       streamOptions

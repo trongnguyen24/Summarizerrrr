@@ -4,7 +4,7 @@
   import Icon from '@iconify/svelte'
   import 'overlayscrollbars/overlayscrollbars.css'
   import { useOverlayScrollbars } from 'overlayscrollbars-svelte'
-  import { onStorageChange } from '@/services/wxtStorageService.js'
+  import { appStateStorage } from '@/services/wxtStorageService.js'
   import SidePanel from './SidePanel.svelte'
   import {
     settings,
@@ -28,6 +28,7 @@
 
   // State management
   let isSidePanelVisible = $state(true)
+  let activeTab = $state('history') // Local state for active tab
   let sidePanel
 
   // Overlay scrollbars configuration
@@ -56,15 +57,21 @@
   // Effects
   $effect(() => {
     initializeScrollbars(document.body)
-    archiveStore.loadData()
+    archiveStore.loadData().then((result) => {
+      if (result && result.activeTab) {
+        activeTab = result.activeTab // Set initial activeTab from URL
+      }
+    })
 
     // Listen for archive updates
-    onStorageChange((changes, areaName) => {
-      if (areaName === 'sync' && changes.data_updated_at) {
+    const unsubscribe = appStateStorage.watch((newValue, oldValue) => {
+      if (newValue && newValue.data_updated_at !== oldValue?.data_updated_at) {
         console.log('Data updated, reloading data...')
         archiveStore.loadData()
       }
     })
+    // Return unsubscribe function for cleanup
+    return unsubscribe
   })
 
   $effect(() => {
@@ -75,7 +82,7 @@
   })
 
   $effect(() => {
-    archiveStore.validateSelectedItem()
+    archiveStore.validateSelectedItem(activeTab)
   })
 
   loadSettings().then(() => {
@@ -115,14 +122,18 @@
 
     {#if isSidePanelVisible}
       <SidePanel
-        list={archiveStore.activeTab === 'archive'
+        list={activeTab === 'archive'
           ? archiveStore.archiveList
           : archiveStore.historyList}
         selectedSummary={archiveStore.selectedSummary}
-        selectSummary={archiveStore.selectSummary}
+        selectSummary={(summary) =>
+          archiveStore.selectSummary(summary, activeTab)}
         selectedSummaryId={archiveStore.selectedSummaryId}
-        activeTab={archiveStore.activeTab}
-        selectTab={archiveStore.selectTab}
+        {activeTab}
+        selectTab={(tabName) => {
+          activeTab = tabName
+          archiveStore.selectTab(tabName)
+        }}
         onRefresh={archiveStore.loadData}
       />
     {/if}
@@ -136,7 +147,7 @@
     <SummaryDisplay
       selectedSummary={archiveStore.selectedSummary}
       {formatDate}
-      activeTab={archiveStore.activeTab}
+      {activeTab}
       archiveList={archiveStore.archiveList}
     />
     <div

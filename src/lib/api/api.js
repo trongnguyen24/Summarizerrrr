@@ -1,13 +1,5 @@
 // @ts-nocheck
 import { settings, loadSettings } from '@/stores/settingsStore.svelte.js'
-import {
-  advancedModeSettings,
-  loadAdvancedModeSettings,
-} from '@/stores/advancedModeSettingsStore.svelte.js'
-import {
-  basicModeSettings,
-  loadBasicModeSettings,
-} from '@/stores/basicModeSettingsStore.svelte.js'
 import { promptBuilders } from '@/lib/prompting/promptBuilders.js'
 import { ErrorTypes } from '../error/errorTypes.js'
 import {
@@ -93,8 +85,6 @@ function validateApiKey(userSettings, selectedProviderId) {
 export async function summarizeContent(text, contentType) {
   // Ensure settings are initialized
   await loadSettings()
-  await loadAdvancedModeSettings()
-  await loadBasicModeSettings()
 
   const userSettings = settings
   // Determine the actual provider to use based on isAdvancedMode
@@ -127,8 +117,6 @@ export async function summarizeContent(text, contentType) {
     return await aiSdkGenerateContent(
       selectedProviderId,
       userSettings,
-      advancedModeSettings,
-      basicModeSettings,
       systemInstruction,
       userPrompt
     )
@@ -141,8 +129,6 @@ export async function summarizeContent(text, contentType) {
 export async function* summarizeContentStream(text, contentType) {
   // Ensure settings are initialized
   await loadSettings()
-  await loadAdvancedModeSettings()
-  await loadBasicModeSettings()
 
   const userSettings = settings
   // Determine the actual provider to use based on isAdvancedMode
@@ -175,8 +161,6 @@ export async function* summarizeContentStream(text, contentType) {
     const streamGenerator = aiSdkGenerateContentStream(
       selectedProviderId,
       userSettings,
-      advancedModeSettings,
-      basicModeSettings,
       systemInstruction,
       userPrompt,
       { useSmoothing: true }
@@ -199,8 +183,6 @@ export async function* summarizeContentStream(text, contentType) {
 export async function enhancePrompt(userPrompt) {
   // Ensure settings are initialized
   await loadSettings()
-  await loadAdvancedModeSettings()
-  await loadBasicModeSettings()
 
   const userSettings = settings
   // Determine the actual provider to use based on isAdvancedMode
@@ -228,8 +210,6 @@ export async function enhancePrompt(userPrompt) {
     return await aiSdkGenerateContent(
       selectedProviderId,
       userSettings,
-      advancedModeSettings,
-      basicModeSettings,
       systemInstruction,
       enhancedPrompt
     )
@@ -247,8 +227,6 @@ export async function enhancePrompt(userPrompt) {
 export async function summarizeChapters(timestampedTranscript) {
   // Ensure settings are initialized
   await loadSettings()
-  await loadAdvancedModeSettings()
-  await loadBasicModeSettings()
 
   const userSettings = settings
   // Determine the actual provider to use based on isAdvancedMode
@@ -278,8 +256,6 @@ export async function summarizeChapters(timestampedTranscript) {
     return await aiSdkGenerateContent(
       selectedProviderId,
       userSettings,
-      advancedModeSettings,
-      basicModeSettings,
       systemInstruction,
       userPrompt
     )
@@ -292,8 +268,6 @@ export async function summarizeChapters(timestampedTranscript) {
 export async function* summarizeChaptersStream(timestampedTranscript) {
   // Ensure settings are initialized
   await loadSettings()
-  await loadAdvancedModeSettings()
-  await loadBasicModeSettings()
 
   const userSettings = settings
   // Determine the actual provider to use based on isAdvancedMode
@@ -323,8 +297,6 @@ export async function* summarizeChaptersStream(timestampedTranscript) {
     const streamGenerator = aiSdkGenerateContentStream(
       selectedProviderId,
       userSettings,
-      advancedModeSettings,
-      basicModeSettings,
       systemInstruction,
       userPrompt,
       { useSmoothing: true }
@@ -349,8 +321,6 @@ export async function* summarizeChaptersStream(timestampedTranscript) {
 export async function* summarizeContentStreamEnhanced(text, contentType) {
   // Ensure settings are initialized
   await loadSettings()
-  await loadAdvancedModeSettings()
-  await loadBasicModeSettings()
 
   const userSettings = settings
   let selectedProviderId = userSettings.selectedProvider || 'gemini'
@@ -380,8 +350,6 @@ export async function* summarizeContentStreamEnhanced(text, contentType) {
     const streamGenerator = aiSdkGenerateContentStreamEnhanced(
       selectedProviderId,
       userSettings,
-      advancedModeSettings,
-      basicModeSettings,
       systemInstruction,
       userPrompt,
       { useSmoothing: true }

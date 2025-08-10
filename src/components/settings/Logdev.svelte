@@ -12,7 +12,7 @@
 </script>
 
 <details
-  class=" fixed text-text-secondary border border-border bg-surface-2/80 backdrop-blur-lg top-0 left-0 z-50"
+  class=" fixed z-[99999999] text-text-secondary border border-border bg-surface-2/80 backdrop-blur-lg top-0 left-0 z-50"
 >
   <summary class="p-1">Log</summary>
   <pre

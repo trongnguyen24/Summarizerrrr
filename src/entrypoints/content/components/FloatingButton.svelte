@@ -1,7 +1,13 @@
 <script>
   // @ts-nocheck
   import { useFloatingButtonDraggable } from '../composables/useFloatingButtonDraggable.svelte.js'
-
+  import Logdev from '@/components/settings/Logdev.svelte'
+  import {
+    settings,
+    loadSettings,
+    updateSettings,
+    subscribeToSettingsChanges,
+  } from '@/stores/settingsStore.svelte.js'
   let { toggle } = $props()
   let buttonElement
 
@@ -73,6 +79,7 @@
   })
 </script>
 
+<Logdev></Logdev>
 <!-- svelte-ignore a11y_consider_explicit_label -->
 <button
   bind:this={buttonElement}
@@ -108,6 +115,7 @@
     align-items: center;
     justify-content: center;
     z-index: 1000000;
+    top: 300px;
     left: 100%;
   }
 

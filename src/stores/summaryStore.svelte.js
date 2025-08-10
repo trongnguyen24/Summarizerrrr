@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { marked } from 'marked'
 import { getPageContent } from '@/services/contentService.js'
-import { getActiveTabInfo } from '@/services/chromeService.js'
+import { getActiveTabInfo } from '@/services/browserService.js'
 import { settings, loadSettings } from './settingsStore.svelte.js'
 import {
   summarizeContent,
@@ -16,7 +16,7 @@ import {
   getSummaryById,
   getHistoryById,
 } from '@/lib/db/indexedDBService.js'
-import { setStorage } from '@/services/chromeService.js'
+import { setStorage } from '@/services/wxtStorageService.js'
 import { generateUUID } from '@/lib/utils/utils.js'
 
 // --- State ---

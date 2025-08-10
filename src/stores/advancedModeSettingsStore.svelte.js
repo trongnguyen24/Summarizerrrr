@@ -3,7 +3,7 @@ import {
   getStorage,
   setStorage,
   onStorageChange,
-} from '../services/chromeService.js'
+} from '../services/wxtStorageService.js'
 
 // --- Default Settings for Advanced Mode ---
 const DEFAULT_ADVANCED_MODE_SETTINGS = {

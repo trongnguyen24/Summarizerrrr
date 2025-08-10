@@ -8,8 +8,21 @@
     updateSettings,
     subscribeToSettingsChanges,
   } from '@/stores/settingsStore.svelte.js'
+  import {
+    loadThemeSettings,
+    subscribeToThemeChanges,
+  } from '@/stores/themeStore.svelte.js'
+
   let { toggle } = $props()
   let buttonElement
+
+  // Initialize stores
+  $effect(() => {
+    loadSettings()
+    subscribeToSettingsChanges()
+    loadThemeSettings()
+    subscribeToThemeChanges()
+  })
 
   let startX, startY, isDragging
 
@@ -77,9 +90,27 @@
       }
     }
   })
+
+  let settingsLog = $state('')
+
+  $effect(() => {
+    // Đảm bảo cả settings và themeSettings.theme đều được truy cập để $effect phản ứng
+    settingsLog = JSON.stringify(settings, null, 2)
+    // Truy cập themeSettings.theme để $effect theo dõi sự thay đổi của nó
+  })
 </script>
 
-<Logdev></Logdev>
+<!-- <Logdev></Logdev> -->
+
+<details
+  class=" fixed z-[99999999] text-text-secondary border border-border bg-surface-2/80 backdrop-blur-lg top-0 left-0 z-50"
+>
+  <summary class="p-1">Log</summary>
+  <pre
+    class=" border-t w-2xl pt-4 border-border px-4 wrap-normal overflow-hidden">
+Settings: {settingsLog}
+  </pre>
+</details>
 <!-- svelte-ignore a11y_consider_explicit_label -->
 <button
   bind:this={buttonElement}

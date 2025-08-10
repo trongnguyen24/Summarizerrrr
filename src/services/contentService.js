@@ -3,7 +3,7 @@ import {
   getActiveTabInfo,
   sendMessageToTab,
   executeFunction,
-} from './chromeService.js'
+} from './browserService.js'
 import { ErrorHandler } from '../lib/error/errorHandler.js'
 import { ErrorTypes } from '../lib/error/errorTypes.js'
 

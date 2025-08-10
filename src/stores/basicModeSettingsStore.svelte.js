@@ -3,7 +3,7 @@ import {
   getStorage,
   setStorage,
   onStorageChange,
-} from '../services/chromeService.js'
+} from '../services/wxtStorageService.js'
 
 // --- Default Settings for Basic Mode ---
 const DEFAULT_BASIC_MODE_SETTINGS = {

@@ -4,7 +4,8 @@ import {
   getStorage,
   setStorage,
   onStorageChange,
-} from '@/services/chromeService.js'
+  settingsStorage,
+} from '@/services/wxtStorageService.js'
 
 // --- Default Settings ---
 const DEFAULT_SETTINGS = {
@@ -71,6 +72,14 @@ const DEFAULT_SETTINGS = {
 // --- State ---
 export let settings = $state({ ...DEFAULT_SETTINGS })
 let _isInitializedPromise = null // Use a Promise to track initialization
+
+// Initialize storage with default values if it's empty
+;(async () => {
+  const currentSettings = await settingsStorage.getValue()
+  if (!currentSettings || Object.keys(currentSettings).length === 0) {
+    await settingsStorage.setValue(DEFAULT_SETTINGS)
+  }
+})()
 
 // --- Actions ---
 

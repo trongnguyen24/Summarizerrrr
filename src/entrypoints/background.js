@@ -1,6 +1,6 @@
 // @ts-nocheck
 import 'webextension-polyfill'
-import { injectScript, executeFunction } from '../services/chromeService.js'
+import { injectScript, executeFunction } from '../services/browserService.js'
 import {
   loadSettings,
   subscribeToSettingsChanges,

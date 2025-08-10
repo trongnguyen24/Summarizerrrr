@@ -5,7 +5,7 @@
   import { t } from 'svelte-i18n'
   import { slideScaleFade } from '@/lib/ui/slideScaleFade.js'
   import { moveHistoryItemToArchive } from '@/lib/db/indexedDBService.js'
-  import { setStorage } from '@/services/chromeService'
+  import { setStorage } from '@/services/wxtStorageService.js'
 
   let { selectedSummary } = $props()
   let isItemArchived = $state(selectedSummary.isArchived || false)

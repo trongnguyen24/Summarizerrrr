@@ -3,7 +3,8 @@ import {
   getStorage,
   setStorage,
   onStorageChange,
-} from '../services/chromeService.js'
+  themeStorage,
+} from '../services/wxtStorageService.js'
 
 // --- Default Theme Settings ---
 const DEFAULT_THEME_SETTINGS = {
@@ -13,6 +14,14 @@ const DEFAULT_THEME_SETTINGS = {
 // --- State ---
 export let themeSettings = $state({ ...DEFAULT_THEME_SETTINGS })
 let _isThemeInitializedPromise = null // Use a Promise to track initialization
+
+// Initialize storage with default values if it's empty
+;(async () => {
+  const currentSettings = await themeStorage.getValue()
+  if (!currentSettings || Object.keys(currentSettings).length === 0) {
+    await themeStorage.setValue(DEFAULT_THEME_SETTINGS)
+  }
+})()
 
 // Hàm áp dụng theme vào document.documentElement
 export function applyThemeToDocument(themeValue) {

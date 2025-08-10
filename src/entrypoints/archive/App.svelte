@@ -4,7 +4,7 @@
   import Icon from '@iconify/svelte'
   import 'overlayscrollbars/overlayscrollbars.css'
   import { useOverlayScrollbars } from 'overlayscrollbars-svelte'
-  import { onStorageChange } from '@/services/chromeService'
+  import { onStorageChange } from '@/services/wxtStorageService.js'
   import SidePanel from './SidePanel.svelte'
   import {
     settings,

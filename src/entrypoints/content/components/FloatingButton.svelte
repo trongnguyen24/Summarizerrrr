@@ -1,6 +1,5 @@
 <script>
   // @ts-nocheck
-  import { useFloatingButtonDraggable } from '../composables/useFloatingButtonDraggable.svelte.js'
   import Logdev from '@/components/settings/Logdev.svelte'
   import {
     settings,
@@ -12,9 +11,13 @@
     loadThemeSettings,
     subscribeToThemeChanges,
   } from '@/stores/themeStore.svelte.js'
+  import { createDraggable, utils } from 'animejs' // Import animejs
 
   let { toggle } = $props()
   let buttonElement
+  let floatingButtonElement // Thêm biến này để tham chiếu đến nút floating-button
+  let draggableInstance = null // Khởi tạo draggableInstance
+  let releaseTimeout = null // Để lưu trữ timeout ID
 
   // Initialize stores
   $effect(() => {
@@ -24,14 +27,73 @@
     subscribeToThemeChanges()
   })
 
+  // Cập nhật vị trí top của floating-button khi settings.floatbutton thay đổi
+  // $effect(() => {
+  //   settings.floatbutton
+  //   draggables.setY(settings.floatbutton)
+  // })
+
   let startX, startY, isDragging
 
   const DRAG_THRESHOLD = 10 // pixels
 
+  /**
+   * Gets the current window width for dynamic snap points.
+   * @returns {number} The current window width in pixels
+   */
+  function getWindowWidth() {
+    return (
+      window.innerWidth ||
+      document.documentElement.clientWidth ||
+      document.body.clientWidth
+    )
+  }
+
+  /**
+   * Initializes draggable with onResize callback.
+   */
+  function initializeDraggable() {
+    if (!buttonElement) return
+
+    const draggables = createDraggable(buttonElement, {
+      container: '.snapedge',
+      x: { snap: [0, getWindowWidth()] },
+
+      cursor: {
+        onHover: 'pointer',
+        onGrab: 'grabbing',
+      },
+      onResize: (self) => {},
+      onRelease: (self) => {
+        // Xóa timeout cũ nếu có
+        if (releaseTimeout) {
+          clearTimeout(releaseTimeout)
+        }
+        // Đặt timeout mới để lấy giá trị top sau 500ms
+        releaseTimeout = setTimeout(() => {
+          const currentTop = buttonElement.getBoundingClientRect().top
+          updateSettings({ floatbutton: currentTop })
+          console.log('Floating button top after 500ms:', currentTop)
+        }, 1000)
+      },
+    })
+
+    if (draggables && draggables.length > 0) {
+      draggableInstance = draggables[0]
+    }
+  }
+
+  /**
+   * Cleanup function to prevent memory leaks.
+   */
+  function destroyDraggable() {
+    if (draggableInstance) {
+      draggableInstance.destroy()
+    }
+  }
+
   $effect(() => {
     if (buttonElement) {
-      const { initializeDraggable, destroy } =
-        useFloatingButtonDraggable(buttonElement)
       initializeDraggable()
 
       function handleStart(e) {
@@ -80,7 +142,7 @@
       })
 
       return () => {
-        destroy()
+        destroyDraggable()
         buttonElement.removeEventListener('mousedown', handleStart)
         buttonElement.removeEventListener('touchstart', handleStart)
         window.removeEventListener('mousemove', handleMove)
@@ -116,6 +178,7 @@ Settings: {settingsLog}
   bind:this={buttonElement}
   class="floating-button"
   title="Toggle Summarizer"
+  bind:this={floatingButtonElement}
 >
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -145,9 +208,9 @@ Settings: {settingsLog}
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 1000000;
-    top: 300px;
-    left: 100%;
+    z-index: 1000000000;
+
+    left: 0;
   }
 
   .floating-button:hover {
@@ -161,8 +224,8 @@ Settings: {settingsLog}
   .snapedge {
     position: fixed;
     right: 0;
-    bottom: 2rem;
-    top: 6rem;
+    bottom: 0;
+    top: 0;
     left: 0;
     overflow: hidden;
     pointer-events: none;

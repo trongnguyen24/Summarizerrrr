@@ -104,14 +104,11 @@
     color: white;
     border: none;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    cursor: pointer !important;
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 1000000;
-    /* Start position */
-    top: 500px;
-    left: 0;
+    left: 100%;
   }
 
   .floating-button:hover {

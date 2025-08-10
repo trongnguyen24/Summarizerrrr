@@ -29,11 +29,9 @@ export function useFloatingButtonDraggable(buttonElement) {
     const draggables = createDraggable(buttonElement, {
       container: '.snapedge',
       x: { snap: [0, getWindowWidth()] },
-      onGrab: () => {
-        buttonElement.style.cursor = 'grabbing'
-      },
-      onRelease: () => {
-        buttonElement.style.cursor = 'pointer'
+      cursor: {
+        onHover: 'pointer',
+        onGrab: 'grabbing',
       },
       onResize: (self) => {},
     })

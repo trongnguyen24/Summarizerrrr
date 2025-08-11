@@ -15,6 +15,7 @@
 
   let { toggle, topButton } = $props()
   let buttonElement
+  let buttonElementBG
   let floatingButtonElement // Thêm biến này để tham chiếu đến nút floating-button
   let draggableInstance = null // Khởi tạo draggableInstance
   let releaseTimeout = null // Để lưu trữ timeout ID
@@ -23,15 +24,7 @@
   $effect(() => {
     loadSettings()
     subscribeToSettingsChanges()
-    loadThemeSettings()
-    subscribeToThemeChanges()
   })
-
-  // Cập nhật vị trí top của floating-button khi settings.floatbutton thay đổi
-  // $effect(() => {
-  //   settings.floatbutton
-  //   draggables.setY(settings.floatbutton)
-  // })
 
   let startX, startY, isDragging
 
@@ -59,6 +52,7 @@
         onHover: 'pointer',
         onGrab: 'grabbing',
       },
+      onGrab: () => {},
       onResize: (self) => {},
       onRelease: (self) => {
         // Xóa timeout cũ nếu có
@@ -83,7 +77,12 @@
       },
     })
     if (settings.floatButtonLeft === false) {
-      draggables.setX(getWindowWidth() - 36)
+      draggables.setX(getWindowWidth() - 32)
+      buttonElementBG.classList.remove('round-l')
+      buttonElementBG.classList.add('round-r')
+    } else {
+      buttonElementBG.classList.remove('round-r')
+      buttonElementBG.classList.add('round-l')
     }
   }
 
@@ -119,6 +118,8 @@
         const deltaY = Math.abs(touch.clientY - startY)
         if (deltaX > DRAG_THRESHOLD || deltaY > DRAG_THRESHOLD) {
           isDragging = true
+          buttonElementBG.classList.remove('round-l')
+          buttonElementBG.classList.remove('round-r')
         }
       }
 
@@ -166,35 +167,28 @@
   })
 </script>
 
-<!-- <Logdev></Logdev> -->
-
-<details
-  class=" fixed z-[99999999] text-text-secondary border border-border bg-surface-2/80 backdrop-blur-lg top-0 left-0"
->
-  <summary class="p-1">Log</summary>
-  <pre
-    class=" border-t w-2xl pt-4 border-border px-4 wrap-normal overflow-hidden">
-Settings: {settingsLog}
-  </pre>
-</details>
 <!-- svelte-ignore a11y_consider_explicit_label -->
 <button
   bind:this={buttonElement}
-  class="floating-button"
+  class="floating-button round-l round-r"
   title="Toggle Summarizer"
   style="top: {topButton}px;"
 >
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="16"
-    height="16"
-    viewBox="0 0 16 16"
-  >
-    <path
-      fill="currentColor"
-      d="M7.53 1.282a.5.5 0 0 1 .94 0l.478 1.306a7.5 7.5 0 0 0 4.464 4.464l1.305.478a.5.5 0 0 1 0 .94l-1.305.478a7.5 7.5 0 0 0-4.464 4.464l-.478 1.305a.5.5 0 0 1-.94 0l-.478-1.305a7.5 7.5 0 0 0-4.464-4.464L1.282 8.47a.5.5 0 0 1 0-.94l1.306-.478a7.5 7.5 0 0 0 4.464-4.464Z"
-    />
-  </svg>
+  <div bind:this={buttonElementBG} class="floating-button-bg">
+    <div class="BG-cri">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="18"
+        height="18"
+        viewBox="0 0 16 16"
+      >
+        <path
+          fill="currentColor"
+          d="M7.53 1.282a.5.5 0 0 1 .94 0l.478 1.306a7.5 7.5 0 0 0 4.464 4.464l1.305.478a.5.5 0 0 1 0 .94l-1.305.478a7.5 7.5 0 0 0-4.464 4.464l-.478 1.305a.5.5 0 0 1-.94 0l-.478-1.305a7.5 7.5 0 0 0-4.464-4.464L1.282 8.47a.5.5 0 0 1 0-.94l1.306-.478a7.5 7.5 0 0 0 4.464-4.464Z"
+        />
+      </svg>
+    </div>
+  </div>
 </button>
 
 <div class="snapedge"></div>
@@ -202,28 +196,18 @@ Settings: {settingsLog}
 <style>
   .floating-button {
     position: fixed;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background-color: #1a73e8;
-    color: white;
-    border: none;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    background: none !important;
+    width: 32px;
+    height: 32px;
+    border: none !important;
     display: flex;
+    padding: 0 !important;
     align-items: center;
     justify-content: center;
     z-index: 10000000000000000000000000;
     left: 0;
   }
 
-  .floating-button:hover {
-    transform: scale(1.05);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
-  }
-
-  .floating-button:active {
-    transform: scale(0.95);
-  }
   .snapedge {
     position: fixed;
     right: 0;
@@ -237,5 +221,39 @@ Settings: {settingsLog}
 
   .floating-button:hover ~ .snapedge {
     pointer-events: visible;
+  }
+  .round-l {
+    border-radius: 0 50px 50px 0 !important;
+  }
+  .round-r {
+    border-radius: 50px 0 0 50px !important;
+  }
+  .floating-button-bg {
+    border-radius: 50px;
+    background: #94a3c53c;
+    width: 32px;
+    height: 32px;
+    color: rgb(167, 167, 167);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease-in-out;
+  }
+  .floating-button-bg:hover {
+    background: #ff8711;
+    color: rgb(119, 196, 255);
+  }
+  .BG-cri {
+    background: #00000000;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease-in-out;
+  }
+  .floating-button-bg:hover .BG-cri {
+    background: #25345c;
   }
 </style>

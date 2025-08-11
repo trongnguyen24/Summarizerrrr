@@ -1,5 +1,3 @@
-@import '../../../styles/base.css';
-
 .floating-panel {
   position: fixed;
   /* Default position if not saved */

@@ -6,7 +6,8 @@ import { settingsStorage } from '@/services/wxtStorageService.js'
 const DEFAULT_SETTINGS = {
   // General
   selectedProvider: 'gemini',
-  floatbutton: 200,
+  floatButton: 200,
+  floatButtonLeft: true,
   geminiApiKey: '',
   selectedGeminiModel: 'gemini-2.5-flash',
   geminiAdvancedApiKey: '',

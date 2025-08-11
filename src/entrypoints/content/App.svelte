@@ -56,10 +56,10 @@
 </script>
 
 <div class="floating-ui-root absolute top-0 left-0">
-  <!-- rerender when settings.floatbutton changes -->
+  <!-- rerender when settings.floatButton changes -->
   <div class="fadein">
-    {#key settings.floatbutton}
-      <FloatingButton topButton={settings.floatbutton} toggle={togglePanel} />
+    {#key settings.floatButton}
+      <FloatingButton topButton={settings.floatButton} toggle={togglePanel} />
     {/key}
   </div>
   {#if isMobile}
@@ -105,6 +105,8 @@
 <style>
   .fadein {
     animation: fadeIn 0.5s ease-in-out forwards;
+    z-index: 999999999999;
+    position: relative;
   }
 
   @keyframes fadeIn {

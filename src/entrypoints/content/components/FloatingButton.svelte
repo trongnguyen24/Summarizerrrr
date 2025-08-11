@@ -42,11 +42,7 @@
    * @returns {number} The current window width in pixels
    */
   function getWindowWidth() {
-    return (
-      window.innerWidth ||
-      document.documentElement.clientWidth ||
-      document.body.clientWidth
-    )
+    return document.body.clientWidth
   }
 
   /**
@@ -71,12 +67,24 @@
         }
         // Đặt timeout mới để lấy giá trị top sau 500ms
         releaseTimeout = setTimeout(() => {
+          if (
+            buttonElement.getBoundingClientRect().left >
+            getWindowWidth() / 2
+          ) {
+            updateSettings({ floatButtonLeft: false })
+          } else {
+            updateSettings({ floatButtonLeft: true })
+          }
           const currentTop = buttonElement.getBoundingClientRect().top
-          updateSettings({ floatbutton: currentTop })
+          updateSettings({ floatButton: currentTop })
+
           console.log('Floating button top after 500ms:', currentTop)
-        }, 1000)
+        }, 800)
       },
     })
+    if (settings.floatButtonLeft === false) {
+      draggables.setX(getWindowWidth() - 36)
+    }
   }
 
   /**
@@ -204,8 +212,7 @@ Settings: {settingsLog}
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 1000000000;
-
+    z-index: 10000000000000000000000000;
     left: 0;
   }
 

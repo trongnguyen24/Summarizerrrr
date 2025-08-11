@@ -1,7 +1,30 @@
 <script>
   // @ts-nocheck
   import { onMount, onDestroy } from 'svelte'
-  let { visible, summary, status, onclose, children } = $props()
+  import YouTubeSummaryDisplayFP from '@/components/displays/YouTubeSummaryDisplayFP.svelte'
+  import CourseSummaryDisplayFP from '@/components/displays/CourseSummaryDisplayFP.svelte'
+  import GenericSummaryDisplayFP from '@/components/displays/GenericSummaryDisplayFP.svelte'
+  import SettingsMini from './SettingsMini.svelte'
+
+  // Import composables
+  import { useSummarization } from '../composables/useSummarization.svelte.js'
+  import { useFloatingPanelState } from '../composables/useFloatingPanelState.svelte.js'
+
+  let { visible, onclose } = $props()
+
+  // Initialize composables
+  const summarization = useSummarization()
+  const panelState = useFloatingPanelState()
+
+  // Computed properties
+  let summaryToDisplay = $derived(summarization.summaryToDisplay())
+  let statusToDisplay = $derived(
+    summarization.localSummaryState().isLoading
+      ? 'loading'
+      : summarization.localSummaryState().error
+        ? 'error'
+        : 'idle'
+  )
 
   let touchStartY = 0
   let touchMoveY = 0
@@ -50,6 +73,30 @@
       onclose?.()
     }
   }
+
+  /**
+   * Chọn display component dựa trên contentType
+   */
+  function selectDisplay(type) {
+    const t = (type || '').toLowerCase()
+    if (t === 'youtube') {
+      console.log('[MobileSheet] Display selected: YouTubeSummaryDisplayFP')
+      return YouTubeSummaryDisplayFP
+    }
+    if (t === 'course') {
+      console.log('[MobileSheet] Display selected: CourseSummaryDisplayFP')
+      return CourseSummaryDisplayFP
+    }
+    console.log(
+      '[MobileSheet] Display selected: GenericSummaryDisplayFP (fallback)'
+    )
+    return GenericSummaryDisplayFP
+  }
+
+  // Derived component để render
+  let DisplayComponent = $derived(
+    selectDisplay(summarization.localSummaryState().contentType || 'general')
+  )
 </script>
 
 {#if visible}
@@ -57,33 +104,67 @@
   <button class="mobile-sheet-backdrop" onclick={closeSheet}></button>
   <div
     class="mobile-sheet"
-    ontouchstart={handleTouchStart}
-    ontouchmove={handleTouchMove}
-    ontouchend={handleTouchEnd}
     style="transform: translateY({translateY}px);"
     role="dialog"
     aria-modal="true"
     tabindex="-1"
   >
-    <div class="sheet-header">
+    <div
+      class="sheet-header"
+      ontouchstart={handleTouchStart}
+      ontouchmove={handleTouchMove}
+      ontouchend={handleTouchEnd}
+    >
       <div class="handle"></div>
-      {#if children?.actionButton}
-        {@render children.actionButton()}
-      {/if}
+      <div class="action-button-container">
+        <button onclick={summarization.summarizePageContent}>
+          Summarize Mobile
+        </button>
+      </div>
     </div>
     <div class="sheet-content">
-      {#if status === 'loading'}
-        <p>Loading...</p>
-      {:else if status === 'error'}
-        <p>An error occurred.</p>
-      {:else if summary}
-        <div>{@html summary}</div>
-      {:else}
-        <p>No summary available.</p>
-      {/if}
-      {#if children?.settingsMini}
-        {@render children.settingsMini()}
-      {/if}
+      <div class="prose">
+        {#if statusToDisplay === 'loading'}
+          <p>Loading... (MobileSheet)</p>
+        {:else if statusToDisplay === 'error'}
+          <p>
+            Error: {summarization.localSummaryState().error?.message ||
+              'An error occurred.'}
+          </p>
+        {:else if summaryToDisplay}
+          {#if summarization.localSummaryState().contentType === 'youtube'}
+            <DisplayComponent
+              summary={summaryToDisplay}
+              chapterSummary={summarization.localSummaryState().chapterSummary}
+              isLoading={statusToDisplay === 'loading'}
+              isChapterLoading={summarization.localSummaryState()
+                .isChapterLoading}
+              activeYouTubeTab={panelState.activeYouTubeTab()}
+              onSelectTab={panelState.setActiveYouTubeTab}
+            />
+          {:else if summarization.localSummaryState().contentType === 'course'}
+            <DisplayComponent
+              courseSummary={summaryToDisplay}
+              courseConcepts={summarization.localSummaryState().courseConcepts}
+              isCourseSummaryLoading={statusToDisplay === 'loading'}
+              isCourseConceptsLoading={summarization.localSummaryState()
+                .isCourseConceptsLoading}
+              activeCourseTab={panelState.activeCourseTab()}
+              onSelectTab={panelState.setActiveCourseTab}
+            />
+          {:else}
+            <DisplayComponent
+              summary={summaryToDisplay}
+              isLoading={statusToDisplay === 'loading'}
+              loadingText="Processing summary..."
+              targetId="ms-generic-summary"
+            />
+          {/if}
+        {:else}
+          <p>No summary available.</p>
+        {/if}
+      </div>
+      <!-- <SettingsMini /> -->
     </div>
   </div>
 {/if}
@@ -119,8 +200,10 @@
   .sheet-header {
     padding: 12px;
     display: flex;
-    justify-content: center;
+    align-items: center;
+    justify-content: space-between;
     touch-action: none;
+    position: relative;
   }
 
   .handle {
@@ -128,11 +211,39 @@
     height: 4px;
     background-color: #ccc;
     border-radius: 2px;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .action-button-container {
+    display: flex;
+    align-items: center;
+    margin-left: auto;
+  }
+
+  .action-button-container button {
+    background: #007bff;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    font-weight: 500;
+  }
+
+  .action-button-container button:hover {
+    background: #0056b3;
   }
 
   .sheet-content {
     padding: 0 16px 16px;
     overflow-y: auto;
     flex-grow: 1;
+  }
+
+  .prose {
+    max-width: none;
   }
 </style>

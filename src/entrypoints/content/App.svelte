@@ -13,7 +13,7 @@
   import FloatingButton from './components/FloatingButton.svelte'
   import FloatingPanel from './components/FloatingPanel.svelte'
   import MobileSheet from './components/MobileSheet.svelte'
-  import SettingsMini from './components/SettingsMini.svelte' // Import SettingsMini
+  import SettingsMini from './components/SettingsMini.svelte'
 
   let isPanelVisible = $state(false) // Add $state
   let isMobile = $state(false) // Add $state
@@ -66,20 +66,7 @@
     <MobileSheet
       visible={isPanelVisible}
       onclose={() => (isPanelVisible = false)}
-      summary={summaryState.summary}
-      status={summaryState.isLoading
-        ? 'loading'
-        : summaryState.summaryError
-          ? 'error'
-          : 'idle'}
-    >
-      {#snippet actionButton()}
-        <button onclick={requestSummary}>Summarize Mobile</button>
-      {/snippet}
-      {#snippet settingsMini()}
-        <SettingsMini />
-      {/snippet}
-    </MobileSheet>
+    />
   {:else}
     <FloatingPanel
       visible={isPanelVisible}

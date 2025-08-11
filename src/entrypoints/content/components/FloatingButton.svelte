@@ -13,7 +13,7 @@
   } from '@/stores/themeStore.svelte.js'
   import { createDraggable, utils } from 'animejs' // Import animejs
 
-  let { toggle } = $props()
+  let { toggle, topButton } = $props()
   let buttonElement
   let floatingButtonElement // Thêm biến này để tham chiếu đến nút floating-button
   let draggableInstance = null // Khởi tạo draggableInstance
@@ -77,10 +77,6 @@
         }, 1000)
       },
     })
-
-    if (draggables && draggables.length > 0) {
-      draggableInstance = draggables[0]
-    }
   }
 
   /**
@@ -178,7 +174,7 @@ Settings: {settingsLog}
   bind:this={buttonElement}
   class="floating-button"
   title="Toggle Summarizer"
-  bind:this={floatingButtonElement}
+  style="top: {topButton}px;"
 >
   <svg
     xmlns="http://www.w3.org/2000/svg"

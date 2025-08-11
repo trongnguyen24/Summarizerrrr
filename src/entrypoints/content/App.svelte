@@ -2,6 +2,13 @@
   // @ts-nocheck
   import { onMount } from 'svelte'
   import './styles/floating-ui.css'
+  import {
+    settings,
+    loadSettings,
+    updateSettings,
+    subscribeToSettingsChanges,
+  } from '@/stores/settingsStore.svelte.js'
+  import { slideScaleFade } from '@/lib/ui/slideScaleFade'
   import { summaryState } from '../../stores/summaryStore.svelte.js'
   import FloatingButton from './components/FloatingButton.svelte'
   import FloatingPanel from './components/FloatingPanel.svelte'
@@ -10,6 +17,12 @@
 
   let isPanelVisible = $state(false) // Add $state
   let isMobile = $state(false) // Add $state
+
+  // Initialize stores
+  $effect(() => {
+    loadSettings()
+    subscribeToSettingsChanges()
+  })
 
   onMount(() => {
     const checkMobile = () => {
@@ -43,8 +56,12 @@
 </script>
 
 <div class="floating-ui-root absolute top-0 left-0">
-  <FloatingButton toggle={togglePanel} />
-
+  <!-- rerender when settings.floatbutton changes -->
+  <div class="fadein">
+    {#key settings.floatbutton}
+      <FloatingButton topButton={settings.floatbutton} toggle={togglePanel} />
+    {/key}
+  </div>
   {#if isMobile}
     <MobileSheet
       visible={isPanelVisible}
@@ -84,3 +101,18 @@
     </FloatingPanel>
   {/if}
 </div>
+
+<style>
+  .fadein {
+    animation: fadeIn 0.5s ease-in-out forwards;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+</style>

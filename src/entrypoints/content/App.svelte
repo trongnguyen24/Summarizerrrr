@@ -1,7 +1,7 @@
 <script>
   // @ts-nocheck
   import { onMount } from 'svelte'
-  import './styles/floating-ui.css'
+  // import './styles/floating-ui.css'
   import {
     settings,
     loadSettings,
@@ -90,17 +90,17 @@
 
 <style>
   .fadein {
-    animation: fadeIn 0.5s ease-in-out forwards;
+    /* animation: fadeIn 0.5s ease-in-out forwards; */
     z-index: 999999999999;
     position: relative;
   }
 
-  @keyframes fadeIn {
+  /* @keyframes fadeIn {
     from {
       opacity: 0;
     }
     to {
       opacity: 1;
     }
-  }
+  } */
 </style>

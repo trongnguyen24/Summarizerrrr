@@ -112,6 +112,9 @@
   })
 </script>
 
+<div
+  class=" size-14 fixed top-5 leading-5 backdrop-blur-3xl bg-sky-50/80"
+></div>
 <div class="main-container flex min-w-[22.5rem] bg-surface-1 w-full flex-col">
   <div
     class="grid grid-rows-[32px_1px_8px_1px_160px_1px_8px_1px_1fr] min-h-screen"

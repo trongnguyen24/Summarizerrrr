@@ -1,5 +1,6 @@
+@import 'tailwindcss';
 @import 'highlight.js/styles/github-dark-dimmed.css';
-
+@plugin "@tailwindcss/typography";
 @custom-variant dark (&:where(.dark, .dark *));
 
 /* Biến và font chung */

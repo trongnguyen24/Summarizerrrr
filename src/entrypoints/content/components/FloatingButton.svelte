@@ -15,6 +15,7 @@
 
   let { toggle, topButton } = $props()
   let buttonElement
+  let snapedge
   let buttonElementBG
   let floatingButtonElement // Thêm biến này để tham chiếu đến nút floating-button
   let draggableInstance = null // Khởi tạo draggableInstance
@@ -45,7 +46,7 @@
     if (!buttonElement) return
 
     const draggables = createDraggable(buttonElement, {
-      container: '.snapedge',
+      container: snapedge,
       x: { snap: [0, getWindowWidth()] },
 
       cursor: {
@@ -170,11 +171,11 @@
 <!-- svelte-ignore a11y_consider_explicit_label -->
 <button
   bind:this={buttonElement}
-  class="floating-button round-l round-r"
+  class="floating-button"
   title="Toggle Summarizer"
   style="top: {topButton}px;"
 >
-  <div bind:this={buttonElementBG} class="floating-button-bg">
+  <div bind:this={buttonElementBG} class="floating-button-bg round-l round-r">
     <div class="BG-cri">
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -191,7 +192,7 @@
   </div>
 </button>
 
-<div class="snapedge"></div>
+<div bind:this={snapedge} class="snapedge"></div>
 
 <style>
   .floating-button {
@@ -199,6 +200,7 @@
     background: none !important;
     width: 40px;
     height: 40px;
+    border-radius: 50%;
     border: none !important;
     display: flex;
     padding: 0 !important;
@@ -224,13 +226,18 @@
   }
   .round-l {
     border-radius: 0 50px 50px 0 !important;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
   }
   .round-r {
     border-radius: 50px 0 0 50px !important;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
   }
   .floating-button-bg {
     border-radius: 50px;
     background: #94a3c53c;
+
     width: 40px;
     height: 40px;
     color: rgb(167, 167, 167);

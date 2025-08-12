@@ -1,8 +1,7 @@
 <script>
   // @ts-nocheck
   import { onMount, onDestroy } from 'svelte'
-  import SettingsMini from './SettingsMini.svelte'
-  import MobileSummaryDisplay from '@/components/displays/MobileSummaryDisplay.svelte'
+  import MobileSummaryDisplay from '@/components/displays/mobile/MobileSummaryDisplay.svelte'
 
   // Import composables
   import { useSummarization } from '../composables/useSummarization.svelte.js'
@@ -99,7 +98,10 @@
     >
       <div class="handle"></div>
       <div class="action-button-container">
-        <button onclick={summarization.summarizePageContent}>
+        <button
+          class=" sum:p-2 sum:bg-amber-600"
+          onclick={summarization.summarizePageContent}
+        >
           Summarize Mobile
         </button>
       </div>

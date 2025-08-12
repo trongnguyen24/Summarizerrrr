@@ -1,8 +1,8 @@
 <script>
   // @ts-nocheck
-  import YouTubeSummaryDisplayFP from '@/components/displays/YouTubeSummaryDisplayFP.svelte'
-  import CourseSummaryDisplayFP from '@/components/displays/CourseSummaryDisplayFP.svelte'
-  import GenericSummaryDisplayFP from '@/components/displays/GenericSummaryDisplayFP.svelte'
+  import YouTubeSummaryDisplayFP from '@/components/displays/floating-panel/YouTubeSummaryDisplayFP.svelte'
+  import CourseSummaryDisplayFP from '@/components/displays/floating-panel/CourseSummaryDisplayFP.svelte'
+  import GenericSummaryDisplayFP from '@/components/displays/floating-panel/GenericSummaryDisplayFP.svelte'
 
   let {
     status,

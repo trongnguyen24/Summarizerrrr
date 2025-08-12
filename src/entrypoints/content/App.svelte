@@ -13,7 +13,6 @@
   import FloatingButton from './components/FloatingButton.svelte'
   import FloatingPanel from './components/FloatingPanel.svelte'
   import MobileSheet from './components/MobileSheet.svelte'
-  import SettingsMini from './components/SettingsMini.svelte'
 
   let isPanelVisible = $state(false) // Add $state
   let isMobile = $state(false) // Add $state

@@ -8,8 +8,8 @@
   import { useDraggable } from '../composables/useDraggable.svelte.js'
 
   // Import components
-  import FloatingPanelHeader from './FloatingPanelHeader.svelte'
-  import FloatingPanelContent from './FloatingPanelContent.svelte'
+  import FloatingPanelHeader from '@/components/displays/floating-panel/FloatingPanelHeader.svelte'
+  import FloatingPanelContent from '@/components/displays/floating-panel/FloatingPanelContent.svelte'
 
   let { visible, summary, status, onclose, children } = $props()
 

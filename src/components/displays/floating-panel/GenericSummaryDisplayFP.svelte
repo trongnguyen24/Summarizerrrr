@@ -1,7 +1,7 @@
 <script>
   // @ts-nocheck
-  import SummaryWrapper from './SummaryWrapper.svelte'
-  import SummaryContent from './SummaryContent.svelte'
+  import SummaryWrapper from '@/components/displays/SummaryWrapper.svelte'
+  import SummaryContent from '@/components/displays/SummaryContent.svelte'
 
   let {
     summary,

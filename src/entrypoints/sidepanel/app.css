@@ -104,7 +104,9 @@ body {
   scrollbar-color: oklch(0.77 0.003 106.6 / 60%) transparent; /* thumb and track color */
 }
 button {
-  @apply cursor-pointer select-none outline-gray-500;
+  cursor: pointer;
+  user-select: none;
+  outline-color: var(--color-gray-500);
 }
 
 .animate-spin-slow {

@@ -1,13 +1,15 @@
 // @ts-nocheck
-import { createIntegratedUi, defineContentScript } from '#imports'
+import { defineContentScript, createShadowRootUi } from '#imports'
+
 import './content/styles/floating-ui.css'
 import App from './content/app.svelte'
 import { mount, unmount } from 'svelte'
 
 export default defineContentScript({
   matches: ['*://*/*'],
+  cssInjectionMode: 'ui',
   async main(ctx) {
-    const ui = await createIntegratedUi(ctx, {
+    const ui = await createShadowRootUi(ctx, {
       name: 'wxt-svelte-integrated-ui',
       position: 'inline',
       anchor: 'body',

@@ -54,6 +54,7 @@
     "svelte-markdown": "^0.4.1",
     "svelte-sonner": "^1.0.5",
     "tailwindcss": "^4.1.8",
+    "vaul-svelte": "^0.3.2",
     "webextension-polyfill": "^0.12.0"
   }
 }

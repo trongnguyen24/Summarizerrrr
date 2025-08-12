@@ -54,10 +54,7 @@ export class ContentExtractorService {
       }
       throw new Error('YouTube transcript not available or too short')
     } catch (error) {
-      console.warn(
-        '[ContentExtractorService] YouTube extraction failed:',
-        error
-      )
+      console.log('[ContentExtractorService] YouTube extraction failed:', error)
       throw error
     }
   }
@@ -85,7 +82,7 @@ export class ContentExtractorService {
       }
       throw new Error('Course content not available or too short')
     } catch (error) {
-      console.warn('[ContentExtractorService] Course extraction failed:', error)
+      console.log('[ContentExtractorService] Course extraction failed:', error)
       throw error
     }
   }
@@ -129,7 +126,7 @@ export class ContentExtractorService {
         try {
           content = await this.extractYouTubeContent()
         } catch (error) {
-          console.warn(
+          console.log(
             '[ContentExtractorService] YouTube extraction failed, fallback to generic'
           )
           content = await this.extractGenericContent()
@@ -138,7 +135,7 @@ export class ContentExtractorService {
         try {
           content = await this.extractCourseContent()
         } catch (error) {
-          console.warn(
+          console.log(
             '[ContentExtractorService] Course extraction failed, fallback to generic'
           )
           content = await this.extractGenericContent()

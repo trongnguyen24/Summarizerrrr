@@ -5,6 +5,7 @@ import { createOpenAI } from '@ai-sdk/openai'
 import { anthropic } from '@ai-sdk/anthropic'
 import { createOpenAICompatible } from '@ai-sdk/openai-compatible'
 import { createOpenRouter } from '@openrouter/ai-sdk-provider'
+import { getBrowserCompatibility } from '@/lib/utils/browserDetection.js'
 
 /**
  * Maps provider ID and settings to AI SDK model instance
@@ -172,6 +173,9 @@ export async function* generateContentStream(
   const model = getAISDKModel(providerId, settings)
   const generationConfig = mapGenerationConfig(settings)
 
+  // Get browser compatibility info
+  const browserCompatibility = getBrowserCompatibility()
+
   // Default smoothing options
   const defaultSmoothingOptions = {
     smoothing: {
@@ -180,21 +184,26 @@ export async function* generateContentStream(
     },
   }
 
+  // Determine if we should use smoothing based on browser compatibility
+  const shouldUseSmoothing =
+    browserCompatibility.streamingOptions.useSmoothing &&
+    streamOptions.useSmoothing !== false
+
   const streamConfig = {
     model,
     system: systemInstruction,
     prompt: userPrompt,
     ...generationConfig,
-    ...(streamOptions.useSmoothing !== false ? defaultSmoothingOptions : {}),
+    ...(shouldUseSmoothing ? defaultSmoothingOptions : {}),
     ...streamOptions,
   }
 
   try {
     const result = await streamText(streamConfig)
 
-    // Use smoothTextStream if available (AI SDK v5 feature)
+    // Use smoothTextStream if available and supported by browser
     const streamToUse =
-      streamOptions.useSmoothing !== false && result.smoothTextStream
+      shouldUseSmoothing && result.smoothTextStream
         ? result.smoothTextStream
         : result.textStream
 
@@ -203,6 +212,19 @@ export async function* generateContentStream(
     }
   } catch (error) {
     console.error('AI SDK Stream Error:', error)
+
+    // Check if this is a Firefox mobile specific error
+    if (
+      browserCompatibility.isFirefoxMobile &&
+      error.message.includes('flush')
+    ) {
+      console.warn(
+        'Firefox mobile streaming error detected, suggesting fallback to non-streaming'
+      )
+      // Re-throw with additional context for fallback handling
+      error.isFirefoxMobileStreamingError = true
+    }
+
     throw error
   }
 }
@@ -227,6 +249,9 @@ export async function* generateContentStreamEnhanced(
 ) {
   let fullText = ''
   let isComplete = false
+
+  // Get browser compatibility info
+  const browserCompatibility = getBrowserCompatibility()
 
   try {
     const streamGenerator = generateContentStream(
@@ -254,6 +279,16 @@ export async function* generateContentStreamEnhanced(
     }
   } catch (error) {
     console.error('AI SDK Enhanced Stream Error:', error)
+
+    // Check if this is a Firefox mobile specific error
+    if (
+      browserCompatibility.isFirefoxMobile &&
+      error.message.includes('flush')
+    ) {
+      console.log('Firefox mobile streaming error detected in enhanced stream')
+      error.isFirefoxMobileStreamingError = true
+    }
+
     throw error
   }
 }

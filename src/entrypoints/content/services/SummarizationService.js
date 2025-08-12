@@ -6,6 +6,7 @@ import {
   summarizeChaptersStream,
   providerSupportsStreaming,
 } from '@/lib/api/api.js'
+import { getBrowserCompatibility } from '@/lib/utils/browserDetection.js'
 
 /**
  * Service xử lý summarization logic
@@ -22,6 +23,15 @@ export class SummarizationService {
    */
   shouldUseStreaming(settings) {
     const selectedProvider = settings.selectedProvider || 'gemini'
+
+    // Get browser compatibility info
+    const browserCompatibility = getBrowserCompatibility()
+
+    // Don't use streaming on Firefox mobile or if browser doesn't support it
+    if (!browserCompatibility.supportsAdvancedStreaming) {
+      return false
+    }
+
     return (
       settings.enableStreaming && providerSupportsStreaming(selectedProvider)
     )
@@ -36,6 +46,9 @@ export class SummarizationService {
   async summarizeWithStreaming(content, contentType) {
     let summary = ''
     let chapterSummary = ''
+
+    // Get browser compatibility info
+    const browserCompatibility = getBrowserCompatibility()
 
     if (contentType === 'youtube') {
       // YouTube: tạo cả video summary và chapter summary parallel
@@ -53,6 +66,20 @@ export class SummarizationService {
             '[SummarizationService] Video summary streaming error:',
             error
           )
+
+          // Check if this is a Firefox mobile streaming error that requires fallback
+          if (
+            browserCompatibility.isFirefoxMobile &&
+            error.isFirefoxMobileStreamingError
+          ) {
+            console.log(
+              '[SummarizationService] Falling back to non-streaming for Firefox mobile'
+            )
+            // Fallback to non-streaming
+            summary = await summarizeContent(content, 'youtube')
+            return
+          }
+
           throw error
         }
       })()
@@ -76,7 +103,7 @@ export class SummarizationService {
               chapterSummary += chunk
             }
           } else {
-            console.warn(
+            console.log(
               '[SummarizationService] No timestamped transcript available for chapters'
             )
             chapterSummary =
@@ -87,6 +114,37 @@ export class SummarizationService {
             '[SummarizationService] Chapter summary streaming error:',
             error
           )
+
+          // Check if this is a Firefox mobile streaming error that requires fallback
+          if (
+            browserCompatibility.isFirefoxMobile &&
+            error.isFirefoxMobileStreamingError
+          ) {
+            console.log(
+              '[SummarizationService] Falling back to non-streaming chapters for Firefox mobile'
+            )
+            // Try non-streaming fallback for chapters
+            try {
+              const timestampedTranscript =
+                await this.contentExtractorService.extractTimestampedTranscript()
+              if (
+                timestampedTranscript &&
+                timestampedTranscript.trim().length > 50
+              ) {
+                chapterSummary = await summarizeChapters(timestampedTranscript)
+              } else {
+                chapterSummary =
+                  '<p><i>Timestamped transcript not available for chapter summary.</i></p>'
+              }
+              return
+            } catch (fallbackError) {
+              console.error(
+                '[SummarizationService] Chapter summary fallback failed:',
+                fallbackError
+              )
+            }
+          }
+
           chapterSummary = '<p><i>Could not generate chapter summary.</i></p>'
         }
       })()
@@ -101,6 +159,23 @@ export class SummarizationService {
           summary += chunk
         }
       } catch (error) {
+        // Check if this is a Firefox mobile streaming error that requires fallback
+        if (
+          browserCompatibility.isFirefoxMobile &&
+          error.isFirefoxMobileStreamingError
+        ) {
+          console.log(
+            '[SummarizationService] Falling back to non-streaming for Firefox mobile'
+          )
+          // Fallback to non-streaming
+          summary = await summarizeContent(content, contentType)
+          console.log(
+            '[SummarizationService] Fallback summary result:',
+            summary ? 'has content' : 'empty'
+          )
+          return { summary, chapterSummary }
+        }
+
         throw error
       }
     }
@@ -145,7 +220,7 @@ export class SummarizationService {
             chapterSummary =
               result || '<p><i>Could not generate chapter summary.</i></p>'
           } else {
-            console.warn(
+            console.log(
               '[SummarizationService] No timestamped transcript available for chapters'
             )
             chapterSummary =

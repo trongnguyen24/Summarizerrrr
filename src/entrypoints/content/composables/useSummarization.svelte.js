@@ -100,6 +100,18 @@ export function useSummarization() {
 
       const duration = Date.now() - localSummaryState.startTime
       console.log(`[useSummarization] Summarization completed in ${duration}ms`)
+      console.log(
+        `[useSummarization] Summary result:`,
+        result.summary ? 'has content' : 'empty'
+      )
+      console.log(
+        `[useSummarization] Summary length:`,
+        result.summary?.length || 0
+      )
+      console.log(
+        `[useSummarization] LocalSummaryState after update:`,
+        localSummaryState.summary ? 'has content' : 'empty'
+      )
     } catch (error) {
       handleSummarizationError(error)
     } finally {

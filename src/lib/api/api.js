@@ -7,6 +7,7 @@ import {
   generateContentStream as aiSdkGenerateContentStream,
   generateContentStreamEnhanced as aiSdkGenerateContentStreamEnhanced,
 } from './aiSdkAdapter.js'
+import { getBrowserCompatibility } from '@/lib/utils/browserDetection.js'
 
 /**
  * Checks if the selected provider supports streaming.
@@ -24,7 +25,15 @@ export function providerSupportsStreaming(selectedProviderId) {
     'chatgpt',
     'deepseek',
   ]
-  return supportedProviders.includes(selectedProviderId)
+
+  // Check if provider is supported
+  const isProviderSupported = supportedProviders.includes(selectedProviderId)
+
+  // Check browser compatibility
+  const browserCompatibility = getBrowserCompatibility()
+
+  // Return true only if both provider and browser support streaming
+  return isProviderSupported && browserCompatibility.supportsAdvancedStreaming
 }
 
 /**
@@ -140,6 +149,14 @@ export async function* summarizeContentStream(text, contentType) {
   // Validate API key
   validateApiKey(userSettings, selectedProviderId)
 
+  // Check browser compatibility for streaming
+  const browserCompatibility = getBrowserCompatibility()
+
+  // If browser doesn't support advanced streaming, throw an error to trigger fallback
+  if (!browserCompatibility.supportsAdvancedStreaming) {
+    throw new Error('Browser does not support advanced streaming features')
+  }
+
   const contentConfig = promptBuilders[contentType] || promptBuilders['general'] // Fallback to general
 
   if (!contentConfig.buildPrompt) {
@@ -163,7 +180,7 @@ export async function* summarizeContentStream(text, contentType) {
       userSettings,
       systemInstruction,
       userPrompt,
-      { useSmoothing: true }
+      { useSmoothing: browserCompatibility.streamingOptions.useSmoothing }
     )
 
     for await (const chunk of streamGenerator) {
@@ -171,6 +188,12 @@ export async function* summarizeContentStream(text, contentType) {
     }
   } catch (e) {
     console.error(`AI SDK Stream Error for ${selectedProviderId}:`, e)
+
+    // Add Firefox mobile specific error handling
+    if (browserCompatibility.isFirefoxMobile && e.message.includes('flush')) {
+      e.isFirefoxMobileStreamingError = true
+    }
+
     throw e
   }
 }
@@ -279,6 +302,14 @@ export async function* summarizeChaptersStream(timestampedTranscript) {
   // Validate API key
   validateApiKey(userSettings, selectedProviderId)
 
+  // Check browser compatibility for streaming
+  const browserCompatibility = getBrowserCompatibility()
+
+  // If browser doesn't support advanced streaming, throw an error to trigger fallback
+  if (!browserCompatibility.supportsAdvancedStreaming) {
+    throw new Error('Browser does not support advanced streaming features')
+  }
+
   const chapterConfig = promptBuilders['chapter']
 
   if (!chapterConfig.buildPrompt) {
@@ -299,7 +330,7 @@ export async function* summarizeChaptersStream(timestampedTranscript) {
       userSettings,
       systemInstruction,
       userPrompt,
-      { useSmoothing: true }
+      { useSmoothing: browserCompatibility.streamingOptions.useSmoothing }
     )
 
     for await (const chunk of streamGenerator) {
@@ -310,6 +341,12 @@ export async function* summarizeChaptersStream(timestampedTranscript) {
       `AI SDK Stream Error for ${selectedProviderId} (Chapters):`,
       e
     )
+
+    // Add Firefox mobile specific error handling
+    if (browserCompatibility.isFirefoxMobile && e.message.includes('flush')) {
+      e.isFirefoxMobileStreamingError = true
+    }
+
     throw e
   }
 }
@@ -329,6 +366,14 @@ export async function* summarizeContentStreamEnhanced(text, contentType) {
   }
 
   validateApiKey(userSettings, selectedProviderId)
+
+  // Check browser compatibility for streaming
+  const browserCompatibility = getBrowserCompatibility()
+
+  // If browser doesn't support advanced streaming, throw an error to trigger fallback
+  if (!browserCompatibility.supportsAdvancedStreaming) {
+    throw new Error('Browser does not support advanced streaming features')
+  }
 
   const contentConfig = promptBuilders[contentType] || promptBuilders['general']
 
@@ -352,7 +397,7 @@ export async function* summarizeContentStreamEnhanced(text, contentType) {
       userSettings,
       systemInstruction,
       userPrompt,
-      { useSmoothing: true }
+      { useSmoothing: browserCompatibility.streamingOptions.useSmoothing }
     )
 
     for await (const streamData of streamGenerator) {
@@ -360,6 +405,12 @@ export async function* summarizeContentStreamEnhanced(text, contentType) {
     }
   } catch (e) {
     console.error(`AI SDK Enhanced Stream Error for ${selectedProviderId}:`, e)
+
+    // Add Firefox mobile specific error handling
+    if (browserCompatibility.isFirefoxMobile && e.message.includes('flush')) {
+      e.isFirefoxMobileStreamingError = true
+    }
+
     throw e
   }
 }

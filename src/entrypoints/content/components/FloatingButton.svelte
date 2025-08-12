@@ -77,7 +77,7 @@
       },
     })
     if (settings.floatButtonLeft === false) {
-      draggables.setX(getWindowWidth() - 32)
+      draggables.setX(getWindowWidth() - 40)
       buttonElementBG.classList.remove('round-l')
       buttonElementBG.classList.add('round-r')
     } else {
@@ -197,8 +197,8 @@
   .floating-button {
     position: fixed;
     background: none !important;
-    width: 32px;
-    height: 32px;
+    width: 40px;
+    height: 40px;
     border: none !important;
     display: flex;
     padding: 0 !important;
@@ -231,8 +231,8 @@
   .floating-button-bg {
     border-radius: 50px;
     background: #94a3c53c;
-    width: 32px;
-    height: 32px;
+    width: 40px;
+    height: 40px;
     color: rgb(167, 167, 167);
     display: flex;
     align-items: center;
@@ -245,8 +245,8 @@
   }
   .BG-cri {
     background: #00000000;
-    width: 28px;
-    height: 28px;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
     display: flex;
     align-items: center;

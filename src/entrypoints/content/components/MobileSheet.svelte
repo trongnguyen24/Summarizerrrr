@@ -1,10 +1,8 @@
 <script>
   // @ts-nocheck
   import { onMount, onDestroy } from 'svelte'
-  import YouTubeSummaryDisplayFP from '@/components/displays/YouTubeSummaryDisplayFP.svelte'
-  import CourseSummaryDisplayFP from '@/components/displays/CourseSummaryDisplayFP.svelte'
-  import GenericSummaryDisplayFP from '@/components/displays/GenericSummaryDisplayFP.svelte'
   import SettingsMini from './SettingsMini.svelte'
+  import MobileSummaryDisplay from '@/components/displays/MobileSummaryDisplay.svelte'
 
   // Import composables
   import { useSummarization } from '../composables/useSummarization.svelte.js'
@@ -18,13 +16,21 @@
 
   // Computed properties
   let summaryToDisplay = $derived(summarization.summaryToDisplay())
-  let statusToDisplay = $derived(
-    summarization.localSummaryState().isLoading
-      ? 'loading'
-      : summarization.localSummaryState().error
-        ? 'error'
-        : 'idle'
-  )
+  // Use the status from the composable directly to avoid state sync issues
+  let statusToDisplay = $derived(summarization.statusToDisplay())
+
+  // Debug logging to see what's happening
+  $effect(() => {
+    console.log('[MobileSheet] statusToDisplay:', statusToDisplay)
+    console.log(
+      '[MobileSheet] summaryToDisplay:',
+      summaryToDisplay ? 'has content' : 'empty'
+    )
+    console.log(
+      '[MobileSheet] localSummaryState:',
+      summarization.localSummaryState()
+    )
+  })
 
   let touchStartY = 0
   let touchMoveY = 0
@@ -73,30 +79,6 @@
       onclose?.()
     }
   }
-
-  /**
-   * Chọn display component dựa trên contentType
-   */
-  function selectDisplay(type) {
-    const t = (type || '').toLowerCase()
-    if (t === 'youtube') {
-      console.log('[MobileSheet] Display selected: YouTubeSummaryDisplayFP')
-      return YouTubeSummaryDisplayFP
-    }
-    if (t === 'course') {
-      console.log('[MobileSheet] Display selected: CourseSummaryDisplayFP')
-      return CourseSummaryDisplayFP
-    }
-    console.log(
-      '[MobileSheet] Display selected: GenericSummaryDisplayFP (fallback)'
-    )
-    return GenericSummaryDisplayFP
-  }
-
-  // Derived component để render
-  let DisplayComponent = $derived(
-    selectDisplay(summarization.localSummaryState().contentType || 'general')
-  )
 </script>
 
 {#if visible}
@@ -123,47 +105,11 @@
       </div>
     </div>
     <div class="sheet-content">
-      <div class="prose">
-        {#if statusToDisplay === 'loading'}
-          <p>Loading... (MobileSheet)</p>
-        {:else if statusToDisplay === 'error'}
-          <p>
-            Error: {summarization.localSummaryState().error?.message ||
-              'An error occurred.'}
-          </p>
-        {:else if summaryToDisplay}
-          {#if summarization.localSummaryState().contentType === 'youtube'}
-            <DisplayComponent
-              summary={summaryToDisplay}
-              chapterSummary={summarization.localSummaryState().chapterSummary}
-              isLoading={statusToDisplay === 'loading'}
-              isChapterLoading={summarization.localSummaryState()
-                .isChapterLoading}
-              activeYouTubeTab={panelState.activeYouTubeTab()}
-              onSelectTab={panelState.setActiveYouTubeTab}
-            />
-          {:else if summarization.localSummaryState().contentType === 'course'}
-            <DisplayComponent
-              courseSummary={summaryToDisplay}
-              courseConcepts={summarization.localSummaryState().courseConcepts}
-              isCourseSummaryLoading={statusToDisplay === 'loading'}
-              isCourseConceptsLoading={summarization.localSummaryState()
-                .isCourseConceptsLoading}
-              activeCourseTab={panelState.activeCourseTab()}
-              onSelectTab={panelState.setActiveCourseTab}
-            />
-          {:else}
-            <DisplayComponent
-              summary={summaryToDisplay}
-              isLoading={statusToDisplay === 'loading'}
-              loadingText="Processing summary..."
-              targetId="ms-generic-summary"
-            />
-          {/if}
-        {:else}
-          <p>No summary available.</p>
-        {/if}
-      </div>
+      <MobileSummaryDisplay
+        summary={summaryToDisplay}
+        isLoading={statusToDisplay === 'loading'}
+        error={summarization.localSummaryState().error}
+      />
       <!-- <SettingsMini /> -->
     </div>
   </div>
@@ -241,9 +187,54 @@
     padding: 0 16px 16px;
     overflow-y: auto;
     flex-grow: 1;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch; /* For momentum-based scrolling on iOS */
   }
 
   .prose {
     max-width: none;
+  }
+
+  .simple-summary {
+    padding: 16px 0;
+  }
+
+  .simple-summary h3 {
+    margin: 16px 0 8px 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+    border-bottom: 2px solid #007bff;
+    padding-bottom: 4px;
+  }
+
+  .summary-content,
+  .chapter-content {
+    margin: 12px 0;
+    line-height: 1.6;
+    color: #444;
+  }
+
+  .summary-content h1,
+  .summary-content h2,
+  .summary-content h3,
+  .chapter-content h1,
+  .chapter-content h2,
+  .chapter-content h3 {
+    margin-top: 16px;
+    margin-bottom: 8px;
+  }
+
+  .summary-content ul,
+  .summary-content ol,
+  .chapter-content ul,
+  .chapter-content ol {
+    margin: 8px 0;
+    padding-left: 24px;
+  }
+
+  .summary-content p,
+  .chapter-content p {
+    margin: 8px 0;
   }
 </style>

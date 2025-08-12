@@ -121,7 +121,7 @@ export class YouTubeTranscriptExtractor {
           `[YouTubeTranscriptExtractor] ${logType} extracted and processed successfully from DOM.`
         )
         if (includeTimestamps) {
-          console.warn(
+          console.log(
             '[YouTubeTranscriptExtractor] Timestamped transcript requested, but DOM interaction currently only provides plain text. Returning plain text.'
           )
         }

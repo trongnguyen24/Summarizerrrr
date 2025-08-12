@@ -59,7 +59,7 @@
           try {
             hljs.highlightElement(block)
           } catch (error) {
-            console.warn('Highlight.js error:', error)
+            console.log('Highlight.js error:', error)
           }
         })
       }

@@ -96,11 +96,6 @@
   --color-warning: oklch(0.795 0.184 86.047);
   --color-error: oklch(0.637 0.237 25.331);
 }
-html {
-  height: 100lvh;
-  width: 100vw;
-  overflow: hidden;
-}
 
 .floating-panel {
   position: fixed;

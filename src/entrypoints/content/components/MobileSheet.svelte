@@ -3,6 +3,10 @@
   import { onMount, onDestroy } from 'svelte'
   import MobileSummaryDisplay from '@/components/displays/mobile/MobileSummaryDisplay.svelte'
   import { useSummarization } from '../composables/useSummarization.svelte.js'
+  import {
+    lockBodyScroll,
+    unlockBodyScroll,
+  } from '../composables/scroll-freezer.js'
 
   let { visible, onclose } = $props()
 
@@ -19,6 +23,7 @@
   function openDrawer() {
     if (!drawerContainer) return
     drawerContainer.classList.remove('pointer-events-none')
+    lockBodyScroll() // Lock body scroll when opening
     requestAnimationFrame(() => {
       drawerBackdrop.style.opacity = '1'
       drawerPanel.style.transform = 'translateY(0)'
@@ -27,6 +32,7 @@
 
   function closeDrawer() {
     if (!drawerContainer) return
+    unlockBodyScroll() // Unlock body scroll when closing
     onclose?.()
   }
 
@@ -35,6 +41,8 @@
       openDrawer()
     } else {
       if (drawerContainer) {
+        // Unlock scroll immediately when starting to close
+        unlockBodyScroll()
         // Run closing animation
         drawerBackdrop.style.opacity = '0'
         drawerPanel.style.transform = 'translateY(100%)'
@@ -61,6 +69,8 @@
     if (animationFrameId) {
       cancelAnimationFrame(animationFrameId)
     }
+    // Ensure body scroll is unlocked on component unmount
+    unlockBodyScroll()
   })
 
   // --- Drag/Swipe to close logic ---
@@ -72,9 +82,7 @@
     drawerPanel.style.transition = 'none'
     drawerBackdrop.style.transition = 'none'
 
-    // Ngăn chặn scroll của body khi đang drag
-    document.body.style.overflow = 'hidden'
-    document.body.style.touchAction = 'none'
+    // Body scroll đã được lock khi sheet mở, không cần thêm gì
 
     document.addEventListener('mousemove', onDragging)
     document.addEventListener('mouseup', onDragEnd)
@@ -105,9 +113,7 @@
     if (!isDragging) return
     isDragging = false
 
-    // Khôi phục scroll của body
-    document.body.style.overflow = ''
-    document.body.style.touchAction = ''
+    // Body scroll vẫn được lock, không cần làm gì thêm
 
     document.removeEventListener('mousemove', onDragging)
     document.removeEventListener('mouseup', onDragEnd)

@@ -124,7 +124,6 @@
   }
 </script>
 
-// @ts-nocheck
 <!-- Nội dung chính của trang -->
 <div class="min-h-screen flex flex-col items-center justify-center p-4">
   <div class="text-center">

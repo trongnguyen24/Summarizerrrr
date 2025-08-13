@@ -2,35 +2,55 @@
   // @ts-nocheck
   import { onMount, onDestroy } from 'svelte'
   import MobileSummaryDisplay from '@/components/displays/mobile/MobileSummaryDisplay.svelte'
-
-  // Import composables
   import { useSummarization } from '../composables/useSummarization.svelte.js'
-  import { useFloatingPanelState } from '../composables/useFloatingPanelState.svelte.js'
 
   let { visible, onclose } = $props()
 
-  // Initialize composables
   const summarization = useSummarization()
-  const panelState = useFloatingPanelState()
-
-  // Computed properties
   let summaryToDisplay = $derived(summarization.summaryToDisplay())
-  // Use the status from the composable directly to avoid state sync issues
   let statusToDisplay = $derived(summarization.statusToDisplay())
 
-  // Animation state
-  let touchStartY = 0
-  let touchMoveY = 0
-  let translateY = $state(0)
-  let isDragging = $state(false)
-  let animationFrameId = null
-  let backdropOpacity = $state(0) // Start hidden
-  let hasTransition = $state(true) // Control CSS transition
-  let isAnimating = $state(false)
-  let shouldRender = $state(false) // Control DOM rendering
+  let isDragging = false
+  let startY
+  let currentTranslateY
+  let animationFrameId
+  let drawerContainer, drawerBackdrop, drawerPanel, drawerHeader
 
-  // Sheet element reference for height calculation
-  let sheetElement = null
+  function openDrawer() {
+    if (!drawerContainer) return
+    drawerContainer.classList.remove('pointer-events-none')
+    requestAnimationFrame(() => {
+      drawerBackdrop.style.opacity = '1'
+      drawerPanel.style.transform = 'translateY(0)'
+    })
+  }
+
+  function closeDrawer() {
+    if (!drawerContainer) return
+    onclose?.()
+  }
+
+  $effect(() => {
+    if (visible) {
+      openDrawer()
+    } else {
+      if (drawerContainer) {
+        // Run closing animation
+        drawerBackdrop.style.opacity = '0'
+        drawerPanel.style.transform = 'translateY(100%)'
+        // Defer making it non-interactive to allow animation to finish
+        setTimeout(() => {
+          drawerContainer.classList.add('pointer-events-none')
+        }, 400) // Match transition duration
+      }
+    }
+  })
+
+  function handleKeyDown(event) {
+    if (visible && event.key === 'Escape') {
+      closeDrawer()
+    }
+  }
 
   onMount(() => {
     window.addEventListener('keydown', handleKeyDown)
@@ -38,266 +58,152 @@
 
   onDestroy(() => {
     window.removeEventListener('keydown', handleKeyDown)
-    // Cancel any pending animation frame on cleanup
     if (animationFrameId) {
       cancelAnimationFrame(animationFrameId)
     }
-    // Restore body scroll if needed
-    document.body.style.overflow = ''
   })
 
-  // Handle opening/closing animation
-  $effect(() => {
-    if (visible && !shouldRender) {
-      // Opening animation
-      shouldRender = true
-      isAnimating = true
+  // --- Drag/Swipe to close logic ---
 
-      // Start from closed position (use fixed height for initial animation)
-      translateY = 400 // Use fixed height initially
-      backdropOpacity = 0
-      hasTransition = false
+  const onDragStart = (e) => {
+    e.preventDefault() // Ngăn chặn scroll mặc định ngay từ đầu
+    isDragging = true
+    startY = e.pageY || e.touches[0].pageY
+    drawerPanel.style.transition = 'none'
+    drawerBackdrop.style.transition = 'none'
 
-      // Wait for DOM to render, then start animation
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          // Get actual height if available, otherwise use default
-          const actualHeight = sheetElement ? sheetElement.offsetHeight : 400
-          translateY = actualHeight
+    // Ngăn chặn scroll của body khi đang drag
+    document.body.style.overflow = 'hidden'
+    document.body.style.touchAction = 'none'
 
-          // Start animation in next frame
-          requestAnimationFrame(() => {
-            hasTransition = true
-            translateY = 0
-            backdropOpacity = 1
+    document.addEventListener('mousemove', onDragging)
+    document.addEventListener('mouseup', onDragEnd)
+    document.addEventListener('touchmove', onDragging, { passive: false })
+    document.addEventListener('touchend', onDragEnd)
+  }
 
-            // Animation complete after transition duration
-            setTimeout(() => {
-              isAnimating = false
-            }, 400)
-          })
-        })
+  const onDragging = (e) => {
+    if (!isDragging) return
+    e.preventDefault()
+
+    const currentY = e.pageY || e.touches[0].pageY
+    const deltaY = Math.max(0, currentY - startY)
+    currentTranslateY = deltaY
+
+    if (!animationFrameId) {
+      animationFrameId = requestAnimationFrame(() => {
+        drawerPanel.style.transform = `translateY(${currentTranslateY}px)`
+        const panelHeight = drawerPanel.offsetHeight
+        const opacity = 1 - (currentTranslateY / panelHeight) * 0.8
+        drawerBackdrop.style.opacity = Math.max(0, opacity).toString()
+        animationFrameId = null
       })
-    } else if (!visible && shouldRender) {
-      // Closing animation
-      isAnimating = true
-      hasTransition = true
-
-      // Animate to closed position
-      translateY = sheetElement ? sheetElement.offsetHeight || 400 : 400
-      backdropOpacity = 0
-
-      // Remove from DOM after animation
-      setTimeout(() => {
-        shouldRender = false
-        isAnimating = false
-        translateY = 0 // Reset for next opening
-      }, 400)
-    }
-  })
-
-  function handleTouchStart(event) {
-    if (event.touches.length === 1) {
-      touchStartY = event.touches[0].clientY
-      isDragging = true
-      hasTransition = false // Disable CSS transition while dragging
-      document.body.style.overflow = 'hidden' // Prevent body scroll
     }
   }
 
-  function handleTouchMove(event) {
-    if (isDragging && event.touches.length === 1) {
-      // Prevent page scroll on mobile
-      event.preventDefault()
-
-      touchMoveY = event.touches[0].clientY
-      const deltaY = Math.max(0, touchMoveY - touchStartY) // Only allow dragging downwards
-      translateY = deltaY
-
-      // Use requestAnimationFrame for smooth updates
-      if (!animationFrameId) {
-        animationFrameId = requestAnimationFrame(() => {
-          // Calculate backdrop opacity based on drag distance
-          if (sheetElement) {
-            const sheetHeight = sheetElement.offsetHeight
-            const opacity = 1 - (translateY / sheetHeight) * 0.8 // *0.8 to avoid complete transparency too early
-            backdropOpacity = Math.max(0.2, opacity) // Minimum opacity 0.2
-          }
-          animationFrameId = null
-        })
-      }
-    }
-  }
-
-  function handleTouchEnd() {
+  const onDragEnd = () => {
     if (!isDragging) return
     isDragging = false
-    document.body.style.overflow = '' // Restore body scroll
 
-    // Cancel any pending animation frame
+    // Khôi phục scroll của body
+    document.body.style.overflow = ''
+    document.body.style.touchAction = ''
+
+    document.removeEventListener('mousemove', onDragging)
+    document.removeEventListener('mouseup', onDragEnd)
+    document.removeEventListener('touchmove', onDragging)
+    document.removeEventListener('touchend', onDragEnd)
+
     if (animationFrameId) {
       cancelAnimationFrame(animationFrameId)
       animationFrameId = null
     }
 
-    // Re-enable CSS transition for snap animation
-    hasTransition = true
+    drawerPanel.style.transition = ''
+    drawerBackdrop.style.transition = ''
 
-    // Smart snap logic: close if dragged more than 1/4 of sheet height
-    const threshold = sheetElement ? sheetElement.offsetHeight / 4 : 100
-
-    if (translateY > threshold) {
-      // Close the sheet
-      onclose?.()
+    const panelHeight = drawerPanel.offsetHeight
+    if (currentTranslateY > panelHeight / 4) {
+      closeDrawer()
     } else {
-      // Snap back to original position
-      translateY = 0
-      backdropOpacity = 1
-    }
-  }
-
-  function closeSheet() {
-    // Don't close if already animating
-    if (isAnimating) return
-    onclose?.()
-  }
-
-  function handleKeyDown(event) {
-    if (visible && event.key === 'Escape') {
-      onclose?.()
+      drawerBackdrop.style.opacity = '1'
+      drawerPanel.style.transform = 'translateY(0)'
     }
   }
 </script>
 
-{#if shouldRender}
-  <!-- svelte-ignore a11y_consider_explicit_label -->
-  <button
-    class="mobile-sheet-backdrop"
-    class:has-transition={hasTransition}
-    style="opacity: {backdropOpacity};"
-    onclick={closeSheet}
-  ></button>
+<!-- Drawer Container -->
+<div
+  bind:this={drawerContainer}
+  class="fixed inset-0 z-[10000] pointer-events-none"
+  role="dialog"
+  aria-modal="true"
+>
+  <!-- Backdrop -->
+  <!-- svelte-ignore a11y_click_events_have_key_events -->
   <div
-    bind:this={sheetElement}
-    class="mobile-sheet"
-    class:has-transition={hasTransition}
-    style="transform: translateY({translateY}px);"
-    role="dialog"
-    aria-modal="true"
-    tabindex="-1"
+    bind:this={drawerBackdrop}
+    class="drawer-backdrop absolute inset-0 bg-black/40 opacity-0"
+    onclick={closeDrawer}
+  ></div>
+
+  <!-- Drawer Panel -->
+  <div
+    bind:this={drawerPanel}
+    class="drawer-panel fixed bottom-0 left-0 right-0 bg-white text-black rounded-t-2xl shadow-2xl max-h-[80vh] flex flex-col"
+    style="transform: translateY(100%);"
   >
+    <!-- Drawer Header (Drag Handle) -->
     <div
-      class="sheet-header"
-      ontouchstart={handleTouchStart}
-      ontouchmove={handleTouchMove}
-      ontouchend={handleTouchEnd}
+      bind:this={drawerHeader}
+      class="p-4 cursor-grab active:cursor-grabbing drag-handle"
+      ontouchstart={onDragStart}
     >
-      <div class="handle"></div>
-      <div class="action-button-container">
-        <button
-          class=" sum:p-2 sum:bg-amber-600"
-          onclick={summarization.summarizePageContent}
-        >
-          Summarize Mobile
-        </button>
-      </div>
+      <div
+        class="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-gray-300"
+      ></div>
     </div>
-    <div class="sheet-content">
+
+    <!-- Drawer Content -->
+    <div class="px-4 pb-4 flex-grow overflow-y-auto">
       <MobileSummaryDisplay
         summary={summaryToDisplay}
         isLoading={statusToDisplay === 'loading'}
         error={summarization.localSummaryState().error}
       />
-      <!-- <SettingsMini /> -->
+    </div>
+
+    <!-- Action Button -->
+    <div class="px-4 pb-4 flex-shrink-0">
+      <button
+        class="w-full bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-colors"
+        onclick={summarization.summarizePageContent}
+      >
+        Summarize
+      </button>
     </div>
   </div>
-{/if}
+</div>
 
 <style>
-  /* Custom transition for smooth animations */
-  .mobile-sheet-backdrop {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    z-index: 10001;
-    /* Disable tap highlight on mobile */
-    -webkit-tap-highlight-color: transparent;
+  /* Custom transition for drawer and backdrop */
+  .drawer-panel,
+  .drawer-backdrop {
+    transition:
+      transform 0.4s cubic-bezier(0.32, 0.72, 0, 1),
+      opacity 0.4s cubic-bezier(0.32, 0.72, 0, 1);
   }
 
-  .mobile-sheet-backdrop.has-transition {
-    transition: opacity 0.4s cubic-bezier(0.32, 0.72, 0, 1);
-  }
-
-  .mobile-sheet {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background-color: white;
-    color: black;
-    border-top-left-radius: 16px;
-    border-top-right-radius: 16px;
-    box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.2);
-    z-index: 10002;
-    max-height: 80vh;
-    display: flex;
-    flex-direction: column;
-    /* Disable tap highlight on mobile */
-    -webkit-tap-highlight-color: transparent;
-  }
-
-  .mobile-sheet.has-transition {
-    transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
-  }
-
-  .sheet-header {
-    padding: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+  /* Ngăn chặn touch actions mặc định trên drag handle */
+  .drag-handle {
     touch-action: none;
-    position: relative;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
   }
 
-  .handle {
-    width: 40px;
-    height: 4px;
-    background-color: #ccc;
-    border-radius: 2px;
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-  }
-
-  .action-button-container {
-    display: flex;
-    align-items: center;
-    margin-left: auto;
-  }
-
-  .action-button-container button {
-    background: #007bff;
-    color: white;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 6px;
-    font-size: 14px;
-    cursor: pointer;
-    font-weight: 500;
-  }
-
-  .action-button-container button:hover {
-    background: #0056b3;
-  }
-
-  .sheet-content {
-    padding: 0 16px 16px;
-    overflow-y: auto;
-    flex-grow: 1;
-    scroll-behavior: smooth;
-    -webkit-overflow-scrolling: touch; /* For momentum-based scrolling on iOS */
+  /* Remove tap highlight on mobile */
+  * {
+    -webkit-tap-highlight-color: transparent;
   }
 </style>

@@ -98,10 +98,16 @@
   }
 
   const onDragging = (e) => {
-    if (!isDragging) return
+    if (!isDragging) {
+      // If not dragging the drawer, allow default behavior (e.g., scrolling content)
+      return
+    }
+
+    // Prevent default touch behavior only when actively dragging the drawer
     e.preventDefault()
 
     const currentY = e.pageY || e.touches[0].pageY
+    // Only allow pulling down (positive deltaY)
     const deltaY = Math.max(0, currentY - startY)
     currentTranslateY = deltaY
 
@@ -159,11 +165,11 @@
     class="drawer-panel fixed bottom-0 left-0 right-0 bg-white text-black rounded-t-2xl shadow-2xl max-h-[80vh] flex flex-col"
     style="transform: translateY(100%);"
   >
-    <!-- Drawer Header (Drag Handle) -->
+    <!-- Drawer Header (Drag Handle)       onmousedown={onDragStart}
+ -->
     <div
       bind:this={drawerHeader}
       class="p-4 cursor-grab active:cursor-grabbing drag-handle"
-      onmousedown={onDragStart}
       ontouchstart={onDragStart}
     >
       <div
@@ -174,7 +180,7 @@
     <!-- Drawer Content -->
     <div
       bind:this={drawerContent}
-      class="px-4 pb-4 flex-grow overflow-y-auto"
+      class="px-4 pb-4 flex-grow overflow-y-auto drawer-content"
       onmousedown={onDragStart}
       ontouchstart={onDragStart}
     >
@@ -219,6 +225,13 @@
     -webkit-touch-callout: none;
     -webkit-user-select: none;
     user-select: none;
+  }
+
+  /* Ngăn chặn pull-to-refresh cho drawer content */
+  .drawer-content {
+    touch-action: pan-y;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
   }
 
   /* Remove tap highlight on mobile */

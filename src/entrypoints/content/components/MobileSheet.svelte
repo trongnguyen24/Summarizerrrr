@@ -45,7 +45,7 @@
         unlockBodyScroll()
         // Run closing animation
         drawerBackdrop.style.opacity = '0'
-        drawerPanel.style.transform = 'translateY(100%)'
+        drawerPanel.style.transform = 'translateY(calc(100% + 10vh))'
         // Defer making it non-interactive to allow animation to finish
         setTimeout(() => {
           drawerContainer.classList.add('pointer-events-none')
@@ -163,7 +163,7 @@
   <div
     bind:this={drawerPanel}
     class="drawer-panel fixed bottom-0 left-0 right-0 bg-white text-black rounded-t-2xl shadow-2xl max-h-[80vh] flex flex-col"
-    style="transform: translateY(100%);"
+    style="transform: translateY(calc(100% + 10vh));"
   >
     <!-- Drawer Header (Drag Handle)       onmousedown={onDragStart}
  -->
@@ -215,8 +215,8 @@
   .drawer-panel,
   .drawer-backdrop {
     transition:
-      transform 0.4s cubic-bezier(0.32, 0.72, 0, 1),
-      opacity 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+      transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+      opacity 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   }
 
   /* Ngăn chặn touch actions mặc định trên drag handle */

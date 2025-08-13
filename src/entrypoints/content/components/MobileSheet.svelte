@@ -18,7 +18,7 @@
   let startY
   let currentTranslateY
   let animationFrameId
-  let drawerContainer, drawerBackdrop, drawerPanel, drawerHeader
+  let drawerContainer, drawerBackdrop, drawerPanel, drawerHeader, drawerContent
 
   function openDrawer() {
     if (!drawerContainer) return
@@ -76,18 +76,25 @@
   // --- Drag/Swipe to close logic ---
 
   const onDragStart = (e) => {
-    e.preventDefault() // Ngăn chặn scroll mặc định ngay từ đầu
-    isDragging = true
-    startY = e.pageY || e.touches[0].pageY
-    drawerPanel.style.transition = 'none'
-    drawerBackdrop.style.transition = 'none'
+    const target = e.target
+    const isHeader = drawerHeader.contains(target)
+    const isContent = drawerContent.contains(target)
 
-    // Body scroll đã được lock khi sheet mở, không cần thêm gì
+    // Only start dragging if:
+    // 1. Touched on the header.
+    // OR
+    // 2. Touched on the content area AND the content is scrolled to the top.
+    if (isHeader || (isContent && drawerContent.scrollTop === 0)) {
+      isDragging = true
+      startY = e.pageY || e.touches[0].pageY
+      drawerPanel.style.transition = 'none'
+      drawerBackdrop.style.transition = 'none'
 
-    document.addEventListener('mousemove', onDragging)
-    document.addEventListener('mouseup', onDragEnd)
-    document.addEventListener('touchmove', onDragging, { passive: false })
-    document.addEventListener('touchend', onDragEnd)
+      // Body scroll is already locked when the sheet is open, no need for more
+    } else {
+      // Otherwise, allow content to scroll normally.
+      isDragging = false
+    }
   }
 
   const onDragging = (e) => {
@@ -112,13 +119,6 @@
   const onDragEnd = () => {
     if (!isDragging) return
     isDragging = false
-
-    // Body scroll vẫn được lock, không cần làm gì thêm
-
-    document.removeEventListener('mousemove', onDragging)
-    document.removeEventListener('mouseup', onDragEnd)
-    document.removeEventListener('touchmove', onDragging)
-    document.removeEventListener('touchend', onDragEnd)
 
     if (animationFrameId) {
       cancelAnimationFrame(animationFrameId)
@@ -163,6 +163,7 @@
     <div
       bind:this={drawerHeader}
       class="p-4 cursor-grab active:cursor-grabbing drag-handle"
+      onmousedown={onDragStart}
       ontouchstart={onDragStart}
     >
       <div
@@ -171,7 +172,12 @@
     </div>
 
     <!-- Drawer Content -->
-    <div class="px-4 pb-4 flex-grow overflow-y-auto">
+    <div
+      bind:this={drawerContent}
+      class="px-4 pb-4 flex-grow overflow-y-auto"
+      onmousedown={onDragStart}
+      ontouchstart={onDragStart}
+    >
       <MobileSummaryDisplay
         summary={summaryToDisplay}
         isLoading={statusToDisplay === 'loading'}
@@ -190,6 +196,13 @@
     </div>
   </div>
 </div>
+
+<svelte:body
+  onmousemove={onDragging}
+  onmouseup={onDragEnd}
+  ontouchmove={onDragging}
+  ontouchend={onDragEnd}
+/>
 
 <style>
   /* Custom transition for drawer and backdrop */

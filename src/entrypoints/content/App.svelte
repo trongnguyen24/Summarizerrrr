@@ -13,6 +13,7 @@
   import FloatingButton from './components/FloatingButton.svelte'
   import FloatingPanel from './components/FloatingPanel.svelte'
   import MobileSheet from './components/MobileSheet.svelte'
+  import Drawer from './components/Drawer.svelte'
 
   let isPanelVisible = $state(false) // Add $state
   let isMobile = $state(false) // Add $state
@@ -62,6 +63,7 @@
     {/key}
   </div>
   {#if isMobile}
+    <Drawer />
     <MobileSheet
       visible={isPanelVisible}
       onclose={() => (isPanelVisible = false)}

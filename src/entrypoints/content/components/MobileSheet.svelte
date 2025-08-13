@@ -18,19 +18,6 @@
   // Use the status from the composable directly to avoid state sync issues
   let statusToDisplay = $derived(summarization.statusToDisplay())
 
-  // Debug logging to see what's happening
-  $effect(() => {
-    console.log('[MobileSheet] statusToDisplay:', statusToDisplay)
-    console.log(
-      '[MobileSheet] summaryToDisplay:',
-      summaryToDisplay ? 'has content' : 'empty'
-    )
-    console.log(
-      '[MobileSheet] localSummaryState:',
-      summarization.localSummaryState()
-    )
-  })
-
   let touchStartY = 0
   let touchMoveY = 0
   let translateY = $state(0)
@@ -191,52 +178,5 @@
     flex-grow: 1;
     scroll-behavior: smooth;
     -webkit-overflow-scrolling: touch; /* For momentum-based scrolling on iOS */
-  }
-
-  .prose {
-    max-width: none;
-  }
-
-  .simple-summary {
-    padding: 16px 0;
-  }
-
-  .simple-summary h3 {
-    margin: 16px 0 8px 0;
-    font-size: 18px;
-    font-weight: 600;
-    color: #333;
-    border-bottom: 2px solid #007bff;
-    padding-bottom: 4px;
-  }
-
-  .summary-content,
-  .chapter-content {
-    margin: 12px 0;
-    line-height: 1.6;
-    color: #444;
-  }
-
-  .summary-content h1,
-  .summary-content h2,
-  .summary-content h3,
-  .chapter-content h1,
-  .chapter-content h2,
-  .chapter-content h3 {
-    margin-top: 16px;
-    margin-bottom: 8px;
-  }
-
-  .summary-content ul,
-  .summary-content ol,
-  .chapter-content ul,
-  .chapter-content ol {
-    margin: 8px 0;
-    padding-left: 24px;
-  }
-
-  .summary-content p,
-  .chapter-content p {
-    margin: 8px 0;
   }
 </style>

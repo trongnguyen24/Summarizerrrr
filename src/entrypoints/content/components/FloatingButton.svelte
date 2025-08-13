@@ -11,160 +11,340 @@
     loadThemeSettings,
     subscribeToThemeChanges,
   } from '@/stores/themeStore.svelte.js'
-  import { createDraggable, utils } from 'animejs' // Import animejs
 
+  // @ts-nocheck
   let { toggle, topButton } = $props()
   let buttonElement
-  let snapedge
   let buttonElementBG
-  let floatingButtonElement // Thêm biến này để tham chiếu đến nút floating-button
-  let draggableInstance = null // Khởi tạo draggableInstance
-  let releaseTimeout = null // Để lưu trữ timeout ID
+  let snapedge
 
-  // Initialize stores
+  const config = {
+    friction: 0.95,
+    snapThresholdPercent: 0.49,
+    snapLerpFactor: 0.11,
+    bounceFactor: -0.6,
+  }
+
+  const state = {
+    isDragging: false,
+    x: 0,
+    y: 0,
+    velocityX: 0,
+    velocityY: 0,
+    lastPointerX: 0,
+    lastPointerY: 0,
+    lastTimestamp: 0,
+    animationFrameId: null,
+    settingsUpdateTimeoutId: null,
+  }
+
+  const metrics = {
+    containerWidth: 0,
+    containerHeight: 0,
+    draggableWidth: 0,
+    draggableHeight: 0,
+    snapThreshold: 0,
+  }
+
   $effect(() => {
     loadSettings()
     subscribeToSettingsChanges()
   })
 
-  let startX, startY, isDragging
+  function updateMetrics() {
+    if (!snapedge) return
+    metrics.containerWidth = snapedge.clientWidth
+    metrics.containerHeight = snapedge.clientHeight
+    metrics.draggableWidth = buttonElement.offsetWidth
+    metrics.draggableHeight = buttonElement.offsetHeight
+    metrics.snapThreshold = metrics.containerWidth * config.snapThresholdPercent
+  }
 
-  const DRAG_THRESHOLD = 10 // pixels
+  function setPosition(x, y) {
+    state.x = x
+    state.y = y
+    if (buttonElement) {
+      buttonElement.style.transform = `translate3d(${x}px, ${y}px, 0)`
+    }
+  }
 
-  /**
-   * Gets the current window width for dynamic snap points.
-   * @returns {number} The current window width in pixels
-   */
-  function getWindowWidth() {
-    return document.body.clientWidth
+  function animationLoop(timestamp) {
+    if (state.isDragging) {
+      state.animationFrameId = null
+      return
+    }
+
+    if (!state.lastTimestamp) state.lastTimestamp = timestamp
+    const deltaTime = (timestamp - state.lastTimestamp) / 1000
+    state.lastTimestamp = timestamp
+    const clampedDeltaTime = Math.min(deltaTime, 0.1)
+
+    let targetSnapX = null
+    const isInLeftZone = state.x < metrics.snapThreshold
+    const isInRightZone =
+      state.x + metrics.draggableWidth >
+      metrics.containerWidth - metrics.snapThreshold
+
+    const isAlmostStationaryX = Math.abs(state.velocityX) < 0.5
+    if (isInLeftZone && (state.velocityX < 0 || isAlmostStationaryX)) {
+      targetSnapX = 0
+    } else if (isInRightZone && (state.velocityX > 0 || isAlmostStationaryX)) {
+      targetSnapX = metrics.containerWidth - metrics.draggableWidth
+    }
+
+    const frictionFactor = Math.pow(config.friction, clampedDeltaTime * 60)
+    state.velocityY *= frictionFactor
+
+    let newX = state.x
+    if (targetSnapX !== null) {
+      const dx = targetSnapX - state.x
+      const lerpFactor =
+        1 - Math.pow(1 - config.snapLerpFactor, clampedDeltaTime * 60)
+      newX += dx * lerpFactor
+      state.velocityX = 0
+    } else {
+      newX += state.velocityX * 16.67 * clampedDeltaTime
+      state.velocityX *= frictionFactor
+    }
+
+    let newY = state.y + state.velocityY * 16.67 * clampedDeltaTime
+
+    if (newX < 0 || newX + metrics.draggableWidth > metrics.containerWidth) {
+      if (targetSnapX === null) state.velocityX *= config.bounceFactor
+      newX = Math.max(
+        0,
+        Math.min(newX, metrics.containerWidth - metrics.draggableWidth)
+      )
+    }
+    if (newY < 0 || newY + metrics.draggableHeight > metrics.containerHeight) {
+      state.velocityY *= config.bounceFactor
+      newY = Math.max(
+        0,
+        Math.min(newY, metrics.containerHeight - metrics.draggableHeight)
+      )
+    }
+
+    setPosition(newX, newY)
+
+    const isSettledX =
+      targetSnapX !== null
+        ? Math.abs(targetSnapX - state.x) < 0.1
+        : Math.abs(state.velocityX) < 0.01
+    const isSettledY = Math.abs(state.velocityY) < 0.01
+
+    if (isSettledX && isSettledY) {
+      const finalX = targetSnapX !== null ? targetSnapX : state.x
+      setPosition(finalX, state.y)
+      state.animationFrameId = null
+
+      const isLeft = finalX < metrics.snapThreshold
+      updateButtonStyle(isLeft)
+
+      // Clear any existing timeout
+      if (state.settingsUpdateTimeoutId) {
+        clearTimeout(state.settingsUpdateTimeoutId)
+      }
+
+      // Delay settings update để đảm bảo button đã ngừng hoàn toàn
+      state.settingsUpdateTimeoutId = setTimeout(() => {
+        updateSettings({
+          floatButton: state.y,
+          floatButtonLeft: isLeft,
+        })
+        state.settingsUpdateTimeoutId = null
+      }, 50) // 100ms delay sau khi animation kết thúc
+    } else {
+      state.animationFrameId = requestAnimationFrame(animationLoop)
+    }
   }
 
   /**
-   * Initializes draggable with onResize callback.
+   * Snaps button to the nearest edge with smooth custom animation
    */
-  function initializeDraggable() {
-    if (!buttonElement) return
 
-    const draggables = createDraggable(buttonElement, {
-      container: snapedge,
-      x: { snap: [0, getWindowWidth()] },
+  /**
+   * Updates button visual style based on position
+   */
+  function updateButtonStyle(isLeft) {
+    if (!buttonElementBG) return
 
-      cursor: {
-        onHover: 'pointer',
-        onGrab: 'grabbing',
-      },
-      onGrab: () => {},
-      onResize: (self) => {},
-      onRelease: (self) => {
-        // Xóa timeout cũ nếu có
-        if (releaseTimeout) {
-          clearTimeout(releaseTimeout)
-        }
-        // Đặt timeout mới để lấy giá trị top sau 500ms
-        releaseTimeout = setTimeout(() => {
-          if (
-            buttonElement.getBoundingClientRect().left >
-            getWindowWidth() / 2
-          ) {
-            updateSettings({ floatButtonLeft: false })
-          } else {
-            updateSettings({ floatButtonLeft: true })
-          }
-          const currentTop = buttonElement.getBoundingClientRect().top
-          updateSettings({ floatButton: currentTop })
-
-          console.log('Floating button top after 500ms:', currentTop)
-        }, 800)
-      },
-    })
-    if (settings.floatButtonLeft === false) {
-      draggables.setX(getWindowWidth() - 40)
-      buttonElementBG.classList.remove('round-l')
-      buttonElementBG.classList.add('round-r')
-    } else {
+    if (isLeft) {
       buttonElementBG.classList.remove('round-r')
       buttonElementBG.classList.add('round-l')
+    } else {
+      buttonElementBG.classList.remove('round-l')
+      buttonElementBG.classList.add('round-r')
     }
   }
 
   /**
-   * Cleanup function to prevent memory leaks.
+   * Initializes button position from settings
    */
-  function destroyDraggable() {
-    if (draggableInstance) {
-      draggableInstance.destroy()
+  function initializePosition() {
+    if (!buttonElement || !settings || !snapedge) return
+
+    updateMetrics()
+
+    const isLeft = settings.floatButtonLeft !== false
+    const initialX = isLeft
+      ? 0
+      : metrics.containerWidth - metrics.draggableWidth
+    const initialY = Math.max(
+      0,
+      Math.min(
+        settings.floatButton || topButton || 100,
+        metrics.containerHeight - metrics.draggableHeight
+      )
+    )
+
+    setPosition(initialX, initialY)
+    updateButtonStyle(isLeft)
+  }
+
+  /**
+   * Unified event handler for start (mousedown/touchstart)
+   */
+  function handleStart(e) {
+    e.preventDefault()
+    state.isDragging = true
+    if (buttonElement) buttonElement.style.cursor = 'grabbing'
+    if (state.animationFrameId) {
+      cancelAnimationFrame(state.animationFrameId)
+      state.animationFrameId = null
+    }
+
+    if (buttonElementBG) {
+      buttonElementBG.classList.remove('round-l', 'round-r')
+    }
+
+    const pointer = e.type === 'touchstart' ? e.touches[0] : e
+    state.lastPointerX = pointer.clientX
+    state.lastPointerY = pointer.clientY
+    state.lastTimestamp = performance.now()
+    state.velocityX = 0
+    state.velocityY = 0
+
+    document.addEventListener('mousemove', handleMove, { passive: false })
+    document.addEventListener('touchmove', handleMove, { passive: false })
+    document.addEventListener('mouseup', handleEnd)
+    document.addEventListener('touchend', handleEnd)
+  }
+
+  /**
+   * Unified event handler for move (mousemove/touchmove)
+   */
+  function handleMove(e) {
+    if (!state.isDragging) return
+    e.preventDefault()
+
+    const pointer = e.type === 'touchmove' ? e.touches[0] : e
+    const now = performance.now()
+    const deltaTime = (now - state.lastTimestamp) / 1000
+
+    const dx = pointer.clientX - state.lastPointerX
+    const dy = pointer.clientY - state.lastPointerY
+
+    const newX = Math.max(
+      0,
+      Math.min(state.x + dx, metrics.containerWidth - metrics.draggableWidth)
+    )
+    const newY = Math.max(
+      0,
+      Math.min(state.y + dy, metrics.containerHeight - metrics.draggableHeight)
+    )
+    setPosition(newX, newY)
+
+    if (deltaTime > 0) {
+      const scaleFactor = 1 / (deltaTime * 16.67)
+      state.velocityX = dx * scaleFactor
+      state.velocityY = dy * scaleFactor
+    }
+
+    state.lastPointerX = pointer.clientX
+    state.lastPointerY = pointer.clientY
+    state.lastTimestamp = now
+  }
+
+  /**
+   * Unified event handler for end (mouseup/touchend)
+   */
+  function handleEnd(e) {
+    if (!state.isDragging) return
+
+    const wasDragging =
+      Math.abs(state.velocityX) > 2 || Math.abs(state.velocityY) > 2
+
+    state.isDragging = false
+    if (buttonElement) buttonElement.style.cursor = 'grab'
+
+    document.removeEventListener('mousemove', handleMove)
+    document.removeEventListener('touchmove', handleMove)
+    document.removeEventListener('mouseup', handleEnd)
+    document.removeEventListener('touchend', handleEnd)
+
+    if (wasDragging) {
+      state.lastTimestamp = performance.now()
+      state.animationFrameId = requestAnimationFrame(animationLoop)
+    } else {
+      // It was a click, not a drag
+      if (toggle) {
+        toggle()
+      }
+      // Snap back if it wasn't a real drag
+      state.lastTimestamp = performance.now()
+      state.velocityX = 0 // Ensure no sliding after a click
+      state.velocityY = 0
+      state.animationFrameId = requestAnimationFrame(animationLoop)
     }
   }
 
+  function nonPassiveTouch(node, handler) {
+    const options = { passive: false }
+    node.addEventListener('touchstart', handler, options)
+
+    return {
+      destroy() {
+        node.removeEventListener('touchstart', handler, options)
+      },
+    }
+  }
+
+  // Initialize position when component mounts and settings are loaded
   $effect(() => {
-    if (buttonElement) {
-      initializeDraggable()
-
-      function handleStart(e) {
-        // e.preventDefault() // Let's not prevent default on start, might interfere with other things
-        isDragging = false
-        const touch = e.type === 'touchstart' ? e.touches[0] : e
-        startX = touch.clientX
-        startY = touch.clientY
-        window.addEventListener('mousemove', handleMove, { passive: false })
-        window.addEventListener('touchmove', handleMove, { passive: false })
-        window.addEventListener('mouseup', handleEnd)
-        window.addEventListener('touchend', handleEnd)
-      }
-
-      function handleMove(e) {
-        // e.preventDefault() // Prevent scroll while dragging
-        const touch = e.type === 'touchmove' ? e.touches[0] : e
-        const deltaX = Math.abs(touch.clientX - startX)
-        const deltaY = Math.abs(touch.clientY - startY)
-        if (deltaX > DRAG_THRESHOLD || deltaY > DRAG_THRESHOLD) {
-          isDragging = true
-          buttonElementBG.classList.remove('round-l')
-          buttonElementBG.classList.remove('round-r')
-        }
-      }
-
-      function handleEnd(e) {
-        // This is the key fix: prevent the browser from firing a "ghost" click event
-        // after a touchend event.
-        if (e.type === 'touchend') {
-          e.preventDefault()
-        }
-
-        if (!isDragging) {
-          toggle?.()
-        }
-
-        // Cleanup listeners
-        window.removeEventListener('mousemove', handleMove)
-        window.removeEventListener('touchmove', handleMove)
-        window.removeEventListener('mouseup', handleEnd)
-        window.removeEventListener('touchend', handleEnd)
-      }
-
-      buttonElement.addEventListener('mousedown', handleStart)
-      buttonElement.addEventListener('touchstart', handleStart, {
-        passive: true,
-      })
-
-      return () => {
-        destroyDraggable()
-        buttonElement.removeEventListener('mousedown', handleStart)
-        buttonElement.removeEventListener('touchstart', handleStart)
-        window.removeEventListener('mousemove', handleMove)
-        window.removeEventListener('touchmove', handleMove)
-        window.removeEventListener('mouseup', handleEnd)
-        window.removeEventListener('touchend', handleEnd)
-      }
+    if (buttonElement && settings && snapedge) {
+      initializePosition()
     }
   })
 
-  let settingsLog = $state('')
-
+  // Handle window resize
   $effect(() => {
-    // Đảm bảo cả settings và themeSettings.theme đều được truy cập để $effect phản ứng
-    settingsLog = JSON.stringify(settings, null, 2)
-    // Truy cập themeSettings.theme để $effect theo dõi sự thay đổi của nó
+    function handleResize() {
+      if (buttonElement && settings && snapedge) {
+        initializePosition()
+      }
+    }
+
+    window.addEventListener('resize', handleResize)
+
+    return () => {
+      window.removeEventListener('resize', handleResize)
+    }
+  })
+
+  // Cleanup function
+  $effect(() => {
+    return () => {
+      if (state.animationFrameId) {
+        cancelAnimationFrame(state.animationFrameId)
+      }
+      if (state.settingsUpdateTimeoutId) {
+        clearTimeout(state.settingsUpdateTimeoutId)
+      }
+      document.removeEventListener('mousemove', handleMove)
+      document.removeEventListener('touchmove', handleMove)
+      document.removeEventListener('mouseup', handleEnd)
+      document.removeEventListener('touchend', handleEnd)
+    }
   })
 </script>
 
@@ -173,7 +353,9 @@
   bind:this={buttonElement}
   class="floating-button"
   title="Toggle Summarizer"
-  style="top: {topButton}px;"
+  style="left: 0; top: 0;"
+  onmousedown={handleStart}
+  use:nonPassiveTouch={handleStart}
 >
   <div bind:this={buttonElementBG} class="floating-button-bg round-l round-r">
     <div class="BG-cri">
@@ -195,21 +377,6 @@
 <div bind:this={snapedge} class="snapedge"></div>
 
 <style>
-  .floating-button {
-    position: fixed;
-    background: none !important;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    border: none !important;
-    display: flex;
-    padding: 0 !important;
-    align-items: center;
-    justify-content: center;
-    z-index: 10000000000000000000000000;
-    left: 0;
-  }
-
   .snapedge {
     position: fixed;
     right: 0;
@@ -224,20 +391,32 @@
   .floating-button:hover ~ .snapedge {
     pointer-events: visible;
   }
-  .round-l {
-    border-radius: 0 50px 50px 0 !important;
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+  .floating-button {
+    position: fixed;
+    background: none !important;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none !important;
+    display: flex;
+    padding: 0 !important;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000000000000000000000000;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: none;
+    will-change: transform;
   }
-  .round-r {
-    border-radius: 50px 0 0 50px !important;
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+
+  .floating-button:active {
+    cursor: grabbing;
   }
+
   .floating-button-bg {
     border-radius: 50px;
     background: #94a3c53c;
-
     width: 40px;
     height: 40px;
     color: rgb(167, 167, 167);
@@ -246,10 +425,24 @@
     justify-content: center;
     transition: all 0.3s ease-in-out;
   }
+
+  .round-l {
+    border-radius: 0 50px 50px 0 !important;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+
+  .round-r {
+    border-radius: 50px 0 0 50px !important;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+
   .floating-button-bg:hover {
     background: #ff8711;
     color: rgb(119, 196, 255);
   }
+
   .BG-cri {
     background: #00000000;
     width: 36px;
@@ -260,6 +453,7 @@
     justify-content: center;
     transition: all 0.3s ease-in-out;
   }
+
   .floating-button-bg:hover .BG-cri {
     background: #25345c;
   }

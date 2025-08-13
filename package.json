@@ -12,7 +12,8 @@
     "zip": "wxt zip",
     "zip:firefox": "wxt zip -b firefox",
     "check": "svelte-check --tsconfig ./tsconfig.json",
-    "postinstall": "wxt prepare"
+    "postinstall": "wxt prepare",
+    "android": "web-ext run --target=firefox-android --android-device ${ANDROID_DEVICE:-emulator-5554} --firefox-apk ${FIREFOX_APK:-org.mozilla.fenix} --source-dir .output/firefox-mv2 --adb-remove-old-artifacts"
   },
   "devDependencies": {
     "@ai-sdk/svelte": "^3.0.0",

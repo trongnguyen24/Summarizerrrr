@@ -36,6 +36,8 @@
     lastTimestamp: 0,
     animationFrameId: null,
     settingsUpdateTimeoutId: null,
+    resizeObserver: null,
+    debounceTimeoutId: null,
   }
 
   const metrics = {
@@ -316,18 +318,39 @@
     }
   })
 
-  // Handle window resize
-  $effect(() => {
-    function handleResize() {
+  // Debounced resize function
+  function debouncedResize() {
+    if (state.debounceTimeoutId) {
+      clearTimeout(state.debounceTimeoutId)
+    }
+
+    state.debounceTimeoutId = setTimeout(() => {
       if (buttonElement && settings && snapedge) {
         initializePosition()
       }
-    }
+      state.debounceTimeoutId = null
+    }, 100) // 100ms debounce
+  }
 
-    window.addEventListener('resize', handleResize)
+  // Handle snapedge resize with ResizeObserver instead of window resize
+  $effect(() => {
+    if (snapedge) {
+      state.resizeObserver = new ResizeObserver((entries) => {
+        debouncedResize()
+      })
 
-    return () => {
-      window.removeEventListener('resize', handleResize)
+      state.resizeObserver.observe(snapedge)
+
+      return () => {
+        if (state.resizeObserver) {
+          state.resizeObserver.disconnect()
+          state.resizeObserver = null
+        }
+        if (state.debounceTimeoutId) {
+          clearTimeout(state.debounceTimeoutId)
+          state.debounceTimeoutId = null
+        }
+      }
     }
   })
 
@@ -339,6 +362,12 @@
       }
       if (state.settingsUpdateTimeoutId) {
         clearTimeout(state.settingsUpdateTimeoutId)
+      }
+      if (state.debounceTimeoutId) {
+        clearTimeout(state.debounceTimeoutId)
+      }
+      if (state.resizeObserver) {
+        state.resizeObserver.disconnect()
       }
       document.removeEventListener('mousemove', handleMove)
       document.removeEventListener('touchmove', handleMove)
@@ -380,9 +409,9 @@
   .snapedge {
     position: fixed;
     right: 0;
-    bottom: 0;
-    top: 0;
     left: 0;
+    top: 0;
+    height: 100svh;
     overflow: hidden;
     pointer-events: none;
     z-index: 100000;

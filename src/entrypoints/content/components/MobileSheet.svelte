@@ -153,6 +153,7 @@
 >
   <!-- Backdrop -->
   <!-- svelte-ignore a11y_click_events_have_key_events -->
+  <!-- svelte-ignore a11y_no_static_element_interactions -->
   <div
     bind:this={drawerBackdrop}
     class="drawer-backdrop absolute inset-0 bg-black/40 opacity-0"
@@ -178,6 +179,7 @@
     </div>
 
     <!-- Drawer Content -->
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div
       bind:this={drawerContent}
       class="px-4 pb-4 flex-grow overflow-y-auto drawer-content"

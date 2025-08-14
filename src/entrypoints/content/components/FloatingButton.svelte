@@ -18,14 +18,19 @@
   let buttonElementBG
   let snapedge
 
+  // Reactive state để quản lý button position - khởi tạo dựa trên settings để tránh nhảy khi re-render
+  let buttonPosition = $state(
+    settings?.floatButtonLeft !== false ? 'left' : 'right'
+  )
+
   const config = {
-    friction: 0.95,
+    friction: 0.93,
     snapThresholdPercent: 0.49,
-    snapLerpFactor: 0.11,
+    snapLerpFactor: 0.13,
     bounceFactor: -0.6,
   }
 
-  const state = {
+  const stateButton = {
     isDragging: false,
     x: 0,
     y: 0,
@@ -63,63 +68,66 @@
   }
 
   function setPosition(x, y) {
-    state.x = x
-    state.y = y
+    stateButton.x = x
+    stateButton.y = y
     if (buttonElement) {
       buttonElement.style.transform = `translate3d(${x}px, ${y}px, 0)`
     }
   }
 
   function animationLoop(timestamp) {
-    if (state.isDragging) {
-      state.animationFrameId = null
+    if (stateButton.isDragging) {
+      stateButton.animationFrameId = null
       return
     }
 
-    if (!state.lastTimestamp) state.lastTimestamp = timestamp
-    const deltaTime = (timestamp - state.lastTimestamp) / 1000
-    state.lastTimestamp = timestamp
+    if (!stateButton.lastTimestamp) stateButton.lastTimestamp = timestamp
+    const deltaTime = (timestamp - stateButton.lastTimestamp) / 1000
+    stateButton.lastTimestamp = timestamp
     const clampedDeltaTime = Math.min(deltaTime, 0.1)
 
     let targetSnapX = null
-    const isInLeftZone = state.x < metrics.snapThreshold
+    const isInLeftZone = stateButton.x < metrics.snapThreshold
     const isInRightZone =
-      state.x + metrics.draggableWidth >
+      stateButton.x + metrics.draggableWidth >
       metrics.containerWidth - metrics.snapThreshold
 
-    const isAlmostStationaryX = Math.abs(state.velocityX) < 0.5
-    if (isInLeftZone && (state.velocityX < 0 || isAlmostStationaryX)) {
+    const isAlmostStationaryX = Math.abs(stateButton.velocityX) < 0.5
+    if (isInLeftZone && (stateButton.velocityX < 0 || isAlmostStationaryX)) {
       targetSnapX = 0
-    } else if (isInRightZone && (state.velocityX > 0 || isAlmostStationaryX)) {
+    } else if (
+      isInRightZone &&
+      (stateButton.velocityX > 0 || isAlmostStationaryX)
+    ) {
       targetSnapX = metrics.containerWidth - metrics.draggableWidth
     }
 
     const frictionFactor = Math.pow(config.friction, clampedDeltaTime * 60)
-    state.velocityY *= frictionFactor
+    stateButton.velocityY *= frictionFactor
 
-    let newX = state.x
+    let newX = stateButton.x
     if (targetSnapX !== null) {
-      const dx = targetSnapX - state.x
+      const dx = targetSnapX - stateButton.x
       const lerpFactor =
         1 - Math.pow(1 - config.snapLerpFactor, clampedDeltaTime * 60)
       newX += dx * lerpFactor
-      state.velocityX = 0
+      stateButton.velocityX = 0
     } else {
-      newX += state.velocityX * 16.67 * clampedDeltaTime
-      state.velocityX *= frictionFactor
+      newX += stateButton.velocityX * 16.67 * clampedDeltaTime
+      stateButton.velocityX *= frictionFactor
     }
 
-    let newY = state.y + state.velocityY * 16.67 * clampedDeltaTime
+    let newY = stateButton.y + stateButton.velocityY * 16.67 * clampedDeltaTime
 
     if (newX < 0 || newX + metrics.draggableWidth > metrics.containerWidth) {
-      if (targetSnapX === null) state.velocityX *= config.bounceFactor
+      if (targetSnapX === null) stateButton.velocityX *= config.bounceFactor
       newX = Math.max(
         0,
         Math.min(newX, metrics.containerWidth - metrics.draggableWidth)
       )
     }
     if (newY < 0 || newY + metrics.draggableHeight > metrics.containerHeight) {
-      state.velocityY *= config.bounceFactor
+      stateButton.velocityY *= config.bounceFactor
       newY = Math.max(
         0,
         Math.min(newY, metrics.containerHeight - metrics.draggableHeight)
@@ -130,33 +138,38 @@
 
     const isSettledX =
       targetSnapX !== null
-        ? Math.abs(targetSnapX - state.x) < 0.1
-        : Math.abs(state.velocityX) < 0.01
-    const isSettledY = Math.abs(state.velocityY) < 0.01
+        ? Math.abs(targetSnapX - stateButton.x) < 0.1
+        : Math.abs(stateButton.velocityX) < 0.01
+    const isSettledY = Math.abs(stateButton.velocityY) < 0.01
 
     if (isSettledX && isSettledY) {
-      const finalX = targetSnapX !== null ? targetSnapX : state.x
-      setPosition(finalX, state.y)
-      state.animationFrameId = null
+      const finalX = targetSnapX !== null ? targetSnapX : stateButton.x
+      setPosition(finalX, stateButton.y)
+      stateButton.animationFrameId = null
 
       const isLeft = finalX < metrics.snapThreshold
       updateButtonStyle(isLeft)
 
       // Clear any existing timeout
-      if (state.settingsUpdateTimeoutId) {
-        clearTimeout(state.settingsUpdateTimeoutId)
+      if (stateButton.settingsUpdateTimeoutId) {
+        clearTimeout(stateButton.settingsUpdateTimeoutId)
       }
 
       // Delay settings update để đảm bảo button đã ngừng hoàn toàn
-      state.settingsUpdateTimeoutId = setTimeout(() => {
+      stateButton.settingsUpdateTimeoutId = setTimeout(() => {
         updateSettings({
-          floatButton: state.y,
+          floatButton: stateButton.y,
           floatButtonLeft: isLeft,
         })
-        state.settingsUpdateTimeoutId = null
+        stateButton.settingsUpdateTimeoutId = null
       }, 50) // 100ms delay sau khi animation kết thúc
     } else {
-      state.animationFrameId = requestAnimationFrame(animationLoop)
+      // Dự đoán trước trạng thái cuối ngay khi có targetSnapX
+      if (targetSnapX !== null) {
+        const predictedIsLeft = targetSnapX < metrics.snapThreshold
+        buttonPosition = predictedIsLeft ? 'left' : 'right'
+      }
+      stateButton.animationFrameId = requestAnimationFrame(animationLoop)
     }
   }
 
@@ -168,15 +181,8 @@
    * Updates button visual style based on position
    */
   function updateButtonStyle(isLeft) {
-    if (!buttonElementBG) return
-
-    if (isLeft) {
-      buttonElementBG.classList.remove('round-r')
-      buttonElementBG.classList.add('round-l')
-    } else {
-      buttonElementBG.classList.remove('round-l')
-      buttonElementBG.classList.add('round-r')
-    }
+    // Chỉ update state khi animation kết thúc hoàn toàn
+    buttonPosition = isLeft ? 'left' : 'right'
   }
 
   /**
@@ -208,23 +214,22 @@
    */
   function handleStart(e) {
     e.preventDefault()
-    state.isDragging = true
+    stateButton.isDragging = true
     if (buttonElement) buttonElement.style.cursor = 'grabbing'
-    if (state.animationFrameId) {
-      cancelAnimationFrame(state.animationFrameId)
-      state.animationFrameId = null
+    if (stateButton.animationFrameId) {
+      cancelAnimationFrame(stateButton.animationFrameId)
+      stateButton.animationFrameId = null
     }
 
-    if (buttonElementBG) {
-      buttonElementBG.classList.remove('round-l', 'round-r')
-    }
+    // Set state thành dragging thay vì thao tác classList
+    buttonPosition = 'dragging'
 
     const pointer = e.type === 'touchstart' ? e.touches[0] : e
-    state.lastPointerX = pointer.clientX
-    state.lastPointerY = pointer.clientY
-    state.lastTimestamp = performance.now()
-    state.velocityX = 0
-    state.velocityY = 0
+    stateButton.lastPointerX = pointer.clientX
+    stateButton.lastPointerY = pointer.clientY
+    stateButton.lastTimestamp = performance.now()
+    stateButton.velocityX = 0
+    stateButton.velocityY = 0
 
     document.addEventListener('mousemove', handleMove, { passive: false })
     document.addEventListener('touchmove', handleMove, { passive: false })
@@ -236,47 +241,53 @@
    * Unified event handler for move (mousemove/touchmove)
    */
   function handleMove(e) {
-    if (!state.isDragging) return
+    if (!stateButton.isDragging) return
     e.preventDefault()
 
     const pointer = e.type === 'touchmove' ? e.touches[0] : e
     const now = performance.now()
-    const deltaTime = (now - state.lastTimestamp) / 1000
+    const deltaTime = (now - stateButton.lastTimestamp) / 1000
 
-    const dx = pointer.clientX - state.lastPointerX
-    const dy = pointer.clientY - state.lastPointerY
+    const dx = pointer.clientX - stateButton.lastPointerX
+    const dy = pointer.clientY - stateButton.lastPointerY
 
     const newX = Math.max(
       0,
-      Math.min(state.x + dx, metrics.containerWidth - metrics.draggableWidth)
+      Math.min(
+        stateButton.x + dx,
+        metrics.containerWidth - metrics.draggableWidth
+      )
     )
     const newY = Math.max(
       0,
-      Math.min(state.y + dy, metrics.containerHeight - metrics.draggableHeight)
+      Math.min(
+        stateButton.y + dy,
+        metrics.containerHeight - metrics.draggableHeight
+      )
     )
     setPosition(newX, newY)
 
     if (deltaTime > 0) {
       const scaleFactor = 1 / (deltaTime * 16.67)
-      state.velocityX = dx * scaleFactor
-      state.velocityY = dy * scaleFactor
+      stateButton.velocityX = dx * scaleFactor
+      stateButton.velocityY = dy * scaleFactor
     }
 
-    state.lastPointerX = pointer.clientX
-    state.lastPointerY = pointer.clientY
-    state.lastTimestamp = now
+    stateButton.lastPointerX = pointer.clientX
+    stateButton.lastPointerY = pointer.clientY
+    stateButton.lastTimestamp = now
   }
 
   /**
    * Unified event handler for end (mouseup/touchend)
    */
   function handleEnd(e) {
-    if (!state.isDragging) return
+    if (!stateButton.isDragging) return
 
     const wasDragging =
-      Math.abs(state.velocityX) > 2 || Math.abs(state.velocityY) > 2
+      Math.abs(stateButton.velocityX) > 2 || Math.abs(stateButton.velocityY) > 2
 
-    state.isDragging = false
+    stateButton.isDragging = false
     if (buttonElement) buttonElement.style.cursor = 'grab'
 
     document.removeEventListener('mousemove', handleMove)
@@ -285,18 +296,18 @@
     document.removeEventListener('touchend', handleEnd)
 
     if (wasDragging) {
-      state.lastTimestamp = performance.now()
-      state.animationFrameId = requestAnimationFrame(animationLoop)
+      stateButton.lastTimestamp = performance.now()
+      stateButton.animationFrameId = requestAnimationFrame(animationLoop)
     } else {
       // It was a click, not a drag
       if (toggle) {
         toggle()
       }
       // Snap back if it wasn't a real drag
-      state.lastTimestamp = performance.now()
-      state.velocityX = 0 // Ensure no sliding after a click
-      state.velocityY = 0
-      state.animationFrameId = requestAnimationFrame(animationLoop)
+      stateButton.lastTimestamp = performance.now()
+      stateButton.velocityX = 0 // Ensure no sliding after a click
+      stateButton.velocityY = 0
+      stateButton.animationFrameId = requestAnimationFrame(animationLoop)
     }
   }
 
@@ -320,35 +331,35 @@
 
   // Debounced resize function
   function debouncedResize() {
-    if (state.debounceTimeoutId) {
-      clearTimeout(state.debounceTimeoutId)
+    if (stateButton.debounceTimeoutId) {
+      clearTimeout(stateButton.debounceTimeoutId)
     }
 
-    state.debounceTimeoutId = setTimeout(() => {
+    stateButton.debounceTimeoutId = setTimeout(() => {
       if (buttonElement && settings && snapedge) {
         initializePosition()
       }
-      state.debounceTimeoutId = null
+      stateButton.debounceTimeoutId = null
     }, 100) // 100ms debounce
   }
 
   // Handle snapedge resize with ResizeObserver instead of window resize
   $effect(() => {
     if (snapedge) {
-      state.resizeObserver = new ResizeObserver((entries) => {
+      stateButton.resizeObserver = new ResizeObserver((entries) => {
         debouncedResize()
       })
 
-      state.resizeObserver.observe(snapedge)
+      stateButton.resizeObserver.observe(snapedge)
 
       return () => {
-        if (state.resizeObserver) {
-          state.resizeObserver.disconnect()
-          state.resizeObserver = null
+        if (stateButton.resizeObserver) {
+          stateButton.resizeObserver.disconnect()
+          stateButton.resizeObserver = null
         }
-        if (state.debounceTimeoutId) {
-          clearTimeout(state.debounceTimeoutId)
-          state.debounceTimeoutId = null
+        if (stateButton.debounceTimeoutId) {
+          clearTimeout(stateButton.debounceTimeoutId)
+          stateButton.debounceTimeoutId = null
         }
       }
     }
@@ -357,17 +368,17 @@
   // Cleanup function
   $effect(() => {
     return () => {
-      if (state.animationFrameId) {
-        cancelAnimationFrame(state.animationFrameId)
+      if (stateButton.animationFrameId) {
+        cancelAnimationFrame(stateButton.animationFrameId)
       }
-      if (state.settingsUpdateTimeoutId) {
-        clearTimeout(state.settingsUpdateTimeoutId)
+      if (stateButton.settingsUpdateTimeoutId) {
+        clearTimeout(stateButton.settingsUpdateTimeoutId)
       }
-      if (state.debounceTimeoutId) {
-        clearTimeout(state.debounceTimeoutId)
+      if (stateButton.debounceTimeoutId) {
+        clearTimeout(stateButton.debounceTimeoutId)
       }
-      if (state.resizeObserver) {
-        state.resizeObserver.disconnect()
+      if (stateButton.resizeObserver) {
+        stateButton.resizeObserver.disconnect()
       }
       document.removeEventListener('mousemove', handleMove)
       document.removeEventListener('touchmove', handleMove)
@@ -386,19 +397,26 @@
   onmousedown={handleStart}
   use:nonPassiveTouch={handleStart}
 >
-  <div bind:this={buttonElementBG} class="floating-button-bg round-l round-r">
-    <div class="BG-cri">
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="18"
-        height="18"
-        viewBox="0 0 16 16"
-      >
-        <path
-          fill="currentColor"
-          d="M7.53 1.282a.5.5 0 0 1 .94 0l.478 1.306a7.5 7.5 0 0 0 4.464 4.464l1.305.478a.5.5 0 0 1 0 .94l-1.305.478a7.5 7.5 0 0 0-4.464 4.464l-.478 1.305a.5.5 0 0 1-.94 0l-.478-1.305a7.5 7.5 0 0 0-4.464-4.464L1.282 8.47a.5.5 0 0 1 0-.94l1.306-.478a7.5 7.5 0 0 0 4.464-4.464Z"
-        />
-      </svg>
+  <div
+    bind:this={buttonElementBG}
+    class=" flex items-center justify-center h-10 w-10 text-gray-500/50 overflow-hidden rounded-4xl ease-out delay-150 duration-500 transition-all"
+    class:round-l={buttonPosition === 'left'}
+    class:round-r={buttonPosition === 'right'}
+  >
+    <div class="floating-button-bg">
+      <div class="BG-cri border border-slate-500/10">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="18"
+          height="18"
+          viewBox="0 0 16 16"
+        >
+          <path
+            fill="currentColor"
+            d="M7.53 1.282a.5.5 0 0 1 .94 0l.478 1.306a7.5 7.5 0 0 0 4.464 4.464l1.305.478a.5.5 0 0 1 0 .94l-1.305.478a7.5 7.5 0 0 0-4.464 4.464l-.478 1.305a.5.5 0 0 1-.94 0l-.478-1.305a7.5 7.5 0 0 0-4.464-4.464L1.282 8.47a.5.5 0 0 1 0-.94l1.306-.478a7.5 7.5 0 0 0 4.464-4.464Z"
+          />
+        </svg>
+      </div>
     </div>
   </div>
 </button>
@@ -446,9 +464,8 @@
   .floating-button-bg {
     border-radius: 50px;
     background: #94a3c53c;
-    width: 40px;
-    height: 40px;
-    color: rgb(167, 167, 167);
+    min-width: 80px;
+    height: 80px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -456,13 +473,13 @@
   }
 
   .round-l {
-    border-radius: 0 50px 50px 0 !important;
+    border-radius: 0 50px 50px 0;
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
   }
 
   .round-r {
-    border-radius: 50px 0 0 50px !important;
+    border-radius: 50px 0 0 50px;
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
   }

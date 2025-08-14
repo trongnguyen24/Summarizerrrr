@@ -142,6 +142,10 @@
       drawerPanel.style.transform = 'translateY(0)'
     }
   }
+
+  function openSettings() {
+    browser.runtime.sendMessage({ type: 'OPEN_SETTINGS' })
+  }
 </script>
 
 <!-- Drawer Container -->
@@ -200,6 +204,13 @@
         onclick={summarization.summarizePageContent}
       >
         Summarize
+      </button>
+
+      <button
+        class="mt-2 w-full bg-gray-200 text-gray-800 font-semibold py-3 px-6 rounded-lg shadow-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-50 transition-colors"
+        onclick={openSettings}
+      >
+        Settings
       </button>
     </div>
   </div>

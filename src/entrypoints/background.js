@@ -50,6 +50,23 @@ export default defineBackground(() => {
   let sidePanelPort = null
   let pendingSelectedText = null
 
+  // Mobile open Setting tab
+  browser.runtime.onMessage.addListener((msg) => {
+    if (!msg || !msg.type) return
+
+    // Ping để test kết nối từ content
+    if (msg.type === 'PING') {
+      // Trả Promise để polyfill nhận biết có receiver
+      return Promise.resolve({ ok: true })
+    }
+
+    if (msg.type === 'OPEN_SETTINGS') {
+      const url = browser.runtime.getURL('settings.html') // đổi đúng tên file của bạn
+      // Trên Firefox Android dùng tabs.create; desktop có thể openOptionsPage nhưng tabs.create là ổn nhất
+      return browser.tabs.create({ url, active: true }).then(() => undefined)
+    }
+  })
+
   // Tải cài đặt và đăng ký lắng nghe thay đổi khi background script khởi động
   loadSettings()
   subscribeToSettingsChanges()

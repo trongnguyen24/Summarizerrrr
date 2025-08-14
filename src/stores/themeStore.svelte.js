@@ -102,6 +102,33 @@ export function applyThemeToDocument(themeValue) {
   }
 }
 
+/**
+ * Applies the theme to a shadow DOM container.
+ * @param {'light' | 'dark' | 'system'} themeValue
+ * @param {Element} shadowContainer - The shadow DOM container element
+ */
+export function applyShadowTheme(themeValue, shadowContainer) {
+  if (typeof window === 'undefined' || !shadowContainer) return
+
+  const apply = (theme) => {
+    if (theme === 'dark') {
+      shadowContainer.classList.add('dark')
+    } else {
+      shadowContainer.classList.remove('dark')
+    }
+  }
+
+  if (themeValue === 'system') {
+    const systemTheme = window.matchMedia('(prefers-color-scheme: dark)')
+      .matches
+      ? 'dark'
+      : 'light'
+    apply(systemTheme)
+  } else {
+    apply(themeValue)
+  }
+}
+
 // --- Initialization ---
 
 /**
@@ -115,12 +142,37 @@ export function initializeTheme() {
 }
 
 /**
+ * Initializes the theme for shadow DOM by loading settings and applying the theme.
+ * @param {Element} shadowContainer - The shadow DOM container element
+ */
+export function initializeShadowTheme(shadowContainer) {
+  loadThemeSettings().then(() => {
+    applyShadowTheme(themeSettings.theme, shadowContainer)
+    subscribeToShadowThemeChanges(shadowContainer)
+  })
+}
+
+/**
  * Sets a new theme and updates storage.
  * @param {'light' | 'dark' | 'system'} themeValue
  */
 export function setTheme(themeValue) {
   updateThemeSettings({ theme: themeValue })
   // The watcher will call applyThemeToDocument
+}
+
+/**
+ * Subscribes to changes in theme storage for shadow DOM.
+ * @param {Element} shadowContainer - The shadow DOM container element
+ */
+export function subscribeToShadowThemeChanges(shadowContainer) {
+  return themeStorage.watch((newValue) => {
+    if (JSON.stringify(newValue) !== JSON.stringify(themeSettings)) {
+      const mergedSettings = { ...DEFAULT_THEME_SETTINGS, ...newValue }
+      Object.assign(themeSettings, mergedSettings)
+      applyShadowTheme(mergedSettings.theme, shadowContainer)
+    }
+  })
 }
 
 /**
@@ -133,6 +185,23 @@ export function subscribeToSystemThemeChanges() {
   const listener = () => {
     if (themeSettings.theme === 'system') {
       applyThemeToDocument('system')
+    }
+  }
+  mediaQuery.addEventListener('change', listener)
+  return () => mediaQuery.removeEventListener('change', listener)
+}
+
+/**
+ * Listens for system theme changes for shadow DOM.
+ * @param {Element} shadowContainer - The shadow DOM container element
+ */
+export function subscribeToShadowSystemThemeChanges(shadowContainer) {
+  if (typeof window === 'undefined') return () => {}
+
+  const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+  const listener = () => {
+    if (themeSettings.theme === 'system') {
+      applyShadowTheme('system', shadowContainer)
     }
   }
   mediaQuery.addEventListener('change', listener)

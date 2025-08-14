@@ -28,10 +28,14 @@
     snapThresholdPercent: 0.49,
     snapLerpFactor: 0.13,
     bounceFactor: -0.6,
+    dragThreshold: 10, // pixels
   }
 
   const stateButton = {
     isDragging: false,
+    isDragThresholdMet: false,
+    startX: 0,
+    startY: 0,
     x: 0,
     y: 0,
     velocityX: 0,
@@ -214,17 +218,18 @@
    */
   function handleStart(e) {
     e.preventDefault()
-    stateButton.isDragging = true
-    if (buttonElement) buttonElement.style.cursor = 'grabbing'
+
+    // Reset drag threshold state
+    stateButton.isDragThresholdMet = false
+
     if (stateButton.animationFrameId) {
       cancelAnimationFrame(stateButton.animationFrameId)
       stateButton.animationFrameId = null
     }
 
-    // Set state thành dragging thay vì thao tác classList
-    buttonPosition = 'dragging'
-
     const pointer = e.type === 'touchstart' ? e.touches[0] : e
+    stateButton.startX = pointer.clientX
+    stateButton.startY = pointer.clientY
     stateButton.lastPointerX = pointer.clientX
     stateButton.lastPointerY = pointer.clientY
     stateButton.lastTimestamp = performance.now()
@@ -241,12 +246,36 @@
    * Unified event handler for move (mousemove/touchmove)
    */
   function handleMove(e) {
-    if (!stateButton.isDragging) return
     e.preventDefault()
 
     const pointer = e.type === 'touchmove' ? e.touches[0] : e
     const now = performance.now()
     const deltaTime = (now - stateButton.lastTimestamp) / 1000
+
+    // Kiểm tra drag threshold nếu chưa được kích hoạt
+    if (!stateButton.isDragThresholdMet) {
+      const distanceFromStart = Math.sqrt(
+        Math.pow(pointer.clientX - stateButton.startX, 2) +
+          Math.pow(pointer.clientY - stateButton.startY, 2)
+      )
+
+      if (distanceFromStart >= config.dragThreshold) {
+        // Đã đạt threshold, kích hoạt drag mode
+        stateButton.isDragThresholdMet = true
+        stateButton.isDragging = true
+        if (buttonElement) buttonElement.style.cursor = 'grabbing'
+        buttonPosition = 'dragging'
+      } else {
+        // Chưa đạt threshold, chỉ update pointer position để track movement
+        stateButton.lastPointerX = pointer.clientX
+        stateButton.lastPointerY = pointer.clientY
+        stateButton.lastTimestamp = now
+        return
+      }
+    }
+
+    // Đã trong drag mode, xử lý movement bình thường
+    if (!stateButton.isDragging) return
 
     const dx = pointer.clientX - stateButton.lastPointerX
     const dy = pointer.clientY - stateButton.lastPointerY
@@ -282,12 +311,14 @@
    * Unified event handler for end (mouseup/touchend)
    */
   function handleEnd(e) {
-    if (!stateButton.isDragging) return
-
     const wasDragging =
-      Math.abs(stateButton.velocityX) > 2 || Math.abs(stateButton.velocityY) > 2
+      stateButton.isDragThresholdMet &&
+      (Math.abs(stateButton.velocityX) > 2 ||
+        Math.abs(stateButton.velocityY) > 2)
 
+    // Reset drag states
     stateButton.isDragging = false
+    stateButton.isDragThresholdMet = false
     if (buttonElement) buttonElement.style.cursor = 'grab'
 
     document.removeEventListener('mousemove', handleMove)
@@ -299,7 +330,7 @@
       stateButton.lastTimestamp = performance.now()
       stateButton.animationFrameId = requestAnimationFrame(animationLoop)
     } else {
-      // It was a click, not a drag
+      // It was a click, not a drag (either no threshold met or low velocity)
       if (toggle) {
         toggle()
       }

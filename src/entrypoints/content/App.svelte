@@ -8,6 +8,12 @@
     updateSettings,
     subscribeToSettingsChanges,
   } from '@/stores/settingsStore.svelte.js'
+  import {
+    themeSettings,
+    loadThemeSettings,
+    initializeShadowTheme,
+    subscribeToShadowSystemThemeChanges,
+  } from '@/stores/themeStore.svelte.js'
   import { slideScaleFade } from '@/lib/ui/slideScaleFade'
   import { summaryState } from '../../stores/summaryStore.svelte.js'
   import FloatingButton from './components/FloatingButton.svelte'
@@ -16,11 +22,20 @@
 
   let isPanelVisible = $state(false) // Add $state
   let isMobile = $state(false) // Add $state
+  let shadowContainer = $state(null) // Shadow DOM container reference
 
   // Initialize stores
   $effect(() => {
     loadSettings()
     subscribeToSettingsChanges()
+  })
+
+  // Initialize shadow theme when component mounts
+  $effect(() => {
+    if (shadowContainer) {
+      initializeShadowTheme(shadowContainer)
+      subscribeToShadowSystemThemeChanges(shadowContainer)
+    }
   })
 
   onMount(() => {
@@ -54,7 +69,7 @@
   }
 </script>
 
-<div class="floating-ui-root absolute top-0 left-0">
+<div bind:this={shadowContainer} class="floating-ui-root absolute top-0 left-0">
   <!-- rerender when settings.floatButton changes -->
   <div class="fadein">
     {#key settings.floatButton}
@@ -82,7 +97,8 @@
         <button onclick={requestSummary}>Summarize (Global)</button>
       {/snippet}
       {#snippet settingsMini()}
-        <SettingsMini />
+        <!-- <SettingsMini /> -->
+        <div>Settings Mini (placeholder)</div>
       {/snippet}
     </FloatingPanel>
   {/if}

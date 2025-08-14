@@ -7,7 +7,6 @@ import { browser } from 'wxt/browser'
 
 export async function injectScript(tabId, files) {
   if (!browser.scripting) {
-    console.warn('Browser Scripting API not available.')
     return false
   }
   try {
@@ -17,14 +16,12 @@ export async function injectScript(tabId, files) {
     })
     return true
   } catch (error) {
-    console.error(`Error injecting script into tab ${tabId}:`, error)
     return false
   }
 }
 
 export async function executeFunction(tabId, func, args = []) {
   if (!browser.scripting) {
-    console.warn('Browser Scripting API not available.')
     return null
   }
   try {
@@ -35,7 +32,6 @@ export async function executeFunction(tabId, func, args = []) {
     })
     return results?.[0]?.result ?? null
   } catch (error) {
-    console.error(`Error executing function in tab ${tabId}:`, error)
     return null
   }
 }
@@ -76,9 +72,6 @@ export default defineBackground(() => {
   async function injectContentScriptIntoTab(tabId, scriptPath) {
     if (import.meta.env.BROWSER === 'chrome') {
       if (!chrome.scripting) {
-        console.error(
-          'chrome.scripting API is not available. Check permissions or context.'
-        )
         return
       }
       try {
@@ -106,9 +99,6 @@ export default defineBackground(() => {
         })
 
         if (results[0]?.result === true) {
-          console.log(
-            `Content script ${scriptPath} already injected into tab ${tabId}.`
-          )
           return
         }
 
@@ -116,43 +106,20 @@ export default defineBackground(() => {
           target: { tabId: tabId },
           files: [scriptPath],
         })
-        console.log(`Content script ${scriptPath} injected into tab ${tabId}.`)
       } catch (err) {
-        console.warn(
-          `Failed to inject or check content script ${scriptPath} in tab ${tabId}:`,
-          err,
-          err.stack
-        )
         if (err.message?.includes('Cannot access contents of url')) {
-          console.warn(
-            `Cannot access tab ${tabId}, possibly a chrome:// or protected page.`
-          )
         } else if (err.message?.includes('Cannot access chrome://')) {
-          console.warn(`Skipping chrome:// tab ${tabId}.`)
         } else {
-          console.warn(`An unexpected error occurred for tab ${tabId}:`, err)
         }
       }
     } else if (import.meta.env.BROWSER === 'firefox') {
       try {
         const injected = await injectScript(tabId, [scriptPath])
         if (!injected) {
-          console.warn(
-            `[background.js] Failed to inject content script ${scriptPath} into tab ${tabId}.`
-          )
         }
       } catch (err) {
-        console.warn(
-          `Failed to inject or check content script ${scriptPath} in tab ${tabId}:`,
-          err,
-          err.stack
-        )
         if (err.message?.includes('Cannot access contents of url')) {
-          console.warn(
-            `Cannot access tab ${tabId}, possibly a browser:// or protected page.`
-          )
         } else {
-          console.warn(`An unexpected error occurred for tab ${tabId}:`, err)
         }
       }
     }
@@ -162,10 +129,6 @@ export default defineBackground(() => {
   // Helper function to send messages, preferring the side panel port but falling back to runtime.sendMessage.
   // This is more robust against the service worker going inactive.
   async function sendMessageToSidePanel(message) {
-    const logPrefix = `[background.js] ${
-      import.meta.env.BROWSER === 'chrome' ? 'Chrome' : 'Firefox'
-    }:`
-
     // First, try to send via the long-lived port if it exists.
     if (sidePanelPort) {
       try {
@@ -173,18 +136,10 @@ export default defineBackground(() => {
         // If the message is sent successfully, we're done.
         return
       } catch (error) {
-        console.warn(
-          `${logPrefix} Side panel port failed, likely disconnected. Error: ${error.message}. Falling back to runtime.sendMessage.`
-        )
         sidePanelPort = null // Port is no longer valid.
       }
     }
 
-    // If the port doesn't exist or failed, use runtime.sendMessage.
-    // This will be received by the side panel if it's open.
-    console.log(
-      `${logPrefix} Side panel port not available. Sending message via runtime.sendMessage.`
-    )
     try {
       await browser.runtime.sendMessage(message)
     } catch (error) {
@@ -193,14 +148,7 @@ export default defineBackground(() => {
         error.message.includes('Could not establish connection') ||
         error.message.includes('Receiving end does not exist')
       ) {
-        console.warn(
-          `${logPrefix} Side panel not open or no listener for runtime message.`
-        )
       } else {
-        console.error(
-          `${logPrefix} Error sending message via runtime.sendMessage:`,
-          error
-        )
       }
     }
   }
@@ -209,7 +157,7 @@ export default defineBackground(() => {
   if (import.meta.env.BROWSER === 'chrome') {
     chrome.sidePanel
       .setPanelBehavior({ openPanelOnActionClick: true })
-      .catch((error) => console.error(error))
+      .catch((error) => {})
   } else if (import.meta.env.BROWSER === 'firefox') {
     // Firefox specific action for browserAction.onClicked
     browser.browserAction.onClicked.addListener(() => {
@@ -222,10 +170,7 @@ export default defineBackground(() => {
     ? chrome.action
     : browser.browserAction
   ).onClicked.addListener(async (tab) => {
-    if (!tab.id || !tab.url) {
-      console.warn('Action clicked on a tab without ID or URL.')
-      return
-    }
+    if (!tab.id || !tab.url) return
 
     const isYouTube = YOUTUBE_REGEX.test(tab.url)
     const isUdemy = UDEMY_REGEX.test(tab.url)
@@ -254,19 +199,14 @@ export default defineBackground(() => {
 
   // 2. Listen for commands (keyboard shortcuts)
   browser.commands.onCommand.addListener(async (command) => {
-    console.log(`[background.js] Command received: ${command}`)
     const tabs = await browser.tabs.query({ active: true, currentWindow: true })
     const activeTab = tabs[0]
 
     if (!activeTab || !activeTab.id || !activeTab.url) {
-      console.warn('No active tab found or tab info missing for command.')
       return
     }
 
     if (command === 'summarize-current-page') {
-      console.log(
-        '[background.js] Summarize current page command received. Sending message to side panel.'
-      )
       const isYouTube = YOUTUBE_REGEX.test(activeTab.url)
       const isUdemy = UDEMY_REGEX.test(activeTab.url)
       const isCoursera = COURSERA_REGEX.test(activeTab.url)
@@ -286,75 +226,39 @@ export default defineBackground(() => {
       if (import.meta.env.BROWSER === 'chrome') {
         try {
           await chrome.sidePanel.open({ windowId: activeTab.windowId })
-        } catch (error) {
-          console.error(
-            '[background.js] Chrome: Error opening side panel for summarization:',
-            error
-          )
-        }
+        } catch (error) {}
       } else if (import.meta.env.BROWSER === 'firefox') {
         try {
           await browser.sidebarAction.open()
-        } catch (error) {
-          console.error(
-            '[background.js] Firefox: Error opening sidebar for summarization:',
-            error
-          )
-        }
+        } catch (error) {}
       }
     } else if (command === 'open-prompt-page') {
-      console.log('[background.js] Open prompt page command received.')
       if (import.meta.env.BROWSER === 'chrome') {
         try {
           await chrome.tabs.create({
             url: chrome.runtime.getURL('prompt.html'),
           })
-          console.log('[background.js] Chrome: Prompt page opened.')
-        } catch (error) {
-          console.error(
-            '[background.js] Chrome: Error opening prompt page:',
-            error
-          )
-        }
+        } catch (error) {}
       } else if (import.meta.env.BROWSER === 'firefox') {
         try {
           await browser.tabs.create({
             url: browser.runtime.getURL('prompt.html'),
           })
-          console.log('[background.js] Firefox: Prompt page opened.')
-        } catch (error) {
-          console.error(
-            '[background.js] Firefox: Error opening prompt page:',
-            error
-          )
-        }
+        } catch (error) {}
       }
     } else if (command === 'open-archive-panel') {
-      console.log('[background.js] Open archive panel command received.')
       if (import.meta.env.BROWSER === 'chrome') {
         try {
           await chrome.tabs.create({
             url: chrome.runtime.getURL('archive.html'),
           })
-          console.log('[background.js] Chrome: Archive panel opened.')
-        } catch (error) {
-          console.error(
-            '[background.js] Chrome: Error opening archive panel:',
-            error
-          )
-        }
+        } catch (error) {}
       } else if (import.meta.env.BROWSER === 'firefox') {
         try {
           await browser.tabs.create({
             url: browser.runtime.getURL('archive.html'),
           })
-          console.log('[background.js] Firefox: Archive panel opened.')
-        } catch (error) {
-          console.error(
-            '[background.js] Firefox: Error opening archive panel:',
-            error
-          )
-        }
+        } catch (error) {}
       }
     }
   })
@@ -372,11 +276,8 @@ export default defineBackground(() => {
             contexts: ['selection'],
           })
         } else {
-          console.warn('[background.js] browser.contextMenus is not available.')
         }
-      } catch (error) {
-        console.error('[background.js] Error creating context menu:', error)
-      }
+      } catch (error) {}
 
       try {
         const youtubeTabs = await browser.tabs.query({
@@ -411,11 +312,7 @@ export default defineBackground(() => {
             )
           }
         }
-      } catch (error) {
-        console.error(
-          `Error querying or injecting into existing tabs: ${error}`
-        )
-      }
+      } catch (error) {}
     }
   })
 
@@ -467,10 +364,6 @@ export default defineBackground(() => {
             if (response && response.success) {
               sendResponse({ transcript: response.transcript })
             } else {
-              console.warn(
-                `[background.js] Content script failed to get transcript for tab ${targetTabId}:`,
-                response?.error || 'Unknown error.'
-              )
               sendResponse({
                 error:
                   response?.error ||
@@ -478,10 +371,6 @@ export default defineBackground(() => {
               })
             }
           } catch (err) {
-            console.error(
-              `[background.js] Error executing script for tab ${targetTabId}:`,
-              err
-            )
             sendResponse({
               error:
                 err.message ||
@@ -491,24 +380,13 @@ export default defineBackground(() => {
         })()
         return true
       } else if (message.action === 'courseContentFetched') {
-        // Xử lý nội dung Course đã lấy được từ content script (Udemy hoặc Coursera)
-        console.log(
-          '[background.js] Received courseContentFetched from content script.'
-        )
         if (sidePanelPort) {
           sidePanelPort.postMessage({
             action: 'courseContentAvailable',
             content: message.content,
             lang: message.lang,
-            courseType: message.courseType, // Thêm loại khóa học (udemy/coursera)
+            courseType: message.courseType,
           })
-          console.log(
-            '[background.js] Sent courseContentAvailable to side panel.'
-          )
-        } else {
-          console.warn(
-            '[background.js] Side panel not connected, cannot send courseContentAvailable.'
-          )
         }
         return true
       } else if (message.action === 'requestCurrentTabInfo') {
@@ -540,19 +418,9 @@ export default defineBackground(() => {
           if (sidePanelPort) {
             try {
               sidePanelPort.postMessage(currentTabInfo)
-              console.log('[background.js] Sent currentTabInfo via port.')
             } catch (error) {
-              console.error(
-                '[background.js] Error sending currentTabInfo via port:',
-                error
-              )
               // Fallback to sendMessage if port fails (though less ideal for connect-based messages)
-              browser.runtime.sendMessage(currentTabInfo).catch((err) => {
-                console.warn(
-                  '[background.js] Fallback sendMessage failed:',
-                  err
-                )
-              })
+              browser.runtime.sendMessage(currentTabInfo).catch((err) => {})
             }
           } else {
             // If sidePanelPort is not available, send via runtime.sendMessage as a fallback
@@ -562,25 +430,13 @@ export default defineBackground(() => {
                 error.message.includes('Could not establish connection') ||
                 error.message.includes('Receiving end does not exist')
               ) {
-                console.warn(
-                  '[background.js] Side panel not open or no listener for currentTabInfo message.'
-                )
               } else {
-                console.error(
-                  '[background.js] Error sending currentTabInfo message via sendMessage:',
-                  error
-                )
               }
             })
           }
         })()
         return true
       } else if (message.action === 'REQUEST_SUMMARY') {
-        console.log(
-          '[background.js] Received REQUEST_SUMMARY message:',
-          message
-        )
-
         const { type, payload, requestId } = message
         const currentUrl = payload.url || sender.tab?.url || ''
 
@@ -617,9 +473,6 @@ export default defineBackground(() => {
               // For now, we'll just throw an error or handle a simpler page summary
               // without streaming, if that's an option.
               // This part needs more concrete implementation based on how page summaries are done without side panel.
-              console.warn(
-                'Side panel not open. Cannot delegate page summarization.'
-              )
               throw new Error(
                 'Side panel not open. Please open the side panel to summarize the page.'
               )
@@ -628,10 +481,6 @@ export default defineBackground(() => {
             throw new Error(`Unknown summarization type: ${type}`)
           }
         } catch (error) {
-          console.error(
-            '[background.js] Error processing summary request:',
-            error
-          )
           if (type === 'selectedText') {
             summaryState.selectedTextError.set(error.message)
           } else {
@@ -689,41 +538,17 @@ export default defineBackground(() => {
                 error: 'No active tab found.',
               }
           sidePanelPort.postMessage(currentTabInfo)
-          console.log(
-            '[background.js] Sent currentTabInfo via port on connect.'
-          )
-        } catch (error) {
-          console.error(
-            '[background.js] Error sending currentTabInfo on connect:',
-            error
-          )
-        }
+        } catch (error) {}
       })()
 
       if (pendingSelectedText) {
         try {
-          console.log(
-            `[background.js] ${
-              import.meta.env.BROWSER === 'chrome' ? 'Chrome' : 'Firefox'
-            }: Sending pending summarizeSelectedText message via port...`
-          )
           sidePanelPort.postMessage({
             action: 'summarizeSelectedText',
             selectedText: pendingSelectedText,
           })
-          console.log(
-            `[background.js] ${
-              import.meta.env.BROWSER === 'chrome' ? 'Chrome' : 'Firefox'
-            }: Pending summarizeSelectedText message sent via port.`
-          )
           pendingSelectedText = null
         } catch (error) {
-          console.error(
-            `[background.js] ${
-              import.meta.env.BROWSER === 'chrome' ? 'Chrome' : 'Firefox'
-            }: Error sending pending summarizeSelectedText message via existing port:`,
-            error
-          )
           // Nếu gửi tin nhắn thất bại, không cần cố gắng mở lại side panel ở đây
           // vì logic mở side panel đã được xử lý khi pendingSelectedText được đặt.
           // Đặt lại pendingSelectedText để tránh lặp lại.
@@ -766,9 +591,7 @@ export default defineBackground(() => {
           await injectContentScriptIntoTab(tab.id, COURSERA_CONTENT_SCRIPT_PATH)
         }
       }
-    } catch (error) {
-      console.error('[background.js] Error in onActivated listener:', error)
-    }
+    } catch (error) {}
   })
 
   // 8. Listen for context menu clicks
@@ -776,45 +599,17 @@ export default defineBackground(() => {
     if (info.menuItemId === 'summarizeSelectedText' && info.selectionText) {
       const selectedText = info.selectionText
 
-      if (!selectedText) {
-        console.warn(
-          `[background.js] ${
-            import.meta.env.BROWSER === 'chrome' ? 'Chrome' : 'Firefox'
-          }: No text selected for summarization.`
-        )
-        return
-      }
+      if (!selectedText) return
 
       if (sidePanelPort) {
         try {
-          console.log(
-            `[background.js] ${
-              import.meta.env.BROWSER === 'chrome' ? 'Chrome' : 'Firefox'
-            }: Side panel is already connected. Sending message directly.`
-          )
           sidePanelPort.postMessage({
             action: 'summarizeSelectedText',
             selectedText: selectedText,
           })
-          console.log(
-            `[background.js] ${
-              import.meta.env.BROWSER === 'chrome' ? 'Chrome' : 'Firefox'
-            }: summarizeSelectedText message sent via port.`
-          )
           pendingSelectedText = null
         } catch (error) {
-          console.error(
-            `[background.js] ${
-              import.meta.env.BROWSER === 'chrome' ? 'Chrome' : 'Firefox'
-            }: Error sending summarizeSelectedText message via existing port:`,
-            error
-          )
           pendingSelectedText = selectedText
-          console.warn(
-            `[background.js] ${
-              import.meta.env.BROWSER === 'chrome' ? 'Chrome' : 'Firefox'
-            }: Retrying by storing pendingSelectedText and opening side panel.`
-          )
           if (tab && tab.windowId) {
             try {
               if (import.meta.env.BROWSER === 'chrome') {
@@ -823,45 +618,23 @@ export default defineBackground(() => {
                 await browser.sidebarAction.open()
               }
             } catch (openError) {
-              console.error(
-                `Error opening side panel after port error for window ${tab.windowId}: ${openError}`
-              )
               pendingSelectedText = null
             }
           }
         }
       } else {
         pendingSelectedText = selectedText
-        console.log(
-          `[background.js] ${
-            import.meta.env.BROWSER === 'chrome' ? 'Chrome' : 'Firefox'
-          }: Side panel not connected. Storing selected text and attempting to open side panel.`
-        )
         if (tab && tab.windowId) {
           try {
             if (import.meta.env.BROWSER === 'chrome') {
               await chrome.sidePanel.open({ windowId: tab.windowId })
-              console.log(
-                '[background.js] Chrome: Side panel opened successfully.'
-              )
             } else {
               await browser.sidebarAction.open()
-              console.log(
-                '[background.js] Firefox: Sidebar opened successfully.'
-              )
             }
           } catch (error) {
-            console.error(
-              `Error opening side panel from context menu for window ${tab.windowId}: ${error}`
-            )
             pendingSelectedText = null
           }
         } else {
-          console.warn(
-            `[background.js] ${
-              import.meta.env.BROWSER === 'chrome' ? 'Chrome' : 'Firefox'
-            }: No tab or window ID available to open side panel.`
-          )
           pendingSelectedText = null
         }
       }

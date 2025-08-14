@@ -50,6 +50,31 @@ export default defineBackground(() => {
   let sidePanelPort = null
   let pendingSelectedText = null
 
+  // Helper function để kiểm tra sidepanel/sidebar support
+  async function isSidePanelSupported() {
+    try {
+      if (import.meta.env.BROWSER === 'chrome') {
+        // Chrome: Kiểm tra chrome.sidePanel API có tồn tại
+        // Sidepanel được giới thiệu từ Chrome 114+
+        return (
+          typeof chrome.sidePanel !== 'undefined' &&
+          typeof chrome.sidePanel.open === 'function'
+        )
+      } else if (import.meta.env.BROWSER === 'firefox') {
+        // Firefox: Kiểm tra browser.sidebarAction API
+        // Sidebar không có sẵn trên Firefox Mobile
+        return (
+          typeof browser.sidebarAction !== 'undefined' &&
+          typeof browser.sidebarAction.open === 'function'
+        )
+      }
+    } catch (error) {
+      // Nếu có lỗi khi truy cập API, coi như không hỗ trợ
+      return false
+    }
+    return false
+  }
+
   // Mobile open Setting tab
   browser.runtime.onMessage.addListener((msg) => {
     if (!msg || !msg.type) return
@@ -189,6 +214,17 @@ export default defineBackground(() => {
   ).onClicked.addListener(async (tab) => {
     if (!tab.id || !tab.url) return
 
+    // Kiểm tra xem sidepanel/sidebar có được hỗ trợ không
+    const sidePanelSupported = await isSidePanelSupported()
+
+    if (!sidePanelSupported) {
+      // Fallback: Mở trang settings trong tab mới khi không hỗ trợ sidepanel
+      const url = browser.runtime.getURL('settings.html')
+      await browser.tabs.create({ url, active: true })
+      return
+    }
+
+    // Logic hiện tại khi sidepanel được hỗ trợ
     const isYouTube = YOUTUBE_REGEX.test(tab.url)
     const isUdemy = UDEMY_REGEX.test(tab.url)
     const isCoursera = COURSERA_REGEX.test(tab.url)

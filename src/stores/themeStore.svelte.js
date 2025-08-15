@@ -159,6 +159,7 @@ export function initializeShadowTheme(shadowContainer) {
 export function setTheme(themeValue) {
   updateThemeSettings({ theme: themeValue })
   // The watcher will call applyThemeToDocument
+  applyThemeToDocument(themeValue)
 }
 
 /**

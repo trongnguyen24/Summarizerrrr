@@ -71,11 +71,11 @@
 
 <div bind:this={shadowContainer} class="floating-ui-root absolute top-0 left-0">
   <!-- rerender when settings.floatButton changes -->
-  <div class="fadein">
+  {#if settings.showFloatingButton}
     {#key settings.floatButton}
       <FloatingButton topButton={settings.floatButton} toggle={togglePanel} />
     {/key}
-  </div>
+  {/if}
   {#if isMobile}
     <MobileSheet
       visible={isPanelVisible}

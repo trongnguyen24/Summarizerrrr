@@ -73,8 +73,20 @@
   }
   const [initialize, instance] = useOverlayScrollbars({ options, defer: true })
 
+  // Utility function to detect touch devices
+  function isTouchDevice() {
+    return (
+      'ontouchstart' in window ||
+      navigator.maxTouchPoints > 0 ||
+      navigator.msMaxTouchPoints > 0
+    )
+  }
+
   $effect(() => {
-    initialize(document.body)
+    // Initialize OverlayScrollbars only on non-touch devices
+    if (!isTouchDevice()) {
+      initialize(document.body)
+    }
 
     initializeTheme()
     const unsubscribeTheme = subscribeToSystemThemeChanges()

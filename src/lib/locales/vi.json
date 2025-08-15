@@ -32,6 +32,13 @@
         "non_streaming": "Blocking",
         "non_streaming_desc": "Phù hợp cho thiết bị yếu, giảm giật lag."
       },
+      "floatingButton": "Nút nổi",
+      "floating_button": {
+        "show": "Hiển thị",
+        "show_desc": "Hiển thị nút nổi trên trang web.",
+        "hide": "Ẩn",
+        "hide_desc": "Ẩn nút nổi khỏi trang web."
+      },
       "shortcuts": "Phím tắt",
       "shortcuts_settings": "Cài Phím tắt"
     },

@@ -126,8 +126,20 @@
     defer: true,
   })
 
+  // Utility function to detect touch devices
+  function isTouchDevice() {
+    return (
+      'ontouchstart' in window ||
+      navigator.maxTouchPoints > 0 ||
+      navigator.msMaxTouchPoints > 0
+    )
+  }
+
   $effect(() => {
-    initializeScrollbars(document.getElementById('scroll-side'))
+    // Initialize OverlayScrollbars only on non-touch devices
+    if (!isTouchDevice()) {
+      initializeScrollbars(document.getElementById('scroll-side'))
+    }
   })
 </script>
 
@@ -144,7 +156,10 @@
 
   <TabArchive {activeTab} onSelectTab={selectTab} />
 
-  <div id="scroll-side" class="text-text-secondary flex-1 relative gap-0.5">
+  <div
+    id="scroll-side"
+    class="text-text-secondary flex-1 relative gap-0.5 overflow-y-auto"
+  >
     <div
       class="sticky bg-linear-to-b from-background to-background/40 mask-b-from-50% left-0 top-0 w-78 h-4 backdrop-blur-[2px] z-30 pointer-events-none"
     ></div>

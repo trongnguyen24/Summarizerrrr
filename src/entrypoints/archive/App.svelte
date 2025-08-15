@@ -54,9 +54,21 @@
     }
   }
 
+  // Utility function to detect touch devices
+  function isTouchDevice() {
+    return (
+      'ontouchstart' in window ||
+      navigator.maxTouchPoints > 0 ||
+      navigator.msMaxTouchPoints > 0
+    )
+  }
+
   // Effects
   $effect(() => {
-    initializeScrollbars(document.body)
+    // Initialize OverlayScrollbars only on non-touch devices
+    if (!isTouchDevice()) {
+      initializeScrollbars(document.body)
+    }
     archiveStore.loadData().then((result) => {
       if (result && result.activeTab) {
         activeTab = result.activeTab // Set initial activeTab from URL

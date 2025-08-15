@@ -148,9 +148,9 @@
         })
       }
 
-      // Initialize OverlayScrollbars on the element with id "toc-scroll"
+      // Initialize OverlayScrollbars on the element with id "toc-scroll" (only on non-touch devices)
       const tocElement = document.getElementById('toc-scroll')
-      if (tocElement) {
+      if (tocElement && !isTouchDevice()) {
         initialize(tocElement)
       }
     }
@@ -177,6 +177,15 @@
     },
   }
   const [initialize, instance] = useOverlayScrollbars({ options, defer: true })
+
+  // Utility function to detect touch devices
+  function isTouchDevice() {
+    return (
+      'ontouchstart' in window ||
+      navigator.maxTouchPoints > 0 ||
+      navigator.msMaxTouchPoints > 0
+    )
+  }
 </script>
 
 <div

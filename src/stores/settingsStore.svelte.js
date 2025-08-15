@@ -8,6 +8,7 @@ const DEFAULT_SETTINGS = {
   selectedProvider: 'gemini',
   floatButton: 200,
   floatButtonLeft: true,
+  showFloatingButton: true,
   geminiApiKey: 'AIzaSyA6I0DGp3XgSoGDZqergz9JAryupj-0JOI',
   selectedGeminiModel: 'gemini-2.5-flash',
   geminiAdvancedApiKey: '',

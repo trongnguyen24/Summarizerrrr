@@ -23,10 +23,19 @@
   }
   const [initialize, instance] = useOverlayScrollbars({ options, defer: true })
 
-  // Use $effect to initialize OverlayScrollbars
+  // Utility function to detect touch devices
+  function isTouchDevice() {
+    return (
+      'ontouchstart' in window ||
+      navigator.maxTouchPoints > 0 ||
+      navigator.msMaxTouchPoints > 0
+    )
+  }
+
+  // Use $effect to initialize OverlayScrollbars (only on non-touch devices)
   $effect(() => {
     const tocElement = document.getElementById('setting-scroll')
-    if (tocElement) {
+    if (tocElement && !isTouchDevice()) {
       initialize(tocElement)
     }
   })
@@ -58,7 +67,7 @@
 
 <!-- Apply Tailwind classes for overall layout and styling -->
 <div
-  class="relative font-mono rounded-lg text-text-primary dark:text-text-secondary text-xs bg-background dark:bg-surface-1 overflow-hidden border border-border w-full flex-shrink-0 flex flex-col"
+  class="relative settings font-mono text-text-primary dark:text-text-secondary text-xs bg-background dark:bg-surface-1 overflow-hidden w-full flex-shrink-0 flex flex-col"
 >
   <div
     class="px-4 bg-surface-1 dark:bg-surface-2 py-2 border-b-0 border-border"
@@ -134,7 +143,10 @@
       ></div>
     </div>
   </div>
-  <div id="setting-scroll" class="max-h-[calc(100vh-136px)]">
+  <div
+    id="setting-scroll"
+    class="sm:h-[calc(100vh-9.5rem)] h-[calc(100vh-6.35rem)] overflow-y-auto"
+  >
     <div>
       {#if activeTab === 'ai-model'}
         <AIModelSettings />

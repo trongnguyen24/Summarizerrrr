@@ -149,31 +149,6 @@
 
   <div class="flex flex-col gap-2 px-5 pb-4">
     <!-- svelte-ignore a11y_label_has_associated_control -->
-    <label class="block text-text-secondary"
-      >{$t('settings.general.floatingButton')}</label
-    >
-    <div class="grid grid-cols-2 w-full gap-1">
-      <ButtonSet
-        title={$t('settings.general.floating_button.show')}
-        class="setting-btn {settings.showFloatingButton ? 'active' : ''}"
-        onclick={() => handleUpdateSetting('showFloatingButton', true)}
-        Description={$t('settings.general.floating_button.show_desc')}
-      >
-        <Icon icon="heroicons:eye-20-solid" width="20" height="20" />
-      </ButtonSet>
-      <ButtonSet
-        title={$t('settings.general.floating_button.hide')}
-        class="setting-btn {!settings.showFloatingButton ? 'active' : ''}"
-        onclick={() => handleUpdateSetting('showFloatingButton', false)}
-        Description={$t('settings.general.floating_button.hide_desc')}
-      >
-        <Icon icon="heroicons:eye-slash-20-solid" width="20" height="20" />
-      </ButtonSet>
-    </div>
-  </div>
-
-  <div class="flex flex-col gap-2 px-5 pb-4">
-    <!-- svelte-ignore a11y_label_has_associated_control -->
     <div class="flex items-center gap-1 justify-between">
       {$t('settings.general.shortcuts')}
       {#if import.meta.env.BROWSER === 'chrome'}

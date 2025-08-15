@@ -13,6 +13,7 @@
   import AIModelSettings from '@/components/settings/AIModelSettings.svelte'
   import SummarySettings from '@/components/settings/SummarySettings.svelte'
   import GeneralSettings from '@/components/settings/GeneralSettings.svelte'
+  import FABSettings from '@/components/settings/FABSettings.svelte'
 
   let activeTab = $state('ai-model') // State variable for current tab
   let activeBarTransformClass = $state('-translate-x-18') // New variable to control transform
@@ -58,6 +59,9 @@
         break
       case 'general': // Note: this tab has id 'general' in the button
         activeBarTransformClass = 'translate-x-18'
+        break
+      case 'fab':
+        activeBarTransformClass = 'translate-x-36'
         break
       default:
         activeBarTransformClass = '-translate-x-18' // Default value
@@ -126,6 +130,26 @@
       </div>
       <span> General</span>
     </button>
+    <button
+      class="flex flex-col w-16 items-center gap-1 justify-center cursor-pointer rounded-md transition-colors duration-200 {activeTab ===
+      'fab'
+        ? ' text-blackwhite '
+        : 'text-text-secondary'}"
+      onclick={() => (activeTab = 'fab')}
+    >
+      <div class="size-5">
+        {#if activeTab === 'fab'}
+          <Icon
+            icon="heroicons:cursor-arrow-rays-solid"
+            width="20"
+            height="20"
+          />
+        {:else}
+          <Icon icon="heroicons:cursor-arrow-rays" width="20" height="20" />
+        {/if}
+      </div>
+      <span>FAB</span>
+    </button>
   </div>
   <div
     class="top-stripes relative bg-background flex justify-center items-center h-2 border border-border border-l-0 border-r-0"
@@ -154,6 +178,8 @@
         <SummarySettings />
       {:else if activeTab === 'general'}
         <GeneralSettings />
+      {:else if activeTab === 'fab'}
+        <FABSettings />
       {/if}
     </div>
   </div>

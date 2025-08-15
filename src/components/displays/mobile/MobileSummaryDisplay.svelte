@@ -51,7 +51,7 @@
       {@html parsedContent}
     </div>
   {:else}
-    <p>No summary available.</p>
+    <!-- <p>No summary available.</p> -->
   {/if}
 </div>
 

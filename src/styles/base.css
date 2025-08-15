@@ -24,6 +24,10 @@
   font-family: var(--font-default);
 }
 
+:host[data-wxt-shadow-root] {
+  font-size: 16px;
+}
+
 .font-noto-serif {
   font-family: var(--font-noto-serif);
 }

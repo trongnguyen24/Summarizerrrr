@@ -2,6 +2,7 @@
   // @ts-nocheck
   import { onMount, onDestroy } from 'svelte'
   import MobileSummaryDisplay from '@/components/displays/mobile/MobileSummaryDisplay.svelte'
+  import SummarizeButton from '@/components/buttons/SummarizeButton.svelte'
   import { useSummarization } from '../composables/useSummarization.svelte.js'
   import {
     lockBodyScroll,
@@ -62,10 +63,12 @@
 
   onMount(() => {
     window.addEventListener('keydown', handleKeyDown)
+    document.addEventListener('summarizeClick', handleSummarizeClick)
   })
 
   onDestroy(() => {
     window.removeEventListener('keydown', handleKeyDown)
+    document.removeEventListener('summarizeClick', handleSummarizeClick)
     if (animationFrameId) {
       cancelAnimationFrame(animationFrameId)
     }
@@ -146,6 +149,10 @@
   function openSettings() {
     browser.runtime.sendMessage({ type: 'OPEN_SETTINGS' })
   }
+
+  function handleSummarizeClick() {
+    summarization.summarizePageContent()
+  }
 </script>
 
 <!-- Drawer Container -->
@@ -167,7 +174,7 @@
   <!-- Drawer Panel -->
   <div
     bind:this={drawerPanel}
-    class="drawer-panel fixed bottom-0 left-0 right-0 bg-white text-black rounded-t-2xl shadow-2xl max-h-[80vh] flex flex-col"
+    class="drawer-panel fixed bottom-0 left-0 right-0 bg-surface-1 text-black rounded-t-2xl shadow-2xl max-h-[80vh] flex flex-col"
     style="transform: translateY(calc(100% + 10vh));"
   >
     <!-- Drawer Header (Drag Handle)       onmousedown={onDragStart}
@@ -190,6 +197,18 @@
       onmousedown={onDragStart}
       ontouchstart={onDragStart}
     >
+      <div class="grid grid-rows-[160px_1fr]">
+        <!-- <div
+        class="top-stripes border-t border-b border-border flex justify-center items-center w-full h-full"
+      ></div> -->
+        <div class="w-full flex justify-center my-8">
+          <SummarizeButton
+            isLoading={statusToDisplay === 'loading'}
+            isChapterLoading={false}
+          />
+        </div>
+      </div>
+
       <MobileSummaryDisplay
         summary={summaryToDisplay}
         isLoading={statusToDisplay === 'loading'}
@@ -198,21 +217,16 @@
     </div>
 
     <!-- Action Button -->
-    <div class="px-4 pb-4 flex-shrink-0">
-      <button
-        class="w-full bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-colors"
-        onclick={summarization.summarizePageContent}
-      >
-        Summarize
-      </button>
+    <!-- <div class="px-4 pb-4 flex-shrink-0">
+      
 
       <button
-        class="mt-2 w-full bg-gray-200 text-gray-800 font-semibold py-3 px-6 rounded-lg shadow-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-50 transition-colors"
+        class="w-full bg-gray-200 text-gray-800 font-semibold py-3 px-6 rounded-lg shadow-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-50 transition-colors"
         onclick={openSettings}
       >
         Settings
       </button>
-    </div>
+    </div> -->
   </div>
 </div>
 

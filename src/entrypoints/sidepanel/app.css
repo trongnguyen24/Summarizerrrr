@@ -1,7 +1,7 @@
 @import '../../styles/base.css';
 
 :root {
-  font-size: 1rem;
+  font-size: 16px;
 }
 
 /* Font Classes moved to base */
@@ -16,6 +16,7 @@ html {
 }
 body {
   user-select: text !important;
+  font-size: 100%;
 }
 
 .top-stripes {

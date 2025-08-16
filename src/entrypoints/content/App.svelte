@@ -103,20 +103,3 @@
     </FloatingPanel>
   {/if}
 </div>
-
-<style>
-  .fadein {
-    /* animation: fadeIn 0.5s ease-in-out forwards; */
-    z-index: 999999999999;
-    position: relative;
-  }
-
-  /* @keyframes fadeIn {
-    from {
-      opacity: 0;
-    }
-    to {
-      opacity: 1;
-    }
-  } */
-</style>

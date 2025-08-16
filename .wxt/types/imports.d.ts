@@ -27,6 +27,7 @@ declare global {
   const storage: typeof import('wxt/utils/storage')['storage']
   const tick: typeof import('svelte')['tick']
   const useAppConfig: typeof import('wxt/utils/app-config')['useAppConfig']
+  const useDisplaySettings: typeof import('C:/Users/trong/OneDrive/Documents/GitHub/Summarizerrrr/src/composables/useDisplaySettings.svelte')['useDisplaySettings']
 }
 // for type re-export
 declare global {

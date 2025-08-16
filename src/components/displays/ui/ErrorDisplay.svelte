@@ -1,8 +1,8 @@
 <script>
   // @ts-nocheck
-  import { fetchAndSummarize } from '../../stores/summaryStore.svelte.js'
-  import { getHelpInfo } from '../../lib/error/helpSystem.js'
-  import { settings } from '../../stores/settingsStore.svelte.js'
+  import { fetchAndSummarize } from '../../../stores/summaryStore.svelte.js'
+  import { getHelpInfo } from '../../../lib/error/helpSystem.js'
+  import { settings } from '../../../stores/settingsStore.svelte.js'
   import { t } from 'svelte-i18n' // Import t for i18n
 
   let { error } = $props()

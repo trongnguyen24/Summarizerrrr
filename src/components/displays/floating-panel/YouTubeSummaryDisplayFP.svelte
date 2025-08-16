@@ -1,6 +1,6 @@
 <script>
   // @ts-nocheck
-  import TabbedSummaryDisplay from '@/components/displays/TabbedSummaryDisplay.svelte'
+  import TabbedSummaryDisplay from '../core/TabbedSummaryDisplay.svelte'
   import GenericSummaryDisplayFP from './GenericSummaryDisplayFP.svelte'
   import TOC from '@/components/navigation/TOC.svelte'
 

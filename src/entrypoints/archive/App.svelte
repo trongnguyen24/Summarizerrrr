@@ -17,7 +17,7 @@
     themeSettings,
     applyThemeToDocument,
   } from '@/stores/themeStore.svelte.js'
-  import SummaryDisplay from '@/components/displays/SummaryDisplay.svelte'
+  import SummaryDisplay from '@/components/displays/archive/SummaryDisplay.svelte'
   import '@fontsource-variable/geist-mono'
   import '@fontsource-variable/noto-serif'
   import '@fontsource/opendyslexic'

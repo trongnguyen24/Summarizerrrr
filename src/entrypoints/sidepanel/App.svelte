@@ -6,10 +6,10 @@
   import SettingButton from '@/components/buttons/SettingButton.svelte'
   import SummarizeButton from '@/components/buttons/SummarizeButton.svelte'
   import TabNavigation from '@/components/navigation/TabNavigation.svelte'
-  import GenericSummaryDisplay from '@/components/displays/GenericSummaryDisplay.svelte'
-  import YouTubeSummaryDisplay from '@/components/displays/YouTubeSummaryDisplay.svelte'
-  import CourseSummaryDisplay from '@/components/displays/CourseSummaryDisplay.svelte'
-  import ErrorDisplay from '@/components/displays/ErrorDisplay.svelte'
+  import GenericSummaryDisplay from '@/components/displays/core/GenericSummaryDisplay.svelte'
+  import YouTubeSummaryDisplay from '@/components/displays/platform/YouTubeSummaryDisplay.svelte'
+  import CourseSummaryDisplay from '@/components/displays/platform/CourseSummaryDisplay.svelte'
+  import ErrorDisplay from '@/components/displays/ui/ErrorDisplay.svelte'
   import 'webextension-polyfill'
 
   // Import direct variables and functions from refactored stores

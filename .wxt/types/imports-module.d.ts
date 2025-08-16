@@ -18,4 +18,5 @@ declare module '#imports' {
   export { InvalidMatchPattern, MatchPattern } from 'wxt/utils/match-patterns';
   export { onMount, beforeUpdate, afterUpdate, onDestroy, tick, setContext, getContext, hasContext, getAllContexts, createEventDispatcher } from 'svelte';
   export { fakeBrowser } from 'wxt/testing';
+  export { useDisplaySettings } from '../src/composables/useDisplaySettings.svelte';
 }

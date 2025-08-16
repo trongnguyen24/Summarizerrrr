@@ -33,7 +33,7 @@
   onValueChange={handleChange}
 >
   <Select.Trigger
-    class="select-none font-mono w-full relative text-xs overflow-hidden flex flex-col gap-0 px-3 text-text-primary text-left py-1.5 bg-muted/5 dark:bg-muted/5 border border-border hover:border-blackwhite/15 focus:border-blackwhite/30 dark:border-blackwhite/10 dark:focus:border-blackwhite/20 focus:outline-none focus:ring-0 transition-colors duration-150"
+    class="select-none font-mono w-full relative text-xs overflow-hidden flex flex-col gap-0 px-3 text-text-primary text-left py-2 bg-muted/5 dark:bg-muted/5 border border-border hover:border-blackwhite/15 focus:border-blackwhite/30 dark:border-blackwhite/10 dark:focus:border-blackwhite/20 focus:outline-none focus:ring-0 transition-colors duration-150"
     aria-label={ariaLabel}
   >
     <div class={className}>
@@ -84,7 +84,7 @@
               <Select.Viewport>
                 {#each items as item, i (i + item.value)}
                   <Select.Item
-                    class=" relative font-mono text-xs data-selected:text-text-primary text-text-secondary data-highlighted:bg-blackwhite/10 outline-hidden flex w-full select-none items-center py-1 pl-3 pr-2 capitalize duration-75"
+                    class=" relative font-mono text-xs data-selected:text-text-primary text-text-secondary data-highlighted:bg-blackwhite/10 outline-hidden flex w-full select-none items-center py-2.25 pl-3 pr-2 capitalize duration-75"
                     value={item.value}
                     label={item.label}
                   >

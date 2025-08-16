@@ -3,7 +3,6 @@
   import Icon from '@iconify/svelte'
   import ButtonFont from '../buttons/ButtonFont.svelte'
   import ButtonIcon from '../buttons/ButtonIcon.svelte'
-  import ButtonSet from '../buttons/ButtonSet.svelte'
   import {
     settings,
     updateSettings,
@@ -115,35 +114,6 @@
     >
     <div class="flex w-full gap-1">
       <UILanguageSelect />
-    </div>
-  </div>
-
-  <div class="flex flex-col gap-2 px-5 pb-4">
-    <!-- svelte-ignore a11y_label_has_associated_control -->
-    <label class="block text-text-secondary"
-      >{$t('settings.general.responseMode')}</label
-    >
-    <div class="grid grid-cols-2 w-full gap-1">
-      <ButtonSet
-        title={$t('settings.general.response_mode.streaming')}
-        class="setting-btn {settings.enableStreaming ? 'active' : ''}"
-        onclick={() => handleUpdateSetting('enableStreaming', true)}
-        Description={$t('settings.general.response_mode.streaming_desc')}
-      >
-        <Icon icon="heroicons:bolt-20-solid" width="20" height="20" />
-      </ButtonSet>
-      <ButtonSet
-        title={$t('settings.general.response_mode.non_streaming')}
-        class="setting-btn {!settings.enableStreaming ? 'active' : ''}"
-        onclick={() => handleUpdateSetting('enableStreaming', false)}
-        Description={$t('settings.general.response_mode.non_streaming_desc')}
-      >
-        <Icon
-          icon="heroicons:device-phone-mobile-20-solid"
-          width="20"
-          height="20"
-        />
-      </ButtonSet>
     </div>
   </div>
 

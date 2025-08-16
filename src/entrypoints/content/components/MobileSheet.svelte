@@ -1,6 +1,7 @@
 <script>
   // @ts-nocheck
   import { onMount, onDestroy } from 'svelte'
+  import Icon from '@iconify/svelte'
   import MobileSummaryDisplay from '@/components/displays/mobile/MobileSummaryDisplay.svelte'
   import SummarizeButton from '@/components/buttons/SummarizeButton.svelte'
   import { useSummarization } from '../composables/useSummarization.svelte.js'
@@ -181,19 +182,25 @@
  -->
     <div
       bind:this={drawerHeader}
-      class="p-4 cursor-grab active:cursor-grabbing drag-handle"
+      class="p-4 cursor-grab active:cursor-grabbing drag-handle relative"
       ontouchstart={onDragStart}
     >
       <div
         class="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-gray-300"
       ></div>
+      <button
+        class="size-10 absolute top-2 right-2 flex justify-center items-center"
+        onclick={openSettings}
+      >
+        <Icon width={24} icon="heroicons:cog-6-tooth" />
+      </button>
     </div>
 
     <!-- Drawer Content -->
     <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div
       bind:this={drawerContent}
-      class="px-4 pb-4 flex-grow overflow-y-auto drawer-content"
+      class="px-4 pb-4 flex-grow overflow-y-auto drawer-content relative"
       onmousedown={onDragStart}
       ontouchstart={onDragStart}
     >
@@ -215,18 +222,9 @@
         error={summarization.localSummaryState().error}
       />
     </div>
-
-    <!-- Action Button -->
-    <!-- <div class="px-4 pb-4 flex-shrink-0">
-      
-
-      <button
-        class="w-full bg-gray-200 text-gray-800 font-semibold py-3 px-6 rounded-lg shadow-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-50 transition-colors"
-        onclick={openSettings}
-      >
-        Settings
-      </button>
-    </div> -->
+    <div
+      class="absolute bottom-0 left-0 right-0 h-16 bg-surface-1 translate-y-15"
+    ></div>
   </div>
 </div>
 

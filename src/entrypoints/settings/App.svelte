@@ -30,7 +30,28 @@
   <span class=" bg-border/70 bottom"></span>
   <span class="bg-border/70 left"></span>
   <span class="bg-border/70 right"></span>
-  <div class="settings max-w-2xl w-full shrink-1">
+  <div class="settings max-w-2xl w-full relative">
+    <div
+      class="absolute hidden sm:block left-0 z-10 -translate-x-[5px] -translate-y-[5px]"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" fill="none"
+        ><path d="M4 0h1v9H4z" fill="currentColor" /><path
+          d="M9 4v1H0V4z"
+          fill="currentColor"
+        /></svg
+      >
+    </div>
+    <div
+      class="absolute hidden sm:block right-0 bottom-0 z-10 translate-x-[5px] translate-y-[5px]"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" fill="none"
+        ><path d="M4 0h1v9H4z" fill="currentColor" /><path
+          d="M9 4v1H0V4z"
+          fill="currentColor"
+        /></svg
+      >
+    </div>
+
     <Setting />
   </div>
 </div>

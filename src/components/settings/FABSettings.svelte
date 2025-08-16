@@ -44,4 +44,30 @@
       </ButtonSet>
     </div>
   </div>
+
+  <!-- FAB Position Section -->
+  <div class="flex flex-col gap-2 px-5 pb-4">
+    <!-- svelte-ignore a11y_label_has_associated_control -->
+    <label class="block text-text-secondary"
+      >{$t('settings.fab.position')}</label
+    >
+    <div class="grid w-full grid-cols-2 gap-1">
+      <ButtonSet
+        title={$t('settings.fab.position_option.left')}
+        class="setting-btn {settings.floatButtonLeft ? 'active' : ''}"
+        onclick={() => handleUpdateSetting('floatButtonLeft', true)}
+        Description={$t('settings.fab.position_option.left_desc')}
+      >
+        <Icon icon="heroicons:arrow-left-20-solid" width="20" height="20" />
+      </ButtonSet>
+      <ButtonSet
+        title={$t('settings.fab.position_option.right')}
+        class="setting-btn {!settings.floatButtonLeft ? 'active' : ''}"
+        onclick={() => handleUpdateSetting('floatButtonLeft', false)}
+        Description={$t('settings.fab.position_option.right_desc')}
+      >
+        <Icon icon="heroicons:arrow-right-20-solid" width="20" height="20" />
+      </ButtonSet>
+    </div>
+  </div>
 </div>

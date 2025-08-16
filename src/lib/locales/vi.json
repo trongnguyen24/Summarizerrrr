@@ -42,6 +42,16 @@
       "shortcuts": "Phím tắt",
       "shortcuts_settings": "Cài Phím tắt"
     },
+    "fab": {
+      "title": "Nút nổi",
+      "position": "Vị trí",
+      "position_option": {
+        "left": "Trái",
+        "left_desc": "Hiển thị nút nổi ở bên trái.",
+        "right": "Phải",
+        "right_desc": "Hiển thị nút nổi ở bên phải."
+      }
+    },
     "ai_model": {
       "title": "Nhà cung cấp",
       "mode": {

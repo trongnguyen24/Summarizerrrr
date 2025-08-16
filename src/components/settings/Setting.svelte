@@ -52,26 +52,26 @@
   $effect(() => {
     switch (activeTab) {
       case 'ai-model':
-        activeBarTransformClass = '-translate-x-18'
+        activeBarTransformClass = '-translate-x-26.5'
         break
       case 'summary':
-        activeBarTransformClass = 'translate-x-0'
+        activeBarTransformClass = '-translate-x-8.5'
         break
       case 'general': // Note: this tab has id 'general' in the button
-        activeBarTransformClass = 'translate-x-18'
+        activeBarTransformClass = 'translate-x-9.5'
         break
       case 'fab':
-        activeBarTransformClass = 'translate-x-36'
+        activeBarTransformClass = 'translate-x-27.5'
         break
       default:
-        activeBarTransformClass = '-translate-x-18' // Default value
+        activeBarTransformClass = '-translate-x-26.5' // Default value
     }
   })
 </script>
 
 <!-- Apply Tailwind classes for overall layout and styling -->
 <div
-  class="relative settings font-mono text-text-primary dark:text-text-secondary text-xs bg-background dark:bg-surface-1 overflow-hidden w-full flex-shrink-0 flex flex-col"
+  class="relative settings font-mono text-text-primary dark:text-text-secondary text-xs bg-surface-1 overflow-hidden w-full flex-shrink-0 flex flex-col"
 >
   <div
     class="px-4 bg-surface-1 dark:bg-surface-2 py-2 border-b-0 border-border"

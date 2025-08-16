@@ -129,6 +129,38 @@
         <GroqConfig />
       {/if}
 
+      <!-- Response Mode Section for Advanced Mode -->
+      <div class="flex flex-col gap-2">
+        <!-- svelte-ignore a11y_label_has_associated_control -->
+        <label class="block text-text-secondary"
+          >{$t('settings.general.responseMode')}</label
+        >
+        <div class="grid grid-cols-2 w-full gap-1">
+          <ButtonSet
+            title={$t('settings.general.response_mode.streaming')}
+            class="setting-btn {settings.enableStreaming ? 'active' : ''}"
+            onclick={() => handleUpdateSetting('enableStreaming', true)}
+            Description={$t('settings.general.response_mode.streaming_desc')}
+          >
+            <Icon icon="heroicons:bolt-20-solid" width="20" height="20" />
+          </ButtonSet>
+          <ButtonSet
+            title={$t('settings.general.response_mode.non_streaming')}
+            class="setting-btn {!settings.enableStreaming ? 'active' : ''}"
+            onclick={() => handleUpdateSetting('enableStreaming', false)}
+            Description={$t(
+              'settings.general.response_mode.non_streaming_desc'
+            )}
+          >
+            <Icon
+              icon="heroicons:device-phone-mobile-20-solid"
+              width="20"
+              height="20"
+            />
+          </ButtonSet>
+        </div>
+      </div>
+
       <div class="grid grid-cols-2 gap-4">
         <!-- Temperature Section -->
         <div class="flex flex-col gap-2">
@@ -180,6 +212,38 @@
           bind:geminiApiKey={settings.geminiApiKey}
           bind:selectedGeminiModel={settings.selectedGeminiModel}
         />
+        <!-- Response Mode Section for Basic Mode -->
+        <div class="flex flex-col gap-2">
+          <!-- svelte-ignore a11y_label_has_associated_control -->
+          <label class="block text-text-secondary"
+            >{$t('settings.general.responseMode')}</label
+          >
+          <div class="grid grid-cols-2 w-full gap-1">
+            <ButtonSet
+              title={$t('settings.general.response_mode.streaming')}
+              class="setting-btn {settings.enableStreaming ? 'active' : ''}"
+              onclick={() => handleUpdateSetting('enableStreaming', true)}
+              Description={$t('settings.general.response_mode.streaming_desc')}
+            >
+              <Icon icon="heroicons:bolt-20-solid" width="20" height="20" />
+            </ButtonSet>
+            <ButtonSet
+              title={$t('settings.general.response_mode.non_streaming')}
+              class="setting-btn {!settings.enableStreaming ? 'active' : ''}"
+              onclick={() => handleUpdateSetting('enableStreaming', false)}
+              Description={$t(
+                'settings.general.response_mode.non_streaming_desc'
+              )}
+            >
+              <Icon
+                icon="heroicons:device-phone-mobile-20-solid"
+                width="20"
+                height="20"
+              />
+            </ButtonSet>
+          </div>
+        </div>
+
         <!-- Temperature Section for Basic Mode -->
         <div class="flex flex-col gap-2">
           <!-- svelte-ignore a11y_label_has_associated_control -->

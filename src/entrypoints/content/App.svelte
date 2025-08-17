@@ -40,7 +40,8 @@
 
   onMount(() => {
     const checkMobile = () => {
-      isMobile = window.innerWidth < 768
+      // Đặt threshold thấp hơn để ưu tiên sidepanel trên desktop/tablet
+      isMobile = window.innerWidth < 480
     }
     checkMobile()
     window.addEventListener('resize', checkMobile)
@@ -82,6 +83,7 @@
       onclose={() => (isPanelVisible = false)}
     />
   {:else}
+    <!-- Sidepanel for desktop/tablet -->
     <FloatingPanel
       visible={isPanelVisible}
       onclose={() => (isPanelVisible = false)}

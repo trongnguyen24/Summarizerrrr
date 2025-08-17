@@ -74,6 +74,7 @@ export function useSummarization() {
       // 1. Reset state
       resetLocalSummaryState()
       localSummaryState.isLoading = true
+      localSummaryState.isChapterLoading = true // Bắt đầu loading chapter
       localSummaryState.startTime = Date.now()
 
       // 2. Load settings

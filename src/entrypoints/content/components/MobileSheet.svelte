@@ -89,12 +89,12 @@
     // OR
     // 2. Touched on the content area AND the content is scrolled to the top.
     if (isHeader || (isContent && drawerContent.scrollTop === 0)) {
+      // Prevent default behavior (like scrolling) only when a valid drag starts.
+      // e.preventDefault()
       isDragging = true
       startY = e.pageY || e.touches[0].pageY
       drawerPanel.style.transition = 'none'
       drawerBackdrop.style.transition = 'none'
-
-      // Body scroll is already locked when the sheet is open, no need for more
     } else {
       // Otherwise, allow content to scroll normally.
       isDragging = false
@@ -106,9 +106,6 @@
       // If not dragging the drawer, allow default behavior (e.g., scrolling content)
       return
     }
-
-    // Prevent default touch behavior only when actively dragging the drawer
-    e.preventDefault()
 
     const currentY = e.pageY || e.touches[0].pageY
     // Only allow pulling down (positive deltaY)
@@ -175,7 +172,7 @@
   <!-- Drawer Panel -->
   <div
     bind:this={drawerPanel}
-    class="drawer-panel fixed bottom-0 left-0 right-0 bg-surface-1 text-black rounded-t-2xl shadow-2xl max-h-[70vh] flex flex-col"
+    class="drawer-panel fixed bottom-0 left-0 right-0 border-t dark:border-surface-2 bg-surface-1 text-black rounded-t-2xl shadow-2xl h-[65svh] flex flex-col"
     style="transform: translateY(calc(100% + 10vh));"
   >
     <!-- Drawer Header (Drag Handle)       onmousedown={onDragStart}
@@ -186,41 +183,48 @@
       ontouchstart={onDragStart}
     >
       <div
-        class="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-gray-300"
+        class="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-blackwhite/10"
       ></div>
-      <button
-        class="size-10 absolute top-2 right-2 flex justify-center items-center"
-        onclick={openSettings}
-      >
-        <Icon width={24} icon="heroicons:cog-6-tooth" />
-      </button>
     </div>
 
     <!-- Drawer Content -->
     <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div
       bind:this={drawerContent}
-      class="px-4 pb-4 flex-grow overflow-y-auto drawer-content relative"
+      class=" pb-4 flex-grow overflow-y-auto drawer-content relative"
       onmousedown={onDragStart}
       ontouchstart={onDragStart}
     >
-      <div class="grid grid-rows-[160px_1fr]">
-        <!-- <div
-        class="top-stripes border-t border-b border-border flex justify-center items-center w-full h-full"
-      ></div> -->
-        <div class="w-full flex justify-center my-8">
+      <div class="grid grid-rows-[10px_180px_10px_1fr] relative">
+        <div
+          class="top-stripes border-t border-b border-border flex justify-center items-center w-full h-full"
+        ></div>
+        <div class="w-full flex items-center justify-center my-8">
+          <button
+            class="size-10 absolute z-10 top-4 text-text-primary right-2 flex justify-center items-center"
+            onclick={openSettings}
+          >
+            <Icon width={28} icon="heroicons:cog-6-tooth" />
+          </button>
           <SummarizeButton
             isLoading={statusToDisplay === 'loading'}
             isChapterLoading={false}
           />
         </div>
+        <div
+          class="top-stripes border-t border-b border-border flex justify-center items-center w-full h-full"
+        ></div>
       </div>
-
-      <MobileSummaryDisplay
-        summary={summaryToDisplay}
-        isLoading={statusToDisplay === 'loading'}
-        error={summarization.localSummaryState().error}
-      />
+      <div class="py-8">
+        <MobileSummaryDisplay
+          summary={summarization.localSummaryState().summary}
+          chapterSummary={summarization.localSummaryState().chapterSummary}
+          isLoading={summarization.statusToDisplay() === 'loading'}
+          isChapterLoading={summarization.localSummaryState().isChapterLoading}
+          isYouTube={summarization.localSummaryState().isYouTubeVideoActive}
+          error={summarization.localSummaryState().error}
+        />
+      </div>
     </div>
     <div
       class="absolute bottom-0 left-0 right-0 h-16 bg-surface-1 translate-y-15"

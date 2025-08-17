@@ -30,6 +30,28 @@ export default defineConfig({
           default_popup: 'prompt.html',
           default_title: 'Summarizerrrr Prompt',
         },
+        content_scripts: [
+          {
+            matches: ['*://m.youtube.com/*', '*://www.youtube.com/*'],
+            js: [
+              'libs/protobuf.min.js',
+              'youtube_video_metadata.js',
+              'youtube_captions_extractor.js',
+              'content-script.js',
+            ],
+            run_at: 'document_end',
+          },
+        ],
+        web_accessible_resources: [
+          {
+            resources: [
+              'libs/protobuf.min.js',
+              'youtube_video_metadata.js',
+              'youtube_captions_extractor.js',
+            ],
+            matches: ['*://m.youtube.com/*', '*://www.youtube.com/*'],
+          },
+        ],
         commands: {
           _execute_action: {
             suggested_key: {

@@ -8,6 +8,7 @@ declare module "wxt/browser" {
     | "/Sumarizzerrrr.png"
     | "/archive.html"
     | "/background.js"
+    | "/content-script.js"
     | "/content-scripts/content.js"
     | "/content-scripts/coursera.js"
     | "/content-scripts/udemy.js"
@@ -19,10 +20,13 @@ declare module "wxt/browser" {
     | "/icon/48.png"
     | "/icon/64.png"
     | "/icon/96.png"
+    | "/libs/protobuf.min.js"
     | "/prompt.html"
     | "/settings.html"
     | "/sidepanel.html"
     | "/wxt.svg"
+    | "/youtube_captions_extractor.js"
+    | "/youtube_video_metadata.js"
   type HtmlPublicPath = Extract<PublicPath, `${string}.html`>
   export interface WxtRuntime {
     getURL(path: PublicPath): string;

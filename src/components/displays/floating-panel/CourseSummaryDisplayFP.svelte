@@ -54,9 +54,6 @@
       loadingText="Processing main Course summary..."
       targetId="fp-course-video-summary-display"
     />
-    {#if activeCourseTab === 'courseSummary' && !isCourseSummaryLoading && courseSummary}
-      <TOC targetDivId="fp-course-video-summary-display" />
-    {/if}
   </div>
   <div hidden={activeCourseTab !== 'courseConcepts'}>
     <GenericSummaryDisplayFP
@@ -66,8 +63,5 @@
       targetId="fp-course-concepts-display"
       {noDataContent}
     />
-    {#if activeCourseTab === 'courseConcepts' && !isCourseConceptsLoading && courseConcepts}
-      <TOC targetDivId="fp-course-concepts-display" />
-    {/if}
   </div>
 </TabbedSummaryDisplay>

@@ -51,9 +51,3 @@
     </div>
   </div>
 </div>
-
-<style>
-  .mobile-summary-display {
-    /* Add any specific styling for the tabbed container if needed */
-  }
-</style>

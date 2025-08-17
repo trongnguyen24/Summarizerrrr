@@ -1,0 +1,30 @@
+{
+  "manifest_version": 3,
+  "name": "YouTube Mobile Transcript Extractor",
+  "version": "1.0",
+  "description": "Extracts and logs transcripts from YouTube Mobile videos.",
+  "permissions": ["activeTab", "scripting"],
+  "host_permissions": ["*://m.youtube.com/*", "*://www.youtube.com/*"],
+  "content_scripts": [
+    {
+      "matches": ["*://m.youtube.com/*", "*://www.youtube.com/*"],
+      "js": [
+        "lib/protobuf.min.js",
+        "youtube_video_metadata.js",
+        "youtube_captions_extractor.js",
+        "content-script.js"
+      ],
+      "run_at": "document_end"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "lib/protobuf.min.js",
+        "youtube_video_metadata.js",
+        "youtube_captions_extractor.js"
+      ],
+      "matches": ["*://m.youtube.com/*", "*://www.youtube.com/*"]
+    }
+  ]
+}

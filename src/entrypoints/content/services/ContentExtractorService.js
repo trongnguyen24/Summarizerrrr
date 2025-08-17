@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { YouTubeTranscriptExtractor } from '../extractors/YouTubeTranscriptExtractor.js'
+import { MessageBasedTranscriptExtractor } from '../extractors/MessageBasedTranscriptExtractor.js'
 import { CourseraContentExtractor } from '../extractors/CourseraContentExtractor.js'
 
 /**
@@ -41,7 +41,7 @@ export class ContentExtractorService {
   async extractYouTubeContent() {
     try {
       console.log('[ContentExtractorService] Extracting YouTube transcript...')
-      const transcriptExtractor = new YouTubeTranscriptExtractor(
+      const transcriptExtractor = new MessageBasedTranscriptExtractor(
         this.language.slice(0, 2)
       )
       const transcript = await transcriptExtractor.getPlainTranscript()
@@ -163,7 +163,7 @@ export class ContentExtractorService {
    */
   async extractTimestampedTranscript() {
     try {
-      const transcriptExtractor = new YouTubeTranscriptExtractor(
+      const transcriptExtractor = new MessageBasedTranscriptExtractor(
         this.language.slice(0, 2)
       )
       return await transcriptExtractor.getTimestampedTranscript()

@@ -12,7 +12,6 @@ declare module "wxt/browser" {
     | "/content-scripts/content.js"
     | "/content-scripts/coursera.js"
     | "/content-scripts/udemy.js"
-    | "/content-scripts/youtubetranscript.js"
     | "/icon/128.png"
     | "/icon/16.png"
     | "/icon/256.png"

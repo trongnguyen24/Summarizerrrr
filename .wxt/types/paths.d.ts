@@ -25,8 +25,7 @@ declare module "wxt/browser" {
     | "/settings.html"
     | "/sidepanel.html"
     | "/wxt.svg"
-    | "/youtube_captions_extractor.js"
-    | "/youtube_video_metadata.js"
+    | "/youtube_transcript.js"
   type HtmlPublicPath = Extract<PublicPath, `${string}.html`>
   export interface WxtRuntime {
     getURL(path: PublicPath): string;

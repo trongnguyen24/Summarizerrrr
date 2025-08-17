@@ -35,8 +35,8 @@ export default defineConfig({
             matches: ['*://m.youtube.com/*', '*://www.youtube.com/*'],
             js: [
               'libs/protobuf.min.js',
-              'youtube_video_metadata.js',
-              'youtube_captions_extractor.js',
+              'youtube_transcript.js',
+
               'content-script.js',
             ],
             run_at: 'document_end',
@@ -44,11 +44,7 @@ export default defineConfig({
         ],
         web_accessible_resources: [
           {
-            resources: [
-              'libs/protobuf.min.js',
-              'youtube_video_metadata.js',
-              'youtube_captions_extractor.js',
-            ],
+            resources: ['libs/protobuf.min.js', 'youtube_transcript.js'],
             matches: ['*://m.youtube.com/*', '*://www.youtube.com/*'],
           },
         ],

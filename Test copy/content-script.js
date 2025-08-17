@@ -68,15 +68,18 @@
             console.log(fullText)
 
             console.log('--- TIMESTAMPED SEGMENTS ---')
-            transcriptData.forEach((segment) => {
-              const timeRange =
-                segment.startTime && segment.endTime
-                  ? `[${segment.startTime} → ${segment.endTime}]`
-                  : segment.startTime
-                  ? `[${segment.startTime}]`
-                  : '[No timestamp]'
-              console.log(`${timeRange} ${segment.text}`)
-            })
+            const timestampedText = transcriptData
+              .map((segment) => {
+                const timeRange =
+                  segment.startTime && segment.endTime
+                    ? `[${segment.startTime} → ${segment.endTime}]`
+                    : segment.startTime
+                    ? `[${segment.startTime}]`
+                    : '[No timestamp]'
+                return `${timeRange} ${segment.text}`
+              })
+              .join('\n')
+            console.log(timestampedText)
 
             console.log('--- STRUCTURED DATA ---')
             console.log('JSON Format:', JSON.stringify(transcriptData, null, 2))

@@ -175,7 +175,7 @@
   <!-- Drawer Panel -->
   <div
     bind:this={drawerPanel}
-    class="drawer-panel fixed bottom-0 left-0 right-0 bg-surface-1 text-black rounded-t-2xl shadow-2xl max-h-[80vh] flex flex-col"
+    class="drawer-panel fixed bottom-0 left-0 right-0 bg-surface-1 text-black rounded-t-2xl shadow-2xl max-h-[70vh] flex flex-col"
     style="transform: translateY(calc(100% + 10vh));"
   >
     <!-- Drawer Header (Drag Handle)       onmousedown={onDragStart}

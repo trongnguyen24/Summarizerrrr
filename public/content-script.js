@@ -23,20 +23,15 @@
       const videoId = getVideoId()
 
       if (!videoId) {
-        console.log('YouTube Transcript Extractor: No video ID found')
         return
       }
 
       console.log(
         `YouTube Transcript Extractor: Extracting transcript for video ID: ${videoId}`
       )
-      console.log(`YouTube Transcript Extractor: Video URL: ${videoUrl}`)
 
       // Check if getCaptions function is available
       if (typeof getCaptions === 'undefined') {
-        console.error(
-          'YouTube Transcript Extractor: getCaptions function not available'
-        )
         return
       }
 
@@ -45,9 +40,6 @@
 
       for (const langCode of languageCodes) {
         try {
-          console.log(
-            `YouTube Transcript Extractor: Trying language code: ${langCode}`
-          )
           const transcriptData = await getCaptions(videoUrl, langCode)
 
           if (
@@ -55,19 +47,11 @@
             Array.isArray(transcriptData) &&
             transcriptData.length > 0
           ) {
-            console.log('=== YOUTUBE TRANSCRIPT WITH TIMESTAMPS EXTRACTED ===')
-            console.log(`Video ID: ${videoId}`)
-            console.log(`Language: ${langCode}`)
-            console.log(`Total Segments: ${transcriptData.length}`)
-
             // Log full transcript text
             const fullText = transcriptData
               .map((segment) => segment.text)
               .join(' ')
-            console.log(`Full Transcript (${fullText.length} characters):`)
-            console.log(fullText)
 
-            console.log('--- TIMESTAMPED SEGMENTS ---')
             const unifiedTimestampedText = transcriptData
               .map((segment) => {
                 const timeRange =
@@ -79,30 +63,12 @@
                 return `${timeRange} ${segment.text}`
               })
               .join('\n')
-            console.log(unifiedTimestampedText)
 
-            console.log('--- STRUCTURED DATA ---')
-            console.log('JSON Format:', JSON.stringify(transcriptData, null, 2))
-            console.log('--- END TRANSCRIPT ---')
             return // Success, exit the loop
           }
-        } catch (error) {
-          console.log(
-            `YouTube Transcript Extractor: Failed with language ${langCode}:`,
-            error.message
-          )
-        }
+        } catch (error) {}
       }
-
-      console.log(
-        'YouTube Transcript Extractor: No transcript found for any language'
-      )
-    } catch (error) {
-      console.error(
-        'YouTube Transcript Extractor: Error extracting transcript:',
-        error
-      )
-    }
+    } catch (error) {}
   }
 
   // Function to wait for dependencies to load
@@ -129,9 +95,6 @@
   function handleUrlChange() {
     const videoId = getVideoId()
     if (videoId) {
-      console.log(
-        'YouTube Transcript Extractor: New video detected, waiting for dependencies...'
-      )
       waitForDependencies().then(() => {
         // Wait a bit more for the video to load
         setTimeout(extractAndLogTranscript, 2000)
@@ -155,7 +118,6 @@
   })
 
   // Initial check
-  console.log('YouTube Transcript Extractor: Content script loaded')
   if (getVideoId()) {
     handleUrlChange()
   }

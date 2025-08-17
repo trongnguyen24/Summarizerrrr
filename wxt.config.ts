@@ -91,6 +91,23 @@ export default defineConfig({
             strict_min_version: '109.0',
           },
         },
+        content_scripts: [
+          {
+            matches: ['*://m.youtube.com/*', '*://www.youtube.com/*'],
+            js: [
+              'libs/protobuf.min.js',
+              'youtube_transcript.js',
+              'content-script.js',
+            ],
+            run_at: 'document_end',
+          },
+        ],
+        web_accessible_resources: [
+          {
+            resources: ['libs/protobuf.min.js', 'youtube_transcript.js'],
+            matches: ['*://m.youtube.com/*', '*://www.youtube.com/*'],
+          },
+        ],
         commands: {
           _execute_sidebar_action: {
             suggested_key: {

@@ -47,7 +47,7 @@
       <p>{error.message || 'An unexpected error occurred.'}</p>
     </div>
   {:else if parsedContent}
-    <div bind:this={container} class="prose">
+    <div style="font-size: 16px;" bind:this={container} class="prose">
       {@html parsedContent}
     </div>
   {:else}

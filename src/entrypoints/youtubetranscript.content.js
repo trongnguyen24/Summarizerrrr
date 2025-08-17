@@ -1,260 +1,146 @@
-// @ts-nocheck
 export default defineContentScript({
   matches: ['*://*.youtube.com/watch*'],
+
   main() {
-    console.log('YouTube Transcript Content Script ready for use.')
-    class YouTubeTranscriptExtractor {
-      /**
-       * Khởi tạo extractor với ngôn ngữ mặc định
-       * @param {string} defaultLang - Mã ngôn ngữ mặc định (ví dụ: 'vi', 'en')
-       */
-      constructor(defaultLang = 'en') {
-        this.defaultLang = defaultLang
-      }
+    console.log('Summarizerrrr: YouTube Transcript Content Script loaded.')
 
-      /**
-       * Lấy và phân tích ytInitialPlayerResponse từ trang YouTube
-       * @returns {Promise<Object|null>} - Object chứa dữ liệu player hoặc null nếu có lỗi
-       */
-      async getPlayerResponse() {
-        try {
-          // Đóng biểu ngữ cookie
-          document.querySelector('button[aria-label*=cookies]')?.click()
+    /**
+     * Extracts the video ID from the current URL.
+     * @returns {string|null} The video ID or null if not found.
+     */
+    function getVideoId() {
+      const url = window.location.href
+      const match = url.match(/[?&]v=([^&]+)/)
+      return match ? match[1] : null
+    }
 
-          // Chờ nút 'Show transcript' xuất hiện và nhấp vào nó
-          await new Promise((resolve) => {
-            const checkButton = () => {
-              const button = document.querySelector(
-                'ytd-video-description-transcript-section-renderer button'
-              )
-              if (button) {
-                button.click()
-                resolve()
-              } else {
-                setTimeout(checkButton, 500) // Kiểm tra lại sau 500ms
-              }
-            }
-            checkButton()
-          })
+    /**
+     * Retrieves the transcript for a given video.
+     * It tries multiple language codes to find an available transcript.
+     * @param {boolean} includeTimestamps - Whether to return a timestamped string or plain text.
+     * @param {string} preferredLang - The preferred language code (e.g., 'en', 'vi').
+     * @returns {Promise<string|null>} The transcript text or null if not found.
+     */
+    async function fetchTranscript(
+      includeTimestamps = false,
+      preferredLang = 'en'
+    ) {
+      try {
+        const videoUrl = window.location.href
+        const videoId = getVideoId()
 
-          // Chờ vùng chứa bản ghi xuất hiện
-          await new Promise((resolve) => {
-            const checkContainer = () => {
-              const container = document.querySelector('#segments-container')
-              if (container) {
-                resolve()
-              } else {
-                setTimeout(checkContainer, 500) // Kiểm tra lại sau 500ms
-              }
-            }
-            checkContainer()
-          })
+        if (!videoId) {
+          console.log('Summarizerrrr: No video ID found.')
+          return null
+        }
 
-          // Phân tích tất cả các nút văn bản từ vùng chứa bản ghi và nối chúng bằng một dòng trống
-          const transcriptText = Array.from(
-            document.querySelectorAll('#segments-container')
-          )
-            .map((element) => element.textContent?.trim())
-            .join('\n')
-
-          // Trả về một đối tượng giả định để phù hợp với cấu trúc ban đầu của getPlayerResponse
-          // Mặc dù chúng ta không cần playerResponse thực sự nữa, nhưng các hàm khác có thể mong đợi nó.
-          // Trong trường hợp này, chúng ta sẽ trả về một đối tượng có thuộc tính 'transcript'
-          // để hàm getTranscript có thể sử dụng nó.
-          return { transcript: transcriptText }
-        } catch (error) {
+        if (typeof getCaptions === 'undefined') {
           console.error(
-            'An error occurred while interacting with DOM to get transcript:',
-            error
+            'Summarizerrrr: getCaptions function is not available. This should not happen if scripts are imported correctly.'
           )
           return null
         }
-      }
 
-      /**
-       * Làm sạch text từ transcript
-       * @param {string} text - Text cần làm sạch
-       * @returns {string} - Text đã làm sạch
-       */
-      cleanTranscriptText(text) {
-        return text
-          .replace(/\n/g, ' ')
-          .replace(/♪|'|"|\.{2,}|\<[\s\S]*?\>|\{[\s\S]*?\}|\[[\s\S]*?\]/g, '')
-          .replace(/\s+/g, ' ')
-          .trim()
-      }
+        // Prioritize the preferred language, then fall back to others
+        const languageCodes = [preferredLang, 'en', 'vi', 'zz']
+        const uniqueLanguageCodes = [...new Set(languageCodes)]
 
-      /**
-       * Định dạng milliseconds thành chuỗi thời gian MM:SS hoặc HH:MM:SS.
-       * @param {number} ms - Thời gian tính bằng milliseconds.
-       * @returns {string} - Chuỗi thời gian đã định dạng.
-       */
-      formatMilliseconds(ms) {
-        const totalSeconds = Math.floor(ms / 1000)
-        const hours = Math.floor(totalSeconds / 3600)
-        const minutes = Math.floor((totalSeconds % 3600) / 60)
-        const seconds = totalSeconds % 60
+        for (const langCode of uniqueLanguageCodes) {
+          try {
+            const transcriptData = await getCaptions(videoUrl, langCode)
 
-        const paddedSeconds = String(seconds).padStart(2, '0')
-        const paddedMinutes = String(minutes).padStart(2, '0')
-
-        if (hours > 0) {
-          const paddedHours = String(hours).padStart(2, '0')
-          return `${paddedHours}:${paddedMinutes}:${paddedSeconds}`
-        } else {
-          return `${paddedMinutes}:${paddedSeconds}`
-        }
-      }
-
-      /**
-       * Hàm chính để lấy transcript từ YouTube
-       * @param {string} preferredLang - Mã ngôn ngữ ưa thích
-       * @param {boolean} includeTimestamps - Có bao gồm timestamp không
-       * @returns {Promise<string|null>} - Transcript hoặc null nếu không thành công
-       */
-      async getTranscript(
-        preferredLang = this.defaultLang,
-        includeTimestamps = false
-      ) {
-        const logType = includeTimestamps
-          ? 'timestamped transcript'
-          : 'transcript'
-        console.log(
-          `Attempting to get ${logType} for language: ${preferredLang} using DOM interaction.`
-        )
-
-        try {
-          // Gọi getPlayerResponse để thực hiện tương tác DOM và lấy bản ghi
-          const domResult = await this.getPlayerResponse()
-
-          if (domResult && domResult.transcript) {
-            console.log(
-              `${logType} extracted and processed successfully from DOM.`
-            )
-            // Nếu includeTimestamps là true, chúng ta cần định dạng lại bản ghi
-            // Hiện tại, logic DOM chỉ trả về văn bản thuần túy.
-            // Nếu người dùng cần timestamp, họ sẽ phải làm rõ cách chúng ta nên lấy chúng từ DOM.
-            if (includeTimestamps) {
-              console.warn(
-                'Timestamped transcript requested, but DOM interaction currently only provides plain text. Returning plain text.'
+            if (
+              transcriptData &&
+              Array.isArray(transcriptData) &&
+              transcriptData.length > 0
+            ) {
+              console.log(
+                `Summarizerrrr: Transcript found for language: ${langCode}`
               )
+
+              if (includeTimestamps) {
+                return transcriptData
+                  .map((segment) => {
+                    const timeRange =
+                      segment.startTime && segment.endTime
+                        ? `[${segment.startTime} → ${segment.endTime}]`
+                        : segment.startTime
+                        ? `[${segment.startTime}]`
+                        : ''
+                    return `${timeRange} ${segment.text}`.trim()
+                  })
+                  .join('\n')
+              } else {
+                return transcriptData.map((segment) => segment.text).join(' ')
+              }
             }
-            return domResult.transcript
-          } else {
-            console.error('Failed to get transcript from DOM interaction.')
-            return null
+          } catch (error) {
+            // This is expected if a transcript for a language doesn't exist.
+            // console.log(`Summarizerrrr: No transcript for language ${langCode}.`);
           }
-        } catch (error) {
-          console.error(
-            `An unexpected error occurred in getTranscript(withTimestamp=${includeTimestamps}):`,
-            error
-          )
-          return null
         }
-      }
 
-      /**
-       * Wrapper để lấy transcript không có timestamp
-       * @param {string} preferredLang - Mã ngôn ngữ ưa thích
-       * @returns {Promise<string|null>} - Transcript hoặc null nếu không thành công
-       */
-      async getPlainTranscript(preferredLang = this.defaultLang) {
-        return this.getTranscript(preferredLang, false)
-      }
-
-      /**
-       * Wrapper để lấy transcript có timestamp
-       * @param {string} preferredLang - Mã ngôn ngữ ưa thích
-       * @returns {Promise<string|null>} - Transcript có timestamp hoặc null nếu không thành công
-       */
-      async getTimestampedTranscript(preferredLang = this.defaultLang) {
-        return this.getTranscript(preferredLang, true)
+        console.log(
+          'Summarizerrrr: No transcript found for any attempted language.'
+        )
+        return null
+      } catch (error) {
+        console.error(
+          'Summarizerrrr: An error occurred while fetching transcript:',
+          error
+        )
+        return null
       }
     }
 
-    const transcriptExtractor = new YouTubeTranscriptExtractor('vi')
-
+    // Listen for messages from other parts of the extension
     chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-      console.log(
-        'youtubetranscript.content.js received a message:',
-        request,
-        'from sender:',
-        sender
-      )
       const handleRequest = async () => {
         switch (request.action) {
           case 'fetchTranscript':
-            console.log(
-              'youtubetranscript.content.js: Content script received fetchTranscript request',
-              request
-            )
             try {
-              const lang = request.lang || transcriptExtractor.defaultLang
-              const transcript = await transcriptExtractor.getPlainTranscript(
-                lang
-              )
+              const transcript = await fetchTranscript(false, request.lang)
               if (transcript) {
-                console.log('Transcript fetched successfully')
                 sendResponse({ success: true, transcript })
               } else {
-                console.log('Failed to get transcript, sending error response')
                 sendResponse({
                   success: false,
                   error: 'Failed to get transcript.',
                 })
               }
             } catch (error) {
-              console.error('Error handling fetchTranscript message:', error)
               sendResponse({ success: false, error: error.message })
             }
             break
 
           case 'fetchTranscriptWithTimestamp':
-            console.log(
-              'Content script received fetchTranscriptWithTimestamp request',
-              request
-            )
             try {
-              const lang = request.lang || transcriptExtractor.defaultLang
-              const transcript =
-                await transcriptExtractor.getTimestampedTranscript(lang)
+              const transcript = await fetchTranscript(true, request.lang)
               if (transcript) {
-                console.log('Timestamped transcript fetched successfully')
                 sendResponse({ success: true, transcript })
               } else {
-                console.log(
-                  'Failed to get timestamped transcript, sending error response'
-                )
                 sendResponse({
                   success: false,
                   error: 'Failed to get timestamped transcript.',
                 })
               }
             } catch (error) {
-              console.error(
-                'Error handling fetchTranscriptWithTimestamp message:',
-                error
-              )
               sendResponse({ success: false, error: error.message })
             }
             break
 
           case 'pingYouTubeScript':
-            console.log('Content script received ping request, responding.')
             sendResponse({ success: true, message: 'pong' })
             break
 
           default:
-            console.log(`Unknown action: ${request.action}`)
-            sendResponse({
-              success: false,
-              error: `Unknown action: ${request.action}`,
-            })
+            // Do nothing for unknown actions
+            break
         }
       }
 
       handleRequest()
-      return true
+      return true // Keep the message channel open for async response
     })
   },
 })

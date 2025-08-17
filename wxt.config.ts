@@ -36,7 +36,6 @@ export default defineConfig({
             js: [
               'libs/protobuf.min.js',
               'youtube_transcript.js',
-
               'content-script.js',
             ],
             run_at: 'document_end',

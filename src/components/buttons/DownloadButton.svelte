@@ -8,7 +8,7 @@
   let { content, title = 'summary' } = $props()
   let isDownloaded = $state(false)
 
-  function downloadAsMarkdown() {
+  async function downloadAsMarkdown() {
     if (!content) {
       console.error('No summary content available to download.')
       // Optionally, display an error message to the user
@@ -25,24 +25,55 @@
       .substring(0, 100) // Limit filename length
     const filename = `${sanitizedTitle || 'summary'}.md`
 
-    const blob = new Blob([content], {
-      type: 'text/markdown;charset=utf-8',
-    })
-    const url = URL.createObjectURL(blob)
+    try {
+      // Check if File System Access API is supported
+      if ('showSaveFilePicker' in window) {
+        const blob = new Blob([content], {
+          type: 'text/markdown;charset=utf-8',
+        })
 
-    const link = document.createElement('a')
-    link.href = url
-    link.download = filename
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
+        const options = {
+          suggestedName: filename,
+          types: [
+            {
+              description: 'Markdown Files',
+              accept: {
+                'text/markdown': ['.md'],
+              },
+            },
+          ],
+        }
 
-    URL.revokeObjectURL(url)
+        const fileHandle = await window.showSaveFilePicker(options)
+        const writable = await fileHandle.createWritable()
+        await writable.write(blob)
+        await writable.close()
+      } else {
+        // Fallback for browsers that don't support File System Access API
+        const blob = new Blob([content], {
+          type: 'text/markdown;charset=utf-8',
+        })
+        const url = URL.createObjectURL(blob)
 
-    isDownloaded = true
-    setTimeout(() => {
-      isDownloaded = false
-    }, 2000)
+        const link = document.createElement('a')
+        link.href = url
+        link.download = filename
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+
+        URL.revokeObjectURL(url)
+      }
+
+      isDownloaded = true
+      setTimeout(() => {
+        isDownloaded = false
+      }, 2000)
+    } catch (error) {
+      if (error.name !== 'AbortError') {
+        console.error('Error downloading file:', error)
+      }
+    }
   }
 </script>
 

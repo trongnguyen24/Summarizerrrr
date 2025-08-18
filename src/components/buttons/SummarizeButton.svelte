@@ -3,7 +3,7 @@
   import Icon from '@iconify/svelte'
   import { animate, stagger } from 'animejs'
   import { onMount } from 'svelte'
-  import { slideScaleFade } from '../../lib/ui/slideScaleFade.js' // Assuming path is correct
+  import { slideScaleFade } from '@/lib/ui/slideScaleFade.js'
   import { on } from 'svelte/events'
 
   // Props received from App.svelte (or directly from summaryStore if desired)

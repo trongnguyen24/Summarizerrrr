@@ -4,6 +4,7 @@
 
   // Import composables
   import Icon from '@iconify/svelte'
+  import { useOverlayScrollbars } from 'overlayscrollbars-svelte'
   import SummarizeButton from '@/components/buttons/SummarizeButton.svelte'
   import { useSummarization } from '../composables/useSummarization.svelte.js'
   import { useFloatingPanelState } from '../composables/useFloatingPanelState.svelte.js'
@@ -11,12 +12,97 @@
   // Import components
   import FloatingPanelContent from '@/components/displays/floating-panel/FloatingPanelContent.svelte'
 
+  // Import CSS injection utility
+  import { injectOverlayScrollbarsStyles } from '@/lib/utils/shadowDomStylesInjector.js'
+
   let { visible, summary, status, onclose, children } = $props()
 
   let panelElement = $state()
   let isResizing = $state(false)
   let currentWidth = $state(400) // Default width
   let showElement = $state(false) // Internal state để control DOM rendering
+
+  const options = {
+    scrollbars: {
+      theme: 'os-theme-custom-app',
+    },
+  }
+  let overlayScroll = $state()
+  let overlayScrollInitialized = $state(false)
+
+  const [initialize, instance] = useOverlayScrollbars({ options, defer: true })
+
+  // Utility function to detect touch devices
+  function isTouchDevice() {
+    return (
+      'ontouchstart' in window ||
+      navigator.maxTouchPoints > 0 ||
+      navigator.msMaxTouchPoints > 0
+    )
+  }
+
+  // Initialize OverlayScrollbars với proper timing và CSS injection
+  async function initializeOverlayScrollbars() {
+    if (!overlayScroll || overlayScrollInitialized || isTouchDevice()) {
+      return
+    }
+
+    try {
+      // Tìm shadow DOM container
+      const shadowContainer =
+        overlayScroll.closest('.floating-ui-root') ||
+        document.querySelector('.floating-ui-root')
+
+      if (shadowContainer) {
+        // Inject OverlayScrollbars CSS vào shadow DOM
+        const cssInjected = await injectOverlayScrollbarsStyles(shadowContainer)
+
+        if (cssInjected) {
+          // Wait một tick để CSS được apply
+          setTimeout(() => {
+            if (overlayScroll && !overlayScrollInitialized) {
+              initialize(overlayScroll)
+              overlayScrollInitialized = true
+              console.log(
+                '[FloatingPanel] OverlayScrollbars initialized successfully'
+              )
+            }
+          }, 0)
+        } else {
+          console.warn('[FloatingPanel] Failed to inject OverlayScrollbars CSS')
+        }
+      }
+    } catch (error) {
+      console.error(
+        '[FloatingPanel] Failed to initialize OverlayScrollbars:',
+        error
+      )
+    }
+  }
+
+  // $effect để handle OverlayScrollbars initialization
+  $effect(() => {
+    if (overlayScroll && showElement && !overlayScrollInitialized) {
+      initializeOverlayScrollbars()
+    }
+  })
+
+  // Clean up OverlayScrollbars instance khi component unmount
+  $effect(() => {
+    return () => {
+      if (instance && instance()) {
+        try {
+          instance().destroy()
+          console.log('[FloatingPanel] OverlayScrollbars destroyed')
+        } catch (error) {
+          console.warn(
+            '[FloatingPanel] Error destroying OverlayScrollbars:',
+            error
+          )
+        }
+      }
+    }
+  })
 
   async function requestSummary() {
     console.log('Requesting page summary...')
@@ -35,7 +121,14 @@
     }
   }
 
-  const MIN_WIDTH = 280
+  function openSettings() {
+    browser.runtime.sendMessage({ type: 'OPEN_SETTINGS' })
+  }
+
+  function handleSummarizeClick() {
+    summarization.summarizePageContent()
+  }
+  const MIN_WIDTH = 340
   const MAX_WIDTH = 800
 
   // Initialize composables
@@ -135,7 +228,7 @@
         // Wait for animation to complete before hiding DOM
         setTimeout(() => {
           showElement = false
-        }, 300) // Match CSS transition duration
+        }, 410) // Match CSS transition duration
       } else {
         showElement = false
       }
@@ -145,10 +238,12 @@
   onMount(() => {
     loadWidth()
     window.addEventListener('keydown', handleKeyDown)
+    document.addEventListener('summarizeClick', handleSummarizeClick)
   })
 
   onDestroy(() => {
     window.removeEventListener('keydown', handleKeyDown)
+    document.removeEventListener('summarizeClick', handleSummarizeClick)
     document.body.style.userSelect = ''
   })
 </script>
@@ -166,32 +261,40 @@
     <!-- Resize handle -->
     <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
     <div
-      class="resize-handle bg-transparent transition-colors"
+      class="resize-handle bg-transparent transition-colors flex justify-center items-center"
       class:resizing={isResizing}
       onmousedown={handleResizeStart}
       role="separator"
       aria-orientation="vertical"
       aria-label="Resize panel"
       title="Drag to resize panel width"
-    ></div>
-
-    <div class="grid grid-rows-[10px_180px_10px_1fr] relative py-6">
-      <div
-        class="top-stripes border-t border-b border-border flex justify-center items-center w-full h-full"
-      ></div>
-      <div class="w-full flex items-center justify-center my-8">
-        <button
-          class="size-10 absolute z-10 top-4 text-text-primary right-2 flex justify-center items-center"
-        >
-          <Icon width={28} icon="heroicons:cog-6-tooth" />
-        </button>
-        <SummarizeButton />
-      </div>
-      <div
-        class="top-stripes border-t border-b border-border flex justify-center items-center w-full h-full"
-      ></div>
+    >
+      <span class="w-1.5 h-8 bg-surface-2 border border-border rounded-2xl">
+      </span>
     </div>
-    <!-- <div class="panel-header">
+    <div bind:this={overlayScroll} class="w-full h-full py-8">
+      <div class="grid grid-rows-[10px_180px_10px_1fr] relative">
+        <div
+          class="top-stripes border-t border-b border-border flex justify-center items-center w-full h-full"
+        ></div>
+        <div class="w-full flex items-center justify-center my-8">
+          <button
+            class="size-10 absolute cursor-pointer z-10 top-4 text-text-secondary hover:text-text-primary transition-colors right-2 flex justify-center items-center"
+            onclick={openSettings}
+          >
+            <Icon width={24} icon="heroicons:cog-6-tooth" />
+          </button>
+          <SummarizeButton
+            isLoading={summarization.localSummaryState().isLoading}
+            isChapterLoading={summarization.localSummaryState()
+              .isChapterLoading}
+          />
+        </div>
+        <div
+          class="top-stripes border-t border-b border-border flex justify-center items-center w-full h-full"
+        ></div>
+      </div>
+      <!-- <div class="panel-header">
       <span>Summary</span>
       <div class="header-buttons">
         <button
@@ -213,25 +316,26 @@
       </div>
     </div> -->
 
-    <FloatingPanelContent
-      status={statusToDisplay}
-      summary={summaryToDisplay}
-      error={summarization.localSummaryState().error}
-      contentType={summarization.localSummaryState().contentType}
-      chapterSummary={summarization.localSummaryState().chapterSummary}
-      isChapterLoading={summarization.localSummaryState().isChapterLoading}
-      courseConcepts={summarization.localSummaryState().courseConcepts}
-      isCourseConceptsLoading={summarization.localSummaryState()
-        .isCourseConceptsLoading}
-      activeYouTubeTab={panelState.activeYouTubeTab()}
-      activeCourseTab={panelState.activeCourseTab()}
-      onSelectYouTubeTab={panelState.setActiveYouTubeTab}
-      onSelectCourseTab={panelState.setActiveCourseTab}
-    />
+      <FloatingPanelContent
+        status={statusToDisplay}
+        summary={summaryToDisplay}
+        error={summarization.localSummaryState().error}
+        contentType={summarization.localSummaryState().contentType}
+        chapterSummary={summarization.localSummaryState().chapterSummary}
+        isChapterLoading={summarization.localSummaryState().isChapterLoading}
+        courseConcepts={summarization.localSummaryState().courseConcepts}
+        isCourseConceptsLoading={summarization.localSummaryState()
+          .isCourseConceptsLoading}
+        activeYouTubeTab={panelState.activeYouTubeTab()}
+        activeCourseTab={panelState.activeCourseTab()}
+        onSelectYouTubeTab={panelState.setActiveYouTubeTab}
+        onSelectCourseTab={panelState.setActiveCourseTab}
+      />
 
-    {#if children?.settingsMini}
-      {@render children.settingsMini()}
-    {/if}
+      {#if children?.settingsMini}
+        {@render children.settingsMini()}
+      {/if}
+    </div>
   </div>
 {/if}
 
@@ -244,24 +348,24 @@
     height: 100vh;
     width: 400px;
     background-color: var(--color-surface-1);
-    box-shadow: -3px 0 18px rgba(0, 0, 0, 0.1);
+
     display: flex;
     flex-direction: column;
     z-index: 2147483647;
     color: var(--color-text-primary);
     border-left: 1px solid var(--color-border);
     transform: translateX(100%);
-    transition: transform 0.3s ease-in-out;
+    transition: transform 0.4s ease-out;
     box-sizing: border-box;
   }
 
   /* Resize Handle */
   .resize-handle {
     position: absolute;
-    top: 1em;
+    top: 0;
     left: 0;
-    bottom: 1em;
-    border-radius: 1em;
+    bottom: 0;
+
     width: 0.75em;
     transform: translateX(-50%);
 
@@ -272,6 +376,6 @@
 
   /* Active state khi đang resize */
   .resize-handle.resizing {
-    background-color: var(--color-border) !important;
+    background-color: oklch(50% 0 0 / 0.125) !important;
   }
 </style>

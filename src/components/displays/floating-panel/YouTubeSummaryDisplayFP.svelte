@@ -2,7 +2,6 @@
   // @ts-nocheck
   import TabbedSummaryDisplay from '../core/TabbedSummaryDisplay.svelte'
   import GenericSummaryDisplayFP from './GenericSummaryDisplayFP.svelte'
-  import TOC from '@/components/navigation/TOC.svelte'
 
   let {
     summary = '',
@@ -45,9 +44,6 @@
       loadingText="Processing main YouTube summary..."
       targetId="fp-youtube-video-summary-display"
     />
-    {#if activeYouTubeTab === 'videoSummary' && summary}
-      <TOC targetDivId="fp-youtube-video-summary-display" />
-    {/if}
   </div>
   <div hidden={activeYouTubeTab !== 'chapterSummary'}>
     <GenericSummaryDisplayFP
@@ -56,8 +52,5 @@
       loadingText="Generating chapter summary..."
       targetId="fp-youtube-chapter-summary-display"
     />
-    {#if activeYouTubeTab === 'chapterSummary' && chapterSummary}
-      <TOC targetDivId="fp-youtube-chapter-summary-display" />
-    {/if}
   </div>
 </TabbedSummaryDisplay>

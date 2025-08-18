@@ -46,10 +46,10 @@
   let DisplayComponent = $derived(selectDisplay(contentType || 'general'))
 </script>
 
-<div class="panel-content overflow-y-auto">
+<div class="panel-content">
   <div class="prose px-6 py-8">
     {#if status === 'loading'}
-      <p>Loading... (FloatingPanel)</p>
+      <p>Processing...</p>
     {:else if status === 'error'}
       <p>Error: {error?.message || 'An error occurred.'}</p>
     {:else if summary}
@@ -80,7 +80,7 @@
         />
       {/if}
     {:else}
-      <p>No summary available.</p>
+      <!-- <p>No summary available.</p> -->
     {/if}
   </div>
 </div>

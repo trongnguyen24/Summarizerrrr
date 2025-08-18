@@ -361,12 +361,13 @@
     height: 100vh;
     width: 400px;
     background-color: var(--color-surface-1);
-
+    font-size: 16px;
     display: flex;
     flex-direction: column;
     z-index: 2147483647;
     color: var(--color-text-primary);
     border-left: 1px solid var(--color-border);
+    border-right: 1px solid var(--color-border);
     transform: translateX(100%);
     transition: transform 0.4s ease-out;
     box-sizing: border-box;

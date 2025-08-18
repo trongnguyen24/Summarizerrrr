@@ -47,7 +47,7 @@
 </script>
 
 <div class="panel-content">
-  <div class="prose px-6 py-8">
+  <div class="prose text-base mx-auto px-6 py-8">
     {#if status === 'loading'}
       <p>Processing...</p>
     {:else if status === 'error'}

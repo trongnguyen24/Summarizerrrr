@@ -5,6 +5,7 @@
 
 @theme {
   --spacing: 0.25em;
+  --text-xs: 0.75em;
   --text-sm: 0.875em;
   --text-base: 1em;
   --text-lg: 1.125em;

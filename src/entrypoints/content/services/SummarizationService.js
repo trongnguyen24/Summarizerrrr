@@ -151,8 +151,76 @@ export class SummarizationService {
       promises.push(chapterSummaryPromise)
 
       await Promise.all(promises)
+    } else if (contentType === 'course') {
+      // Course: tạo cả courseSummary và courseConcepts parallel
+      const promises = []
+
+      const courseSummaryPromise = (async () => {
+        try {
+          const stream = summarizeContentStream(content, 'courseSummary')
+          for await (const chunk of stream) {
+            summary += chunk
+          }
+        } catch (error) {
+          console.error(
+            '[SummarizationService] Course summary streaming error:',
+            error
+          )
+
+          // Check if this is a Firefox mobile streaming error that requires fallback
+          if (
+            browserCompatibility.isFirefoxMobile &&
+            error.isFirefoxMobileStreamingError
+          ) {
+            console.log(
+              '[SummarizationService] Falling back to non-streaming course summary for Firefox mobile'
+            )
+            // Fallback to non-streaming
+            summary = await summarizeContent(content, 'courseSummary')
+            return
+          }
+
+          throw error
+        }
+      })()
+      promises.push(courseSummaryPromise)
+
+      let courseConcepts = ''
+      const courseConceptsPromise = (async () => {
+        try {
+          const stream = summarizeContentStream(content, 'courseConcepts')
+          for await (const chunk of stream) {
+            courseConcepts += chunk
+          }
+        } catch (error) {
+          console.error(
+            '[SummarizationService] Course concepts streaming error:',
+            error
+          )
+
+          // Check if this is a Firefox mobile streaming error that requires fallback
+          if (
+            browserCompatibility.isFirefoxMobile &&
+            error.isFirefoxMobileStreamingError
+          ) {
+            console.log(
+              '[SummarizationService] Falling back to non-streaming course concepts for Firefox mobile'
+            )
+            // Fallback to non-streaming
+            courseConcepts = await summarizeContent(content, 'courseConcepts')
+            return
+          }
+
+          courseConcepts = '<p><i>Could not generate course concepts.</i></p>'
+        }
+      })()
+      promises.push(courseConceptsPromise)
+
+      await Promise.all(promises)
+
+      return { summary, chapterSummary, courseConcepts }
     } else {
-      // Non-YouTube: regular streaming
+      // Non-YouTube, Non-Course: regular streaming
       try {
         const stream = summarizeContentStream(content, contentType)
         for await (const chunk of stream) {
@@ -233,8 +301,33 @@ export class SummarizationService {
       })()
 
       await Promise.all([videoSummaryPromise, chapterSummaryPromise])
+    } else if (contentType === 'course') {
+      // Course: tạo cả courseSummary và courseConcepts parallel
+      let courseConcepts = ''
+
+      const courseSummaryPromise = (async () => {
+        try {
+          summary = await summarizeContent(content, 'courseSummary')
+        } catch (error) {
+          console.error('[SummarizationService] Course summary error:', error)
+          throw error
+        }
+      })()
+
+      const courseConceptsPromise = (async () => {
+        try {
+          courseConcepts = await summarizeContent(content, 'courseConcepts')
+        } catch (error) {
+          console.error('[SummarizationService] Course concepts error:', error)
+          courseConcepts = '<p><i>Could not generate course concepts.</i></p>'
+        }
+      })()
+
+      await Promise.all([courseSummaryPromise, courseConceptsPromise])
+
+      return { summary, chapterSummary, courseConcepts }
     } else {
-      // Non-YouTube: regular summarization
+      // Non-YouTube, Non-Course: regular summarization
       try {
         summary = await summarizeContent(content, contentType)
       } catch (error) {

@@ -1,6 +1,7 @@
 // @ts-nocheck
 import { MessageBasedTranscriptExtractor } from '../extractors/MessageBasedTranscriptExtractor.js'
 import { CourseraContentExtractor } from '../extractors/CourseraContentExtractor.js'
+import { UdemyContentExtractor } from '../extractors/UdemyContentExtractor.js'
 
 /**
  * Service tổng hợp các content extractor
@@ -66,10 +67,34 @@ export class ContentExtractorService {
   async extractCourseContent() {
     try {
       console.log('[ContentExtractorService] Extracting course content...')
-      const courseraExtractor = new CourseraContentExtractor(
-        this.language.slice(0, 2)
-      )
-      const courseContent = await courseraExtractor.getPlainContent()
+
+      const url = window.location.href
+      const isUdemy = /udemy\.com/i.test(url)
+      const isCoursera = /coursera\.org/i.test(url)
+
+      let extractor
+      let courseContent
+
+      if (isUdemy) {
+        console.log(
+          '[ContentExtractorService] Detected Udemy platform, using UdemyContentExtractor'
+        )
+        extractor = new UdemyContentExtractor(this.language.slice(0, 2))
+        courseContent = await extractor.getPlainTranscript()
+      } else if (isCoursera) {
+        console.log(
+          '[ContentExtractorService] Detected Coursera platform, using CourseraContentExtractor'
+        )
+        extractor = new CourseraContentExtractor(this.language.slice(0, 2))
+        courseContent = await extractor.getPlainContent()
+      } else {
+        // Fallback to Coursera extractor for unknown course platforms
+        console.log(
+          '[ContentExtractorService] Unknown course platform, falling back to CourseraContentExtractor'
+        )
+        extractor = new CourseraContentExtractor(this.language.slice(0, 2))
+        courseContent = await extractor.getPlainContent()
+      }
 
       if (
         courseContent &&

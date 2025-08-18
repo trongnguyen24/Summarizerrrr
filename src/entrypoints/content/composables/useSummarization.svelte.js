@@ -75,6 +75,7 @@ export function useSummarization() {
       resetLocalSummaryState()
       localSummaryState.isLoading = true
       localSummaryState.isChapterLoading = true // Bắt đầu loading chapter
+      localSummaryState.isCourseConceptsLoading = true // Bắt đầu loading course concepts
       localSummaryState.startTime = Date.now()
 
       // 2. Load settings
@@ -99,6 +100,10 @@ export function useSummarization() {
         localSummaryState.chapterSummary = result.chapterSummary
       }
 
+      if (result.courseConcepts) {
+        localSummaryState.courseConcepts = result.courseConcepts
+      }
+
       const duration = Date.now() - localSummaryState.startTime
       console.log(`[useSummarization] Summarization completed in ${duration}ms`)
       console.log(
@@ -118,6 +123,7 @@ export function useSummarization() {
     } finally {
       localSummaryState.isLoading = false
       localSummaryState.isChapterLoading = false
+      localSummaryState.isCourseConceptsLoading = false
     }
   }
 

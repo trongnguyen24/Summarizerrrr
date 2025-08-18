@@ -12,6 +12,7 @@
     chapterSummary,
     isChapterLoading,
     courseConcepts,
+    isCourseSummaryLoading,
     isCourseConceptsLoading,
     activeYouTubeTab,
     activeCourseTab,
@@ -48,37 +49,35 @@
 
 <div class="panel-content">
   <div class="prose text-base mx-auto px-6 py-8">
-    {#if status === 'loading'}
-      <p>Processing...</p>
-    {:else if status === 'error'}
+    {#if status === 'error'}
       <p>Error: {error?.message || 'An error occurred.'}</p>
+    {:else if contentType === 'course'}
+      <DisplayComponent
+        courseSummary={summary}
+        {courseConcepts}
+        {isCourseSummaryLoading}
+        {isCourseConceptsLoading}
+        {activeCourseTab}
+        onSelectTab={onSelectCourseTab}
+      />
+    {:else if contentType === 'youtube'}
+      <DisplayComponent
+        {summary}
+        {chapterSummary}
+        isLoading={status === 'loading'}
+        {isChapterLoading}
+        {activeYouTubeTab}
+        onSelectTab={onSelectYouTubeTab}
+      />
     {:else if summary}
-      {#if contentType === 'youtube'}
-        <DisplayComponent
-          {summary}
-          {chapterSummary}
-          isLoading={status === 'loading'}
-          {isChapterLoading}
-          {activeYouTubeTab}
-          onSelectTab={onSelectYouTubeTab}
-        />
-      {:else if contentType === 'course'}
-        <DisplayComponent
-          courseSummary={summary}
-          {courseConcepts}
-          isCourseSummaryLoading={status === 'loading'}
-          {isCourseConceptsLoading}
-          {activeCourseTab}
-          onSelectTab={onSelectCourseTab}
-        />
-      {:else}
-        <DisplayComponent
-          {summary}
-          isLoading={status === 'loading'}
-          loadingText="Processing summary..."
-          targetId="fp-generic-summary"
-        />
-      {/if}
+      <DisplayComponent
+        {summary}
+        isLoading={status === 'loading'}
+        loadingText="Processing summary..."
+        targetId="fp-generic-summary"
+      />
+    {:else if status === 'loading'}
+      <p>Processing...</p>
     {:else}
       <!-- <p>No summary available.</p> -->
     {/if}

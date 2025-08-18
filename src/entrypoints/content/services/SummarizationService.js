@@ -373,4 +373,121 @@ export class SummarizationService {
       contentType,
     }
   }
+
+  /**
+   * Summarize course content only (independent call)
+   * @param {Object} settings
+   * @returns {Promise<{summary: string, contentType: string}>}
+   */
+  async summarizeCourseSummary(settings) {
+    // Extract content
+    const { content, contentType } =
+      await this.contentExtractorService.extractPageContent()
+
+    console.log(
+      `[SummarizationService] Extracting course summary from ${contentType} content`
+    )
+
+    // Xác định phương thức summarization
+    const useStreaming = this.shouldUseStreaming(settings)
+    const selectedProvider = settings.selectedProvider || 'gemini'
+
+    console.log(
+      `[SummarizationService] Using ${selectedProvider} with streaming: ${useStreaming} for course summary`
+    )
+
+    let summary = ''
+    const browserCompatibility = getBrowserCompatibility()
+
+    try {
+      if (useStreaming) {
+        // Streaming mode
+        const stream = summarizeContentStream(content, 'courseSummary')
+        for await (const chunk of stream) {
+          summary += chunk
+        }
+      } else {
+        // Non-streaming mode
+        summary = await summarizeContent(content, 'courseSummary')
+      }
+    } catch (error) {
+      // Firefox mobile fallback
+      if (
+        browserCompatibility.isFirefoxMobile &&
+        error.isFirefoxMobileStreamingError &&
+        useStreaming
+      ) {
+        console.log(
+          '[SummarizationService] Falling back to non-streaming for course summary'
+        )
+        summary = await summarizeContent(content, 'courseSummary')
+      } else {
+        throw error
+      }
+    }
+
+    return {
+      summary,
+      contentType,
+    }
+  }
+
+  /**
+   * Extract course concepts only (independent call)
+   * @param {Object} settings
+   * @returns {Promise<{courseConcepts: string, contentType: string}>}
+   */
+  async extractCourseConcepts(settings) {
+    // Extract content
+    const { content, contentType } =
+      await this.contentExtractorService.extractPageContent()
+
+    console.log(
+      `[SummarizationService] Extracting course concepts from ${contentType} content`
+    )
+
+    // Xác định phương thức summarization
+    const useStreaming = this.shouldUseStreaming(settings)
+    const selectedProvider = settings.selectedProvider || 'gemini'
+
+    console.log(
+      `[SummarizationService] Using ${selectedProvider} with streaming: ${useStreaming} for course concepts`
+    )
+
+    let courseConcepts = ''
+    const browserCompatibility = getBrowserCompatibility()
+
+    try {
+      if (useStreaming) {
+        // Streaming mode
+        const stream = summarizeContentStream(content, 'courseConcepts')
+        for await (const chunk of stream) {
+          courseConcepts += chunk
+        }
+      } else {
+        // Non-streaming mode
+        courseConcepts = await summarizeContent(content, 'courseConcepts')
+      }
+    } catch (error) {
+      // Firefox mobile fallback
+      if (
+        browserCompatibility.isFirefoxMobile &&
+        error.isFirefoxMobileStreamingError &&
+        useStreaming
+      ) {
+        console.log(
+          '[SummarizationService] Falling back to non-streaming for course concepts'
+        )
+        courseConcepts = await summarizeContent(content, 'courseConcepts')
+      } else {
+        console.error('[SummarizationService] Course concepts error:', error)
+        courseConcepts = '<p><i>Could not generate course concepts.</i></p>'
+      }
+    }
+
+    return {
+      courseConcepts,
+      contentType,
+    }
+  }
 }

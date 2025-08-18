@@ -65,7 +65,7 @@ export function useSummarization() {
   }
 
   /**
-   * Main summarization function
+   * Main summarization function với independent loading
    */
   async function summarizePageContent() {
     try {
@@ -73,9 +73,6 @@ export function useSummarization() {
 
       // 1. Reset state
       resetLocalSummaryState()
-      localSummaryState.isLoading = true
-      localSummaryState.isChapterLoading = true // Bắt đầu loading chapter
-      localSummaryState.isCourseConceptsLoading = true // Bắt đầu loading course concepts
       localSummaryState.startTime = Date.now()
 
       // 2. Load settings
@@ -87,40 +84,85 @@ export function useSummarization() {
       )
       const summarizationService = new SummarizationService(contentExtractor)
 
-      // 4. Perform summarization
-      const result = await summarizationService.summarize(settings)
-
-      // 5. Update state với kết quả
-      localSummaryState.summary = result.summary
-      localSummaryState.contentType = result.contentType
+      // 4. Detect content type trước
+      const { contentType } = await contentExtractor.extractPageContent()
+      localSummaryState.contentType = contentType
       localSummaryState.streamingEnabled =
         summarizationService.shouldUseStreaming(settings)
 
-      if (result.chapterSummary) {
-        localSummaryState.chapterSummary = result.chapterSummary
-      }
+      // 5. Course content: Gọi APIs parallel nhưng update UI independently
+      if (contentType === 'course') {
+        // Start both loading states
+        localSummaryState.isLoading = true
+        localSummaryState.isCourseConceptsLoading = true
 
-      if (result.courseConcepts) {
-        localSummaryState.courseConcepts = result.courseConcepts
+        // Course Summary - Independent API call
+        const courseSummaryPromise = (async () => {
+          try {
+            console.log('[useSummarization] Starting course summary...')
+            const result = await summarizationService.summarizeCourseSummary(
+              settings
+            )
+            localSummaryState.summary = result.summary
+            console.log(
+              '[useSummarization] Course summary completed and displayed'
+            )
+          } catch (error) {
+            console.error('[useSummarization] Course summary error:', error)
+            handleSummarizationError(error)
+          } finally {
+            localSummaryState.isLoading = false
+          }
+        })()
+
+        // Course Concepts - Independent API call
+        const courseConceptsPromise = (async () => {
+          try {
+            console.log('[useSummarization] Starting course concepts...')
+            const result = await summarizationService.extractCourseConcepts(
+              settings
+            )
+            localSummaryState.courseConcepts = result.courseConcepts
+            console.log(
+              '[useSummarization] Course concepts completed and displayed'
+            )
+          } catch (error) {
+            console.error('[useSummarization] Course concepts error:', error)
+            // Set fallback content for concepts
+            localSummaryState.courseConcepts =
+              '<p><i>Could not generate course concepts.</i></p>'
+          } finally {
+            localSummaryState.isCourseConceptsLoading = false
+          }
+        })()
+
+        // Don't wait for both to complete - let them update UI independently
+        await Promise.allSettled([courseSummaryPromise, courseConceptsPromise])
+      } else {
+        // Non-course content: Use original logic
+        localSummaryState.isLoading = true
+        if (contentType === 'youtube') {
+          localSummaryState.isChapterLoading = true
+        }
+
+        const result = await summarizationService.summarize(settings)
+
+        localSummaryState.summary = result.summary
+        if (result.chapterSummary) {
+          localSummaryState.chapterSummary = result.chapterSummary
+        }
+
+        localSummaryState.isLoading = false
+        if (contentType === 'youtube') {
+          localSummaryState.isChapterLoading = false
+        }
       }
 
       const duration = Date.now() - localSummaryState.startTime
       console.log(`[useSummarization] Summarization completed in ${duration}ms`)
-      console.log(
-        `[useSummarization] Summary result:`,
-        result.summary ? 'has content' : 'empty'
-      )
-      console.log(
-        `[useSummarization] Summary length:`,
-        result.summary?.length || 0
-      )
-      console.log(
-        `[useSummarization] LocalSummaryState after update:`,
-        localSummaryState.summary ? 'has content' : 'empty'
-      )
     } catch (error) {
       handleSummarizationError(error)
-    } finally {
+      // Reset loading states on error
       localSummaryState.isLoading = false
       localSummaryState.isChapterLoading = false
       localSummaryState.isCourseConceptsLoading = false

@@ -337,6 +337,7 @@
         chapterSummary={summarization.localSummaryState().chapterSummary}
         isChapterLoading={summarization.localSummaryState().isChapterLoading}
         courseConcepts={summarization.localSummaryState().courseConcepts}
+        isCourseSummaryLoading={summarization.localSummaryState().isLoading}
         isCourseConceptsLoading={summarization.localSummaryState()
           .isCourseConceptsLoading}
         activeYouTubeTab={panelState.activeYouTubeTab()}

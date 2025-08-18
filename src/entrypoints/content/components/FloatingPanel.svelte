@@ -80,27 +80,40 @@
     }
   }
 
-  // $effect để handle OverlayScrollbars initialization
+  // Cleanup OverlayScrollbars khi panel đóng
+  function cleanupOverlayScrollbars() {
+    if (instance && instance()) {
+      try {
+        instance().destroy()
+        overlayScrollInitialized = false
+        console.log('[FloatingPanel] OverlayScrollbars destroyed and reset')
+      } catch (error) {
+        console.warn(
+          '[FloatingPanel] Error destroying OverlayScrollbars:',
+          error
+        )
+      }
+    } else {
+      // Reset state ngay cả khi không có instance
+      overlayScrollInitialized = false
+    }
+  }
+
+  // $effect để handle OverlayScrollbars initialization và cleanup
   $effect(() => {
-    if (overlayScroll && showElement && !overlayScrollInitialized) {
+    if (showElement && overlayScroll && !overlayScrollInitialized) {
+      // Initialize khi panel mở
       initializeOverlayScrollbars()
+    } else if (!showElement && overlayScrollInitialized) {
+      // Cleanup khi panel đóng
+      cleanupOverlayScrollbars()
     }
   })
 
   // Clean up OverlayScrollbars instance khi component unmount
   $effect(() => {
     return () => {
-      if (instance && instance()) {
-        try {
-          instance().destroy()
-          console.log('[FloatingPanel] OverlayScrollbars destroyed')
-        } catch (error) {
-          console.warn(
-            '[FloatingPanel] Error destroying OverlayScrollbars:',
-            error
-          )
-        }
-      }
+      cleanupOverlayScrollbars()
     }
   })
 

@@ -3,11 +3,12 @@
   import { onMount, onDestroy } from 'svelte'
 
   // Import composables
+  import Icon from '@iconify/svelte'
+  import SummarizeButton from '@/components/buttons/SummarizeButton.svelte'
   import { useSummarization } from '../composables/useSummarization.svelte.js'
   import { useFloatingPanelState } from '../composables/useFloatingPanelState.svelte.js'
 
   // Import components
-  import FloatingPanelHeader from '@/components/displays/floating-panel/FloatingPanelHeader.svelte'
   import FloatingPanelContent from '@/components/displays/floating-panel/FloatingPanelContent.svelte'
 
   let { visible, summary, status, onclose, children } = $props()
@@ -16,6 +17,23 @@
   let isResizing = $state(false)
   let currentWidth = $state(400) // Default width
   let showElement = $state(false) // Internal state để control DOM rendering
+
+  async function requestSummary() {
+    console.log('Requesting page summary...')
+    try {
+      const response = await browser.runtime.sendMessage({
+        type: 'REQUEST_SUMMARY',
+        payload: {
+          url: window.location.href,
+        },
+        // For page summary, we assume type is 'pageSummary'
+        type: 'pageSummary',
+      })
+      console.log('Summary request response:', response)
+    } catch (error) {
+      console.error('Failed to request summary:', error)
+    }
+  }
 
   const MIN_WIDTH = 280
   const MAX_WIDTH = 800
@@ -68,7 +86,11 @@
 
     const handleMouseMove = (e) => {
       if (!isResizing) return
-      const newWidth = window.innerWidth - e.clientX
+      // Sử dụng visualViewport nếu có (modern browsers),
+      // fallback về clientWidth (tất cả browsers)
+      const viewportWidth =
+        window.visualViewport?.width || document.documentElement.clientWidth
+      const newWidth = viewportWidth - e.clientX
       if (newWidth > MIN_WIDTH && newWidth < MAX_WIDTH) {
         currentWidth = newWidth
         panelElement.style.width = newWidth + 'px'
@@ -142,8 +164,10 @@
     style="width: {currentWidth}px"
   >
     <!-- Resize handle -->
+    <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
     <div
-      class="resize-handle"
+      class="resize-handle bg-transparent transition-colors"
+      class:resizing={isResizing}
       onmousedown={handleResizeStart}
       role="separator"
       aria-orientation="vertical"
@@ -151,12 +175,43 @@
       title="Drag to resize panel width"
     ></div>
 
-    <FloatingPanelHeader
-      onSummarize={summarization.summarizePageContent}
-      isLoading={summarization.localSummaryState().isLoading}
-      onClose={() => onclose?.()}
-      {children}
-    />
+    <div class="grid grid-rows-[10px_180px_10px_1fr] relative py-6">
+      <div
+        class="top-stripes border-t border-b border-border flex justify-center items-center w-full h-full"
+      ></div>
+      <div class="w-full flex items-center justify-center my-8">
+        <button
+          class="size-10 absolute z-10 top-4 text-text-primary right-2 flex justify-center items-center"
+        >
+          <Icon width={28} icon="heroicons:cog-6-tooth" />
+        </button>
+        <SummarizeButton />
+      </div>
+      <div
+        class="top-stripes border-t border-b border-border flex justify-center items-center w-full h-full"
+      ></div>
+    </div>
+    <!-- <div class="panel-header">
+      <span>Summary</span>
+      <div class="header-buttons">
+        <button
+          onclick={summarization.summarizePageContent}
+          disabled={summarization.localSummaryState().isLoading}
+          class="summarize-button"
+          title="Summarize current page independently"
+        >
+          {summarization.localSummaryState().isLoading
+            ? 'Summarizing...'
+            : 'Summarize (FP)'}
+        </button>
+        <button onclick={requestSummary}>Summarize (Global)</button>
+        <button
+          onclick={() => onclose?.()}
+          class="close-button"
+          aria-label="Close">&times;</button
+        >
+      </div>
+    </div> -->
 
     <FloatingPanelContent
       status={statusToDisplay}
@@ -179,3 +234,44 @@
     {/if}
   </div>
 {/if}
+
+<style>
+  /* Sidepanel Main Container */
+  .floating-panel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    height: 100vh;
+    width: 400px;
+    background-color: var(--color-surface-1);
+    box-shadow: -3px 0 18px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    z-index: 2147483647;
+    color: var(--color-text-primary);
+    border-left: 1px solid var(--color-border);
+    transform: translateX(100%);
+    transition: transform 0.3s ease-in-out;
+    box-sizing: border-box;
+  }
+
+  /* Resize Handle */
+  .resize-handle {
+    position: absolute;
+    top: 1em;
+    left: 0;
+    bottom: 1em;
+    border-radius: 1em;
+    width: 0.75em;
+    transform: translateX(-50%);
+
+    cursor: col-resize;
+    flex-shrink: 0;
+    z-index: 10000;
+  }
+
+  /* Active state khi đang resize */
+  .resize-handle.resizing {
+    background-color: var(--color-border) !important;
+  }
+</style>

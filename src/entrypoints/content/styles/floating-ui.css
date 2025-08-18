@@ -118,96 +118,10 @@
   );
 }
 
-/* Sidepanel Main Container */
-.floating-panel {
-  position: fixed;
-  top: 0;
-  right: 0;
-  height: 100vh;
-  width: 400px;
-  background-color: var(--color-surface-1);
-  box-shadow: -3px 0 18px rgba(0, 0, 0, 0.1);
-  display: flex;
-  flex-direction: column;
-  z-index: 2147483647;
-  color: var(--color-text-primary);
-  border-left: 1px solid var(--color-border);
-  transform: translateX(100%);
-  transition: transform 0.3s ease-in-out;
-  box-sizing: border-box;
+.floating-ui-root {
+  font-size: 16px; /* Đảm bảo các đơn vị rem dựa trên 16px */
 }
 
 .floating-panel.visible {
-  transform: translateX(0);
-}
-
-/* Resize Handle */
-.resize-handle {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 6px;
-  height: 100%;
-  cursor: col-resize;
-  background-color: #f1f1f1;
-  flex-shrink: 0;
-  transition: background-color 0.2s;
-  z-index: 10000;
-}
-
-.resize-handle:hover {
-  background-color: #c7c7c7;
-}
-.panel-header {
-  padding: 12px 16px;
-  border-bottom: 1px solid #eee;
-  cursor: grab; /* Make header draggable */
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background-color: #f7f7f7;
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-}
-.panel-header span {
-  font-weight: 600;
-}
-.close-button {
-  border: none;
-  background: none;
-  font-size: 24px;
-  cursor: pointer;
-  padding: 0;
-  line-height: 1;
-}
-.panel-content {
-  padding: 16px;
-  overflow-y: auto;
-  flex-grow: 1;
-}
-.header-buttons {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-.summarize-button {
-  background: #007bff;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  padding: 4px 8px;
-  font-size: 12px;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-.summarize-button:hover:not(:disabled) {
-  background: #0056b3;
-}
-.summarize-button:disabled {
-  background: #6c757d;
-  cursor: not-allowed;
-}
-
-.floating-ui-root {
-  font-size: 16px; /* Đảm bảo các đơn vị rem dựa trên 16px */
+  transform: translateX(0) !important;
 }

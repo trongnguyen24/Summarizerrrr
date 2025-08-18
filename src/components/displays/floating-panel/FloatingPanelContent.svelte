@@ -46,8 +46,8 @@
   let DisplayComponent = $derived(selectDisplay(contentType || 'general'))
 </script>
 
-<div class="panel-conten overflow-scroll">
-  <div class="prose">
+<div class="panel-content overflow-y-auto">
+  <div class="prose px-6 py-8">
     {#if status === 'loading'}
       <p>Loading... (FloatingPanel)</p>
     {:else if status === 'error'}

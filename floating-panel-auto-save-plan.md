@@ -269,45 +269,22 @@ let { localSummaryState, summaryContent, summaryTitle, targetId } = $props()
 />
 ```
 
-### Phase 5: UI Feedback & Error Handling
+### Phase 5: Data Consistency & Edge Cases
 
-#### 5.1 Toast Notification System
-
-**File**: `src/components/feedback/FloatingPanelToast.svelte`
-
-**Features**:
-
-- Success toast cho save operations
-- Error toast cho failed saves
-- Auto-dismiss after 3s
-- Portal rendering để avoid z-index issues
-
-#### 5.2 Save Status Indicators
-
-**Features**:
-
-- Button state changes (saved/unsaved)
-- Loading states during save
-- Error states với retry option
-
-### Phase 6: Data Consistency & Edge Cases
-
-#### 6.1 Duplicate Prevention
+#### 5.1 Duplicate Prevention
 
 - Check existing entries trước khi save
 - Use content hash để detect duplicates
 - Update existing entry thay vì create new
 
-#### 6.2 Error Handling
+#### 5.2 Basic Error Handling
 
-- Network errors: Retry mechanism
-- Invalid data: Validation & sanitization
-- Database errors: Fallback storage
+- Simple validation & sanitization
+- Basic error states via icon changes (existing pattern)
 
-#### 6.3 Performance
+#### 5.3 Performance
 
 - Debounce auto-save calls
-- Lazy load heavy dependencies
 - Memory cleanup khi component unmount
 
 ## File Structure Summary
@@ -330,8 +307,6 @@ src/
 │   │   ├── GenericSummaryDisplayFP.svelte         # MODIFIED
 │   │   ├── YouTubeSummaryDisplayFP.svelte         # MODIFIED
 │   │   └── CourseSummaryDisplayFP.svelte          # MODIFIED
-│   └── feedback/
-│       └── FloatingPanelToast.svelte              # NEW
 ├── lib/utils/
 │   └── floatingPanelUtils.js                      # NEW
 └── entrypoints/content/components/
@@ -343,9 +318,9 @@ src/
 - **Phase 1-2**: 2-3 hours (Core functions)
 - **Phase 3**: 2-3 hours (UI Components)
 - **Phase 4**: 1-2 hours (Integration)
-- **Phase 5-6**: 1-2 hours (Polish & Testing)
+- **Phase 5**: 1 hour (Basic edge cases)
 
-**Total**: 6-10 hours
+**Total**: 6-9 hours
 
 ## Testing Strategy
 
@@ -361,14 +336,13 @@ src/
 - ✅ Auto-save vào History works
 - ✅ Manual save vào Archive works
 - ✅ No duplicate entries
-- ✅ UI feedback works
-- ✅ Error handling works
+- ✅ Basic icon state feedback works
 - ✅ Performance acceptable
 
 ## Success Criteria
 
 1. **Functional**: Auto-save vào History sau tóm tắt, manual save vào Archive
-2. **UX**: Clear UI feedback, smooth interactions
-3. **Reliable**: No data loss, proper error handling
+2. **UX**: Clear icon state feedback, smooth interactions
+3. **Reliable**: No data loss, basic error handling
 4. **Performance**: No noticeable impact on summarization speed
 5. **Maintainable**: Clean code structure, reusable components

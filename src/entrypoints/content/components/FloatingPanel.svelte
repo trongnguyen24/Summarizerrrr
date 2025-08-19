@@ -4,7 +4,6 @@
 
   // Import composables
   import Icon from '@iconify/svelte'
-  import { useOverlayScrollbars } from 'overlayscrollbars-svelte'
   import SummarizeButton from '@/components/buttons/SummarizeButton.svelte'
   import { useSummarization } from '../composables/useSummarization.svelte.js'
   import { useFloatingPanelState } from '../composables/useFloatingPanelState.svelte.js'
@@ -12,110 +11,12 @@
   // Import components
   import FloatingPanelContent from '@/components/displays/floating-panel/FloatingPanelContent.svelte'
 
-  // Import CSS injection utility
-  import { injectOverlayScrollbarsStyles } from '@/lib/utils/shadowDomStylesInjector.js'
-
   let { visible, summary, status, onclose, children } = $props()
 
   let panelElement = $state()
   let isResizing = $state(false)
   let currentWidth = $state(400) // Default width
   let showElement = $state(false) // Internal state để control DOM rendering
-
-  const options = {
-    scrollbars: {
-      theme: 'os-theme-custom-app',
-    },
-  }
-  let overlayScroll = $state()
-  let overlayScrollInitialized = $state(false)
-
-  const [initialize, instance] = useOverlayScrollbars({ options, defer: true })
-
-  // Utility function to detect touch devices
-  function isTouchDevice() {
-    return (
-      'ontouchstart' in window ||
-      navigator.maxTouchPoints > 0 ||
-      navigator.msMaxTouchPoints > 0
-    )
-  }
-
-  // Initialize OverlayScrollbars với proper timing và CSS injection
-  async function initializeOverlayScrollbars() {
-    if (!overlayScroll || overlayScrollInitialized || isTouchDevice()) {
-      return
-    }
-
-    try {
-      // Tìm shadow DOM container
-      const shadowContainer =
-        overlayScroll.closest('.floating-ui-root') ||
-        document.querySelector('.floating-ui-root')
-
-      if (shadowContainer) {
-        // Inject OverlayScrollbars CSS vào shadow DOM
-        const cssInjected = await injectOverlayScrollbarsStyles(shadowContainer)
-
-        if (cssInjected) {
-          // Wait một tick để CSS được apply
-          setTimeout(() => {
-            if (overlayScroll && !overlayScrollInitialized) {
-              initialize(overlayScroll)
-              overlayScrollInitialized = true
-              console.log(
-                '[FloatingPanel] OverlayScrollbars initialized successfully'
-              )
-            }
-          }, 0)
-        } else {
-          console.warn('[FloatingPanel] Failed to inject OverlayScrollbars CSS')
-        }
-      }
-    } catch (error) {
-      console.error(
-        '[FloatingPanel] Failed to initialize OverlayScrollbars:',
-        error
-      )
-    }
-  }
-
-  // Cleanup OverlayScrollbars khi panel đóng
-  function cleanupOverlayScrollbars() {
-    if (instance && instance()) {
-      try {
-        instance().destroy()
-        overlayScrollInitialized = false
-        console.log('[FloatingPanel] OverlayScrollbars destroyed and reset')
-      } catch (error) {
-        console.warn(
-          '[FloatingPanel] Error destroying OverlayScrollbars:',
-          error
-        )
-      }
-    } else {
-      // Reset state ngay cả khi không có instance
-      overlayScrollInitialized = false
-    }
-  }
-
-  // $effect để handle OverlayScrollbars initialization và cleanup
-  $effect(() => {
-    if (showElement && overlayScroll && !overlayScrollInitialized) {
-      // Initialize khi panel mở
-      initializeOverlayScrollbars()
-    } else if (!showElement && overlayScrollInitialized) {
-      // Cleanup khi panel đóng
-      cleanupOverlayScrollbars()
-    }
-  })
-
-  // Clean up OverlayScrollbars instance khi component unmount
-  $effect(() => {
-    return () => {
-      cleanupOverlayScrollbars()
-    }
-  })
 
   async function requestSummary() {
     console.log('Requesting page summary...')
@@ -295,7 +196,7 @@
       aria-label="Close"
       ><Icon icon="heroicons:x-mark-20-solid" width="24" height="24" /></button
     >
-    <div bind:this={overlayScroll} class="w-full h-full py-8">
+    <div class="w-full h-full py-8 overflow-y-auto">
       <div class="grid grid-rows-[10px_180px_10px_1fr] relative">
         <div
           class="top-stripes border-t border-b border-border flex justify-center items-center w-full h-full"

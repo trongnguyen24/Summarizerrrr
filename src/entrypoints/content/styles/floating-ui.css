@@ -132,3 +132,185 @@ button {
 .floating-panel.visible {
   transform: translateX(0) !important;
 }
+
+.os-theme-custom-app {
+  --os-size: 0.5rem;
+  --os-padding-perpendicular: 0px;
+  --os-padding-axis: 0px;
+  --os-track-border-radius: 0px;
+  --os-track-bg: none;
+  --os-track-bg-hover: none;
+  --os-track-bg-active: none;
+  --os-track-border: none;
+  --os-track-border-hover: none;
+  --os-track-border-active: none;
+  --os-handle-border-radius: 0.25rem;
+  --os-handle-bg: var(--color-border);
+  --os-handle-bg-hover: var(--color-text-secondary);
+  --os-handle-bg-active: var(--color-text-primary);
+  --os-handle-border: none;
+  --os-handle-border-hover: none;
+  --os-handle-border-active: none;
+  --os-handle-min-size: 2rem;
+  --os-handle-max-size: none;
+  --os-handle-perpendicular-size: 100%;
+  --os-handle-perpendicular-size-hover: 100%;
+  --os-handle-perpendicular-size-active: 100%;
+  --os-handle-interactive-area-offset: 0px;
+}
+
+.os-scrollbar {
+  contain: size layout style;
+  contain: size layout;
+  z-index: 1;
+  transition: opacity 0.3s ease;
+}
+
+.os-scrollbar-hidden {
+  opacity: 0;
+}
+
+.os-scrollbar-track {
+  position: relative;
+  padding: var(--os-padding-perpendicular, 0) var(--os-padding-axis, 0);
+  border: var(--os-track-border, none);
+  border-radius: var(--os-track-border-radius, 0);
+  background: var(--os-track-bg, none);
+}
+
+.os-scrollbar-track:hover {
+  border: var(--os-track-border-hover, var(--os-track-border, none));
+  background: var(--os-track-bg-hover, var(--os-track-bg, none));
+}
+
+.os-scrollbar-track:active {
+  border: var(
+    --os-track-border-active,
+    var(--os-track-border-hover, var(--os-track-border, none))
+  );
+  background: var(
+    --os-track-bg-active,
+    var(--os-track-bg-hover, var(--os-track-bg, none))
+  );
+}
+
+.os-scrollbar-handle {
+  position: relative;
+  border-radius: var(--os-handle-border-radius, 0);
+  background: var(--os-handle-bg);
+  border: var(--os-handle-border, none);
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.os-scrollbar-handle:hover {
+  background: var(--os-handle-bg-hover, var(--os-handle-bg));
+  border: var(--os-handle-border-hover, var(--os-handle-border, none));
+}
+
+.os-scrollbar-handle:active {
+  background: var(
+    --os-handle-bg-active,
+    var(--os-handle-bg-hover, var(--os-handle-bg))
+  );
+  border: var(
+    --os-handle-border-active,
+    var(--os-handle-border-hover, var(--os-handle-border, none))
+  );
+}
+
+.os-scrollbar-horizontal {
+  height: var(--os-size);
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.os-scrollbar-vertical {
+  width: var(--os-size);
+  top: 0;
+  bottom: 0;
+  right: 0;
+}
+
+.os-scrollbar-horizontal .os-scrollbar-handle {
+  min-width: var(--os-handle-min-size);
+  max-width: var(--os-handle-max-size, none);
+  height: var(--os-handle-perpendicular-size, 100%);
+}
+
+.os-scrollbar-vertical .os-scrollbar-handle {
+  min-height: var(--os-handle-min-size);
+  max-height: var(--os-handle-max-size, none);
+  width: var(--os-handle-perpendicular-size, 100%);
+}
+
+.os-scrollbar-horizontal:hover .os-scrollbar-handle {
+  height: var(
+    --os-handle-perpendicular-size-hover,
+    var(--os-handle-perpendicular-size, 100%)
+  );
+}
+
+.os-scrollbar-vertical:hover .os-scrollbar-handle {
+  width: var(
+    --os-handle-perpendicular-size-hover,
+    var(--os-handle-perpendicular-size, 100%)
+  );
+}
+
+.os-scrollbar-horizontal:active .os-scrollbar-handle {
+  height: var(
+    --os-handle-perpendicular-size-active,
+    var(
+      --os-handle-perpendicular-size-hover,
+      var(--os-handle-perpendicular-size, 100%)
+    )
+  );
+}
+
+.os-scrollbar-vertical:active .os-scrollbar-handle {
+  width: var(
+    --os-handle-perpendicular-size-active,
+    var(
+      --os-handle-perpendicular-size-hover,
+      var(--os-handle-perpendicular-size, 100%)
+    )
+  );
+}
+
+/* Host element styles */
+[data-overlayscrollbars-host] {
+  position: relative;
+}
+
+[data-overlayscrollbars-contents] {
+  box-sizing: border-box;
+}
+
+[data-overlayscrollbars-viewport] {
+  -ms-overflow-style: scrollbar !important;
+  scrollbar-width: none !important;
+}
+
+[data-overlayscrollbars-viewport]::-webkit-scrollbar,
+[data-overlayscrollbars-viewport]::-webkit-scrollbar-corner {
+  appearance: none !important;
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .os-theme-custom-app {
+    --os-size: 0.5rem;
+    --os-handle-min-size: 1.5rem;
+  }
+}
+
+/* Dark theme adjustments */
+.dark .os-theme-custom-app {
+  --os-handle-bg: var(--color-border);
+  --os-handle-bg-hover: var(--color-text-secondary);
+  --os-handle-bg-active: var(--color-text-primary);
+}

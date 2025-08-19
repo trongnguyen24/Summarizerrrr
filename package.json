@@ -14,7 +14,7 @@
     "check": "svelte-check --tsconfig ./tsconfig.json",
     "postinstall": "wxt prepare",
     "android": "web-ext run --target=firefox-android --android-device ${ANDROID_DEVICE:-emulator-5554} --firefox-apk ${FIREFOX_APK:-org.mozilla.fenix} --source-dir .output/firefox-mv2 --adb-remove-old-artifacts",
-    "android:win": "web-ext run --target=firefox-android --android-device emulator-5554 --firefox-apk org.mozilla.fenix --source-dir .output/firefox-mv2 --adb-remove-old-artifacts"
+    "android:win": "web-ext run --target=firefox-android --android-device 177a8d45 --firefox-apk org.mozilla.fenix --source-dir .output/firefox-mv2 --adb-remove-old-artifacts"
   },
   "devDependencies": {
     "@ai-sdk/svelte": "^3.0.0",

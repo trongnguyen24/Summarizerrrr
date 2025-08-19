@@ -52,22 +52,60 @@ import {
 } from '@/lib/db/indexedDBService.js'
 
 browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.type === 'OPEN_SETTINGS') {
-    const url = browser.runtime.getURL('settings.html')
-    browser.tabs.create({ url, active: true })
-    // This is a fire-and-forget message, no response needed.
-    return false
-  }
-
   if (message.type === 'OPEN_ARCHIVE') {
     const url = browser.runtime.getURL('archive.html')
     browser.tabs.create({ url, active: true })
     // This is a fire-and-forget message, no response needed.
     return false
   }
+})
 
-  // Return true to indicate that other listeners might respond asynchronously.
-  // This is important if this listener doesn't handle all message types.
+browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.type === 'SAVE_TO_HISTORY') {
+    ;(async () => {
+      try {
+        const result = await addHistory(message.payload.historyData)
+        console.log('SAVE_TO_HISTORY result:', result)
+        sendResponse({ success: true, id: String(result) })
+      } catch (error) {
+        console.error('Error in SAVE_TO_HISTORY:', error)
+        sendResponse({ success: false, error: error.message })
+      }
+    })()
+    return true // Indicate async response
+  }
+})
+
+browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.type === 'SAVE_TO_ARCHIVE') {
+    ;(async () => {
+      try {
+        const newArchiveId = await addSummary(message.payload.archiveEntry)
+        if (message.payload.historySourceId) {
+          await updateHistoryArchivedStatus(
+            message.payload.historySourceId,
+            true
+          )
+        }
+        console.log('SAVE_TO_ARCHIVE newArchiveId:', newArchiveId)
+        sendResponse({ success: true, newArchiveId: String(newArchiveId) })
+      } catch (error) {
+        console.error('Error in SAVE_TO_ARCHIVE:', error)
+        sendResponse({ success: false, error: error.message })
+      }
+    })()
+    return true // Indicate async response
+  }
+})
+
+browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  // Handle synchronous messages first
+  if (message.type === 'OPEN_SETTINGS') {
+    const url = browser.runtime.getURL('settings.html')
+    browser.tabs.create({ url, active: true })
+    // This is a fire-and-forget message, no response needed.
+    return true
+  }
   return true
 })
 
@@ -519,20 +557,6 @@ export default defineBackground(() => {
             }
             logAllGeneratedSummariesToHistory()
           }
-        } else if (message.type === 'SAVE_TO_HISTORY') {
-          const result = await addHistory(message.payload.historyData)
-          console.log('SAVE_TO_HISTORY result:', result)
-          sendResponse({ success: true, id: String(result) })
-        } else if (message.type === 'SAVE_TO_ARCHIVE') {
-          const newArchiveId = await addSummary(message.payload.archiveEntry)
-          if (message.payload.historySourceId) {
-            await updateHistoryArchivedStatus(
-              message.payload.historySourceId,
-              true
-            )
-          }
-          console.log('SAVE_TO_ARCHIVE newArchiveId:', newArchiveId)
-          sendResponse({ success: true, newArchiveId: String(newArchiveId) })
         }
       } catch (err) {
         console.error(

@@ -10,6 +10,7 @@
     isChapterLoading = false,
     activeYouTubeTab = 'videoSummary',
     onSelectTab = null,
+    summarization,
   } = $props()
 
   const youtubeTabs = $derived([
@@ -43,6 +44,7 @@
       {isLoading}
       loadingText="Processing main YouTube summary..."
       targetId="fp-youtube-video-summary-display"
+      {summarization}
     />
   </div>
   <div hidden={activeYouTubeTab !== 'chapterSummary'}>
@@ -51,6 +53,7 @@
       isLoading={isChapterLoading}
       loadingText="Generating chapter summary..."
       targetId="fp-youtube-chapter-summary-display"
+      {summarization}
     />
   </div>
 </TabbedSummaryDisplay>

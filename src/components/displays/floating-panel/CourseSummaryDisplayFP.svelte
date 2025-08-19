@@ -10,6 +10,7 @@
     isCourseConceptsLoading = false,
     activeCourseTab = 'courseSummary',
     onSelectTab = null,
+    summarization,
   } = $props()
 
   const courseTabs = $derived([
@@ -52,6 +53,7 @@
       isLoading={isCourseSummaryLoading}
       loadingText="Processing main Course summary..."
       targetId="fp-course-video-summary-display"
+      {summarization}
     />
   </div>
   <div hidden={activeCourseTab !== 'courseConcepts'}>
@@ -61,6 +63,7 @@
       loadingText="Processing Course Concepts..."
       targetId="fp-course-concepts-display"
       {noDataContent}
+      {summarization}
     />
   </div>
 </TabbedSummaryDisplay>

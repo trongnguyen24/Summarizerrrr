@@ -2,6 +2,10 @@
 import { loadSettings, settings } from '@/stores/settingsStore.svelte.js'
 import { ContentExtractorService } from '../services/ContentExtractorService.js'
 import { SummarizationService } from '../services/SummarizationService.js'
+import {
+  saveToHistory,
+  saveToArchive,
+} from '../services/FloatingPanelStorageService.js'
 
 /**
  * Composable quản lý summarization state và logic
@@ -20,6 +24,13 @@ export function useSummarization() {
     isChapterLoading: false,
     courseConcepts: '',
     isCourseConceptsLoading: false,
+    // State cho việc lưu trữ
+    isSavedToHistory: false,
+    isSavedToArchive: false,
+    historyId: null, // Lưu ID của bản ghi history
+    saveError: null,
+    pageTitle: '', // Thêm pageTitle
+    pageUrl: '', // Thêm pageUrl
   })
 
   /**
@@ -36,6 +47,12 @@ export function useSummarization() {
     localSummaryState.isChapterLoading = false
     localSummaryState.courseConcepts = ''
     localSummaryState.isCourseConceptsLoading = false
+    localSummaryState.isSavedToHistory = false
+    localSummaryState.isSavedToArchive = false
+    localSummaryState.historyId = null
+    localSummaryState.saveError = null
+    localSummaryState.pageTitle = ''
+    localSummaryState.pageUrl = ''
   }
 
   /**
@@ -75,7 +92,11 @@ export function useSummarization() {
       resetLocalSummaryState()
       localSummaryState.startTime = Date.now()
 
-      // 2. Load settings
+      // 2. Get Page Info directly from the document
+      localSummaryState.pageTitle = document.title || 'Unknown Title'
+      localSummaryState.pageUrl = window.location.href
+
+      // 3. Load settings
       await loadSettings()
 
       // 3. Initialize services
@@ -160,12 +181,57 @@ export function useSummarization() {
 
       const duration = Date.now() - localSummaryState.startTime
       console.log(`[useSummarization] Summarization completed in ${duration}ms`)
+
+      // 6. Auto-save to history
+      await autoSaveToHistory()
     } catch (error) {
       handleSummarizationError(error)
       // Reset loading states on error
       localSummaryState.isLoading = false
       localSummaryState.isChapterLoading = false
       localSummaryState.isCourseConceptsLoading = false
+    }
+  }
+
+  async function autoSaveToHistory() {
+    try {
+      console.log('[useSummarization] Auto-saving to history...')
+      const pageInfo = {
+        title: localSummaryState.pageTitle,
+        url: localSummaryState.pageUrl,
+      }
+      const newHistoryId = await saveToHistory(localSummaryState, pageInfo)
+      if (newHistoryId) {
+        localSummaryState.isSavedToHistory = true
+        localSummaryState.historyId = newHistoryId
+        console.log(
+          `[useSummarization] Auto-saved to history with ID: ${newHistoryId}`
+        )
+      }
+    } catch (error) {
+      console.error('[useSummarization] Auto-save to history failed:', error)
+      localSummaryState.saveError = error
+    }
+  }
+
+  async function manualSaveToArchive() {
+    try {
+      console.log('[useSummarization] Manual saving to archive...')
+      const pageInfo = {
+        title: localSummaryState.pageTitle,
+        url: localSummaryState.pageUrl,
+      }
+      await saveToArchive(
+        localSummaryState,
+        pageInfo,
+        localSummaryState.historyId
+      )
+      localSummaryState.isSavedToArchive = true
+      console.log('[useSummarization] Manual save to archive successful.')
+    } catch (error) {
+      console.error('[useSummarization] Manual save to archive failed:', error)
+      localSummaryState.saveError = error
+      throw error // Re-throw để UI có thể xử lý
     }
   }
 
@@ -189,5 +255,6 @@ export function useSummarization() {
     summarizePageContent,
     resetLocalSummaryState,
     handleSummarizationError,
+    manualSaveToArchive,
   }
 }

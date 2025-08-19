@@ -344,6 +344,7 @@
         activeCourseTab={panelState.activeCourseTab()}
         onSelectYouTubeTab={panelState.setActiveYouTubeTab}
         onSelectCourseTab={panelState.setActiveCourseTab}
+        {summarization}
       />
 
       {#if children?.settingsMini}

@@ -18,6 +18,7 @@
     activeCourseTab,
     onSelectYouTubeTab,
     onSelectCourseTab,
+    summarization,
   } = $props()
 
   /**
@@ -59,6 +60,7 @@
         {isCourseConceptsLoading}
         {activeCourseTab}
         onSelectTab={onSelectCourseTab}
+        {summarization}
       />
     {:else if contentType === 'youtube'}
       <DisplayComponent
@@ -68,6 +70,7 @@
         {isChapterLoading}
         {activeYouTubeTab}
         onSelectTab={onSelectYouTubeTab}
+        {summarization}
       />
     {:else if summary}
       <DisplayComponent
@@ -75,6 +78,7 @@
         isLoading={status === 'loading'}
         loadingText="Processing summary..."
         targetId="fp-generic-summary"
+        {summarization}
       />
     {:else if status === 'loading'}
       <p>Processing...</p>

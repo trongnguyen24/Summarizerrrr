@@ -51,6 +51,26 @@ import {
   updateHistoryArchivedStatus,
 } from '@/lib/db/indexedDBService.js'
 
+browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.type === 'OPEN_SETTINGS') {
+    const url = browser.runtime.getURL('settings.html')
+    browser.tabs.create({ url, active: true })
+    // This is a fire-and-forget message, no response needed.
+    return false
+  }
+
+  if (message.type === 'OPEN_ARCHIVE') {
+    const url = browser.runtime.getURL('archive.html')
+    browser.tabs.create({ url, active: true })
+    // This is a fire-and-forget message, no response needed.
+    return false
+  }
+
+  // Return true to indicate that other listeners might respond asynchronously.
+  // This is important if this listener doesn't handle all message types.
+  return true
+})
+
 export default defineBackground(() => {
   let sidePanelPort = null
   let pendingSelectedText = null
@@ -390,25 +410,6 @@ export default defineBackground(() => {
 
   // 5. Listen for messages from other parts of the extension
   browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    // Handle simple, synchronous cases first
-    if (message.type === 'PING') {
-      sendResponse({ ok: true })
-      return
-    }
-
-    if (message.type === 'OPEN_SETTINGS') {
-      const url = browser.runtime.getURL('settings.html')
-      browser.tabs.create({ url, active: true })
-      // No response needed for this action
-      return
-    }
-
-    if (message.type === 'OPEN_ARCHIVE') {
-      const url = browser.runtime.getURL('archive.html')
-      browser.tabs.create({ url, active: true })
-      return
-    }
-
     // Handle asynchronous actions
     ;(async () => {
       try {

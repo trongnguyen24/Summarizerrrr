@@ -2,22 +2,59 @@
   // @ts-nocheck
   import Icon from '@iconify/svelte'
   import { t } from 'svelte-i18n'
-  import { useDisplaySettings } from '@/composables/useDisplaySettings.svelte.js'
   import {
-    WIDTH_BUTTON_TEXTS,
-    FONT_SIZE_CLASSES,
-  } from '@/lib/constants/displayConstants.js'
-
-  const {
-    increaseFontSize,
-    decreaseFontSize,
-    toggleWidth,
-    toggleFontFamily,
-    toggleTheme,
     fontSizeIndex,
     widthIndex,
-    themeSettings,
-  } = useDisplaySettings()
+  } from '@/stores/displaySettingsStore.svelte'
+  import { themeSettings, setTheme } from '@/stores/themeStore.svelte.js'
+  import { settings, updateSettings } from '@/stores/settingsStore.svelte.js'
+  import { archiveStore } from '@/stores/archiveStore.svelte.js'
+
+  const fontSizeClasses = [
+    'prose-base prose-h1:text-2xl prose-h2:text-xl prose-h3:text-lg',
+    'prose-lg prose-h1:text-[1.675rem] prose-h2:text-2xl prose-h3:text-xl',
+    'prose-xl prose-h1:text-3xl prose-h2:text-[1.675rem]  prose-h3:[1.425rem]',
+    'prose-2xl prose-h1:text-4xl prose-h2:text-3xl prose-h3:text-2xl',
+  ]
+
+  const widthClasses = ['max-w-3xl', 'max-w-4xl', 'max-w-5xl', 'max-w-6xl']
+  const widthButtonTexts = ['.', '..', '...', '....']
+  const fontMap = {
+    default: 'font-default',
+    'noto-serif': 'font-noto-serif',
+    opendyslexic: 'font-opendyslexic',
+    mali: 'font-mali',
+  }
+  const fontKeys = Object.keys(fontMap)
+
+  function increaseFontSize() {
+    if ($fontSizeIndex < fontSizeClasses.length - 1) {
+      $fontSizeIndex++
+    }
+  }
+
+  function decreaseFontSize() {
+    if ($fontSizeIndex > 0) {
+      $fontSizeIndex--
+    }
+  }
+
+  function toggleWidth() {
+    $widthIndex = ($widthIndex + 1) % widthClasses.length
+  }
+
+  function toggleFontFamily() {
+    const currentIndex = fontKeys.indexOf(settings.selectedFont)
+    const nextIndex = (currentIndex + 1) % fontKeys.length
+    updateSettings({ selectedFont: fontKeys[nextIndex] })
+  }
+
+  function toggleTheme() {
+    const themes = ['light', 'dark', 'system']
+    const currentIndex = themes.indexOf(themeSettings.theme)
+    const nextIndex = (currentIndex + 1) % themes.length
+    setTheme(themes[nextIndex])
+  }
 </script>
 
 <div class="absolute text-base flex gap-2 top-2 right-2">
@@ -38,7 +75,7 @@
   <button
     class=" size-8 font-mono flex justify-center items-center hover:bg-blackwhite/5 rounded-2xl"
     onclick={decreaseFontSize}
-    disabled={$fontSizeIndex === FONT_SIZE_CLASSES.length + 1}
+    disabled={$fontSizeIndex === fontSizeClasses.length + 1}
     title={$t('archive.font_dec')}
   >
     A-
@@ -46,7 +83,7 @@
   <button
     class=" size-8 flex font-mono justify-center items-center hover:bg-blackwhite/5 rounded-2xl"
     onclick={increaseFontSize}
-    disabled={$fontSizeIndex === FONT_SIZE_CLASSES.length - 1}
+    disabled={$fontSizeIndex === fontSizeClasses.length - 1}
     title={$t('archive.font_inc')}
   >
     A+
@@ -64,7 +101,7 @@
     title={$t('archive.toggle_width')}
   >
     <span class="font-default absolute text-sm -translate-y-3"
-      >{WIDTH_BUTTON_TEXTS[$widthIndex]}</span
+      >{widthButtonTexts[$widthIndex]}</span
     >
     <svg
       xmlns="http://www.w3.org/2000/svg"

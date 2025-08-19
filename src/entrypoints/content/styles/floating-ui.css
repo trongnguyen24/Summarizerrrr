@@ -48,6 +48,12 @@
   height: var(s);
 }
 
+button {
+  cursor: pointer;
+  user-select: none;
+  outline-color: var(--color-gray-500);
+}
+
 @theme {
   --breakpoint-xs: 38rem;
   --color-blackwhite: oklch(0 0 0);

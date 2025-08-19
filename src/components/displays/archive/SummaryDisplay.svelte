@@ -4,7 +4,6 @@
   import { marked } from 'marked'
   import hljs from 'highlight.js'
   import svelte from 'highlightjs-svelte'
-
   svelte(hljs)
   import TOC from '@/components/navigation/TOCArchive.svelte'
   import TabNavigation from '@/components/navigation/TabNavigation.svelte'
@@ -94,7 +93,7 @@
 
 {#if selectedSummary}
   <div
-    class="prose px-8 md:px-12 xl:px-20 w-full {widthClasses[
+    class="prose px-4 md:px-12 xl:px-20 w-full {widthClasses[
       $widthIndex
     ]} mx-auto {fontSizeClasses[$fontSizeIndex]} {fontMap[
       settings.selectedFont
@@ -103,7 +102,7 @@
     <DisplaySettingsControls />
     <div class="flex flex-col gap-2">
       <div
-        class="font-mono text-text-muted text-xs flex gap-8 justify-center items-center"
+        class="font-mono text-text-muted text-xs flex md:flex-row flex-col gap-2 py-4 md:gap-8 justify-center items-center"
       >
         <div class="flex justify-center items-center gap-1">
           <Icon height="16" width="16" icon="lucide:clock" class="" />
@@ -158,7 +157,7 @@
             <path d="M9 4v1H0V4z" fill="currentColor" />
           </svg>
         </div>
-        <span class="h-px w-20 bg-border/70"></span>
+        <span class="h-px w-8 md:w-20 bg-border/70"></span>
 
         {#if currentSummary && activeTab !== 'archive'}
           <SaveToArchiveFromHistoryButton {selectedSummary} />
@@ -172,7 +171,7 @@
           />
         {/if}
 
-        <span class="h-px w-20 bg-border/70"></span>
+        <span class="h-px w-8 md:w-20 bg-border/70"></span>
         <div class="absolute right-0">
           <svg
             xmlns="http://www.w3.org/2000/svg"

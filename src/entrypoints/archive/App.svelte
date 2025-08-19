@@ -1,11 +1,13 @@
 <script>
   // @ts-nocheck
+  import { onMount } from 'svelte'
   import { t } from 'svelte-i18n'
   import Icon from '@iconify/svelte'
   import 'overlayscrollbars/overlayscrollbars.css'
   import { useOverlayScrollbars } from 'overlayscrollbars-svelte'
   import { appStateStorage } from '@/services/wxtStorageService.js'
   import SidePanel from './SidePanel.svelte'
+  import { fade } from 'svelte/transition'
   import {
     settings,
     loadSettings,
@@ -27,9 +29,10 @@
   import { animationService } from '@/services/animationService.js'
 
   // State management
-  let isSidePanelVisible = $state(true)
+  let isSidePanelVisible = $state(window.innerWidth >= 768) // Initialize based on current window size
   let activeTab = $state('history') // Local state for active tab
   let sidePanel
+  let isMobile = $state(window.innerWidth < 768) // Initialize mobile state immediately
 
   // Overlay scrollbars configuration
   const scrollOptions = {
@@ -51,6 +54,21 @@
       animationService.show(sidePanel)
     } else {
       animationService.hide(sidePanel)
+    }
+  }
+
+  function handleResize() {
+    const newIsMobile = window.innerWidth < 768
+    if (newIsMobile !== isMobile) {
+      isMobile = newIsMobile
+      isSidePanelVisible = !isMobile // Set visibility based on screen size
+    }
+  }
+
+  // Close sidepanel when clicking outside on mobile
+  function handleOverlayClick() {
+    if (isMobile && isSidePanelVisible) {
+      toggleSidePanel()
     }
   }
 
@@ -82,8 +100,16 @@
         archiveStore.loadData()
       }
     })
-    // Return unsubscribe function for cleanup
-    return unsubscribe
+
+    // Initialize mobile state and listen for resize
+    handleResize()
+    window.addEventListener('resize', handleResize)
+
+    // Return cleanup function
+    return () => {
+      unsubscribe()
+      window.removeEventListener('resize', handleResize)
+    }
   })
 
   $effect(() => {
@@ -106,8 +132,19 @@
 <Logdev /> -->
 
 <main class="flex text-sm relative min-h-dvh bg-background text-text-primary">
+  <!-- Overlay backdrop for mobile - click outside to close sidepanel -->
+  {#if isMobile && isSidePanelVisible}
+    <!-- svelte-ignore a11y_click_events_have_key_events -->
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
+    <div
+      transition:fade
+      class="fixed top-0 bottom-0 left-3 right-3 sm:left-5 sm:right-5 bg-black/40 z-30"
+      onclick={handleOverlayClick}
+    ></div>
+  {/if}
+
   <button
-    class="fixed top-4 left-10 translate-x-0.5 z-50 hover:bg-blackwhite/5 rounded-4xl p-1"
+    class="fixed top-4 left-5 sm:left-7 md:left-10 translate-x-0.5 z-50 hover:bg-blackwhite/5 rounded-4xl p-1"
     onclick={toggleSidePanel}
   >
     {#if isSidePanelVisible}
@@ -123,12 +160,12 @@
 
   <!-- Left Column: Prompt Menu -->
   <div
-    class="top-stripes sticky shrink-0 top-0 w-8 h-screen border-r border-border/70"
+    class="top-stripes sticky shrink-0 top-0 w-3 sm:w-5 md:w-8 h-screen border-r border-border/70"
   ></div>
 
   <div
     bind:this={sidePanel}
-    class="top-0 p-0 w-80 fixed left-8 h-screen max-h-screen z-40 bg-background overflow-hidden"
+    class="top-0 p-0 fixed left-3 sm:left-5 md:left-8 h-screen max-h-screen z-40 bg-background overflow-hidden"
   >
     <div class="w-px absolute z-30 top-0 right-0 h-screen bg-border/70"></div>
 
@@ -138,13 +175,22 @@
           ? archiveStore.archiveList
           : archiveStore.historyList}
         selectedSummary={archiveStore.selectedSummary}
-        selectSummary={(summary) =>
-          archiveStore.selectSummary(summary, activeTab)}
+        selectSummary={(summary) => {
+          archiveStore.selectSummary(summary, activeTab)
+          // Auto-close sidepanel on mobile when selecting summary
+          if (isMobile && isSidePanelVisible) {
+            toggleSidePanel()
+          }
+        }}
         selectedSummaryId={archiveStore.selectedSummaryId}
         {activeTab}
         selectTab={(tabName) => {
           activeTab = tabName
           archiveStore.selectTab(tabName)
+          // Auto-close sidepanel on mobile when switching tabs
+          if (isMobile && isSidePanelVisible) {
+            toggleSidePanel()
+          }
         }}
         onRefresh={archiveStore.loadData}
       />
@@ -153,8 +199,9 @@
 
   <!-- Right Column -->
   <div
-    class="flex-1 relative pl-0 bg-surface-1 z-20 p-4 flex flex-col gap-2
-    {isSidePanelVisible ? 'sm:pl-80' : ''}"
+    class="flex-1 relative bg-surface-1 z-20 flex flex-col gap-2
+    {isSidePanelVisible ? 'sm:pl-80' : ''}
+    {isMobile && !isSidePanelVisible ? 'pl-0' : ''}"
   >
     <SummaryDisplay
       selectedSummary={archiveStore.selectedSummary}
@@ -168,6 +215,6 @@
   </div>
 
   <div
-    class="top-stripes shrink-0 sticky top-0 w-8 h-screen border-l border-border/70"
+    class="top-stripes shrink-0 sticky top-0 w-3 sm:w-5 md:w-8 h-screen border-l border-border/70"
   ></div>
 </main>

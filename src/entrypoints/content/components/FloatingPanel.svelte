@@ -138,6 +138,10 @@
     browser.runtime.sendMessage({ type: 'OPEN_SETTINGS' })
   }
 
+  function openArchive() {
+    browser.runtime.sendMessage({ type: 'OPEN_ARCHIVE' })
+  }
+
   function handleSummarizeClick() {
     summarization.summarizePageContent()
   }
@@ -282,9 +286,15 @@
       aria-label="Resize panel"
       title="Drag to resize panel width"
     >
-      <span class="w-1.5 h-8 bg-surface-2 border border-border rounded-2xl">
+      <span class="w-2 h-10 bg-surface-2 border border-border rounded-2xl">
       </span>
     </div>
+    <button
+      onclick={() => onclose?.()}
+      class="close-button absolute cursor-pointer z-10 top-0 size-8 right-3 text-error flex justify-center items-center"
+      aria-label="Close"
+      ><Icon icon="heroicons:x-mark-20-solid" width="24" height="24" /></button
+    >
     <div bind:this={overlayScroll} class="w-full h-full py-8">
       <div class="grid grid-rows-[10px_180px_10px_1fr] relative">
         <div
@@ -292,7 +302,14 @@
         ></div>
         <div class="w-full flex items-center justify-center my-8">
           <button
-            class="size-10 absolute cursor-pointer z-10 top-4 text-text-secondary hover:text-text-primary transition-colors right-2 flex justify-center items-center"
+            class="size-10 absolute cursor-pointer z-10 top-3 text-text-secondary hover:text-text-primary transition-colors left-2 flex justify-center items-center"
+            onclick={openArchive}
+            title="Open Archive"
+          >
+            <Icon icon="heroicons:archive-box" width="24" height="24" />
+          </button>
+          <button
+            class="size-10 absolute cursor-pointer z-10 top-3 text-text-secondary hover:text-text-primary transition-colors right-2 flex justify-center items-center"
             onclick={openSettings}
           >
             <Icon width={24} icon="heroicons:cog-6-tooth" />
@@ -307,27 +324,6 @@
           class="top-stripes border-t border-b border-border flex justify-center items-center w-full h-full"
         ></div>
       </div>
-      <!-- <div class="panel-header">
-      <span>Summary</span>
-      <div class="header-buttons">
-        <button
-          onclick={summarization.summarizePageContent}
-          disabled={summarization.localSummaryState().isLoading}
-          class="summarize-button"
-          title="Summarize current page independently"
-        >
-          {summarization.localSummaryState().isLoading
-            ? 'Summarizing...'
-            : 'Summarize (FP)'}
-        </button>
-        <button onclick={requestSummary}>Summarize (Global)</button>
-        <button
-          onclick={() => onclose?.()}
-          class="close-button"
-          aria-label="Close">&times;</button
-        >
-      </div>
-    </div> -->
 
       <FloatingPanelContent
         status={statusToDisplay}

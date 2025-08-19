@@ -403,6 +403,12 @@ export default defineBackground(() => {
       return
     }
 
+    if (message.type === 'OPEN_ARCHIVE') {
+      const url = browser.runtime.getURL('archive.html')
+      browser.tabs.create({ url, active: true })
+      return
+    }
+
     // Handle asynchronous actions
     ;(async () => {
       try {

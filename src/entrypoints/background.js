@@ -45,6 +45,11 @@ import {
   logAllGeneratedSummariesToHistory,
 } from '../stores/summaryStore.svelte.js'
 import { get } from 'svelte/store'
+import {
+  addHistory,
+  addSummary,
+  updateHistoryArchivedStatus,
+} from '@/lib/db/indexedDBService.js'
 
 export default defineBackground(() => {
   let sidePanelPort = null
@@ -74,23 +79,6 @@ export default defineBackground(() => {
     }
     return false
   }
-
-  // Mobile open Setting tab
-  browser.runtime.onMessage.addListener((msg) => {
-    if (!msg || !msg.type) return
-
-    // Ping để test kết nối từ content
-    if (msg.type === 'PING') {
-      // Trả Promise để polyfill nhận biết có receiver
-      return Promise.resolve({ ok: true })
-    }
-
-    if (msg.type === 'OPEN_SETTINGS') {
-      const url = browser.runtime.getURL('settings.html') // đổi đúng tên file của bạn
-      // Trên Firefox Android dùng tabs.create; desktop có thể openOptionsPage nhưng tabs.create là ổn nhất
-      return browser.tabs.create({ url, active: true }).then(() => undefined)
-    }
-  })
 
   // Tải cài đặt và đăng ký lắng nghe thay đổi khi background script khởi động
   loadSettings()
@@ -400,50 +388,47 @@ export default defineBackground(() => {
     }
   })
 
-  // 5. Listen for messages from other parts of the extension (e.g., side panel)
-  browser.runtime.onMessage.addListener(
-    async (message, sender, sendResponse) => {
-      if (message.action === 'getTranscript' && message.tabId) {
-        const targetTabId = message.tabId
+  // 5. Listen for messages from other parts of the extension
+  browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    // Handle simple, synchronous cases first
+    if (message.type === 'PING') {
+      sendResponse({ ok: true })
+      return
+    }
 
-        ;(async () => {
-          try {
-            // Gửi message đến content script để yêu cầu transcript
-            const response = await browser.tabs.sendMessage(targetTabId, {
-              action: 'fetchTranscript',
-              lang: message.lang, // Truyền ngôn ngữ nếu có
-            })
+    if (message.type === 'OPEN_SETTINGS') {
+      const url = browser.runtime.getURL('settings.html')
+      browser.tabs.create({ url, active: true })
+      // No response needed for this action
+      return
+    }
 
-            if (response && response.success) {
-              sendResponse({ transcript: response.transcript })
-            } else {
-              sendResponse({
-                error:
-                  response?.error ||
-                  'Failed to get transcript from content script.',
-              })
-            }
-          } catch (err) {
+    // Handle asynchronous actions
+    ;(async () => {
+      try {
+        if (message.action === 'getTranscript' && message.tabId) {
+          const targetTabId = message.tabId
+          const response = await browser.tabs.sendMessage(targetTabId, {
+            action: 'fetchTranscript',
+            lang: message.lang,
+          })
+          if (response && response.success) {
+            sendResponse({ transcript: response.transcript })
+          } else {
             sendResponse({
-              error:
-                err.message ||
-                'Unknown error occurred during script execution.',
+              error: response?.error || 'Failed to get transcript.',
             })
           }
-        })()
-        return true
-      } else if (message.action === 'courseContentFetched') {
-        if (sidePanelPort) {
-          sidePanelPort.postMessage({
-            action: 'courseContentAvailable',
-            content: message.content,
-            lang: message.lang,
-            courseType: message.courseType,
-          })
-        }
-        return true
-      } else if (message.action === 'requestCurrentTabInfo') {
-        ;(async () => {
+        } else if (message.action === 'courseContentFetched') {
+          if (sidePanelPort) {
+            sidePanelPort.postMessage({
+              action: 'courseContentAvailable',
+              content: message.content,
+              lang: message.lang,
+              courseType: message.courseType,
+            })
+          }
+        } else if (message.action === 'requestCurrentTabInfo') {
           const tabs = await browser.tabs.query({
             active: true,
             currentWindow: true,
@@ -463,101 +448,97 @@ export default defineBackground(() => {
                 isUdemy: isUdemy,
                 isCoursera: isCoursera,
               }
-            : {
-                action: 'currentTabInfo',
-                error: 'No active tab found.',
-              }
+            : { action: 'currentTabInfo', error: 'No active tab found.' }
 
           if (sidePanelPort) {
-            try {
-              sidePanelPort.postMessage(currentTabInfo)
-            } catch (error) {
-              // Fallback to sendMessage if port fails (though less ideal for connect-based messages)
-              browser.runtime.sendMessage(currentTabInfo).catch((err) => {})
-            }
+            sidePanelPort.postMessage(currentTabInfo)
           } else {
-            // If sidePanelPort is not available, send via runtime.sendMessage as a fallback
-            // This might happen if the side panel connects and immediately requests info before onConnect fully processes
-            browser.runtime.sendMessage(currentTabInfo).catch((error) => {
-              if (
-                error.message.includes('Could not establish connection') ||
-                error.message.includes('Receiving end does not exist')
-              ) {
-              } else {
-              }
-            })
+            browser.runtime.sendMessage(currentTabInfo).catch(() => {})
           }
-        })()
-        return true
-      } else if (message.action === 'REQUEST_SUMMARY') {
-        const { type, payload, requestId } = message
-        const currentUrl = payload.url || sender.tab?.url || ''
-
-        // Set loading state
-        if (type === 'selectedText') {
-          summaryState.isSelectedTextLoading.set(true)
-          summaryState.selectedTextError.set(null)
-        } else {
-          // Assuming pageSummary or other types
-          summaryState.isLoading.set(true)
-          summaryState.summaryError.set(null)
-        }
-
-        try {
+        } else if (message.action === 'REQUEST_SUMMARY') {
+          const { type, payload, requestId } = message
+          // Set loading state
           if (type === 'selectedText') {
-            const selectedText = payload.text
-            if (!selectedText) {
-              throw new Error('No text selected for summarization.')
+            summaryState.isSelectedTextLoading.set(true)
+            summaryState.selectedTextError.set(null)
+          } else {
+            summaryState.isLoading.set(true)
+            summaryState.summaryError.set(null)
+          }
+          try {
+            if (type === 'selectedText') {
+              const selectedText = payload.text
+              if (!selectedText) {
+                throw new Error('No text selected for summarization.')
+              }
+              await summarizeSelectedText(selectedText)
+              const summary = get(summaryState.selectedTextSummary)
+              sendResponse({
+                action: 'SUMMARY_RESPONSE',
+                summary: summary,
+                requestId: requestId,
+              })
+            } else if (type === 'pageSummary') {
+              if (sidePanelPort) {
+                sidePanelPort.postMessage({ action: 'summarizeCurrentPage' })
+                sendResponse({
+                  action: 'SUMMARY_STARTED',
+                  requestId: requestId,
+                })
+              } else {
+                throw new Error(
+                  'Side panel not open. Please open the side panel to summarize the page.'
+                )
+              }
+            } else {
+              throw new Error(`Unknown summarization type: ${type}`)
             }
-            await summarizeSelectedText(selectedText)
-            const summary = get(summaryState.selectedTextSummary)
+          } catch (error) {
+            if (type === 'selectedText') {
+              summaryState.selectedTextError.set(error.message)
+            } else {
+              summaryState.summaryError.set(error.message)
+            }
             sendResponse({
-              action: 'SUMMARY_RESPONSE',
-              summary: summary,
+              action: 'SUMMARY_ERROR',
+              error: error.message,
               requestId: requestId,
             })
-          } else if (type === 'pageSummary') {
-            // Delegate page summarization to side panel if open
-            if (sidePanelPort) {
-              sidePanelPort.postMessage({ action: 'summarizeCurrentPage' })
-              sendResponse({ action: 'SUMMARY_STARTED', requestId: requestId })
+          } finally {
+            if (type === 'selectedText') {
+              summaryState.isSelectedTextLoading.set(false)
             } else {
-              // Fallback if side panel not open, or handle directly in background
-              // For now, we'll just throw an error or handle a simpler page summary
-              // without streaming, if that's an option.
-              // This part needs more concrete implementation based on how page summaries are done without side panel.
-              throw new Error(
-                'Side panel not open. Please open the side panel to summarize the page.'
-              )
+              summaryState.isLoading.set(false)
             }
-          } else {
-            throw new Error(`Unknown summarization type: ${type}`)
+            logAllGeneratedSummariesToHistory()
           }
-        } catch (error) {
-          if (type === 'selectedText') {
-            summaryState.selectedTextError.set(error.message)
-          } else {
-            summaryState.summaryError.set(error.message)
+        } else if (message.type === 'SAVE_TO_HISTORY') {
+          const result = await addHistory(message.payload.historyData)
+          console.log('SAVE_TO_HISTORY result:', result)
+          sendResponse({ success: true, id: String(result) })
+        } else if (message.type === 'SAVE_TO_ARCHIVE') {
+          const newArchiveId = await addSummary(message.payload.archiveEntry)
+          if (message.payload.historySourceId) {
+            await updateHistoryArchivedStatus(
+              message.payload.historySourceId,
+              true
+            )
           }
-          sendResponse({
-            action: 'SUMMARY_ERROR',
-            error: error.message,
-            requestId: requestId,
-          })
-        } finally {
-          // Reset loading states
-          if (type === 'selectedText') {
-            summaryState.isSelectedTextLoading.set(false)
-          } else {
-            summaryState.isLoading.set(false)
-          }
-          // Log history for all types of summaries
-          logAllGeneratedSummariesToHistory()
+          console.log('SAVE_TO_ARCHIVE newArchiveId:', newArchiveId)
+          sendResponse({ success: true, newArchiveId: String(newArchiveId) })
         }
-        return true // Important: Return true to indicate that sendResponse will be called asynchronously
+      } catch (err) {
+        console.error(
+          `Error processing message type ${message.type || message.action}:`,
+          err
+        )
+        sendResponse({ success: false, error: err.message })
       }
-    }
-  )
+    })()
+
+    // Return true to indicate that sendResponse will be called asynchronously.
+    return true
+  })
 
   // 6. Listen for connections from side panel
   browser.runtime.onConnect.addListener((port) => {

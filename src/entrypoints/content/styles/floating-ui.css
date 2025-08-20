@@ -320,3 +320,10 @@ button {
 .prose pre {
   padding: 0 !important;
 }
+
+.prose ul {
+  padding-inline-start: 1em;
+}
+.prose li {
+  padding-inline-start: 0;
+}

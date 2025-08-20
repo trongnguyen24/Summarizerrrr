@@ -57,7 +57,7 @@
   }
 </script>
 
-<div class="absolute text-base flex gap-2 top-2 right-2">
+<div class="absolute text-base flex gap-2 top-4 right-2">
   <button
     class="size-8 flex justify-center items-center hover:bg-blackwhite/5 rounded-2xl"
     onclick={toggleTheme}
@@ -96,7 +96,7 @@
     aA
   </button>
   <button
-    class=" size-8 pt-1.5 relative flex text-xl justify-center items-center hover:bg-blackwhite/5 rounded-2xl"
+    class=" hidden sm:flex size-8 pt-1.5 relative text-xl justify-center items-center hover:bg-blackwhite/5 rounded-2xl"
     onclick={toggleWidth}
     title={$t('archive.toggle_width')}
   >

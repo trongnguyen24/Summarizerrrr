@@ -102,7 +102,7 @@
     <DisplaySettingsControls />
     <div class="flex flex-col gap-2">
       <div
-        class="font-mono text-text-muted text-xs flex md:flex-row flex-col gap-2 py-4 md:gap-8 justify-center items-center"
+        class="font-mono text-text-muted text-xs flex md:flex-row flex-col gap-2 py-8 md:gap-8 justify-center items-center"
       >
         <div class="flex justify-center items-center gap-1">
           <Icon height="16" width="16" icon="lucide:clock" class="" />

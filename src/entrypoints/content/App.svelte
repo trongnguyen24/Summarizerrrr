@@ -1,6 +1,6 @@
 <script>
   // @ts-nocheck
-  import { onMount } from 'svelte'
+  import { onMount, onDestroy } from 'svelte'
   import './styles/floating-ui.css'
   import {
     settings,
@@ -19,6 +19,7 @@
   import FloatingButton from './components/FloatingButton.svelte'
   import FloatingPanel from './components/FloatingPanel.svelte'
   import MobileSheet from './components/MobileSheet.svelte'
+  import { useNavigationManager } from './composables/useNavigationManager.svelte.js'
   import '@fontsource-variable/geist-mono'
   import '@fontsource-variable/noto-serif'
   import '@fontsource/opendyslexic'
@@ -27,6 +28,9 @@
   let isPanelVisible = $state(false) // Add $state
   let isMobile = $state(false) // Add $state
   let shadowContainer = $state(null) // Shadow DOM container reference
+  let navigationManager = useNavigationManager()
+  let unsubscribeNavigation = null
+  let currentUrlKey = $state(window.location.href)
 
   // Initialize stores
   $effect(() => {
@@ -71,12 +75,45 @@
     }
     checkMobile()
     window.addEventListener('resize', checkMobile)
-    return () => window.removeEventListener('resize', checkMobile)
+
+    // Bắt đầu monitoring navigation changes
+    navigationManager.startMonitoring()
+    unsubscribeNavigation = navigationManager.subscribe(handleUrlChange)
+
+    return () => {
+      window.removeEventListener('resize', checkMobile)
+      // Cleanup navigation monitoring
+      if (unsubscribeNavigation) {
+        unsubscribeNavigation()
+      }
+      navigationManager.stopMonitoring()
+    }
   })
 
   function togglePanel() {
     isPanelVisible = !isPanelVisible
   }
+
+  function handleUrlChange(newUrl) {
+    // Khi URL thay đổi, chúng ta cần reinitialize components
+    // Tạm thời đóng panel để tránh state conflict
+    isPanelVisible = false
+
+    // Update URL key để force re-render components
+    currentUrlKey = newUrl
+
+    // Force re-render components bằng cách thay đổi key
+    // Điều này sẽ khiến Svelte tạo lại components mới
+    console.log('URL changed to:', newUrl)
+  }
+
+  onDestroy(() => {
+    // Cleanup navigation monitoring
+    if (unsubscribeNavigation) {
+      unsubscribeNavigation()
+    }
+    navigationManager.stopMonitoring()
+  })
 </script>
 
 <div bind:this={shadowContainer} class="floating-ui-root absolute top-0 left-0">
@@ -87,26 +124,30 @@
     {/key}
   {/if}
   {#if isMobile}
-    <MobileSheet
-      visible={isPanelVisible}
-      onclose={() => (isPanelVisible = false)}
-    />
+    {#key currentUrlKey}
+      <MobileSheet
+        visible={isPanelVisible}
+        onclose={() => (isPanelVisible = false)}
+      />
+    {/key}
   {:else}
     <!-- Sidepanel for desktop/tablet -->
-    <FloatingPanel
-      visible={isPanelVisible}
-      onclose={() => (isPanelVisible = false)}
-      summary={summaryState.summary}
-      status={summaryState.isLoading
-        ? 'loading'
-        : summaryState.summaryError
-          ? 'error'
-          : 'idle'}
-    >
-      {#snippet settingsMini()}
-        <!-- <SettingsMini /> -->
-        <div>Settings Mini (placeholder)</div>
-      {/snippet}
-    </FloatingPanel>
+    {#key currentUrlKey}
+      <FloatingPanel
+        visible={isPanelVisible}
+        onclose={() => (isPanelVisible = false)}
+        summary={summaryState.summary}
+        status={summaryState.isLoading
+          ? 'loading'
+          : summaryState.summaryError
+            ? 'error'
+            : 'idle'}
+      >
+        {#snippet settingsMini()}
+          <!-- <SettingsMini /> -->
+          <div>Settings Mini (placeholder)</div>
+        {/snippet}
+      </FloatingPanel>
+    {/key}
   {/if}
 </div>

@@ -3,6 +3,7 @@
   import { onMount, onDestroy } from 'svelte'
   import Icon from '@iconify/svelte'
   import SummarizeButton from '@/components/buttons/SummarizeButton.svelte'
+  import { useNavigationManager } from '../composables/useNavigationManager.svelte.js'
   import { useSummarization } from '../composables/useSummarization.svelte.js'
   import { useFloatingPanelState } from '../composables/useFloatingPanelState.svelte.js'
   import {
@@ -15,6 +16,8 @@
 
   const summarization = useSummarization()
   const panelState = useFloatingPanelState()
+  const navigationManager = useNavigationManager()
+  let unsubscribeNavigation = null
 
   let summaryToDisplay = $derived(summarization.summaryToDisplay())
   let statusToDisplay = $derived(summarization.statusToDisplay())
@@ -68,7 +71,16 @@
   onMount(() => {
     window.addEventListener('keydown', handleKeyDown)
     document.addEventListener('summarizeClick', handleSummarizeClick)
+
+    // Subscribe vào navigation changes
+    unsubscribeNavigation = navigationManager.subscribe(handleUrlChange)
   })
+
+  function handleUrlChange(newUrl) {
+    // Khi URL thay đổi, reset state của component
+    console.log('MobileSheet: URL changed to', newUrl)
+    // Có thể thêm logic để reset state cụ thể ở đây nếu cần
+  }
 
   onDestroy(() => {
     window.removeEventListener('keydown', handleKeyDown)
@@ -78,6 +90,11 @@
     }
     // Ensure body scroll is unlocked on component unmount
     unlockBodyScroll()
+
+    // Cleanup navigation subscription
+    if (unsubscribeNavigation) {
+      unsubscribeNavigation()
+    }
   })
 
   // --- Drag/Swipe to close logic ---

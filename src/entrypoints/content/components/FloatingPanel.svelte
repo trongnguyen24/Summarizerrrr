@@ -5,6 +5,7 @@
   // Import composables
   import Icon from '@iconify/svelte'
   import SummarizeButton from '@/components/buttons/SummarizeButton.svelte'
+  import { useNavigationManager } from '../composables/useNavigationManager.svelte.js'
   import { useSummarization } from '../composables/useSummarization.svelte.js'
   import { useFloatingPanelState } from '../composables/useFloatingPanelState.svelte.js'
 
@@ -17,6 +18,8 @@
   let isResizing = $state(false)
   let currentWidth = $state(400) // Default width
   let showElement = $state(false) // Internal state để control DOM rendering
+  const navigationManager = useNavigationManager()
+  let unsubscribeNavigation = null
 
   async function requestSummary() {
     console.log('Requesting page summary...')
@@ -171,12 +174,26 @@
     loadWidth()
     window.addEventListener('keydown', handleKeyDown)
     document.addEventListener('summarizeClick', handleSummarizeClick)
+
+    // Subscribe vào navigation changes
+    unsubscribeNavigation = navigationManager.subscribe(handleUrlChange)
   })
+
+  function handleUrlChange(newUrl) {
+    // Khi URL thay đổi, reset state của component
+    console.log('FloatingPanel: URL changed to', newUrl)
+    // Có thể thêm logic để reset state cụ thể ở đây nếu cần
+  }
 
   onDestroy(() => {
     window.removeEventListener('keydown', handleKeyDown)
     document.removeEventListener('summarizeClick', handleSummarizeClick)
     document.body.style.userSelect = ''
+
+    // Cleanup navigation subscription
+    if (unsubscribeNavigation) {
+      unsubscribeNavigation()
+    }
   })
 </script>
 
@@ -202,9 +219,19 @@
       aria-label="Resize panel"
       title="Drag to resize panel width"
     >
-      <span
-        class="w-2.5 h-12 bg-white dark:bg-border border border-border rounded-2xl"
-      >
+      <span class="w-2.5 h-12 text-white dark:text-border">
+        <svg
+          viewBox="0 0 10 48"
+          fill="currentColor"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            class=" stroke-border"
+            d="M9.5 5.20703V42.793L5 47.293L0.5 42.793V5.20703L5 0.707031L9.5 5.20703Z"
+            fill="currentColor"
+            stroke="black"
+          />
+        </svg>
       </span>
     </div>
     <button

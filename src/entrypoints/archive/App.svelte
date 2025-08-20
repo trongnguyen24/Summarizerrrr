@@ -138,13 +138,13 @@
     <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div
       transition:fade
-      class="fixed top-0 bottom-0 left-3 right-3 sm:left-5 sm:right-5 bg-black/40 z-30"
+      class="fixed top-0 bottom-0 left-2 right-2 sm:left-5 sm:right-5 bg-black/40 z-30"
       onclick={handleOverlayClick}
     ></div>
   {/if}
 
   <button
-    class="fixed top-4 left-5 sm:left-7 md:left-10 translate-x-0.5 z-50 hover:bg-blackwhite/5 rounded-4xl p-1"
+    class="fixed top-4 left-4 sm:left-7 md:left-10 translate-x-0.5 z-50 hover:bg-blackwhite/5 rounded-4xl p-1"
     onclick={toggleSidePanel}
   >
     {#if isSidePanelVisible}
@@ -160,12 +160,12 @@
 
   <!-- Left Column: Prompt Menu -->
   <div
-    class="top-stripes sticky shrink-0 top-0 w-3 sm:w-5 md:w-8 h-screen border-r border-border/70"
+    class="top-stripes sticky shrink-0 top-0 w-2 sm:w-5 md:w-8 h-screen border-r border-border/70"
   ></div>
 
   <div
     bind:this={sidePanel}
-    class="top-0 p-0 fixed left-3 sm:left-5 md:left-8 h-screen max-h-screen z-40 bg-background overflow-hidden"
+    class="top-0 p-0 fixed left-2 sm:left-5 md:left-8 h-screen max-h-screen z-40 bg-background overflow-hidden"
   >
     <div class="w-px absolute z-30 top-0 right-0 h-screen bg-border/70"></div>
 
@@ -210,6 +210,6 @@
   </div>
 
   <div
-    class="top-stripes shrink-0 sticky top-0 w-3 sm:w-5 md:w-8 h-screen border-l border-border/70"
+    class="top-stripes shrink-0 sticky top-0 w-2 sm:w-5 md:w-8 h-screen border-l border-border/70"
   ></div>
 </main>

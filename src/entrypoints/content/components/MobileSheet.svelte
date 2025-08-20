@@ -2,17 +2,20 @@
   // @ts-nocheck
   import { onMount, onDestroy } from 'svelte'
   import Icon from '@iconify/svelte'
-  import MobileSummaryDisplay from '@/components/displays/mobile/MobileSummaryDisplay.svelte'
   import SummarizeButton from '@/components/buttons/SummarizeButton.svelte'
   import { useSummarization } from '../composables/useSummarization.svelte.js'
+  import { useFloatingPanelState } from '../composables/useFloatingPanelState.svelte.js'
   import {
     lockBodyScroll,
     unlockBodyScroll,
   } from '../composables/scroll-freezer.js'
+  import FloatingPanelContent from '@/components/displays/floating-panel/FloatingPanelContent.svelte'
 
   let { visible, onclose } = $props()
 
   const summarization = useSummarization()
+  const panelState = useFloatingPanelState()
+
   let summaryToDisplay = $derived(summarization.summaryToDisplay())
   let statusToDisplay = $derived(summarization.statusToDisplay())
 
@@ -148,6 +151,10 @@
     browser.runtime.sendMessage({ type: 'OPEN_SETTINGS' })
   }
 
+  function openArchive() {
+    browser.runtime.sendMessage({ type: 'OPEN_ARCHIVE' })
+  }
+
   function handleSummarizeClick() {
     summarization.summarizePageContent()
   }
@@ -201,6 +208,13 @@
         ></div>
         <div class="w-full flex items-center justify-center my-8">
           <button
+            class="size-10 absolute z-10 top-4 text-text-secondary hover:text-text-primary transition-colors left-2 flex justify-center items-center"
+            onclick={openArchive}
+            title="Open Archive"
+          >
+            <Icon icon="heroicons:archive-box" width="24" height="24" />
+          </button>
+          <button
             class="size-10 absolute z-10 top-4 text-text-primary right-2 flex justify-center items-center"
             onclick={openSettings}
           >
@@ -216,13 +230,28 @@
         ></div>
       </div>
       <div class="py-8">
-        <MobileSummaryDisplay
+        <FloatingPanelContent
+          status={summarization.localSummaryState().isLoading
+            ? 'loading'
+            : summarization.localSummaryState().error
+              ? 'error'
+              : ''}
           summary={summarization.localSummaryState().summary}
-          chapterSummary={summarization.localSummaryState().chapterSummary}
-          isLoading={summarization.statusToDisplay() === 'loading'}
-          isChapterLoading={summarization.localSummaryState().isChapterLoading}
-          isYouTube={summarization.localSummaryState().isYouTubeVideoActive}
           error={summarization.localSummaryState().error}
+          contentType={summarization.localSummaryState().isYouTubeVideoActive
+            ? 'youtube'
+            : summarization.localSummaryState().contentType}
+          chapterSummary={summarization.localSummaryState().chapterSummary}
+          isChapterLoading={summarization.localSummaryState().isChapterLoading}
+          courseConcepts={summarization.localSummaryState().courseConcepts}
+          isCourseSummaryLoading={summarization.localSummaryState().isLoading}
+          isCourseConceptsLoading={summarization.localSummaryState()
+            .isCourseConceptsLoading}
+          activeYouTubeTab={panelState.activeYouTubeTab()}
+          activeCourseTab={panelState.activeCourseTab()}
+          onSelectYouTubeTab={panelState.setActiveYouTubeTab}
+          onSelectCourseTab={panelState.setActiveCourseTab}
+          {summarization}
         />
       </div>
     </div>

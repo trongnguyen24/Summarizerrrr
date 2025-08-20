@@ -1,7 +1,7 @@
 <script>
   // @ts-nocheck
   import { onMount } from 'svelte'
-  // import './styles/floating-ui.css'
+  import './styles/floating-ui.css'
   import {
     settings,
     loadSettings,
@@ -19,6 +19,10 @@
   import FloatingButton from './components/FloatingButton.svelte'
   import FloatingPanel from './components/FloatingPanel.svelte'
   import MobileSheet from './components/MobileSheet.svelte'
+  import '@fontsource-variable/geist-mono'
+  import '@fontsource-variable/noto-serif'
+  import '@fontsource/opendyslexic'
+  import '@fontsource/mali'
 
   let isPanelVisible = $state(false) // Add $state
   let isMobile = $state(false) // Add $state
@@ -35,6 +39,28 @@
     if (shadowContainer) {
       initializeShadowTheme(shadowContainer)
       subscribeToShadowSystemThemeChanges(shadowContainer)
+    }
+  })
+
+  // Apply font family based on settings to shadow DOM
+  $effect(() => {
+    if (shadowContainer && settings.selectedFont !== undefined) {
+      // Map selectedFont to corresponding CSS class
+      const fontClassMap = {
+        default: 'font-default',
+        'noto-serif': 'font-noto-serif',
+        opendyslexic: 'font-opendyslexic',
+        mali: 'font-mali',
+      }
+
+      const fontClass = fontClassMap[settings.selectedFont] || 'font-default'
+
+      // Remove existing font classes and add the new one
+      shadowContainer.className = shadowContainer.className
+        .split(' ')
+        .filter((c) => !c.startsWith('font-'))
+        .join(' ')
+      shadowContainer.classList.add(fontClass)
     }
   })
 

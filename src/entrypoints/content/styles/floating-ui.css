@@ -45,7 +45,6 @@
 
 .font-mali {
   font-family: var(--font-mali);
-  height: var(s);
 }
 
 button {
@@ -313,4 +312,11 @@ button {
   --os-handle-bg: var(--color-border);
   --os-handle-bg-hover: var(--color-text-secondary);
   --os-handle-bg-active: var(--color-text-primary);
+}
+
+.prose p {
+  margin-top: 0.5em;
+}
+.prose pre {
+  padding: 0 !important;
 }

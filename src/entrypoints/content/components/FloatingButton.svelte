@@ -480,7 +480,7 @@
     padding: 0 !important;
     align-items: center;
     justify-content: center;
-    z-index: 10000000000000000000000000;
+    z-index: 2147483647;
     cursor: pointer;
     user-select: none;
     -webkit-user-select: none;

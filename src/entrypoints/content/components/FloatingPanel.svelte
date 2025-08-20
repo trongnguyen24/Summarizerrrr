@@ -94,31 +94,45 @@
 
     isResizing = true
     document.body.style.userSelect = 'none'
+    // Prevent text selection and other browser behaviors
+    event.preventDefault()
 
-    const handleMouseMove = (e) => {
+    // Get clientX from either mouse or touch event
+    const getClientX = (e) => {
+      if (e.type.startsWith('touch')) {
+        return e.touches[0].clientX
+      }
+      return e.clientX
+    }
+
+    const handleMove = (e) => {
       if (!isResizing) return
       // Sử dụng visualViewport nếu có (modern browsers),
       // fallback về clientWidth (tất cả browsers)
       const viewportWidth =
         window.visualViewport?.width || document.documentElement.clientWidth
-      const newWidth = viewportWidth - e.clientX
+      const newWidth = viewportWidth - getClientX(e)
       if (newWidth > MIN_WIDTH && newWidth < MAX_WIDTH) {
         currentWidth = newWidth
         panelElement.style.width = newWidth + 'px'
       }
     }
 
-    const handleMouseUp = () => {
+    const handleEnd = () => {
       isResizing = false
       document.body.style.userSelect = ''
-      document.removeEventListener('mousemove', handleMouseMove)
-      document.removeEventListener('mouseup', handleMouseUp)
+      document.removeEventListener('mousemove', handleMove)
+      document.removeEventListener('mouseup', handleEnd)
+      document.removeEventListener('touchmove', handleMove)
+      document.removeEventListener('touchend', handleEnd)
       saveWidth()
     }
 
-    document.addEventListener('mousemove', handleMouseMove)
-    document.addEventListener('mouseup', handleMouseUp)
-    event.preventDefault()
+    // Add event listeners for both mouse and touch
+    document.addEventListener('mousemove', handleMove)
+    document.addEventListener('mouseup', handleEnd)
+    document.addEventListener('touchmove', handleMove, { passive: false })
+    document.addEventListener('touchend', handleEnd)
   }
 
   // Keyboard handler
@@ -182,12 +196,15 @@
       class="resize-handle bg-transparent transition-colors flex justify-center items-center"
       class:resizing={isResizing}
       onmousedown={handleResizeStart}
+      ontouchstart={handleResizeStart}
       role="separator"
       aria-orientation="vertical"
       aria-label="Resize panel"
       title="Drag to resize panel width"
     >
-      <span class="w-2 h-10 bg-surface-2 border border-border rounded-2xl">
+      <span
+        class="w-2.5 h-12 bg-white dark:bg-border border border-border rounded-2xl"
+      >
       </span>
     </div>
     <button
@@ -263,7 +280,7 @@
     font-size: 16px;
     display: flex;
     flex-direction: column;
-    z-index: 2147483647;
+    z-index: 2147483640;
     color: var(--color-text-primary);
     border-left: 1px solid var(--color-border);
     border-right: 1px solid var(--color-border);
@@ -279,7 +296,7 @@
     left: 0;
     bottom: 0;
 
-    width: 0.75em;
+    width: 1em;
     transform: translateX(-50%);
 
     cursor: col-resize;
@@ -289,6 +306,6 @@
 
   /* Active state khi đang resize */
   .resize-handle.resizing {
-    background-color: oklch(50% 0 0 / 0.125) !important;
+    background-color: oklch(50% 0 0 / 0.175) !important;
   }
 </style>

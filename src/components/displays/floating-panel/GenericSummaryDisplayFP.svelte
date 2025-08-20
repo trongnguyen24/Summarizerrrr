@@ -1,7 +1,7 @@
 <script>
   // @ts-nocheck
-  import SummaryWrapper from '@/components/displays/core/SummaryWrapper.svelte'
-  import SummaryContent from '@/components/displays/core/SummaryContent.svelte'
+  import SummaryWrapper from '@/components/displays/floating-panel/SummaryWrapper.svelte'
+  import SummaryContent from '@/components/displays/floating-panel/SummaryContentFP.svelte'
   import FloatingPanelFooter from './FloatingPanelFooter.svelte'
 
   let {
@@ -26,9 +26,4 @@
       {targetId}
     />
   {/if}
-  <svelte:fragment slot="no-data">
-    {#if noDataContent}
-      {@render noDataContent()}
-    {/if}
-  </svelte:fragment>
 </SummaryWrapper>

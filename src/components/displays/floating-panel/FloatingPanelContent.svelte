@@ -81,7 +81,9 @@
         {summarization}
       />
     {:else if status === 'loading'}
-      <p>Processing...</p>
+      <p class="text-center text-text-secondary animate-pulse">
+        Processing summary...
+      </p>
     {:else}
       <!-- <p>No summary available.</p> -->
     {/if}

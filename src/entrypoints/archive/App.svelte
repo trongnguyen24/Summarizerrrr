@@ -186,11 +186,6 @@
         {activeTab}
         selectTab={(tabName) => {
           activeTab = tabName
-          archiveStore.selectTab(tabName)
-          // Auto-close sidepanel on mobile when switching tabs
-          if (isMobile && isSidePanelVisible) {
-            toggleSidePanel()
-          }
         }}
         onRefresh={archiveStore.loadData}
       />

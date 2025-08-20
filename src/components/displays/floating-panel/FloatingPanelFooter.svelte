@@ -1,8 +1,8 @@
 <!-- @ts-nocheck -->
 <script>
   import SaveToArchiveButtonFP from '@/components/buttons/SaveToArchiveButtonFP.svelte'
-  import CopyButtonFP from '@/components/buttons/CopyButtonFP.svelte'
-  import DownloadButtonFP from '@/components/buttons/DownloadButtonFP.svelte'
+  import CopyButtonFP from '@/components/buttons/CopyButton.svelte'
+  import DownloadButtonFP from '@/components/buttons/DownloadButton.svelte'
 
   let { localSummaryState, onSave, summaryContent, summaryTitle, targetId } =
     $props()

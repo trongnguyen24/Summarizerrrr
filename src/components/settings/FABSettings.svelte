@@ -70,4 +70,25 @@
       </ButtonSet>
     </div>
   </div>
+
+  <!-- Mobile Sheet Height Section -->
+  <div class="flex flex-col gap-2 px-5 pb-4">
+    <!-- svelte-ignore a11y_label_has_associated_control -->
+    <label class="text-text-secondary flex justify-between items-center">
+      <span>Mobile Sheet Height</span>
+      <span class="text-text-primary font-bold"
+        >{settings.mobileSheetHeight}%</span
+      >
+    </label>
+    <input
+      type="range"
+      min="40"
+      max="100"
+      step="1"
+      bind:value={settings.mobileSheetHeight}
+      oninput={(e) =>
+        handleUpdateSetting('mobileSheetHeight', parseInt(e.target.value))}
+      class="range range-primary"
+    />
+  </div>
 </div>

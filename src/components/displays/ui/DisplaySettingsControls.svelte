@@ -2,10 +2,6 @@
   // @ts-nocheck
   import Icon from '@iconify/svelte'
   import { t } from 'svelte-i18n'
-  import {
-    fontSizeIndex,
-    widthIndex,
-  } from '@/stores/displaySettingsStore.svelte'
   import { themeSettings, setTheme } from '@/stores/themeStore.svelte.js'
   import { settings, updateSettings } from '@/stores/settingsStore.svelte.js'
   import { archiveStore } from '@/stores/archiveStore.svelte.js'
@@ -28,19 +24,20 @@
   const fontKeys = Object.keys(fontMap)
 
   function increaseFontSize() {
-    if ($fontSizeIndex < fontSizeClasses.length - 1) {
-      $fontSizeIndex++
+    if (settings.fontSizeIndex < fontSizeClasses.length - 1) {
+      updateSettings({ fontSizeIndex: settings.fontSizeIndex + 1 })
     }
   }
 
   function decreaseFontSize() {
-    if ($fontSizeIndex > 0) {
-      $fontSizeIndex--
+    if (settings.fontSizeIndex > 0) {
+      updateSettings({ fontSizeIndex: settings.fontSizeIndex - 1 })
     }
   }
 
   function toggleWidth() {
-    $widthIndex = ($widthIndex + 1) % widthClasses.length
+    const newIndex = (settings.widthIndex + 1) % widthClasses.length
+    updateSettings({ widthIndex: newIndex })
   }
 
   function toggleFontFamily() {
@@ -75,7 +72,7 @@
   <button
     class=" size-8 font-mono flex justify-center items-center hover:bg-blackwhite/5 rounded-2xl"
     onclick={decreaseFontSize}
-    disabled={$fontSizeIndex === fontSizeClasses.length + 1}
+    disabled={settings.fontSizeIndex === 0}
     title={$t('archive.font_dec')}
   >
     A-
@@ -83,7 +80,7 @@
   <button
     class=" size-8 flex font-mono justify-center items-center hover:bg-blackwhite/5 rounded-2xl"
     onclick={increaseFontSize}
-    disabled={$fontSizeIndex === fontSizeClasses.length - 1}
+    disabled={settings.fontSizeIndex === fontSizeClasses.length - 1}
     title={$t('archive.font_inc')}
   >
     A+
@@ -101,7 +98,7 @@
     title={$t('archive.toggle_width')}
   >
     <span class="font-default absolute text-sm -translate-y-3"
-      >{widthButtonTexts[$widthIndex]}</span
+      >{widthButtonTexts[settings.widthIndex]}</span
     >
     <svg
       xmlns="http://www.w3.org/2000/svg"

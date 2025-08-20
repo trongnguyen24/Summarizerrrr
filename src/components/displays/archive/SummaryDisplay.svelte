@@ -13,10 +13,6 @@
   import DownloadButton from '@/components/buttons/DownloadButton.svelte'
   import DisplaySettingsControls from '@/components/displays/ui/DisplaySettingsControls.svelte'
   import {
-    fontSizeIndex, // Giữ lại vì vẫn dùng để tính toán class cho prose
-    widthIndex, // Giữ lại vì vẫn dùng để tính toán class cho prose
-  } from '@/stores/displaySettingsStore.svelte'
-  import {
     settings, // Giữ lại vì vẫn dùng để tính toán class cho prose
   } from '@/stores/settingsStore.svelte.js'
 
@@ -94,8 +90,8 @@
 {#if selectedSummary}
   <div
     class="prose px-4 md:px-12 xl:px-20 w-full {widthClasses[
-      $widthIndex
-    ]} mx-auto {fontSizeClasses[$fontSizeIndex]} {fontMap[
+      settings.widthIndex
+    ]} mx-auto {fontSizeClasses[settings.fontSizeIndex]} {fontMap[
       settings.selectedFont
     ]} pt-12 pb-[35vh] summary-content"
   >

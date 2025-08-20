@@ -11,6 +11,7 @@
     unlockBodyScroll,
   } from '../composables/scroll-freezer.js'
   import FloatingPanelContent from '@/components/displays/floating-panel/FloatingPanelContent.svelte'
+  import { settings } from '@/stores/settingsStore.svelte.js'
 
   let { visible, onclose } = $props()
 
@@ -196,8 +197,8 @@
   <!-- Drawer Panel -->
   <div
     bind:this={drawerPanel}
-    class="drawer-panel fixed bottom-0 left-0 right-0 border-t dark:border-surface-2 bg-surface-1 text-black rounded-t-2xl shadow-2xl h-[65svh] flex flex-col"
-    style="transform: translateY(calc(100% + 10vh));"
+    class="drawer-panel fixed bottom-0 left-0 right-0 border-t dark:border-surface-2 bg-surface-1 text-black rounded-t-2xl shadow-2xl flex flex-col"
+    style="transform: translateY(calc(100% + 10vh)); height: {settings.mobileSheetHeight}svh;"
   >
     <!-- Drawer Header (Drag Handle)       onmousedown={onDragStart}
  -->

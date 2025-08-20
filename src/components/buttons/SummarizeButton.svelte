@@ -136,7 +136,7 @@
 
 <button
   bind:this={buttonElement}
-  class="relative summarize p-[1em] pl-[1em] pr-[1.5em] overflow-hidden text-black flex outline-offset-2 !outline-primary items-center rounded-full gap-[0.5em] w-fit h-[3em]"
+  class="relative font-mono summarize p-[1em] pl-[1em] pr-[1.5em] overflow-hidden text-black flex outline-offset-2 !outline-primary items-center rounded-full gap-[0.5em] w-fit h-[3em]"
   onclick={dispatch}
   disabled={isLoading || isChapterLoading}
   title="Summarize"

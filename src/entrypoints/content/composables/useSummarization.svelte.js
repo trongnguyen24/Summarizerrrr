@@ -7,6 +7,9 @@ import {
   saveToArchive,
 } from '../services/FloatingPanelStorageService.js'
 
+// Flag để prevent concurrent requests
+let isProcessing = false
+
 /**
  * Composable quản lý summarization state và logic
  */
@@ -85,11 +88,25 @@ export function useSummarization() {
    * Main summarization function với independent loading
    */
   async function summarizePageContent() {
+    // Prevent multiple concurrent requests
+    if (isProcessing) {
+      console.log(
+        '[useSummarization] Summarization already in progress, ignoring duplicate request'
+      )
+      return
+    }
+
+    // Set immediate loading state để disable button ngay lập tức
+    localSummaryState.isLoading = true
+    isProcessing = true
+
     try {
       console.log('[useSummarization] Starting independent summarization...')
 
-      // 1. Reset state
+      // 1. Reset state (giữ lại isLoading = true)
+      const wasLoading = localSummaryState.isLoading
       resetLocalSummaryState()
+      localSummaryState.isLoading = wasLoading
       localSummaryState.startTime = Date.now()
 
       // 2. Get Page Info directly from the document
@@ -190,6 +207,9 @@ export function useSummarization() {
       localSummaryState.isLoading = false
       localSummaryState.isChapterLoading = false
       localSummaryState.isCourseConceptsLoading = false
+    } finally {
+      // Reset processing flag
+      isProcessing = false
     }
   }
 

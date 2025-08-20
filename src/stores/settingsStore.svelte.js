@@ -33,6 +33,9 @@ const DEFAULT_SETTINGS = {
   selectedFont: 'default',
   enableStreaming: true,
   uiLang: 'en',
+  mobileSheetHeight: 65, // Chiều cao MobileSheet (40-100 svh)
+  fontSizeIndex: 2, // Default to prose-lg
+  widthIndex: 1, // Default to max-w-3xl
 
   // Summary
   summaryLength: 'long',

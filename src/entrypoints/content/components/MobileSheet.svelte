@@ -34,7 +34,9 @@
     drawerContainer.classList.remove('pointer-events-none')
     lockBodyScroll() // Lock body scroll when opening
     requestAnimationFrame(() => {
-      drawerBackdrop.style.opacity = '1'
+      drawerBackdrop.style.opacity = settings.mobileSheetBackdropOpacity
+        ? '1'
+        : '0'
       drawerPanel.style.transform = 'translateY(0)'
     })
   }
@@ -137,7 +139,8 @@
       animationFrameId = requestAnimationFrame(() => {
         drawerPanel.style.transform = `translateY(${currentTranslateY}px)`
         const panelHeight = drawerPanel.offsetHeight
-        const opacity = 1 - (currentTranslateY / panelHeight) * 0.8
+        const maxOpacity = settings.mobileSheetBackdropOpacity ? 1 : 0
+        const opacity = maxOpacity - (currentTranslateY / panelHeight) * 0.8
         drawerBackdrop.style.opacity = Math.max(0, opacity).toString()
         animationFrameId = null
       })
@@ -160,7 +163,9 @@
     if (currentTranslateY > panelHeight / 4) {
       closeDrawer()
     } else {
-      drawerBackdrop.style.opacity = '1'
+      drawerBackdrop.style.opacity = settings.mobileSheetBackdropOpacity
+        ? '1'
+        : '0'
       drawerPanel.style.transform = 'translateY(0)'
     }
   }
@@ -190,7 +195,9 @@
   <!-- svelte-ignore a11y_no_static_element_interactions -->
   <div
     bind:this={drawerBackdrop}
-    class="drawer-backdrop absolute inset-0 bg-black/40 opacity-0"
+    class="drawer-backdrop absolute inset-0 {settings.mobileSheetBackdropOpacity
+      ? 'bg-black/40'
+      : 'bg-transparent'} opacity-0"
     onclick={closeDrawer}
   ></div>
 

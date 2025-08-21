@@ -34,8 +34,10 @@ const DEFAULT_SETTINGS = {
   enableStreaming: true,
   uiLang: 'en',
   mobileSheetHeight: 65, // Chiều cao MobileSheet (40-100 svh)
+  mobileSheetBackdropOpacity: true, // Enable backdrop opacity for MobileSheet
   fontSizeIndex: 2, // Default to prose-lg
   widthIndex: 1, // Default to max-w-3xl
+  sidePanelDefaultWidth: 25, // Default width for side panel in em units
 
   // Summary
   summaryLength: 'long',

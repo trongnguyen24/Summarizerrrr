@@ -44,7 +44,7 @@
     },
     "fab": {
       "title": "Floating Button",
-      "position": "Position",
+      "position": "Snap Position",
       "position_option": {
         "left": "Left",
         "left_desc": "Display floating button on the left side.",

@@ -8,6 +8,7 @@
   import { useNavigationManager } from '../composables/useNavigationManager.svelte.js'
   import { useSummarization } from '../composables/useSummarization.svelte.js'
   import { useFloatingPanelState } from '../composables/useFloatingPanelState.svelte.js'
+  import { settings } from '@/stores/settingsStore.svelte.js'
 
   // Import components
   import FloatingPanelContent from '@/components/displays/floating-panel/FloatingPanelContent.svelte'
@@ -16,7 +17,7 @@
 
   let panelElement = $state()
   let isResizing = $state(false)
-  let currentWidth = $state(400) // Default width
+  let currentWidth = $state(settings.sidePanelDefaultWidth) // Default width from settings (in em)
   let showElement = $state(false) // Internal state để control DOM rendering
   const navigationManager = useNavigationManager()
   let unsubscribeNavigation = null
@@ -49,8 +50,24 @@
   function handleSummarizeClick() {
     summarization.summarizePageContent()
   }
-  const MIN_WIDTH = 340
-  const MAX_WIDTH = 800
+  // Constants in em units (converted from px)
+  const MIN_WIDTH = 23.75 // 380px / 16px = 23.75em
+  const MAX_WIDTH = 53.75 // 860px / 16px = 53.75em
+
+  // Helper functions to convert between em and px
+  function emToPx(em) {
+    const rootFontSize = parseFloat(
+      getComputedStyle(document.documentElement).fontSize
+    )
+    return em * rootFontSize
+  }
+
+  function pxToEm(px) {
+    const rootFontSize = parseFloat(
+      getComputedStyle(document.documentElement).fontSize
+    )
+    return px / rootFontSize
+  }
 
   // Initialize composables
   const summarization = useSummarization()
@@ -70,11 +87,11 @@
   async function loadWidth() {
     try {
       const data = await browser.storage.local.get('sidePanelWidth')
-      const savedWidth = data.sidePanelWidth
+      const savedWidth = data.sidePanelWidth // Saved width is in em units
       if (savedWidth && savedWidth >= MIN_WIDTH && savedWidth <= MAX_WIDTH) {
         currentWidth = savedWidth
         if (panelElement) {
-          panelElement.style.width = `${savedWidth}px`
+          panelElement.style.width = `${emToPx(savedWidth)}px`
         }
       }
     } catch (error) {
@@ -85,7 +102,7 @@
   // Save current width
   async function saveWidth() {
     try {
-      await browser.storage.local.set({ sidePanelWidth: currentWidth })
+      await browser.storage.local.set({ sidePanelWidth: currentWidth }) // Save in em units
     } catch (error) {
       console.warn('Failed to save width:', error)
     }
@@ -114,10 +131,11 @@
       // fallback về clientWidth (tất cả browsers)
       const viewportWidth =
         window.visualViewport?.width || document.documentElement.clientWidth
-      const newWidth = viewportWidth - getClientX(e)
-      if (newWidth > MIN_WIDTH && newWidth < MAX_WIDTH) {
-        currentWidth = newWidth
-        panelElement.style.width = newWidth + 'px'
+      const newWidthPx = viewportWidth - getClientX(e)
+      const newWidthEm = pxToEm(newWidthPx)
+      if (newWidthEm > MIN_WIDTH && newWidthEm < MAX_WIDTH) {
+        currentWidth = newWidthEm
+        panelElement.style.width = newWidthPx + 'px'
       }
     }
 
@@ -152,7 +170,7 @@
       showElement = true
       setTimeout(() => {
         if (panelElement) {
-          panelElement.style.width = `${currentWidth}px`
+          panelElement.style.width = `${emToPx(currentWidth)}px`
           panelElement.classList.add('visible')
         }
       }, 10)
@@ -302,7 +320,7 @@
     top: 0;
     right: 0;
     height: 100vh;
-    width: 400px;
+    width: 25em; /* Default width in em units */
     background-color: var(--color-surface-1);
     font-size: 16px;
     display: flex;

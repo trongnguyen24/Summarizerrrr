@@ -196,14 +196,15 @@
       >Float Sidepanel</label
     >
     <p class="flex text-muted">
-      A slide-up panel that emerges from the bottom of the mobile screen
+      Resizable floating panel that can be positioned and adjusted to fit your
+      workflow needs
     </p>
   </div>
   <div class="px-5 py-4 flex gap-4">
     <Preview title="Preview" class="w-60 h-40 shrink-0">
       <div
         class="top-0 z-30 border border-surface-2 absolute bottom-0 right-0 bg-surface-1 flex justify-center"
-        style="width: {settings.sidePanelDefaultWidth * 2}px"
+        style="width: {settings.sidePanelDefaultWidth * 3}px"
       >
         <span
           class=" absolute top-1/2 -translate-y-1/2 left-0 -translate-x-1/2 h-6 w-1.5 border border-border rounded-2xl bg-surface-2"
@@ -217,7 +218,7 @@
       <div class="flex flex-col gap-2 px-5 pb-4">
         <!-- svelte-ignore a11y_label_has_associated_control -->
         <label class="text-text-secondary flex justify-between items-center">
-          <span>Panel Default Width</span>
+          <span>Default Width</span>
           <span class="text-text-primary font-bold"
             >{settings.sidePanelDefaultWidth * 16}</span
           >

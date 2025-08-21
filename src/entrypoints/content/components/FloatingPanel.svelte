@@ -10,6 +10,9 @@
   import { useFloatingPanelState } from '../composables/useFloatingPanelState.svelte.js'
   import { settings } from '@/stores/settingsStore.svelte.js'
 
+  // Reactive variable for panel position
+  let panelPosition = $derived(settings.floatingPanelLeft ? 'left' : 'right')
+
   // Import components
   import FloatingPanelContent from '@/components/displays/floating-panel/FloatingPanelContent.svelte'
 
@@ -17,7 +20,7 @@
 
   let panelElement = $state()
   let isResizing = $state(false)
-  let currentWidth = $state(settings.sidePanelDefaultWidth) // Default width from settings (in em)
+  let currentWidthPx = $state(emToPx(settings.sidePanelDefaultWidth)) // Default width in px
   let showElement = $state(false) // Internal state để control DOM rendering
   const navigationManager = useNavigationManager()
   let unsubscribeNavigation = null
@@ -50,9 +53,9 @@
   function handleSummarizeClick() {
     summarization.summarizePageContent()
   }
-  // Constants in em units (converted from px)
-  const MIN_WIDTH = 23.75 // 380px / 16px = 23.75em
-  const MAX_WIDTH = 53.75 // 860px / 16px = 53.75em
+  // Constants in px units
+  const MIN_WIDTH_PX = 380 // 380px
+  const MAX_WIDTH_PX = 860 // 860px
 
   // Helper functions to convert between em and px
   function emToPx(em) {
@@ -86,12 +89,16 @@
   // Load saved width
   async function loadWidth() {
     try {
-      const data = await browser.storage.local.get('sidePanelWidth')
-      const savedWidth = data.sidePanelWidth // Saved width is in em units
-      if (savedWidth && savedWidth >= MIN_WIDTH && savedWidth <= MAX_WIDTH) {
-        currentWidth = savedWidth
+      const data = await browser.storage.local.get('sidePanelWidthPx')
+      const savedWidthPx = data.sidePanelWidthPx // Saved width is in px units
+      if (
+        savedWidthPx &&
+        savedWidthPx >= MIN_WIDTH_PX &&
+        savedWidthPx <= MAX_WIDTH_PX
+      ) {
+        currentWidthPx = savedWidthPx
         if (panelElement) {
-          panelElement.style.width = `${emToPx(savedWidth)}px`
+          panelElement.style.width = `${savedWidthPx}px`
         }
       }
     } catch (error) {
@@ -102,7 +109,7 @@
   // Save current width
   async function saveWidth() {
     try {
-      await browser.storage.local.set({ sidePanelWidth: currentWidth }) // Save in em units
+      await browser.storage.local.set({ sidePanelWidthPx: currentWidthPx }) // Save in px units
     } catch (error) {
       console.warn('Failed to save width:', error)
     }
@@ -125,16 +132,29 @@
       return e.clientX
     }
 
+    // Store initial mouse position và current panel width in px
+    const startMouseX = getClientX(event)
+    const startWidthPx = currentWidthPx
+
     const handleMove = (e) => {
       if (!isResizing) return
-      // Sử dụng visualViewport nếu có (modern browsers),
-      // fallback về clientWidth (tất cả browsers)
-      const viewportWidth =
-        window.visualViewport?.width || document.documentElement.clientWidth
-      const newWidthPx = viewportWidth - getClientX(e)
-      const newWidthEm = pxToEm(newWidthPx)
-      if (newWidthEm > MIN_WIDTH && newWidthEm < MAX_WIDTH) {
-        currentWidth = newWidthEm
+
+      const currentMouseX = getClientX(e)
+      let newWidthPx
+
+      if (panelPosition === 'right') {
+        // Panel bên phải: kéo trái = tăng width, kéo phải = giảm width
+        const deltaX = startMouseX - currentMouseX
+        newWidthPx = startWidthPx + deltaX
+      } else {
+        // Panel bên trái: kéo phải = tăng width, kéo trái = giảm width
+        const deltaX = currentMouseX - startMouseX
+        newWidthPx = startWidthPx + deltaX
+      }
+
+      // Validate width in px
+      if (newWidthPx >= MIN_WIDTH_PX && newWidthPx <= MAX_WIDTH_PX) {
+        currentWidthPx = newWidthPx
         panelElement.style.width = newWidthPx + 'px'
       }
     }
@@ -170,7 +190,7 @@
       showElement = true
       setTimeout(() => {
         if (panelElement) {
-          panelElement.style.width = `${emToPx(currentWidth)}px`
+          panelElement.style.width = `${currentWidthPx}px`
           panelElement.classList.add('visible')
         }
       }, 10)
@@ -219,16 +239,20 @@
   <!-- Sidepanel container -->
   <div
     class="floating-panel"
+    class:left={panelPosition === 'left'}
+    class:right={panelPosition === 'right'}
     bind:this={panelElement}
     role="dialog"
     aria-modal="true"
     tabindex="-1"
-    style="width: {currentWidth}px"
+    style="width: {currentWidthPx}px"
   >
     <!-- Resize handle -->
     <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
     <div
       class="resize-handle bg-transparent transition-colors flex justify-center items-center"
+      class:left={panelPosition === 'left'}
+      class:right={panelPosition === 'right'}
       class:resizing={isResizing}
       onmousedown={handleResizeStart}
       ontouchstart={handleResizeStart}
@@ -318,7 +342,6 @@
   .floating-panel {
     position: fixed;
     top: 0;
-    right: 0;
     height: 100vh;
     width: 25em; /* Default width in em units */
     background-color: var(--color-surface-1);
@@ -329,24 +352,47 @@
     color: var(--color-text-primary);
     border-left: 1px solid var(--color-border);
     border-right: 1px solid var(--color-border);
-    transform: translateX(100%);
     transition: transform 0.4s ease-out;
     box-sizing: border-box;
+  }
+
+  .floating-panel.right {
+    right: 0;
+    transform: translateX(100%);
+  }
+
+  .floating-panel.left {
+    left: 0;
+    transform: translateX(-100%);
+  }
+
+  .floating-panel.right.visible {
+    transform: translateX(0);
+  }
+
+  .floating-panel.left.visible {
+    transform: translateX(0);
   }
 
   /* Resize Handle */
   .resize-handle {
     position: absolute;
     top: 0;
-    left: 0;
     bottom: 0;
-
     width: 1em;
-    transform: translateX(-50%);
-
     cursor: col-resize;
     flex-shrink: 0;
     z-index: 10000;
+  }
+
+  .resize-handle.right {
+    left: 0;
+    transform: translateX(-50%);
+  }
+
+  .resize-handle.left {
+    right: 0;
+    transform: translateX(50%);
   }
 
   /* Active state khi đang resize */

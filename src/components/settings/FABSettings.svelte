@@ -94,21 +94,13 @@
             class="setting-btn {settings.floatButtonLeft ? 'active' : ''}"
             onclick={() => handleUpdateSetting('floatButtonLeft', true)}
             Description={$t('settings.fab.position_option.left_desc')}
-          >
-            <Icon icon="heroicons:arrow-left-20-solid" width="20" height="20" />
-          </ButtonSet>
+          ></ButtonSet>
           <ButtonSet
             title={$t('settings.fab.position_option.right')}
             class="setting-btn {!settings.floatButtonLeft ? 'active' : ''}"
             onclick={() => handleUpdateSetting('floatButtonLeft', false)}
             Description={$t('settings.fab.position_option.right_desc')}
-          >
-            <Icon
-              icon="heroicons:arrow-right-20-solid"
-              width="20"
-              height="20"
-            />
-          </ButtonSet>
+          ></ButtonSet>
         </div>
       </div>
     </div>
@@ -172,9 +164,7 @@
             onclick={() =>
               handleUpdateSetting('mobileSheetBackdropOpacity', false)}
             Description="No background overlay when opening mobile sheet"
-          >
-            <Icon icon="heroicons:eye-slash-20-solid" width="20" height="20" />
-          </ButtonSet>
+          ></ButtonSet>
           <ButtonSet
             title="Show"
             class="setting-btn {settings.mobileSheetBackdropOpacity
@@ -183,9 +173,7 @@
             onclick={() =>
               handleUpdateSetting('mobileSheetBackdropOpacity', true)}
             Description="Show background overlay when opening mobile sheet"
-          >
-            <Icon icon="heroicons:eye-20-solid" width="20" height="20" />
-          </ButtonSet>
+          ></ButtonSet>
         </div>
       </div>
     </div>
@@ -196,18 +184,20 @@
       >Float Sidepanel</label
     >
     <p class="flex text-muted">
-      Resizable floating panel that can be positioned and adjusted to fit your
-      workflow needs
+      A slide-up panel that emerges from the bottom of the mobile screen
     </p>
   </div>
   <div class="px-5 py-4 flex gap-4">
     <Preview title="Preview" class="w-60 h-40 shrink-0">
       <div
-        class="top-0 z-30 border border-surface-2 absolute bottom-0 right-0 bg-surface-1 flex justify-center"
+        class="top-0 z-30 border border-surface-2 absolute bottom-0 bg-surface-1 flex justify-center
+        {settings.floatingPanelLeft ? 'left-0' : 'right-0'}"
         style="width: {settings.sidePanelDefaultWidth * 3}px"
       >
         <span
-          class=" absolute top-1/2 -translate-y-1/2 left-0 -translate-x-1/2 h-6 w-1.5 border border-border rounded-2xl bg-surface-2"
+          class=" absolute top-1/2 -translate-y-1/2 -translate-x-1/2 h-6 w-1.5 border border-border rounded-2xl bg-surface-2 {settings.floatingPanelLeft
+            ? 'left-full'
+            : 'left-0'}"
         ></span>
 
         <div></div>
@@ -218,7 +208,7 @@
       <div class="flex flex-col gap-2 px-5 pb-4">
         <!-- svelte-ignore a11y_label_has_associated_control -->
         <label class="text-text-secondary flex justify-between items-center">
-          <span>Default Width</span>
+          <span>Panel Default Width</span>
           <span class="text-text-primary font-bold"
             >{settings.sidePanelDefaultWidth * 16}</span
           >
@@ -236,6 +226,25 @@
             )}
           class="range range-primary"
         />
+      </div>
+
+      <div class="flex col-span-2 flex-col gap-2 pb-4">
+        <!-- svelte-ignore a11y_label_has_associated_control -->
+        <label class="block text-text-secondary"></label>
+        <div class="grid w-full grid-cols-2 gap-1">
+          <ButtonSet
+            title="Left"
+            class="setting-btn {settings.floatingPanelLeft ? 'active' : ''}"
+            onclick={() => handleUpdateSetting('floatingPanelLeft', true)}
+            Description="Left"
+          ></ButtonSet>
+          <ButtonSet
+            title="Right"
+            class="setting-btn {!settings.floatingPanelLeft ? 'active' : ''}"
+            onclick={() => handleUpdateSetting('floatingPanelLeft', false)}
+            Description="Right"
+          ></ButtonSet>
+        </div>
       </div>
     </div>
   </div>

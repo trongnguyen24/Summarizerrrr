@@ -24,8 +24,8 @@
       FAB help take open/close sidepanel and mobile drawer
     </p>
   </div>
-  <div class="px-5 py-4 flex gap-4">
-    <Preview title="Preview" class="w-60 h-40 shrink-0">
+  <div class="px-5 py-4 flex flex-col sm:flex-row gap-4">
+    <Preview title="Preview" class=" w-full sm:w-60 h-40 shrink-0 mx-auto">
       <div
         class="absolute top-1/2 -translate-y-1/2 flex items-center justify-center h-10 w-10 text-gray-500/50 overflow-hidden rounded-4xl ease-in-out duration-800 transition-all
         {settings.floatButtonLeft
@@ -113,8 +113,8 @@
       A slide-up panel that emerges from the bottom of the mobile screen
     </p>
   </div>
-  <div class="px-5 py-4 flex gap-4">
-    <Preview title="Preview" class="w-60 h-40 shrink-0">
+  <div class="px-5 py-4 flex flex-col sm:flex-row gap-4">
+    <Preview title="Preview" class=" w-full sm:w-60 h-40 shrink-0 mx-auto">
       <div
         class="w-40 z-30 border border-surface-2 absolute bottom-0 left-1/2 rounded-t-lg -translate-x-1/2 bg-surface-1 flex justify-center"
         style=" height:{settings.mobileSheetHeight}%"
@@ -187,8 +187,8 @@
       A slide-up panel that emerges from the bottom of the mobile screen
     </p>
   </div>
-  <div class="px-5 py-4 flex gap-4">
-    <Preview title="Preview" class="w-60 h-40 shrink-0">
+  <div class="px-5 py-4 flex flex-col sm:flex-row gap-4">
+    <Preview title="Preview" class=" w-full sm:w-60 h-40 shrink-0 mx-auto">
       <div
         class="top-0 z-30 border border-surface-2 absolute bottom-0 bg-surface-1 flex justify-center
         {settings.floatingPanelLeft ? 'left-0' : 'right-0'}"

@@ -184,7 +184,7 @@
       >Float Sidepanel</label
     >
     <p class="flex text-muted">
-      A slide-up panel that emerges from the bottom of the mobile screen
+      Resizable floating panel that can be positioned and adjusted to fit
     </p>
   </div>
   <div class="px-5 py-4 flex flex-col sm:flex-row gap-4">

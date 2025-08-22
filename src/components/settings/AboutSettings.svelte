@@ -38,17 +38,28 @@
 
   <div>
     <h3 class="font-semibold text-gray-900 dark:text-white">Key Features</h3>
-    <ul>
-      <li class=" p-2 flex gap-4 items-center">
+    <ul class=" mt-4 space-y-4">
+      <li class="flex gap-4 items-start">
         <div class="size-16 shrink-0 overflow-hidden relative">
-          <div class="absolute z-40 border border-border inset-0"></div>
-          <div class="absolute inset-0 bg-dot"></div>
+          <div
+            class="absolute z-40 border border-border dark:border-surface-2 inset-0"
+          ></div>
+          <div class="absolute inset-1 bg-white/50 dark:bg-white/3"></div>
           <span
-            class="absolute z-50 size-4 rotate-45 bg-surface-1 border border-border bottom-px left-px -translate-x-1/2 translate-y-1/2"
+            class="absolute z-20 size-6 rotate-45 bg-surface-1 bottom-px left-px -translate-x-1/2 translate-y-1/2"
+          ></span>
+          <span
+            class="absolute z-20 size-6 rotate-45 bg-surface-1 top-px right-px translate-x-1/2 -translate-y-1/2"
+          ></span>
+          <span
+            class="absolute z-50 size-4 rotate-45 bg-surface-1 border border-border dark:border-surface-2 bottom-px left-px -translate-x-1/2 translate-y-1/2"
+          ></span>
+          <span
+            class="absolute z-50 size-4 rotate-45 border-surface-1 bg-border dark:bg-muted border dark:border-surface-2 top-px right-px translate-x-1/2 -translate-y-1/2"
           ></span>
           <Icon
             icon="heroicons:circle-stack"
-            class="size-8 center-abs  drop-shadow-md drop-shadow-primary shrink-0"
+            class="size-6 center-abs text-muted dark:text-text-primary  dark:drop-shadow-md dark:drop-shadow-primary shrink-0"
           />
         </div>
         <div>
@@ -60,16 +71,27 @@
         </div>
       </li>
 
-      <li class=" p-2 flex gap-4 items-center">
+      <li class="flex gap-4 items-start">
         <div class="size-16 shrink-0 overflow-hidden relative">
-          <div class="absolute z-40 border border-border inset-0"></div>
-          <div class="absolute inset-0 bg-dot"></div>
+          <div
+            class="absolute z-40 border border-border dark:border-surface-2 inset-0"
+          ></div>
+          <div class="absolute inset-1 bg-white/50 dark:bg-white/3"></div>
           <span
-            class="absolute z-20 size-4 rotate-45 bg-surface-1 border border-border bottom-px left-px -translate-x-1/2 translate-y-1/2"
+            class="absolute z-20 size-6 rotate-45 bg-surface-1 bottom-px left-px -translate-x-1/2 translate-y-1/2"
+          ></span>
+          <span
+            class="absolute z-20 size-6 rotate-45 bg-surface-1 top-px right-px translate-x-1/2 -translate-y-1/2"
+          ></span>
+          <span
+            class="absolute z-50 size-4 rotate-45 bg-surface-1 border border-border dark:border-surface-2 bottom-px left-px -translate-x-1/2 translate-y-1/2"
+          ></span>
+          <span
+            class="absolute z-50 size-4 rotate-45 border-surface-1 bg-border dark:bg-muted border dark:border-surface-2 top-px right-px translate-x-1/2 -translate-y-1/2"
           ></span>
           <Icon
             icon="heroicons:adjustments-horizontal"
-            class="size-8 z-50 center-abs drop-shadow-md drop-shadow-primary shrink-0"
+            class="size-6 center-abs text-muted dark:text-text-primary  dark:drop-shadow-md dark:drop-shadow-primary shrink-0"
           />
         </div>
         <div>
@@ -80,52 +102,45 @@
           </p>
         </div>
       </li>
+
+      <li class="flex gap-4 items-start">
+        <div class="size-16 shrink-0 overflow-hidden relative">
+          <div
+            class="absolute z-40 border border-border dark:border-surface-2 inset-0"
+          ></div>
+          <div class="absolute inset-1 bg-white/50 dark:bg-white/3"></div>
+          <span
+            class="absolute z-20 size-6 rotate-45 bg-surface-1 bottom-px left-px -translate-x-1/2 translate-y-1/2"
+          ></span>
+          <span
+            class="absolute z-20 size-6 rotate-45 bg-surface-1 top-px right-px translate-x-1/2 -translate-y-1/2"
+          ></span>
+          <span
+            class="absolute z-50 size-4 rotate-45 bg-surface-1 border border-border dark:border-surface-2 bottom-px left-px -translate-x-1/2 translate-y-1/2"
+          ></span>
+          <span
+            class="absolute z-50 size-4 rotate-45 border-surface-1 bg-border dark:bg-muted border dark:border-surface-2 top-px right-px translate-x-1/2 -translate-y-1/2"
+          ></span>
+          <Icon
+            icon="heroicons:device-phone-mobile"
+            class="size-6 center-abs text-muted dark:text-text-primary  dark:drop-shadow-md dark:drop-shadow-primary shrink-0"
+          />
+        </div>
+        <div>
+          <h4 class=" font-medium">Cross-Platform Compatibility</h4>
+          <p class=" text-muted">
+            Desktop, Tablet, and Mobile. Work on Mobile browsers including
+            Firefox Android and Kiwi Browser.
+          </p>
+        </div>
+      </li>
     </ul>
   </div>
 
-  <!-- <div class="space-y-3">
-    <h3 class="font-semibold text-gray-900 dark:text-white">Key Features</h3>
-    <ul class="space-y-3">
-      <li class="flex items-start text-text-secondary">
-        <Icon icon="heroicons:sparkles" class="w-4 h-4 mr-2 shrink-0" />
-        <span>You maintain privacy - your keys, your data, your control.</span>
-      </li>
-      <li class="flex items-start text-text-secondary">
-        <Icon icon="heroicons:language" class="w-4 h-4 mr-2 shrink-0" />
-        <span
-          >Save time with YouTube videos, learn deeper with concepts explained
-          thoroughly on Udemy and Coursera</span
-        >
-      </li>
-      <li class="flex items-start text-text-secondary">
-        <Icon
-          icon="heroicons:adjustments-horizontal"
-          class="w-4 h-4 mr-2 shrink-0"
-        />
-        <span
-          >Customizable: provider, temperature, top P, length, format, languages
-          sytem prompt and user prompt ...</span
-        >
-      </li>
-      <li class="flex items-start text-text-secondary">
-        <Icon icon="heroicons:swatch" class="w-4 h-4 mr-2 shrink-0" />
-        <span>Beautiful Interface and better User Experience.</span>
-      </li>
-      <li class="flex items-start text-text-secondary">
-        <Icon icon="heroicons:device-tablet" class="w-4 h-4 mr-2 shrink-0" />
-        <span
-          >Work on Desktop, Tablet and Mobile (Firefox Android or Kiwi browser)</span
-        >
-      </li>
-    </ul>
-  </div> -->
-
   <!-- Developer -->
-  <div class="border-t border-gray-200 dark:border-gray-700 pt-4">
-    <p class="text-sm text-gray-600 dark:text-gray-400">
-      Designed and developed by Nguyen Le
-    </p>
-    <p class="text-xs text-gray-500 dark:text-gray-500 mt-1">
+  <div class="border-t border-border pt-4">
+    <p class=" text-text-primary">Designed and developed by Nguyen Le</p>
+    <p class=" text-text-secondary tẽ mt-1">
       Open source • MIT License • Available on Chrome Web Store & Firefox
       Add-ons
     </p>
@@ -137,7 +152,7 @@
       href="https://github.com/trongnguyen24/Summarizerrrr"
       target="_blank"
       rel="noopener noreferrer"
-      class="flex items-center space-x-1 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+      class="flex items-center space-x-1 transition-colors"
     >
       <Icon icon="mdi:github" class="w-4 h-4" />
       <span>GitHub</span>
@@ -146,7 +161,7 @@
       href="https://chromewebstore.google.com/detail/summarizerrrr/ahfjndakflcegianjdojpldllodpkkpc"
       target="_blank"
       rel="noopener noreferrer"
-      class="flex items-center space-x-1 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+      class="flex items-center space-x-1 transition-colors"
     >
       <Icon icon="logos:chrome" class="w-4 h-4" />
       <span>Chrome Store</span>
@@ -155,7 +170,7 @@
       href="https://addons.mozilla.org/en-CA/firefox/addon/summarizerrrr/"
       target="_blank"
       rel="noopener noreferrer"
-      class="flex items-center space-x-1 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+      class="flex items-center space-x-1 transition-colors"
     >
       <Icon icon="logos:firefox" class="w-4 h-4" />
       <span>Firefox Add-ons</span>

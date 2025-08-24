@@ -139,11 +139,7 @@
           class="p-1 setting-animation transition-colors hover:bg-surface-1 rounded-full hover:text-text-primary"
           title={$t('archive.open_archive')}
         >
-          <Icon
-            icon="heroicons:bars-3-bottom-left-solid"
-            width="24"
-            height="24"
-          />
+          <Icon icon="solar:history-linear" width="24" height="24" />
         </button>
       </div>
       <div class="size-6 absolute top-12 right-4 text-text-secondary">

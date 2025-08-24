@@ -141,23 +141,6 @@
       <span> Summary</span>
     </button>
     <button
-      data-tab="general"
-      class="flex flex-col w-16 items-center gap-1 justify-center cursor-pointer rounded-md transition-colors duration-200 {activeTab ===
-      'general'
-        ? ' text-blackwhite '
-        : 'text-text-secondary'}"
-      onclick={() => (activeTab = 'general')}
-    >
-      <div class="size-5">
-        {#if activeTab === 'general'}
-          <Icon icon="heroicons:swatch-solid" width="20" height="20" />
-        {:else}
-          <Icon icon="heroicons:swatch" width="20" height="20" />
-        {/if}
-      </div>
-      <span> General</span>
-    </button>
-    <button
       data-tab="fab"
       class="flex flex-col w-16 items-center gap-1 justify-center cursor-pointer rounded-md transition-colors duration-200 {activeTab ===
       'fab'
@@ -178,6 +161,24 @@
       </div>
       <span>FAB</span>
     </button>
+    <button
+      data-tab="general"
+      class="flex flex-col w-16 items-center gap-1 justify-center cursor-pointer rounded-md transition-colors duration-200 {activeTab ===
+      'general'
+        ? ' text-blackwhite '
+        : 'text-text-secondary'}"
+      onclick={() => (activeTab = 'general')}
+    >
+      <div class="size-5">
+        {#if activeTab === 'general'}
+          <Icon icon="heroicons:swatch-solid" width="20" height="20" />
+        {:else}
+          <Icon icon="heroicons:swatch" width="20" height="20" />
+        {/if}
+      </div>
+      <span> General</span>
+    </button>
+
     <button
       data-tab="about"
       class="flex flex-col w-16 items-center gap-1 justify-center cursor-pointer rounded-md transition-colors duration-200 {activeTab ===

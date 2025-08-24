@@ -74,7 +74,7 @@
 </svg>
 
 <div
-  class=" absolute inset-8 blur-md z-20 overflow-hidden rounded-full field-in"
+  class=" absolute inset-8 blur-sm z-20 overflow-hidden rounded-full field-in"
 >
   <div class="chip__filter"></div>
 </div>
@@ -119,7 +119,7 @@
       200%;
 
     mix-blend-mode: color-dodge;
-    animation: shimmer-1 5s linear infinite;
+    animation: shimmer-1 5s linear forwards;
   }
 
   /* Styles for the ::after pseudo-element */
@@ -136,7 +136,7 @@
     filter: blur(60px);
     border-radius: 100px;
     mix-blend-mode: color-dodge;
-    animation: shimmer-2 4s linear infinite;
+    animation: shimmer-2 4s linear forwards;
   }
 
   @keyframes shimmer-1 {

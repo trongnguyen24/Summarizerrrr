@@ -20,14 +20,18 @@
 </script>
 
 <!-- About Section -->
-<div class="setting-block flex pb-6 pt-5 px-5 flex-col space-y-6">
+<div class=" text-pretty flex pb-6 pt-5 px-5 flex-col space-y-6">
   <!-- Logo và tên -->
-  <div class="flex gap-6 flex-col sm:flex-row items-center">
+  <div class="flex gap-2 sm:gap-6 flex-col sm:flex-row items-center">
     <div class="w-52 relative shrink-0 p-4"><Logo /></div>
     <div>
-      <h2 class="text-lg font-bold text-primary">Summarizerrrr</h2>
+      <h2 class="text-lg text-center sm:text-left font-bold text-primary">
+        Summarizerrrr
+      </h2>
 
-      <p class=" text-muted">Version {packageJson.version}</p>
+      <p class="text-center sm:text-left text-muted">
+        Version {packageJson.version}
+      </p>
       <p class="text-pretty mt-4 text-text-secondary">
         Summarize everything in 1 click, save time.<br /> Extension helps you
         summarize for <b>YouTube, Udemy, Coursera, any websites</b>. Crafted
@@ -139,20 +143,19 @@
 
   <!-- Developer -->
   <div class="border-t border-border pt-4">
-    <p class=" text-text-primary">Designed and developed by Nguyen Le</p>
-    <p class=" text-text-secondary tẽ mt-1">
-      Open source • MIT License • Available on Chrome Web Store & Firefox
-      Add-ons
+    <p class=" text-text-primary">
+      Designed and Developed with ❤️ in Viet Nam 🇻🇳
     </p>
+    <p class=" text-text-secondary tẽ mt-1">Open source • Available on</p>
   </div>
 
   <!-- Links -->
-  <div class="flex flex-wrap gap-3 text-sm">
+  <div class="flex flex-col sm:flex-row sm:flex-wrap gap-3 text-sm">
     <a
       href="https://github.com/trongnguyen24/Summarizerrrr"
       target="_blank"
       rel="noopener noreferrer"
-      class="flex items-center space-x-1 transition-colors"
+      class="flex items-center space-x-2 sm:space-x-1 transition-colors"
     >
       <Icon icon="mdi:github" class="w-4 h-4" />
       <span>GitHub</span>
@@ -161,7 +164,7 @@
       href="https://chromewebstore.google.com/detail/summarizerrrr/ahfjndakflcegianjdojpldllodpkkpc"
       target="_blank"
       rel="noopener noreferrer"
-      class="flex items-center space-x-1 transition-colors"
+      class="flex items-center space-x-2 sm:space-x-1 transition-colors"
     >
       <Icon icon="logos:chrome" class="w-4 h-4" />
       <span>Chrome Store</span>
@@ -170,7 +173,7 @@
       href="https://addons.mozilla.org/en-CA/firefox/addon/summarizerrrr/"
       target="_blank"
       rel="noopener noreferrer"
-      class="flex items-center space-x-1 transition-colors"
+      class="flex items-center space-x-2 sm:space-x-1 transition-colors"
     >
       <Icon icon="logos:firefox" class="w-4 h-4" />
       <span>Firefox Add-ons</span>

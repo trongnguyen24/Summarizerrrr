@@ -237,7 +237,7 @@
             onclick={openArchive}
             title="Open Archive"
           >
-            <Icon icon="heroicons:archive-box" width="24" height="24" />
+            <Icon icon="solar:history-linear" width="24" height="24" />
           </button>
           <button
             class="size-10 absolute z-10 top-4 text-text-primary right-2 flex justify-center items-center"

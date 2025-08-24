@@ -113,8 +113,72 @@ export default defineBackground(() => {
   let sidePanelPort = null
   let pendingSelectedText = null
 
+  // Detect if running on any mobile browser
+  const isMobileBrowser =
+    typeof navigator !== 'undefined' &&
+    (navigator.userAgent.includes('Mobile') ||
+      navigator.userAgent.includes('Android') ||
+      navigator.userAgent.includes('iPhone') ||
+      navigator.userAgent.includes('iPad'))
+
+  // Detect specific mobile browsers
+  const isFirefoxMobile =
+    import.meta.env.BROWSER === 'firefox' && isMobileBrowser
+  const isChromiumMobile =
+    import.meta.env.BROWSER === 'chrome' && isMobileBrowser
+
+  // ===== EVENT LISTENER REGISTRATIONS (MOVED TO TOP FOR FIREFOX MOBILE STABILITY) =====
+
+  // 1. Runtime message listeners
+  browser.runtime.onMessage.addListener(messageHandler)
+
+  // 2. Tab event listeners
+  browser.tabs.onUpdated.addListener(tabUpdateHandler)
+  browser.tabs.onActivated.addListener(tabActivationHandler)
+
+  // 3. Command listener
+  browser.commands.onCommand.addListener(commandHandler)
+
+  // 4. Context menu listener
+  browser.contextMenus.onClicked.addListener(contextMenuHandler)
+
+  // 5. Connection listener
+  browser.runtime.onConnect.addListener(connectionHandler)
+
+  // 6. Install/Update listener
+  browser.runtime.onInstalled.addListener(installUpdateHandler)
+
+  // 7. Firefox specific browser action listener
+  if (import.meta.env.BROWSER === 'firefox') {
+    browser.browserAction.onClicked.addListener(firefoxBrowserActionHandler)
+  }
+
+  // 8. Chrome/Firefox action click listener
+  ;(import.meta.env.BROWSER === 'chrome'
+    ? chrome.action
+    : browser.browserAction
+  ).onClicked.addListener(actionClickHandler)
+
+  // Mobile browser specific handling
+  if (isMobileBrowser) {
+    // Handle service worker suspension on mobile (especially Firefox)
+    if (browser.runtime.onSuspend) {
+      browser.runtime.onSuspend.addListener(() => {
+        // Save necessary state before suspension
+        sidePanelPort = null
+      })
+    }
+  }
+
+  // ===== HELPER FUNCTIONS =====
+
   // Helper function để kiểm tra sidepanel/sidebar support
   async function isSidePanelSupported() {
+    // Mobile browsers generally don't support side panels/sidebars
+    if (isMobileBrowser) {
+      return false
+    }
+
     try {
       if (import.meta.env.BROWSER === 'chrome') {
         // Chrome: Kiểm tra chrome.sidePanel API có tồn tại
@@ -156,298 +220,143 @@ export default defineBackground(() => {
 
   const COURSERA_CONTENT_SCRIPT_PATH = 'content-scripts/coursera.js'
 
-  // Hàm helper để inject content script
+  // Enhanced inject content script with retry logic for mobile browser stability
   async function injectContentScriptIntoTab(tabId, scriptPath) {
-    if (import.meta.env.BROWSER === 'chrome') {
-      if (!chrome.scripting) {
-        return
-      }
+    const maxRetries = isMobileBrowser ? 5 : 3
+    const retryDelay = isMobileBrowser ? 1500 : 1000
+
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
       try {
-        // Kiểm tra xem script đã được inject chưa
-        const results = await chrome.scripting.executeScript({
-          target: { tabId: tabId },
-          func: (youtubeScriptPath, udemyScriptPath, courseraScriptPath) => {
-            if (youtubeScriptPath === 'content-scripts/youtubetranscript.js') {
-              return (
-                typeof window.isYoutubeTranscriptContentScriptReady ===
-                'boolean'
-              )
-            } else if (udemyScriptPath === 'content-scripts/udemy.js') {
-              return typeof window.isUdemyContentScriptReady === 'boolean'
-            } else if (courseraScriptPath === 'content-scripts/coursera.js') {
-              return typeof window.isCourseraContentScriptReady === 'boolean'
-            }
+        if (import.meta.env.BROWSER === 'chrome') {
+          if (!chrome.scripting) {
             return false
-          },
-          args: [
-            YOUTUBE_CONTENT_SCRIPT_PATH,
-            UDEMY_CONTENT_SCRIPT_PATH,
-            COURSERA_CONTENT_SCRIPT_PATH,
-          ],
-        })
+          }
 
-        if (results[0]?.result === true) {
-          return
+          // Kiểm tra xem script đã được inject chưa
+          const results = await chrome.scripting.executeScript({
+            target: { tabId: tabId },
+            func: (youtubeScriptPath, udemyScriptPath, courseraScriptPath) => {
+              if (
+                youtubeScriptPath === 'content-scripts/youtubetranscript.js'
+              ) {
+                return (
+                  typeof window.isYoutubeTranscriptContentScriptReady ===
+                  'boolean'
+                )
+              } else if (udemyScriptPath === 'content-scripts/udemy.js') {
+                return typeof window.isUdemyContentScriptReady === 'boolean'
+              } else if (courseraScriptPath === 'content-scripts/coursera.js') {
+                return typeof window.isCourseraContentScriptReady === 'boolean'
+              }
+              return false
+            },
+            args: [
+              YOUTUBE_CONTENT_SCRIPT_PATH,
+              UDEMY_CONTENT_SCRIPT_PATH,
+              COURSERA_CONTENT_SCRIPT_PATH,
+            ],
+          })
+
+          if (results[0]?.result === true) {
+            return true
+          }
+
+          await chrome.scripting.executeScript({
+            target: { tabId: tabId },
+            files: [scriptPath],
+          })
+          return true
+        } else if (import.meta.env.BROWSER === 'firefox') {
+          const injected = await injectScript(tabId, [scriptPath])
+          if (injected) {
+            return true
+          } else if (attempt < maxRetries - 1) {
+            // Wait before retry on Firefox mobile
+            await new Promise((resolve) => setTimeout(resolve, retryDelay))
+            continue
+          }
+          return false
+        }
+      } catch (err) {
+        if (
+          err.message?.includes('Cannot access contents of url') ||
+          err.message?.includes('Cannot access chrome://')
+        ) {
+          // These are expected errors, don't retry
+          return false
         }
 
-        await chrome.scripting.executeScript({
-          target: { tabId: tabId },
-          files: [scriptPath],
-        })
-      } catch (err) {
-        if (err.message?.includes('Cannot access contents of url')) {
-        } else if (err.message?.includes('Cannot access chrome://')) {
-        } else {
+        if (attempt < maxRetries - 1) {
+          // Wait before retry for other errors
+          await new Promise((resolve) => setTimeout(resolve, retryDelay))
+          continue
         }
-      }
-    } else if (import.meta.env.BROWSER === 'firefox') {
-      try {
-        const injected = await injectScript(tabId, [scriptPath])
-        if (!injected) {
-        }
-      } catch (err) {
-        if (err.message?.includes('Cannot access contents of url')) {
-        } else {
-        }
+        return false
       }
     }
+    return false
   }
 
-  // Hàm helper để gửi tin nhắn đến side panel hoặc tab
-  // Helper function to send messages, preferring the side panel port but falling back to runtime.sendMessage.
-  // This is more robust against the service worker going inactive.
+  // Enhanced message sending with better error handling and reconnection for Firefox mobile
   async function sendMessageToSidePanel(message) {
-    // First, try to send via the long-lived port if it exists.
+    // First, try to send via the long-lived port if it exists
     if (sidePanelPort) {
       try {
         sidePanelPort.postMessage(message)
-        // If the message is sent successfully, we're done.
-        return
+        return true
       } catch (error) {
-        sidePanelPort = null // Port is no longer valid.
+        // Port is no longer valid, clear it
+        sidePanelPort = null
       }
     }
 
+    // Fallback to runtime.sendMessage
     try {
       await browser.runtime.sendMessage(message)
+      return true
     } catch (error) {
-      // This error is expected if the side panel is not open.
+      // Handle expected connection errors silently
       if (
         error.message.includes('Could not establish connection') ||
         error.message.includes('Receiving end does not exist')
       ) {
-      } else {
+        return false
       }
+      // Log unexpected errors for debugging
+      if (isMobileBrowser) {
+        console.warn('Mobile browser - sendMessageToSidePanel error:', error)
+      }
+      return false
     }
   }
 
-  // Logic khởi tạo cho Chrome
-  if (import.meta.env.BROWSER === 'chrome') {
-    chrome.sidePanel
-      .setPanelBehavior({ openPanelOnActionClick: true })
-      .catch((error) => {})
-  } else if (import.meta.env.BROWSER === 'firefox') {
-    // Firefox specific action for browserAction.onClicked
-    browser.browserAction.onClicked.addListener(() => {
-      browser.sidebarAction.toggle()
-    })
+  // Reconnection helper for side panel with Firefox mobile specific handling
+  async function attemptSidePanelReconnection() {
+    if (sidePanelPort) return true // Already connected
+
+    try {
+      // Try to establish connection by sending a ping message
+      await browser.runtime.sendMessage({ action: 'ping' })
+      return true
+    } catch (error) {
+      // On mobile browsers, try again after a delay
+      if (isMobileBrowser) {
+        await new Promise((resolve) => setTimeout(resolve, 2000))
+        try {
+          await browser.runtime.sendMessage({ action: 'ping' })
+          return true
+        } catch (retryError) {
+          return false
+        }
+      }
+      return false
+    }
   }
 
-  // 1. Action Click (Toolbar Icon)
-  ;(import.meta.env.BROWSER === 'chrome'
-    ? chrome.action
-    : browser.browserAction
-  ).onClicked.addListener(async (tab) => {
-    if (!tab.id || !tab.url) return
+  // ===== EVENT HANDLER FUNCTIONS =====
 
-    // Kiểm tra xem sidepanel/sidebar có được hỗ trợ không
-    const sidePanelSupported = await isSidePanelSupported()
-
-    if (!sidePanelSupported) {
-      // Fallback: Mở trang settings trong tab mới khi không hỗ trợ sidepanel
-      const url = browser.runtime.getURL('settings.html')
-      await browser.tabs.create({ url, active: true })
-      return
-    }
-
-    // Logic hiện tại khi sidepanel được hỗ trợ
-    const isYouTube = YOUTUBE_REGEX.test(tab.url)
-    const isUdemy = UDEMY_REGEX.test(tab.url)
-    const isCoursera = COURSERA_REGEX.test(tab.url)
-
-    const currentTabInfo = {
-      action: 'currentTabInfo',
-      tabId: tab.id,
-      tabUrl: tab.url,
-      tabTitle: tab.title,
-      isYouTube: isYouTube,
-      isUdemy: isUdemy,
-      isCoursera: isCoursera,
-    }
-
-    await sendMessageToSidePanel(currentTabInfo)
-
-    if (isYouTube) {
-      await injectContentScriptIntoTab(tab.id, YOUTUBE_CONTENT_SCRIPT_PATH)
-    } else if (isUdemy) {
-      await injectContentScriptIntoTab(tab.id, UDEMY_CONTENT_SCRIPT_PATH)
-    } else if (isCoursera) {
-      await injectContentScriptIntoTab(tab.id, COURSERA_CONTENT_SCRIPT_PATH)
-    }
-  })
-
-  // 2. Listen for commands (keyboard shortcuts)
-  browser.commands.onCommand.addListener(async (command) => {
-    const tabs = await browser.tabs.query({ active: true, currentWindow: true })
-    const activeTab = tabs[0]
-
-    if (!activeTab || !activeTab.id || !activeTab.url) {
-      return
-    }
-
-    if (command === 'summarize-current-page') {
-      const isYouTube = YOUTUBE_REGEX.test(activeTab.url)
-      const isUdemy = UDEMY_REGEX.test(activeTab.url)
-      const isCoursera = COURSERA_REGEX.test(activeTab.url)
-
-      const summarizePageInfo = {
-        action: 'summarizeCurrentPage',
-        tabId: activeTab.id,
-        tabUrl: activeTab.url,
-        tabTitle: activeTab.title,
-        isYouTube: isYouTube,
-        isUdemy: isUdemy,
-        isCoursera: isCoursera,
-      }
-      await sendMessageToSidePanel(summarizePageInfo)
-
-      // Đảm bảo side panel mở để hiển thị kết quả tóm tắt
-      if (import.meta.env.BROWSER === 'chrome') {
-        try {
-          await chrome.sidePanel.open({ windowId: activeTab.windowId })
-        } catch (error) {}
-      } else if (import.meta.env.BROWSER === 'firefox') {
-        try {
-          await browser.sidebarAction.open()
-        } catch (error) {}
-      }
-    } else if (command === 'open-prompt-page') {
-      if (import.meta.env.BROWSER === 'chrome') {
-        try {
-          await chrome.tabs.create({
-            url: chrome.runtime.getURL('prompt.html'),
-          })
-        } catch (error) {}
-      } else if (import.meta.env.BROWSER === 'firefox') {
-        try {
-          await browser.tabs.create({
-            url: browser.runtime.getURL('prompt.html'),
-          })
-        } catch (error) {}
-      }
-    } else if (command === 'open-archive-panel') {
-      if (import.meta.env.BROWSER === 'chrome') {
-        try {
-          await chrome.tabs.create({
-            url: chrome.runtime.getURL('archive.html'),
-          })
-        } catch (error) {}
-      } else if (import.meta.env.BROWSER === 'firefox') {
-        try {
-          await browser.tabs.create({
-            url: browser.runtime.getURL('archive.html'),
-          })
-        } catch (error) {}
-      }
-    }
-  })
-
-  // 3. Extension Install/Update
-  browser.runtime.onInstalled.addListener(async (details) => {
-    if (details.reason === 'install' || details.reason === 'update') {
-      // Tạo context menu
-      try {
-        if (browser.contextMenus) {
-          browser.contextMenus.create({
-            id: 'summarizeSelectedText',
-            title: 'Summarize selected text',
-            type: 'normal',
-            contexts: ['selection'],
-          })
-        } else {
-        }
-      } catch (error) {}
-
-      try {
-        const youtubeTabs = await browser.tabs.query({
-          url: YOUTUBE_URL_PATTERN_STRING,
-        })
-        for (const tab of youtubeTabs) {
-          if (tab.id && tab.status === 'complete') {
-            await injectContentScriptIntoTab(
-              tab.id,
-              YOUTUBE_CONTENT_SCRIPT_PATH
-            )
-          }
-        }
-
-        const udemyTabs = await browser.tabs.query({
-          url: UDEMY_URL_PATTERN_STRING,
-        })
-        for (const tab of udemyTabs) {
-          if (tab.id && tab.status === 'complete') {
-            await injectContentScriptIntoTab(tab.id, UDEMY_CONTENT_SCRIPT_PATH)
-          }
-        }
-
-        const courseraTabs = await browser.tabs.query({
-          url: COURSERA_URL_PATTERN_STRING,
-        })
-        for (const tab of courseraTabs) {
-          if (tab.id && tab.status === 'complete') {
-            await injectContentScriptIntoTab(
-              tab.id,
-              COURSERA_CONTENT_SCRIPT_PATH
-            )
-          }
-        }
-      } catch (error) {}
-    }
-  })
-
-  // 4. Listen for URL changes and tab updates
-  browser.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
-    const isYouTube = YOUTUBE_REGEX.test(tab.url)
-    const isUdemy = UDEMY_REGEX.test(tab.url)
-    const isCoursera = COURSERA_REGEX.test(tab.url)
-
-    const tabUpdatedInfo = {
-      action: 'tabUpdated',
-      isYouTube: isYouTube,
-      isUdemy: isUdemy,
-      isCoursera: isCoursera,
-      tabId: tab.id,
-      tabUrl: tab.url,
-      tabTitle: changeInfo.title || tab.title,
-    }
-
-    if (changeInfo.title || changeInfo.status === 'complete') {
-      await sendMessageToSidePanel(tabUpdatedInfo)
-    }
-
-    if (changeInfo.status === 'complete') {
-      if (isYouTube) {
-        await injectContentScriptIntoTab(tabId, YOUTUBE_CONTENT_SCRIPT_PATH)
-      } else if (isUdemy) {
-        await injectContentScriptIntoTab(tabId, UDEMY_CONTENT_SCRIPT_PATH)
-      } else if (isCoursera) {
-        await injectContentScriptIntoTab(tabId, COURSERA_CONTENT_SCRIPT_PATH)
-      }
-    }
-  })
-
-  // 5. Listen for messages from other parts of the extension
-  browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  // Message handler function
+  async function messageHandler(message, sender, sendResponse) {
     // Handle asynchronous actions
     ;(async () => {
       try {
@@ -569,66 +478,41 @@ export default defineBackground(() => {
 
     // Return true to indicate that sendResponse will be called asynchronously.
     return true
-  })
+  }
 
-  // 6. Listen for connections from side panel
-  browser.runtime.onConnect.addListener((port) => {
-    if (port.name === 'side-panel') {
-      sidePanelPort = port
+  // Tab update handler function
+  async function tabUpdateHandler(tabId, changeInfo, tab) {
+    const isYouTube = YOUTUBE_REGEX.test(tab.url)
+    const isUdemy = UDEMY_REGEX.test(tab.url)
+    const isCoursera = COURSERA_REGEX.test(tab.url)
 
-      // Gửi thông tin tab hiện tại ngay lập tức khi side panel kết nối
-      ;(async () => {
-        try {
-          const tabs = await browser.tabs.query({
-            active: true,
-            currentWindow: true,
-          })
-          const activeTab = tabs[0]
-          const isYouTube = YOUTUBE_REGEX.test(activeTab?.url)
-          const isUdemy = UDEMY_REGEX.test(activeTab?.url)
-          const isCoursera = COURSERA_REGEX.test(activeTab?.url)
-
-          const currentTabInfo = activeTab
-            ? {
-                action: 'currentTabInfo',
-                tabId: activeTab.id,
-                tabUrl: activeTab.url,
-                tabTitle: activeTab.title,
-                isYouTube: isYouTube,
-                isUdemy: isUdemy,
-                isCoursera: isCoursera,
-              }
-            : {
-                action: 'currentTabInfo',
-                error: 'No active tab found.',
-              }
-          sidePanelPort.postMessage(currentTabInfo)
-        } catch (error) {}
-      })()
-
-      if (pendingSelectedText) {
-        try {
-          sidePanelPort.postMessage({
-            action: 'summarizeSelectedText',
-            selectedText: pendingSelectedText,
-          })
-          pendingSelectedText = null
-        } catch (error) {
-          // Nếu gửi tin nhắn thất bại, không cần cố gắng mở lại side panel ở đây
-          // vì logic mở side panel đã được xử lý khi pendingSelectedText được đặt.
-          // Đặt lại pendingSelectedText để tránh lặp lại.
-          pendingSelectedText = null
-        }
-      }
-
-      sidePanelPort.onDisconnect.addListener(() => {
-        sidePanelPort = null
-      })
+    const tabUpdatedInfo = {
+      action: 'tabUpdated',
+      isYouTube: isYouTube,
+      isUdemy: isUdemy,
+      isCoursera: isCoursera,
+      tabId: tab.id,
+      tabUrl: tab.url,
+      tabTitle: changeInfo.title || tab.title,
     }
-  })
 
-  // 7. Listen for tab activation changes
-  browser.tabs.onActivated.addListener(async (activeInfo) => {
+    if (changeInfo.title || changeInfo.status === 'complete') {
+      await sendMessageToSidePanel(tabUpdatedInfo)
+    }
+
+    if (changeInfo.status === 'complete') {
+      if (isYouTube) {
+        await injectContentScriptIntoTab(tabId, YOUTUBE_CONTENT_SCRIPT_PATH)
+      } else if (isUdemy) {
+        await injectContentScriptIntoTab(tabId, UDEMY_CONTENT_SCRIPT_PATH)
+      } else if (isCoursera) {
+        await injectContentScriptIntoTab(tabId, COURSERA_CONTENT_SCRIPT_PATH)
+      }
+    }
+  }
+
+  // Tab activation handler function
+  async function tabActivationHandler(activeInfo) {
     try {
       const tab = await browser.tabs.get(activeInfo.tabId)
 
@@ -656,11 +540,81 @@ export default defineBackground(() => {
           await injectContentScriptIntoTab(tab.id, COURSERA_CONTENT_SCRIPT_PATH)
         }
       }
-    } catch (error) {}
-  })
+    } catch (error) {
+      if (isFirefoxMobile) {
+        console.warn('Firefox mobile - tabActivationHandler error:', error)
+      }
+    }
+  }
 
-  // 8. Listen for context menu clicks
-  browser.contextMenus.onClicked.addListener(async (info, tab) => {
+  // Command handler function
+  async function commandHandler(command) {
+    const tabs = await browser.tabs.query({ active: true, currentWindow: true })
+    const activeTab = tabs[0]
+
+    if (!activeTab || !activeTab.id || !activeTab.url) {
+      return
+    }
+
+    if (command === 'summarize-current-page') {
+      const isYouTube = YOUTUBE_REGEX.test(activeTab.url)
+      const isUdemy = UDEMY_REGEX.test(activeTab.url)
+      const isCoursera = COURSERA_REGEX.test(activeTab.url)
+
+      const summarizePageInfo = {
+        action: 'summarizeCurrentPage',
+        tabId: activeTab.id,
+        tabUrl: activeTab.url,
+        tabTitle: activeTab.title,
+        isYouTube: isYouTube,
+        isUdemy: isUdemy,
+        isCoursera: isCoursera,
+      }
+      await sendMessageToSidePanel(summarizePageInfo)
+
+      // Đảm bảo side panel mở để hiển thị kết quả tóm tắt
+      if (import.meta.env.BROWSER === 'chrome') {
+        try {
+          await chrome.sidePanel.open({ windowId: activeTab.windowId })
+        } catch (error) {}
+      } else if (import.meta.env.BROWSER === 'firefox') {
+        try {
+          await browser.sidebarAction.open()
+        } catch (error) {}
+      }
+    } else if (command === 'open-prompt-page') {
+      if (import.meta.env.BROWSER === 'chrome') {
+        try {
+          await chrome.tabs.create({
+            url: chrome.runtime.getURL('prompt.html'),
+          })
+        } catch (error) {}
+      } else if (import.meta.env.BROWSER === 'firefox') {
+        try {
+          await browser.tabs.create({
+            url: browser.runtime.getURL('prompt.html'),
+          })
+        } catch (error) {}
+      }
+    } else if (command === 'open-archive-panel') {
+      if (import.meta.env.BROWSER === 'chrome') {
+        try {
+          await chrome.tabs.create({
+            url: chrome.runtime.getURL('archive.html'),
+          })
+        } catch (error) {}
+      } else if (import.meta.env.BROWSER === 'firefox') {
+        try {
+          await browser.tabs.create({
+            url: browser.runtime.getURL('archive.html'),
+          })
+        } catch (error) {}
+      }
+    }
+  }
+
+  // Context menu handler function
+  async function contextMenuHandler(info, tab) {
     if (info.menuItemId === 'summarizeSelectedText' && info.selectionText) {
       const selectedText = info.selectionText
 
@@ -704,5 +658,180 @@ export default defineBackground(() => {
         }
       }
     }
-  })
+  }
+
+  // Connection handler function with enhanced reconnection logic
+  function connectionHandler(port) {
+    if (port.name === 'side-panel') {
+      sidePanelPort = port
+
+      // Gửi thông tin tab hiện tại ngay lập tức khi side panel kết nối
+      ;(async () => {
+        try {
+          const tabs = await browser.tabs.query({
+            active: true,
+            currentWindow: true,
+          })
+          const activeTab = tabs[0]
+          const isYouTube = YOUTUBE_REGEX.test(activeTab?.url)
+          const isUdemy = UDEMY_REGEX.test(activeTab?.url)
+          const isCoursera = COURSERA_REGEX.test(activeTab?.url)
+
+          const currentTabInfo = activeTab
+            ? {
+                action: 'currentTabInfo',
+                tabId: activeTab.id,
+                tabUrl: activeTab.url,
+                tabTitle: activeTab.title,
+                isYouTube: isYouTube,
+                isUdemy: isUdemy,
+                isCoursera: isCoursera,
+              }
+            : {
+                action: 'currentTabInfo',
+                error: 'No active tab found.',
+              }
+          sidePanelPort.postMessage(currentTabInfo)
+        } catch (error) {
+          if (isFirefoxMobile) {
+            console.warn('Firefox mobile - connectionHandler error:', error)
+          }
+        }
+      })()
+
+      if (pendingSelectedText) {
+        try {
+          sidePanelPort.postMessage({
+            action: 'summarizeSelectedText',
+            selectedText: pendingSelectedText,
+          })
+          pendingSelectedText = null
+        } catch (error) {
+          // Đặt lại pendingSelectedText để tránh lặp lại
+          pendingSelectedText = null
+        }
+      }
+
+      // Enhanced disconnect handling with reconnection attempt
+      sidePanelPort.onDisconnect.addListener(() => {
+        sidePanelPort = null
+        // On Firefox mobile, attempt reconnection after delay
+        if (isFirefoxMobile) {
+          setTimeout(async () => {
+            try {
+              await attemptSidePanelReconnection()
+            } catch (error) {
+              console.warn('Firefox mobile - reconnection failed:', error)
+            }
+          }, 2000)
+        }
+      })
+    }
+  }
+
+  // Install/Update handler function
+  async function installUpdateHandler(details) {
+    if (details.reason === 'install' || details.reason === 'update') {
+      // Tạo context menu
+      try {
+        if (browser.contextMenus) {
+          browser.contextMenus.create({
+            id: 'summarizeSelectedText',
+            title: 'Summarize selected text',
+            type: 'normal',
+            contexts: ['selection'],
+          })
+        }
+      } catch (error) {}
+
+      try {
+        const youtubeTabs = await browser.tabs.query({
+          url: YOUTUBE_URL_PATTERN_STRING,
+        })
+        for (const tab of youtubeTabs) {
+          if (tab.id && tab.status === 'complete') {
+            await injectContentScriptIntoTab(
+              tab.id,
+              YOUTUBE_CONTENT_SCRIPT_PATH
+            )
+          }
+        }
+
+        const udemyTabs = await browser.tabs.query({
+          url: UDEMY_URL_PATTERN_STRING,
+        })
+        for (const tab of udemyTabs) {
+          if (tab.id && tab.status === 'complete') {
+            await injectContentScriptIntoTab(tab.id, UDEMY_CONTENT_SCRIPT_PATH)
+          }
+        }
+
+        const courseraTabs = await browser.tabs.query({
+          url: COURSERA_URL_PATTERN_STRING,
+        })
+        for (const tab of courseraTabs) {
+          if (tab.id && tab.status === 'complete') {
+            await injectContentScriptIntoTab(
+              tab.id,
+              COURSERA_CONTENT_SCRIPT_PATH
+            )
+          }
+        }
+      } catch (error) {}
+    }
+  }
+
+  // Firefox browser action handler
+  function firefoxBrowserActionHandler() {
+    browser.sidebarAction.toggle()
+  }
+
+  // Main action click handler
+  async function actionClickHandler(tab) {
+    if (!tab.id || !tab.url) return
+
+    // Kiểm tra xem sidepanel/sidebar có được hỗ trợ không
+    const sidePanelSupported = await isSidePanelSupported()
+
+    if (!sidePanelSupported) {
+      // Fallback: Mở trang settings trong tab mới khi không hỗ trợ sidepanel
+      const url = browser.runtime.getURL('settings.html')
+      await browser.tabs.create({ url, active: true })
+      return
+    }
+
+    // Logic hiện tại khi sidepanel được hỗ trợ
+    const isYouTube = YOUTUBE_REGEX.test(tab.url)
+    const isUdemy = UDEMY_REGEX.test(tab.url)
+    const isCoursera = COURSERA_REGEX.test(tab.url)
+
+    const currentTabInfo = {
+      action: 'currentTabInfo',
+      tabId: tab.id,
+      tabUrl: tab.url,
+      tabTitle: tab.title,
+      isYouTube: isYouTube,
+      isUdemy: isUdemy,
+      isCoursera: isCoursera,
+    }
+
+    await sendMessageToSidePanel(currentTabInfo)
+
+    if (isYouTube) {
+      await injectContentScriptIntoTab(tab.id, YOUTUBE_CONTENT_SCRIPT_PATH)
+    } else if (isUdemy) {
+      await injectContentScriptIntoTab(tab.id, UDEMY_CONTENT_SCRIPT_PATH)
+    } else if (isCoursera) {
+      await injectContentScriptIntoTab(tab.id, COURSERA_CONTENT_SCRIPT_PATH)
+    }
+  }
+
+  // ===== INITIALIZATION LOGIC =====
+
+  // Logic khởi tạo cho Chrome
+  if (import.meta.env.BROWSER === 'chrome') {
+    chrome.sidePanel
+      .setPanelBehavior({ openPanelOnActionClick: true })
+      .catch((error) => {})
+  }
 })

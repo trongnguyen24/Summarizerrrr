@@ -25,7 +25,7 @@
   })
 </script>
 
-<div class="flex parent h-screen bg-background">
+<div class="flex parent h-dvh bg-background">
   <span class=" bg-border/70 top"></span>
   <span class=" bg-border/70 bottom"></span>
   <span class="bg-border/70 left"></span>

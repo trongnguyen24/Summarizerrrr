@@ -23,7 +23,7 @@
 <div class="setting-block flex pb-6 pt-5 px-5 flex-col space-y-6">
   <!-- Logo và tên -->
   <div class="flex gap-6 flex-col sm:flex-row items-center">
-    <div class="w-52 shrink-0 p-4"><Logo /></div>
+    <div class="w-52 relative shrink-0 p-4"><Logo /></div>
     <div>
       <h2 class="text-lg font-bold text-primary">Summarizerrrr</h2>
 

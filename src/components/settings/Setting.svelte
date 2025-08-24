@@ -97,13 +97,13 @@
   class="relative settings font-mono text-text-primary dark:text-text-secondary text-xs bg-surface-1 overflow-hidden w-full flex-shrink-0 flex flex-col"
 >
   <div
-    class="px-4 bg-surface-1 dark:bg-surface-2 py-2 border-b-0 border-border"
+    class="px-4 sm:order-1 bg-surface-1 dark:bg-surface-2 py-2 border-b-0 border-border"
   >
     <p class="!text-center">{$t('settings.title')}</p>
   </div>
 
   <div
-    class="flex bg-background items-center text-[0.65rem] justify-center p-3 gap-2"
+    class="flex order-4 sm:order-2 bg-background items-center text-[0.65rem] justify-center p-3 gap-2"
     bind:this={tabContainerEl}
   >
     <button
@@ -201,7 +201,7 @@
     </button>
   </div>
   <div
-    class="top-stripes relative bg-background flex items-center h-2 border border-border border-l-0 border-r-0"
+    class="top-stripes order-3 relative bg-background flex items-center h-2 border border-border border-l-0 border-r-0"
   >
     <div
       id="activebar"
@@ -219,7 +219,7 @@
   </div>
   <div
     id="setting-scroll"
-    class="sm:h-[calc(100vh-9.5rem)] h-[calc(100vh-6.35rem)] overflow-y-auto"
+    class="sm:h-[calc(100dvh-9.5rem)] order-2 sm:order-4 h-[calc(100dvh-6.35rem)] overflow-y-auto"
   >
     <div>
       {#if activeTab === 'ai-model'}

@@ -1,5 +1,6 @@
 <script>
   import { animate, stagger } from 'animejs'
+  import Field from './Field.svelte'
 
   $effect(() => {
     animate('.in', {
@@ -7,11 +8,19 @@
       scale: [0.8, 1],
       rotate: [-15, 0],
       delay: stagger(150),
-    })
+    }),
+      animate('.field-in', {
+        opacity: [0, 1],
+        delay: 900,
+      })
   })
 </script>
 
-<svg viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
+<svg
+  class=" relative z-10"
+  viewBox="0 0 256 256"
+  xmlns="http://www.w3.org/2000/svg"
+>
   <g clip-path="url(#clip0_220_253)">
     <path
       class="stroke-border in"
@@ -29,13 +38,7 @@
       stroke-width="1"
       vector-effect="non-scaling-stroke"
     />
-    <circle
-      class="stroke-primary in"
-      cx="128"
-      cy="128"
-      r="106.167"
-      fill="none"
-    />
+
     <circle
       class="stroke-border in"
       cx="128"
@@ -45,11 +48,18 @@
       stroke-width="1"
       vector-effect="non-scaling-stroke"
     />
+    <circle
+      class="stroke-primary in"
+      cx="128"
+      cy="128"
+      r="106.167"
+      fill="none"
+    />
     <path
-      class="stroke-blue text-blue-50 dark:text-sky-800/80 stroke-blue-300 dark:stroke-sky-700 in"
+      class="stroke-blue text-surface-1 stroke-blue-300 dark:stroke-sky-700 in"
       d="M128 192L132.42 174.336C134.952 164.206 140.189 154.955 147.572 147.572C154.955 140.189 164.206 134.952 174.336 132.42L192 128L174.336 123.58C164.206 121.048 154.955 115.811 147.572 108.428C140.189 101.045 134.952 91.7937 132.42 81.664L128 64L123.58 81.664C121.05 91.7916 115.815 101.041 108.435 108.424C101.055 115.807 91.8076 121.045 81.6811 123.58L64 128L81.6811 132.42C91.8076 134.955 101.055 140.193 108.435 147.576C115.815 154.959 121.05 164.208 123.58 174.336L128 192Z"
       stroke="#949494"
-      fill="none"
+      fill="currentColor"
       stroke-linecap="round"
       stroke-linejoin="round"
       stroke-width="1"
@@ -62,6 +72,12 @@
     </clipPath>
   </defs>
 </svg>
+
+<div
+  class=" absolute inset-8 blur-md z-20 overflow-hidden rounded-full field-in"
+>
+  <div class="chip__filter"></div>
+</div>
 
 <style>
   .stroke-border {
@@ -78,5 +94,71 @@
   }
   .stroke-blue {
     transform-origin: center;
+  }
+
+  .chip__filter {
+    position: absolute; /* Or other positioning if needed */
+
+    z-index: 20;
+    border-radius: 100px;
+  }
+
+  /* Styles for the ::before pseudo-element */
+  .chip__filter::before {
+    content: '';
+    display: block;
+    position: absolute;
+    filter: blur(60px);
+    border-radius: 100px;
+    mix-blend-mode: color-dodge;
+    width: 8.5rem;
+    top: 0;
+    aspect-ratio: 1;
+    transform-origin: center;
+    background: linear-gradient(-45deg, #3f312100 20%, #ffa856, #3f342100 80%)
+      200%;
+
+    mix-blend-mode: color-dodge;
+    animation: shimmer-1 5s linear infinite;
+  }
+
+  /* Styles for the ::after pseudo-element */
+  .chip__filter::after {
+    content: '';
+    display: block;
+    position: absolute;
+    width: 8.5rem;
+    aspect-ratio: 1;
+    mix-blend-mode: color-dodge;
+    transform-origin: center;
+    background: linear-gradient(45deg, #3f312100 40%, #ffbb67, #3f342100 55%)
+      300%;
+    filter: blur(60px);
+    border-radius: 100px;
+    mix-blend-mode: color-dodge;
+    animation: shimmer-2 4s linear infinite;
+  }
+
+  @keyframes shimmer-1 {
+    0% {
+      transform: translateX(-100%) translateY(-100%) scale(0.2);
+    }
+    50% {
+      transform: translateX(0) translateY(0) scale(0.75);
+    }
+    100% {
+      transform: translateX(100%) translateY(100%) scale(0.2);
+    }
+  }
+  @keyframes shimmer-2 {
+    0% {
+      transform: translateX(-100%) translateY(100%) scale(0.1);
+    }
+    50% {
+      transform: translateX(0) translateY(0) scale(0.8);
+    }
+    100% {
+      transform: translateX(100%) translateY(-100%) scale(0.2);
+    }
   }
 </style>

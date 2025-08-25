@@ -2,7 +2,7 @@
   // @ts-nocheck
   import { onMount, onDestroy } from 'svelte'
   import Icon from '@iconify/svelte'
-  import { animate } from 'animejs'
+  import { animate, stagger } from 'animejs'
   import SummarizeButton from '@/components/buttons/SummarizeButton.svelte'
   import { useNavigationManager } from '../composables/useNavigationManager.svelte.js'
   import { useSummarization } from '../composables/useSummarization.svelte.js'
@@ -34,18 +34,48 @@
     if (!drawerContainer) return
     drawerContainer.classList.remove('pointer-events-none')
     lockBodyScroll() // Lock body scroll when opening
-    requestAnimationFrame(() => {
-      drawerBackdrop.style.opacity = settings.mobileSheetBackdropOpacity
-        ? '1'
-        : '0'
-      drawerPanel.style.transform = 'translateY(0)'
+
+    // Backdrop fade in
+    animate(drawerBackdrop, {
+      opacity: settings.mobileSheetBackdropOpacity ? 1 : 0,
+      duration: 300,
+      ease: 'outCubic',
     })
+
+    // Panel slide up with elastic effect
+    animate(drawerPanel, {
+      translateY: '0%',
+      duration: 600,
+      ease: 'outExpo',
+    })
+
+    // Content fade in with stagger
   }
 
   function closeDrawer() {
     if (!drawerContainer) return
     unlockBodyScroll() // Unlock body scroll when closing
-    onclose?.()
+
+    // Panel slide down
+    const panelAnimation = animate(drawerPanel, {
+      translateY: 'calc(100% + 10vh)',
+      duration: 450,
+      ease: 'inQuart',
+    })
+
+    // Backdrop fade out (overlapping)
+    animate(drawerBackdrop, {
+      opacity: settings.mobileSheetBackdropOpacity ? 0 : 0,
+      duration: 250,
+      ease: 'inCubic',
+      delay: 50,
+    })
+
+    // Complete callback
+    panelAnimation.then(() => {
+      drawerContainer.classList.add('pointer-events-none')
+      onclose?.()
+    })
   }
 
   $effect(() => {
@@ -56,12 +86,7 @@
         // Unlock scroll immediately when starting to close
         unlockBodyScroll()
         // Run closing animation
-        drawerBackdrop.style.opacity = '0'
-        drawerPanel.style.transform = 'translateY(calc(100% + 10vh))'
-        // Defer making it non-interactive to allow animation to finish
-        setTimeout(() => {
-          drawerContainer.classList.add('pointer-events-none')
-        }, 400) // Match transition duration
+        closeDrawer()
       }
     }
   })
@@ -117,6 +142,8 @@
       // e.preventDefault()
       isDragging = true
       startY = e.pageY || e.touches[0].pageY
+
+      // Remove any existing transitions for real-time drag
       drawerPanel.style.transition = 'none'
       drawerBackdrop.style.transition = 'none'
     } else {
@@ -138,11 +165,15 @@
 
     if (!animationFrameId) {
       animationFrameId = requestAnimationFrame(() => {
+        // Update panel position directly for real-time response
         drawerPanel.style.transform = `translateY(${currentTranslateY}px)`
+
+        // Update backdrop opacity
         const panelHeight = drawerPanel.offsetHeight
         const maxOpacity = settings.mobileSheetBackdropOpacity ? 1 : 0
         const opacity = maxOpacity - (currentTranslateY / panelHeight) * 0.8
         drawerBackdrop.style.opacity = Math.max(0, opacity).toString()
+
         animationFrameId = null
       })
     }
@@ -152,22 +183,53 @@
     if (!isDragging) return
     isDragging = false
 
-    if (animationFrameId) {
-      cancelAnimationFrame(animationFrameId)
-      animationFrameId = null
-    }
-
+    // Restore transitions for animations
     drawerPanel.style.transition = ''
     drawerBackdrop.style.transition = ''
 
     const panelHeight = drawerPanel.offsetHeight
     if (currentTranslateY > panelHeight / 4) {
-      closeDrawer()
+      // Tạo animation mượt mà từ vị trí hiện tại thay vì gọi closeDrawer()
+      unlockBodyScroll()
+
+      // Tính toán vị trí đóng chính xác bằng pixel thay vì calc()
+      // 100% = panelHeight, 10vh = window.innerHeight * 0.1
+      const closePosition = panelHeight + window.innerHeight * 0.1
+
+      // Animation panel từ vị trí hiện tại xuống vị trí đóng
+      const panelAnimation = animate(drawerPanel, {
+        translateY: `${closePosition}px`,
+        duration: 200,
+        ease: 'linear',
+      })
+
+      // Animation backdrop fade out
+      animate(drawerBackdrop, {
+        opacity: 0,
+        duration: 250,
+        ease: 'inCubic',
+        delay: 50,
+      })
+
+      // Cleanup callback
+      panelAnimation.then(() => {
+        drawerContainer.classList.add('pointer-events-none')
+        onclose?.()
+      })
     } else {
-      drawerBackdrop.style.opacity = settings.mobileSheetBackdropOpacity
-        ? '1'
-        : '0'
-      drawerPanel.style.transform = 'translateY(0)'
+      // Snap back to open position with elastic effect
+      animate(drawerPanel, {
+        translateY: '0%',
+        duration: 400,
+        ease: 'outBack(1.25)',
+      })
+
+      // Restore backdrop opacity
+      animate(drawerBackdrop, {
+        opacity: settings.mobileSheetBackdropOpacity ? 1 : 0,
+        duration: 250,
+        ease: 'outCubic',
+      })
     }
   }
 
@@ -298,9 +360,7 @@
   /* Custom transition for drawer and backdrop */
   .drawer-panel,
   .drawer-backdrop {
-    transition:
-      transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-      opacity 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    /* Transitions are now handled by Anime.js */
   }
 
   /* Ngăn chặn touch actions mặc định trên drag handle */

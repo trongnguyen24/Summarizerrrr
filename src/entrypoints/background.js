@@ -61,6 +61,17 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
 })
 
 browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  // Handle synchronous messages first
+  if (message.type === 'OPEN_SETTINGS') {
+    const url = browser.runtime.getURL('settings.html')
+    browser.tabs.create({ url, active: true })
+    // This is a fire-and-forget message, no response needed.
+    return true
+  }
+  return true
+})
+
+browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === 'SAVE_TO_HISTORY') {
     ;(async () => {
       try {
@@ -96,17 +107,6 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
     })()
     return true // Indicate async response
   }
-})
-
-browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  // Handle synchronous messages first
-  if (message.type === 'OPEN_SETTINGS') {
-    const url = browser.runtime.getURL('settings.html')
-    browser.tabs.create({ url, active: true })
-    // This is a fire-and-forget message, no response needed.
-    return true
-  }
-  return true
 })
 
 export default defineBackground(() => {

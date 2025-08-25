@@ -352,7 +352,7 @@
     color: var(--color-text-primary);
     border-left: 1px solid var(--color-border);
     border-right: 1px solid var(--color-border);
-    transition: transform 0.4s ease-out;
+    transition: transform 0.4s cubic-bezier(0.71, 0.71, 0.25, 1);
     box-sizing: border-box;
   }
 

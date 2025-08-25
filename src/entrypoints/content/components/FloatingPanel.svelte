@@ -278,9 +278,9 @@
     </div>
     <button
       onclick={() => onclose?.()}
-      class="close-button absolute cursor-pointer z-10 top-0 size-8 right-3 text-error flex justify-center items-center"
+      class="close-button absolute text-muted hover:text-text-primary transition-colors duration-200 cursor-pointer z-10 h-8 top-0 right-0 left-0 flex justify-center items-center"
       aria-label="Close"
-      ><Icon icon="heroicons:x-mark-20-solid" width="24" height="24" /></button
+      ><Icon icon="heroicons:arrow-long-right" width="24" height="24" /></button
     >
     <div class="w-full h-full py-8 overflow-y-auto">
       <div class="grid grid-rows-[10px_180px_10px_1fr] relative">
@@ -379,7 +379,7 @@
     position: absolute;
     top: 0;
     bottom: 0;
-    width: 1em;
+    width: 0.5em;
     cursor: col-resize;
     flex-shrink: 0;
     z-index: 10000;

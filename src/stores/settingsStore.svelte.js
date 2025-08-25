@@ -7,7 +7,7 @@ const DEFAULT_SETTINGS = {
   // General
   selectedProvider: 'gemini',
   floatButton: 200,
-  floatButtonLeft: true,
+  floatButtonLeft: false,
   showFloatingButton: true,
   floatingPanelLeft: false, // Default to right side
   geminiApiKey: 'AIzaSyA6I0DGp3XgSoGDZqergz9JAryupj-0JOI',

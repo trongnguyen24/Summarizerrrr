@@ -168,7 +168,54 @@ button {
 .os-scrollbar-hidden {
   opacity: 0;
 }
+div {
+  &::-webkit-scrollbar {
+    height: 6px; /* Chiều cao của thanh cuộn ngang */
+  }
 
+  &::-webkit-scrollbar-track {
+    background: var(--color-background); /* Nền track trong suốt */
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: oklch(0.77 0.003 106.6 / 60%); /* Màu handle */
+    border-radius: 10px; /* Bo tròn góc handle */
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-text-secondary); /* Màu handle khi hover */
+  }
+
+  &::-webkit-scrollbar-thumb:active {
+    background-color: var(--color-text-primary); /* Màu handle khi active */
+  }
+
+  /* Style cho thanh cuộn dọc (nếu có) */
+  &::-webkit-scrollbar-vertical {
+    width: 6px; /* Chiều rộng của thanh cuộn dọc */
+  }
+
+  &::-webkit-scrollbar-track-vertical {
+    background: transparent; /* Nền track trong suốt */
+  }
+
+  &::-webkit-scrollbar-thumb-vertical {
+    background-color: oklch(0.77 0.003 106.6 / 60%); /* Màu handle */
+    border-radius: 10px; /* Bo tròn góc handle */
+  }
+
+  &::-webkit-scrollbar-thumb-vertical:hover {
+    background-color: var(--color-text-secondary); /* Màu handle khi hover */
+  }
+
+  &::-webkit-scrollbar-thumb-vertical:active {
+    background-color: var(--color-text-primary); /* Màu handle khi active */
+  }
+
+  /* Firefox scrollbar styles */
+  scrollbar-width: thin; /* "auto" or "thin" */
+  scrollbar-color: oklch(0.77 0.003 106.6 / 60%) oklch(0.77 0.003 106.6 / 10%); /* thumb and track color */
+}
 .os-scrollbar-track {
   position: relative;
   padding: var(--os-padding-perpendicular, 0) var(--os-padding-axis, 0);

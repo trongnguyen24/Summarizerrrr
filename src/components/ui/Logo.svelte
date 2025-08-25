@@ -26,7 +26,7 @@
       class="stroke-border in"
       d="M128 0.5C158.184 0.5 180.772 0.501242 198.159 2.83887C215.532 5.17458 227.637 9.83451 236.901 19.0986C246.165 28.3628 250.825 40.4684 253.161 57.8408C255.499 75.2279 255.5 97.816 255.5 128C255.5 158.184 255.499 180.772 253.161 198.159C250.825 215.532 246.165 227.637 236.901 236.901C227.637 246.165 215.532 250.825 198.159 253.161C180.772 255.499 158.184 255.5 128 255.5C97.816 255.5 75.2279 255.499 57.8408 253.161C40.4684 250.825 28.3628 246.165 19.0986 236.901C9.83451 227.637 5.17458 215.532 2.83887 198.159C0.501242 180.772 0.5 158.184 0.5 128C0.5 97.816 0.501242 75.2279 2.83887 57.8408C5.17458 40.4684 9.83451 28.3628 19.0986 19.0986C28.3628 9.83451 40.4684 5.17458 57.8408 2.83887C75.2279 0.501242 97.816 0.5 128 0.5Z"
       fill="none"
-      stroke-width="1"
+      stroke-width="1.5"
       vector-effect="non-scaling-stroke"
     />
     <circle
@@ -35,7 +35,7 @@
       cy="128"
       r="111.5"
       fill="none"
-      stroke-width="1"
+      stroke-width="1.5"
       vector-effect="non-scaling-stroke"
     />
 
@@ -45,7 +45,7 @@
       cy="138.667"
       r="95.5"
       fill="none"
-      stroke-width="1"
+      stroke-width="1.5"
       vector-effect="non-scaling-stroke"
     />
     <circle
@@ -53,6 +53,7 @@
       cx="128"
       cy="128"
       r="106.167"
+      stroke-width="1.5"
       fill="none"
     />
     <path
@@ -62,7 +63,7 @@
       fill="currentColor"
       stroke-linecap="round"
       stroke-linejoin="round"
-      stroke-width="1"
+      stroke-width="1.5"
       vector-effect="non-scaling-stroke"
     />
   </g>
@@ -117,7 +118,6 @@
     transform-origin: center;
     background: linear-gradient(-45deg, #3f312100 20%, #ffa856, #3f342100 80%)
       200%;
-
     mix-blend-mode: color-dodge;
     animation: shimmer-1 5s linear forwards;
   }

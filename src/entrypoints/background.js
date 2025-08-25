@@ -132,6 +132,17 @@ export default defineBackground(() => {
   // 1. Runtime message listeners
   browser.runtime.onMessage.addListener(messageHandler)
 
+  // 9. Add listener for startup context menu verification (Firefox specific)
+  if (import.meta.env.BROWSER === 'firefox') {
+    // Firefox may lose context menus on restart, so we verify and recreate if needed
+    browser.runtime.onStartup &&
+      browser.runtime.onStartup.addListener(() => {
+        setupContextMenus().catch((error) => {
+          console.warn('Firefox startup context menu setup failed:', error)
+        })
+      })
+  }
+
   // 2. Tab event listeners
   browser.tabs.onUpdated.addListener(tabUpdateHandler)
   browser.tabs.onActivated.addListener(tabActivationHandler)
@@ -172,6 +183,41 @@ export default defineBackground(() => {
 
   // ===== HELPER FUNCTIONS =====
 
+  // Helper function để setup context menus
+  async function setupContextMenus() {
+    try {
+      // Xóa context menu hiện có nếu có
+      if (browser.contextMenus) {
+        // Firefox requires removing all menus before creating new ones
+        if (import.meta.env.BROWSER === 'firefox') {
+          try {
+            await browser.contextMenus.removeAll()
+          } catch (error) {
+            // Ignore errors if no menus exist
+          }
+        }
+
+        // Tạo context menu item
+        browser.contextMenus.create({
+          id: 'summarizeSelectedText',
+          title: 'Summarize selected text',
+          type: 'normal',
+          contexts: ['selection'],
+        })
+      }
+    } catch (error) {
+      console.warn('Failed to setup context menus:', error)
+      // On Firefox mobile, retry after a delay
+      if (isFirefoxMobile) {
+        setTimeout(() => {
+          setupContextMenus().catch((err) =>
+            console.warn('Retry setupContextMenus failed:', err)
+          )
+        }, 3000)
+      }
+    }
+  }
+
   // Helper function để kiểm tra sidepanel/sidebar support
   async function isSidePanelSupported() {
     // Mobile browsers generally don't support side panels/sidebars
@@ -205,6 +251,11 @@ export default defineBackground(() => {
   // Tải cài đặt và đăng ký lắng nghe thay đổi khi background script khởi động
   loadSettings()
   subscribeToSettingsChanges()
+
+  // Setup context menus khi background script khởi động
+  setupContextMenus().catch((error) => {
+    console.warn('Initial setupContextMenus failed:', error)
+  })
 
   const YOUTUBE_URL_PATTERN_STRING = '*://*.youtube.com/watch*'
   const UDEMY_URL_PATTERN_STRING = '*://*.udemy.com/course/*/learn/*'
@@ -732,17 +783,8 @@ export default defineBackground(() => {
   // Install/Update handler function
   async function installUpdateHandler(details) {
     if (details.reason === 'install' || details.reason === 'update') {
-      // Tạo context menu
-      try {
-        if (browser.contextMenus) {
-          browser.contextMenus.create({
-            id: 'summarizeSelectedText',
-            title: 'Summarize selected text',
-            type: 'normal',
-            contexts: ['selection'],
-          })
-        }
-      } catch (error) {}
+      // Setup context menu
+      await setupContextMenus()
 
       try {
         const youtubeTabs = await browser.tabs.query({

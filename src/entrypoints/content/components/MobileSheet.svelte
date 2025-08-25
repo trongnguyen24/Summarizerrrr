@@ -2,6 +2,7 @@
   // @ts-nocheck
   import { onMount, onDestroy } from 'svelte'
   import Icon from '@iconify/svelte'
+  import { animate } from 'animejs'
   import SummarizeButton from '@/components/buttons/SummarizeButton.svelte'
   import { useNavigationManager } from '../composables/useNavigationManager.svelte.js'
   import { useSummarization } from '../composables/useSummarization.svelte.js'

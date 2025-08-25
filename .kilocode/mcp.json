@@ -18,7 +18,8 @@
         "write_memory",
         "search_for_pattern",
         "think_about_collected_information",
-        "find_symbol"
+        "find_symbol",
+        "find_referencing_symbols"
       ]
     },
     "context7": {

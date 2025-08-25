@@ -164,6 +164,8 @@
           <DownloadButton
             content={currentSummary.content}
             title={selectedSummary.title}
+            sourceUrl={selectedSummary.url}
+            sourceTitle={selectedSummary.title}
           />
         {/if}
 

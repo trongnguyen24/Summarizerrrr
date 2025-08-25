@@ -20,7 +20,7 @@
 </script>
 
 <!-- About Section -->
-<div class=" text-pretty flex pb-6 pt-5 px-5 flex-col space-y-6">
+<div class=" text-pretty flex pb-12 pt-5 px-5 flex-col space-y-6">
   <!-- Logo và tên -->
   <div class="flex gap-2 sm:gap-6 flex-col sm:flex-row items-center">
     <div class="w-52 relative shrink-0 p-4"><Logo /></div>

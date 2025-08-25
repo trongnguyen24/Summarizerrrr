@@ -131,7 +131,7 @@
     </Preview>
     <div class="flex-auto">
       <!-- Mobile Sheet Height Section -->
-      <div class="flex flex-col gap-2 px-5 pb-4">
+      <div class="flex flex-col gap-2 pb-4">
         <!-- svelte-ignore a11y_label_has_associated_control -->
         <label class="text-text-secondary flex justify-between items-center">
           <span>Sheet Height</span>
@@ -152,7 +152,7 @@
       </div>
 
       <!-- Mobile Sheet Backdrop Opacity Section -->
-      <div class="flex flex-col gap-2 px-5 pb-4">
+      <div class="flex flex-col gap-2 pb-4">
         <!-- svelte-ignore a11y_label_has_associated_control -->
         <label class="block text-text-secondary">Sheet Black Backdrop</label>
         <div class="grid w-full grid-cols-2 gap-1">
@@ -187,7 +187,7 @@
       Resizable floating panel that can be positioned and adjusted to fit
     </p>
   </div>
-  <div class="px-5 py-4 flex flex-col sm:flex-row gap-4">
+  <div class=" py-4 flex flex-col sm:flex-row gap-4 px-5">
     <Preview title="Preview" class=" w-full sm:w-60 h-40 shrink-0 mx-auto">
       <div
         class="top-0 z-30 border border-surface-2 absolute bottom-0 bg-surface-1 flex justify-center
@@ -205,7 +205,7 @@
     </Preview>
     <div class="flex-auto">
       <!-- Float Sidepanel Width Section -->
-      <div class="flex flex-col gap-2 px-5 pb-4">
+      <div class="flex flex-col gap-2 pb-4">
         <!-- svelte-ignore a11y_label_has_associated_control -->
         <label class="text-text-secondary flex justify-between items-center">
           <span>Panel Default Width</span>

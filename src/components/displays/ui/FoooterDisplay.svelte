@@ -3,6 +3,7 @@
   import SaveToArchiveButton from '@/components/buttons/SaveToArchiveButton.svelte'
   import CopyButton from '@/components/buttons/CopyButton.svelte'
   import DownloadButton from '@/components/buttons/DownloadButton.svelte'
+  import { summaryState } from '@/stores/summaryStore.svelte'
 
   let { summaryContent, summaryTitle, targetId } = $props()
 </script>
@@ -21,7 +22,12 @@
   <span class="h-px w-20 bg-border/70"></span>
   <SaveToArchiveButton />
   <CopyButton {targetId} />
-  <DownloadButton content={summaryContent} title={summaryTitle} />
+  <DownloadButton
+    content={summaryContent}
+    title={summaryTitle}
+    sourceUrl={summaryState.pageUrl}
+    sourceTitle={summaryState.pageTitle}
+  />
   <span class="h-px w-20 bg-border/70"></span>
   <div class="absolute right-0">
     <svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" fill="none"

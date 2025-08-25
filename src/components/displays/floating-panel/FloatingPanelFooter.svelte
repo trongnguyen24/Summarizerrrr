@@ -22,7 +22,12 @@
   <span class="h-px w-20 bg-border/70"></span>
   <SaveToArchiveButtonFP {localSummaryState} {onSave} />
   <CopyButtonFP {targetId} />
-  <DownloadButtonFP content={summaryContent} title={summaryTitle} />
+  <DownloadButtonFP
+    content={summaryContent}
+    title={summaryTitle}
+    sourceUrl={localSummaryState.pageUrl}
+    sourceTitle={localSummaryState.pageTitle}
+  />
   <span class="h-px w-20 bg-border/70"></span>
   <div class="absolute right-0">
     <svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" fill="none"

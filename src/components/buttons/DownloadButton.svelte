@@ -5,7 +5,12 @@
   import { slideScaleFade } from '../../lib/ui/slideScaleFade.js'
   import ShadowTooltip from '../../lib/components/ShadowTooltip.svelte'
 
-  let { content, title = 'summary' } = $props()
+  let {
+    content,
+    title = 'summary',
+    sourceUrl = null,
+    sourceTitle = null,
+  } = $props()
   let isDownloaded = $state(false)
 
   async function downloadAsMarkdown() {
@@ -14,6 +19,16 @@
       // Optionally, display an error message to the user
       return
     }
+
+    // Create metadata section if sourceUrl is provided
+    let metadataSection = ''
+    if (sourceUrl) {
+      const displayTitle = sourceTitle || title || 'Page'
+      metadataSection = `**Source**: [${displayTitle}](${sourceUrl})\n\n---\n\n`
+    }
+
+    // Combine metadata and content
+    const contentWithMetadata = metadataSection + content
 
     // Sanitize title to create a readable filename
     const sanitizedTitle = title
@@ -28,7 +43,7 @@
     try {
       // Check if File System Access API is supported
       if ('showSaveFilePicker' in window) {
-        const blob = new Blob([content], {
+        const blob = new Blob([contentWithMetadata], {
           type: 'text/markdown;charset=utf-8',
         })
 
@@ -50,7 +65,7 @@
         await writable.close()
       } else {
         // Fallback for browsers that don't support File System Access API
-        const blob = new Blob([content], {
+        const blob = new Blob([contentWithMetadata], {
           type: 'text/markdown;charset=utf-8',
         })
         const url = URL.createObjectURL(blob)

@@ -2,6 +2,12 @@
 
 :root {
   font-size: 16px;
+
+  /* Welcome flow variables */
+  --success-bg: #f0fdf4;
+  --success-text: #166534;
+  --error-bg: #fef2f2;
+  --error-text: #991b1b;
 }
 
 /* Font Classes moved to base */
@@ -384,4 +390,35 @@ textarea::-webkit-scrollbar-thumb:hover {
   100% {
     transform: translateX(100%) translateY(-100%) scale(0.2);
   }
+}
+
+/* Welcome flow animations */
+@keyframes slideInFromRight {
+  0% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideInFromLeft {
+  0% {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.slide-in-right {
+  animation: slideInFromRight 0.3s ease-out forwards;
+}
+
+.slide-in-left {
+  animation: slideInFromLeft 0.3s ease-out forwards;
 }

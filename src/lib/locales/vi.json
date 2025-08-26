@@ -287,5 +287,16 @@
         "Báo cáo sự cố này cho nhà phát triển."
       ]
     }
+  },
+  "welcome": {
+    "choose_interface_language": "Chào mừng đến với Summarizer!",
+    "select_your_language": "Chọn ngôn ngữ giao diện của bạn",
+    "next": "Tiếp theo",
+    "next": "Tiếp theo",
+    "back": "Quay lại",
+    "configure_api_keys": "Vui lòng cấu hình API keys trong cài đặt trước",
+    "api_setup_guide": "Bạn cần thiết lập API key của nhà cung cấp AI để bắt đầu sử dụng Summarizer.",
+    "go_to_settings": "Đi tới Cài đặt",
+    "setup_guide_link": "📺 Hướng dẫn lấy API key"
   }
 }

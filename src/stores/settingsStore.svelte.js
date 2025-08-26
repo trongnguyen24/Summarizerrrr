@@ -40,6 +40,10 @@ const DEFAULT_SETTINGS = {
   widthIndex: 1, // Default to max-w-3xl
   sidePanelDefaultWidth: 25, // Default width for side panel in em units
 
+  // Onboarding
+  hasCompletedOnboarding: false,
+  onboardingStep: 0,
+
   // Summary
   summaryLength: 'long',
   summaryFormat: 'heading',

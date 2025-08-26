@@ -10,6 +10,8 @@
   import YouTubeSummaryDisplay from '@/components/displays/platform/YouTubeSummaryDisplay.svelte'
   import CourseSummaryDisplay from '@/components/displays/platform/CourseSummaryDisplay.svelte'
   import ErrorDisplay from '@/components/displays/ui/ErrorDisplay.svelte'
+  import WelcomeFlow from '@/components/welcome/WelcomeFlow.svelte'
+  import { isNewUser } from '@/lib/utils/userHelpers.js'
   import 'webextension-polyfill'
 
   // Import direct variables and functions from refactored stores
@@ -87,6 +89,9 @@
     summaryState.isCourseSummaryLoading || summaryState.isCourseConceptsLoading
   )
 
+  // Derived state to check if welcome flow should be shown
+  const showWelcomeFlow = $derived(() => isNewUser(settings))
+
   // Derived state to find the first active error object
   const anyError = $derived(
     summaryState.summaryError ||
@@ -112,6 +117,9 @@
   })
 </script>
 
+{#if showWelcomeFlow}
+  <WelcomeFlow />
+{/if}
 <div class="main-container flex min-w-[22.5rem] bg-surface-1 w-full flex-col">
   <div
     class="grid grid-rows-[32px_1px_8px_1px_160px_1px_8px_1px_1fr] min-h-screen"
@@ -192,9 +200,8 @@
       {/if}
     </div>
     <div id="footer"></div>
+    <div
+      class=" sticky bg-linear-to-t from-surface-1 to-surface-1/40 bottom-0 mask-t-from-50% h-16 backdrop-blur-[2px] w-full z-30 pointer-events-none"
+    ></div>
   </div>
-
-  <div
-    class="fixed bg-linear-to-t from-surface-1 to-surface-1/40 bottom-0 mask-t-from-50% h-16 backdrop-blur-[2px] w-full z-30 pointer-events-none"
-  ></div>
 </div>

@@ -56,7 +56,7 @@
       id="api-key-input"
       {placeholder}
       bind:value={apiKey}
-      class="w-full pl-3 text-xs pr-9 h-8.5 bg-muted/5 dark:bg-muted/5 border border-border hover:border-blackwhite/15 focus:border-blackwhite/30 dark:border-blackwhite/10 dark:focus:border-blackwhite/20 focus:outline-none focus:ring-0 placeholder:text-muted transition-colors duration-150"
+      class="w-full pl-3 text-text-primary text-xs pr-9 h-8.5 bg-muted/5 dark:bg-muted/5 border border-border hover:border-blackwhite/15 focus:border-blackwhite/30 dark:border-blackwhite/10 dark:focus:border-blackwhite/20 focus:outline-none focus:ring-0 placeholder:text-muted transition-colors duration-150"
       oninput={scheduleApiKeySave}
     />
     <button

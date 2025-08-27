@@ -42,6 +42,57 @@
   // Track if settings are loaded
   let settingsLoaded = $state(false)
 
+  // Provider to API key field mapping
+  const providerApiKeyMap = {
+    gemini: 'geminiApiKey',
+    'gemini-advanced': 'geminiAdvancedApiKey',
+    'openai-compatible': 'openaiCompatibleApiKey',
+    openrouter: 'openrouterApiKey',
+    deepseek: 'deepseekApiKey',
+    chatgpt: 'chatgptApiKey',
+    groq: 'groqApiKey',
+    // ollama và lmstudio không cần API key (local endpoints)
+  }
+
+  // Provider display names for user-friendly messages
+  const providerDisplayNames = {
+    gemini: 'Gemini',
+    'gemini-advanced': 'Gemini Advanced',
+    'openai-compatible': 'OpenAI Compatible',
+    openrouter: 'OpenRouter',
+    deepseek: 'DeepSeek',
+    chatgpt: 'ChatGPT',
+    groq: 'Groq',
+    ollama: 'Ollama',
+    lmstudio: 'LM Studio',
+  }
+
+  // Check if current provider needs API key setup
+  const needsApiKeySetup = $derived(() => {
+    const provider = settings.selectedProvider
+    const keyField = providerApiKeyMap[provider]
+
+    // Providers không cần API key (ollama, lmstudio)
+    if (!keyField) return false
+
+    // Check xem API key có rỗng không
+    const apiKey = settings[keyField]
+    return !apiKey || apiKey.trim() === ''
+  })
+
+  // Get display name for current provider
+  const currentProviderDisplayName = $derived(() => {
+    return (
+      providerDisplayNames[settings.selectedProvider] ||
+      settings.selectedProvider
+    )
+  })
+
+  // Function to open settings page
+  const openSettings = () => {
+    browser.tabs.create({ url: browser.runtime.getURL('settings.html') })
+  }
+
   // Use $effect to initialize the app and set up listeners
   $effect(() => {
     const cleanupInitialization = initializeApp()
@@ -193,16 +244,62 @@
     <div
       class="relative prose main-sidepanel prose-h2:mt-4 p z-10 flex flex-col gap-8 px-6 pt-8 pb-[40vh] max-w-[52rem] w-screen mx-auto"
     >
-      <div
-        class=" absolute inset-0 px-6 flex flex-col text-center w-full justify-center items-center"
-      >
-        <p class=" text-base">
-          To get started, please configure your API keys in the Settings page
-        </p>
-        <button> Open Settings </button>
-        <a href="#1">How to setup API key</a>
-      </div>
-      {#if anyError}
+      {#if needsApiKeySetup}
+        <div
+          class="absolute inset-0 px-6 flex flex-col text-center w-full justify-center items-center gap-4"
+          in:fade={{ duration: 300 }}
+          out:fade={{ duration: 200 }}
+        >
+          <div class="flex flex-col gap-3 items-center">
+            <div
+              class="size-16 shrink-0 flex justify-center items-center overflow-hidden relative"
+            >
+              <div
+                class="absolute z-40 border border-border dark:border-surface-2 inset-0"
+              ></div>
+              <div class="absolute inset-1 bg-white/50 dark:bg-white/3"></div>
+              <span
+                class="absolute z-20 size-6 rotate-45 bg-surface-1 bottom-px left-px -translate-x-1/2 translate-y-1/2"
+              ></span>
+              <span
+                class="absolute z-20 size-6 rotate-45 bg-surface-1 top-px right-px translate-x-1/2 -translate-y-1/2"
+              ></span>
+              <span
+                class="absolute z-50 size-4 rotate-45 bg-surface-1 border border-border dark:border-surface-2 bottom-px left-px -translate-x-1/2 translate-y-1/2"
+              ></span>
+              <span
+                class="absolute z-50 size-4 rotate-45 border-surface-1 bg-border dark:bg-muted border dark:border-surface-2 top-px right-px translate-x-1/2 -translate-y-1/2"
+              ></span>
+              <Icon
+                icon="material-symbols-light:key"
+                class="size-8 rotateAnimation  text-muted dark:text-text-primary  shrink-0"
+              />
+            </div>
+
+            <div class="flex flex-col gap-2 text-center">
+              <p class="text-sm text-text-secondary max-w-sm">
+                To get started please configure your API key in Settings.
+              </p>
+            </div>
+          </div>
+
+          <div class="flex flex-col gap-2 items-center">
+            <button
+              onclick={openSettings}
+              class="px-4 py-2 bg-primary text-white rounded-lg font-medium hover:bg-primary/90 transition-colors"
+            >
+              Open Settings
+            </button>
+            <a
+              href="https://docs.example.com/api-setup"
+              target="_blank"
+              class="text-xs text-text-secondary hover:text-primary underline underline-offset-2 transition-colors"
+            >
+              How to setup API key
+            </a>
+          </div>
+        </div>
+      {:else if anyError}
         <ErrorDisplay error={anyError} />
       {:else if summaryState.lastSummaryTypeDisplayed === 'youtube'}
         <YouTubeSummaryDisplay

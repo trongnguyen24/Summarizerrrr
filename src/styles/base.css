@@ -123,3 +123,16 @@
   left: 50%;
   transform: translate(-50%, -50%);
 }
+
+.rotateAnimation {
+  transform: rotateY(45deg);
+  animation: rotateAnimation 8s linear infinite;
+}
+@keyframes rotateAnimation {
+  from {
+    transform: rotateY(45deg);
+  }
+  to {
+    transform: rotateY(405deg);
+  }
+}

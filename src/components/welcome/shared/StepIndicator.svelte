@@ -25,8 +25,8 @@
   .step-item > span {
     position: relative;
     box-shadow:
-      0 0 0 #fff,
-      0 0 0 #fff;
+      0 0 0 #ffffff00,
+      0 0 0 #ffffff00;
     transition: all 0.3s ease;
   }
   .step-item.active > span {

@@ -6,7 +6,6 @@
   import Icon from '@iconify/svelte'
 
   export let selectedUILang
-  export let onNext
 
   // Language options
   const languages = [
@@ -26,9 +25,12 @@
     await updateSettings({ uiLang: langCode })
   }
 
-  // Handle next step
-  function handleNext() {
-    onNext()
+  // Export saveSettings method for consistency with other steps
+  export async function saveSettings() {
+    // Language is already saved when selected, but we keep this for consistency
+    if (selectedUILang) {
+      await updateSettings({ uiLang: selectedUILang })
+    }
   }
 </script>
 
@@ -50,31 +52,4 @@
       />
     {/each}
   </div>
-</div>
-
-<div
-  class="absolute max-w-sm mx-auto bottom-8 px-4 left-0 right-0 flex justify-center gap-4"
->
-  <button
-    class="font-mono text-sm w-16 shrink-0 flex justify-center items-center overflow-hidden relative text-text-primary"
-  >
-    <div class="absolute inset-0 border border-border bg-surface-2"></div>
-    <div class="absolute inset-0 z-10 flex justify-center items-center">
-      <Icon icon="heroicons:arrow-left-16-solid" width="16" />
-    </div>
-    <span
-      class="absolute z-10 size-4 border border-border rotate-45 bg-surface-1 dark:border-surface-2 -bottom-px -left-px -translate-x-1/2 translate-y-1/2"
-    ></span>
-  </button>
-  <button
-    class="font-mono text-sm w-full overflow-hidden relative text-white"
-    onclick={handleNext}
-  >
-    <div class=" absolute inset-0 border border-orange-400 bg-primary"></div>
-    <div class=" relative z-50 pl-4 pr-6 py-2">{$t('welcome.next')}</div>
-
-    <span
-      class="absolute z-50 size-4 border border-orange-400 rotate-45 bg-surface-1 dark:border-surface-2 -bottom-px -left-px -translate-x-1/2 translate-y-1/2"
-    ></span>
-  </button>
 </div>

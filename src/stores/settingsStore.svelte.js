@@ -10,7 +10,7 @@ const DEFAULT_SETTINGS = {
   floatButtonLeft: false,
   showFloatingButton: true,
   floatingPanelLeft: false, // Default to right side
-  geminiApiKey: 'AIzaSyA6I0DGp3XgSoGDZqergz9JAryupj-0JOI',
+  geminiApiKey: '',
   selectedGeminiModel: 'gemini-2.5-flash',
   geminiAdvancedApiKey: '',
   selectedGeminiAdvancedModel: 'gemini-2.5-flash',

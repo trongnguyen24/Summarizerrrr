@@ -68,16 +68,63 @@
   }
 
   // Check if current provider needs API key setup
-  const needsApiKeySetup = $derived(() => {
-    const provider = settings.selectedProvider
-    const keyField = providerApiKeyMap[provider]
+  let needsApiKeySetup = $derived(() => {
+    const rawProvider = settings.selectedProvider
+    const isAdvanced = settings.isAdvancedMode
+
+    console.log('🔍 [needsApiKeySetup] Debug Info:')
+    console.log('  - selectedProvider (raw):', rawProvider)
+    console.log('  - isAdvancedMode:', isAdvanced)
+
+    // Determine the actual provider based on isAdvancedMode (like in api.js)
+    let actualProvider = rawProvider
+    if (!isAdvanced) {
+      actualProvider = 'gemini' // Force Gemini in basic mode
+    }
+
+    console.log(
+      '  - actualProvider (after isAdvancedMode check):',
+      actualProvider
+    )
+
+    // Special handling for Gemini provider based on advanced mode
+    let keyField
+    if (actualProvider === 'gemini') {
+      keyField = isAdvanced ? 'geminiAdvancedApiKey' : 'geminiApiKey'
+      console.log(
+        '  - Gemini provider, using keyField:',
+        keyField,
+        '(advanced:',
+        isAdvanced,
+        ')'
+      )
+    } else {
+      keyField = providerApiKeyMap[actualProvider]
+      console.log('  - Non-Gemini provider, keyField from map:', keyField)
+    }
+
+    console.log('  - Final keyField:', keyField)
+    console.log('  - providerApiKeyMap:', providerApiKeyMap)
+    console.log('  - settings object keys:', Object.keys(settings))
 
     // Providers không cần API key (ollama, lmstudio)
-    if (!keyField) return false
+    if (!keyField) {
+      console.log('  - No keyField required for this provider, returning false')
+      return false
+    }
 
     // Check xem API key có rỗng không
     const apiKey = settings[keyField]
-    return !apiKey || apiKey.trim() === ''
+    console.log('  - apiKey value:', apiKey)
+    console.log('  - apiKey type:', typeof apiKey)
+    console.log('  - apiKey length:', apiKey?.length || 'undefined')
+    console.log('  - apiKey trimmed:', apiKey?.trim() || 'undefined')
+
+    const needsSetup = !apiKey || apiKey.trim() === ''
+    console.log('  - needsApiKeySetup result:', needsSetup)
+    console.log('🔍 [needsApiKeySetup] End Debug Info\n')
+
+    return needsSetup
   })
 
   // Get display name for current provider
@@ -244,7 +291,7 @@
     <div
       class="relative prose main-sidepanel prose-h2:mt-4 p z-10 flex flex-col gap-8 px-6 pt-8 pb-[40vh] max-w-[52rem] w-screen mx-auto"
     >
-      {#if needsApiKeySetup}
+      {#if needsApiKeySetup()}
         <div
           class="absolute inset-0 px-6 flex flex-col text-center w-full justify-center items-center gap-4"
           in:fade={{ duration: 300 }}

@@ -10,8 +10,7 @@
   import YouTubeSummaryDisplay from '@/components/displays/platform/YouTubeSummaryDisplay.svelte'
   import CourseSummaryDisplay from '@/components/displays/platform/CourseSummaryDisplay.svelte'
   import ErrorDisplay from '@/components/displays/ui/ErrorDisplay.svelte'
-  import WelcomeFlow from '@/components/welcome/WelcomeFlow.svelte'
-  import { isNewUser } from '@/lib/utils/userHelpers.js'
+
   import 'webextension-polyfill'
 
   // Import direct variables and functions from refactored stores
@@ -28,7 +27,7 @@
   import { tabTitle } from '@/stores/tabTitleStore.svelte.js'
   import { setupMessageListener } from '@/services/messageHandler.js'
   import { initializeApp } from '@/services/initialization.js'
-  import { settings } from '@/stores/settingsStore.svelte.js'
+  import { settings, loadSettings } from '@/stores/settingsStore.svelte.js'
   import {
     themeSettings,
     initializeTheme,
@@ -38,14 +37,20 @@
   import '@fontsource-variable/noto-serif'
   import '@fontsource/opendyslexic'
   import '@fontsource/mali'
+  import { fade, slide } from 'svelte/transition'
+
+  // Track if settings are loaded
+  let settingsLoaded = $state(false)
 
   // Use $effect to initialize the app and set up listeners
   $effect(() => {
     const cleanupInitialization = initializeApp()
+
     const cleanupMessageListener = setupMessageListener()
 
     return () => {
       cleanupInitialization()
+
       cleanupMessageListener()
     }
   })
@@ -77,20 +82,10 @@
     }
   })
 
-  // Apply theme based on settings
-  $effect(() => {
-    console.log('Theme settings changed:', themeSettings.theme)
-    // The actual theme application logic is handled by initializeTheme and subscribeToSystemThemeChanges
-    // which are called in the initial $effect. This effect is mainly for logging.
-  })
-
   // Create derived variable to check if any Course summary is loading
   const isAnyCourseLoading = $derived(
     summaryState.isCourseSummaryLoading || summaryState.isCourseConceptsLoading
   )
-
-  // Derived state to check if welcome flow should be shown
-  const showWelcomeFlow = $derived(() => isNewUser(settings))
 
   // Derived state to find the first active error object
   const anyError = $derived(
@@ -117,8 +112,33 @@
   })
 </script>
 
-{#if showWelcomeFlow}
-  <WelcomeFlow />
+{#if !settings.hasCompletedOnboarding}
+  <div
+    class=" absolute z-[50] inset-0"
+    out:fade={{
+      duration: 400,
+    }}
+  >
+    {#await import('@/components/welcome/WelcomeFlow.svelte')}
+      <div
+        out:fade={{ delay: 1000 }}
+        class="welcome-loading-container absolute z-50 bg-surface-1 inset-0 flex items-center justify-center"
+      ></div>
+    {:then { default: WelcomeFlow }}
+      <div
+        in:fade={{ delay: 500, duration: 600 }}
+        class="absolute max-h-svh z-[99] inset-0 flex items-center justify-center"
+      >
+        <WelcomeFlow />
+      </div>
+    {:catch error}
+      <div
+        class="welcome-error-container absolute z-50 bg-surface-1 inset-0 flex items-center justify-center"
+      >
+        <p class="text-red-500">Error loading welcome flow: {error.message}</p>
+      </div>
+    {/await}
+  </div>
 {/if}
 <div class="main-container flex min-w-[22.5rem] bg-surface-1 w-full flex-col">
   <div
@@ -171,8 +191,17 @@
     <div class="bg-border"></div>
 
     <div
-      class="relative prose main-sidepanel prose-h2:mt-4 p z-10 flex flex-col gap-8 px-6 pt-8 pb-[50vh] max-w-[52rem] w-screen mx-auto"
+      class="relative prose main-sidepanel prose-h2:mt-4 p z-10 flex flex-col gap-8 px-6 pt-8 pb-[40vh] max-w-[52rem] w-screen mx-auto"
     >
+      <div
+        class=" absolute inset-0 px-6 flex flex-col text-center w-full justify-center items-center"
+      >
+        <p class=" text-base">
+          To get started, please configure your API keys in the Settings page
+        </p>
+        <button> Open Settings </button>
+        <a href="#1">How to setup API key</a>
+      </div>
       {#if anyError}
         <ErrorDisplay error={anyError} />
       {:else if summaryState.lastSummaryTypeDisplayed === 'youtube'}
@@ -199,7 +228,7 @@
         />
       {/if}
     </div>
-    <div id="footer"></div>
+
     <div
       class=" sticky bg-linear-to-t from-surface-1 to-surface-1/40 bottom-0 mask-t-from-50% h-16 backdrop-blur-[2px] w-full z-30 pointer-events-none"
     ></div>

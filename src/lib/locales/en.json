@@ -291,14 +291,21 @@
     }
   },
   "welcome": {
-    "choose_interface_language": "Welcome to Summarizer!",
+    "choose_interface_language": "Welcome to Summarizerrrr!",
     "select_your_language": "Choose your interface language",
-    "next": "Next",
     "next": "Next",
     "back": "Back",
     "configure_api_keys": "Please configure API keys in the settings first",
     "api_setup_guide": "You'll need to set up your AI provider API key to start using Summarizer.",
     "go_to_settings": "Go to Settings",
-    "setup_guide_link": "📺 How to setup API key"
+    "setup_guide_link": "📺 How to setup API key",
+    "font_selection": "Font Family",
+    "theme_selection": "Theme",
+    "summary_language": "Summary Language",
+    "complete_setup": "Complete Setup",
+    "setup_display_title": "Setup Display",
+    "setup_display_desc": "Customize your theme and font.",
+    "setup_summary_lang_title": "Choose Summary Language",
+    "setup_summary_lang_desc": "Select the default language for summaries resources. This can be changed later in settings."
   }
 }

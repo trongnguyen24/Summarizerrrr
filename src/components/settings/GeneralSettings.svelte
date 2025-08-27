@@ -18,6 +18,13 @@
   function handleUpdateSetting(key, value) {
     updateSettings({ [key]: value })
   }
+  // effect on load update settings.hasCompletedOnboarding = false
+  $effect(() => {
+    // This effect runs once when the component is mounted
+    // and sets hasCompletedOnboarding to false for development purposes.
+    // In a production environment, this might be removed or conditionally applied.
+    updateSettings({ hasCompletedOnboarding: false })
+  })
 </script>
 
 <!-- General Section -->
@@ -123,7 +130,7 @@
       {$t('settings.general.shortcuts')}
       {#if import.meta.env.BROWSER === 'chrome'}
         <button
-          on:click|preventDefault={() =>
+          onclick={() =>
             chrome.tabs.create({ url: 'chrome://extensions/shortcuts' })}
           class="text-xs flex items-center gap-0.5 text-primary outline-gray-500 hover:underline"
         >

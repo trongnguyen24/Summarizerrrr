@@ -2,8 +2,10 @@
 <script>
   import { onMount } from 'svelte'
   import { settings, updateSettings } from '@/stores/settingsStore.svelte.js'
+  import StepIndicator from './shared/StepIndicator.svelte'
   import WelcomeLanguageStep from './steps/WelcomeLanguageStep.svelte'
-  import WelcomeSettingsGuideStep from './steps/WelcomeSettingsGuideStep.svelte'
+  import WelcomeDisplayStep from './steps/WelcomeDisplayStep.svelte'
+  import WelcomeSummaryLangStep from './steps/WelcomeSummaryLangStep.svelte'
 
   // State management
   let currentStep = $state(1)
@@ -21,47 +23,50 @@
     currentStep--
   }
 
-  function goToSettings() {
-    browser.tabs.create({ url: 'settings.html' })
-  }
-
   // Step constants
   const STEPS = {
     LANGUAGE: 1,
-    SETTINGS_GUIDE: 2,
-  }
-
-  // Navigation conditions
-  function canGoNext(step) {
-    switch (step) {
-      case STEPS.LANGUAGE:
-        return selectedUILang !== null
-      default:
-        return false
-    }
+    DISPLAY: 2,
+    SUMMARY_LANG: 3,
   }
 
   // Complete onboarding
   async function completeOnboarding() {
-    await updateSettings({
-      hasCompletedOnboarding: true,
-      onboardingStep: 0,
-      uiLang: selectedUILang,
-    })
+    // This function is called when the final step is completed.
+    console.log('Onboarding completed from WelcomeFlow - updating settings')
+
+    try {
+      // First update the settings to mark onboarding as completed
+      await updateSettings({
+        hasCompletedOnboarding: true,
+        onboardingStep: 0,
+      })
+
+      console.log(
+        'Settings updated successfully, hasCompletedOnboarding:',
+        settings.hasCompletedOnboarding
+      )
+
+      // Don't close tab - let the reactive system hide the WelcomeFlow
+      // The WelcomeFlow should disappear automatically when hasCompletedOnboarding becomes true
+    } catch (error) {
+      console.error('Error updating settings in WelcomeFlow:', error)
+    }
   }
 </script>
 
-<div class="welcome-flow-container absolute z-50 inset-0 bg-surface-1 z-20">
-  <!-- <StepIndicator {currentStep} totalSteps={2} /> -->
+<div class="welcome-flow-container absolute z-50 bg-surface-1 inset-0">
+  <StepIndicator {currentStep} totalSteps={3} />
 
-  <div class="flex flex-col justify-center items-center px-4 py-40 h-full">
+  <div class="flex flex-col justify-center items-center px-4 py-12 h-full">
     {#if currentStep === STEPS.LANGUAGE}
       <WelcomeLanguageStep bind:selectedUILang onNext={nextStep} />
-    {:else if currentStep === STEPS.SETTINGS_GUIDE}
-      <WelcomeSettingsGuideStep
-        {selectedUILang}
+    {:else if currentStep === STEPS.DISPLAY}
+      <WelcomeDisplayStep onBack={prevStep} onNext={nextStep} />
+    {:else if currentStep === STEPS.SUMMARY_LANG}
+      <WelcomeSummaryLangStep
         onBack={prevStep}
-        onGoToSettings={goToSettings}
+        onComplete={completeOnboarding}
       />
     {/if}
   </div>

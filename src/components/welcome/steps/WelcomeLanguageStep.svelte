@@ -3,6 +3,7 @@
   import { t } from 'svelte-i18n'
   import { settings, updateSettings } from '@/stores/settingsStore.svelte.js'
   import ButtonSet from '@/components/buttons/ButtonSet.svelte'
+  import Icon from '@iconify/svelte'
 
   export let selectedUILang
   export let onNext
@@ -39,7 +40,7 @@
     {$t('welcome.select_your_language')}
   </p>
 
-  <div class="grid text-xs grid-cols-2 gap-2 mb-8">
+  <div class="grid max-w-sm mx-auto text-xs grid-cols-2 gap-2 mb-8">
     {#each languages as lang}
       <ButtonSet
         title={lang.name}
@@ -51,9 +52,22 @@
   </div>
 </div>
 
-<div class="absolute bottom-8 px-4 left-0 right-0 flex justify-center">
+<div
+  class="absolute max-w-sm mx-auto bottom-8 px-4 left-0 right-0 flex justify-center gap-4"
+>
   <button
-    class=" font-mono text-sm w-full overflow-hidden relative text-white"
+    class="font-mono text-sm w-16 shrink-0 flex justify-center items-center overflow-hidden relative text-text-primary"
+  >
+    <div class="absolute inset-0 border border-border bg-surface-2"></div>
+    <div class="absolute inset-0 z-10 flex justify-center items-center">
+      <Icon icon="heroicons:arrow-left-16-solid" width="16" />
+    </div>
+    <span
+      class="absolute z-10 size-4 border border-border rotate-45 bg-surface-1 dark:border-surface-2 -bottom-px -left-px -translate-x-1/2 translate-y-1/2"
+    ></span>
+  </button>
+  <button
+    class="font-mono text-sm w-full overflow-hidden relative text-white"
     onclick={handleNext}
   >
     <div class=" absolute inset-0 border border-orange-400 bg-primary"></div>

@@ -304,7 +304,7 @@
             <div
               class="absolute max-h-svh z-[99] inset-0 flex items-center justify-center"
             >
-              <WelcomeFlow />
+              <WelcomeFlow shadow={true} />
             </div>
           {:catch error}
             <div

@@ -10,6 +10,7 @@
   import { slideScaleFade } from '@/lib/ui/slideScaleFade'
 
   // State management
+  let { shadow = false } = $props()
   let currentStep = $state(1)
   let selectedUILang = $state('en')
   let stepComponentInstance = $state()
@@ -168,7 +169,7 @@
           startScale: 0.97,
         }}
       >
-        <WelcomeSummaryLangStep bind:this={stepComponentInstance} />
+        <WelcomeSummaryLangStep bind:this={stepComponentInstance} {shadow} />
       </span>
     {/if}
   </div>

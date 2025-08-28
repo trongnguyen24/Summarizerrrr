@@ -3,13 +3,22 @@
   import { t } from 'svelte-i18n'
   import { settings, updateSettings } from '@/stores/settingsStore.svelte.js'
   import LanguageSelect from '@/components/inputs/LanguageSelect.svelte'
+  import ShadowDOMLanguageSelect from '@/components/inputs/ShadowDOMLanguageSelect.svelte'
   import Icon from '@iconify/svelte'
+
+  // Props
+  let { shadow = false } = $props()
 
   // Local state initialized from stores
   let selectedSummaryLang = $state(settings.summaryLang)
 
   function handleLanguageChange(event) {
-    selectedSummaryLang = event.detail
+    // Handle both native and custom event detail
+    const newValue =
+      typeof event.detail === 'string' ? event.detail : event.detail?.value
+    if (newValue) {
+      selectedSummaryLang = newValue
+    }
   }
 
   export async function saveSettings() {
@@ -30,15 +39,21 @@
   </p>
 
   <div class="w-full font-mono max-w-sm space-y-6">
-    <!-- Summary Language Selection -->
     <div>
-      <h3 class=" font-medium text-xs text-text-secondary mb-2">
+      <h3 class="font-medium text-xs text-text-secondary mb-2">
         {$t('welcome.summary_language')}
       </h3>
-      <LanguageSelect
-        bind:value={selectedSummaryLang}
-        on:change={handleLanguageChange}
-      />
+      {#if shadow}
+        <ShadowDOMLanguageSelect
+          bind:value={selectedSummaryLang}
+          on:change={handleLanguageChange}
+        />
+      {:else}
+        <LanguageSelect
+          bind:value={selectedSummaryLang}
+          on:change={handleLanguageChange}
+        />
+      {/if}
     </div>
   </div>
 </div>

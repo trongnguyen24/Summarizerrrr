@@ -12,6 +12,8 @@
   import { useApiKeyValidation } from '../composables/useApiKeyValidation.svelte.js'
   import ApiKeySetupPrompt from '@/components/ui/ApiKeySetupPrompt.svelte'
 
+  import { fade } from 'svelte/transition'
+
   // Reactive variable for panel position
   let panelPosition = $derived(settings.floatingPanelLeft ? 'left' : 'right')
 
@@ -250,6 +252,33 @@
     tabindex="-1"
     style="width: {currentWidthPx}px"
   >
+    {#if !settings.hasCompletedOnboarding}
+      <div
+        class="absolute z-[10001] inset-0"
+        in:fade={{ duration: 300 }}
+        out:fade={{ duration: 300 }}
+      >
+        {#await import('@/components/welcome/WelcomeFlow.svelte')}
+          <div
+            class="welcome-loading-container absolute z-50 bg-surface-1 inset-0 flex items-center justify-center"
+          ></div>
+        {:then { default: WelcomeFlow }}
+          <div
+            class="absolute max-h-svh z-[99] inset-0 flex items-center justify-center"
+          >
+            <WelcomeFlow shadow={true} />
+          </div>
+        {:catch error}
+          <div
+            class="welcome-error-container absolute z-50 bg-surface-1 inset-0 flex items-center justify-center"
+          >
+            <p class="text-red-500">
+              Error loading welcome flow: {error.message}
+            </p>
+          </div>
+        {/await}
+      </div>
+    {/if}
     <!-- Resize handle -->
     <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
     <div

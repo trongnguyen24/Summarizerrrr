@@ -10,6 +10,7 @@
   import YouTubeSummaryDisplay from '@/components/displays/platform/YouTubeSummaryDisplay.svelte'
   import CourseSummaryDisplay from '@/components/displays/platform/CourseSummaryDisplay.svelte'
   import ErrorDisplay from '@/components/displays/ui/ErrorDisplay.svelte'
+  import ApiKeySetupPrompt from '@/components/ui/ApiKeySetupPrompt.svelte'
 
   import 'webextension-polyfill'
 
@@ -33,6 +34,7 @@
     initializeTheme,
     subscribeToSystemThemeChanges,
   } from '@/stores/themeStore.svelte.js'
+  import { useApiKeyValidation } from '@/entrypoints/content/composables/useApiKeyValidation.svelte.js'
   import '@fontsource-variable/geist-mono'
   import '@fontsource-variable/noto-serif'
   import '@fontsource/opendyslexic'
@@ -42,103 +44,8 @@
   // Track if settings are loaded
   let settingsLoaded = $state(false)
 
-  // Provider to API key field mapping
-  const providerApiKeyMap = {
-    gemini: 'geminiApiKey',
-    'gemini-advanced': 'geminiAdvancedApiKey',
-    'openai-compatible': 'openaiCompatibleApiKey',
-    openrouter: 'openrouterApiKey',
-    deepseek: 'deepseekApiKey',
-    chatgpt: 'chatgptApiKey',
-    groq: 'groqApiKey',
-    // ollama và lmstudio không cần API key (local endpoints)
-  }
-
-  // Provider display names for user-friendly messages
-  const providerDisplayNames = {
-    gemini: 'Gemini',
-    'gemini-advanced': 'Gemini Advanced',
-    'openai-compatible': 'OpenAI Compatible',
-    openrouter: 'OpenRouter',
-    deepseek: 'DeepSeek',
-    chatgpt: 'ChatGPT',
-    groq: 'Groq',
-    ollama: 'Ollama',
-    lmstudio: 'LM Studio',
-  }
-
-  // Check if current provider needs API key setup
-  let needsApiKeySetup = $derived(() => {
-    const rawProvider = settings.selectedProvider
-    const isAdvanced = settings.isAdvancedMode
-
-    console.log('🔍 [needsApiKeySetup] Debug Info:')
-    console.log('  - selectedProvider (raw):', rawProvider)
-    console.log('  - isAdvancedMode:', isAdvanced)
-
-    // Determine the actual provider based on isAdvancedMode (like in api.js)
-    let actualProvider = rawProvider
-    if (!isAdvanced) {
-      actualProvider = 'gemini' // Force Gemini in basic mode
-    }
-
-    console.log(
-      '  - actualProvider (after isAdvancedMode check):',
-      actualProvider
-    )
-
-    // Special handling for Gemini provider based on advanced mode
-    let keyField
-    if (actualProvider === 'gemini') {
-      keyField = isAdvanced ? 'geminiAdvancedApiKey' : 'geminiApiKey'
-      console.log(
-        '  - Gemini provider, using keyField:',
-        keyField,
-        '(advanced:',
-        isAdvanced,
-        ')'
-      )
-    } else {
-      keyField = providerApiKeyMap[actualProvider]
-      console.log('  - Non-Gemini provider, keyField from map:', keyField)
-    }
-
-    console.log('  - Final keyField:', keyField)
-    console.log('  - providerApiKeyMap:', providerApiKeyMap)
-    console.log('  - settings object keys:', Object.keys(settings))
-
-    // Providers không cần API key (ollama, lmstudio)
-    if (!keyField) {
-      console.log('  - No keyField required for this provider, returning false')
-      return false
-    }
-
-    // Check xem API key có rỗng không
-    const apiKey = settings[keyField]
-    console.log('  - apiKey value:', apiKey)
-    console.log('  - apiKey type:', typeof apiKey)
-    console.log('  - apiKey length:', apiKey?.length || 'undefined')
-    console.log('  - apiKey trimmed:', apiKey?.trim() || 'undefined')
-
-    const needsSetup = !apiKey || apiKey.trim() === ''
-    console.log('  - needsApiKeySetup result:', needsSetup)
-    console.log('🔍 [needsApiKeySetup] End Debug Info\n')
-
-    return needsSetup
-  })
-
-  // Get display name for current provider
-  const currentProviderDisplayName = $derived(() => {
-    return (
-      providerDisplayNames[settings.selectedProvider] ||
-      settings.selectedProvider
-    )
-  })
-
-  // Function to open settings page
-  const openSettings = () => {
-    browser.tabs.create({ url: browser.runtime.getURL('settings.html') })
-  }
+  // Use API key validation composable
+  const { needsApiKeySetup, currentProviderDisplayName } = useApiKeyValidation()
 
   // Use $effect to initialize the app and set up listeners
   $effect(() => {
@@ -273,10 +180,12 @@
       </div>
 
       <div class="flex flex-col gap-6 items-center justify-center">
-        <SummarizeButton
-          isLoading={summaryState.isLoading || isAnyCourseLoading}
-          isChapterLoading={summaryState.isChapterLoading}
-        />
+        {#if !needsApiKeySetup()()}
+          <SummarizeButton
+            isLoading={summaryState.isLoading || isAnyCourseLoading}
+            isChapterLoading={summaryState.isChapterLoading}
+          />
+        {/if}
       </div>
     </div>
 
@@ -291,61 +200,8 @@
     <div
       class="relative prose main-sidepanel prose-h2:mt-4 p z-10 flex flex-col gap-8 px-6 pt-8 pb-[40vh] max-w-[52rem] w-screen mx-auto"
     >
-      {#if needsApiKeySetup()}
-        <div
-          class="absolute inset-0 px-6 flex flex-col text-center w-full justify-center items-center gap-4"
-          in:fade={{ duration: 300 }}
-          out:fade={{ duration: 200 }}
-        >
-          <div class="flex flex-col gap-3 items-center">
-            <div
-              class="size-16 shrink-0 flex justify-center items-center overflow-hidden relative"
-            >
-              <div
-                class="absolute z-40 border border-border dark:border-surface-2 inset-0"
-              ></div>
-              <div class="absolute inset-1 bg-white/50 dark:bg-white/3"></div>
-              <span
-                class="absolute z-20 size-6 rotate-45 bg-surface-1 bottom-px left-px -translate-x-1/2 translate-y-1/2"
-              ></span>
-              <span
-                class="absolute z-20 size-6 rotate-45 bg-surface-1 top-px right-px translate-x-1/2 -translate-y-1/2"
-              ></span>
-              <span
-                class="absolute z-50 size-4 rotate-45 bg-surface-1 border border-border dark:border-surface-2 bottom-px left-px -translate-x-1/2 translate-y-1/2"
-              ></span>
-              <span
-                class="absolute z-50 size-4 rotate-45 border-surface-1 bg-border dark:bg-muted border dark:border-surface-2 top-px right-px translate-x-1/2 -translate-y-1/2"
-              ></span>
-              <Icon
-                icon="material-symbols-light:key"
-                class="size-8 rotateAnimation  text-muted dark:text-text-primary  shrink-0"
-              />
-            </div>
-
-            <div class="flex flex-col gap-2 text-center">
-              <p class="text-sm text-text-secondary max-w-sm">
-                To get started please configure your API key in Settings.
-              </p>
-            </div>
-          </div>
-
-          <div class="flex flex-col gap-2 items-center">
-            <button
-              onclick={openSettings}
-              class="px-4 py-2 bg-primary text-white rounded-lg font-medium hover:bg-primary/90 transition-colors"
-            >
-              Open Settings
-            </button>
-            <a
-              href="https://docs.example.com/api-setup"
-              target="_blank"
-              class="text-xs text-text-secondary hover:text-primary underline underline-offset-2 transition-colors"
-            >
-              How to setup API key
-            </a>
-          </div>
-        </div>
+      {#if needsApiKeySetup()()}
+        <ApiKeySetupPrompt />
       {:else if anyError}
         <ErrorDisplay error={anyError} />
       {:else if summaryState.lastSummaryTypeDisplayed === 'youtube'}

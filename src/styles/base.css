@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@import './glitch.css';
 @import 'highlight.js/styles/github-dark-dimmed.css';
 @plugin "@tailwindcss/typography";
 @custom-variant dark (&:where(.dark, .dark *));
@@ -125,14 +126,27 @@
 }
 
 .rotateAnimation {
-  transform: rotateY(45deg);
-  animation: rotateAnimation 8s linear infinite;
+  transform: rotateY(35deg);
+  animation: rotateAnimation 4s ease-in-out infinite;
 }
 @keyframes rotateAnimation {
-  from {
-    transform: rotateY(45deg);
+  0% {
+    transform: rotateY(35deg) translateY(2px);
   }
-  to {
-    transform: rotateY(405deg);
+  50% {
+    transform: rotateY(0deg) translateY(-2px);
   }
+  100% {
+    transform: rotateY(-35deg) translateY(2px);
+  }
+}
+
+.top-stripes {
+  background-image: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 7px,
+    var(--color-border) 1px,
+    var(--color-border) 8px
+  );
 }

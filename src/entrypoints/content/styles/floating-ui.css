@@ -1,7 +1,4 @@
-@import 'tailwindcss';
-@import 'highlight.js/styles/github-dark-dimmed.css';
-@plugin "@tailwindcss/typography";
-@custom-variant dark (&:where(.dark, .dark *));
+@import '../../../styles/base.css';
 
 @theme {
   --spacing: 0.25em;
@@ -14,114 +11,10 @@
   --text-3xl: 1.875em;
 }
 
-/* Biến và font chung */
-:root {
-  --font-mono: 'Geist Mono Variable', ui-monospace, SFMono-Regular, Menlo,
-    Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
-  --h-0: clamp(0.9375rem, 0.6548rem + 1.1905vw, 1.25rem);
-  --h-1: clamp(1.25rem, 1.0673rem + 0.7692vw, 1.5rem);
-  --h-2: clamp(1.125rem, 0.9423rem + 0.7692vw, 1.375rem);
-
-  /* Font Families */
-  --font-default: ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
-    'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
-  --font-noto-serif: 'Noto Serif', serif;
-  --font-opendyslexic: 'OpenDyslexic', sans-serif;
-  --font-mali: 'Mali', cursive;
-}
-
-/* Font Classes */
-.font-default {
-  font-family: var(--font-default);
-}
-
-.font-noto-serif {
-  font-family: var(--font-noto-serif);
-}
-
-.font-opendyslexic {
-  font-family: var(--font-opendyslexic);
-}
-
-.font-mali {
-  font-family: var(--font-mali);
-}
-
 button {
   cursor: pointer;
   user-select: none;
   outline-color: var(--color-gray-500);
-}
-
-@theme {
-  --breakpoint-xs: 38rem;
-  --color-blackwhite: oklch(0 0 0);
-  --color-track: oklch(0.9 0 0);
-  --color-summarize: oklch(0 0 0);
-  --color-background: oklch(0.93 0.001 286);
-  --color-surface-1: oklch(0.95 0.0005 286);
-  --color-surface-2: oklch(1 0 0);
-  --color-border: oklch(0.85 0 0);
-  --color-text-primary: oklch(0.17 0 0);
-  --color-text-secondary: oklch(0.34 0 0);
-  --color-muted: oklch(0.54 0 0);
-  --color-primary: oklch(69.1% 0.1909 45.02);
-  --color-success: oklch(0.768 0.233 130.85);
-  --color-error: oklch(0.637 0.237 25.331);
-  --animate-wiggle: wiggle 6s ease-in-out infinite;
-}
-
-/* Dark scheme variables */
-.dark,
-.dark .prose {
-  --tw-prose-body: var(--tw-prose-invert-body);
-  --tw-prose-headings: var(--tw-prose-invert-headings);
-  --tw-prose-lead: var(--tw-prose-invert-lead);
-  --tw-prose-links: var(--tw-prose-invert-links);
-  --tw-prose-bold: var(--tw-prose-invert-bold);
-  --tw-prose-counters: var(--tw-prose-invert-counters);
-  --tw-prose-bullets: var(--tw-prose-invert-bullets);
-  --tw-prose-hr: var(--tw-prose-invert-hr);
-  --tw-prose-quotes: var(--tw-prose-invert-quotes);
-  --tw-prose-quote-borders: var(--tw-prose-invert-quote-borders);
-  --tw-prose-captions: var(--tw-prose-invert-captions);
-  --tw-prose-kbd: var(--tw-prose-invert-kbd);
-  --tw-prose-kbd-shadows: var(--tw-prose-invert-kbd-shadows);
-  --tw-prose-code: var(--tw-prose-invert-code);
-  --tw-prose-pre-code: var(--tw-prose-invert-pre-code);
-  --tw-prose-pre-bg: var(--tw-prose-invert-pre-bg);
-  --tw-prose-th-borders: var(--tw-prose-invert-th-borders);
-  --tw-prose-td-borders: var(--tw-prose-invert-td-borders);
-
-  --color-summarize: oklch(0 0 0);
-  --color-blackwhite: oklch(1 0 0);
-  --color-track: oklch(0.3 0 0);
-  --color-background: oklch(0.15 0.02 286);
-  --color-surface-1: oklch(0.2 0.015 268);
-  --color-surface-2: oklch(0.25 0.015 264);
-  --color-border: oklch(0.3 0.015 268);
-
-  /* Text colors */
-  --color-text-primary: oklch(0.9 0 0);
-  --color-text-secondary: oklch(0.75 0 0);
-  --color-muted: oklch(0.6 0 0);
-
-  --color-primary: oklch(69.1% 0.1909 45.02);
-
-  /* Status colors */
-  --color-success: oklch(0.768 0.233 130.85);
-  --color-warning: oklch(0.795 0.184 86.047);
-  --color-error: oklch(0.637 0.237 25.331);
-}
-
-.top-stripes {
-  background-image: repeating-linear-gradient(
-    45deg,
-    transparent,
-    transparent 7px,
-    var(--color-border) 1px,
-    var(--color-border) 8px
-  );
 }
 
 .floating-ui-root {
@@ -130,6 +23,14 @@ button {
 
 .floating-panel.visible {
   transform: translateX(0) !important;
+}
+
+.floating-panel.right.visible {
+  transform: translateX(0);
+}
+
+.floating-panel.left.visible {
+  transform: translateX(0);
 }
 
 .os-theme-custom-app {
@@ -216,113 +117,6 @@ div {
   scrollbar-width: thin; /* "auto" or "thin" */
   scrollbar-color: oklch(0.77 0.003 106.6 / 60%) oklch(0.77 0.003 106.6 / 10%); /* thumb and track color */
 }
-.os-scrollbar-track {
-  position: relative;
-  padding: var(--os-padding-perpendicular, 0) var(--os-padding-axis, 0);
-  border: var(--os-track-border, none);
-  border-radius: var(--os-track-border-radius, 0);
-  background: var(--os-track-bg, none);
-}
-
-.os-scrollbar-track:hover {
-  border: var(--os-track-border-hover, var(--os-track-border, none));
-  background: var(--os-track-bg-hover, var(--os-track-bg, none));
-}
-
-.os-scrollbar-track:active {
-  border: var(
-    --os-track-border-active,
-    var(--os-track-border-hover, var(--os-track-border, none))
-  );
-  background: var(
-    --os-track-bg-active,
-    var(--os-track-bg-hover, var(--os-track-bg, none))
-  );
-}
-
-.os-scrollbar-handle {
-  position: relative;
-  border-radius: var(--os-handle-border-radius, 0);
-  background: var(--os-handle-bg);
-  border: var(--os-handle-border, none);
-  transition: background-color 0.3s ease, border-color 0.3s ease;
-}
-
-.os-scrollbar-handle:hover {
-  background: var(--os-handle-bg-hover, var(--os-handle-bg));
-  border: var(--os-handle-border-hover, var(--os-handle-border, none));
-}
-
-.os-scrollbar-handle:active {
-  background: var(
-    --os-handle-bg-active,
-    var(--os-handle-bg-hover, var(--os-handle-bg))
-  );
-  border: var(
-    --os-handle-border-active,
-    var(--os-handle-border-hover, var(--os-handle-border, none))
-  );
-}
-
-.os-scrollbar-horizontal {
-  height: var(--os-size);
-  left: 0;
-  right: 0;
-  bottom: 0;
-}
-
-.os-scrollbar-vertical {
-  width: var(--os-size);
-  top: 0;
-  bottom: 0;
-  right: 0;
-}
-
-.os-scrollbar-horizontal .os-scrollbar-handle {
-  min-width: var(--os-handle-min-size);
-  max-width: var(--os-handle-max-size, none);
-  height: var(--os-handle-perpendicular-size, 100%);
-}
-
-.os-scrollbar-vertical .os-scrollbar-handle {
-  min-height: var(--os-handle-min-size);
-  max-height: var(--os-handle-max-size, none);
-  width: var(--os-handle-perpendicular-size, 100%);
-}
-
-.os-scrollbar-horizontal:hover .os-scrollbar-handle {
-  height: var(
-    --os-handle-perpendicular-size-hover,
-    var(--os-handle-perpendicular-size, 100%)
-  );
-}
-
-.os-scrollbar-vertical:hover .os-scrollbar-handle {
-  width: var(
-    --os-handle-perpendicular-size-hover,
-    var(--os-handle-perpendicular-size, 100%)
-  );
-}
-
-.os-scrollbar-horizontal:active .os-scrollbar-handle {
-  height: var(
-    --os-handle-perpendicular-size-active,
-    var(
-      --os-handle-perpendicular-size-hover,
-      var(--os-handle-perpendicular-size, 100%)
-    )
-  );
-}
-
-.os-scrollbar-vertical:active .os-scrollbar-handle {
-  width: var(
-    --os-handle-perpendicular-size-active,
-    var(
-      --os-handle-perpendicular-size-hover,
-      var(--os-handle-perpendicular-size, 100%)
-    )
-  );
-}
 
 /* Host element styles */
 [data-overlayscrollbars-host] {
@@ -344,21 +138,6 @@ div {
   display: none !important;
   width: 0 !important;
   height: 0 !important;
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .os-theme-custom-app {
-    --os-size: 0.5rem;
-    --os-handle-min-size: 1.5rem;
-  }
-}
-
-/* Dark theme adjustments */
-.dark .os-theme-custom-app {
-  --os-handle-bg: var(--color-border);
-  --os-handle-bg-hover: var(--color-text-secondary);
-  --os-handle-bg-active: var(--color-text-primary);
 }
 
 .prose p {

@@ -12,13 +12,16 @@
     unlockBodyScroll,
   } from '../composables/scroll-freezer.js'
   import FloatingPanelContent from '@/components/displays/floating-panel/FloatingPanelContent.svelte'
+  import ApiKeySetupPrompt from '@/components/ui/ApiKeySetupPrompt.svelte'
   import { settings } from '@/stores/settingsStore.svelte.js'
+  import { useApiKeyValidation } from '../composables/useApiKeyValidation.svelte.js'
 
   let { visible, onclose } = $props()
 
   const summarization = useSummarization()
   const panelState = useFloatingPanelState()
   const navigationManager = useNavigationManager()
+  const { needsApiKeySetup } = useApiKeyValidation()
   let unsubscribeNavigation = null
 
   let summaryToDisplay = $derived(summarization.summaryToDisplay())
@@ -233,10 +236,6 @@
     }
   }
 
-  function openSettings() {
-    browser.runtime.sendMessage({ type: 'OPEN_SETTINGS' })
-  }
-
   function openArchive() {
     browser.runtime.sendMessage({ type: 'OPEN_ARCHIVE' })
   }
@@ -308,39 +307,46 @@
           >
             <Icon width={28} icon="heroicons:cog-6-tooth" />
           </button>
-          <SummarizeButton
-            isLoading={statusToDisplay === 'loading'}
-            isChapterLoading={false}
-          />
+          {#if !needsApiKeySetup()()}
+            <SummarizeButton
+              isLoading={statusToDisplay === 'loading'}
+              isChapterLoading={false}
+            />
+          {/if}
         </div>
         <div
           class="top-stripes border-t border-b border-border flex justify-center items-center w-full h-full"
         ></div>
       </div>
       <div class="py-8">
-        <FloatingPanelContent
-          status={summarization.localSummaryState().isLoading
-            ? 'loading'
-            : summarization.localSummaryState().error
-              ? 'error'
-              : ''}
-          summary={summarization.localSummaryState().summary}
-          error={summarization.localSummaryState().error}
-          contentType={summarization.localSummaryState().isYouTubeVideoActive
-            ? 'youtube'
-            : summarization.localSummaryState().contentType}
-          chapterSummary={summarization.localSummaryState().chapterSummary}
-          isChapterLoading={summarization.localSummaryState().isChapterLoading}
-          courseConcepts={summarization.localSummaryState().courseConcepts}
-          isCourseSummaryLoading={summarization.localSummaryState().isLoading}
-          isCourseConceptsLoading={summarization.localSummaryState()
-            .isCourseConceptsLoading}
-          activeYouTubeTab={panelState.activeYouTubeTab()}
-          activeCourseTab={panelState.activeCourseTab()}
-          onSelectYouTubeTab={panelState.setActiveYouTubeTab}
-          onSelectCourseTab={panelState.setActiveCourseTab}
-          {summarization}
-        />
+        {#if needsApiKeySetup()()}
+          <ApiKeySetupPrompt />
+        {:else}
+          <FloatingPanelContent
+            status={summarization.localSummaryState().isLoading
+              ? 'loading'
+              : summarization.localSummaryState().error
+                ? 'error'
+                : ''}
+            summary={summarization.localSummaryState().summary}
+            error={summarization.localSummaryState().error}
+            contentType={summarization.localSummaryState().isYouTubeVideoActive
+              ? 'youtube'
+              : summarization.localSummaryState().contentType}
+            chapterSummary={summarization.localSummaryState().chapterSummary}
+            isChapterLoading={summarization.localSummaryState()
+              .isChapterLoading}
+            courseConcepts={summarization.localSummaryState().courseConcepts}
+            isCourseSummaryLoading={summarization.localSummaryState().isLoading}
+            isCourseConceptsLoading={summarization.localSummaryState()
+              .isCourseConceptsLoading}
+            activeYouTubeTab={panelState.activeYouTubeTab()}
+            activeCourseTab={panelState.activeCourseTab()}
+            onSelectYouTubeTab={panelState.setActiveYouTubeTab}
+            onSelectCourseTab={panelState.setActiveCourseTab}
+            {summarization}
+          />
+        {/if}
       </div>
     </div>
     <div

@@ -9,6 +9,8 @@
   import { useSummarization } from '../composables/useSummarization.svelte.js'
   import { useFloatingPanelState } from '../composables/useFloatingPanelState.svelte.js'
   import { settings } from '@/stores/settingsStore.svelte.js'
+  import { useApiKeyValidation } from '../composables/useApiKeyValidation.svelte.js'
+  import ApiKeySetupPrompt from '@/components/ui/ApiKeySetupPrompt.svelte'
 
   // Reactive variable for panel position
   let panelPosition = $derived(settings.floatingPanelLeft ? 'left' : 'right')
@@ -23,6 +25,7 @@
   let currentWidthPx = $state(emToPx(settings.sidePanelDefaultWidth)) // Default width in px
   let showElement = $state(false) // Internal state để control DOM rendering
   const navigationManager = useNavigationManager()
+  const { needsApiKeySetup } = useApiKeyValidation()
   let unsubscribeNavigation = null
 
   async function requestSummary() {
@@ -301,34 +304,42 @@
           >
             <Icon width={24} icon="heroicons:cog-6-tooth" />
           </button>
-          <SummarizeButton
-            isLoading={summarization.localSummaryState().isLoading}
-            isChapterLoading={summarization.localSummaryState()
-              .isChapterLoading}
-          />
+          {#if !needsApiKeySetup()()}
+            <SummarizeButton
+              isLoading={summarization.localSummaryState().isLoading}
+              isChapterLoading={summarization.localSummaryState()
+                .isChapterLoading}
+            />
+          {/if}
         </div>
         <div
           class="top-stripes border-t border-b border-border flex justify-center items-center w-full h-full"
         ></div>
       </div>
 
-      <FloatingPanelContent
-        status={statusToDisplay}
-        summary={summaryToDisplay}
-        error={summarization.localSummaryState().error}
-        contentType={summarization.localSummaryState().contentType}
-        chapterSummary={summarization.localSummaryState().chapterSummary}
-        isChapterLoading={summarization.localSummaryState().isChapterLoading}
-        courseConcepts={summarization.localSummaryState().courseConcepts}
-        isCourseSummaryLoading={summarization.localSummaryState().isLoading}
-        isCourseConceptsLoading={summarization.localSummaryState()
-          .isCourseConceptsLoading}
-        activeYouTubeTab={panelState.activeYouTubeTab()}
-        activeCourseTab={panelState.activeCourseTab()}
-        onSelectYouTubeTab={panelState.setActiveYouTubeTab}
-        onSelectCourseTab={panelState.setActiveCourseTab}
-        {summarization}
-      />
+      {#if needsApiKeySetup()()}
+        <div class="px-4">
+          <ApiKeySetupPrompt />
+        </div>
+      {:else}
+        <FloatingPanelContent
+          status={statusToDisplay}
+          summary={summaryToDisplay}
+          error={summarization.localSummaryState().error}
+          contentType={summarization.localSummaryState().contentType}
+          chapterSummary={summarization.localSummaryState().chapterSummary}
+          isChapterLoading={summarization.localSummaryState().isChapterLoading}
+          courseConcepts={summarization.localSummaryState().courseConcepts}
+          isCourseSummaryLoading={summarization.localSummaryState().isLoading}
+          isCourseConceptsLoading={summarization.localSummaryState()
+            .isCourseConceptsLoading}
+          activeYouTubeTab={panelState.activeYouTubeTab()}
+          activeCourseTab={panelState.activeCourseTab()}
+          onSelectYouTubeTab={panelState.setActiveYouTubeTab}
+          onSelectCourseTab={panelState.setActiveCourseTab}
+          {summarization}
+        />
+      {/if}
 
       {#if children?.settingsMini}
         {@render children.settingsMini()}
@@ -352,7 +363,7 @@
     color: var(--color-text-primary);
     border-left: 1px solid var(--color-border);
     border-right: 1px solid var(--color-border);
-    transition: transform 0.4s cubic-bezier(0.71, 0.71, 0.25, 1);
+    transition: transform 0.4s cubic-bezier(0.4, 0.71, 0.45, 1);
     box-sizing: border-box;
   }
 
@@ -364,14 +375,6 @@
   .floating-panel.left {
     left: 0;
     transform: translateX(-100%);
-  }
-
-  .floating-panel.right.visible {
-    transform: translateX(0);
-  }
-
-  .floating-panel.left.visible {
-    transform: translateX(0);
   }
 
   /* Resize Handle */

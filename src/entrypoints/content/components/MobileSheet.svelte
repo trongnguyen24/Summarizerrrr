@@ -391,12 +391,6 @@
 />
 
 <style>
-  /* Custom transition for drawer and backdrop */
-  .drawer-panel,
-  .drawer-backdrop {
-    /* Transitions are now handled by Anime.js */
-  }
-
   /* Ngăn chặn touch actions mặc định trên drag handle */
   .drag-handle {
     touch-action: none;

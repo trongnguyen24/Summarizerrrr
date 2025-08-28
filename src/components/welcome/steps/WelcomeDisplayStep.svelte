@@ -64,20 +64,20 @@
 <div
   class="welcome-display-step w-full flex flex-col justify-center items-center"
 >
-  <h2 class="text-lg font-bold text-center mb-2">
+  <h2 class="text-lg font-bold text-center text-text-primary mb-2">
     {$t('welcome.setup_display_title')}
   </h2>
   <p class="text-center text-xs text-text-secondary mb-6">
     {$t('welcome.setup_display_desc')}
   </p>
 
-  <div class="w-full font-mono text-xs max-w-sm space-y-6">
+  <div class="w-full font-mono max-w-sm space-y-6">
     <!-- Theme Selection -->
     <div>
-      <h3 class=" font-medium text-text-secondary mb-2">
+      <h3 class=" font-medium text-xs text-text-secondary mb-2">
         {$t('welcome.theme_selection')}
       </h3>
-      <div class="flex justify-between gap-2">
+      <div class="flex gap-2">
         {#each themeOptions as theme}
           <ButtonIcon
             title={$t(theme.labelKey)}
@@ -92,10 +92,10 @@
 
     <!-- Font Selection -->
     <div>
-      <h3 class=" font-medium text-text-secondary mb-2">
+      <h3 class=" font-medium text-xs text-text-secondary mb-2">
         {$t('welcome.font_selection')}
       </h3>
-      <div class="grid grid-cols-1 gap-2">
+      <div class="grid grid-cols-2 gap-2">
         {#each fontOptions as font}
           <ButtonFont
             title={$t(font.labelKey)}

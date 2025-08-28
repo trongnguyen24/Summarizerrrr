@@ -4,7 +4,7 @@
 </script>
 
 <div
-  class="step-indicator sticky top-0 pt-4 flex justify-center items-center space-x-2"
+  class="step-indicator sticky top-0 pt-2 flex justify-center items-center space-x-1"
 >
   {#each { length: totalSteps } as _, i}
     {@const step = i + 1}
@@ -14,8 +14,7 @@
       class:in-progress={step !== currentStep}
       class:complaete={step < currentStep}
     >
-      <span
-        class=" w-1.5 h-4 transition-all rounded-2xl duration-300 ease-in-out"
+      <span class=" w-1 h-3 transition-all rounded-2xl duration-300 ease-in-out"
       ></span>
     </div>
   {/each}

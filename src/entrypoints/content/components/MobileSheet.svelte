@@ -15,6 +15,7 @@
   import ApiKeySetupPrompt from '@/components/ui/ApiKeySetupPrompt.svelte'
   import { settings } from '@/stores/settingsStore.svelte.js'
   import { useApiKeyValidation } from '../composables/useApiKeyValidation.svelte.js'
+  import { fade } from 'svelte/transition'
 
   let { visible, onclose } = $props()
 
@@ -266,7 +267,7 @@
   <!-- Drawer Panel -->
   <div
     bind:this={drawerPanel}
-    class="drawer-panel fixed bottom-0 left-0 right-0 border-t dark:border-surface-2 bg-surface-1 text-black rounded-t-2xl shadow-2xl flex flex-col"
+    class="drawer-panel fixed bottom-0 left-0 right-0 border-t border-surface-2 bg-surface-1 text-black rounded-t-2xl shadow-2xl flex flex-col"
     style="transform: translateY(calc(100% + 10vh)); height: {settings.mobileSheetHeight}svh;"
   >
     <!-- Drawer Header (Drag Handle)       onmousedown={onDragStart}
@@ -289,6 +290,33 @@
       onmousedown={onDragStart}
       ontouchstart={onDragStart}
     >
+      {#if !settings.hasCompletedOnboarding}
+        <div
+          class="absolute z-[10001] inset-0"
+          in:fade={{ duration: 300 }}
+          out:fade={{ duration: 300 }}
+        >
+          {#await import('@/components/welcome/WelcomeFlow.svelte')}
+            <div
+              class="welcome-loading-container absolute z-50 bg-surface-1 inset-0 flex items-center justify-center"
+            ></div>
+          {:then { default: WelcomeFlow }}
+            <div
+              class="absolute max-h-svh z-[99] inset-0 flex items-center justify-center"
+            >
+              <WelcomeFlow />
+            </div>
+          {:catch error}
+            <div
+              class="welcome-error-container absolute z-50 bg-surface-1 inset-0 flex items-center justify-center"
+            >
+              <p class="text-red-500">
+                Error loading welcome flow: {error.message}
+              </p>
+            </div>
+          {/await}
+        </div>
+      {/if}
       <div class="grid grid-rows-[10px_180px_10px_1fr] relative">
         <div
           class="top-stripes border-t border-b border-border flex justify-center items-center w-full h-full"

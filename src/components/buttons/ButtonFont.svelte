@@ -19,7 +19,7 @@
   <div
     class="relative overflow-hidden flex flex-col h-13 justify-center px-3 text-text-secondary text-left font-mono bg-muted/5 dark:bg-muted/5 border border-transparent hover:border-blackwhite/10 transition-colors duration-150"
   >
-    <div class="title leading-4">
+    <div class="title text-xs leading-4">
       {title}
     </div>
     <div

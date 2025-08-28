@@ -13,7 +13,7 @@
 </script>
 
 <div
-  class="absolute max-w-sm mx-auto bottom-8 px-4 left-0 right-0 flex justify-center gap-4"
+  class="absolute max-w-sm mx-auto bottom-4 left-4 right-4 flex justify-center gap-4"
 >
   <button
     class="font-mono text-sm w-16 shrink-0 flex justify-center items-center overflow-hidden relative text-text-primary"

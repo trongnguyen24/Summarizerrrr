@@ -9,7 +9,7 @@
 </script>
 
 <div
-  class="absolute inset-0 px-6 flex flex-col text-center w-full justify-center items-center gap-4"
+  class="flex flex-col text-center w-full justify-center items-center gap-4"
   in:fade={{ duration: 300 }}
   out:fade={{ duration: 200 }}
 >
@@ -40,7 +40,7 @@
     </div>
 
     <div class="flex flex-col gap-2 text-center">
-      <p class="text-sm text-text-secondary max-w-sm">
+      <p class="text-sm text-text-secondary text-balance max-w-sm">
         To get started please configure your API key in Settings.
       </p>
     </div>

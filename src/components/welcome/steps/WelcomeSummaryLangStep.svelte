@@ -22,17 +22,17 @@
 <div
   class="welcome-summary-lang-step max-w-sm mx-auto w-full flex flex-col justify-center items-center"
 >
-  <h2 class="text-lg font-bold text-center mb-2">
+  <h2 class="text-lg font-bold text-text-primary text-center mb-2">
     {$t('welcome.setup_summary_lang_title')}
   </h2>
   <p class="text-center text-xs text-text-secondary mb-6">
     {$t('welcome.setup_summary_lang_desc')}
   </p>
 
-  <div class="w-full font-mono text-xs max-w-sm space-y-6">
+  <div class="w-full font-mono max-w-sm space-y-6">
     <!-- Summary Language Selection -->
     <div>
-      <h3 class=" font-medium text-text-secondary mb-2">
+      <h3 class=" font-medium text-xs text-text-secondary mb-2">
         {$t('welcome.summary_language')}
       </h3>
       <LanguageSelect

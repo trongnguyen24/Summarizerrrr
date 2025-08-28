@@ -318,7 +318,7 @@
       </div>
 
       {#if needsApiKeySetup()()}
-        <div class="px-4">
+        <div class="px-4 pt-8">
           <ApiKeySetupPrompt />
         </div>
       {:else}

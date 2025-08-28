@@ -109,7 +109,7 @@
 <div class="welcome-flow-container absolute z-50 bg-surface-1 inset-0">
   <StepIndicator {currentStep} totalSteps={3} />
 
-  <div class="grid items-center px-4 py-12 h-full">
+  <div class="grid items-center px-4 pt-0 pb-16 h-full">
     {#if currentStep === STEPS.LANGUAGE}
       <span
         class="col-start-1 row-start-1"

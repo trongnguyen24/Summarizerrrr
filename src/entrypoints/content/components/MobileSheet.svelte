@@ -240,6 +240,9 @@
   function openArchive() {
     browser.runtime.sendMessage({ type: 'OPEN_ARCHIVE' })
   }
+  function openSettings() {
+    browser.runtime.sendMessage({ type: 'OPEN_SETTINGS' })
+  }
 
   function handleSummarizeClick() {
     summarization.summarizePageContent()

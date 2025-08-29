@@ -159,10 +159,7 @@ export default defineBackground(() => {
   // 6. Install/Update listener
   browser.runtime.onInstalled.addListener(installUpdateHandler)
 
-  // 7. Firefox specific browser action listener
-  if (import.meta.env.BROWSER === 'firefox') {
-    browser.browserAction.onClicked.addListener(firefoxBrowserActionHandler)
-  }
+  // 7. Firefox specific browser action listener - Removed to avoid conflict with main actionClickHandler
 
   // 8. Chrome/Firefox action click listener
   ;(import.meta.env.BROWSER === 'chrome'
@@ -836,9 +833,18 @@ export default defineBackground(() => {
     const sidePanelSupported = await isSidePanelSupported()
 
     if (!sidePanelSupported) {
-      // Fallback: Mở trang settings trong tab mới khi không hỗ trợ sidepanel
-      const url = browser.runtime.getURL('settings.html')
-      await browser.tabs.create({ url, active: true })
+      // Trên mobile Firefox, mở popup trong tab mới
+      if (isMobileBrowser && import.meta.env.BROWSER === 'firefox') {
+        const url = browser.runtime.getURL('popup.html')
+        await browser.tabs.create({ url, active: true })
+        return
+      }
+      // Trên Chrome mobile, không làm gì để cho popup tự nhiên mở
+      // Trên desktop không hỗ trợ sidepanel, mở settings trong tab mới
+      if (!isMobileBrowser) {
+        const url = browser.runtime.getURL('settings.html')
+        await browser.tabs.create({ url, active: true })
+      }
       return
     }
 

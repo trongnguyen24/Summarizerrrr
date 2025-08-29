@@ -25,6 +25,7 @@ export default defineConfig({
         ],
         action: {
           default_title: 'Click to Open Summarizerrrr',
+          default_popup: 'popup.html',
         },
         side_panel: {
           default_path: 'sidepanel.html',

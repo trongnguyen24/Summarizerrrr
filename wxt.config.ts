@@ -26,9 +26,8 @@ export default defineConfig({
         action: {
           default_title: 'Click to Open Summarizerrrr',
         },
-        page_action: {
-          default_popup: 'prompt.html',
-          default_title: 'Summarizerrrr Prompt',
+        side_panel: {
+          default_path: 'sidepanel.html',
         },
         content_scripts: [
           {
@@ -75,7 +74,13 @@ export default defineConfig({
       }
     } else if (browser === 'firefox') {
       return {
-        permissions: ['storage', 'tabs', '<all_urls>', 'contextMenus'],
+        permissions: [
+          'storage',
+          'tabs',
+          '<all_urls>',
+          'contextMenus',
+          'scripting',
+        ],
         action: {
           default_icon: 'icon/48.png',
           default_title: 'Open Summarizerrrr',

@@ -829,47 +829,14 @@ export default defineBackground(() => {
   async function actionClickHandler(tab) {
     if (!tab.id || !tab.url) return
 
-    // Logic cho Edge Mobile
-    if (navigator.userAgentData) {
-      const brands = navigator.userAgentData.brands
-      const isMobile = navigator.userAgentData.mobile
-      const isEdge = brands.some((brand) => brand.brand === 'Microsoft Edge')
-
-      if (isEdge && isMobile) {
-        chrome.windows.create({
-          url: 'popup.html',
-          type: 'popup',
-          width: 400,
-          height: 600,
-        })
-        return // Dừng thực thi để không chạy logic khác
-      }
-    } else {
-      // Fallback cho trình duyệt cũ
-      const ua = navigator.userAgent
-      if (ua.includes('Edg/') && ua.includes('Mobile')) {
-        chrome.windows.create({
-          url: 'popup.html',
-          type: 'popup',
-          width: 400,
-          height: 600,
-        })
-        return // Dừng thực thi
-      }
-    }
-
     // Kiểm tra xem sidepanel/sidebar có được hỗ trợ không
     const sidePanelSupported = await isSidePanelSupported()
 
     if (!sidePanelSupported) {
-      // Trên mobile Firefox, mở popup.html trong một cửa sổ popup
+      // Trên mobile Firefox, mở popup trong tab mới
       if (isMobileBrowser && import.meta.env.BROWSER === 'firefox') {
-        chrome.windows.create({
-          url: 'popup.html',
-          type: 'popup',
-          width: 400,
-          height: 600,
-        })
+        const url = browser.runtime.getURL('popup.html')
+        await browser.tabs.create({ url, active: true })
         return
       }
       // Trên Chrome mobile, không làm gì để cho popup tự nhiên mở

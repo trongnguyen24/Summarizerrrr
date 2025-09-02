@@ -113,22 +113,25 @@ export default defineBackground(() => {
   let sidePanelPort = null
   let pendingSelectedText = null
 
-  ;(async function init() {
-    try {
-      const info = await browser.runtime.getPlatformInfo()
-      const isAndroid = info.os === 'android'
+  if (import.meta.env.BROWSER === 'firefox') {
+    ;(async function init() {
+      try {
+        const info = await browser.runtime.getPlatformInfo()
+        const isAndroid = info.os === 'android'
 
-      if (isAndroid) {
-        // Android: dùng popup
-        await browser.browserAction.setPopup({ popup: 'popop.html' })
-      } else {
-        // Desktop: tắt popup => click icon sẽ gọi onClicked
-        await browser.browserAction.setPopup({ popup: '' })
+        if (isAndroid) {
+          // Android: dùng popup
+          await browser.browserAction.setPopup({ popup: 'popop.html' })
+        } else {
+          // Desktop: tắt popup => click icon sẽ gọi onClicked
+          await browser.browserAction.setPopup({ popup: '' })
+        }
+      } catch (e) {
+        console.warn('setPopup failed:', e)
       }
-    } catch (e) {
-      console.warn('setPopup failed:', e)
-    }
-  })()
+    })()
+  }
+
   // Detect if running on any mobile browser
 
   const userAgent = window.navigator.userAgent

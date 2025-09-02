@@ -22,7 +22,7 @@ declare module "wxt/browser" {
     | "/icon/64.png"
     | "/icon/96.png"
     | "/libs/protobuf.min.js"
-    | "/popup.html"
+    | "/popop.html"
     | "/prompt.html"
     | "/settings.html"
     | "/sidepanel.html"

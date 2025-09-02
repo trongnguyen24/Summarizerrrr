@@ -113,6 +113,23 @@ export default defineBackground(() => {
   let sidePanelPort = null
   let pendingSelectedText = null
 
+  ;(async function init() {
+    try {
+      const info = await browser.runtime.getPlatformInfo()
+      const isAndroid = info.os === 'android'
+
+      if (isAndroid) {
+        // Android: dùng popup
+        await browser.browserAction.setPopup({ popup: 'popop.html' })
+      } else {
+        // Desktop: tắt popup => click icon sẽ gọi onClicked
+        await browser.browserAction.setPopup({ popup: '' })
+      }
+    } catch (e) {
+      console.warn('setPopup failed:', e)
+    }
+  })()
+
   // Detect if running on any mobile browser
   const isMobileBrowser =
     typeof navigator !== 'undefined' &&
@@ -820,26 +837,28 @@ export default defineBackground(() => {
     }
   }
 
-  // Firefox browser action handler
-  function firefoxBrowserActionHandler() {
-    browser.sidebarAction.toggle()
-  }
-
   // Main action click handler
   async function actionClickHandler(tab) {
     if (!tab.id || !tab.url) return
+
+    // Chrome mobile: mở popup window
+    if (import.meta.env.BROWSER === 'chrome' && isMobileBrowser) {
+      browser.windows.create({
+        url: browser.runtime.getURL('popop.html'),
+        type: 'popup',
+        width: 400,
+        height: 600,
+      })
+      return
+    }
+
+    // Firefox Android đã được setup popup trong init, không cần xử lý thêm
+    // Chỉ cần xử lý desktop logic
 
     // Kiểm tra xem sidepanel/sidebar có được hỗ trợ không
     const sidePanelSupported = await isSidePanelSupported()
 
     if (!sidePanelSupported) {
-      // Trên mobile Firefox, mở popup trong tab mới
-      if (isMobileBrowser && import.meta.env.BROWSER === 'firefox') {
-        const url = browser.runtime.getURL('popup.html')
-        await browser.tabs.create({ url, active: true })
-        return
-      }
-      // Trên Chrome mobile, không làm gì để cho popup tự nhiên mở
       // Trên desktop không hỗ trợ sidepanel, mở settings trong tab mới
       if (!isMobileBrowser) {
         const url = browser.runtime.getURL('settings.html')
@@ -848,7 +867,7 @@ export default defineBackground(() => {
       return
     }
 
-    // Logic hiện tại khi sidepanel được hỗ trợ
+    // Logic hiện tại khi sidepanel được hỗ trợ (Desktop)
     const isYouTube = YOUTUBE_REGEX.test(tab.url)
     const isUdemy = UDEMY_REGEX.test(tab.url)
     const isCoursera = COURSERA_REGEX.test(tab.url)
@@ -878,8 +897,13 @@ export default defineBackground(() => {
 
   // Logic khởi tạo cho Chrome
   if (import.meta.env.BROWSER === 'chrome') {
-    chrome.sidePanel
-      .setPanelBehavior({ openPanelOnActionClick: true })
-      .catch((error) => {})
+    chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true })
+  } else if (import.meta.env.BROWSER === 'firefox') {
+    // background.js
+
+    // Desktop: click icon => mở sidebar
+    browser.browserAction.onClicked.addListener(async () => {
+      browser.sidebarAction.toggle()
+    })
   }
 })

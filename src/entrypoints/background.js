@@ -129,14 +129,13 @@ export default defineBackground(() => {
       console.warn('setPopup failed:', e)
     }
   })()
-
   // Detect if running on any mobile browser
+
+  const userAgent = window.navigator.userAgent
   const isMobileBrowser =
-    typeof navigator !== 'undefined' &&
-    (navigator.userAgent.includes('Mobile') ||
-      navigator.userAgent.includes('Android') ||
-      navigator.userAgent.includes('iPhone') ||
-      navigator.userAgent.includes('iPad'))
+    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+      userAgent
+    )
 
   // Detect specific mobile browsers
   const isFirefoxMobile =
@@ -841,17 +840,6 @@ export default defineBackground(() => {
   async function actionClickHandler(tab) {
     if (!tab.id || !tab.url) return
 
-    // Chrome mobile: mở popup window
-    if (import.meta.env.BROWSER === 'chrome' && isMobileBrowser) {
-      browser.windows.create({
-        url: browser.runtime.getURL('popop.html'),
-        type: 'popup',
-        width: 400,
-        height: 600,
-      })
-      return
-    }
-
     // Firefox Android đã được setup popup trong init, không cần xử lý thêm
     // Chỉ cần xử lý desktop logic
 
@@ -898,6 +886,17 @@ export default defineBackground(() => {
   // Logic khởi tạo cho Chrome
   if (import.meta.env.BROWSER === 'chrome') {
     chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true })
+
+    // Chrome mobile: mở popup window
+    if (isMobileBrowser) {
+      browser.windows.create({
+        url: browser.runtime.getURL('popop.html'),
+        type: 'popup',
+        width: 400,
+        height: 600,
+      })
+      return
+    }
   } else if (import.meta.env.BROWSER === 'firefox') {
     // background.js
 

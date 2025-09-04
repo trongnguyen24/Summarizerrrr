@@ -10,6 +10,9 @@ const DEFAULT_THEME_SETTINGS = {
 export let themeSettings = $state({ ...DEFAULT_THEME_SETTINGS })
 let _isThemeInitializedPromise = null
 
+// --- Theme Change Event System ---
+const THEME_CHANGE_EVENT = 'theme-immediate-change'
+
 // --- Actions ---
 
 /**
@@ -158,8 +161,17 @@ export function initializeShadowTheme(shadowContainer) {
  */
 export function setTheme(themeValue) {
   updateThemeSettings({ theme: themeValue })
-  // The watcher will call applyThemeToDocument
+  // Apply theme to main document immediately
   applyThemeToDocument(themeValue)
+
+  // Dispatch immediate theme change event for shadow DOM containers
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(
+      new CustomEvent(THEME_CHANGE_EVENT, {
+        detail: { theme: themeValue },
+      })
+    )
+  }
 }
 
 /**
@@ -167,13 +179,31 @@ export function setTheme(themeValue) {
  * @param {Element} shadowContainer - The shadow DOM container element
  */
 export function subscribeToShadowThemeChanges(shadowContainer) {
-  return themeStorage.watch((newValue) => {
+  // Storage watcher for changes from other contexts
+  const storageUnsubscribe = themeStorage.watch((newValue) => {
     if (JSON.stringify(newValue) !== JSON.stringify(themeSettings)) {
       const mergedSettings = { ...DEFAULT_THEME_SETTINGS, ...newValue }
       Object.assign(themeSettings, mergedSettings)
       applyShadowTheme(mergedSettings.theme, shadowContainer)
     }
   })
+
+  // Immediate theme change listener for same-context changes
+  const immediateChangeHandler = (event) => {
+    applyShadowTheme(event.detail.theme, shadowContainer)
+  }
+
+  if (typeof window !== 'undefined') {
+    window.addEventListener(THEME_CHANGE_EVENT, immediateChangeHandler)
+  }
+
+  // Return cleanup function
+  return () => {
+    if (storageUnsubscribe) storageUnsubscribe()
+    if (typeof window !== 'undefined') {
+      window.removeEventListener(THEME_CHANGE_EVENT, immediateChangeHandler)
+    }
+  }
 }
 
 /**
@@ -186,6 +216,12 @@ export function subscribeToSystemThemeChanges() {
   const listener = () => {
     if (themeSettings.theme === 'system') {
       applyThemeToDocument('system')
+      // Also dispatch event for shadow DOM containers
+      window.dispatchEvent(
+        new CustomEvent(THEME_CHANGE_EVENT, {
+          detail: { theme: 'system' },
+        })
+      )
     }
   }
   mediaQuery.addEventListener('change', listener)

@@ -11,8 +11,6 @@
   import {
     themeSettings,
     loadThemeSettings,
-    initializeShadowTheme,
-    subscribeToShadowSystemThemeChanges,
   } from '@/stores/themeStore.svelte.js'
   import { slideScaleFade } from '@/lib/ui/slideScaleFade'
   import { summaryState } from '../../stores/summaryStore.svelte.js'
@@ -41,8 +39,8 @@
   // Initialize shadow theme when component mounts
   $effect(() => {
     if (shadowContainer) {
-      initializeShadowTheme(shadowContainer)
-      subscribeToShadowSystemThemeChanges(shadowContainer)
+      // Just load the theme settings, direct application is handled by $effect below
+      loadThemeSettings()
     }
   })
 
@@ -68,6 +66,29 @@
     }
   })
 
+  // Apply theme based on themeSettings to shadow DOM
+  $effect(() => {
+    if (shadowContainer && themeSettings.theme !== undefined) {
+      const apply = (theme) => {
+        if (theme === 'dark') {
+          shadowContainer.classList.add('dark')
+        } else {
+          shadowContainer.classList.remove('dark')
+        }
+      }
+
+      if (themeSettings.theme === 'system') {
+        const systemTheme = window.matchMedia('(prefers-color-scheme: dark)')
+          .matches
+          ? 'dark'
+          : 'light'
+        apply(systemTheme)
+      } else {
+        apply(themeSettings.theme)
+      }
+    }
+  })
+
   onMount(() => {
     const checkMobile = () => {
       // Đặt threshold thấp hơn để ưu tiên sidepanel trên desktop/tablet
@@ -80,8 +101,23 @@
     navigationManager.startMonitoring()
     unsubscribeNavigation = navigationManager.subscribe(handleUrlChange)
 
+    // Listen for system theme changes to update shadow DOM
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+    const handleSystemThemeChange = () => {
+      if (shadowContainer && themeSettings.theme === 'system') {
+        const systemTheme = mediaQuery.matches ? 'dark' : 'light'
+        if (systemTheme === 'dark') {
+          shadowContainer.classList.add('dark')
+        } else {
+          shadowContainer.classList.remove('dark')
+        }
+      }
+    }
+    mediaQuery.addEventListener('change', handleSystemThemeChange)
+
     return () => {
       window.removeEventListener('resize', checkMobile)
+      mediaQuery.removeEventListener('change', handleSystemThemeChange)
       // Cleanup navigation monitoring
       if (unsubscribeNavigation) {
         unsubscribeNavigation()

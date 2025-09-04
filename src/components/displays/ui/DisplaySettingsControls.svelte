@@ -54,9 +54,9 @@
   }
 </script>
 
-<div class="absolute text-base flex gap-2 top-4 right-2">
+<div class="absolute text-base flex gap-2 top-3 md:top-4 right-2">
   <button
-    class="size-8 flex justify-center items-center hover:bg-blackwhite/5 rounded-2xl"
+    class=" size-10 md:size-8 flex justify-center items-center hover:bg-blackwhite/5 rounded-3xl"
     onclick={toggleTheme}
     title={$t('archive.change_theme')}
   >
@@ -70,7 +70,7 @@
   </button>
 
   <button
-    class=" size-8 font-mono flex justify-center items-center hover:bg-blackwhite/5 rounded-2xl"
+    class="size-10 md:size-8 font-mono flex justify-center items-center hover:bg-blackwhite/5 rounded-3xl"
     onclick={decreaseFontSize}
     disabled={settings.fontSizeIndex === 0}
     title={$t('archive.font_dec')}
@@ -78,7 +78,7 @@
     A-
   </button>
   <button
-    class=" size-8 flex font-mono justify-center items-center hover:bg-blackwhite/5 rounded-2xl"
+    class="size-10 md:size-8 flex font-mono justify-center items-center hover:bg-blackwhite/5 rounded-3xl"
     onclick={increaseFontSize}
     disabled={settings.fontSizeIndex === fontSizeClasses.length - 1}
     title={$t('archive.font_inc')}
@@ -86,14 +86,14 @@
     A+
   </button>
   <button
-    class=" size-8 flex justify-center items-center hover:bg-blackwhite/5 rounded-2xl"
+    class="size-10 md:size-8 flex justify-center items-center hover:bg-blackwhite/5 rounded-3xl"
     onclick={toggleFontFamily}
     title={$t('archive.change_font')}
   >
     aA
   </button>
   <button
-    class=" hidden sm:flex size-8 pt-1.5 relative text-xl justify-center items-center hover:bg-blackwhite/5 rounded-2xl"
+    class=" hidden sm:flex size-10 md:size-8 pt-1.5 relative text-xl justify-center items-center hover:bg-blackwhite/5 rounded-3xl"
     onclick={toggleWidth}
     title={$t('archive.toggle_width')}
   >

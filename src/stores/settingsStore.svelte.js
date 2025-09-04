@@ -34,7 +34,7 @@ const DEFAULT_SETTINGS = {
   selectedFont: 'default',
   enableStreaming: true,
   uiLang: 'en',
-  mobileSheetHeight: 65, // Chiều cao MobileSheet (40-100 svh)
+  mobileSheetHeight: 80, // Chiều cao MobileSheet (40-100 svh)
   mobileSheetBackdropOpacity: true, // Enable backdrop opacity for MobileSheet
   fontSizeIndex: 2, // Default to prose-lg
   widthIndex: 1, // Default to max-w-3xl
@@ -47,7 +47,7 @@ const DEFAULT_SETTINGS = {
   // Summary
   summaryLength: 'long',
   summaryFormat: 'heading',
-  summaryLang: 'Vietnamese',
+  summaryLang: 'English',
   summaryTone: 'simple',
   isSummaryAdvancedMode: false,
 

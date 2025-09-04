@@ -144,7 +144,7 @@
   {/if}
 
   <button
-    class="fixed top-4 left-4 sm:left-7 md:left-10 translate-x-0.5 z-50 hover:bg-blackwhite/5 rounded-4xl p-1"
+    class="fixed top-3 left-3 sm:left-6 md:left-9 translate-x-0.5 z-50 md:hover:bg-blackwhite/5 overflow-hidden rounded-4xl p-2"
     onclick={toggleSidePanel}
   >
     {#if isSidePanelVisible}
@@ -156,6 +156,8 @@
         height="24"
       />
     {/if}
+    <span class=" -z-10 absolute -inset-2 bg-blackwhite-5 backdrop-blur-sm"
+    ></span>
   </button>
 
   <!-- Left Column: Prompt Menu -->

@@ -6,6 +6,7 @@
   import svelte from 'highlightjs-svelte'
   svelte(hljs)
   import TOC from '@/components/navigation/TOCArchive.svelte'
+  import TOCMobile from '@/components/navigation/TOCMobile.svelte'
   import TabNavigation from '@/components/navigation/TabNavigation.svelte'
   import FoooterDisplay from '@/components/displays/ui/FoooterDisplay.svelte'
   import SaveToArchiveFromHistoryButton from '@/components/buttons/SaveToArchiveFromHistoryButton.svelte'
@@ -84,6 +85,13 @@
 
   function onSelectTab(tabId) {
     activeTabId = tabId
+  }
+  function isTouchDevice() {
+    return (
+      'ontouchstart' in window ||
+      navigator.maxTouchPoints > 0 ||
+      navigator.msMaxTouchPoints > 0
+    )
   }
 </script>
 
@@ -184,7 +192,11 @@
       </div>
     </div>
   </div>
-  <TOC targetDivId="summary-content" />
+  {#if isTouchDevice()}
+    <TOCMobile targetDivId="summary-content" />
+  {:else}
+    <TOC targetDivId="summary-content" />
+  {/if}
   {@const currentSummary = selectedSummary.summaries.find(
     (_, index) => `summary-tab-${index}` === activeTabId
   )}

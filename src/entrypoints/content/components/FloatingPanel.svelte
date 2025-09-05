@@ -314,7 +314,7 @@
       aria-label="Close"
       ><Icon icon="heroicons:arrow-long-right" width="24" height="24" /></button
     >
-    <div class="w-full h-full py-8 overflow-y-auto">
+    <div id="shadow-scroll" class="w-full h-full py-8 overflow-y-auto">
       <div class="grid grid-rows-[10px_180px_10px_1fr] relative">
         <div
           class="top-stripes border-t border-b border-border flex justify-center items-center w-full h-full"

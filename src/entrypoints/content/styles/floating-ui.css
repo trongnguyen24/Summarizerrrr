@@ -153,3 +153,18 @@ div {
 .prose li {
   padding-inline-start: 0;
 }
+
+/* Dành cho các trình duyệt dựa trên WebKit (Google Chrome, Safari, Microsoft Edge) */
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Dành cho Firefox */
+.hide-scrollbar {
+  scrollbar-width: none;
+}
+
+/* Dành cho Internet Explorer và các phiên bản Edge cũ hơn (tùy chọn) */
+.hide-scrollbar {
+  -ms-overflow-style: none;
+}

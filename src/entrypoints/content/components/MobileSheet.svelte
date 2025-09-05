@@ -270,7 +270,7 @@
   <!-- Drawer Panel -->
   <div
     bind:this={drawerPanel}
-    class="drawer-panel fixed bottom-0 left-0 right-0 border-t border-surface-2 bg-surface-1 text-black rounded-t-2xl shadow-2xl flex flex-col"
+    class="drawer-panel fixed bottom-0 left-0 right-0 border-t border-surface-2 bg-surface-1 text-black rounded-t-3xl shadow-2xl flex flex-col"
     style="transform: translateY(calc(100% + 10vh)); height: {settings.mobileSheetHeight}svh;"
   >
     <!-- Drawer Header (Drag Handle)       onmousedown={onDragStart}
@@ -289,6 +289,7 @@
     <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div
       bind:this={drawerContent}
+      id="shadow-scroll"
       class=" pb-4 flex-grow overflow-y-auto drawer-content relative"
       onmousedown={onDragStart}
       ontouchstart={onDragStart}

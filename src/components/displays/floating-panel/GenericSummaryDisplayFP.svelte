@@ -9,7 +9,7 @@
     isLoading,
     loadingText = 'Generating summary...',
     targetId = 'fp-generic-summary',
-    showTOC = false,
+    showTOC = true,
     noDataContent = null,
     summarization,
   } = $props()

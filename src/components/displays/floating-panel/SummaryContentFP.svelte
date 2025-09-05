@@ -3,6 +3,7 @@
   import { marked } from 'marked'
   import hljs from 'highlight.js'
   import 'highlight.js/styles/github-dark.css'
+  import TocMobile from '@/components/navigation/TOCMobile.svelte'
   import { settings } from '@/stores/settingsStore.svelte.js'
 
   let { summary, isLoading, targetId, showTOC = false, error } = $props()
@@ -36,13 +37,7 @@
 </script>
 
 <div id={targetId}>
-  {#if isLoading}
-    <div class="loading-skeleton">
-      <div class="skeleton-line"></div>
-      <div class="skeleton-line"></div>
-      <div class="skeleton-line"></div>
-    </div>
-  {:else if error}
+  {#if error}
     <div class="error-message">
       <h4>Error</h4>
       <p>{error.message || 'An unexpected error occurred.'}</p>
@@ -60,30 +55,13 @@
     <!-- <p>No summary available.</p> -->
   {/if}
 </div>
+{#if showTOC}
+  <TocMobile targetDivId={targetId} />
+{/if}
 
 <style>
   .prose {
     max-width: none;
-  }
-  .loading-skeleton {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-  }
-  .skeleton-line {
-    height: 1rem;
-    background-color: #e0e0e0;
-    border-radius: 4px;
-    animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-  }
-  .skeleton-line:nth-child(1) {
-    width: 90%;
-  }
-  .skeleton-line:nth-child(2) {
-    width: 100%;
-  }
-  .skeleton-line:nth-child(3) {
-    width: 60%;
   }
 
   .error-message {

@@ -30,18 +30,19 @@
       </h2>
 
       <p class="text-center sm:text-left text-muted">
-        Version {packageJson.version}
+        {$t('about.version')}
+        {packageJson.version}
       </p>
       <p class="text-pretty mt-4 text-text-secondary">
-        Summarize everything in 1 click, save time.<br /> Extension helps you
-        summarize for <b>YouTube, Udemy, Coursera, any websites</b>. Crafted
-        with superior UI/UX design.
+        {@html $t('about.description')}
       </p>
     </div>
   </div>
 
   <div>
-    <h3 class="font-semibold text-gray-900 dark:text-white">Key Features</h3>
+    <h3 class="font-semibold text-gray-900 dark:text-white">
+      {$t('about.key_features')}
+    </h3>
     <ul class=" mt-4 space-y-4">
       <li class="flex gap-4 items-start">
         <div class="size-16 shrink-0 overflow-hidden relative">
@@ -67,10 +68,9 @@
           />
         </div>
         <div>
-          <h4 class=" font-medium">Your data is yours</h4>
+          <h4 class=" font-medium">{$t('about.data_sovereignty_title')}</h4>
           <p class=" text-muted">
-            Your keys, your data, your control. For complete privacy - use a
-            local model through our integration with Ollama.
+            {$t('about.data_sovereignty_desc')}
           </p>
         </div>
       </li>
@@ -99,10 +99,9 @@
           />
         </div>
         <div>
-          <h4 class=" font-medium">Customizable</h4>
+          <h4 class=" font-medium">{$t('about.customizable_title')}</h4>
           <p class=" text-muted">
-            Provider, temperature, top P, length, format, languages, appearance,
-            sytem prompt and user prompt...
+            {$t('about.customizable_desc')}
           </p>
         </div>
       </li>
@@ -131,10 +130,9 @@
           />
         </div>
         <div>
-          <h4 class=" font-medium">Cross-Platform Compatibility</h4>
+          <h4 class=" font-medium">{$t('about.cross_platform_title')}</h4>
           <p class=" text-muted">
-            Desktop, Tablet, and Mobile. Work on Mobile browsers including
-            Firefox Android and Kiwi Browser.
+            {$t('about.cross_platform_desc')}
           </p>
         </div>
       </li>
@@ -144,9 +142,9 @@
   <!-- Developer -->
   <div class="border-t border-border pt-4">
     <p class=" text-text-primary">
-      Designed and Developed with ❤️ in Viet Nam 🇻🇳
+      {@html $t('about.developer_credit')}
     </p>
-    <p class=" text-text-secondary tẽ mt-1">Open source • Available on</p>
+    <p class=" text-text-secondary tẽ mt-1">{$t('about.availability')}</p>
   </div>
 
   <!-- Links -->
@@ -158,7 +156,7 @@
       class="flex items-center space-x-2 sm:space-x-1 transition-colors"
     >
       <Icon icon="mdi:github" class="w-4 h-4" />
-      <span>GitHub</span>
+      <span>{$t('about.github')}</span>
     </a>
     <a
       href="https://chromewebstore.google.com/detail/summarizerrrr/ahfjndakflcegianjdojpldllodpkkpc"
@@ -167,7 +165,7 @@
       class="flex items-center space-x-2 sm:space-x-1 transition-colors"
     >
       <Icon icon="logos:chrome" class="w-4 h-4" />
-      <span>Chrome Store</span>
+      <span>{$t('about.chrome_store')}</span>
     </a>
     <a
       href="https://addons.mozilla.org/en-CA/firefox/addon/summarizerrrr/"
@@ -176,7 +174,7 @@
       class="flex items-center space-x-2 sm:space-x-1 transition-colors"
     >
       <Icon icon="logos:firefox" class="w-4 h-4" />
-      <span>Firefox Add-ons</span>
+      <span>{$t('about.firefox_addons')}</span>
     </a>
   </div>
 </div>

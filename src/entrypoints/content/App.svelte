@@ -11,6 +11,7 @@
   import {
     themeSettings,
     loadThemeSettings,
+    subscribeToShadowThemeChanges,
   } from '@/stores/themeStore.svelte.js'
   import { slideScaleFade } from '@/lib/ui/slideScaleFade'
   import { summaryState } from '../../stores/summaryStore.svelte.js'
@@ -29,6 +30,7 @@
   let navigationManager = useNavigationManager()
   let unsubscribeNavigation = null
   let currentUrlKey = $state(window.location.href)
+  let themeUnsubscribe = null
 
   // Initialize stores
   $effect(() => {
@@ -41,6 +43,8 @@
     if (shadowContainer) {
       // Just load the theme settings, direct application is handled by $effect below
       loadThemeSettings()
+      // Subscribe to theme changes for real-time updates
+      themeUnsubscribe = subscribeToShadowThemeChanges(shadowContainer)
     }
   })
 
@@ -149,6 +153,11 @@
       unsubscribeNavigation()
     }
     navigationManager.stopMonitoring()
+
+    // Cleanup theme subscription
+    if (themeUnsubscribe) {
+      themeUnsubscribe()
+    }
   })
 </script>
 

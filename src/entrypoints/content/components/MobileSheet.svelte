@@ -327,14 +327,14 @@
         ></div>
         <div class="w-full flex items-center justify-center my-8">
           <button
-            class="size-10 absolute z-10 top-4 text-text-secondary hover:text-text-primary transition-colors left-2 flex justify-center items-center"
+            class="size-10 absolute z-10 top-4 text-text-secondary transition-colors left-2 flex justify-center items-center"
             onclick={openArchive}
             title="Open Archive"
           >
-            <Icon icon="solar:history-linear" width="24" height="24" />
+            <Icon icon="solar:history-linear" width="28" />
           </button>
           <button
-            class="size-10 absolute z-10 top-4 text-text-primary right-2 flex justify-center items-center"
+            class="size-10 absolute z-10 top-4 text-text-secondary right-2 flex justify-center items-center"
             onclick={openSettings}
           >
             <Icon width={28} icon="heroicons:cog-6-tooth" />

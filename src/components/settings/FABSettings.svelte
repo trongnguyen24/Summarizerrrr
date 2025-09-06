@@ -21,11 +21,14 @@
       >{$t('settings.fab.title')}</label
     >
     <p class="flex text-muted">
-      FAB help take open/close sidepanel and mobile drawer
+      {$t('settings.fab.fab_note')}
     </p>
   </div>
   <div class="px-5 py-4 flex flex-col sm:flex-row gap-4">
-    <Preview title="Preview" class=" w-full sm:w-60 h-40 shrink-0 mx-auto">
+    <Preview
+      title={$t('settings.fab.preview')}
+      class=" w-full sm:w-60 h-40 shrink-0 mx-auto"
+    >
       <div
         class="absolute top-1/2 -translate-y-1/2 flex items-center justify-center h-10 w-10 text-gray-500/50 overflow-hidden rounded-4xl ease-in-out duration-800 transition-all
         {settings.floatButtonLeft
@@ -107,14 +110,17 @@
   </div>
   <div class="flex flex-col gap-1 mt-2 px-5">
     <label for="fab-settings-toggle" class="block font-bold text-text-primary"
-      >Bottom sheets</label
+      >{$t('settings.fab.mobile_sheets.title')}</label
     >
     <p class="flex text-muted">
-      A slide-up panel that emerges from the bottom of the mobile screen
+      {$t('settings.fab.mobile_sheets.description')}
     </p>
   </div>
   <div class="px-5 py-4 flex flex-col sm:flex-row gap-4">
-    <Preview title="Preview" class=" w-full sm:w-60 h-40 shrink-0 mx-auto">
+    <Preview
+      title={$t('settings.fab.preview')}
+      class=" w-full sm:w-60 h-40 shrink-0 mx-auto"
+    >
       <div
         class="w-40 z-30 border border-surface-2 absolute bottom-0 left-1/2 rounded-t-lg -translate-x-1/2 bg-surface-1 flex justify-center"
         style=" height:{settings.mobileSheetHeight}%"
@@ -134,7 +140,7 @@
       <div class="flex flex-col gap-2 pb-4">
         <!-- svelte-ignore a11y_label_has_associated_control -->
         <label class="text-text-secondary flex justify-between items-center">
-          <span>Sheet Height</span>
+          <span>{$t('settings.fab.mobile_sheets.sheet_height')}</span>
           <span class="text-text-primary font-bold"
             >{settings.mobileSheetHeight}%</span
           >
@@ -154,25 +160,27 @@
       <!-- Mobile Sheet Backdrop Opacity Section -->
       <div class="flex flex-col gap-2 pb-4">
         <!-- svelte-ignore a11y_label_has_associated_control -->
-        <label class="block text-text-secondary">Sheet Black Backdrop</label>
+        <label class="block text-text-secondary"
+          >{$t('settings.fab.mobile_sheets.sheet_black_backdrop')}</label
+        >
         <div class="grid w-full grid-cols-2 gap-1">
           <ButtonSet
-            title="Hide"
+            title={$t('settings.fab.mobile_sheets.hide_backdrop')}
             class="setting-btn {!settings.mobileSheetBackdropOpacity
               ? 'active'
               : ''}"
             onclick={() =>
               handleUpdateSetting('mobileSheetBackdropOpacity', false)}
-            Description="No background overlay when opening mobile sheet"
+            Description={$t('settings.fab.mobile_sheets.hide_backdrop_desc')}
           ></ButtonSet>
           <ButtonSet
-            title="Show"
+            title={$t('settings.fab.mobile_sheets.show_backdrop')}
             class="setting-btn {settings.mobileSheetBackdropOpacity
               ? 'active'
               : ''}"
             onclick={() =>
               handleUpdateSetting('mobileSheetBackdropOpacity', true)}
-            Description="Show background overlay when opening mobile sheet"
+            Description={$t('settings.fab.mobile_sheets.show_backdrop_desc')}
           ></ButtonSet>
         </div>
       </div>
@@ -181,14 +189,17 @@
 
   <div class="flex flex-col gap-1 mt-2 px-5">
     <label for="fab-settings-toggle" class="block font-bold text-text-primary"
-      >Float Sidepanel</label
+      >{$t('settings.fab.float_sidepanel.title')}</label
     >
     <p class="flex text-muted">
-      Resizable floating panel that can be positioned and adjusted to fit
+      {$t('settings.fab.float_sidepanel.description')}
     </p>
   </div>
   <div class=" py-4 flex flex-col sm:flex-row gap-4 px-5">
-    <Preview title="Preview" class=" w-full sm:w-60 h-40 shrink-0 mx-auto">
+    <Preview
+      title={$t('settings.fab.preview')}
+      class=" w-full sm:w-60 h-40 shrink-0 mx-auto"
+    >
       <div
         class="top-0 z-30 border border-surface-2 absolute bottom-0 bg-surface-1 flex justify-center
         {settings.floatingPanelLeft ? 'left-0' : 'right-0'}"
@@ -208,7 +219,7 @@
       <div class="flex flex-col gap-2 pb-4">
         <!-- svelte-ignore a11y_label_has_associated_control -->
         <label class="text-text-secondary flex justify-between items-center">
-          <span>Panel Default Width</span>
+          <span>{$t('settings.fab.float_sidepanel.panel_default_width')}</span>
           <span class="text-text-primary font-bold"
             >{settings.sidePanelDefaultWidth * 16}</span
           >
@@ -230,19 +241,21 @@
 
       <div class="flex col-span-2 flex-col gap-2 pb-4">
         <!-- svelte-ignore a11y_label_has_associated_control -->
-        <label class="block text-text-secondary"></label>
+        <label class="block text-text-secondary"
+          >{$t('settings.fab.float_sidepanel.sidepanel_position')}</label
+        >
         <div class="grid w-full grid-cols-2 gap-1">
           <ButtonSet
-            title="Left"
+            title={$t('settings.fab.float_sidepanel.position_left')}
             class="setting-btn {settings.floatingPanelLeft ? 'active' : ''}"
             onclick={() => handleUpdateSetting('floatingPanelLeft', true)}
-            Description="Left"
+            Description={$t('settings.fab.float_sidepanel.position_left')}
           ></ButtonSet>
           <ButtonSet
-            title="Right"
+            title={$t('settings.fab.float_sidepanel.position_right')}
             class="setting-btn {!settings.floatingPanelLeft ? 'active' : ''}"
             onclick={() => handleUpdateSetting('floatingPanelLeft', false)}
-            Description="Right"
+            Description={$t('settings.fab.float_sidepanel.position_right')}
           ></ButtonSet>
         </div>
       </div>

@@ -43,13 +43,33 @@
       "shortcuts_settings": "Shortcut Settings"
     },
     "fab": {
-      "title": "Floating Button",
+      "title": "Floating Action Button",
       "position": "Snap Position",
       "position_option": {
         "left": "Left",
         "left_desc": "Display floating button on the left side.",
         "right": "Right",
         "right_desc": "Display floating button on the right side."
+      },
+      "fab_note": "It also helps to show/hide the sidepanel and mobile sheets.",
+      "preview": "Preview",
+      "mobile_sheets": {
+        "title": "Mobile sheets",
+        "description": "A slide-up panel that emerges from the bottom of the mobile screen",
+        "sheet_height": "Sheet Height",
+        "sheet_black_backdrop": "Sheet Black Backdrop",
+        "hide_backdrop": "Hide",
+        "hide_backdrop_desc": "No background overlay when opening mobile sheet",
+        "show_backdrop": "Show",
+        "show_backdrop_desc": "Show background overlay when opening mobile sheet"
+      },
+      "float_sidepanel": {
+        "title": "Float Sidepanel",
+        "description": "Floating panel that can be used on desktop and tablet",
+        "panel_default_width": "Panel Default Width",
+        "sidepanel_position": "Sidepanel Position",
+        "position_left": "Left",
+        "position_right": "Right"
       }
     },
     "ai_model": {
@@ -307,5 +327,26 @@
     "setup_display_desc": "Customize your theme and font.",
     "setup_summary_lang_title": "Choose Summary Language",
     "setup_summary_lang_desc": "Select the default language for summaries resources. This can be changed later in settings."
+  },
+  "apiKeyPrompt": {
+    "description": "To get started please configure your API key in Settings.",
+    "openSettings": "Open Settings",
+    "setupGuide": "How to setup API key"
+  },
+  "about": {
+    "version": "Version",
+    "description": "Summarize everything in 1 click, save time. Extension helps you summarize for <b>YouTube, Udemy, Coursera, any websites</b>. Crafted with superior UI/UX design.",
+    "key_features": "Key Features",
+    "data_sovereignty_title": "Your data is yours",
+    "data_sovereignty_desc": "Your keys, your data, your control. For complete privacy - use a local model through our integration with Ollama.",
+    "customizable_title": "Customizable",
+    "customizable_desc": "Provider, temperature, top P, length, format, languages, appearance, sytem prompt and user prompt...",
+    "cross_platform_title": "Cross-Platform Compatibility",
+    "cross_platform_desc": "Desktop, Tablet, and Mobile. Work on Mobile browsers including Firefox Android and Kiwi Browser.",
+    "developer_credit": "Designed and Developed with ❤️ in Viet Nam 🇻🇳",
+    "availability": "Open source • Available on",
+    "github": "GitHub",
+    "chrome_store": "Chrome Store",
+    "firefox_addons": "Firefox Add-ons"
   }
 }

@@ -43,13 +43,33 @@
       "shortcuts_settings": "Cài Phím tắt"
     },
     "fab": {
-      "title": "Nút nổi",
+      "title": "Nút hành động nổi",
       "position": "Vị trí",
       "position_option": {
         "left": "Trái",
-        "left_desc": "Hiển thị nút nổi ở bên trái.",
+        "left_desc": "Hiển thị ở bên trái.",
         "right": "Phải",
-        "right_desc": "Hiển thị nút nổi ở bên phải."
+        "right_desc": "Hiển thị ở bên phải."
+      },
+      "fab_note": "Hiển thị/ẩn thanh tóm tắt bên và bảng trượt trên di động.",
+      "preview": "Xem trước",
+      "mobile_sheets": {
+        "title": "Bảng trượt trên di động",
+        "description": "Một bảng điều khiển trượt từ dưới lên trên màn hình di động.",
+        "sheet_height": "Chiều cao bảng trượt",
+        "sheet_black_backdrop": "Lớp nền mờ",
+        "hide_backdrop": "Ẩn",
+        "hide_backdrop_desc": "Không hiển thị lớp nền mờ khi mở bảng trượt.",
+        "show_backdrop": "Hiển thị",
+        "show_backdrop_desc": "Hiển thị lớp nền mờ phía sau khi mở bảng trượt."
+      },
+      "float_sidepanel": {
+        "title": "Thanh bên nổi",
+        "description": "Thanh điều khiển nổi dành cho máy tính để bàn và máy tính bảng.",
+        "panel_default_width": "Độ rộng mặc định",
+        "sidepanel_position": "Vị trí thanh bên",
+        "position_left": "Trái",
+        "position_right": "Phải"
       }
     },
     "ai_model": {
@@ -305,5 +325,26 @@
     "setup_display_desc": "Tùy chỉnh giao diện và phông chữ của bạn.",
     "setup_summary_lang_title": "Chọn ngôn ngữ tóm tắt",
     "setup_summary_lang_desc": "Chọn ngôn ngữ mặc định cho các bản tóm tắt."
+  },
+  "apiKeyPrompt": {
+    "description": "Để bắt đầu, vui lòng định cấu hình khóa API của bạn trong Cài đặt.",
+    "openSettings": "Mở Cài đặt",
+    "setupGuide": "Cách thiết lập khóa API"
+  },
+  "about": {
+    "version": "Phiên bản",
+    "description": "Tóm tắt mọi thứ chỉ bằng 1 cú nhấp chuột, tiết kiệm thời gian. Tiện ích mở rộng giúp bạn tóm tắt cho <b>YouTube, Udemy, Coursera, bất kỳ trang web nào</b>. Được chế tác với thiết kế UI/UX vượt trội.",
+    "key_features": "Tính năng chính",
+    "data_sovereignty_title": "Dữ liệu của bạn là của bạn",
+    "data_sovereignty_desc": "Khóa của bạn, dữ liệu của bạn, quyền kiểm soát của bạn. Để có sự riêng tư hoàn toàn - hãy sử dụng mô hình cục bộ thông qua tích hợp của chúng tôi với Ollama.",
+    "customizable_title": "Tùy chỉnh",
+    "customizable_desc": "Nhà cung cấp, nhiệt độ, top P, độ dài, định dạng, ngôn ngữ, giao diện, sytem prompt và user prompt...",
+    "cross_platform_title": "Tương thích đa nền tảng",
+    "cross_platform_desc": "Máy tính để bàn, Máy tính bảng và Di động. Hoạt động trên các trình duyệt di động bao gồm Firefox Android và Kiwi Browser.",
+    "developer_credit": "Được thiết kế và phát triển với ❤️ tại Việt Nam 🇻🇳",
+    "availability": "Mã nguồn mở • Có sẵn trên",
+    "github": "GitHub",
+    "chrome_store": "Cửa hàng Chrome",
+    "firefox_addons": "Tiện ích Firefox"
   }
 }

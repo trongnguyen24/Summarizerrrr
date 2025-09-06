@@ -193,7 +193,8 @@
     </div>
   </div>
   {#if isTouchDevice()}
-    <TOCMobile targetDivId="summary-content" />
+    <TOC targetDivId="summary-content" />
+    <!-- <TOCMobile targetDivId="summary-content" /> -->
   {:else}
     <TOC targetDivId="summary-content" />
   {/if}

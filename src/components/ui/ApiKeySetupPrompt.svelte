@@ -2,6 +2,7 @@
   // @ts-nocheck
   import Icon from '@iconify/svelte'
   import { fade } from 'svelte/transition'
+  import { t } from 'svelte-i18n'
 
   const handleOpenSettings = () => {
     browser.runtime.sendMessage({ type: 'OPEN_SETTINGS' })
@@ -41,7 +42,7 @@
 
     <div class="flex flex-col gap-2 text-center">
       <p class="text-sm text-text-secondary text-balance max-w-sm">
-        To get started please configure your API key in Settings.
+        {$t('apiKeyPrompt.description')}
       </p>
     </div>
   </div>
@@ -51,14 +52,14 @@
       onclick={handleOpenSettings}
       class="px-4 py-2 bg-primary text-white rounded-lg font-medium hover:bg-primary/90 transition-colors"
     >
-      Open Settings
+      {$t('apiKeyPrompt.openSettings')}
     </button>
     <a
       href="https://docs.example.com/api-setup"
       target="_blank"
       class="text-xs text-text-secondary hover:text-primary underline underline-offset-2 transition-colors"
     >
-      How to setup API key
+      {$t('apiKeyPrompt.setupGuide')}
     </a>
   </div>
 </div>

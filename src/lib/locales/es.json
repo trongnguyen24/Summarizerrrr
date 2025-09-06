@@ -32,8 +32,45 @@
         "non_streaming": "Blocking",
         "non_streaming_desc": "Para conexiones lentas. Evita pausas."
       },
+      "floatingButton": "Botón Flotante",
+      "floating_button": {
+        "show": "Mostrar",
+        "show_desc": "Mostrar botón flotante en las páginas web.",
+        "hide": "Ocultar",
+        "hide_desc": "Ocultar botón flotante de las páginas web."
+      },
       "shortcuts": "Atajos",
       "shortcuts_settings": "Gestionar atajos"
+    },
+    "fab": {
+      "title": "Botón de Acción Flotante",
+      "position": "Posición de Anclaje",
+      "position_option": {
+        "left": "Izquierda",
+        "left_desc": "Mostrar botón flotante en el lado izquierdo.",
+        "right": "Derecha",
+        "right_desc": "Mostrar botón flotante en el lado derecho."
+      },
+      "fab_note": "También ayuda a mostrar/ocultar el panel lateral y las hojas móviles.",
+      "preview": "Vista previa",
+      "mobile_sheets": {
+        "title": "Hojas móviles",
+        "description": "Un panel deslizante que emerge desde la parte inferior de la pantalla móvil",
+        "sheet_height": "Altura de la Hoja",
+        "sheet_black_backdrop": "Fondo Negro de la Hoja",
+        "hide_backdrop": "Ocultar",
+        "hide_backdrop_desc": "Sin superposición de fondo al abrir la hoja móvil",
+        "show_backdrop": "Mostrar",
+        "show_backdrop_desc": "Mostrar superposición de fondo al abrir la hoja móvil"
+      },
+      "float_sidepanel": {
+        "title": "Panel Lateral Flotante",
+        "description": "Panel flotante que se puede usar en escritorio y tableta",
+        "panel_default_width": "Ancho Predeterminado del Panel",
+        "sidepanel_position": "Posición del Panel Lateral",
+        "position_left": "Izquierda",
+        "position_right": "Derecha"
+      }
     },
     "ai_model": {
       "title": "Modelo IA",
@@ -127,6 +164,21 @@
       "endpoint_placeholder": "http://localhost:11434/api",
       "model_label": "Modelo Ollama",
       "model_placeholder": "llama2"
+    },
+    "lmstudio_config": {
+      "endpoint_label": "Endpoint",
+      "endpoint_placeholder": "http://localhost:1234/v1",
+      "model_label": "Nombre del modelo",
+      "model_placeholder": "lmstudio-community/gemma-2b-it-GGUF"
+    },
+    "groq_config": {
+      "api_key_label": "Clave API",
+      "api_key_placeholder": "Introduce tu clave API de Groq",
+      "model_label": "Nombre del modelo",
+      "get_a_key": "Obtener clave",
+      "model_placeholder": "mixtral-8x7b-32768",
+      "saved_status": "¡Guardado!",
+      "view_models": "Ver modelos"
     },
     "openai_compatible_config": {
       "api_key_label": "Clave API",
@@ -256,5 +308,44 @@
         "Informe de este problema al desarrollador."
       ]
     }
+  },
+  "welcome": {
+    "choose_interface_language": "¡Bienvenido a Summarizerrrr!",
+    "select_your_language": "Elige tu idioma de interfaz",
+    "next": "Siguiente",
+    "back": "Atrás",
+    "configure_api_keys": "Por favor, configura las claves API en la configuración primero",
+    "api_setup_guide": "Necesitarás configurar la clave API de tu proveedor de IA para comenzar a usar Summarizer.",
+    "go_to_settings": "Ir a Configuración",
+    "setup_guide_link": "📺 Cómo configurar la clave API",
+    "font_selection": "Fuente",
+    "theme_selection": "Tema",
+    "summary_language": "Idioma del Resumen",
+    "complete_setup": "Completar Configuración",
+    "setup_display_title": "Configurar Pantalla",
+    "setup_display_desc": "Personaliza tu tema y fuente.",
+    "setup_summary_lang_title": "Elegir Idioma del Resumen",
+    "setup_summary_lang_desc": "Selecciona el idioma predeterminado para los recursos de resúmenes. Esto se puede cambiar más tarde en la configuración."
+  },
+  "apiKeyPrompt": {
+    "description": "Para comenzar, por favor configura tu clave API en Configuración.",
+    "openSettings": "Abrir Configuración",
+    "setupGuide": "Cómo configurar la clave API"
+  },
+  "about": {
+    "version": "Versión",
+    "description": "Resume todo en 1 clic, ahorra tiempo. La extensión te ayuda a resumir <b>YouTube, Udemy, Coursera, cualquier sitio web</b>. Diseñada con una interfaz superior.",
+    "key_features": "Características Principales",
+    "data_sovereignty_title": "Tus datos son tuyos",
+    "data_sovereignty_desc": "Tus claves, tus datos, tu control. Para una privacidad completa, usa un modelo local a través de nuestra integración con Ollama.",
+    "customizable_title": "Personalizable",
+    "customizable_desc": "Proveedor, temperatura, top P, longitud, formato, idiomas, apariencia, prompt del sistema y prompt del usuario...",
+    "cross_platform_title": "Compatibilidad Multiplataforma",
+    "cross_platform_desc": "Escritorio, tableta y móvil. Funciona en navegadores móviles incluyendo Firefox Android y Kiwi Browser.",
+    "developer_credit": "Diseñado y Desarrollado con ❤️ en Vietnam 🇻🇳",
+    "availability": "Código abierto • Disponible en",
+    "github": "GitHub",
+    "chrome_store": "Chrome Store",
+    "firefox_addons": "Firefox Add-ons"
   }
 }

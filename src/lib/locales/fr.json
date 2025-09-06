@@ -32,8 +32,45 @@
         "non_streaming": "Blocking",
         "non_streaming_desc": "Pour les connexions lentes. Évite les pauses."
       },
+      "floatingButton": "Bouton flottant",
+      "floating_button": {
+        "show": "Afficher",
+        "show_desc": "Afficher le bouton flottant sur les pages web.",
+        "hide": "Masquer",
+        "hide_desc": "Masquer le bouton flottant des pages web."
+      },
       "shortcuts": "Raccourcis",
       "shortcuts_settings": "Gérer les raccourcis"
+    },
+    "fab": {
+      "title": "Bouton d'action flottant",
+      "position": "Position d'ancrage",
+      "position_option": {
+        "left": "Gauche",
+        "left_desc": "Afficher le bouton flottant sur le côté gauche.",
+        "right": "Droite",
+        "right_desc": "Afficher le bouton flottant sur le côté droit."
+      },
+      "fab_note": "Aide également à afficher/masquer le panneau latéral et les feuilles mobiles.",
+      "preview": "Aperçu",
+      "mobile_sheets": {
+        "title": "Feuilles mobiles",
+        "description": "Un panneau qui apparaît par le bas de l'écran mobile",
+        "sheet_height": "Hauteur de la feuille",
+        "sheet_black_backdrop": "Fond noir de la feuille",
+        "hide_backdrop": "Masquer",
+        "hide_backdrop_desc": "Pas de fond superposé lors de l'ouverture de la feuille mobile",
+        "show_backdrop": "Afficher",
+        "show_backdrop_desc": "Afficher le fond superposé lors de l'ouverture de la feuille mobile"
+      },
+      "float_sidepanel": {
+        "title": "Panneau latéral flottant",
+        "description": "Panneau flottant utilisable sur ordinateur et tablette",
+        "panel_default_width": "Largeur par défaut du panneau",
+        "sidepanel_position": "Position du panneau latéral",
+        "position_left": "Gauche",
+        "position_right": "Droite"
+      }
     },
     "ai_model": {
       "title": "Modèle IA",
@@ -128,6 +165,21 @@
       "model_label": "Modèle Ollama",
       "model_placeholder": "llama2"
     },
+    "lmstudio_config": {
+      "endpoint_label": "Point de terminaison",
+      "endpoint_placeholder": "http://localhost:1234/v1",
+      "model_label": "Nom du modèle",
+      "model_placeholder": "lmstudio-community/gemma-2b-it-GGUF"
+    },
+    "groq_config": {
+      "api_key_label": "Clé API",
+      "api_key_placeholder": "Entrez votre clé API Groq",
+      "model_label": "Nom du modèle",
+      "get_a_key": "Obtenir une clé",
+      "model_placeholder": "mixtral-8x7b-32768",
+      "saved_status": "Sauvegardé !",
+      "view_models": "Voir les modèles"
+    },
     "openai_compatible_config": {
       "api_key_label": "Clé API",
       "api_key_placeholder": "Clé API",
@@ -161,7 +213,7 @@
     "tip": [
       "Cette fonction fonctionne mieux avec Gemini 2.5 Flash ou supérieur.",
       "La \"Améliorer le prompt\" ne fait que formater et expliquer selon votre entrée.",
-      "Pour utiliser une autre langue, ajustez la langue de sortie dans Paramètres > Résumé."
+      "Pour utiliser une autre langue, ajustez langue de sortie dans Paramètres > Résumé."
     ]
   },
   "archive": {
@@ -256,5 +308,44 @@
         "Signalez ce problème au développeur."
       ]
     }
+  },
+  "welcome": {
+    "choose_interface_language": "Bienvenue dans Summarizerrrr !",
+    "select_your_language": "Choisissez votre langue d'interface",
+    "next": "Suivant",
+    "back": "Retour",
+    "configure_api_keys": "Veuillez d'abord configurer les clés API dans les paramètres",
+    "api_setup_guide": "Vous devez configurer la clé API de votre fournisseur d'IA pour commencer à utiliser Summarizer.",
+    "go_to_settings": "Aller aux paramètres",
+    "setup_guide_link": "📺 Comment configurer la clé API",
+    "font_selection": "Police",
+    "theme_selection": "Thème",
+    "summary_language": "Langue des résumés",
+    "complete_setup": "Terminer la configuration",
+    "setup_display_title": "Configurer l'affichage",
+    "setup_display_desc": "Personnalisez votre thème et votre police.",
+    "setup_summary_lang_title": "Choisir la langue des résumés",
+    "setup_summary_lang_desc": "Sélectionnez la langue par défaut pour les ressources de résumés. Cela peut être modifié plus tard dans les paramètres."
+  },
+  "apiKeyPrompt": {
+    "description": "Pour commencer, veuillez configurer votre clé API dans les paramètres.",
+    "openSettings": "Ouvrir les paramètres",
+    "setupGuide": "Comment configurer la clé API"
+  },
+  "about": {
+    "version": "Version",
+    "description": "Résumez tout en 1 clic, gagnez du temps. L'extension vous aide à résumer pour <b>YouTube, Udemy, Coursera, tous les sites web</b>. Conçue avec un design UI/UX supérieur.",
+    "key_features": "Fonctionnalités clés",
+    "data_sovereignty_title": "Vos données vous appartiennent",
+    "data_sovereignty_desc": "Vos clés, vos données, votre contrôle. Pour une confidentialité totale - utilisez un modèle local via notre intégration avec Ollama.",
+    "customizable_title": "Personnalisable",
+    "customizable_desc": "Fournisseur, température, top P, longueur, format, langues, apparence, prompt système et prompt utilisateur...",
+    "cross_platform_title": "Compatibilité multiplateforme",
+    "cross_platform_desc": "Ordinateur de bureau, tablette et mobile. Fonctionne sur les navigateurs mobiles, y compris Firefox Android et Kiwi Browser.",
+    "developer_credit": "Conçu et développé avec ❤️ au Viet Nam 🇻🇳",
+    "availability": "Open source • Disponible sur",
+    "github": "GitHub",
+    "chrome_store": "Chrome Store",
+    "firefox_addons": "Firefox Add-ons"
   }
 }

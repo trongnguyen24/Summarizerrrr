@@ -32,8 +32,45 @@
         "non_streaming": "非ストリーミング",
         "non_streaming_desc": "低性能デバイス向け、遅延軽減。"
       },
+      "floatingButton": "フローティングボタン",
+      "floating_button": {
+        "show": "表示",
+        "show_desc": "Webページにフローティングボタンを表示します。",
+        "hide": "非表示",
+        "hide_desc": "Webページからフローティングボタンを非表示にします。"
+      },
       "shortcuts": "ショートカット",
       "shortcuts_settings": "ショートカット設定"
+    },
+    "fab": {
+      "title": "フローティングアクションボタン",
+      "position": "スナップ位置",
+      "position_option": {
+        "left": "左",
+        "left_desc": "画面左側にフローティングボタンを表示します。",
+        "right": "右",
+        "right_desc": "画面右側にフローティングボタンを表示します。"
+      },
+      "fab_note": "サイドパネルとモバイルシートの表示/非表示にも役立ちます。",
+      "preview": "プレビュー",
+      "mobile_sheets": {
+        "title": "モバイルシート",
+        "description": "モバイル画面の下部からスライドアップするパネル",
+        "sheet_height": "シートの高さ",
+        "sheet_black_backdrop": "シートの黒背景",
+        "hide_backdrop": "非表示",
+        "hide_backdrop_desc": "モバイルシートを開く際に背景オーバーレイを表示しない",
+        "show_backdrop": "表示",
+        "show_backdrop_desc": "モバイルシートを開く際に背景オーバーレイを表示する"
+      },
+      "float_sidepanel": {
+        "title": "フロートサイドパネル",
+        "description": "デスクトップとタブレットで使用できるフローティングパネル",
+        "panel_default_width": "パネルのデフォルト幅",
+        "sidepanel_position": "サイドパネルの位置",
+        "position_left": "左",
+        "position_right": "右"
+      }
     },
     "ai_model": {
       "title": "AI設定",
@@ -127,6 +164,21 @@
       "endpoint_placeholder": "http://localhost:11434/api",
       "model_label": "Ollamaモデル",
       "model_placeholder": "llama2"
+    },
+    "lmstudio_config": {
+      "endpoint_label": "エンドポイント",
+      "endpoint_placeholder": "http://localhost:1234/v1",
+      "model_label": "モデル名",
+      "model_placeholder": "lmstudio-community/gemma-2b-it-GGUF"
+    },
+    "groq_config": {
+      "api_key_label": "APIキー",
+      "api_key_placeholder": "Groq APIキーを入力",
+      "model_label": "モデル名",
+      "get_a_key": "キーを取得",
+      "model_placeholder": "mixtral-8x7b-32768",
+      "saved_status": "保存完了！",
+      "view_models": "モデル一覧"
     },
     "openai_compatible_config": {
       "api_key_label": "APIキー",
@@ -256,5 +308,44 @@
         "この問題を開発者に報告してください。"
       ]
     }
+  },
+  "welcome": {
+    "choose_interface_language": "Summarizerrrrへようこそ！",
+    "select_your_language": "インターフェース言語を選択",
+    "next": "次へ",
+    "back": "戻る",
+    "configure_api_keys": "まず設定でAPIキーを設定してください",
+    "api_setup_guide": "Summarizerを使用するには、AIプロバイダーのAPIキーを設定する必要があります。",
+    "go_to_settings": "設定に移動",
+    "setup_guide_link": "📺 APIキーの設定方法",
+    "font_selection": "フォント",
+    "theme_selection": "テーマ",
+    "summary_language": "要約言語",
+    "complete_setup": "セットアップ完了",
+    "setup_display_title": "表示設定",
+    "setup_display_desc": "テーマとフォントをカスタマイズ。",
+    "setup_summary_lang_title": "要約言語を選択",
+    "setup_summary_lang_desc": "リソースのデフォルト言語を選択してください。これは後で設定で変更できます。"
+  },
+  "apiKeyPrompt": {
+    "description": "開始するには、まず設定でAPIキーを設定してください。",
+    "openSettings": "設定を開く",
+    "setupGuide": "APIキーの設定方法"
+  },
+  "about": {
+    "version": "バージョン",
+    "description": "1クリックで全てを要約し、時間を節約。YouTube、Udemy、Coursera、あらゆるウェブサイトの要約に役立つ拡張機能です。優れたUI/UXデザインで作られています。",
+    "key_features": "主な機能",
+    "data_sovereignty_title": "あなたのデータはあなた自身のものです",
+    "data_sovereignty_desc": "あなたのキー、あなたのデータ、あなたの管理。完全なプライバシーのために、Ollamaとの統合を通じてローカルモデルを使用してください。",
+    "customizable_title": "カスタマイズ可能",
+    "customizable_desc": "プロバイダー、温度、Top P、長さ、フォーマット、言語、外観、システムプロンプト、ユーザープロンプト...",
+    "cross_platform_title": "クロスプラットフォーム互換性",
+    "cross_platform_desc": "デスクトップ、タブレット、モバイル。Firefox AndroidやKiwiブラウザを含むモバイルブラウザで動作します。",
+    "developer_credit": "❤️を込めてベトナムで設計・開発 🇻🇳",
+    "availability": "オープンソース • 利用可能",
+    "github": "GitHub",
+    "chrome_store": "Chromeストア",
+    "firefox_addons": "Firefoxアドオン"
   }
 }

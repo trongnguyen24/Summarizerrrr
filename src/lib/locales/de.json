@@ -32,8 +32,45 @@
         "non_streaming": "Blocking",
         "non_streaming_desc": "Für schwächere Geräte, weniger Verzögerung."
       },
+      "floatingButton": "Schwebender Button",
+      "floating_button": {
+        "show": "Anzeigen",
+        "show_desc": "Schwebenden Button auf Webseiten anzeigen.",
+        "hide": "Ausblenden",
+        "hide_desc": "Schwebenden Button auf Webseiten ausblenden."
+      },
       "shortcuts": "Tastenkürzel",
       "shortcuts_settings": "Tastenkürzel"
+    },
+    "fab": {
+      "title": "Schwebender Aktionsbutton",
+      "position": "Position",
+      "position_option": {
+        "left": "Links",
+        "left_desc": "Schwebenden Button auf der linken Seite anzeigen.",
+        "right": "Rechts",
+        "right_desc": "Schwebenden Button auf der rechten Seite anzeigen."
+      },
+      "fab_note": "Hilft auch beim Ein-/Ausblenden des Seitenbereichs und mobiler Blätter.",
+      "preview": "Vorschau",
+      "mobile_sheets": {
+        "title": "Mobile Blätter",
+        "description": "Ein nach oben gleitendes Panel, das vom unteren Rand des mobilen Bildschirms auftaucht",
+        "sheet_height": "Blatthöhe",
+        "sheet_black_backdrop": "Schwarzer Hintergrund",
+        "hide_backdrop": "Ausblenden",
+        "hide_backdrop_desc": "Kein Hintergrund-Overlay beim Öffnen des mobilen Blatts",
+        "show_backdrop": "Anzeigen",
+        "show_backdrop_desc": "Hintergrund-Overlay beim Öffnen des mobilen Blatts anzeigen"
+      },
+      "float_sidepanel": {
+        "title": "Schwebender Seitenbereich",
+        "description": "Schwebendes Panel für Desktop und Tablet",
+        "panel_default_width": "Standardbreite des Panels",
+        "sidepanel_position": "Position des Seitenbereichs",
+        "position_left": "Links",
+        "position_right": "Rechts"
+      }
     },
     "ai_model": {
       "title": "KI-Einstellungen",
@@ -127,6 +164,21 @@
       "endpoint_placeholder": "http://localhost:11434/api",
       "model_label": "Ollama-Modell",
       "model_placeholder": "llama2"
+    },
+    "lmstudio_config": {
+      "endpoint_label": "Endpunkt",
+      "endpoint_placeholder": "http://localhost:1234/v1",
+      "model_label": "Modellname",
+      "model_placeholder": "lmstudio-community/gemma-2b-it-GGUF"
+    },
+    "groq_config": {
+      "api_key_label": "API-Schlüssel",
+      "api_key_placeholder": "Groq API-Schlüssel eingeben",
+      "model_label": "Modellname",
+      "get_a_key": "Schlüssel holen",
+      "model_placeholder": "mixtral-8x7b-32768",
+      "saved_status": "Gespeichert!",
+      "view_models": "Modelle anzeigen"
     },
     "openai_compatible_config": {
       "api_key_label": "API-Schlüssel",
@@ -258,5 +310,44 @@
         "Melden Sie dieses Problem dem Entwickler."
       ]
     }
+  },
+  "welcome": {
+    "choose_interface_language": "Willkommen bei Summarizerrrr!",
+    "select_your_language": "Wählen Sie Ihre Sprache",
+    "next": "Weiter",
+    "back": "Zurück",
+    "configure_api_keys": "Bitte konfigurieren Sie zuerst die API-Schlüssel in den Einstellungen",
+    "api_setup_guide": "Sie müssen Ihren KI-Anbieter-API-Schlüssel einrichten, um Summarizer zu verwenden.",
+    "go_to_settings": "Zu den Einstellungen",
+    "setup_guide_link": "📺 So richten Sie einen API-Schlüssel ein",
+    "font_selection": "Schriftart",
+    "theme_selection": "Design",
+    "summary_language": "Zusammenfassungssprache",
+    "complete_setup": "Einrichtung abschließen",
+    "setup_display_title": "Anzeige einrichten",
+    "setup_display_desc": "Passen Sie Ihr Design und Ihre Schriftart an.",
+    "setup_summary_lang_title": "Zusammenfassungssprache wählen",
+    "setup_summary_lang_desc": "Wählen Sie die Standardsprache für Zusammenfassungen. Diese kann später in den Einstellungen geändert werden."
+  },
+  "apiKeyPrompt": {
+    "description": "Um zu beginnen, konfigurieren Sie bitte Ihren API-Schlüssel in den Einstellungen.",
+    "openSettings": "Einstellungen öffnen",
+    "setupGuide": "So richten Sie einen API-Schlüssel ein"
+  },
+  "about": {
+    "version": "Version",
+    "description": "Fassen Sie alles mit einem Klick zusammen und sparen Sie Zeit. Die Erweiterung hilft Ihnen bei Zusammenfassungen für <b>YouTube, Udemy, Coursera, beliebige Websites</b>. Entwickelt mit hervorragendem UI/UX-Design.",
+    "key_features": "Hauptfunktionen",
+    "data_sovereignty_title": "Ihre Daten gehören Ihnen",
+    "data_sovereignty_desc": "Ihre Schlüssel, Ihre Daten, Ihre Kontrolle. Für vollständige Privatsphäre - verwenden Sie ein lokales Modell über unsere Integration mit Ollama.",
+    "customizable_title": "Anpassbar",
+    "customizable_desc": "Anbieter, Temperatur, Top-P, Länge, Format, Sprachen, Erscheinungsbild, System-Prompt und Benutzer-Prompt...",
+    "cross_platform_title": "Plattformübergreifende Kompatibilität",
+    "cross_platform_desc": "Desktop, Tablet und Mobil. Funktioniert auf mobilen Browsern einschließlich Firefox Android und Kiwi Browser.",
+    "developer_credit": "Entworfen und entwickelt mit ❤️ in Vietnam 🇻🇳",
+    "availability": "Open Source • Verfügbar auf",
+    "github": "GitHub",
+    "chrome_store": "Chrome Store",
+    "firefox_addons": "Firefox Add-ons"
   }
 }

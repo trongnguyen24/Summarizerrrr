@@ -32,8 +32,45 @@
         "non_streaming": "비스트리밍",
         "non_streaming_desc": "저사양 기기에 적합, 지연 감소"
       },
+      "floatingButton": "플로팅 버튼",
+      "floating_button": {
+        "show": "표시",
+        "show_desc": "웹 페이지에 플로팅 버튼 표시",
+        "hide": "숨기기",
+        "hide_desc": "웹 페이지에서 플로팅 버튼 숨기기"
+      },
       "shortcuts": "단축키",
       "shortcuts_settings": "단축키 설정"
+    },
+    "fab": {
+      "title": "플로팅 액션 버튼",
+      "position": "스냅 위치",
+      "position_option": {
+        "left": "왼쪽",
+        "left_desc": "왼쪽에 플로팅 버튼 표시",
+        "right": "오른쪽",
+        "right_desc": "오른쪽에 플로팅 버튼 표시"
+      },
+      "fab_note": "사이드패널과 모바일 시트를 표시/숨기기도 합니다.",
+      "preview": "미리보기",
+      "mobile_sheets": {
+        "title": "모바일 시트",
+        "description": "모바일 화면 하단에서 올라오는 슬라이드 패널",
+        "sheet_height": "시트 높이",
+        "sheet_black_backdrop": "시트 검은 배경",
+        "hide_backdrop": "숨기기",
+        "hide_backdrop_desc": "모바일 시트 열 때 배경 오버레이 없음",
+        "show_backdrop": "표시",
+        "show_backdrop_desc": "모바일 시트 열 때 배경 오버레이 표시"
+      },
+      "float_sidepanel": {
+        "title": "플로팅 사이드패널",
+        "description": "데스크톱과 태블릿에서 사용할 수 있는 플로팅 패널",
+        "panel_default_width": "패널 기본 너비",
+        "sidepanel_position": "사이드패널 위치",
+        "position_left": "왼쪽",
+        "position_right": "오른쪽"
+      }
     },
     "ai_model": {
       "title": "제공자",
@@ -128,6 +165,21 @@
       "model_label": "Ollama 모델",
       "model_placeholder": "llama2"
     },
+    "lmstudio_config": {
+      "endpoint_label": "엔드포인트",
+      "endpoint_placeholder": "http://localhost:1234/v1",
+      "model_label": "모델명",
+      "model_placeholder": "lmstudio-community/gemma-2b-it-GGUF"
+    },
+    "groq_config": {
+      "api_key_label": "API 키",
+      "api_key_placeholder": "Groq API 키를 입력하세요",
+      "model_label": "모델명",
+      "get_a_key": "키 얻기",
+      "model_placeholder": "mixtral-8x7b-32768",
+      "saved_status": "저장됨!",
+      "view_models": "모델 보기"
+    },
     "openai_compatible_config": {
       "api_key_label": "API 키",
       "api_key_placeholder": "API 키",
@@ -182,7 +234,6 @@
     "save_to_archive": "아카이브에 저장",
     "saved": "저장됨!"
   },
-
   "errors": {
     "api_key": "API 키가 구성되지 않았습니다. 설정에서 API 키를 확인하세요.",
     "unauthorized": "무단 액세스입니다. API 키와 권한을 확인하세요.",
@@ -257,5 +308,44 @@
         "이 URL에 액세스할 수 없습니다."
       ]
     }
+  },
+  "welcome": {
+    "choose_interface_language": "Summarizerrrr에 오신 것을 환영합니다!",
+    "select_your_language": "인터페이스 언어 선택",
+    "next": "다음",
+    "back": "뒤로",
+    "configure_api_keys": "먼저 설정에서 API 키를 구성해 주세요",
+    "api_setup_guide": "Summarizer를 사용하려면 AI 제공자 API 키를 설정해야 합니다.",
+    "go_to_settings": "설정으로 이동",
+    "setup_guide_link": "📺 API 키 설정 방법",
+    "font_selection": "글꼴",
+    "theme_selection": "테마",
+    "summary_language": "요약 언어",
+    "complete_setup": "설정 완료",
+    "setup_display_title": "디스플레이 설정",
+    "setup_display_desc": "테마와 글꼴을 사용자 정의하세요.",
+    "setup_summary_lang_title": "요약 언어 선택",
+    "setup_summary_lang_desc": "요약 리소스의 기본 언어를 선택하세요. 이는 나중에 설정에서 변경할 수 있습니다."
+  },
+  "apiKeyPrompt": {
+    "description": "시작하려면 설정에서 API 키를 구성해 주세요.",
+    "openSettings": "설정 열기",
+    "setupGuide": "API 키 설정 방법"
+  },
+  "about": {
+    "version": "버전",
+    "description": "한 번의 클릭으로 모든 것을 요약하고 시간을 절약하세요. 확장 프로그램은 <b>YouTube, Udemy, Coursera, 모든 웹사이트</b>를 요약하는 데 도움을 줍니다. 우수한 UI/UX 디자인으로 제작되었습니다.",
+    "key_features": "주요 기능",
+    "data_sovereignty_title": "귀하의 데이터는 귀하의 것입니다",
+    "data_sovereignty_desc": "귀하의 키, 귀하의 데이터, 귀하의 통제. 완전한 개인정보 보호를 위해 Ollama와의 통합을 통해 로컬 모델을 사용하세요.",
+    "customizable_title": "사용자 정의 가능",
+    "customizable_desc": "제공자, 온도, Top P, 길이, 형식, 언어, 외관, 시스템 프롬프트 및 사용자 프롬프트...",
+    "cross_platform_title": "크로스 플랫폼 호환성",
+    "cross_platform_desc": "데스크톱, 태블릿 및 모바일. Firefox Android 및 Kiwi Browser를 포함한 모바일 브라우저에서 작동합니다.",
+    "developer_credit": "❤️ 베트남에서 설계 및 개발 🇻🇳",
+    "availability": "오픈 소스 • 사용 가능",
+    "github": "GitHub",
+    "chrome_store": "Chrome 스토어",
+    "firefox_addons": "Firefox 애드온"
   }
 }

@@ -4,7 +4,7 @@
 
 <div class={`overflow-hidden bg-background relative ${className}`}>
   <div
-    class="absolute z-50 text-[0.65rem] text-muted/75 top-px z-10 left-px rounded-br-2xl bg-surface-1 pl-1.5 pr-2 py-1"
+    class="absolute z-50 text-[0.65rem] text-muted/75 top-px left-px rounded-br-2xl bg-surface-1 pl-1.5 pr-2 py-1"
   >
     {title}
   </div>

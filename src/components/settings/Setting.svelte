@@ -19,11 +19,13 @@
   let activeTab = $state('ai-model') // State variable for current tab
   let tabContainerEl // Reference to the tab container element
   let activeBarEl // Reference to the active bar element
+  let scrollContainerEl // Reference to the scroll container element
 
   // Function to update the active bar's position dynamically
   function updateActiveBarPosition() {
     if (!tabContainerEl) return
-
+    scrollContainerEl.scrollTop = 0
+    document.querySelector('#setting-scroll > div:nth-child(1)').scrollTop = 0
     const activeButton = tabContainerEl.querySelector(
       `[data-tab='${activeTab}']`
     )
@@ -221,6 +223,7 @@
   <div
     id="setting-scroll"
     class="sm:h-[calc(100dvh-9.5rem)] order-2 sm:order-4 h-[calc(100dvh-6.35rem)] overflow-y-auto"
+    bind:this={scrollContainerEl}
   >
     <div>
       {#if activeTab === 'ai-model'}

@@ -12,7 +12,7 @@
   let isNavOpen = $state(false)
   let activeHeadingId = $state(null)
   function generateRandomString(length = 4) {
-    const characters = 'abcdefghijklmnopqrstuvwxyz0123456789'
+    const characters = 'abcdefghijklmnopqrstuvwxyz'
     let result = ''
     for (let i = 0; i < length; i++) {
       result += characters.charAt(Math.floor(Math.random() * characters.length))
@@ -158,7 +158,7 @@
         if (text.endsWith(':')) {
           text = text.slice(0, -1)
         }
-        const id = heading.id || generateId(text)
+        const id = generateId(text)
         heading.id = id // Ensure heading has an ID for scrolling
         return { text, id, level: parseInt(heading.tagName.substring(1)) }
       })

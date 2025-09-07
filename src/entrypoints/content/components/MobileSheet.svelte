@@ -223,7 +223,7 @@
     } else {
       // Snap back to open position with elastic effect
       animate(drawerPanel, {
-        translateY: '0%',
+        translateY: '0px',
         duration: 400,
         ease: 'outBack(1.25)',
       })

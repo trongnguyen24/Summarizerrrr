@@ -182,7 +182,7 @@
 
 <div
   id="toc"
-  class="fixed z-20 right-0 sm:right-4 md:right-8 bottom-8 group origin-bottom-right"
+  class="fixed z-20 right-0 sm:right-4 md:right-8 bottom-16 md:bottom-8 group origin-bottom-right"
 >
   <button
     class="flex items-end transition-all py-2 px-4 flex-col gap-2 {isTouchDevice()
@@ -213,7 +213,7 @@
     </span>
   </button>
   <nav
-    class="fixed bottom-6 z-20 pt-4 px-3 left-0 sm:left-auto right-0 sm:right-6 md:right-8 {isTouchDevice()
+    class="fixed bottom-14 md:bottom-8 z-20 pt-4 px-3 left-0 sm:left-auto right-0 sm:right-6 md:right-8 {isTouchDevice()
       ? isNavOpen
         ? 'block opacity-100'
         : 'hidden opacity-0'
@@ -222,7 +222,7 @@
     <div class="relative">
       <div
         id="toc-scroll"
-        class="w-full xs:w-108 overflow-auto max-h-[calc(100vh-150px)] border rounded-t-lg border-border bg-background"
+        class="w-full xs:w-108 overflow-auto max-h-[calc(100vh-200px)] border rounded-t-lg border-border bg-background"
       >
         <div
           class="flex flex-col divide-y divide-border/50 dark:divide-border/70"

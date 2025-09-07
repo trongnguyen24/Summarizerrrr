@@ -144,6 +144,15 @@ button {
   }
 }
 
+@media screen and (max-width: 480px) {
+  .prose ul {
+    padding-inline-start: 0.85em;
+  }
+  .prose li {
+    padding-inline-start: 0;
+  }
+}
+
 @keyframes wiggle {
   0% {
     transform: rotate(0deg);

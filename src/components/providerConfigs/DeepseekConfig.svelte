@@ -45,6 +45,8 @@
   apiKey={settings.deepseekApiKey}
   onSave={handleApiKeySave}
   placeholder={$t('settings.deepseek_config.api_key_placeholder')}
+  linkHref="https://platform.deepseek.com/api_keys"
+  linkText={$t('settings.groq_config.get_a_key')}
 />
 <div class="flex flex-col gap-2">
   <div class="flex flex-col gap-2">

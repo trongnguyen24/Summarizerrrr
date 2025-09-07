@@ -1,7 +1,7 @@
 <script>
   // @ts-nocheck
   import { fade } from 'svelte/transition'
-  import Icon from '@iconify/svelte'
+  import Icon, { loadIcons } from '@iconify/svelte'
   import { t } from 'svelte-i18n'
   import 'overlayscrollbars/overlayscrollbars.css'
   import { useOverlayScrollbars } from 'overlayscrollbars-svelte'
@@ -92,6 +92,18 @@
   // Use $effect to save settings when they change
 
   // No longer needed, handled by the dynamic position effects
+  loadIcons([
+    'heroicons:sparkles-solid',
+    'heroicons:sparkles',
+    'heroicons:document-text-solid',
+    'heroicons:document-text',
+    'heroicons:cursor-arrow-rays-solid',
+    'heroicons:cursor-arrow-rays',
+    'heroicons:swatch-solid',
+    'heroicons:swatch',
+    'heroicons:information-circle-solid',
+    'heroicons:information-circle',
+  ])
 </script>
 
 <!-- Apply Tailwind classes for overall layout and styling -->

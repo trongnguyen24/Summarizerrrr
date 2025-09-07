@@ -2,7 +2,7 @@
   // @ts-nocheck
   import { onMount } from 'svelte'
   import { t } from 'svelte-i18n'
-  import Icon from '@iconify/svelte'
+  import Icon, { loadIcons } from '@iconify/svelte'
   import 'overlayscrollbars/overlayscrollbars.css'
   import { useOverlayScrollbars } from 'overlayscrollbars-svelte'
   import { appStateStorage } from '@/services/wxtStorageService.js'
@@ -126,12 +126,22 @@
   loadSettings().then(() => {
     subscribeToSettingsChanges()
   })
+  loadIcons([
+    'tabler:layout-sidebar-left-collapse',
+    'tabler:layout-sidebar-right-collapse',
+    'heroicons:sun-16-solid',
+    'heroicons:moon-20-solid',
+    'heroicons:computer-desktop-20-solid',
+    'tabler:pencil',
+    'heroicons:trash',
+    'heroicons:x-mark-16-solid',
+  ])
 </script>
 
 <!--
 <Logdev /> -->
 
-<main class="flex text-sm relative min-h-dvh bg-background text-text-primary">
+<main class="flex text-sm relative min-h-vh bg-background text-text-primary">
   <!-- Overlay backdrop for mobile - click outside to close sidepanel -->
   {#if isMobile && isSidePanelVisible}
     <!-- svelte-ignore a11y_click_events_have_key_events -->
@@ -156,7 +166,7 @@
         height="24"
       />
     {/if}
-    <span class=" -z-10 absolute -inset-2 bg-blackwhite-5 backdrop-blur-sm"
+    <span class=" -z-10 absolute -inset-2 bg-surface-2/50 backdrop-blur-sm"
     ></span>
   </button>
 
@@ -167,9 +177,9 @@
 
   <div
     bind:this={sidePanel}
-    class="top-0 p-0 fixed left-2 sm:left-5 md:left-8 h-screen max-h-screen z-40 bg-background overflow-hidden"
+    class="top-0 p-0 fixed left-2 sm:left-5 md:left-8 h-svh max-h-svh z-40 bg-background overflow-hidden"
   >
-    <div class="w-px absolute z-30 top-0 right-0 h-screen bg-border/70"></div>
+    <div class="w-px absolute z-30 top-0 right-0 h-svh bg-border/70"></div>
 
     {#if isSidePanelVisible}
       <SidePanel

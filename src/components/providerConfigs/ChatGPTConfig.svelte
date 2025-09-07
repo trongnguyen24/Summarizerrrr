@@ -74,6 +74,8 @@
   apiKey={settings.chatgptApiKey}
   onSave={handleApiKeySave}
   placeholder={$t('settings.chatgpt_config.api_key_placeholder')}
+  linkHref="https://platform.openai.com/api-keys"
+  linkText={$t('settings.groq_config.get_a_key')}
 />
 <div class="flex flex-col gap-2">
   <div class="flex flex-col gap-2">

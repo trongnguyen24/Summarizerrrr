@@ -25,7 +25,7 @@
         "system": "Hệ thống",
         "system_desc": "Sử dụng giao diện hệ thống."
       },
-      "responseMode": "Cách Phản hồi",
+      "responseMode": "Chế độ phản hồi (Chỉ làm việc trên Thanh bên)",
       "response_mode": {
         "streaming": "Streaming",
         "streaming_desc": "Hiển thị phản hồi thời gian thực, trải nghiệm tốt hơn.",

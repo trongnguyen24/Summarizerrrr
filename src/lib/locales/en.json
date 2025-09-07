@@ -25,7 +25,7 @@
         "system": "System",
         "system_desc": "System theme."
       },
-      "responseMode": "Response Mode",
+      "responseMode": "Response Mode (Just work on the Sidepanel)",
       "response_mode": {
         "streaming": "Streaming",
         "streaming_desc": "Real-time response display, better experience.",

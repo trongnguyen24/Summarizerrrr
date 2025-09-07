@@ -25,7 +25,7 @@
         "system": "システム",
         "system_desc": "システムテーマ。"
       },
-      "responseMode": "応答モード",
+      "responseMode": "応答モード (サイドパネルでのみ動作)",
       "response_mode": {
         "streaming": "ストリーミング",
         "streaming_desc": "リアルタイム表示、より良い体験。",

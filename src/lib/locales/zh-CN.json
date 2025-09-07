@@ -25,7 +25,7 @@
         "system": "跟随系统",
         "system_desc": "自动匹配您设备的主题。"
       },
-      "responseMode": "响应模式",
+      "responseMode": "响应模式 (仅在侧边栏工作)",
       "response_mode": {
         "streaming": "流式",
         "streaming_desc": "即时显示回答，推荐使用。",

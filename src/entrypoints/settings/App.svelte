@@ -1,6 +1,11 @@
 <script>
   // @ts-nocheck
   import { t } from 'svelte-i18n'
+  import {
+    settings,
+    loadSettings,
+    subscribeToSettingsChanges,
+  } from '@/stores/settingsStore.svelte.js'
   import Setting from '@/components/settings/Setting.svelte'
   import {
     themeSettings,
@@ -22,6 +27,10 @@
       unsubscribeSystemTheme()
       unsubscribeTheme()
     }
+  })
+
+  loadSettings().then(() => {
+    subscribeToSettingsChanges()
   })
 </script>
 

@@ -25,7 +25,7 @@
         "system": "System",
         "system_desc": "System-Design verwenden."
       },
-      "responseMode": "Antwortmodus",
+      "responseMode": "Chế độ phản hồi (Chỉ làm việc trên Thanh bên)",
       "response_mode": {
         "streaming": "Streaming",
         "streaming_desc": "Echtzeitanzeige, bessere Erfahrung.",

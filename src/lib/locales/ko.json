@@ -25,7 +25,7 @@
         "system": "시스템",
         "system_desc": "시스템 테마"
       },
-      "responseMode": "응답 모드",
+      "responseMode": "응답 모드 (사이드패널에서만 작동)",
       "response_mode": {
         "streaming": "스트리밍",
         "streaming_desc": "실시간 응답 표시, 더 나은 경험",

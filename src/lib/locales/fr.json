@@ -25,7 +25,7 @@
         "system": "Système",
         "system_desc": "Utilise le thème de votre appareil."
       },
-      "responseMode": "Mode de réponse",
+      "responseMode": "Chế độ phản hồi (Chỉ làm việc trên Thanh bên)",
       "response_mode": {
         "streaming": "Streaming",
         "streaming_desc": "Réponses instantanées. Recommandé.",

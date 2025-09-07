@@ -21,13 +21,7 @@
   }
 
   function generateId(text) {
-    const baseId = text
-      .toLowerCase()
-      .replace(/[^a-z0-9\s-]/g, '')
-      .trim()
-      .replace(/\s+/g, '-')
-      .replace(/-+/g, '-')
-    return `${baseId}-${generateRandomString()}`
+    return generateRandomString()
   }
 
   // Simple throttle function
@@ -48,20 +42,22 @@
     const host = document.querySelector('wxt-svelte-integrated-ui')
     if (!host?.shadowRoot) return
 
+    const scrollContainer = host.shadowRoot.getElementById('shadow-scroll')
     const iddElement = host.shadowRoot.getElementById(targetDivId)
-    if (!iddElement) return
+    if (!iddElement || !scrollContainer) return
 
+    const containerRect = scrollContainer.getBoundingClientRect()
     const rootNode = iddElement.shadowRoot || iddElement
     const headingElements = rootNode.querySelectorAll('h2, h3, h4')
     let currentActiveHeadingId = null
 
     for (let i = headingElements.length - 1; i >= 0; i--) {
       const heading = headingElements[i]
-      const rect = heading.getBoundingClientRect()
+      const headingRect = heading.getBoundingClientRect()
 
-      // Check if the heading is in or just above the viewport
-      if (rect.top <= window.innerHeight * 0.1) {
-        // Highlight when 10% from top
+      // Check if the heading is at or above the 10% mark of the scroll container
+      if (headingRect.top <= containerRect.top + containerRect.height * 0.1) {
+        // Highlight when 10% from the container's top
         currentActiveHeadingId = heading.id
         break
       }
@@ -82,7 +78,7 @@
 
     if (element) {
       // Find the shadow-scroll container
-      const scrollContainer = host.shadowRoot.getElementById(idScroll)
+      const scrollContainer = host.shadowRoot.getElementById('shadow-scroll')
       if (scrollContainer) {
         // Calculate the position of the element relative to the scroll container
         const elementRect = element.getBoundingClientRect()
@@ -112,7 +108,7 @@
     const host = document.querySelector('wxt-svelte-integrated-ui')
     if (!host?.shadowRoot) return
 
-    const scrollContainer = host.shadowRoot.getElementById(idScroll)
+    const scrollContainer = host.shadowRoot.getElementById('shadow-scroll')
     if (scrollContainer) {
       scrollContainer.scrollTo({
         top: 0,
@@ -125,7 +121,7 @@
     const host = document.querySelector('wxt-svelte-integrated-ui')
     if (!host?.shadowRoot) return
 
-    const scrollContainer = host.shadowRoot.getElementById(idScroll)
+    const scrollContainer = host.shadowRoot.getElementById('shadow-scroll')
     if (scrollContainer) {
       scrollContainer.scrollTo({
         top: scrollContainer.scrollHeight,
@@ -170,7 +166,7 @@
       highlight() // Highlight after updating headings
 
       // Set up scroll listener for highlight detection
-      const scrollContainer = host.shadowRoot.getElementById(idScroll)
+      const scrollContainer = host.shadowRoot.getElementById('shadow-scroll')
       if (scrollContainer) {
         scrollContainer.addEventListener('scroll', throttledHighlight)
       }
@@ -182,7 +178,7 @@
       // Cleanup scroll listeners
       const host = document.querySelector('wxt-svelte-integrated-ui')
       if (host?.shadowRoot) {
-        const scrollContainer = host.shadowRoot.getElementById(idScroll)
+        const scrollContainer = host.shadowRoot.getElementById('shadow-scroll')
         if (scrollContainer) {
           scrollContainer.removeEventListener('scroll', throttledHighlight)
         }

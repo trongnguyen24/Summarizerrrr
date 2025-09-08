@@ -107,9 +107,6 @@ export function resetDisplayState() {
 export function updateVideoActiveStates(isYouTube, isCourse) {
   summaryState.isYouTubeVideoActive = isYouTube
   summaryState.isCourseVideoActive = isCourse
-  console.log(
-    `[summaryStore] isYouTubeVideoActive updated to: ${isYouTube}, isCourseVideoActive updated to: ${isCourse}`
-  )
 }
 
 /**
@@ -132,7 +129,6 @@ export function updateActiveCourseTab(tabName) {
  * Fetches content from the current tab and triggers the summarization process.
  */
 export async function fetchAndSummarize() {
-  console.log('[summaryStore] fetchAndSummarize called.')
   // If a summarization process is already ongoing, reset state and start a new one
   if (summaryState.isLoading || summaryState.isChapterLoading) {
     resetState() // Reset state before starting a new summarization
@@ -177,7 +173,6 @@ export async function fetchAndSummarize() {
     summaryState.isCourseSummaryLoading = true
     summaryState.isCourseConceptsLoading = true
 
-    console.log('[summaryStore] Checking tab type...')
     const [tabInfo] = await browser.tabs.query({
       active: true,
       currentWindow: true,
@@ -197,10 +192,6 @@ export async function fetchAndSummarize() {
     summaryState.isYouTubeVideoActive = YOUTUBE_MATCH_PATTERN.test(tabInfo.url)
     summaryState.isCourseVideoActive = COURSE_MATCH_PATTERN.test(tabInfo.url)
 
-    console.log(
-      `[summaryStore] Current tab is: ${tabInfo.url}. YouTube video: ${summaryState.isYouTubeVideoActive}. Course video: ${summaryState.isCourseVideoActive}`
-    )
-
     let mainContentTypeToFetch = 'webpageText'
     let summaryType = 'general'
 
@@ -215,9 +206,6 @@ export async function fetchAndSummarize() {
     } else {
       summaryState.lastSummaryTypeDisplayed = 'web'
     }
-    console.log(
-      `[summaryStore] Will fetch main content type: ${mainContentTypeToFetch} for summary type: ${summaryType}`
-    )
 
     const mainContentResult = await getPageContent(
       mainContentTypeToFetch,
@@ -240,21 +228,12 @@ export async function fetchAndSummarize() {
             chapterSummarizedText ||
             '<p><i>Could not generate chapter summary.</i></p>'
         } catch (e) {
-          console.error('[summaryStore] Chapter summarization error:', e)
           const errorObject = handleError(e, {
             source: 'chapterSummarization',
           })
           summaryState.chapterError = errorObject
-          console.log(
-            '[summaryStore] Chapter error set to state:',
-            summaryState.chapterError
-          )
         } finally {
           summaryState.isChapterLoading = false
-          console.log(
-            '[summaryStore] Chapter loading set to false, error state:',
-            summaryState.chapterError
-          )
         }
       })()
 
@@ -269,21 +248,12 @@ export async function fetchAndSummarize() {
             videoSummarizedText ||
             '<p><i>Could not generate video summary.</i></p>'
         } catch (e) {
-          console.error('[summaryStore] YouTube video summarization error:', e)
           const errorObject = handleError(e, {
             source: 'youtubeVideoSummarization',
           })
           summaryState.summaryError = errorObject
-          console.log(
-            '[summaryStore] Video summary error set to state:',
-            summaryState.summaryError
-          )
         } finally {
           summaryState.isLoading = false
-          console.log(
-            '[summaryStore] Video loading set to false, error state:',
-            summaryState.summaryError
-          )
         }
       })()
       await Promise.all([chapterPromise, videoSummaryPromise])
@@ -299,7 +269,6 @@ export async function fetchAndSummarize() {
             courseSummarizedText ||
             '<p><i>Could not generate course summary.</i></p>'
         } catch (e) {
-          console.error('[summaryStore] Course summarization error:', e)
           summaryState.courseSummaryError = handleError(e, {
             source: 'courseSummarization',
           })
@@ -319,7 +288,6 @@ export async function fetchAndSummarize() {
             courseConceptsText ||
             '<p><i>Could not explain course concepts.</i></p>'
         } catch (e) {
-          console.error('[summaryStore] Course concept explanation error:', e)
           summaryState.courseConceptsError = handleError(e, {
             source: 'courseConceptsExplanation',
           })
@@ -338,27 +306,17 @@ export async function fetchAndSummarize() {
         summaryState.summary =
           summarizedText || '<p><i>Could not generate summary.</i></p>'
       } catch (e) {
-        console.error('[summaryStore] General summarization error:', e)
         const errorObject = handleError(e, {
           source: 'generalSummarization',
         })
         summaryState.summaryError = errorObject
-        console.log(
-          '[summaryStore] General summary error set to state:',
-          summaryState.summaryError
-        )
       }
     }
   } catch (e) {
-    console.error('[summaryStore] Error during main summarization process:', e)
     const errorObject = handleError(e, {
       source: 'mainSummarizationProcess',
     })
     summaryState.summaryError = errorObject
-    console.log(
-      '[summaryStore] Main process error set to state:',
-      summaryState.summaryError
-    )
     // Don't change the lastSummaryTypeDisplayed on error,
     // so the UI can show the error in the correct context (e.g., YouTube tab).
   } finally {
@@ -368,22 +326,11 @@ export async function fetchAndSummarize() {
     summaryState.isCourseSummaryLoading = false
     summaryState.isCourseConceptsLoading = false
 
-    console.log(
-      '[summaryStore] All loading states set to false. Current error states:',
-      {
-        summaryError: summaryState.summaryError,
-        chapterError: summaryState.chapterError,
-        courseSummaryError: summaryState.courseSummaryError,
-        courseConceptsError: summaryState.courseConceptsError,
-      }
-    )
-
     // Log all generated summaries to history after all loading is complete
     await logAllGeneratedSummariesToHistory()
   }
 }
 export async function fetchAndSummarizeStream() {
-  console.log('[summaryStore] fetchAndSummarizeStream called.')
   if (
     summaryState.isLoading ||
     summaryState.isChapterLoading ||
@@ -475,15 +422,10 @@ export async function fetchAndSummarizeStream() {
           summaryState.summary += chunk
         }
       } catch (e) {
-        console.error('[summaryStore] YouTube video streaming error:', e)
         const errorObject = handleError(e, {
           source: 'youtubeVideoStreaming',
         })
         summaryState.summaryError = errorObject
-        console.log(
-          '[summaryStore] YouTube video error set to state:',
-          summaryState.summaryError
-        )
       }
     } else if (summaryState.isCourseVideoActive) {
       summaryState.isCourseSummaryLoading = true
@@ -530,79 +472,43 @@ export async function fetchAndSummarizeStream() {
       promises.push(courseConceptsPromise)
     } else {
       summaryState.summaryError = null
-      console.log('[summaryStore] Starting web summary streaming...')
       try {
         const webSummaryStream = summarizeContentStream(
           summaryState.currentContentSource,
           'general'
         )
-        console.log('[summaryStore] Got stream object, starting iteration...')
         let hasContent = false
         for await (const chunk of webSummaryStream) {
-          console.log(
-            '[summaryStore] Received chunk:',
-            chunk?.length || 'unknown length'
-          )
           summaryState.summary += chunk
           hasContent = true
         }
-        console.log('[summaryStore] Stream completed successfully')
 
         // Check if stream completed without content (likely due to error)
         if (!hasContent && summaryState.summary.trim() === '') {
-          console.log(
-            '[summaryStore] Stream completed but no content received - treating as error'
-          )
           // Try to capture the original AI SDK error from global store
           const originalError =
             window.lastAISDKError ||
             new Error('API key not valid. Please pass a valid API key.')
-          console.log(
-            '[summaryStore] Throwing original AI SDK error:',
-            originalError
-          )
           throw originalError
         }
       } catch (e) {
-        console.error('[summaryStore] Web summary streaming error:', e)
-        console.log('[summaryStore] Error type:', typeof e)
-        console.log('[summaryStore] Error constructor:', e?.constructor?.name)
-
         const errorObject = handleError(e, {
           source: 'webSummaryStreaming',
         })
-        console.log('[summaryStore] handleError returned:', errorObject)
 
         summaryState.summaryError = errorObject
-        console.log(
-          '[summaryStore] Web summary error set to state:',
-          summaryState.summaryError
-        )
-        console.log(
-          '[summaryStore] summaryState.summaryError === errorObject:',
-          summaryState.summaryError === errorObject
-        )
       }
     }
 
     await Promise.all(promises)
   } catch (e) {
-    console.error('[summaryStore] Error during stream summarization:', e)
     const errorObject = handleError(e, {
       source: 'streamSummarization',
     })
     summaryState.summaryError = errorObject
-    console.log(
-      '[summaryStore] Stream error set to state:',
-      summaryState.summaryError
-    )
     summaryState.lastSummaryTypeDisplayed = 'web'
   } finally {
     summaryState.isLoading = false
-    console.log(
-      '[summaryStore] Stream loading set to false, error state:',
-      summaryState.summaryError
-    )
     await logAllGeneratedSummariesToHistory()
   }
 }
@@ -612,9 +518,6 @@ export async function summarizeSelectedText(text) {
     summaryState.isLoading ||
     summaryState.isChapterLoading
   ) {
-    console.warn(
-      '[summaryStore] Summarization in progress, resetting for selected text.'
-    )
     resetState()
   }
 
@@ -638,15 +541,12 @@ export async function summarizeSelectedText(text) {
       throw new Error('No text selected for summarization.')
     }
 
-    console.log('[summaryStore] Starting selected text summarization...')
     const summarizedText = await summarizeContent(text, 'selectedText')
 
     summaryState.selectedTextSummary =
       summarizedText ||
       '<p><i>Could not generate summary from this selected text.</i></p>'
-    console.log('[summaryStore] Selected text summary processed.')
   } catch (e) {
-    console.error('[summaryStore] Selected text summarization error:', e)
     summaryState.selectedTextError = handleError(e, {
       source: 'selectedTextSummarization',
     })
@@ -704,7 +604,6 @@ export async function saveAllGeneratedSummariesToArchive() {
   }
 
   if (summariesToSave.length === 0) {
-    console.warn('Không có bản tóm tắt nào để lưu vào Archive.')
     // TODO: Thêm thông báo cho người dùng
     return
   }
@@ -719,19 +618,10 @@ export async function saveAllGeneratedSummariesToArchive() {
     }
 
     await addSummary(archiveEntry)
-    console.log(
-      'Đã lưu tất cả các bản tóm tắt đã tạo vào Archive:',
-      archiveEntry
-    )
     summaryState.isArchived = true
     // Notify other components that the data has been updated
     await appStateStorage.setValue({ data_updated_at: new Date().getTime() })
-  } catch (error) {
-    console.error(
-      'Lỗi khi lưu tất cả các bản tóm tắt đã tạo vào Archive:',
-      error
-    )
-  }
+  } catch (error) {}
 }
 
 export async function logAllGeneratedSummariesToHistory() {
@@ -781,7 +671,6 @@ export async function logAllGeneratedSummariesToHistory() {
   }
 
   if (summariesToLog.length === 0) {
-    console.warn('Không có bản tóm tắt nào để ghi vào History.')
     return
   }
 
@@ -795,10 +684,6 @@ export async function logAllGeneratedSummariesToHistory() {
     }
 
     await addHistory(historyEntry)
-    console.log(
-      'Đã ghi tất cả các bản tóm tắt đã tạo vào History:',
-      historyEntry
-    )
     document.dispatchEvent(
       new CustomEvent('saveSummarySuccess', {
         detail: { message: 'Logged to History successfully!' },
@@ -807,10 +692,6 @@ export async function logAllGeneratedSummariesToHistory() {
     // Notify other components that the data has been updated
     await appStateStorage.setValue({ data_updated_at: new Date().getTime() })
   } catch (error) {
-    console.error(
-      'Lỗi khi ghi tất cả các bản tóm tắt đã tạo vào History:',
-      error
-    )
     document.dispatchEvent(
       new CustomEvent('saveSummaryError', {
         detail: { message: `Error logging to History: ${error}` },

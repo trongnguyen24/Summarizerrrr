@@ -236,6 +236,11 @@ export async function* generateContentStream(
   } catch (error) {
     console.error('AI SDK Stream Error:', error)
 
+    // Store the original error globally for fallback capture
+    if (typeof window !== 'undefined') {
+      window.lastAISDKError = error
+    }
+
     // Check if this is a Firefox mobile specific error
     if (
       browserCompatibility.isFirefoxMobile &&

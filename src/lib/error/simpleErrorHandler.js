@@ -35,22 +35,8 @@ export function handleError(error, context = {}) {
   const canRetry = true
 
   // Enhanced console log để debug
-  console.error('[SimpleErrorHandler] Error occurred:', {
-    message,
-    context,
-    originalError: error,
-    errorType: error?.constructor?.name,
-    stack: error?.stack,
-    timestamp: new Date().toISOString(),
-  })
 
   // Log để track error object creation
-  console.log('[SimpleErrorHandler] Creating error object for UI display:', {
-    message,
-    suggestionsCount: ERROR_SUGGESTIONS.length,
-    canRetry,
-    context,
-  })
 
   const errorObject = {
     message,
@@ -60,7 +46,6 @@ export function handleError(error, context = {}) {
   }
 
   // Log final error object
-  console.log('[SimpleErrorHandler] Error object created:', errorObject)
 
   return errorObject
 }
@@ -70,12 +55,4 @@ export function handleError(error, context = {}) {
  * @param {object} errorInfo - Thông tin lỗi từ handleError
  * @param {Error} originalError - Lỗi gốc
  */
-export function logError(errorInfo, originalError) {
-  console.error('[SimpleErrorHandler] Handled error:', {
-    timestamp: new Date().toISOString(),
-    message: errorInfo.message,
-    canRetry: errorInfo.canRetry,
-    context: errorInfo.context,
-    originalStack: originalError?.stack,
-  })
-}
+export function logError(errorInfo, originalError) {}

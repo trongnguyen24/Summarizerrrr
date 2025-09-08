@@ -11,14 +11,9 @@ export function isFirefoxMobile() {
     const isMobile = /Mobile/.test(userAgent)
     const result = isFirefox && isMobile
 
-    if (result) {
-      console.log('[BrowserDetection] Detected Firefox Mobile')
-    }
-
     return result
   } catch (error) {
     // Use console.log instead of console.warn on Firefox Mobile due to read-only restrictions
-    console.log('[BrowserDetection] Error detecting Firefox Mobile:', error)
     return false
   }
 }
@@ -31,9 +26,6 @@ export function supportsAdvancedStreaming() {
   try {
     // Firefox mobile has issues with streaming APIs
     if (isFirefoxMobile()) {
-      console.log(
-        '[BrowserDetection] Firefox Mobile detected, disabling advanced streaming'
-      )
       return false
     }
 
@@ -42,17 +34,12 @@ export function supportsAdvancedStreaming() {
     const hasWritableStream = typeof WritableStream !== 'undefined'
 
     if (!hasReadableStream || !hasWritableStream) {
-      console.log(
-        '[BrowserDetection] Missing streaming APIs, disabling advanced streaming'
-      )
       return false
     }
 
-    console.log('[BrowserDetection] Advanced streaming supported')
     return true
   } catch (error) {
     // Use console.log instead of console.warn on Firefox Mobile due to read-only restrictions
-    console.log('[BrowserDetection] Error checking streaming support:', error)
     return false
   }
 }
@@ -63,14 +50,12 @@ export function supportsAdvancedStreaming() {
  */
 export function getStreamingOptions() {
   if (isFirefoxMobile()) {
-    console.log('[BrowserDetection] Returning Firefox Mobile streaming options')
     return {
       useSmoothing: false, // Disable smooth streaming on Firefox mobile
       fallbackToNonStreaming: true,
     }
   }
 
-  console.log('[BrowserDetection] Returning default streaming options')
   return {
     useSmoothing: true,
     fallbackToNonStreaming: false,
@@ -98,6 +83,5 @@ export function getBrowserCompatibility() {
     streamingOptions: getStreamingOptions(),
   }
 
-  console.log('[BrowserDetection] Browser compatibility:', compatibility)
   return compatibility
 }

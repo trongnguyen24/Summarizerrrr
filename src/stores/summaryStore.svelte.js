@@ -18,6 +18,7 @@ import {
 } from '@/lib/db/indexedDBService.js'
 import { appStateStorage } from '@/services/wxtStorageService.js'
 import { generateUUID } from '@/lib/utils/utils.js'
+import { handleError } from '@/lib/error/simpleErrorHandler.js'
 
 // --- State ---
 export const summaryState = $state({
@@ -240,7 +241,9 @@ export async function fetchAndSummarize() {
             '<p><i>Could not generate chapter summary.</i></p>'
         } catch (e) {
           console.error('[summaryStore] Chapter summarization error:', e)
-          summaryState.chapterError = e
+          summaryState.chapterError = handleError(e, {
+            source: 'chapterSummarization',
+          })
         } finally {
           summaryState.isChapterLoading = false
         }
@@ -258,7 +261,9 @@ export async function fetchAndSummarize() {
             '<p><i>Could not generate video summary.</i></p>'
         } catch (e) {
           console.error('[summaryStore] YouTube video summarization error:', e)
-          summaryState.summaryError = e
+          summaryState.summaryError = handleError(e, {
+            source: 'youtubeVideoSummarization',
+          })
         } finally {
           summaryState.isLoading = false
         }
@@ -277,7 +282,9 @@ export async function fetchAndSummarize() {
             '<p><i>Could not generate course summary.</i></p>'
         } catch (e) {
           console.error('[summaryStore] Course summarization error:', e)
-          summaryState.courseSummaryError = e
+          summaryState.courseSummaryError = handleError(e, {
+            source: 'courseSummarization',
+          })
         } finally {
           summaryState.isCourseSummaryLoading = false
         }
@@ -295,7 +302,9 @@ export async function fetchAndSummarize() {
             '<p><i>Could not explain course concepts.</i></p>'
         } catch (e) {
           console.error('[summaryStore] Course concept explanation error:', e)
-          summaryState.courseConceptsError = e
+          summaryState.courseConceptsError = handleError(e, {
+            source: 'courseConceptsExplanation',
+          })
         } finally {
           summaryState.isCourseConceptsLoading = false
         }
@@ -311,15 +320,16 @@ export async function fetchAndSummarize() {
         summaryState.summary =
           summarizedText || '<p><i>Could not generate summary.</i></p>'
       } catch (e) {
-        summaryState.summaryError = e
+        summaryState.summaryError = handleError(e, {
+          source: 'generalSummarization',
+        })
       }
     }
   } catch (e) {
     console.error('[summaryStore] Error during main summarization process:', e)
-    summaryState.summaryError = {
-      message: e.message || 'An unexpected error occurred.',
-      type: 'SUMMARIZATION_ERROR',
-    }
+    summaryState.summaryError = handleError(e, {
+      source: 'mainSummarizationProcess',
+    })
     // Don't change the lastSummaryTypeDisplayed on error,
     // so the UI can show the error in the correct context (e.g., YouTube tab).
   } finally {
@@ -407,7 +417,9 @@ export async function fetchAndSummarizeStream() {
             summaryState.chapterSummary += chunk
           }
         } catch (e) {
-          summaryState.chapterError = e
+          summaryState.chapterError = handleError(e, {
+            source: 'chapterStreamSummarization',
+          })
         } finally {
           summaryState.isChapterLoading = false
         }
@@ -437,7 +449,9 @@ export async function fetchAndSummarizeStream() {
             summaryState.courseSummary += chunk
           }
         } catch (e) {
-          summaryState.courseSummaryError = e
+          summaryState.courseSummaryError = handleError(e, {
+            source: 'courseSummaryStreamSummarization',
+          })
         } finally {
           summaryState.isCourseSummaryLoading = false
         }
@@ -455,7 +469,9 @@ export async function fetchAndSummarizeStream() {
             summaryState.courseConcepts += chunk
           }
         } catch (e) {
-          summaryState.courseConceptsError = e
+          summaryState.courseConceptsError = handleError(e, {
+            source: 'courseConceptsStreamSummarization',
+          })
         } finally {
           summaryState.isCourseConceptsLoading = false
         }
@@ -475,7 +491,9 @@ export async function fetchAndSummarizeStream() {
     await Promise.all(promises)
   } catch (e) {
     console.error('[summaryStore] Error during stream summarization:', e)
-    summaryState.summaryError = e
+    summaryState.summaryError = handleError(e, {
+      source: 'streamSummarization',
+    })
     summaryState.lastSummaryTypeDisplayed = 'web'
   } finally {
     summaryState.isLoading = false
@@ -523,7 +541,9 @@ export async function summarizeSelectedText(text) {
     console.log('[summaryStore] Selected text summary processed.')
   } catch (e) {
     console.error('[summaryStore] Selected text summarization error:', e)
-    summaryState.selectedTextError = e
+    summaryState.selectedTextError = handleError(e, {
+      source: 'selectedTextSummarization',
+    })
     summaryState.lastSummaryTypeDisplayed = 'selectedText'
   } finally {
     summaryState.isSelectedTextLoading = false

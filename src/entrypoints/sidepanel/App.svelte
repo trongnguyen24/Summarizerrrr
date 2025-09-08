@@ -105,8 +105,7 @@
   // Register global event listener and ensure it's cleaned up when component is destroyed
   $effect(() => {
     const handleSummarizeClick = () => {
-      resetDisplayState() // Reset display state before new summarization
-      fetchAndSummarize() // Call the main summarization function
+      fetchAndSummarize() // Call the main summarization function, it will handle its own state reset
     }
 
     document.addEventListener('summarizeClick', handleSummarizeClick)

@@ -1,7 +1,6 @@
 // @ts-nocheck
 import { settings, loadSettings } from '@/stores/settingsStore.svelte.js'
 import { promptBuilders } from '@/lib/prompting/promptBuilders.js'
-import { ErrorTypes } from '../error/errorTypes.js'
 import {
   generateContent as aiSdkGenerateContent,
   generateContentStream as aiSdkGenerateContentStream,
@@ -78,10 +77,9 @@ function validateApiKey(userSettings, selectedProviderId) {
   }
 
   if (!apiKey) {
-    throw {
-      message: `${providerName} API key is not configured. Click the settings icon on the right to add your API key.`,
-      type: ErrorTypes.API_KEY,
-    }
+    throw new Error(
+      `${providerName} API key is not configured. Click the settings icon on the right to add your API key.`
+    )
   }
 }
 

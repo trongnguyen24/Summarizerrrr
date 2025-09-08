@@ -1,7 +1,6 @@
 // @ts-nocheck
 import { browser } from 'wxt/browser'
-import { ErrorHandler } from '../lib/error/errorHandler.js'
-import { ErrorTypes } from '../lib/error/errorTypes.js'
+import { handleError } from '../lib/error/simpleErrorHandler.js'
 
 const YOUTUBE_MATCH_PATTERN = /youtube\.com\/watch/i
 const COURSE_MATCH_PATTERN =
@@ -113,18 +112,18 @@ export async function getPageContent(
       const error = new Error(
         `Cannot get ${contentType} from a non-video page.`
       )
-      error.type = ErrorTypes.CONTENT // Assign a specific type for better classification
       throw error
     }
 
     throw new Error('Unhandled case in getPageContent logic.')
   } catch (error) {
     console.error('[contentService] Error:', error)
-    // Pass the error to the centralized handler
-    throw ErrorHandler.handle(error, {
+    // Use simple error handler
+    const handledError = handleError(error, {
       source: 'contentService',
       contentType,
       preferredLang,
     })
+    throw handledError
   }
 }

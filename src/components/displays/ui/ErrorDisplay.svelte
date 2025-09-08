@@ -1,24 +1,16 @@
 <script>
   // @ts-nocheck
   import { fetchAndSummarize } from '../../../stores/summaryStore.svelte.js'
-  import { getHelpInfo } from '../../../lib/error/helpSystem.js'
   import { settings } from '../../../stores/settingsStore.svelte.js'
-  import { t } from 'svelte-i18n' // Import t for i18n
 
   let { error } = $props()
 
-  const helpInfo = $derived(getHelpInfo(error?.type))
-
-  // Translated properties for display
-  const translatedTitle = $derived($t(helpInfo.title))
-  const translatedMessage = $derived($t(helpInfo.message))
-  // Map suggestions to an array of translated texts
-  const translatedSuggestions = $derived(
-    helpInfo.suggestions?.map((suggestionKey) => $t(suggestionKey)) || []
-  )
+  // Đơn giản hóa - chỉ hiển thị message và suggestions từ error object
+  const errorMessage = $derived(error?.message || 'Something went wrong.')
+  const errorSuggestions = $derived(error?.suggestions || [])
 
   function handleRetry() {
-    if (error.canRetry) {
+    if (error?.canRetry) {
       fetchAndSummarize()
     }
   }
@@ -37,21 +29,18 @@
           ></span>
           <div class="font-bold text-error">Error</div>
           <div class="text-xs py-1 text-text-secondary">
-            {#if error?.message && error.message !== translatedMessage}
-              {error.message}
-            {:else}
-              {translatedTitle}{/if}
+            {errorMessage}
           </div>
         </div>
       </div>
 
       <p class="text-sm">
-        {translatedMessage || 'Something went wrong.'}
+        {errorMessage}
       </p>
 
-      {#if translatedSuggestions.length > 0}
+      {#if errorSuggestions.length > 0}
         <ul class="list-disc !m-0 list-inside pl-4">
-          {#each translatedSuggestions as suggestion}
+          {#each errorSuggestions as suggestion}
             <li>{suggestion}</li>
           {/each}
         </ul>

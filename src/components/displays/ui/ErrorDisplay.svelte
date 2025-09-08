@@ -35,9 +35,12 @@
           <span
             class="size-6 rotate-45 absolute top-0 right-0 translate-x-1/2 -translate-y-1/2 bg-surface-1"
           ></span>
-          <div class="text-xs font-bold text-error">Error</div>
-          <div class=" ">
-            {translatedTitle}
+          <div class="font-bold text-error">Error</div>
+          <div class="text-xs py-1 text-text-secondary">
+            {#if error?.message && error.message !== translatedMessage}
+              {error.message}
+            {:else}
+              {translatedTitle}{/if}
           </div>
         </div>
       </div>
@@ -56,15 +59,15 @@
     </div>
 
     <!-- Hiển thị raw error message cho UNKNOWN errors -->
-    {#if (error?.type === 'unknown' || !error?.type) && error?.message && error.message !== translatedMessage}
+    <!-- {#if (error?.type === 'unknown' || !error?.type) && }
       <div
         class="mt-2 relative p-4 overflow-hidden text-sm text-error border border-error font-mono"
       >
         <span
           class="absolute top-0 right-0 translate-x-1/2 -translate-y-1/2 size-8 rotate-45 bg-error"
         ></span>
-        {error.message}
+       
       </div>
-    {/if}
+    {/if} -->
   </div>
 {/if}

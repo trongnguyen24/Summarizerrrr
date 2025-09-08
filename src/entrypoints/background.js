@@ -123,6 +123,31 @@ export default defineBackground(() => {
   loadSettings()
   subscribeToSettingsChanges()
 
+  // Function to create the context menu
+  function initializeContextMenu() {
+    try {
+      if (browser.contextMenus) {
+        browser.contextMenus.create({
+          id: 'summarizeSelectedText',
+          title: 'Summarize selected text',
+          type: 'normal',
+          contexts: ['selection'],
+        })
+      }
+    } catch (error) {
+      // It's possible this fails if the menu already exists, which is fine.
+      console.log(
+        'Context menu creation failed, it might already exist:',
+        error
+      )
+    }
+  }
+
+  // Create the context menu on startup, specifically for Firefox persistence issue
+  if (import.meta.env.BROWSER === 'firefox') {
+    initializeContextMenu()
+  }
+
   const YOUTUBE_URL_PATTERN_STRING = '*://*.youtube.com/watch*'
   const UDEMY_URL_PATTERN_STRING = '*://*.udemy.com/course/*/learn/*'
   const COURSERA_URL_PATTERN_STRING = '*://*.coursera.org/learn/*'
@@ -333,18 +358,9 @@ export default defineBackground(() => {
   // 3. Extension Install/Update
   browser.runtime.onInstalled.addListener(async (details) => {
     if (details.reason === 'install' || details.reason === 'update') {
-      // Tạo context menu
-      try {
-        if (browser.contextMenus) {
-          browser.contextMenus.create({
-            id: 'summarizeSelectedText',
-            title: 'Summarize selected text',
-            type: 'normal',
-            contexts: ['selection'],
-          })
-        } else {
-        }
-      } catch (error) {}
+      // For Chrome, create the context menu on install/update.
+      // For Firefox, this is handled on startup, but we can also do it here as a fallback.
+      initializeContextMenu()
 
       try {
         const youtubeTabs = await browser.tabs.query({

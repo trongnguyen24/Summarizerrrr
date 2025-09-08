@@ -249,8 +249,6 @@
   })
 </script>
 
-<Logdev />
-
 <Toaster
   position="top-right"
   toastOptions={{

@@ -34,7 +34,7 @@
   <h2 class="text-lg font-bold text-text-primary text-center mb-2">
     {$t('welcome.setup_summary_lang_title')}
   </h2>
-  <p class="text-center text-xs text-text-secondary mb-6">
+  <p class="text-xs !text-center text-text-secondary mb-6">
     {$t('welcome.setup_summary_lang_desc')}
   </p>
 

@@ -35,10 +35,10 @@
 </script>
 
 <div class="welcome-language-step w-full">
-  <h2 class="text-lg font-bold text-text-primary text-center mb-2">
+  <h2 class="text-lg font-bold text-text-primary !text-center mb-2">
     {$t('welcome.choose_interface_language')}
   </h2>
-  <p class="text-center text-xs text-text-secondary mb-6">
+  <p class="!text-center text-xs text-text-secondary mb-6">
     {$t('welcome.select_your_language')}
   </p>
 

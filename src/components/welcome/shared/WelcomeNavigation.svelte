@@ -45,7 +45,7 @@
     onclick={onNext}
   >
     <div class="absolute inset-0 border border-orange-400 bg-primary"></div>
-    <div class="relative z-10 pl-4 pr-6 py-2">{$t(nextLabel)}</div>
+    <div class="relative !text-center z-10 pl-4 pr-6 py-2">{$t(nextLabel)}</div>
     <span
       class="absolute z-10 size-4 border border-orange-400 rotate-45 bg-surface-1 dark:border-surface-2 -bottom-px -left-px -translate-x-1/2 translate-y-1/2"
     ></span>

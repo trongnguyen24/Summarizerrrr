@@ -10,7 +10,7 @@
 </script>
 
 <div
-  class="flex flex-col text-center w-full justify-center items-center gap-4"
+  class="flex font-mono flex-col text-center w-full justify-center items-center gap-4"
   in:fade={{ duration: 300 }}
   out:fade={{ duration: 200 }}
 >
@@ -40,26 +40,27 @@
       />
     </div>
 
-    <div class="flex flex-col gap-2 text-center">
-      <p class="text-sm text-text-secondary text-balance max-w-sm">
+    <div class="flex flex-col gap-2">
+      <p class="text-sm !text-center text-text-secondary text-balance max-w-sm">
         {$t('apiKeyPrompt.description')}
       </p>
     </div>
   </div>
 
-  <div class="flex flex-col gap-2 items-center">
+  <div class="flex flex-col gap-8 items-center">
     <button
       onclick={handleOpenSettings}
-      class="px-4 py-2 bg-primary text-white rounded-lg font-medium hover:bg-primary/90 transition-colors"
+      class="px-6 py-2 bg-primary text-white rounded-3xl font-medium hover:bg-primary/90 transition-colors"
     >
       {$t('apiKeyPrompt.openSettings')}
     </button>
     <a
-      href="https://docs.example.com/api-setup"
+      href="https://www.youtube.com/watch?v=GV_nxMo_jDU"
       target="_blank"
-      class="text-xs text-text-secondary hover:text-primary underline underline-offset-2 transition-colors"
+      class="text-xs flex items-center text-text-secondary hover:text-primary underline underline-offset-2 transition-colors"
     >
       {$t('apiKeyPrompt.setupGuide')}
+      <Icon width={12} icon="heroicons:arrow-up-right-16-solid" />
     </a>
   </div>
 </div>

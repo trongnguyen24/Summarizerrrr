@@ -153,28 +153,37 @@
       href="https://github.com/trongnguyen24/Summarizerrrr"
       target="_blank"
       rel="noopener noreferrer"
-      class="flex items-center space-x-2 sm:space-x-1 transition-colors"
+      class="flex items-center space-x-2 sm:space-x-1 transition-colors hover:underline"
     >
       <Icon icon="mdi:github" class="w-4 h-4" />
-      <span>{$t('about.github')}</span>
+      <span class="flex items-center"
+        >{$t('about.github')}
+        <Icon width={12} icon="heroicons:arrow-up-right-16-solid" />
+      </span>
     </a>
     <a
       href="https://chromewebstore.google.com/detail/summarizerrrr/ahfjndakflcegianjdojpldllodpkkpc"
       target="_blank"
       rel="noopener noreferrer"
-      class="flex items-center space-x-2 sm:space-x-1 transition-colors"
+      class="flex items-center space-x-2 sm:space-x-1 transition-colors hover:underline"
     >
       <Icon icon="logos:chrome" class="w-4 h-4" />
-      <span>{$t('about.chrome_store')}</span>
+      <span class="flex items-center"
+        >{$t('about.chrome_store')}
+        <Icon width={12} icon="heroicons:arrow-up-right-16-solid" />
+      </span>
     </a>
     <a
       href="https://addons.mozilla.org/en-CA/firefox/addon/summarizerrrr/"
       target="_blank"
       rel="noopener noreferrer"
-      class="flex items-center space-x-2 sm:space-x-1 transition-colors"
+      class="flex items-center space-x-2 sm:space-x-1 transition-colors hover:underline"
     >
       <Icon icon="logos:firefox" class="w-4 h-4" />
-      <span>{$t('about.firefox_addons')}</span>
+      <span class="flex items-center"
+        >{$t('about.firefox_addons')}
+        <Icon width={12} icon="heroicons:arrow-up-right-16-solid" />
+      </span>
     </a>
   </div>
 </div>

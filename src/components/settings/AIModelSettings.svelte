@@ -313,5 +313,13 @@
         </div>
       </div>
     {/if}
+
+    <a
+      href="https://docs.example.com/api-setup"
+      target="_blank"
+      class="text-xs mt-auto self-center text-text-secondary hover:text-primary underline underline-offset-2 transition-colors"
+    >
+      {$t('apiKeyPrompt.setupGuide')}
+    </a>
   </div>
 </div>

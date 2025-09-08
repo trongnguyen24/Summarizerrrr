@@ -60,7 +60,7 @@
   .popup-container {
     /* For popup context: fixed dimensions */
     min-height: 600px;
-    min-width: 400px;
+    min-width: 340px;
     width: 100vw;
   }
 

@@ -316,8 +316,12 @@ export async function fetchAndSummarize() {
     }
   } catch (e) {
     console.error('[summaryStore] Error during main summarization process:', e)
-    summaryState.summaryError = e
-    summaryState.lastSummaryTypeDisplayed = 'web'
+    summaryState.summaryError = {
+      message: e.message || 'An unexpected error occurred.',
+      type: 'SUMMARIZATION_ERROR',
+    }
+    // Don't change the lastSummaryTypeDisplayed on error,
+    // so the UI can show the error in the correct context (e.g., YouTube tab).
   } finally {
     // Ensure all loading states are set to false
     summaryState.isLoading = false

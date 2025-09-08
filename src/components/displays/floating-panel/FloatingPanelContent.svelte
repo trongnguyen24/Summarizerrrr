@@ -3,6 +3,7 @@
   import YouTubeSummaryDisplayFP from '@/components/displays/floating-panel/YouTubeSummaryDisplayFP.svelte'
   import CourseSummaryDisplayFP from '@/components/displays/floating-panel/CourseSummaryDisplayFP.svelte'
   import GenericSummaryDisplayFP from '@/components/displays/floating-panel/GenericSummaryDisplayFP.svelte'
+  import ErrorDisplay from '@/components/displays/ui/ErrorDisplay.svelte'
 
   let {
     status,
@@ -51,7 +52,7 @@
 <div class="panel-content">
   <div class="prose text-base mx-auto px-6 py-8">
     {#if status === 'error'}
-      <p>Error: {error?.message || 'An error occurred.'}</p>
+      <ErrorDisplay {error} />
     {:else if contentType === 'course'}
       <DisplayComponent
         courseSummary={summary}

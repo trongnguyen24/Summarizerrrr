@@ -1,5 +1,10 @@
 // @ts-nocheck
-import { generateText, streamText } from 'ai'
+import {
+  generateText,
+  streamText,
+  wrapLanguageModel,
+  extractReasoningMiddleware,
+} from 'ai'
 import { createGoogleGenerativeAI } from '@ai-sdk/google'
 import { createOpenAI } from '@ai-sdk/openai'
 import { anthropic } from '@ai-sdk/anthropic'
@@ -119,6 +124,20 @@ export function mapGenerationConfig(settings) {
 }
 
 /**
+ * Wraps a model with extractReasoningMiddleware to automatically remove <think> tags
+ * @param {object} model - The base AI SDK model instance
+ * @returns {object} Wrapped model that extracts reasoning content
+ */
+export function wrapModelWithReasoningExtraction(model) {
+  return wrapLanguageModel({
+    model,
+    middleware: extractReasoningMiddleware({
+      tagName: 'think',
+    }),
+  })
+}
+
+/**
  * Unified content generation function using AI SDK
  * @param {string} providerId - Provider identifier
  * @param {object} settings - User settings
@@ -134,17 +153,19 @@ export async function generateContent(
   systemInstruction,
   userPrompt
 ) {
-  const model = getAISDKModel(providerId, settings)
+  const baseModel = getAISDKModel(providerId, settings)
+  const model = wrapModelWithReasoningExtraction(baseModel)
   const generationConfig = mapGenerationConfig(settings)
 
   try {
-    const { text } = await generateText({
+    const { text, reasoning } = await generateText({
       model,
       system: systemInstruction,
       prompt: userPrompt,
       ...generationConfig,
     })
 
+    // Only return text content, reasoning (<think> tags) is automatically discarded
     return text
   } catch (error) {
     console.error('AI SDK Error:', error)
@@ -170,7 +191,8 @@ export async function* generateContentStream(
   userPrompt,
   streamOptions = {}
 ) {
-  const model = getAISDKModel(providerId, settings)
+  const baseModel = getAISDKModel(providerId, settings)
+  const model = wrapModelWithReasoningExtraction(baseModel)
   const generationConfig = mapGenerationConfig(settings)
 
   // Get browser compatibility info
@@ -207,6 +229,7 @@ export async function* generateContentStream(
         ? result.smoothTextStream
         : result.textStream
 
+    // Only yield text chunks, reasoning (<think> tags) is automatically extracted and discarded
     for await (const chunk of streamToUse) {
       yield chunk
     }
@@ -254,6 +277,7 @@ export async function* generateContentStreamEnhanced(
   const browserCompatibility = getBrowserCompatibility()
 
   try {
+    // Use our updated generateContentStream that already handles reasoning extraction
     const streamGenerator = generateContentStream(
       providerId,
       settings,

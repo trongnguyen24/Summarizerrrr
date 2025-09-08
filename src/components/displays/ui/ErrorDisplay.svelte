@@ -57,17 +57,5 @@
         </ul>
       {/if}
     </div>
-
-    <!-- Hiển thị raw error message cho UNKNOWN errors -->
-    <!-- {#if (error?.type === 'unknown' || !error?.type) && }
-      <div
-        class="mt-2 relative p-4 overflow-hidden text-sm text-error border border-error font-mono"
-      >
-        <span
-          class="absolute top-0 right-0 translate-x-1/2 -translate-y-1/2 size-8 rotate-45 bg-error"
-        ></span>
-       
-      </div>
-    {/if} -->
   </div>
 {/if}

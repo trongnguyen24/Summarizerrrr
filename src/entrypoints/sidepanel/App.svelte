@@ -101,6 +101,18 @@
       summaryState.selectedTextError
   )
 
+  // Debug reactive changes to anyError
+  $effect(() => {
+    console.log('[Sidepanel] anyError state changed:', {
+      anyError,
+      summaryError: summaryState.summaryError,
+      chapterError: summaryState.chapterError,
+      courseSummaryError: summaryState.courseSummaryError,
+      courseConceptsError: summaryState.courseConceptsError,
+      selectedTextError: summaryState.selectedTextError,
+    })
+  })
+
   // Handle summarize button click
   // Register global event listener and ensure it's cleaned up when component is destroyed
   $effect(() => {
@@ -202,6 +214,11 @@
       {#if needsApiKeySetup()()}
         <ApiKeySetupPrompt />
       {:else if anyError}
+        <!-- Debug log before showing ErrorDisplay -->
+        {console.log(
+          '[Sidepanel] Rendering ErrorDisplay with error:',
+          anyError
+        )}
         <ErrorDisplay error={anyError} />
       {:else if summaryState.lastSummaryTypeDisplayed === 'youtube'}
         <YouTubeSummaryDisplay

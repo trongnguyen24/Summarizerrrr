@@ -241,11 +241,20 @@ export async function fetchAndSummarize() {
             '<p><i>Could not generate chapter summary.</i></p>'
         } catch (e) {
           console.error('[summaryStore] Chapter summarization error:', e)
-          summaryState.chapterError = handleError(e, {
+          const errorObject = handleError(e, {
             source: 'chapterSummarization',
           })
+          summaryState.chapterError = errorObject
+          console.log(
+            '[summaryStore] Chapter error set to state:',
+            summaryState.chapterError
+          )
         } finally {
           summaryState.isChapterLoading = false
+          console.log(
+            '[summaryStore] Chapter loading set to false, error state:',
+            summaryState.chapterError
+          )
         }
       })()
 
@@ -261,11 +270,20 @@ export async function fetchAndSummarize() {
             '<p><i>Could not generate video summary.</i></p>'
         } catch (e) {
           console.error('[summaryStore] YouTube video summarization error:', e)
-          summaryState.summaryError = handleError(e, {
+          const errorObject = handleError(e, {
             source: 'youtubeVideoSummarization',
           })
+          summaryState.summaryError = errorObject
+          console.log(
+            '[summaryStore] Video summary error set to state:',
+            summaryState.summaryError
+          )
         } finally {
           summaryState.isLoading = false
+          console.log(
+            '[summaryStore] Video loading set to false, error state:',
+            summaryState.summaryError
+          )
         }
       })()
       await Promise.all([chapterPromise, videoSummaryPromise])
@@ -320,16 +338,27 @@ export async function fetchAndSummarize() {
         summaryState.summary =
           summarizedText || '<p><i>Could not generate summary.</i></p>'
       } catch (e) {
-        summaryState.summaryError = handleError(e, {
+        console.error('[summaryStore] General summarization error:', e)
+        const errorObject = handleError(e, {
           source: 'generalSummarization',
         })
+        summaryState.summaryError = errorObject
+        console.log(
+          '[summaryStore] General summary error set to state:',
+          summaryState.summaryError
+        )
       }
     }
   } catch (e) {
     console.error('[summaryStore] Error during main summarization process:', e)
-    summaryState.summaryError = handleError(e, {
+    const errorObject = handleError(e, {
       source: 'mainSummarizationProcess',
     })
+    summaryState.summaryError = errorObject
+    console.log(
+      '[summaryStore] Main process error set to state:',
+      summaryState.summaryError
+    )
     // Don't change the lastSummaryTypeDisplayed on error,
     // so the UI can show the error in the correct context (e.g., YouTube tab).
   } finally {
@@ -338,6 +367,16 @@ export async function fetchAndSummarize() {
     summaryState.isChapterLoading = false
     summaryState.isCourseSummaryLoading = false
     summaryState.isCourseConceptsLoading = false
+
+    console.log(
+      '[summaryStore] All loading states set to false. Current error states:',
+      {
+        summaryError: summaryState.summaryError,
+        chapterError: summaryState.chapterError,
+        courseSummaryError: summaryState.courseSummaryError,
+        courseConceptsError: summaryState.courseConceptsError,
+      }
+    )
 
     // Log all generated summaries to history after all loading is complete
     await logAllGeneratedSummariesToHistory()
@@ -426,13 +465,25 @@ export async function fetchAndSummarizeStream() {
       })()
       promises.push(chapterStreamPromise)
 
-      const videoSummaryStream = summarizeContentStream(
-        summaryState.currentContentSource,
-        'youtube'
-      )
       summaryState.summaryError = null
-      for await (const chunk of videoSummaryStream) {
-        summaryState.summary += chunk
+      try {
+        const videoSummaryStream = summarizeContentStream(
+          summaryState.currentContentSource,
+          'youtube'
+        )
+        for await (const chunk of videoSummaryStream) {
+          summaryState.summary += chunk
+        }
+      } catch (e) {
+        console.error('[summaryStore] YouTube video streaming error:', e)
+        const errorObject = handleError(e, {
+          source: 'youtubeVideoStreaming',
+        })
+        summaryState.summaryError = errorObject
+        console.log(
+          '[summaryStore] YouTube video error set to state:',
+          summaryState.summaryError
+        )
       }
     } else if (summaryState.isCourseVideoActive) {
       summaryState.isCourseSummaryLoading = true
@@ -479,24 +530,79 @@ export async function fetchAndSummarizeStream() {
       promises.push(courseConceptsPromise)
     } else {
       summaryState.summaryError = null
-      const webSummaryStream = summarizeContentStream(
-        summaryState.currentContentSource,
-        'general'
-      )
-      for await (const chunk of webSummaryStream) {
-        summaryState.summary += chunk
+      console.log('[summaryStore] Starting web summary streaming...')
+      try {
+        const webSummaryStream = summarizeContentStream(
+          summaryState.currentContentSource,
+          'general'
+        )
+        console.log('[summaryStore] Got stream object, starting iteration...')
+        let hasContent = false
+        for await (const chunk of webSummaryStream) {
+          console.log(
+            '[summaryStore] Received chunk:',
+            chunk?.length || 'unknown length'
+          )
+          summaryState.summary += chunk
+          hasContent = true
+        }
+        console.log('[summaryStore] Stream completed successfully')
+
+        // Check if stream completed without content (likely due to error)
+        if (!hasContent && summaryState.summary.trim() === '') {
+          console.log(
+            '[summaryStore] Stream completed but no content received - treating as error'
+          )
+          // Try to capture the original AI SDK error from global store
+          const originalError =
+            window.lastAISDKError ||
+            new Error('API key not valid. Please pass a valid API key.')
+          console.log(
+            '[summaryStore] Throwing original AI SDK error:',
+            originalError
+          )
+          throw originalError
+        }
+      } catch (e) {
+        console.error('[summaryStore] Web summary streaming error:', e)
+        console.log('[summaryStore] Error type:', typeof e)
+        console.log('[summaryStore] Error constructor:', e?.constructor?.name)
+
+        const errorObject = handleError(e, {
+          source: 'webSummaryStreaming',
+        })
+        console.log('[summaryStore] handleError returned:', errorObject)
+
+        summaryState.summaryError = errorObject
+        console.log(
+          '[summaryStore] Web summary error set to state:',
+          summaryState.summaryError
+        )
+        console.log(
+          '[summaryStore] summaryState.summaryError === errorObject:',
+          summaryState.summaryError === errorObject
+        )
       }
     }
 
     await Promise.all(promises)
   } catch (e) {
     console.error('[summaryStore] Error during stream summarization:', e)
-    summaryState.summaryError = handleError(e, {
+    const errorObject = handleError(e, {
       source: 'streamSummarization',
     })
+    summaryState.summaryError = errorObject
+    console.log(
+      '[summaryStore] Stream error set to state:',
+      summaryState.summaryError
+    )
     summaryState.lastSummaryTypeDisplayed = 'web'
   } finally {
     summaryState.isLoading = false
+    console.log(
+      '[summaryStore] Stream loading set to false, error state:',
+      summaryState.summaryError
+    )
     await logAllGeneratedSummariesToHistory()
   }
 }

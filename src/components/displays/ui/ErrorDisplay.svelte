@@ -5,12 +5,30 @@
 
   let { error } = $props()
 
+  // Debug log when ErrorDisplay receives error prop
+  $effect(() => {
+    console.log('[ErrorDisplay] Received error prop:', error)
+    console.log('[ErrorDisplay] Error message:', error?.message)
+    console.log('[ErrorDisplay] Error suggestions:', error?.suggestions)
+  })
+
   // Đơn giản hóa - chỉ hiển thị message và suggestions từ error object
   const errorMessage = $derived(error?.message || 'Something went wrong.')
   const errorSuggestions = $derived(error?.suggestions || [])
 
+  // Debug derived values
+  $effect(() => {
+    console.log('[ErrorDisplay] Derived values:', {
+      errorMessage,
+      errorSuggestions: errorSuggestions.length,
+      canRetry: error?.canRetry,
+    })
+  })
+
   function handleRetry() {
+    console.log('[ErrorDisplay] Retry clicked, canRetry:', error?.canRetry)
     if (error?.canRetry) {
+      console.log('[ErrorDisplay] Calling fetchAndSummarize()')
       fetchAndSummarize()
     }
   }

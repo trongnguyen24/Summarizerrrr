@@ -54,15 +54,17 @@
         </ul>
       {/if}
     </div>
-    <!-- <div class="flex justify-end mt-4 space-x-2">
-      {#if error.canRetry}
-        <button
-          onclick={handleRetry}
-          class="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 text-sm"
-        >
-          Thử lại
-        </button>
-      {/if}
-    </div> -->
+
+    <!-- Hiển thị raw error message cho UNKNOWN errors -->
+    {#if (error?.type === 'unknown' || !error?.type) && error?.message && error.message !== translatedMessage}
+      <div
+        class="mt-2 relative p-4 overflow-hidden text-sm text-error border border-error font-mono"
+      >
+        <span
+          class="absolute top-0 right-0 translate-x-1/2 -translate-y-1/2 size-8 rotate-45 bg-error"
+        ></span>
+        {error.message}
+      </div>
+    {/if}
   </div>
 {/if}

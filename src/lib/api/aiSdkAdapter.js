@@ -10,6 +10,7 @@ import { createOpenAI } from '@ai-sdk/openai'
 import { anthropic } from '@ai-sdk/anthropic'
 import { createOpenAICompatible } from '@ai-sdk/openai-compatible'
 import { createOpenRouter } from '@openrouter/ai-sdk-provider'
+import { createOllama } from 'ai-sdk-ollama'
 import { getBrowserCompatibility } from '@/lib/utils/browserDetection.js'
 
 /**
@@ -86,10 +87,8 @@ export function getAISDKModel(providerId, settings) {
       return deepseek(settings.selectedDeepseekModel || 'deepseek-chat')
 
     case 'ollama':
-      const ollama = createOpenAICompatible({
-        name: 'ollama',
-        apiKey: settings.ollamaApiKey || 'ollama',
-        baseURL: settings.ollamaEndpoint || 'http://localhost:11434/v1',
+      const ollama = createOllama({
+        baseURL: settings.ollamaEndpoint || 'http://localhost:11434',
       })
       return ollama(settings.selectedOllamaModel || 'llama2')
 
@@ -101,6 +100,16 @@ export function getAISDKModel(providerId, settings) {
       })
       return openaiCompatible(
         settings.selectedOpenAICompatibleModel || 'gpt-3.5-turbo'
+      )
+
+    case 'lmstudio':
+      const lmstudio = createOpenAICompatible({
+        name: 'lmstudio',
+        apiKey: 'lmstudio', // LM Studio doesn't require API key, but OpenAI provider needs one
+        baseURL: settings.lmStudioEndpoint || 'http://localhost:1234/v1',
+      })
+      return lmstudio(
+        settings.selectedLmStudioModel || 'lmstudio-community/gemma-2b-it-GGUF'
       )
 
     default:

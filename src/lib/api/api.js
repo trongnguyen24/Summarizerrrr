@@ -59,6 +59,9 @@ function validateApiKey(userSettings, selectedProviderId) {
     case 'ollama':
       // Ollama doesn't require API key, but needs endpoint
       return // Skip validation for Ollama
+    case 'lmstudio':
+      // LM Studio doesn't require API key, but needs endpoint
+      return // Skip validation for LM Studio
     case 'openaiCompatible':
       apiKey = userSettings.openaiCompatibleApiKey
       providerName = 'OpenAI Compatible'

@@ -97,7 +97,7 @@
 
 {#if selectedSummary}
   <div
-    class="prose px-4 md:px-12 xl:px-20 w-full {widthClasses[
+    class="prose px-8 md:px-16 xl:px-24 w-full {widthClasses[
       settings.widthIndex
     ]} mx-auto {fontSizeClasses[settings.fontSizeIndex]} {fontMap[
       settings.selectedFont

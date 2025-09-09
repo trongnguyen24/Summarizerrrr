@@ -315,11 +315,14 @@
     {/if}
 
     <a
-      href="https://docs.example.com/api-setup"
+      href="https://www.youtube.com/watch?v=g-Uae53Cpmw"
       target="_blank"
-      class="text-xs mt-auto self-center text-text-secondary hover:text-primary underline underline-offset-2 transition-colors"
+      class="text-xs flex gap-1 items-center mt-auto self-center text-text-secondary hover:text-primary underline underline-offset-2 transition-colors"
     >
-      {$t('apiKeyPrompt.setupGuide')}
+      {$t('apiKeyPrompt.setupGuide')}<Icon
+        width={12}
+        icon="heroicons:arrow-up-right-16-solid"
+      />
     </a>
   </div>
 </div>

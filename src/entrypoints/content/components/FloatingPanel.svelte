@@ -24,7 +24,7 @@
 
   let panelElement = $state()
   let isResizing = $state(false)
-  let currentWidthPx = $state(emToPx(settings.sidePanelDefaultWidth)) // Default width in px
+  let currentWidthPx = $state(0) // Will be set in loadWidth()
   let showElement = $state(false) // Internal state để control DOM rendering
   const navigationManager = useNavigationManager()
   const { needsApiKeySetup } = useApiKeyValidation()
@@ -64,10 +64,20 @@
 
   // Helper functions to convert between em and px
   function emToPx(em) {
-    const rootFontSize = parseFloat(
-      getComputedStyle(document.documentElement).fontSize
-    )
-    return em * rootFontSize
+    try {
+      const rootFontSize = parseFloat(
+        getComputedStyle(document.documentElement).fontSize
+      )
+      // Fallback to 16px if root font size cannot be determined
+      const fontSize = isNaN(rootFontSize) ? 16 : rootFontSize
+      return em * fontSize
+    } catch (error) {
+      console.warn(
+        'Failed to get root font size, using 16px as fallback:',
+        error
+      )
+      return em * 16 // Fallback to 16px
+    }
   }
 
   function pxToEm(px) {
@@ -105,9 +115,26 @@
         if (panelElement) {
           panelElement.style.width = `${savedWidthPx}px`
         }
+      } else {
+        // Set default width if no saved width or invalid saved width
+        currentWidthPx = Math.max(
+          MIN_WIDTH_PX,
+          Math.min(emToPx(settings.sidePanelDefaultWidth), MAX_WIDTH_PX)
+        )
+        if (panelElement) {
+          panelElement.style.width = `${currentWidthPx}px`
+        }
       }
     } catch (error) {
-      console.warn('Failed to load width:', error)
+      console.warn('Failed to load width, using default:', error)
+      // Fallback to default width on error
+      currentWidthPx = Math.max(
+        MIN_WIDTH_PX,
+        Math.min(emToPx(settings.sidePanelDefaultWidth), MAX_WIDTH_PX)
+      )
+      if (panelElement) {
+        panelElement.style.width = `${currentWidthPx}px`
+      }
     }
   }
 
@@ -194,7 +221,7 @@
       // Show element first, then animate in
       showElement = true
       setTimeout(() => {
-        if (panelElement) {
+        if (panelElement && currentWidthPx > 0) {
           panelElement.style.width = `${currentWidthPx}px`
           panelElement.classList.add('visible')
         }

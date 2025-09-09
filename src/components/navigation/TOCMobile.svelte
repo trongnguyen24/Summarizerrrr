@@ -218,7 +218,7 @@
     <div class="relative inset-0 h-full">
       <div
         id="toc-scroll"
-        class="w-full hide-scrollbar overflow-auto h-[calc(100%-3rem)] border rounded-t-3xl border-border bg-surface-1"
+        class="w-full hide-scrollbar overflow-auto h-[calc(100%-3em)] border rounded-t-3xl border-border bg-surface-1"
       >
         <div
           class="flex flex-col divide-y divide-border/50 dark:divide-border/70"
@@ -247,7 +247,7 @@
             scrollToBottom()
             isNavOpen = false
           }}
-          class="px-4 border-border border-r flex-1/3 flex justify-center items-center gap-1 py-4 font-mono text-sm/4 no-underline transition-colors"
+          class="px-4 border-border border-r flex-1/3 flex justify-center items-center gap-1 py-6 font-mono text-sm/4 no-underline transition-colors"
           ><Icon
             class=" rotate-180"
             width="20"
@@ -260,12 +260,12 @@
             scrollToTop()
             isNavOpen = false
           }}
-          class="px-4 flex justify-center flex-1/3 items-center gap-1 py-4 font-mono text-sm/4 no-underline transition-colors"
+          class="px-4 flex justify-center flex-1/3 items-center gap-1 py-6 font-mono text-sm/4 no-underline transition-colors"
           ><Icon width="20" icon="carbon:up-to-top" /></button
         >
         <button
           onclick={() => (isNavOpen = false)}
-          class="px-4 flex-1/3 border-border border-l flex justify-center items-center gap-1 py-4 font-mono text-sm/4 no-underline transition-colors"
+          class="px-4 flex-1/3 border-border border-l flex justify-center items-center gap-1 py-6 font-mono text-sm/4 no-underline transition-colors"
         >
           <Icon width="20" icon="carbon:close" />
         </button>

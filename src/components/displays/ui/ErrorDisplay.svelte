@@ -35,17 +35,17 @@
         </div>
       </div>
 
-      <p class="text-sm">
+      <!-- <p class="text-sm">
         {errorMessage}
-      </p>
+      </p> -->
 
-      {#if errorSuggestions.length > 0}
+      <!-- {#if errorSuggestions.length > 0}
         <ul class="list-disc !m-0 list-inside pl-4">
           {#each errorSuggestions as suggestion}
             <li>{suggestion}</li>
           {/each}
         </ul>
-      {/if}
+      {/if} -->
     </div>
   </div>
 {/if}

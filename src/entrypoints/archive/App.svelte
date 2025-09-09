@@ -172,7 +172,7 @@
 
   <!-- Left Column: Prompt Menu -->
   <div
-    class="top-stripes sticky shrink-0 top-0 w-2 sm:w-5 md:w-8 h-screen border-r border-border/70"
+    class="top-stripes fixed z-50 shrink-0 left-0 top-0 w-2 sm:w-5 md:w-8 h-screen border-r border-border/70"
   ></div>
 
   <div
@@ -206,7 +206,7 @@
 
   <!-- Right Column -->
   <div
-    class="flex-1 relative bg-surface-1 z-20 flex flex-col gap-2
+    class="flex-1 w-full wrap-break-word relative bg-surface-1 z-20 flex flex-col gap-2
     {isSidePanelVisible ? 'sm:pl-80' : ''}
     {isMobile && !isSidePanelVisible ? 'pl-0' : ''}"
   >
@@ -222,6 +222,6 @@
   </div>
 
   <div
-    class="top-stripes shrink-0 sticky top-0 w-2 sm:w-5 md:w-8 h-screen border-l border-border/70"
+    class="top-stripes z-50 right-0 shrink-0 fixed top-0 w-2 sm:w-5 md:w-8 h-screen border-l border-border/70"
   ></div>
 </main>

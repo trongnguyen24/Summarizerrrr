@@ -2,10 +2,10 @@
 <script>
   import 'highlight.js/styles/github-dark.css'
   import hljs from 'highlight.js'
-  import SvelteMarkdown from 'svelte-markdown'
+  import { marked } from 'marked'
 
   /**
-   * Props của component - Hybrid approach: svelte-markdown cho DOM stability
+   * Props của component - Hybrid approach: marked.js cho parsing
    * và manual highlight.js cho highlighting đáng tin cậy.
    * @type {{
    *   sourceMarkdown: string;
@@ -29,6 +29,8 @@
   let highlightTimeout = null
 
   // --- Logic phát hiện hoàn thành stream ---
+
+  let renderedHtml = $derived(marked(sourceMarkdown || ''))
 
   function markComplete() {
     if (!hasCalledFinish) {
@@ -103,7 +105,7 @@
     ? 'blinking-cursor'
     : ''} {className}"
 >
-  <SvelteMarkdown source={sourceMarkdown} />
+  {@html renderedHtml}
 </div>
 
 <style>

@@ -414,14 +414,21 @@ export async function fetchAndSummarizeStream() {
 
       summaryState.summaryError = null
       try {
+        console.log('[summaryStore] Starting YouTube video streaming...')
         const videoSummaryStream = summarizeContentStream(
           summaryState.currentContentSource,
           'youtube'
         )
+        let chunkCount = 0
         for await (const chunk of videoSummaryStream) {
           summaryState.summary += chunk
+          chunkCount++
         }
+        console.log(
+          `[summaryStore] YouTube streaming completed, chunks: ${chunkCount}`
+        )
       } catch (e) {
+        console.log('[summaryStore] YouTube streaming error caught:', e)
         const errorObject = handleError(e, {
           source: 'youtubeVideoStreaming',
         })
@@ -483,19 +490,29 @@ export async function fetchAndSummarizeStream() {
           hasContent = true
         }
 
-        // Check if stream completed without content (likely due to error)
+        // Check if stream completed without content - likely due to API error
         if (!hasContent && summaryState.summary.trim() === '') {
-          // Try to capture the original AI SDK error from global store
-          const originalError =
-            window.lastAISDKError ||
-            new Error('API key not valid. Please pass a valid API key.')
-          throw originalError
+          // Try to get actual error from last global error or fallback to blocking mode
+          try {
+            console.log(
+              '[summaryStore] Stream failed silently, trying blocking mode...'
+            )
+            // Fallback to blocking mode to get proper error
+            const blockingSummary = await summarizeContent(
+              summaryState.currentContentSource,
+              'general'
+            )
+            summaryState.summary =
+              blockingSummary || '<p><i>Could not generate summary.</i></p>'
+          } catch (blockingError) {
+            // This should give us the proper AI SDK error
+            throw blockingError
+          }
         }
       } catch (e) {
         const errorObject = handleError(e, {
           source: 'webSummaryStreaming',
         })
-
         summaryState.summaryError = errorObject
       }
     }

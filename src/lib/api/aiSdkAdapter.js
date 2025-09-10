@@ -10,7 +10,6 @@ import { createOpenAI } from '@ai-sdk/openai'
 import { anthropic } from '@ai-sdk/anthropic'
 import { createOpenAICompatible } from '@ai-sdk/openai-compatible'
 import { createOpenRouter } from '@openrouter/ai-sdk-provider'
-import { createOllama } from 'ai-sdk-ollama'
 import { getBrowserCompatibility } from '@/lib/utils/browserDetection.js'
 
 /**
@@ -87,10 +86,141 @@ export function getAISDKModel(providerId, settings) {
       return deepseek(settings.selectedDeepseekModel || 'deepseek-chat')
 
     case 'ollama':
-      const ollama = createOllama({
-        baseURL: settings.ollamaEndpoint || 'http://localhost:11434',
-      })
-      return ollama(settings.selectedOllamaModel || 'llama2')
+      // Clean and validate Ollama endpoint
+      let ollamaEndpoint = settings.ollamaEndpoint || 'http://localhost:11434'
+
+      // Remove trailing slash and any API path suffixes
+      ollamaEndpoint = ollamaEndpoint.replace(/\/+$/, '') // Remove trailing slashes
+      ollamaEndpoint = ollamaEndpoint.replace(/\/v1$/, '') // Remove /v1 suffix if present
+      ollamaEndpoint = ollamaEndpoint.replace(/\/api.*$/, '') // Remove any /api paths if present
+
+      console.log(
+        '[aiSdkAdapter] Creating Ollama with native API endpoint:',
+        `${ollamaEndpoint}/api/generate`
+      )
+
+      // Create custom Ollama model wrapper that implements AI SDK interface
+      const ollamaModel = {
+        modelId: settings.selectedOllamaModel || 'llama2',
+        provider: 'ollama',
+
+        // Implement the doGenerate method that AI SDK expects
+        async doGenerate(options) {
+          try {
+            // Combine system and user prompts for Ollama
+            let fullPrompt = options.prompt
+            if (options.system) {
+              fullPrompt = `${options.system}\n\n${options.prompt}`
+            }
+
+            console.log('[aiSdkAdapter] Ollama request:', {
+              endpoint: `${ollamaEndpoint}/api/generate`,
+              model: this.modelId,
+              promptLength: fullPrompt.length,
+              options: {
+                temperature: options.temperature || 0.7,
+                top_p: options.topP || 0.9,
+                num_predict: options.maxTokens || 4000,
+              },
+            })
+
+            const response = await fetch(`${ollamaEndpoint}/api/generate`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                model: this.modelId,
+                prompt: fullPrompt,
+                stream: false,
+                options: {
+                  temperature: options.temperature || 0.7,
+                  top_p: options.topP || 0.9,
+                  num_predict: options.maxTokens || 4000,
+                },
+              }),
+            })
+
+            if (!response.ok) {
+              const errorText = await response.text()
+              console.error('[aiSdkAdapter] Ollama API response:', errorText)
+              throw new Error(
+                `Ollama API error: ${response.status} ${response.statusText} - ${errorText}`
+              )
+            }
+
+            const data = await response.json()
+
+            return {
+              text: data.response || '',
+              usage: {
+                promptTokens: 0,
+                completionTokens: 0,
+                totalTokens: 0,
+              },
+              finishReason: 'stop',
+            }
+          } catch (error) {
+            console.error('[aiSdkAdapter] Ollama native API error:', error)
+            throw error
+          }
+        },
+
+        // Add doStream method for streaming support
+        async doStream(options) {
+          try {
+            // Combine system and user prompts for Ollama
+            let fullPrompt = options.prompt
+            if (options.system) {
+              fullPrompt = `${options.system}\n\n${options.prompt}`
+            }
+
+            const response = await fetch(`${ollamaEndpoint}/api/generate`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*',
+              },
+              body: JSON.stringify({
+                model: this.modelId,
+                prompt: fullPrompt,
+                stream: true,
+                options: {
+                  temperature: options.temperature || 0.7,
+                  top_p: options.topP || 0.9,
+                  num_predict: options.maxTokens || 4000,
+                },
+              }),
+            })
+
+            if (!response.ok) {
+              const errorText = await response.text()
+              console.error(
+                '[aiSdkAdapter] Ollama streaming API response:',
+                errorText
+              )
+              throw new Error(
+                `Ollama streaming API error: ${response.status} ${response.statusText} - ${errorText}`
+              )
+            }
+
+            // Return a stream-like object
+            return {
+              stream: response.body,
+              controller: new AbortController(),
+            }
+          } catch (error) {
+            console.error('[aiSdkAdapter] Ollama streaming API error:', error)
+            throw error
+          }
+        },
+      }
+
+      console.log(
+        '[aiSdkAdapter] Ollama native model created successfully:',
+        settings.selectedOllamaModel || 'llama2'
+      )
+      return ollamaModel
 
     case 'openaiCompatible':
       const openaiCompatible = createOpenAICompatible({
@@ -162,9 +292,57 @@ export async function generateContent(
   systemInstruction,
   userPrompt
 ) {
+  const generationConfig = mapGenerationConfig(settings)
+
+  // Handle Ollama separately with native API
+  if (providerId === 'ollama') {
+    try {
+      const baseModel = getAISDKModel(providerId, settings)
+
+      // Call our custom Ollama implementation directly
+      const result = await baseModel.doGenerate({
+        prompt: userPrompt,
+        system: systemInstruction,
+        temperature: generationConfig.temperature,
+        topP: generationConfig.topP,
+        maxTokens: generationConfig.maxTokens,
+      })
+
+      return result.text
+    } catch (error) {
+      console.error(`AI SDK Error for ${providerId}:`, error)
+
+      // Enhanced error handling for Ollama
+      if (error.message && error.message.includes('403')) {
+        console.error(
+          '[aiSdkAdapter] Ollama 403 Forbidden - Check if Ollama server is running and accessible'
+        )
+        throw new Error(
+          'Ollama server returned 403 Forbidden. Please check:\n1. Ollama is running (ollama serve)\n2. Endpoint is correct in settings\n3. Model is available (ollama list)'
+        )
+      }
+      if (error.message && error.message.includes('ECONNREFUSED')) {
+        console.error(
+          '[aiSdkAdapter] Ollama connection refused - Server not accessible'
+        )
+        throw new Error(
+          'Cannot connect to Ollama server. Please ensure Ollama is running on the configured endpoint.'
+        )
+      }
+      if (error.message && error.message.includes('404')) {
+        console.error('[aiSdkAdapter] Ollama 404 - Model or endpoint not found')
+        throw new Error(
+          'Ollama model or endpoint not found. Please check your model name and endpoint configuration.'
+        )
+      }
+
+      throw error
+    }
+  }
+
+  // For all other providers, use standard AI SDK approach
   const baseModel = getAISDKModel(providerId, settings)
   const model = wrapModelWithReasoningExtraction(baseModel)
-  const generationConfig = mapGenerationConfig(settings)
 
   try {
     const { text, reasoning } = await generateText({
@@ -177,7 +355,7 @@ export async function generateContent(
     // Only return text content, reasoning (<think> tags) is automatically discarded
     return text
   } catch (error) {
-    console.error('AI SDK Error:', error)
+    console.error(`AI SDK Error for ${providerId}:`, error)
     throw error
   }
 }

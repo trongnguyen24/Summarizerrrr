@@ -146,6 +146,7 @@ export class SummarizationService {
           }
 
           chapterSummary = '<p><i>Could not generate chapter summary.</i></p>'
+          throw error
         }
       })()
       promises.push(chapterSummaryPromise)
@@ -212,6 +213,7 @@ export class SummarizationService {
           }
 
           courseConcepts = '<p><i>Could not generate course concepts.</i></p>'
+          throw error
         }
       })()
       promises.push(courseConceptsPromise)
@@ -297,6 +299,7 @@ export class SummarizationService {
         } catch (error) {
           console.error('[SummarizationService] Chapter summary error:', error)
           chapterSummary = '<p><i>Could not generate chapter summary.</i></p>'
+          throw error
         }
       })()
 
@@ -320,6 +323,7 @@ export class SummarizationService {
         } catch (error) {
           console.error('[SummarizationService] Course concepts error:', error)
           courseConcepts = '<p><i>Could not generate course concepts.</i></p>'
+          throw error
         }
       })()
 
@@ -482,6 +486,7 @@ export class SummarizationService {
       } else {
         console.error('[SummarizationService] Course concepts error:', error)
         courseConcepts = '<p><i>Could not generate course concepts.</i></p>'
+        throw error
       }
     }
 

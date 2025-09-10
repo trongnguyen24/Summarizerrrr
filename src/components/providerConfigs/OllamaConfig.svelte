@@ -10,7 +10,7 @@
 <TextInput
   label={$t('settings.ollama_config.endpoint_label')}
   id="Endpoint"
-  placeholder="http://localhost:11434/v1"
+  placeholder="http://127.0.0.1:11434"
   bind:value={settings.ollamaEndpoint}
   onSave={(value) => {
     console.log('OllamaConfig: Saving ollamaEndpoint', value)

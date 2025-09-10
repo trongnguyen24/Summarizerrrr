@@ -88,7 +88,7 @@ export function getAISDKModel(providerId, settings) {
 
     case 'ollama':
       const ollama = createOllama({
-        baseURL: settings.ollamaEndpoint || 'http://localhost:11434',
+        baseURL: settings.ollamaEndpoint || 'http://127.0.0.1:11434',
       })
       return ollama(settings.selectedOllamaModel || 'llama2')
 

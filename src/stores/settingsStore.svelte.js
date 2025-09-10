@@ -25,7 +25,7 @@ const DEFAULT_SETTINGS = {
   chatgptApiKey: '',
   chatgptBaseUrl: 'https://api.openai.com/v1',
   selectedChatgptModel: 'gpt-5-mini',
-  ollamaEndpoint: 'http://localhost:11434/api',
+  ollamaEndpoint: 'http://127.0.0.1:11434',
   selectedOllamaModel: 'deepseek-r1:8b',
   lmStudioEndpoint: 'http://localhost:1234/v1',
   selectedLmStudioModel: 'lmstudio-community/gemma-2b-it-GGUF',

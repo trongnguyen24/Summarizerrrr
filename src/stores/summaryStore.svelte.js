@@ -403,9 +403,16 @@ export async function fetchAndSummarizeStream() {
             summaryState.chapterSummary += chunk
           }
         } catch (e) {
-          summaryState.chapterError = handleError(e, {
-            source: 'chapterStreamSummarization',
-          })
+          if (e.message?.includes('transcript')) {
+            summaryState.chapterSummary =
+              '<p><i>Failed to get transcript for chapters.</i></p>'
+          } else {
+            summaryState.chapterError = handleError(e, {
+              source: 'chapterStreamSummarization',
+            })
+            // Re-throw to be caught by the main handler
+            throw e
+          }
         } finally {
           summaryState.isChapterLoading = false
         }
@@ -429,10 +436,17 @@ export async function fetchAndSummarizeStream() {
         )
       } catch (e) {
         console.log('[summaryStore] YouTube streaming error caught:', e)
-        const errorObject = handleError(e, {
-          source: 'youtubeVideoStreaming',
-        })
-        summaryState.summaryError = errorObject
+        if (e.message?.includes('transcript')) {
+          summaryState.summary =
+            '<p><i>Failed to get transcript for summary.</i></p>'
+        } else {
+          const errorObject = handleError(e, {
+            source: 'youtubeVideoStreaming',
+          })
+          summaryState.summaryError = errorObject
+          // Re-throw to be caught by the main handler
+          throw e
+        }
       }
     } else if (summaryState.isCourseVideoActive) {
       summaryState.isCourseSummaryLoading = true

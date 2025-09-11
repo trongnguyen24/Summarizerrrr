@@ -337,9 +337,14 @@
     </div>
     <button
       onclick={() => onclose?.()}
-      class="close-button absolute text-muted hover:text-text-primary transition-colors duration-200 cursor-pointer z-10 h-8 top-0 right-0 left-0 flex justify-center items-center"
+      class="close-button absolute text-muted z-[9999] border-b border-border bg-surface-2 hover:text-text-primary transition-colors duration-200 cursor-pointer h-8 top-0 right-0 left-0 flex justify-center items-center"
       aria-label="Close"
-      ><Icon icon="heroicons:arrow-long-right" width="24" height="24" /></button
+      ><Icon
+        icon="heroicons:arrow-long-right"
+        class=" {panelPosition === 'left' ? '-scale-x-100' : ''}"
+        width="24"
+        height="24"
+      /></button
     >
     <div id="shadow-scroll" class="w-full h-full py-8 overflow-y-auto">
       <div class="grid grid-rows-[10px_180px_10px_1fr] relative">

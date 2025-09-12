@@ -39,6 +39,7 @@ const DEFAULT_SETTINGS = {
   fontSizeIndex: 2, // Default to prose-lg
   widthIndex: 1, // Default to max-w-3xl
   sidePanelDefaultWidth: 25, // Default width for side panel in em units
+  oneClickSummarize: false, // Enable 1-click summarization on FAB
 
   // Onboarding
   hasCompletedOnboarding: false,

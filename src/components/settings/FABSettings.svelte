@@ -106,8 +106,49 @@
           ></ButtonSet>
         </div>
       </div>
+
+      <!-- One Click Summarize Section -->
+      <div class="flex col-span-2 flex-col gap-2 pb-4">
+        <!-- svelte-ignore a11y_label_has_associated_control -->
+        <label class="block text-text-secondary">One Click Mode</label>
+        <div class="grid w-full grid-cols-2 gap-1">
+          <ButtonSet
+            title="Disabled"
+            class="setting-btn {!settings.oneClickSummarize ? 'active' : ''}"
+            onclick={() => handleUpdateSetting('oneClickSummarize', false)}
+            Description="Click button to toggle panel (default behavior)"
+          >
+            <Icon
+              icon="heroicons:cursor-arrow-rays-20-solid"
+              width="20"
+              height="20"
+            />
+          </ButtonSet>
+          <ButtonSet
+            title="Enabled"
+            class="setting-btn {settings.oneClickSummarize ? 'active' : ''}"
+            onclick={() => handleUpdateSetting('oneClickSummarize', true)}
+            Description="Click button to auto-start summarization"
+          >
+            <Icon icon="heroicons:bolt-20-solid" width="20" height="20" />
+          </ButtonSet>
+        </div>
+      </div>
     </div>
   </div>
+
+  <!-- One Click Summarize Title Section -->
+  <div class="flex flex-col gap-1 mt-2 px-5">
+    <label
+      for="one-click-settings-toggle"
+      class="block font-bold text-text-primary">One Click Summarize</label
+    >
+    <p class="flex text-muted">
+      When enabled, clicking the floating button will automatically start
+      summarization instead of just opening the panel.
+    </p>
+  </div>
+
   <div class="flex flex-col gap-1 mt-2 px-5">
     <label for="fab-settings-toggle" class="block font-bold text-text-primary"
       >{$t('settings.fab.mobile_sheets.title')}</label

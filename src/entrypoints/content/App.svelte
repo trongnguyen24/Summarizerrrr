@@ -19,6 +19,7 @@
   import FloatingPanel from './components/FloatingPanel.svelte'
   import MobileSheet from './components/MobileSheet.svelte'
   import { useNavigationManager } from './composables/useNavigationManager.svelte.js'
+  import { useOneClickSummarization } from './composables/useOneClickSummarization.svelte.js'
   import '@fontsource-variable/geist-mono'
   import '@fontsource-variable/noto-serif'
   import '@fontsource/opendyslexic'
@@ -31,6 +32,9 @@
   let unsubscribeNavigation = null
   let currentUrlKey = $state(window.location.href)
   let themeUnsubscribe = null
+
+  // One-click summarization
+  let oneClickSummarization = useOneClickSummarization()
 
   // Initialize stores
   $effect(() => {
@@ -134,6 +138,20 @@
     isPanelVisible = !isPanelVisible
   }
 
+  // Handle one-click summarization
+  async function handleOneClickSummarization() {
+    return await oneClickSummarization.handleFloatingButtonClick()
+  }
+
+  // Initialize one-click when component mounts
+  $effect(() => {
+    if (settings && shadowContainer) {
+      oneClickSummarization.initializeForUrl(window.location.href, () => {
+        isPanelVisible = true
+      })
+    }
+  })
+
   function handleUrlChange(newUrl) {
     // Khi URL thay đổi, chúng ta cần reinitialize components
     // Tạm thời đóng panel để tránh state conflict
@@ -141,6 +159,11 @@
 
     // Update URL key để force re-render components
     currentUrlKey = newUrl
+
+    // Initialize one-click for new URL
+    oneClickSummarization.initializeForUrl(newUrl, () => {
+      isPanelVisible = true
+    })
 
     // Force re-render components bằng cách thay đổi key
     // Điều này sẽ khiến Svelte tạo lại components mới
@@ -165,7 +188,12 @@
   <!-- rerender when settings.floatButton changes -->
   {#if settings.showFloatingButton}
     {#key settings.floatButton}
-      <FloatingButton topButton={settings.floatButton} toggle={togglePanel} />
+      <FloatingButton
+        topButton={settings.floatButton}
+        toggle={togglePanel}
+        oneClickHandler={handleOneClickSummarization}
+        buttonState={oneClickSummarization.oneClickState().buttonState}
+      />
     {/key}
   {/if}
   {#if isMobile}
@@ -181,12 +209,8 @@
       <FloatingPanel
         visible={isPanelVisible}
         onclose={() => (isPanelVisible = false)}
-        summary={summaryState.summary}
-        status={summaryState.isLoading
-          ? 'loading'
-          : summaryState.summaryError
-            ? 'error'
-            : 'idle'}
+        summary={oneClickSummarization.summaryToDisplay()}
+        status={oneClickSummarization.statusToDisplay()}
       >
         {#snippet settingsMini()}
           <!-- <SettingsMini /> -->

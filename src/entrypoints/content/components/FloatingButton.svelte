@@ -13,7 +13,7 @@
   } from '@/stores/themeStore.svelte.js'
 
   // @ts-nocheck
-  let { toggle, topButton } = $props()
+  let { toggle, topButton, oneClickHandler, buttonState = 'idle' } = $props()
   let buttonElement
   let buttonElementBG
   let snapedge
@@ -310,7 +310,7 @@
   /**
    * Unified event handler for end (mouseup/touchend)
    */
-  function handleEnd(e) {
+  async function handleEnd(e) {
     const wasDragging =
       stateButton.isDragThresholdMet &&
       (Math.abs(stateButton.velocityX) > 2 ||
@@ -331,7 +331,22 @@
       stateButton.animationFrameId = requestAnimationFrame(animationLoop)
     } else {
       // It was a click, not a drag (either no threshold met or low velocity)
-      if (toggle) {
+      if (oneClickHandler) {
+        // Handle one-click logic first
+        try {
+          const handled = await oneClickHandler()
+          // If not handled by one-click, fall back to normal toggle
+          if (!handled && toggle) {
+            toggle()
+          }
+        } catch (error) {
+          console.error('[FloatingButton] Error in oneClickHandler:', error)
+          // Fall back to normal toggle on error
+          if (toggle) {
+            toggle()
+          }
+        }
+      } else if (toggle) {
         toggle()
       }
       // Snap back if it wasn't a real drag
@@ -433,20 +448,44 @@
     class=" flex items-center justify-center h-10 w-10 text-gray-500/50 overflow-hidden rounded-4xl ease-out delay-150 duration-500 transition-all"
     class:round-l={buttonPosition === 'left'}
     class:round-r={buttonPosition === 'right'}
+    class:loading={buttonState === 'loading'}
+    class:error={buttonState === 'error'}
   >
     <div class="floating-button-bg">
       <div class="BG-cri border border-slate-500/10">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="18"
-          height="18"
-          viewBox="0 0 16 16"
-        >
-          <path
-            fill="currentColor"
-            d="M7.53 1.282a.5.5 0 0 1 .94 0l.478 1.306a7.5 7.5 0 0 0 4.464 4.464l1.305.478a.5.5 0 0 1 0 .94l-1.305.478a7.5 7.5 0 0 0-4.464 4.464l-.478 1.305a.5.5 0 0 1-.94 0l-.478-1.305a7.5 7.5 0 0 0-4.464-4.464L1.282 8.47a.5.5 0 0 1 0-.94l1.306-.478a7.5 7.5 0 0 0 4.464-4.464Z"
-          />
-        </svg>
+        {#if buttonState === 'loading'}
+          <!-- Loading spinner -->
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            class="spinner"
+          >
+            <path
+              fill="currentColor"
+              d="M12,1A11,11,0,1,0,23,12,11,11,0,0,0,12,1Zm0,19a8,8,0,1,1,8-8A8,8,0,0,1,12,20Z"
+              opacity=".25"
+            />
+            <path
+              fill="currentColor"
+              d="M12,4a8,8,0,0,1,7.89,6.7A1.53,1.53,0,0,0,21.38,12h0a1.5,1.5,0,0,0,1.48-1.75,11,11,0,0,0-21.72,0A1.5,1.5,0,0,0,2.62,12h0a1.53,1.53,0,0,0,1.49-1.3A8,8,0,0,1,12,4Z"
+            />
+          </svg>
+        {:else}
+          <!-- Normal icon -->
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="18"
+            height="18"
+            viewBox="0 0 16 16"
+          >
+            <path
+              fill="currentColor"
+              d="M7.53 1.282a.5.5 0 0 1 .94 0l.478 1.306a7.5 7.5 0 0 0 4.464 4.464l1.305.478a.5.5 0 0 1 0 .94l-1.305.478a7.5 7.5 0 0 0-4.464 4.464l-.478 1.305a.5.5 0 0 1-.94 0l-.478-1.305a7.5 7.5 0 0 0-4.464-4.464L1.282 8.47a.5.5 0 0 1 0-.94l1.306-.478a7.5 7.5 0 0 0 4.464-4.464Z"
+            />
+          </svg>
+        {/if}
       </div>
     </div>
   </div>
@@ -533,5 +572,48 @@
 
   .floating-button-bg:hover .BG-cri {
     background: #25345c;
+  }
+
+  /* Loading state */
+  .loading .floating-button-bg {
+    background: #fbbf24 !important;
+  }
+
+  .loading .floating-button-bg:hover {
+    background: #f59e0b !important;
+  }
+
+  /* Error state */
+  .error .floating-button-bg {
+    background: #ef4444 !important;
+    animation: errorFlash 1.5s ease-in-out;
+  }
+
+  .error .floating-button-bg:hover {
+    background: #dc2626 !important;
+  }
+
+  /* Spinner animation */
+  .spinner {
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  @keyframes errorFlash {
+    0%,
+    100% {
+      background: #ef4444;
+    }
+    50% {
+      background: #dc2626;
+    }
   }
 </style>

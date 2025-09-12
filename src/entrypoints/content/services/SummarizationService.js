@@ -22,19 +22,22 @@ export class SummarizationService {
    * @returns {boolean}
    */
   shouldUseStreaming(settings) {
-    const selectedProvider = settings.selectedProvider || 'gemini'
-
-    // Get browser compatibility info
-    const browserCompatibility = getBrowserCompatibility()
-
-    // Don't use streaming on Firefox mobile or if browser doesn't support it
-    if (!browserCompatibility.supportsAdvancedStreaming) {
-      return false
-    }
-
-    return (
-      settings.enableStreaming && providerSupportsStreaming(selectedProvider)
+    // FORCE BLOCKING MODE cho tất cả content scripts
+    // Content scripts có security restrictions làm streaming bị lỗi "Permission denied to access property flush"
+    console.log(
+      '[SummarizationService] Content script context detected - forcing blocking mode to avoid streaming errors'
     )
+    return false
+
+    // Logic cũ đã được disable:
+    // const selectedProvider = settings.selectedProvider || 'gemini'
+    // const browserCompatibility = getBrowserCompatibility()
+    // if (!browserCompatibility.supportsAdvancedStreaming) {
+    //   return false
+    // }
+    // return (
+    //   settings.enableStreaming && providerSupportsStreaming(selectedProvider)
+    // )
   }
 
   /**

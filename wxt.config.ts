@@ -14,7 +14,11 @@ export default defineConfig({
   manifest: ({ browser }) => {
     if (browser === 'chrome') {
       return {
-        host_permissions: ['<all_urls>'],
+        host_permissions: [
+          '<all_urls>',
+          'http://127.0.0.1:11434/*',
+          'http://localhost:11434/*',
+        ],
         permissions: [
           'sidePanel',
           'storage',
@@ -22,6 +26,7 @@ export default defineConfig({
           'scripting',
           'tabs',
           'contextMenus',
+          'declarativeNetRequest',
         ],
         action: {
           default_title: 'Click to Open Summarizerrrr',
@@ -81,6 +86,7 @@ export default defineConfig({
           '<all_urls>',
           'contextMenus',
           'scripting',
+          'declarativeNetRequest',
         ],
         action: {
           default_icon: 'icon/48.png',

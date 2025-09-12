@@ -57,6 +57,140 @@ import {
   updateHistoryArchivedStatus,
 } from '@/lib/db/indexedDBService.js'
 
+// Ollama CORS bypass service
+class OllamaCorsService {
+  constructor() {
+    this.ruleId = 1001 // Unique rule ID for Ollama CORS
+    this.initialized = false
+  }
+
+  async setupOllamaCorsRules(endpoint = 'http://127.0.0.1:11434') {
+    try {
+      // Normalize endpoint URL to remove trailing slash
+      const normalizedEndpoint = endpoint.endsWith('/')
+        ? endpoint.slice(0, -1)
+        : endpoint
+
+      // Extract domain from endpoint
+      const url = new URL(normalizedEndpoint)
+      const domain = `${url.hostname}:${url.port}`
+
+      console.log(
+        '[OllamaCorsService] Setting up rules for endpoint:',
+        normalizedEndpoint
+      )
+      console.log('[OllamaCorsService] Parsed domain:', domain)
+
+      // Define rules to bypass CORS for Ollama
+      // Rule 1: Modify request origin header
+      const requestRule = {
+        id: this.ruleId,
+        priority: 1,
+        condition: {
+          // Match requests to the Ollama API endpoint
+          urlFilter: `${normalizedEndpoint}/*`,
+          resourceTypes: ['xmlhttprequest'],
+        },
+        action: {
+          type: 'modifyHeaders',
+          requestHeaders: [
+            {
+              header: 'origin',
+              operation: 'set',
+              value: normalizedEndpoint,
+            },
+          ],
+        },
+      }
+
+      // Rule 2: Modify response headers to allow CORS
+      const responseRule = {
+        id: this.ruleId + 1,
+        priority: 1,
+        condition: {
+          urlFilter: `${normalizedEndpoint}/*`,
+          resourceTypes: ['xmlhttprequest'],
+        },
+        action: {
+          type: 'modifyHeaders',
+          responseHeaders: [
+            {
+              header: 'Access-Control-Allow-Origin',
+              operation: 'set',
+              value: '*', // Allow all origins
+            },
+            {
+              header: 'Access-Control-Allow-Methods',
+              operation: 'set',
+              value: 'GET, POST, PUT, DELETE, OPTIONS',
+            },
+            {
+              header: 'Access-Control-Allow-Headers',
+              operation: 'set',
+              value: 'Content-Type, Authorization',
+            },
+          ],
+        },
+      }
+
+      const rules = [requestRule, responseRule]
+
+      console.log(
+        '[OllamaCorsService] Rules to be applied:',
+        JSON.stringify(rules, null, 2)
+      )
+
+      // Update dynamic rules
+      await browser.declarativeNetRequest.updateDynamicRules({
+        removeRuleIds: [this.ruleId, this.ruleId + 1],
+        addRules: rules,
+      })
+
+      this.initialized = true
+      console.log(
+        '[OllamaCorsService] CORS bypass rules setup successfully for:',
+        normalizedEndpoint
+      )
+
+      // Verify rules were added
+      try {
+        const existingRules =
+          await browser.declarativeNetRequest.getDynamicRules()
+        console.log('[OllamaCorsService] Current dynamic rules:', existingRules)
+      } catch (verifyError) {
+        console.warn('[OllamaCorsService] Could not verify rules:', verifyError)
+      }
+
+      return true
+    } catch (error) {
+      console.error('[OllamaCorsService] Failed to setup CORS rules:', error)
+      return false
+    }
+  }
+
+  async updateEndpoint(newEndpoint) {
+    if (!newEndpoint) return false
+    // Clean up old rules first
+    await this.cleanup()
+    return await this.setupOllamaCorsRules(newEndpoint)
+  }
+
+  async cleanup() {
+    try {
+      await browser.declarativeNetRequest.updateDynamicRules({
+        removeRuleIds: [this.ruleId, this.ruleId + 1],
+      })
+      this.initialized = false
+      console.log('[OllamaCorsService] CORS bypass rules cleaned up')
+    } catch (error) {
+      console.error('[OllamaCorsService] Failed to cleanup CORS rules:', error)
+    }
+  }
+}
+
+// Global instance
+const ollamaCorsService = new OllamaCorsService()
+
 browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === 'OPEN_ARCHIVE') {
     const url = browser.runtime.getURL('archive.html')
@@ -122,6 +256,59 @@ export default defineBackground(() => {
   // Tải cài đặt và đăng ký lắng nghe thay đổi khi background script khởi động
   loadSettings()
   subscribeToSettingsChanges()
+
+  // Initialize Ollama CORS service with default endpoint
+  ;(async () => {
+    try {
+      const settings = await loadSettings()
+      const endpoint = settings.ollamaEndpoint || 'http://127.0.0.1:11434'
+      await ollamaCorsService.setupOllamaCorsRules(endpoint)
+    } catch (error) {
+      console.error(
+        '[Background] Failed to initialize Ollama CORS service:',
+        error
+      )
+    }
+  })()
+
+  // Listen for Ollama endpoint changes from settings
+  browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message.type === 'UPDATE_OLLAMA_ENDPOINT') {
+      ;(async () => {
+        try {
+          const success = await ollamaCorsService.updateEndpoint(
+            message.endpoint
+          )
+          sendResponse({ success })
+        } catch (error) {
+          console.error('[Background] Failed to update Ollama endpoint:', error)
+          sendResponse({ success: false, error: error.message })
+        }
+      })()
+      return true // Indicate async response
+    }
+  })
+
+  // Listen for settings changes to apply Ollama CORS rules if Ollama is selected provider
+  subscribeToSettingsChanges(async (newSettings) => {
+    if (newSettings.selectedProvider === 'ollama') {
+      console.log(
+        '[Background] Ollama selected as provider, ensuring CORS rules are active.'
+      )
+      try {
+        const endpoint = newSettings.ollamaEndpoint || 'http://127.0.0.1:11434'
+        await ollamaCorsService.setupOllamaCorsRules(endpoint)
+      } catch (error) {
+        console.error(
+          '[Background] Error setting up Ollama CORS rules on provider change:',
+          error
+        )
+      }
+    } else {
+      // Optionally cleanup Ollama rules if a different provider is selected
+      // await ollamaCorsService.cleanup();
+    }
+  })
 
   // Function to create the context menu
   function initializeContextMenu() {

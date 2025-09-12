@@ -13,8 +13,11 @@
   placeholder="http://127.0.0.1:11434"
   bind:value={settings.ollamaEndpoint}
   onSave={(value) => {
-    console.log('OllamaConfig: Saving ollamaEndpoint', value)
     updateSettings({ ollamaEndpoint: value })
+    browser.runtime.sendMessage({
+      type: 'UPDATE_OLLAMA_ENDPOINT',
+      endpoint: value,
+    })
   }}
 />
 <TextInput
@@ -23,7 +26,6 @@
   id="model"
   bind:value={settings.selectedOllamaModel}
   onSave={(value) => {
-    console.log('OllamaConfig: Saving selectedOllamaModel', value)
     updateSettings({ selectedOllamaModel: value })
   }}
 />

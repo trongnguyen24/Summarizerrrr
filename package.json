@@ -39,6 +39,7 @@
     "@fontsource-variable/noto-serif": "^5.2.7",
     "@fontsource/mali": "^5.2.6",
     "@fontsource/opendyslexic": "^5.2.5",
+    "@humanspeak/svelte-markdown": "^0.8.11",
     "@openrouter/ai-sdk-provider": "^1.2.0",
     "@tailwindcss/vite": "^4.1.8",
     "ai": "^5.0.39",

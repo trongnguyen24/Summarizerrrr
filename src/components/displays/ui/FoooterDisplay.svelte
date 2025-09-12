@@ -9,6 +9,7 @@
 </script>
 
 <div
+  id="footer"
   class="w-fit mx-auto relative mt-12 flex justify-center items-center gap-2"
 >
   <div class="absolute left-0">

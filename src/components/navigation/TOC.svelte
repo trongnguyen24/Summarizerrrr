@@ -29,6 +29,19 @@
     }
   }
 
+  // Debounce function for updateTOC to reduce excessive calls
+  function debounce(func, wait) {
+    let timeout
+    return function executedFunction(...args) {
+      const later = () => {
+        clearTimeout(timeout)
+        func(...args)
+      }
+      clearTimeout(timeout)
+      timeout = setTimeout(later, wait)
+    }
+  }
+
   function highlight() {
     const targetDiv = document.getElementById(targetDivId)
     if (!targetDiv) return
@@ -57,7 +70,7 @@
   }
 
   function generateRandomString(length = 4) {
-    const characters = 'abcdefghijklmnopqrstuvwxyz0123456789'
+    const characters = 'abcdefghijklmnopqrstuvwxyz'
     let result = ''
     for (let i = 0; i < length; i++) {
       result += characters.charAt(Math.floor(Math.random() * characters.length))
@@ -115,19 +128,6 @@
 
   // Sử dụng $effect để thay thế onMount và onDestroy
   $effect(() => {
-    animate('.toc', {
-      opacity: [0, 0, 1],
-      translateX: ['2rem', '2rem', '2rem', '2rem', 0],
-      scale: [0, 1, 1, 1, 1, 1],
-      ease: 'inOutQuad',
-      autoplay: onScroll({
-        container: 'body',
-        enter: 'bottom-=290px',
-        leave: 'bottom-=300px',
-        sync: 0.5,
-      }),
-    })
-
     const init = async () => {
       await delay(100) // Thêm delay để đảm bảo DOM đã render
 
@@ -140,11 +140,13 @@
       // Optional: Observe changes in the target div to update TOC dynamically
       const targetDiv = document.getElementById(targetDivId)
       if (targetDiv) {
-        observer = new MutationObserver(updateTOC)
+        // Use debounced version to prevent excessive TOC updates during streaming
+        const debouncedUpdateTOC = debounce(updateTOC, 200)
+        observer = new MutationObserver(debouncedUpdateTOC)
         observer.observe(targetDiv, {
           childList: true,
           subtree: true,
-          characterData: true,
+          // characterData: true, // Removed to prevent rerender on every character change during streaming
         })
       }
 
@@ -213,7 +215,7 @@
     </span>
   </div>
   <nav
-    class="fixed bottom-0 pt-4 px-3 right-0 hidden group-hover:block opacity-0 group-hover:opacity-100"
+    class="fixed bottom-18 pt-4 px-3 right-0 hidden group-hover:block opacity-0 group-hover:opacity-100"
   >
     <div class="relative">
       <div

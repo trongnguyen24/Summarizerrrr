@@ -18,7 +18,7 @@
     {name}
     bind:checked
     title="Active custom prompt"
-    class="focus-visible:ring-primary group overflow-hidden relative  text-text-secondary flex items-center focus-visible:ring-offset-background pl-6 pr-2  transition-colors focus-visible:outline-hidden w-full h-8  cursor-pointer  focus-visible:ring-1 focus-visible:ring-offset-1 data-[state=checked]:border-border data-[state=checked]:text-white"
+    class="focus-visible:ring-primary group overflow-hidden relative  text-text-secondary flex items-center focus-visible:ring-offset-background pl-6 pr-2  transition-colors focus-visible:outline-hidden w-full h-9  cursor-pointer  focus-visible:ring-1 focus-visible:ring-offset-1 data-[state=checked]:border-border data-[state=checked]:text-white"
   >
     <div
       class=" absolute inset-0 bg-muted/5 border border-transparent hover:border-blackwhite/15 transition-colors
@@ -27,7 +27,7 @@
         : ''}"
     ></div>
     <div
-      class="size-4 absolute z-10 -left-2 -bottom-2 bg-background dark:bg-surface-1 rotate-45 border group-hover:border-blackwhite/15 transition-colors
+      class="size-4 absolute z-10 -left-2 -bottom-2 bg-surface-1 rotate-45 border group-hover:border-blackwhite/15 transition-colors
       {checked
         ? ' !border-border hover:!border-blackwhite/15'
         : 'border-transparent'}"
@@ -47,7 +47,7 @@
     </Label.Root>
   </Switch.Root>
   <button
-    class="bg-muted/5 h-8 flex text-transparent justify-center items-center w-2 border transition-all border-transparent overflow-hidden disabled:cursor-default
+    class="bg-muted/5 h-9 flex text-transparent justify-center items-center w-2 border transition-all border-transparent overflow-hidden disabled:cursor-default
      {checked
       ? '!w-10 !text-text-primary !bg-blackwhite/5 !border-border hover:!border-blackwhite/15'
       : ''}"

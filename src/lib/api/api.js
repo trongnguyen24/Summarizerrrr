@@ -1,20 +1,12 @@
 // @ts-nocheck
 import { settings, loadSettings } from '@/stores/settingsStore.svelte.js'
-import {
-  advancedModeSettings,
-  loadAdvancedModeSettings,
-} from '@/stores/advancedModeSettingsStore.svelte.js'
-import {
-  basicModeSettings,
-  loadBasicModeSettings,
-} from '@/stores/basicModeSettingsStore.svelte.js'
 import { promptBuilders } from '@/lib/prompting/promptBuilders.js'
-import { ErrorTypes } from '../error/errorTypes.js'
 import {
   generateContent as aiSdkGenerateContent,
   generateContentStream as aiSdkGenerateContentStream,
   generateContentStreamEnhanced as aiSdkGenerateContentStreamEnhanced,
 } from './aiSdkAdapter.js'
+import { getBrowserCompatibility } from '@/lib/utils/browserDetection.js'
 
 /**
  * Checks if the selected provider supports streaming.
@@ -32,7 +24,15 @@ export function providerSupportsStreaming(selectedProviderId) {
     'chatgpt',
     'deepseek',
   ]
-  return supportedProviders.includes(selectedProviderId)
+
+  // Check if provider is supported
+  const isProviderSupported = supportedProviders.includes(selectedProviderId)
+
+  // Check browser compatibility
+  const browserCompatibility = getBrowserCompatibility()
+
+  // Return true only if both provider and browser support streaming
+  return isProviderSupported && browserCompatibility.supportsAdvancedStreaming
 }
 
 /**
@@ -59,6 +59,9 @@ function validateApiKey(userSettings, selectedProviderId) {
     case 'ollama':
       // Ollama doesn't require API key, but needs endpoint
       return // Skip validation for Ollama
+    case 'lmstudio':
+      // LM Studio doesn't require API key, but needs endpoint
+      return // Skip validation for LM Studio
     case 'openaiCompatible':
       apiKey = userSettings.openaiCompatibleApiKey
       providerName = 'OpenAI Compatible'
@@ -77,10 +80,9 @@ function validateApiKey(userSettings, selectedProviderId) {
   }
 
   if (!apiKey) {
-    throw {
-      message: `${providerName} API key is not configured. Click the settings icon on the right to add your API key.`,
-      type: ErrorTypes.API_KEY,
-    }
+    throw new Error(
+      `${providerName} API key is not configured. Click the settings icon on the right to add your API key.`
+    )
   }
 }
 
@@ -93,8 +95,6 @@ function validateApiKey(userSettings, selectedProviderId) {
 export async function summarizeContent(text, contentType) {
   // Ensure settings are initialized
   await loadSettings()
-  await loadAdvancedModeSettings()
-  await loadBasicModeSettings()
 
   const userSettings = settings
   // Determine the actual provider to use based on isAdvancedMode
@@ -127,8 +127,6 @@ export async function summarizeContent(text, contentType) {
     return await aiSdkGenerateContent(
       selectedProviderId,
       userSettings,
-      advancedModeSettings,
-      basicModeSettings,
       systemInstruction,
       userPrompt
     )
@@ -141,8 +139,6 @@ export async function summarizeContent(text, contentType) {
 export async function* summarizeContentStream(text, contentType) {
   // Ensure settings are initialized
   await loadSettings()
-  await loadAdvancedModeSettings()
-  await loadBasicModeSettings()
 
   const userSettings = settings
   // Determine the actual provider to use based on isAdvancedMode
@@ -153,6 +149,14 @@ export async function* summarizeContentStream(text, contentType) {
 
   // Validate API key
   validateApiKey(userSettings, selectedProviderId)
+
+  // Check browser compatibility for streaming
+  const browserCompatibility = getBrowserCompatibility()
+
+  // If browser doesn't support advanced streaming, throw an error to trigger fallback
+  if (!browserCompatibility.supportsAdvancedStreaming) {
+    throw new Error('Browser does not support advanced streaming features')
+  }
 
   const contentConfig = promptBuilders[contentType] || promptBuilders['general'] // Fallback to general
 
@@ -175,11 +179,9 @@ export async function* summarizeContentStream(text, contentType) {
     const streamGenerator = aiSdkGenerateContentStream(
       selectedProviderId,
       userSettings,
-      advancedModeSettings,
-      basicModeSettings,
       systemInstruction,
       userPrompt,
-      { useSmoothing: true }
+      { useSmoothing: browserCompatibility.streamingOptions.useSmoothing }
     )
 
     for await (const chunk of streamGenerator) {
@@ -187,6 +189,12 @@ export async function* summarizeContentStream(text, contentType) {
     }
   } catch (e) {
     console.error(`AI SDK Stream Error for ${selectedProviderId}:`, e)
+
+    // Add Firefox mobile specific error handling
+    if (browserCompatibility.isFirefoxMobile && e.message.includes('flush')) {
+      e.isFirefoxMobileStreamingError = true
+    }
+
     throw e
   }
 }
@@ -199,8 +207,6 @@ export async function* summarizeContentStream(text, contentType) {
 export async function enhancePrompt(userPrompt) {
   // Ensure settings are initialized
   await loadSettings()
-  await loadAdvancedModeSettings()
-  await loadBasicModeSettings()
 
   const userSettings = settings
   // Determine the actual provider to use based on isAdvancedMode
@@ -228,8 +234,6 @@ export async function enhancePrompt(userPrompt) {
     return await aiSdkGenerateContent(
       selectedProviderId,
       userSettings,
-      advancedModeSettings,
-      basicModeSettings,
       systemInstruction,
       enhancedPrompt
     )
@@ -247,8 +251,6 @@ export async function enhancePrompt(userPrompt) {
 export async function summarizeChapters(timestampedTranscript) {
   // Ensure settings are initialized
   await loadSettings()
-  await loadAdvancedModeSettings()
-  await loadBasicModeSettings()
 
   const userSettings = settings
   // Determine the actual provider to use based on isAdvancedMode
@@ -278,8 +280,6 @@ export async function summarizeChapters(timestampedTranscript) {
     return await aiSdkGenerateContent(
       selectedProviderId,
       userSettings,
-      advancedModeSettings,
-      basicModeSettings,
       systemInstruction,
       userPrompt
     )
@@ -292,8 +292,6 @@ export async function summarizeChapters(timestampedTranscript) {
 export async function* summarizeChaptersStream(timestampedTranscript) {
   // Ensure settings are initialized
   await loadSettings()
-  await loadAdvancedModeSettings()
-  await loadBasicModeSettings()
 
   const userSettings = settings
   // Determine the actual provider to use based on isAdvancedMode
@@ -304,6 +302,14 @@ export async function* summarizeChaptersStream(timestampedTranscript) {
 
   // Validate API key
   validateApiKey(userSettings, selectedProviderId)
+
+  // Check browser compatibility for streaming
+  const browserCompatibility = getBrowserCompatibility()
+
+  // If browser doesn't support advanced streaming, throw an error to trigger fallback
+  if (!browserCompatibility.supportsAdvancedStreaming) {
+    throw new Error('Browser does not support advanced streaming features')
+  }
 
   const chapterConfig = promptBuilders['chapter']
 
@@ -323,11 +329,9 @@ export async function* summarizeChaptersStream(timestampedTranscript) {
     const streamGenerator = aiSdkGenerateContentStream(
       selectedProviderId,
       userSettings,
-      advancedModeSettings,
-      basicModeSettings,
       systemInstruction,
       userPrompt,
-      { useSmoothing: true }
+      { useSmoothing: browserCompatibility.streamingOptions.useSmoothing }
     )
 
     for await (const chunk of streamGenerator) {
@@ -338,6 +342,12 @@ export async function* summarizeChaptersStream(timestampedTranscript) {
       `AI SDK Stream Error for ${selectedProviderId} (Chapters):`,
       e
     )
+
+    // Add Firefox mobile specific error handling
+    if (browserCompatibility.isFirefoxMobile && e.message.includes('flush')) {
+      e.isFirefoxMobileStreamingError = true
+    }
+
     throw e
   }
 }
@@ -349,8 +359,6 @@ export async function* summarizeChaptersStream(timestampedTranscript) {
 export async function* summarizeContentStreamEnhanced(text, contentType) {
   // Ensure settings are initialized
   await loadSettings()
-  await loadAdvancedModeSettings()
-  await loadBasicModeSettings()
 
   const userSettings = settings
   let selectedProviderId = userSettings.selectedProvider || 'gemini'
@@ -359,6 +367,14 @@ export async function* summarizeContentStreamEnhanced(text, contentType) {
   }
 
   validateApiKey(userSettings, selectedProviderId)
+
+  // Check browser compatibility for streaming
+  const browserCompatibility = getBrowserCompatibility()
+
+  // If browser doesn't support advanced streaming, throw an error to trigger fallback
+  if (!browserCompatibility.supportsAdvancedStreaming) {
+    throw new Error('Browser does not support advanced streaming features')
+  }
 
   const contentConfig = promptBuilders[contentType] || promptBuilders['general']
 
@@ -380,11 +396,9 @@ export async function* summarizeContentStreamEnhanced(text, contentType) {
     const streamGenerator = aiSdkGenerateContentStreamEnhanced(
       selectedProviderId,
       userSettings,
-      advancedModeSettings,
-      basicModeSettings,
       systemInstruction,
       userPrompt,
-      { useSmoothing: true }
+      { useSmoothing: browserCompatibility.streamingOptions.useSmoothing }
     )
 
     for await (const streamData of streamGenerator) {
@@ -392,6 +406,12 @@ export async function* summarizeContentStreamEnhanced(text, contentType) {
     }
   } catch (e) {
     console.error(`AI SDK Enhanced Stream Error for ${selectedProviderId}:`, e)
+
+    // Add Firefox mobile specific error handling
+    if (browserCompatibility.isFirefoxMobile && e.message.includes('flush')) {
+      e.isFirefoxMobileStreamingError = true
+    }
+
     throw e
   }
 }

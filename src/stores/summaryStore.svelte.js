@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { marked } from 'marked'
 import { getPageContent } from '@/services/contentService.js'
-import { getActiveTabInfo } from '@/services/chromeService.js'
+import { browser } from 'wxt/browser'
 import { settings, loadSettings } from './settingsStore.svelte.js'
 import {
   summarizeContent,
@@ -16,8 +16,9 @@ import {
   getSummaryById,
   getHistoryById,
 } from '@/lib/db/indexedDBService.js'
-import { setStorage } from '@/services/chromeService.js'
+import { appStateStorage } from '@/services/wxtStorageService.js'
 import { generateUUID } from '@/lib/utils/utils.js'
+import { handleError } from '@/lib/error/simpleErrorHandler.js'
 
 // --- State ---
 export const summaryState = $state({
@@ -106,9 +107,6 @@ export function resetDisplayState() {
 export function updateVideoActiveStates(isYouTube, isCourse) {
   summaryState.isYouTubeVideoActive = isYouTube
   summaryState.isCourseVideoActive = isCourse
-  console.log(
-    `[summaryStore] isYouTubeVideoActive updated to: ${isYouTube}, isCourseVideoActive updated to: ${isCourse}`
-  )
 }
 
 /**
@@ -131,7 +129,6 @@ export function updateActiveCourseTab(tabName) {
  * Fetches content from the current tab and triggers the summarization process.
  */
 export async function fetchAndSummarize() {
-  console.log('[summaryStore] fetchAndSummarize called.')
   // If a summarization process is already ongoing, reset state and start a new one
   if (summaryState.isLoading || summaryState.isChapterLoading) {
     resetState() // Reset state before starting a new summarization
@@ -176,8 +173,10 @@ export async function fetchAndSummarize() {
     summaryState.isCourseSummaryLoading = true
     summaryState.isCourseConceptsLoading = true
 
-    console.log('[summaryStore] Checking tab type...')
-    const tabInfo = await getActiveTabInfo()
+    const [tabInfo] = await browser.tabs.query({
+      active: true,
+      currentWindow: true,
+    })
     if (!tabInfo || !tabInfo.url) {
       throw new Error('Could not get current tab information or URL.')
     }
@@ -193,10 +192,6 @@ export async function fetchAndSummarize() {
     summaryState.isYouTubeVideoActive = YOUTUBE_MATCH_PATTERN.test(tabInfo.url)
     summaryState.isCourseVideoActive = COURSE_MATCH_PATTERN.test(tabInfo.url)
 
-    console.log(
-      `[summaryStore] Current tab is: ${tabInfo.url}. YouTube video: ${summaryState.isYouTubeVideoActive}. Course video: ${summaryState.isCourseVideoActive}`
-    )
-
     let mainContentTypeToFetch = 'webpageText'
     let summaryType = 'general'
 
@@ -211,9 +206,6 @@ export async function fetchAndSummarize() {
     } else {
       summaryState.lastSummaryTypeDisplayed = 'web'
     }
-    console.log(
-      `[summaryStore] Will fetch main content type: ${mainContentTypeToFetch} for summary type: ${summaryType}`
-    )
 
     const mainContentResult = await getPageContent(
       mainContentTypeToFetch,
@@ -236,8 +228,10 @@ export async function fetchAndSummarize() {
             chapterSummarizedText ||
             '<p><i>Could not generate chapter summary.</i></p>'
         } catch (e) {
-          console.error('[summaryStore] Chapter summarization error:', e)
-          summaryState.chapterError = e
+          const errorObject = handleError(e, {
+            source: 'chapterSummarization',
+          })
+          summaryState.chapterError = errorObject
         } finally {
           summaryState.isChapterLoading = false
         }
@@ -254,8 +248,10 @@ export async function fetchAndSummarize() {
             videoSummarizedText ||
             '<p><i>Could not generate video summary.</i></p>'
         } catch (e) {
-          console.error('[summaryStore] YouTube video summarization error:', e)
-          summaryState.summaryError = e
+          const errorObject = handleError(e, {
+            source: 'youtubeVideoSummarization',
+          })
+          summaryState.summaryError = errorObject
         } finally {
           summaryState.isLoading = false
         }
@@ -273,8 +269,9 @@ export async function fetchAndSummarize() {
             courseSummarizedText ||
             '<p><i>Could not generate course summary.</i></p>'
         } catch (e) {
-          console.error('[summaryStore] Course summarization error:', e)
-          summaryState.courseSummaryError = e
+          summaryState.courseSummaryError = handleError(e, {
+            source: 'courseSummarization',
+          })
         } finally {
           summaryState.isCourseSummaryLoading = false
         }
@@ -291,8 +288,9 @@ export async function fetchAndSummarize() {
             courseConceptsText ||
             '<p><i>Could not explain course concepts.</i></p>'
         } catch (e) {
-          console.error('[summaryStore] Course concept explanation error:', e)
-          summaryState.courseConceptsError = e
+          summaryState.courseConceptsError = handleError(e, {
+            source: 'courseConceptsExplanation',
+          })
         } finally {
           summaryState.isCourseConceptsLoading = false
         }
@@ -308,13 +306,19 @@ export async function fetchAndSummarize() {
         summaryState.summary =
           summarizedText || '<p><i>Could not generate summary.</i></p>'
       } catch (e) {
-        summaryState.summaryError = e
+        const errorObject = handleError(e, {
+          source: 'generalSummarization',
+        })
+        summaryState.summaryError = errorObject
       }
     }
   } catch (e) {
-    console.error('[summaryStore] Error during main summarization process:', e)
-    summaryState.summaryError = e
-    summaryState.lastSummaryTypeDisplayed = 'web'
+    const errorObject = handleError(e, {
+      source: 'mainSummarizationProcess',
+    })
+    summaryState.summaryError = errorObject
+    // Don't change the lastSummaryTypeDisplayed on error,
+    // so the UI can show the error in the correct context (e.g., YouTube tab).
   } finally {
     // Ensure all loading states are set to false
     summaryState.isLoading = false
@@ -327,7 +331,6 @@ export async function fetchAndSummarize() {
   }
 }
 export async function fetchAndSummarizeStream() {
-  console.log('[summaryStore] fetchAndSummarizeStream called.')
   if (
     summaryState.isLoading ||
     summaryState.isChapterLoading ||
@@ -343,7 +346,10 @@ export async function fetchAndSummarizeStream() {
 
   try {
     summaryState.isLoading = true
-    const tabInfo = await getActiveTabInfo()
+    const [tabInfo] = await browser.tabs.query({
+      active: true,
+      currentWindow: true,
+    })
     if (!tabInfo || !tabInfo.url) {
       throw new Error('Could not get current tab information or URL.')
     }
@@ -397,20 +403,50 @@ export async function fetchAndSummarizeStream() {
             summaryState.chapterSummary += chunk
           }
         } catch (e) {
-          summaryState.chapterError = e
+          if (e.message?.includes('transcript')) {
+            summaryState.chapterSummary =
+              '<p><i>Failed to get transcript for chapters.</i></p>'
+          } else {
+            summaryState.chapterError = handleError(e, {
+              source: 'chapterStreamSummarization',
+            })
+            // Re-throw to be caught by the main handler
+            throw e
+          }
         } finally {
           summaryState.isChapterLoading = false
         }
       })()
       promises.push(chapterStreamPromise)
 
-      const videoSummaryStream = summarizeContentStream(
-        summaryState.currentContentSource,
-        'youtube'
-      )
       summaryState.summaryError = null
-      for await (const chunk of videoSummaryStream) {
-        summaryState.summary += chunk
+      try {
+        console.log('[summaryStore] Starting YouTube video streaming...')
+        const videoSummaryStream = summarizeContentStream(
+          summaryState.currentContentSource,
+          'youtube'
+        )
+        let chunkCount = 0
+        for await (const chunk of videoSummaryStream) {
+          summaryState.summary += chunk
+          chunkCount++
+        }
+        console.log(
+          `[summaryStore] YouTube streaming completed, chunks: ${chunkCount}`
+        )
+      } catch (e) {
+        console.log('[summaryStore] YouTube streaming error caught:', e)
+        if (e.message?.includes('transcript')) {
+          summaryState.summary =
+            '<p><i>Failed to get transcript for summary.</i></p>'
+        } else {
+          const errorObject = handleError(e, {
+            source: 'youtubeVideoStreaming',
+          })
+          summaryState.summaryError = errorObject
+          // Re-throw to be caught by the main handler
+          throw e
+        }
       }
     } else if (summaryState.isCourseVideoActive) {
       summaryState.isCourseSummaryLoading = true
@@ -427,7 +463,9 @@ export async function fetchAndSummarizeStream() {
             summaryState.courseSummary += chunk
           }
         } catch (e) {
-          summaryState.courseSummaryError = e
+          summaryState.courseSummaryError = handleError(e, {
+            source: 'courseSummaryStreamSummarization',
+          })
         } finally {
           summaryState.isCourseSummaryLoading = false
         }
@@ -445,7 +483,9 @@ export async function fetchAndSummarizeStream() {
             summaryState.courseConcepts += chunk
           }
         } catch (e) {
-          summaryState.courseConceptsError = e
+          summaryState.courseConceptsError = handleError(e, {
+            source: 'courseConceptsStreamSummarization',
+          })
         } finally {
           summaryState.isCourseConceptsLoading = false
         }
@@ -453,19 +493,50 @@ export async function fetchAndSummarizeStream() {
       promises.push(courseConceptsPromise)
     } else {
       summaryState.summaryError = null
-      const webSummaryStream = summarizeContentStream(
-        summaryState.currentContentSource,
-        'general'
-      )
-      for await (const chunk of webSummaryStream) {
-        summaryState.summary += chunk
+      try {
+        const webSummaryStream = summarizeContentStream(
+          summaryState.currentContentSource,
+          'general'
+        )
+        let hasContent = false
+        for await (const chunk of webSummaryStream) {
+          summaryState.summary += chunk
+          hasContent = true
+        }
+
+        // Check if stream completed without content - likely due to API error
+        if (!hasContent && summaryState.summary.trim() === '') {
+          // Try to get actual error from last global error or fallback to blocking mode
+          try {
+            console.log(
+              '[summaryStore] Stream failed silently, trying blocking mode...'
+            )
+            // Fallback to blocking mode to get proper error
+            const blockingSummary = await summarizeContent(
+              summaryState.currentContentSource,
+              'general'
+            )
+            summaryState.summary =
+              blockingSummary || '<p><i>Could not generate summary.</i></p>'
+          } catch (blockingError) {
+            // This should give us the proper AI SDK error
+            throw blockingError
+          }
+        }
+      } catch (e) {
+        const errorObject = handleError(e, {
+          source: 'webSummaryStreaming',
+        })
+        summaryState.summaryError = errorObject
       }
     }
 
     await Promise.all(promises)
   } catch (e) {
-    console.error('[summaryStore] Error during stream summarization:', e)
-    summaryState.summaryError = e
+    const errorObject = handleError(e, {
+      source: 'streamSummarization',
+    })
+    summaryState.summaryError = errorObject
     summaryState.lastSummaryTypeDisplayed = 'web'
   } finally {
     summaryState.isLoading = false
@@ -478,9 +549,6 @@ export async function summarizeSelectedText(text) {
     summaryState.isLoading ||
     summaryState.isChapterLoading
   ) {
-    console.warn(
-      '[summaryStore] Summarization in progress, resetting for selected text.'
-    )
     resetState()
   }
 
@@ -493,7 +561,10 @@ export async function summarizeSelectedText(text) {
   try {
     summaryState.isSelectedTextLoading = true
 
-    const tabInfo = await getActiveTabInfo()
+    const [tabInfo] = await browser.tabs.query({
+      active: true,
+      currentWindow: true,
+    })
     summaryState.pageTitle = tabInfo.title || 'Selected Text Summary'
     summaryState.pageUrl = tabInfo.url || 'Unknown URL'
 
@@ -501,16 +572,15 @@ export async function summarizeSelectedText(text) {
       throw new Error('No text selected for summarization.')
     }
 
-    console.log('[summaryStore] Starting selected text summarization...')
     const summarizedText = await summarizeContent(text, 'selectedText')
 
     summaryState.selectedTextSummary =
       summarizedText ||
       '<p><i>Could not generate summary from this selected text.</i></p>'
-    console.log('[summaryStore] Selected text summary processed.')
   } catch (e) {
-    console.error('[summaryStore] Selected text summarization error:', e)
-    summaryState.selectedTextError = e
+    summaryState.selectedTextError = handleError(e, {
+      source: 'selectedTextSummarization',
+    })
     summaryState.lastSummaryTypeDisplayed = 'selectedText'
   } finally {
     summaryState.isSelectedTextLoading = false
@@ -565,7 +635,6 @@ export async function saveAllGeneratedSummariesToArchive() {
   }
 
   if (summariesToSave.length === 0) {
-    console.warn('Không có bản tóm tắt nào để lưu vào Archive.')
     // TODO: Thêm thông báo cho người dùng
     return
   }
@@ -580,19 +649,10 @@ export async function saveAllGeneratedSummariesToArchive() {
     }
 
     await addSummary(archiveEntry)
-    console.log(
-      'Đã lưu tất cả các bản tóm tắt đã tạo vào Archive:',
-      archiveEntry
-    )
     summaryState.isArchived = true
     // Notify other components that the data has been updated
-    await setStorage({ data_updated_at: new Date().getTime() })
-  } catch (error) {
-    console.error(
-      'Lỗi khi lưu tất cả các bản tóm tắt đã tạo vào Archive:',
-      error
-    )
-  }
+    await appStateStorage.setValue({ data_updated_at: new Date().getTime() })
+  } catch (error) {}
 }
 
 export async function logAllGeneratedSummariesToHistory() {
@@ -642,7 +702,6 @@ export async function logAllGeneratedSummariesToHistory() {
   }
 
   if (summariesToLog.length === 0) {
-    console.warn('Không có bản tóm tắt nào để ghi vào History.')
     return
   }
 
@@ -656,22 +715,14 @@ export async function logAllGeneratedSummariesToHistory() {
     }
 
     await addHistory(historyEntry)
-    console.log(
-      'Đã ghi tất cả các bản tóm tắt đã tạo vào History:',
-      historyEntry
-    )
     document.dispatchEvent(
       new CustomEvent('saveSummarySuccess', {
         detail: { message: 'Logged to History successfully!' },
       })
     )
     // Notify other components that the data has been updated
-    await setStorage({ data_updated_at: new Date().getTime() })
+    await appStateStorage.setValue({ data_updated_at: new Date().getTime() })
   } catch (error) {
-    console.error(
-      'Lỗi khi ghi tất cả các bản tóm tắt đã tạo vào History:',
-      error
-    )
     document.dispatchEvent(
       new CustomEvent('saveSummaryError', {
         detail: { message: `Error logging to History: ${error}` },

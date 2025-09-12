@@ -23,7 +23,7 @@
       <div class="icon">{@render children()}</div>
     {/if}
 
-    <div class="title">{title}</div>
+    <div class="title text-xs">{title}</div>
   </div>
   <span
     class="absolute size-4 rotate-45 bottom-px left-px bg-muted/5 group-hover:bg-border -translate-x-1/2 translate-y-1/2 transition-colors duration-150"

@@ -20,25 +20,9 @@
     settings,
     updateSettings,
   } from '../../stores/settingsStore.svelte.js'
-  import {
-    advancedModeSettings,
-    updateAdvancedModeSettings,
-  } from '../../stores/advancedModeSettingsStore.svelte.js'
-  import {
-    basicModeSettings,
-    updateBasicModeSettings,
-  } from '../../stores/basicModeSettingsStore.svelte.js'
 
   function handleUpdateSetting(key, value) {
-    if (key === 'temperature' || key === 'topP') {
-      if (settings.isAdvancedMode) {
-        updateAdvancedModeSettings({ [key]: value })
-      } else {
-        updateBasicModeSettings({ [key]: value })
-      }
-    } else {
-      updateSettings({ [key]: value })
-    }
+    updateSettings({ [key]: value })
   }
   let textElement
   let textScramble
@@ -145,6 +129,38 @@
         <GroqConfig />
       {/if}
 
+      <!-- Response Mode Section for Advanced Mode -->
+      <div class="flex flex-col gap-2">
+        <!-- svelte-ignore a11y_label_has_associated_control -->
+        <label class="block text-text-secondary"
+          >{$t('settings.general.responseMode')}</label
+        >
+        <div class="grid grid-cols-2 w-full gap-1">
+          <ButtonSet
+            title={$t('settings.general.response_mode.streaming')}
+            class="setting-btn {settings.enableStreaming ? 'active' : ''}"
+            onclick={() => handleUpdateSetting('enableStreaming', true)}
+            Description={$t('settings.general.response_mode.streaming_desc')}
+          >
+            <Icon icon="heroicons:bolt-20-solid" width="20" height="20" />
+          </ButtonSet>
+          <ButtonSet
+            title={$t('settings.general.response_mode.non_streaming')}
+            class="setting-btn {!settings.enableStreaming ? 'active' : ''}"
+            onclick={() => handleUpdateSetting('enableStreaming', false)}
+            Description={$t(
+              'settings.general.response_mode.non_streaming_desc'
+            )}
+          >
+            <Icon
+              icon="heroicons:device-phone-mobile-20-solid"
+              width="20"
+              height="20"
+            />
+          </ButtonSet>
+        </div>
+      </div>
+
       <div class="grid grid-cols-2 gap-4">
         <!-- Temperature Section -->
         <div class="flex flex-col gap-2">
@@ -152,7 +168,7 @@
           <label class=" text-text-secondary flex justify-between items-center">
             <span>{$t('settings.ai_model.temperature')}</span>
             <span class="text-text-primary font-bold"
-              >{advancedModeSettings.temperature.toFixed(2)}</span
+              >{settings.temperature.toFixed(2)}</span
             >
           </label>
           <input
@@ -161,12 +177,9 @@
             min="0"
             max="1"
             step="0.05"
-            bind:value={advancedModeSettings.temperature}
+            bind:value={settings.temperature}
             onchange={() =>
-              handleUpdateSetting(
-                'temperature',
-                advancedModeSettings.temperature
-              )}
+              handleUpdateSetting('temperature', settings.temperature)}
             class="range range-primary"
           />
         </div>
@@ -178,7 +191,7 @@
           <label class=" text-text-secondary flex justify-between items-center">
             <span>{$t('settings.ai_model.top_p')}</span>
             <span class="text-text-primary font-bold"
-              >{advancedModeSettings.topP.toFixed(2)}</span
+              >{settings.topP.toFixed(2)}</span
             >
           </label>
           <input
@@ -187,9 +200,8 @@
             min="0"
             max="1"
             step="0.01"
-            bind:value={advancedModeSettings.topP}
-            onchange={() =>
-              handleUpdateSetting('topP', advancedModeSettings.topP)}
+            bind:value={settings.topP}
+            onchange={() => handleUpdateSetting('topP', settings.topP)}
             class="range range-primary"
           />
         </div>
@@ -200,21 +212,51 @@
           bind:geminiApiKey={settings.geminiApiKey}
           bind:selectedGeminiModel={settings.selectedGeminiModel}
         />
+        <!-- Response Mode Section for Basic Mode -->
+        <div class="flex flex-col gap-2">
+          <!-- svelte-ignore a11y_label_has_associated_control -->
+          <label class="block text-text-secondary"
+            >{$t('settings.general.responseMode')}</label
+          >
+          <div class="grid grid-cols-2 w-full gap-1">
+            <ButtonSet
+              title={$t('settings.general.response_mode.streaming')}
+              class="setting-btn {settings.enableStreaming ? 'active' : ''}"
+              onclick={() => handleUpdateSetting('enableStreaming', true)}
+              Description={$t('settings.general.response_mode.streaming_desc')}
+            >
+              <Icon icon="heroicons:bolt-20-solid" width="20" height="20" />
+            </ButtonSet>
+            <ButtonSet
+              title={$t('settings.general.response_mode.non_streaming')}
+              class="setting-btn {!settings.enableStreaming ? 'active' : ''}"
+              onclick={() => handleUpdateSetting('enableStreaming', false)}
+              Description={$t(
+                'settings.general.response_mode.non_streaming_desc'
+              )}
+            >
+              <Icon
+                icon="heroicons:device-phone-mobile-20-solid"
+                width="20"
+                height="20"
+              />
+            </ButtonSet>
+          </div>
+        </div>
+
         <!-- Temperature Section for Basic Mode -->
         <div class="flex flex-col gap-2">
           <!-- svelte-ignore a11y_label_has_associated_control -->
           <label class=" text-text-secondary flex justify-between items-center">
             <span>{$t('settings.ai_model.temperature')}</span>
             <span class="text-text-primary block font-bold"
-              >{basicModeSettings.temperature.toFixed(2)}</span
+              >{settings.temperature.toFixed(2)}</span
             >
           </label>
           <div class="grid grid-cols-3 w-full gap-1">
             <ButtonSet
               title={$t('settings.ai_model.temperature_basic.precise')}
-              class="setting-btn {basicModeSettings.temperature === 0.3
-                ? 'active'
-                : ''}"
+              class="setting-btn {settings.temperature === 0.3 ? 'active' : ''}"
               onclick={() => handleUpdateSetting('temperature', 0.3)}
               Description={$t(
                 'settings.ai_model.temperature_basic.precise_desc'
@@ -222,9 +264,7 @@
             ></ButtonSet>
             <ButtonSet
               title={$t('settings.ai_model.temperature_basic.balanced')}
-              class="setting-btn {basicModeSettings.temperature === 0.7
-                ? 'active'
-                : ''}"
+              class="setting-btn {settings.temperature === 0.7 ? 'active' : ''}"
               onclick={() => handleUpdateSetting('temperature', 0.7)}
               Description={$t(
                 'settings.ai_model.temperature_basic.balanced_desc'
@@ -232,9 +272,7 @@
             ></ButtonSet>
             <ButtonSet
               title={$t('settings.ai_model.temperature_basic.creative')}
-              class="setting-btn {basicModeSettings.temperature === 0.9
-                ? 'active'
-                : ''}"
+              class="setting-btn {settings.temperature === 0.9 ? 'active' : ''}"
               onclick={() => handleUpdateSetting('temperature', 0.9)}
               Description={$t(
                 'settings.ai_model.temperature_basic.creative_desc'
@@ -249,31 +287,25 @@
           <label class=" text-text-secondary flex justify-between items-center">
             <span>{$t('settings.ai_model.top_p')}</span>
             <span class="text-text-primary block font-bold"
-              >{basicModeSettings.topP.toFixed(2)}</span
+              >{settings.topP.toFixed(2)}</span
             >
           </label>
           <div class="grid grid-cols-3 w-full gap-1">
             <ButtonSet
               title={$t('settings.ai_model.top_p_basic.narrow')}
-              class="setting-btn {basicModeSettings.topP === 0.9
-                ? 'active'
-                : ''}"
+              class="setting-btn {settings.topP === 0.9 ? 'active' : ''}"
               onclick={() => handleUpdateSetting('topP', 0.9)}
               Description={$t('settings.ai_model.top_p_basic.narrow_desc')}
             ></ButtonSet>
             <ButtonSet
               title={$t('settings.ai_model.top_p_basic.balanced')}
-              class="setting-btn {basicModeSettings.topP === 0.95
-                ? 'active'
-                : ''}"
+              class="setting-btn {settings.topP === 0.95 ? 'active' : ''}"
               onclick={() => handleUpdateSetting('topP', 0.95)}
               Description={$t('settings.ai_model.top_p_basic.balanced_desc')}
             ></ButtonSet>
             <ButtonSet
               title={$t('settings.ai_model.top_p_basic.wide')}
-              class="setting-btn {basicModeSettings.topP === 0.98
-                ? 'active'
-                : ''}"
+              class="setting-btn {settings.topP === 0.98 ? 'active' : ''}"
               onclick={() => handleUpdateSetting('topP', 0.98)}
               Description={$t('settings.ai_model.top_p_basic.wide_desc')}
             ></ButtonSet>
@@ -281,5 +313,16 @@
         </div>
       </div>
     {/if}
+
+    <a
+      href="https://www.youtube.com/watch?v=g-Uae53Cpmw"
+      target="_blank"
+      class="text-xs flex gap-1 items-center mt-auto self-center text-text-secondary hover:text-primary underline underline-offset-2 transition-colors"
+    >
+      {$t('apiKeyPrompt.setupGuide')}<Icon
+        width={12}
+        icon="heroicons:arrow-up-right-16-solid"
+      />
+    </a>
   </div>
 </div>

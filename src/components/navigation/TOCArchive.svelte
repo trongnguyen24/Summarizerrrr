@@ -10,6 +10,7 @@
   let headings = $state([])
   let observer
   let activeHeadingId = $state(null)
+  let isNavOpen = $state(false)
 
   const delay = (ms) => {
     return new Promise((resolve) => setTimeout(resolve, ms))
@@ -110,6 +111,10 @@
     }
   }
 
+  function toggleNav() {
+    isNavOpen = !isNavOpen
+  }
+
   // Bọc hàm highlight bằng throttle với giới hạn 40ms
   const throttledHighlight = throttle(highlight, 80)
 
@@ -135,9 +140,9 @@
         })
       }
 
-      // Initialize OverlayScrollbars on the element with id "toc-scroll"
+      // Initialize OverlayScrollbars on the element with id "toc-scroll" (only on non-touch devices)
       const tocElement = document.getElementById('toc-scroll')
-      if (tocElement) {
+      if (tocElement && !isTouchDevice()) {
         initialize(tocElement)
       }
     }
@@ -164,14 +169,30 @@
     },
   }
   const [initialize, instance] = useOverlayScrollbars({ options, defer: true })
+
+  // Utility function to detect touch devices
+  function isTouchDevice() {
+    return (
+      'ontouchstart' in window ||
+      navigator.maxTouchPoints > 0 ||
+      navigator.msMaxTouchPoints > 0
+    )
+  }
 </script>
 
 <div
   id="toc"
-  class="fixed z-20 right-8 bottom-8 group p-2 pr-3 origin-bottom-right"
+  class="fixed z-20 right-0 sm:right-4 md:right-8 bottom-16 md:bottom-8 group origin-bottom-right"
 >
-  <div
-    class="flex items-end group-hover:opacity-0 transition-all flex-col gap-2"
+  <button
+    class="flex items-end transition-all py-2 px-4 flex-col gap-2 {isTouchDevice()
+      ? ''
+      : 'group-hover:opacity-0'}"
+    onclick={() => {
+      if (isTouchDevice()) {
+        toggleNav()
+      }
+    }}
   >
     {#each headings as heading}
       <span
@@ -186,18 +207,22 @@
       </span>
     {/each}
     <span
-      class="w-1.5 text-[0.65rem] mt-0.5 select-none flex justify-center items-center h-px text-primary dark:text-white"
+      class=" w-1.25 sm:w-1.5 text-[0.65rem] mt-0.5 select-none flex justify-center items-center h-px text-primary dark:text-white"
     >
       ^
     </span>
-  </div>
+  </button>
   <nav
-    class="fixed bottom-6 pt-4 px-3 right-8 hidden group-hover:block opacity-0 group-hover:opacity-100"
+    class="fixed bottom-14 md:bottom-8 z-20 pt-4 px-3 left-0 sm:left-auto right-0 sm:right-6 md:right-8 {isTouchDevice()
+      ? isNavOpen
+        ? 'block opacity-100'
+        : 'hidden opacity-0'
+      : 'hidden group-hover:block opacity-0 group-hover:opacity-100'}"
   >
     <div class="relative">
       <div
         id="toc-scroll"
-        class="w-80 xs:w-108 overflow-auto max-h-[calc(100vh-150px)] border rounded-t-lg border-border bg-background"
+        class="w-full xs:w-108 overflow-auto max-h-[calc(100vh-200px)] border rounded-t-lg border-border bg-background"
       >
         <div
           class="flex flex-col divide-y divide-border/50 dark:divide-border/70"
@@ -205,7 +230,12 @@
           {#each headings as heading}
             <a
               href="#{heading.id}"
-              onclick={() => scrollToHeading(heading.id)}
+              onclick={() => {
+                scrollToHeading(heading.id)
+                if (isTouchDevice()) {
+                  isNavOpen = false
+                }
+              }}
               class="px-3 py-2 font-mono text-sm/5 no-underline transition-colors
           {heading.id === activeHeadingId
                 ? 'text-text-primary bg-black/5 dark:bg-white/5'
@@ -224,28 +254,62 @@
       >
         <a
           href="#footer"
-          class="px-3 w-1/2 border-border border-r flex justify-end items-center gap-1 py-3 font-mono text-xs/4 no-underline transition-colors"
-          ><Icon class=" rotate-180" width="16" icon="carbon:up-to-top" /></a
+          class="px-3 w-1/2 border-border border-r flex justify-center items-center gap-1 py-3 font-mono text-xs/4 no-underline transition-colors"
+          onclick={() => {
+            if (isTouchDevice()) {
+              isNavOpen = false
+            }
+          }}><Icon class=" rotate-180" width="16" icon="carbon:up-to-top" /></a
         >
         <a
           href="#top"
-          class="px-3 w-1/2 flex justify-end items-center gap-1 py-3 font-mono text-xs/4 no-underline transition-colors"
-          ><Icon width="16" icon="carbon:up-to-top" />Go to top</a
+          class="px-3 w-1/2 flex justify-center items-center gap-1 py-3 font-mono text-xs/4 no-underline transition-colors"
+          onclick={() => {
+            if (isTouchDevice()) {
+              isNavOpen = false
+            }
+          }}
+          ><Icon width="16" icon="carbon:up-to-top" />
+          {#if !isTouchDevice()}Go to top
+          {/if}</a
         >
+        {#if isTouchDevice()}
+          <button
+            class="p-3 w-1/2 border-border border-l flex justify-center items-center gap-1 font-mono text-xs/4 no-underline transition-colors"
+            onclick={() => (isNavOpen = false)}
+          >
+            <Icon width="16" icon="carbon:close" />
+          </button>
+        {/if}
       </div>
     </div>
   </nav>
+  {#if isTouchDevice() && isNavOpen}
+    <!-- svelte-ignore a11y_click_events_have_key_events -->
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
+    <div class="fixed inset-0 z-10" onclick={() => (isNavOpen = false)}></div>
+  {/if}
 </div>
 
 <style>
   .lv4 {
     padding-left: 2rem;
   }
+
   .lvs2,
   .lvs3 {
     width: 0.35rem;
   }
   .lvs4 {
     width: 0.25rem;
+  }
+  @media (width <= 40rem /* 640px */) {
+    .lvs2,
+    .lvs3 {
+      width: 0.25rem;
+    }
+    .lvs4 {
+      width: 0.125rem;
+    }
   }
 </style>

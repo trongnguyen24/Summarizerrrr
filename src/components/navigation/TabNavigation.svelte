@@ -146,7 +146,7 @@
 <style>
   .plus-icon {
     position: absolute;
-    z-index: 41;
+    z-index: 10;
     width: 9px; /* Kích thước container dấu cộng */
     height: 9px; /* Kích thước container dấu cộng */
     overflow: hidden; /* Ẩn phần thừa của pseudo-elements */

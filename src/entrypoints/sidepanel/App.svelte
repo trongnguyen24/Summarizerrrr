@@ -6,10 +6,12 @@
   import SettingButton from '@/components/buttons/SettingButton.svelte'
   import SummarizeButton from '@/components/buttons/SummarizeButton.svelte'
   import TabNavigation from '@/components/navigation/TabNavigation.svelte'
-  import GenericSummaryDisplay from '@/components/displays/GenericSummaryDisplay.svelte'
-  import YouTubeSummaryDisplay from '@/components/displays/YouTubeSummaryDisplay.svelte'
-  import CourseSummaryDisplay from '@/components/displays/CourseSummaryDisplay.svelte'
-  import ErrorDisplay from '@/components/displays/ErrorDisplay.svelte'
+  import GenericSummaryDisplay from '@/components/displays/core/GenericSummaryDisplay.svelte'
+  import YouTubeSummaryDisplay from '@/components/displays/platform/YouTubeSummaryDisplay.svelte'
+  import CourseSummaryDisplay from '@/components/displays/platform/CourseSummaryDisplay.svelte'
+  import ErrorDisplay from '@/components/displays/ui/ErrorDisplay.svelte'
+  import ApiKeySetupPrompt from '@/components/ui/ApiKeySetupPrompt.svelte'
+
   import 'webextension-polyfill'
 
   // Import direct variables and functions from refactored stores
@@ -26,24 +28,34 @@
   import { tabTitle } from '@/stores/tabTitleStore.svelte.js'
   import { setupMessageListener } from '@/services/messageHandler.js'
   import { initializeApp } from '@/services/initialization.js'
-  import { settings } from '@/stores/settingsStore.svelte.js'
+  import { settings, loadSettings } from '@/stores/settingsStore.svelte.js'
   import {
     themeSettings,
     initializeTheme,
     subscribeToSystemThemeChanges,
   } from '@/stores/themeStore.svelte.js'
+  import { useApiKeyValidation } from '@/entrypoints/content/composables/useApiKeyValidation.svelte.js'
   import '@fontsource-variable/geist-mono'
   import '@fontsource-variable/noto-serif'
   import '@fontsource/opendyslexic'
   import '@fontsource/mali'
+  import { fade, slide } from 'svelte/transition'
+
+  // Track if settings are loaded
+  let settingsLoaded = $state(false)
+
+  // Use API key validation composable
+  const { needsApiKeySetup, currentProviderDisplayName } = useApiKeyValidation()
 
   // Use $effect to initialize the app and set up listeners
   $effect(() => {
     const cleanupInitialization = initializeApp()
+
     const cleanupMessageListener = setupMessageListener()
 
     return () => {
       cleanupInitialization()
+
       cleanupMessageListener()
     }
   })
@@ -75,13 +87,6 @@
     }
   })
 
-  // Apply theme based on settings
-  $effect(() => {
-    console.log('Theme settings changed:', themeSettings.theme)
-    // The actual theme application logic is handled by initializeTheme and subscribeToSystemThemeChanges
-    // which are called in the initial $effect. This effect is mainly for logging.
-  })
-
   // Create derived variable to check if any Course summary is loading
   const isAnyCourseLoading = $derived(
     summaryState.isCourseSummaryLoading || summaryState.isCourseConceptsLoading
@@ -100,8 +105,7 @@
   // Register global event listener and ensure it's cleaned up when component is destroyed
   $effect(() => {
     const handleSummarizeClick = () => {
-      resetDisplayState() // Reset display state before new summarization
-      fetchAndSummarize() // Call the main summarization function
+      fetchAndSummarize() // Call the main summarization function, it will handle its own state reset
     }
 
     document.addEventListener('summarizeClick', handleSummarizeClick)
@@ -112,6 +116,34 @@
   })
 </script>
 
+{#if !settings.hasCompletedOnboarding}
+  <div
+    class=" absolute z-[50] inset-0"
+    out:fade={{
+      duration: 400,
+    }}
+  >
+    {#await import('@/components/welcome/WelcomeFlow.svelte')}
+      <div
+        out:fade={{ delay: 1000 }}
+        class="welcome-loading-container absolute z-50 bg-surface-1 inset-0 flex items-center justify-center"
+      ></div>
+    {:then { default: WelcomeFlow }}
+      <div
+        in:fade={{ delay: 500, duration: 600 }}
+        class="absolute max-h-svh z-[99] inset-0 flex items-center justify-center"
+      >
+        <WelcomeFlow />
+      </div>
+    {:catch error}
+      <div
+        class="welcome-error-container absolute z-50 bg-surface-1 inset-0 flex items-center justify-center"
+      >
+        <p class="text-red-500">Error loading welcome flow: {error.message}</p>
+      </div>
+    {/await}
+  </div>
+{/if}
 <div class="main-container flex min-w-[22.5rem] bg-surface-1 w-full flex-col">
   <div
     class="grid grid-rows-[32px_1px_8px_1px_160px_1px_8px_1px_1fr] min-h-screen"
@@ -139,11 +171,7 @@
           class="p-1 setting-animation transition-colors hover:bg-surface-1 rounded-full hover:text-text-primary"
           title={$t('archive.open_archive')}
         >
-          <Icon
-            icon="heroicons:bars-3-bottom-left-solid"
-            width="24"
-            height="24"
-          />
+          <Icon icon="solar:history-linear" width="24" height="24" />
         </button>
       </div>
       <div class="size-6 absolute top-12 right-4 text-text-secondary">
@@ -151,10 +179,12 @@
       </div>
 
       <div class="flex flex-col gap-6 items-center justify-center">
-        <SummarizeButton
-          isLoading={summaryState.isLoading || isAnyCourseLoading}
-          isChapterLoading={summaryState.isChapterLoading}
-        />
+        {#if !needsApiKeySetup()()}
+          <SummarizeButton
+            isLoading={summaryState.isLoading || isAnyCourseLoading}
+            isChapterLoading={summaryState.isChapterLoading}
+          />
+        {/if}
       </div>
     </div>
 
@@ -167,9 +197,11 @@
     <div class="bg-border"></div>
 
     <div
-      class="relative prose main-sidepanel prose-h2:mt-4 p z-10 flex flex-col gap-8 px-6 pt-8 pb-[50vh] max-w-[52rem] w-screen mx-auto"
+      class="relative prose main-sidepanel prose-h2:mt-4 p z-10 flex flex-col gap-8 px-6 pt-8 pb-[40vh] max-w-[52rem] w-screen mx-auto"
     >
-      {#if anyError}
+      {#if needsApiKeySetup()()}
+        <ApiKeySetupPrompt />
+      {:else if anyError}
         <ErrorDisplay error={anyError} />
       {:else if summaryState.lastSummaryTypeDisplayed === 'youtube'}
         <YouTubeSummaryDisplay
@@ -195,10 +227,9 @@
         />
       {/if}
     </div>
-    <div id="footer"></div>
-  </div>
 
-  <div
-    class="fixed bg-linear-to-t from-surface-1 to-surface-1/40 bottom-0 mask-t-from-50% h-16 backdrop-blur-[2px] w-full z-30 pointer-events-none"
-  ></div>
+    <div
+      class=" sticky bg-linear-to-t from-surface-1 to-surface-1/40 bottom-0 mask-t-from-50% h-16 backdrop-blur-[2px] w-full z-30 pointer-events-none"
+    ></div>
+  </div>
 </div>

@@ -1,0 +1,40 @@
+{
+  "mcpServers": {
+    "serena": {
+      "command": "uvx",
+      "args": [
+        "--from",
+        "git+https://github.com/oraios/serena",
+        "serena-mcp-server",
+        "--context",
+        "ide-assistant"
+      ],
+      "alwaysAllow": [
+        "list_dir",
+        "check_onboarding_performed",
+        "activate_project",
+        "get_symbols_overview",
+        "read_memory",
+        "write_memory",
+        "search_for_pattern",
+        "think_about_collected_information",
+        "find_symbol",
+        "find_referencing_symbols"
+      ]
+    },
+    "context7": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@upstash/context7-mcp"
+      ],
+      "env": {
+        "DEFAULT_MINIMUM_TOKENS": ""
+      },
+      "alwaysAllow": [
+        "resolve-library-id",
+        "get-library-docs"
+      ]
+    }
+  }
+}

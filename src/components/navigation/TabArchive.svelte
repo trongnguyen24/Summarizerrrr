@@ -11,7 +11,7 @@
   // Sync i18n locale with settings store
   $effect(() => {
     const newLocale = settings.uiLang
-    if (newLocale && newLocale !== $state.snapshot(locale)) {
+    if (newLocale && newLocale !== $locale) {
       locale.set(newLocale)
     }
   })

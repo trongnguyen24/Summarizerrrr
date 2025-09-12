@@ -8,6 +8,7 @@
     value = $bindable(), // Đổi tên từ apiKey thành value
     label = '',
     placeholder = '',
+    id = 'text-input', // Thêm prop id với default value
     onSave = () => {},
   } = $props()
 
@@ -31,7 +32,7 @@
 
 <div class="flex flex-col gap-2">
   <div class="flex items-center gap-1 justify-between">
-    <label for="text-input" class="block">
+    <label for={id} class="block">
       {label}
     </label>
     {#if saveStatus}
@@ -45,9 +46,9 @@
     <input
       type="text"
       {placeholder}
-      id="text-input"
+      {id}
       bind:value
-      class="w-full pl-3 text-xs pr-9 h-7.5 bg-muted/5 dark:bg-muted/5 border border-border hover:border-blackwhite/15 focus:border-blackwhite/30 dark:border-blackwhite/20 focus:outline-none focus:ring-0 placeholder:text-muted transition-colors duration-150"
+      class="w-full pl-3 text-xs pr-9 h-9 bg-muted/5 dark:bg-muted/5 border border-border hover:border-blackwhite/15 focus:border-blackwhite/30 dark:border-blackwhite/20 focus:outline-none focus:ring-0 placeholder:text-muted transition-colors duration-150"
       oninput={scheduleValueSave}
     />
   </div>

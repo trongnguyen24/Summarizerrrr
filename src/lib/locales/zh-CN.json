@@ -25,7 +25,7 @@
         "system": "跟随系统",
         "system_desc": "自动匹配您设备的主题。"
       },
-      "responseMode": "响应模式",
+      "responseMode": "响应模式 (仅在侧边栏工作)",
       "response_mode": {
         "streaming": "流式",
         "streaming_desc": "即时显示回答，推荐使用。",
@@ -142,6 +142,36 @@
       "model_label": "OpenRouter 模型",
       "saved_status": "已保存！",
       "view_models": "查看模型"
+    },
+    "fab": {
+      "title": "浮动操作按钮",
+      "position": "吸附位置",
+      "position_option": {
+        "left": "左侧",
+        "left_desc": "在网页左侧显示浮动按钮。",
+        "right": "右侧",
+        "right_desc": "在网页右侧显示浮动按钮。"
+      },
+      "fab_note": "它还有助于显示/隐藏侧边栏和移动设备面板。",
+      "preview": "预览",
+      "mobile_sheets": {
+        "title": "移动设备面板",
+        "description": "从移动屏幕底部滑出的面板",
+        "sheet_height": "面板高度",
+        "sheet_black_backdrop": "面板黑色背景",
+        "hide_backdrop": "隐藏",
+        "hide_backdrop_desc": "打开移动设备面板时无背景覆盖",
+        "show_backdrop": "显示",
+        "show_backdrop_desc": "打开移动设备面板时显示背景覆盖"
+      },
+      "float_sidepanel": {
+        "title": "浮动侧边栏",
+        "description": "可在桌面和 tablet 上使用的浮动面板",
+        "panel_default_width": "面板默认宽度",
+        "sidepanel_position": "侧边栏位置",
+        "position_left": "左侧",
+        "position_right": "右侧"
+      }
     }
   },
   "prompts": {
@@ -254,5 +284,44 @@
         "向开发者报告此问题。"
       ]
     }
+  },
+  "welcome": {
+    "choose_interface_language": "欢迎使用 Summarizerrrr！",
+    "select_your_language": "选择您的界面语言",
+    "next": "下一步",
+    "back": "返回",
+    "configure_api_keys": "请先在设置中配置 API 密钥",
+    "api_setup_guide": "您需要设置 AI 提供商的 API 密钥才能开始使用 Summarizer。",
+    "go_to_settings": "前往设置",
+    "setup_guide_link": "📺 如何设置 API 密钥",
+    "font_selection": "字体",
+    "theme_selection": "主题",
+    "summary_language": "摘要语言",
+    "complete_setup": "完成设置",
+    "setup_display_title": "设置显示",
+    "setup_display_desc": "自定义您的主题和字体。",
+    "setup_summary_lang_title": "选择摘要语言",
+    "setup_summary_lang_desc": "选择摘要资源的默认语言。稍后可以在设置中更改。"
+  },
+  "apiKeyPrompt": {
+    "description": "要开始使用，请在设置中配置您的 API 密钥。",
+    "openSettings": "打开设置",
+    "setupGuide": "如何设置 API 密钥"
+  },
+  "about": {
+    "version": "版本",
+    "description": "一键总结，节省时间。扩展程序可帮助您总结 <b>YouTube、Udemy、Coursera 和任何网站</b> 的内容。采用卓越的 UI/UX 设计精心打造。",
+    "key_features": "主要功能",
+    "data_sovereignty_title": "您的数据归您所有",
+    "data_sovereignty_desc": "您的密钥、您的数据、您的控制权。为了完全的隐私保护，请通过我们与 Ollama 的集成使用本地模型。",
+    "customizable_title": "可定制",
+    "customizable_desc": "提供商、温度、Top P、长度、格式、语言、外观、系统提示词和用户提示词...",
+    "cross_platform_title": "跨平台兼容性",
+    "cross_platform_desc": "桌面端、平板和移动端。可在包括 Firefox Android 和 Kiwi Browser 在内的移动浏览器上使用。",
+    "developer_credit": "在越南 🇻🇳 用 ❤️ 设计和开发",
+    "availability": "开源 • 可在以下平台获取",
+    "github": "GitHub",
+    "chrome_store": "Chrome 网上应用店",
+    "firefox_addons": "Firefox 附加组件"
   }
 }

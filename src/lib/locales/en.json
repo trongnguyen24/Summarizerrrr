@@ -25,15 +25,52 @@
         "system": "System",
         "system_desc": "System theme."
       },
-      "responseMode": "Response Mode",
+      "responseMode": "Response Mode (Just work on the Sidepanel)",
       "response_mode": {
         "streaming": "Streaming",
         "streaming_desc": "Real-time response display, better experience.",
         "non_streaming": "Blocking",
         "non_streaming_desc": "Suitable for low-end devices, reduce lag."
       },
+      "floatingButton": "Floating Button",
+      "floating_button": {
+        "show": "Show",
+        "show_desc": "Show floating button on web pages.",
+        "hide": "Hide",
+        "hide_desc": "Hide floating button from web pages."
+      },
       "shortcuts": "Shortcuts",
       "shortcuts_settings": "Shortcut Settings"
+    },
+    "fab": {
+      "title": "Floating Action Button",
+      "position": "Snap Position",
+      "position_option": {
+        "left": "Left",
+        "left_desc": "Display floating button on the left side.",
+        "right": "Right",
+        "right_desc": "Display floating button on the right side."
+      },
+      "fab_note": "It also helps to show/hide the sidepanel and mobile sheets.",
+      "preview": "Preview",
+      "mobile_sheets": {
+        "title": "Mobile sheets",
+        "description": "A slide-up panel that emerges from the bottom of the mobile screen",
+        "sheet_height": "Sheet Height",
+        "sheet_black_backdrop": "Sheet Black Backdrop",
+        "hide_backdrop": "Hide",
+        "hide_backdrop_desc": "No background overlay when opening mobile sheet",
+        "show_backdrop": "Show",
+        "show_backdrop_desc": "Show background overlay when opening mobile sheet"
+      },
+      "float_sidepanel": {
+        "title": "Float Sidepanel",
+        "description": "Floating panel that can be used on desktop and tablet",
+        "panel_default_width": "Panel Default Width",
+        "sidepanel_position": "Sidepanel Position",
+        "position_left": "Left",
+        "position_right": "Right"
+      }
     },
     "ai_model": {
       "title": "Provider",
@@ -161,9 +198,9 @@
   },
   "prompts": {
     "title": "Prompts",
-    "system_instruction": "Prompt Hệ thống",
+    "system_instruction": "System prompt",
     "system_note": "Optional: Skip if not needed.",
-    "user_prompt": "Prompt người dùng",
+    "user_prompt": "User Prompt",
     "user_note": "Use the __CONTENT__ to insert the dynamic content",
     "select_template": "Select a template",
     "prompt_enhance": "Prompt enhance",
@@ -272,5 +309,44 @@
         "No access to this URL."
       ]
     }
+  },
+  "welcome": {
+    "choose_interface_language": "Welcome to Summarizerrrr!",
+    "select_your_language": "Choose your interface language",
+    "next": "Next",
+    "back": "Back",
+    "configure_api_keys": "Please configure API keys in the settings first",
+    "api_setup_guide": "You'll need to set up your AI provider API key to start using Summarizer.",
+    "go_to_settings": "Go to Settings",
+    "setup_guide_link": "📺 How to setup API key",
+    "font_selection": "Font Family",
+    "theme_selection": "Theme",
+    "summary_language": "Summary Language",
+    "complete_setup": "Complete Setup",
+    "setup_display_title": "Setup Display",
+    "setup_display_desc": "Customize your theme and font.",
+    "setup_summary_lang_title": "Choose Summary Language",
+    "setup_summary_lang_desc": "Select the default language for summaries resources. This can be changed later in settings."
+  },
+  "apiKeyPrompt": {
+    "description": "To get started please configure your API key in Settings.",
+    "openSettings": "Open Settings",
+    "setupGuide": "How to setup API key"
+  },
+  "about": {
+    "version": "Version",
+    "description": "Summarize everything in 1 click, save time. Extension helps you summarize for <b>YouTube, Udemy, Coursera, any websites</b>. Crafted with superior UI/UX design.",
+    "key_features": "Key Features",
+    "data_sovereignty_title": "Your data is yours",
+    "data_sovereignty_desc": "Your keys, your data, your control. For complete privacy - use a local model through our integration with Ollama.",
+    "customizable_title": "Customizable",
+    "customizable_desc": "Provider, temperature, top P, length, format, languages, appearance, sytem prompt and user prompt...",
+    "cross_platform_title": "Cross-Platform Compatibility",
+    "cross_platform_desc": "Desktop, Tablet, and Mobile. Work on Mobile browsers including Firefox Android and Kiwi Browser.",
+    "developer_credit": "Designed and Developed with ❤️ in Viet Nam 🇻🇳",
+    "availability": "Open source • Available on",
+    "github": "GitHub",
+    "chrome_store": "Chrome Store",
+    "firefox_addons": "Firefox Add-ons"
   }
 }

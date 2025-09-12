@@ -14,7 +14,11 @@ export default defineConfig({
   manifest: ({ browser }) => {
     if (browser === 'chrome') {
       return {
-        host_permissions: ['<all_urls>'],
+        host_permissions: [
+          '<all_urls>',
+          'http://127.0.0.1:11434/*',
+          'http://localhost:11434/*',
+        ],
         permissions: [
           'sidePanel',
           'storage',
@@ -22,14 +26,32 @@ export default defineConfig({
           'scripting',
           'tabs',
           'contextMenus',
+          'declarativeNetRequest',
         ],
         action: {
           default_title: 'Click to Open Summarizerrrr',
+          default_popup: 'popop.html',
         },
-        page_action: {
-          default_popup: 'prompt.html',
-          default_title: 'Summarizerrrr Prompt',
+        side_panel: {
+          default_path: 'sidepanel.html',
         },
+        content_scripts: [
+          {
+            matches: ['*://m.youtube.com/*', '*://www.youtube.com/*'],
+            js: [
+              'libs/protobuf.min.js',
+              'youtube_transcript.js',
+              'content-script.js',
+            ],
+            run_at: 'document_end',
+          },
+        ],
+        web_accessible_resources: [
+          {
+            resources: ['libs/protobuf.min.js', 'youtube_transcript.js'],
+            matches: ['*://m.youtube.com/*', '*://www.youtube.com/*'],
+          },
+        ],
         commands: {
           _execute_action: {
             suggested_key: {
@@ -58,7 +80,14 @@ export default defineConfig({
       }
     } else if (browser === 'firefox') {
       return {
-        permissions: ['storage', 'tabs', '<all_urls>', 'contextMenus'],
+        permissions: [
+          'storage',
+          'tabs',
+          '<all_urls>',
+          'contextMenus',
+          'scripting',
+          'declarativeNetRequest',
+        ],
         action: {
           default_icon: 'icon/48.png',
           default_title: 'Open Summarizerrrr',
@@ -74,6 +103,23 @@ export default defineConfig({
             strict_min_version: '109.0',
           },
         },
+        content_scripts: [
+          {
+            matches: ['*://m.youtube.com/*', '*://www.youtube.com/*'],
+            js: [
+              'libs/protobuf.min.js',
+              'youtube_transcript.js',
+              'content-script.js',
+            ],
+            run_at: 'document_end',
+          },
+        ],
+        web_accessible_resources: [
+          {
+            resources: ['libs/protobuf.min.js', 'youtube_transcript.js'],
+            matches: ['*://m.youtube.com/*', '*://www.youtube.com/*'],
+          },
+        ],
         commands: {
           _execute_sidebar_action: {
             suggested_key: {

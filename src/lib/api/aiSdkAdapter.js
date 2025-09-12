@@ -1,10 +1,17 @@
 // @ts-nocheck
-import { generateText, streamText } from 'ai'
+import {
+  generateText,
+  streamText,
+  wrapLanguageModel,
+  extractReasoningMiddleware,
+} from 'ai'
 import { createGoogleGenerativeAI } from '@ai-sdk/google'
 import { createOpenAI } from '@ai-sdk/openai'
 import { anthropic } from '@ai-sdk/anthropic'
 import { createOpenAICompatible } from '@ai-sdk/openai-compatible'
 import { createOpenRouter } from '@openrouter/ai-sdk-provider'
+import { createOllama } from 'ai-sdk-ollama'
+import { getBrowserCompatibility } from '@/lib/utils/browserDetection.js'
 
 /**
  * Maps provider ID and settings to AI SDK model instance
@@ -80,10 +87,8 @@ export function getAISDKModel(providerId, settings) {
       return deepseek(settings.selectedDeepseekModel || 'deepseek-chat')
 
     case 'ollama':
-      const ollama = createOpenAICompatible({
-        name: 'ollama',
-        apiKey: settings.ollamaApiKey || 'ollama',
-        baseURL: settings.ollamaEndpoint || 'http://localhost:11434/v1',
+      const ollama = createOllama({
+        baseURL: settings.ollamaEndpoint || 'http://127.0.0.1:11434',
       })
       return ollama(settings.selectedOllamaModel || 'llama2')
 
@@ -95,6 +100,16 @@ export function getAISDKModel(providerId, settings) {
       })
       return openaiCompatible(
         settings.selectedOpenAICompatibleModel || 'gpt-3.5-turbo'
+      )
+
+    case 'lmstudio':
+      const lmstudio = createOpenAICompatible({
+        name: 'lmstudio',
+        apiKey: 'lmstudio', // LM Studio doesn't require API key, but OpenAI provider needs one
+        baseURL: settings.lmStudioEndpoint || 'http://localhost:1234/v1',
+      })
+      return lmstudio(
+        settings.selectedLmStudioModel || 'lmstudio-community/gemma-2b-it-GGUF'
       )
 
     default:
@@ -109,20 +124,26 @@ export function getAISDKModel(providerId, settings) {
  * @param {object} basicModeSettings - Basic mode settings
  * @returns {object} Generation configuration for AI SDK
  */
-export function mapGenerationConfig(
-  settings,
-  advancedModeSettings,
-  basicModeSettings
-) {
+export function mapGenerationConfig(settings) {
   return {
-    temperature: settings.isAdvancedMode
-      ? advancedModeSettings.temperature
-      : basicModeSettings.temperature,
-    topP: settings.isAdvancedMode
-      ? advancedModeSettings.topP
-      : basicModeSettings.topP,
+    temperature: settings.temperature,
+    topP: settings.topP,
     maxTokens: 4000, // Default max tokens
   }
+}
+
+/**
+ * Wraps a model with extractReasoningMiddleware to automatically remove <think> tags
+ * @param {object} model - The base AI SDK model instance
+ * @returns {object} Wrapped model that extracts reasoning content
+ */
+export function wrapModelWithReasoningExtraction(model) {
+  return wrapLanguageModel({
+    model,
+    middleware: extractReasoningMiddleware({
+      tagName: 'think',
+    }),
+  })
 }
 
 /**
@@ -138,26 +159,22 @@ export function mapGenerationConfig(
 export async function generateContent(
   providerId,
   settings,
-  advancedModeSettings,
-  basicModeSettings,
   systemInstruction,
   userPrompt
 ) {
-  const model = getAISDKModel(providerId, settings)
-  const generationConfig = mapGenerationConfig(
-    settings,
-    advancedModeSettings,
-    basicModeSettings
-  )
+  const baseModel = getAISDKModel(providerId, settings)
+  const model = wrapModelWithReasoningExtraction(baseModel)
+  const generationConfig = mapGenerationConfig(settings)
 
   try {
-    const { text } = await generateText({
+    const { text, reasoning } = await generateText({
       model,
       system: systemInstruction,
       prompt: userPrompt,
       ...generationConfig,
     })
 
+    // Only return text content, reasoning (<think> tags) is automatically discarded
     return text
   } catch (error) {
     console.error('AI SDK Error:', error)
@@ -179,18 +196,16 @@ export async function generateContent(
 export async function* generateContentStream(
   providerId,
   settings,
-  advancedModeSettings,
-  basicModeSettings,
   systemInstruction,
   userPrompt,
   streamOptions = {}
 ) {
-  const model = getAISDKModel(providerId, settings)
-  const generationConfig = mapGenerationConfig(
-    settings,
-    advancedModeSettings,
-    basicModeSettings
-  )
+  const baseModel = getAISDKModel(providerId, settings)
+  const model = wrapModelWithReasoningExtraction(baseModel)
+  const generationConfig = mapGenerationConfig(settings)
+
+  // Get browser compatibility info
+  const browserCompatibility = getBrowserCompatibility()
 
   // Default smoothing options
   const defaultSmoothingOptions = {
@@ -200,29 +215,48 @@ export async function* generateContentStream(
     },
   }
 
+  // Determine if we should use smoothing based on browser compatibility
+  const shouldUseSmoothing =
+    browserCompatibility.streamingOptions.useSmoothing &&
+    streamOptions.useSmoothing !== false
+
   const streamConfig = {
     model,
     system: systemInstruction,
     prompt: userPrompt,
     ...generationConfig,
-    ...(streamOptions.useSmoothing !== false ? defaultSmoothingOptions : {}),
+    ...(shouldUseSmoothing ? defaultSmoothingOptions : {}),
     ...streamOptions,
   }
 
   try {
     const result = await streamText(streamConfig)
 
-    // Use smoothTextStream if available (AI SDK v5 feature)
+    // Use smoothTextStream if available and supported by browser
     const streamToUse =
-      streamOptions.useSmoothing !== false && result.smoothTextStream
+      shouldUseSmoothing && result.smoothTextStream
         ? result.smoothTextStream
         : result.textStream
 
+    // Only yield text chunks, reasoning (<think> tags) is automatically extracted and discarded
     for await (const chunk of streamToUse) {
       yield chunk
     }
   } catch (error) {
     console.error('AI SDK Stream Error:', error)
+
+    // Check if this is a Firefox mobile specific error
+    if (
+      browserCompatibility.isFirefoxMobile &&
+      error.message.includes('flush')
+    ) {
+      console.warn(
+        'Firefox mobile streaming error detected, suggesting fallback to non-streaming'
+      )
+      // Re-throw with additional context for fallback handling
+      error.isFirefoxMobileStreamingError = true
+    }
+
     throw error
   }
 }
@@ -241,8 +275,6 @@ export async function* generateContentStream(
 export async function* generateContentStreamEnhanced(
   providerId,
   settings,
-  advancedModeSettings,
-  basicModeSettings,
   systemInstruction,
   userPrompt,
   streamOptions = {}
@@ -250,12 +282,14 @@ export async function* generateContentStreamEnhanced(
   let fullText = ''
   let isComplete = false
 
+  // Get browser compatibility info
+  const browserCompatibility = getBrowserCompatibility()
+
   try {
+    // Use our updated generateContentStream that already handles reasoning extraction
     const streamGenerator = generateContentStream(
       providerId,
       settings,
-      advancedModeSettings,
-      basicModeSettings,
       systemInstruction,
       userPrompt,
       streamOptions
@@ -278,6 +312,16 @@ export async function* generateContentStreamEnhanced(
     }
   } catch (error) {
     console.error('AI SDK Enhanced Stream Error:', error)
+
+    // Check if this is a Firefox mobile specific error
+    if (
+      browserCompatibility.isFirefoxMobile &&
+      error.message.includes('flush')
+    ) {
+      console.log('Firefox mobile streaming error detected in enhanced stream')
+      error.isFirefoxMobileStreamingError = true
+    }
+
     throw error
   }
 }

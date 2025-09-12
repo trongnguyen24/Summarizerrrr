@@ -4,155 +4,101 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Summarizerrrr is a browser extension (Chrome/Firefox) that provides AI-powered content summarization for various types of web content including YouTube videos, online courses (Udemy/Coursera), websites, and selected text. The extension uses a multi-provider AI system supporting Google Gemini, OpenRouter, and Ollama models.
+Summarizerrrr is a browser extension (Chrome/Firefox) that provides AI-powered summarization for web content, especially YouTube videos, Udemy/Coursera courses, and general websites. Built with WXT framework, Svelte 5, and TypeScript.
 
-## Development Commands
+## Essential Commands
 
+### Development
 ```bash
-# Install dependencies
-npm install
+npm install          # Install dependencies
+npm run dev          # Start development server (Chrome)
+npm run dev:firefox  # Start development server (Firefox)
+npm run check        # Run Svelte type checking
+```
 
-# Development (Chrome)
-npm run dev
+### Building
+```bash
+npm run build           # Build for Chrome
+npm run build:firefox   # Build for Firefox
+npm run zip             # Create Chrome extension zip
+npm run zip:firefox     # Create Firefox extension zip
+```
 
-# Development (Firefox)
-npm run dev:firefox
-
-# Build for production (Chrome)
-npm run build
-
-# Build for production (Firefox)
-npm run build:firefox
-
-# Type checking
-npm run check
-
-# Create extension packages
-npm run zip           # Chrome
-npm run zip:firefox   # Firefox
-
-# Prepare extension (post-install)
-npm run postinstall
+### Mobile Development (Android Firefox)
+```bash
+npm run android         # Run on Android emulator
+npm run android:win     # Run on specific Android device
 ```
 
 ## Architecture Overview
 
-### Framework & Build System
-- **WXT Framework**: Modern web extension development framework
-- **Svelte 5**: Frontend framework with latest runes syntax ($state, $derived, $effect)
-- **TypeScript**: Type safety with extension-specific configurations
-- **TailwindCSS**: Utility-first CSS framework with custom design system
+### Core Structure
+- **WXT Framework**: Modern web extension development framework with TypeScript support
+- **Svelte 5**: UI framework with reactive stores and Shadow DOM integration
+- **Multi-browser**: Chrome (MV3) and Firefox (MV2) support with conditional logic
 
-### Core Extension Structure
+### Key Directories
+```
+src/
+├── entrypoints/          # WXT entry points (background, content, popup, etc.)
+│   ├── background.js     # Service worker (Chrome) / Background script (Firefox)
+│   ├── content.js        # Main content script with Shadow DOM
+│   ├── settings/         # Settings page
+│   ├── prompt/           # Prompt editor page
+│   └── sidepanel/        # Chrome side panel / Firefox sidebar
+├── components/           # Reusable Svelte components
+├── stores/               # Svelte stores for state management
+├── lib/
+│   ├── api/              # AI API integrations (Gemini, OpenAI, etc.)
+│   ├── prompts/          # AI prompt templates
+│   └── i18n/             # Internationalization (40+ languages)
+└── services/             # Core business logic
+```
 
-#### Entry Points (`src/entrypoints/`)
-- `background.js`: Service worker handling extension lifecycle, tab management, content script injection
-- `sidepanel/`: Main UI (Chrome side panel / Firefox sidebar)
-- `archive/`: Archived summaries management
-- `prompt/`: Custom prompt editor
-- `*.content.js`: Platform-specific content scripts for YouTube, Udemy, Coursera
+### Browser-Specific Implementation
+The codebase uses `import.meta.env.BROWSER` to conditionally handle Chrome vs Firefox:
+- Chrome: Uses `chrome.sidePanel` API, MV3 service worker
+- Firefox: Uses `browser.sidebarAction` API, background scripts
+- Mobile detection for different UI behaviors
 
-#### State Management (`src/stores/`)
-- `summaryStore.svelte.js`: Core summarization state and logic
-- `settingsStore.svelte.js`: User preferences and API configurations
-- `themeStore.svelte.js`: Theme management (dark/light mode)
-- `*ModeSettingsStore.svelte.js`: Basic/Advanced mode configurations
+### State Management
+- **settingsStore.svelte.js**: User preferences, AI model configs
+- **summaryStore.svelte.js**: Summary generation state and content
+- **i18nShadowStore.svelte.js**: Internationalization for Shadow DOM contexts
 
-#### AI Provider System (`src/lib/providers/`)
-- `baseProvider.js`: Abstract base class for all AI providers
-- `geminiProvider.js`: Google Gemini API integration
-- `openrouterProvider.js`: OpenRouter API integration
-- `ollamaProvider.js`: Local Ollama integration
-- Provider-agnostic API layer in `src/lib/api.js`
+### Content Script Architecture
+- Main content script creates Shadow DOM UI for all websites
+- Specialized content extractors for different platforms:
+  - `UdemyContentExtractor.js`: Course content from Udemy
+  - `CourseraContentExtractor.js`: Course content from Coursera
+  - YouTube transcript extraction via injected scripts
 
-#### Content Processing (`src/lib/`)
-- `promptBuilders.js`: Builds prompts for different content types
-- `promptTemplates.js`: Template system for various summarization formats
-- `indexedDBService.js`: Local storage for summaries and history
+### AI Integration
+- Multi-provider support: Google Gemini, OpenAI, Anthropic, Groq, Ollama, OpenRouter
+- Configurable parameters: temperature, top-p, response length
+- Template-based prompt system for different content types
+- Support for both basic (preset models) and advanced (custom models) configurations
 
-### Component Architecture
+## Development Notes
 
-#### Display Components (`src/components/displays/`)
-- Content-specific display components for different platforms
-- Modular design supporting YouTube, Course, Web, and Selected Text summaries
+### WXT Configuration
+- `wxt.config.ts` handles manifest generation for both browsers
+- Shadow DOM integration for content scripts
+- Web accessible resources for YouTube transcript extraction
 
-#### Input Components (`src/components/inputs/`)
-- Reusable form components with consistent styling
-- Provider-specific configuration components
+### Internationalization
+- Uses `svelte-i18n` with 40+ language support
+- Special handling for Shadow DOM contexts
+- Locale files in `src/lib/locales/`
 
-#### Button Components (`src/components/buttons/`)
-- Action buttons with loading states and animations
+### Extension Permissions
+- Chrome: `sidePanel`, `storage`, `activeTab`, `scripting`, `tabs`, `contextMenus`
+- Firefox: `storage`, `tabs`, `<all_urls>`, `contextMenus`, `scripting`
 
-### Browser Extension Features
-
-#### Cross-Platform Support
-- Chrome: Uses sidePanel API and scripting permissions
-- Firefox: Uses sidebar and webextensions polyfill
-- Conditional browser-specific manifest configuration in `wxt.config.ts`
-
-#### Content Script Injection
-- Automatic injection for supported platforms (YouTube, Udemy, Coursera)
-- Dynamic injection based on URL patterns
-- Handles transcript extraction and course content processing
-
-#### Permissions & Security
-- `<all_urls>` for content access
-- `storage` for settings persistence
-- `activeTab` and `tabs` for tab management
-- `contextMenus` for right-click summarization
-
-## Key Technical Patterns
-
-### Svelte 5 Runes Usage
-- Use `$state()` for reactive variables
-- Use `$derived()` for computed values
-- Use `$effect()` for side effects and cleanup
-- Store patterns with `$state.snapshot()` for debugging
-
-### Provider System Integration
-- All AI providers implement the `BaseProvider` interface
-- Configuration handled through settings store
-- Graceful fallbacks and error handling
-- Support for both basic (Gemini-only) and advanced (multi-provider) modes
-
-### Extension Messaging
-- Background script serves as message hub
-- Port-based communication for real-time updates
-- Content scripts communicate via chrome.runtime.sendMessage
-- Proper error handling for disconnected ports
-
-### Storage Strategy
-- Chrome sync storage for settings
-- IndexedDB for summary archives and history
-- Automatic cleanup with configurable limits
-
-## Platform-Specific Considerations
-
-### YouTube Integration
-- Transcript extraction with language support
-- Chapter-based summarization
-- Timeline integration
-
-### Course Platforms (Udemy/Coursera)
-- Content extraction from lecture pages
-- Concept-focused summarization
-- Course navigation awareness
-
-### Web Content
-- Generic webpage content processing
-- Selected text summarization via context menu
-- Reddit/forum discussion analysis
-
-## Configuration Files
-
-- `wxt.config.ts`: Extension build and manifest configuration
-- `tsconfig.json`: TypeScript configuration extending WXT defaults
-- `package.json`: Dependencies and build scripts
-- No additional linting or testing configurations present
-
-## Debugging & Development
-
-- Use browser developer tools for extension debugging
-- Background script logs available in extension service worker console
-- Content script logs in page console
-- Settings and state inspection via browser extension tools
+### Key Features to Understand
+1. **Universal content summarization** across all websites
+2. **Platform-specific extractors** for courses (Udemy, Coursera)
+3. **YouTube transcript integration** with timeline support
+4. **Shadow DOM isolation** for content script UI
+5. **Multi-provider AI integration** with fallback support
+6. **Cross-browser compatibility** with feature detection

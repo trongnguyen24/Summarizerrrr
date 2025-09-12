@@ -1,0 +1,170 @@
+@import '../../../styles/base.css';
+
+@theme {
+  --spacing: 0.25em;
+  --text-xs: 0.75em;
+  --text-sm: 0.875em;
+  --text-base: 1em;
+  --text-lg: 1.125em;
+  --text-xl: 1.25em;
+  --text-2xl: 1.5em;
+  --text-3xl: 1.875em;
+}
+
+button {
+  cursor: pointer;
+  user-select: none;
+  outline-color: var(--color-gray-500);
+}
+
+.floating-ui-root {
+  font-size: 16px; /* Đảm bảo các đơn vị rem dựa trên 16px */
+}
+
+.floating-panel.visible {
+  transform: translateX(0) !important;
+}
+
+.floating-panel.right.visible {
+  transform: translateX(0);
+}
+
+.floating-panel.left.visible {
+  transform: translateX(0);
+}
+
+.os-theme-custom-app {
+  --os-size: 0.5rem;
+  --os-padding-perpendicular: 0px;
+  --os-padding-axis: 0px;
+  --os-track-border-radius: 0px;
+  --os-track-bg: none;
+  --os-track-bg-hover: none;
+  --os-track-bg-active: none;
+  --os-track-border: none;
+  --os-track-border-hover: none;
+  --os-track-border-active: none;
+  --os-handle-border-radius: 0.25rem;
+  --os-handle-bg: var(--color-border);
+  --os-handle-bg-hover: var(--color-text-secondary);
+  --os-handle-bg-active: var(--color-text-primary);
+  --os-handle-border: none;
+  --os-handle-border-hover: none;
+  --os-handle-border-active: none;
+  --os-handle-min-size: 2rem;
+  --os-handle-max-size: none;
+  --os-handle-perpendicular-size: 100%;
+  --os-handle-perpendicular-size-hover: 100%;
+  --os-handle-perpendicular-size-active: 100%;
+  --os-handle-interactive-area-offset: 0px;
+}
+
+.os-scrollbar {
+  contain: size layout style;
+  contain: size layout;
+  z-index: 1;
+  transition: opacity 0.3s ease;
+}
+
+.os-scrollbar-hidden {
+  opacity: 0;
+}
+div {
+  &::-webkit-scrollbar {
+    height: 6px; /* Chiều cao của thanh cuộn ngang */
+  }
+
+  &::-webkit-scrollbar-track {
+    background: var(--color-background); /* Nền track trong suốt */
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: oklch(0.77 0.003 106.6 / 60%); /* Màu handle */
+    border-radius: 10px; /* Bo tròn góc handle */
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-text-secondary); /* Màu handle khi hover */
+  }
+
+  &::-webkit-scrollbar-thumb:active {
+    background-color: var(--color-text-primary); /* Màu handle khi active */
+  }
+
+  /* Style cho thanh cuộn dọc (nếu có) */
+  &::-webkit-scrollbar-vertical {
+    width: 6px; /* Chiều rộng của thanh cuộn dọc */
+  }
+
+  &::-webkit-scrollbar-track-vertical {
+    background: transparent; /* Nền track trong suốt */
+  }
+
+  &::-webkit-scrollbar-thumb-vertical {
+    background-color: oklch(0.77 0.003 106.6 / 60%); /* Màu handle */
+    border-radius: 10px; /* Bo tròn góc handle */
+  }
+
+  &::-webkit-scrollbar-thumb-vertical:hover {
+    background-color: var(--color-text-secondary); /* Màu handle khi hover */
+  }
+
+  &::-webkit-scrollbar-thumb-vertical:active {
+    background-color: var(--color-text-primary); /* Màu handle khi active */
+  }
+
+  /* Firefox scrollbar styles */
+  scrollbar-width: thin; /* "auto" or "thin" */
+  scrollbar-color: oklch(0.77 0.003 106.6 / 60%) oklch(0.77 0.003 106.6 / 10%); /* thumb and track color */
+}
+
+/* Host element styles */
+[data-overlayscrollbars-host] {
+  position: relative;
+}
+
+[data-overlayscrollbars-contents] {
+  box-sizing: border-box;
+}
+
+[data-overlayscrollbars-viewport] {
+  -ms-overflow-style: scrollbar !important;
+  scrollbar-width: none !important;
+}
+
+[data-overlayscrollbars-viewport]::-webkit-scrollbar,
+[data-overlayscrollbars-viewport]::-webkit-scrollbar-corner {
+  appearance: none !important;
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+.prose p {
+  margin-top: 0.5em;
+}
+.prose pre {
+  padding: 0 !important;
+}
+
+.prose ul {
+  padding-inline-start: 1em;
+}
+.prose li {
+  padding-inline-start: 0;
+}
+
+/* Dành cho các trình duyệt dựa trên WebKit (Google Chrome, Safari, Microsoft Edge) */
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Dành cho Firefox */
+.hide-scrollbar {
+  scrollbar-width: none;
+}
+
+/* Dành cho Internet Explorer và các phiên bản Edge cũ hơn (tùy chọn) */
+.hide-scrollbar {
+  -ms-overflow-style: none;
+}

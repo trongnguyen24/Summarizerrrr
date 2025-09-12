@@ -10,9 +10,11 @@
   {...rest}
 >
   <div
-    class="relative overflow-hidden flex flex-col gap-0 px-3 text-text-secondary text-left py-1.5 font-mono bg-muted/5 dark:bg-muted/5 border border-transparent hover:border-blackwhite/15 focus:border-blackwhite/30 dark:focus:border-blackwhite/10 focus:outline-none focus:ring-0 transition-colors duration-150"
+    class="relative overflow-hidden flex flex-col gap-0 px-3 text-text-secondary text-left py-2 font-mono bg-muted/5 dark:bg-muted/5 border border-transparent hover:border-blackwhite/15 focus:border-blackwhite/30 dark:focus:border-blackwhite/10 focus:outline-none focus:ring-0 transition-colors duration-150"
   >
-    <div class="title"><span class="line-clamp-1 block">{title}</span></div>
+    <div class="title">
+      <span class="line-clamp-1 text-xs block">{title}</span>
+    </div>
   </div>
   <span
     class="absolute size-4 rotate-45 bottom-0 left-0 bg-muted/5 group-hover:bg-border -translate-x-1/2 translate-y-1/2 transition-colors duration-150"
@@ -23,7 +25,7 @@
 
 <style>
   button {
-    clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 10px 100%, 0% 20px);
+    clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 10px 100%, 0% 24px);
   }
   button.active div .title {
     color: var(--color-text-primary);
@@ -77,7 +79,7 @@
     position: absolute;
     bottom: 0;
     left: 0;
-    height: 30px;
+    height: 3em;
     width: 100%;
     background-color: rgba(124, 124, 124, 0.035);
     transform: translateY(100%);

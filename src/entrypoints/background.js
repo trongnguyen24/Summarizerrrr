@@ -1,10 +1,253 @@
 // @ts-nocheck
 import 'webextension-polyfill'
-import { injectScript, executeFunction } from '../services/chromeService.js'
+import { browser } from 'wxt/browser'
+
+const userAgent = navigator.userAgent
+let isMobile = false
+if (userAgent.includes('Android')) {
+  isMobile = true
+}
+
+// These functions were previously imported from browserService.js.
+// WXT provides the global `browser` object directly, which is webextension-polyfill compatible.
+
+export async function injectScript(tabId, files) {
+  if (!browser.scripting) {
+    return false
+  }
+  try {
+    await browser.scripting.executeScript({
+      target: { tabId: tabId },
+      files: files,
+    })
+    return true
+  } catch (error) {
+    return false
+  }
+}
+
+export async function executeFunction(tabId, func, args = []) {
+  if (!browser.scripting) {
+    return null
+  }
+  try {
+    const results = await browser.scripting.executeScript({
+      target: { tabId: tabId },
+      func: func,
+      args: args,
+    })
+    return results?.[0]?.result ?? null
+  } catch (error) {
+    return null
+  }
+}
 import {
   loadSettings,
   subscribeToSettingsChanges,
 } from '../stores/settingsStore.svelte.js'
+import {
+  summaryState,
+  summarizeSelectedText,
+  logAllGeneratedSummariesToHistory,
+} from '../stores/summaryStore.svelte.js'
+import { get } from 'svelte/store'
+import {
+  addHistory,
+  addSummary,
+  updateHistoryArchivedStatus,
+} from '@/lib/db/indexedDBService.js'
+
+// Ollama CORS bypass service
+class OllamaCorsService {
+  constructor() {
+    this.ruleId = 1001 // Unique rule ID for Ollama CORS
+    this.initialized = false
+  }
+
+  async setupOllamaCorsRules(endpoint = 'http://127.0.0.1:11434') {
+    try {
+      // Normalize endpoint URL to remove trailing slash
+      const normalizedEndpoint = endpoint.endsWith('/')
+        ? endpoint.slice(0, -1)
+        : endpoint
+
+      // Extract domain from endpoint
+      const url = new URL(normalizedEndpoint)
+      const domain = `${url.hostname}:${url.port}`
+
+      console.log(
+        '[OllamaCorsService] Setting up rules for endpoint:',
+        normalizedEndpoint
+      )
+      console.log('[OllamaCorsService] Parsed domain:', domain)
+
+      // Define rules to bypass CORS for Ollama
+      // Rule 1: Modify request origin header
+      const requestRule = {
+        id: this.ruleId,
+        priority: 1,
+        condition: {
+          // Match requests to the Ollama API endpoint
+          urlFilter: `${normalizedEndpoint}/*`,
+          resourceTypes: ['xmlhttprequest'],
+        },
+        action: {
+          type: 'modifyHeaders',
+          requestHeaders: [
+            {
+              header: 'origin',
+              operation: 'set',
+              value: normalizedEndpoint,
+            },
+          ],
+        },
+      }
+
+      // Rule 2: Modify response headers to allow CORS
+      const responseRule = {
+        id: this.ruleId + 1,
+        priority: 1,
+        condition: {
+          urlFilter: `${normalizedEndpoint}/*`,
+          resourceTypes: ['xmlhttprequest'],
+        },
+        action: {
+          type: 'modifyHeaders',
+          responseHeaders: [
+            {
+              header: 'Access-Control-Allow-Origin',
+              operation: 'set',
+              value: '*', // Allow all origins
+            },
+            {
+              header: 'Access-Control-Allow-Methods',
+              operation: 'set',
+              value: 'GET, POST, PUT, DELETE, OPTIONS',
+            },
+            {
+              header: 'Access-Control-Allow-Headers',
+              operation: 'set',
+              value: 'Content-Type, Authorization',
+            },
+          ],
+        },
+      }
+
+      const rules = [requestRule, responseRule]
+
+      console.log(
+        '[OllamaCorsService] Rules to be applied:',
+        JSON.stringify(rules, null, 2)
+      )
+
+      // Update dynamic rules
+      await browser.declarativeNetRequest.updateDynamicRules({
+        removeRuleIds: [this.ruleId, this.ruleId + 1],
+        addRules: rules,
+      })
+
+      this.initialized = true
+      console.log(
+        '[OllamaCorsService] CORS bypass rules setup successfully for:',
+        normalizedEndpoint
+      )
+
+      // Verify rules were added
+      try {
+        const existingRules =
+          await browser.declarativeNetRequest.getDynamicRules()
+        console.log('[OllamaCorsService] Current dynamic rules:', existingRules)
+      } catch (verifyError) {
+        console.warn('[OllamaCorsService] Could not verify rules:', verifyError)
+      }
+
+      return true
+    } catch (error) {
+      console.error('[OllamaCorsService] Failed to setup CORS rules:', error)
+      return false
+    }
+  }
+
+  async updateEndpoint(newEndpoint) {
+    if (!newEndpoint) return false
+    // Clean up old rules first
+    await this.cleanup()
+    return await this.setupOllamaCorsRules(newEndpoint)
+  }
+
+  async cleanup() {
+    try {
+      await browser.declarativeNetRequest.updateDynamicRules({
+        removeRuleIds: [this.ruleId, this.ruleId + 1],
+      })
+      this.initialized = false
+      console.log('[OllamaCorsService] CORS bypass rules cleaned up')
+    } catch (error) {
+      console.error('[OllamaCorsService] Failed to cleanup CORS rules:', error)
+    }
+  }
+}
+
+// Global instance
+const ollamaCorsService = new OllamaCorsService()
+
+browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.type === 'OPEN_ARCHIVE') {
+    const url = browser.runtime.getURL('archive.html')
+    browser.tabs.create({ url, active: true })
+    // This is a fire-and-forget message, no response needed.
+    return false
+  }
+})
+
+browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.type === 'SAVE_TO_HISTORY') {
+    ;(async () => {
+      try {
+        const result = await addHistory(message.payload.historyData)
+        console.log('SAVE_TO_HISTORY result:', result)
+        sendResponse({ success: true, id: String(result) })
+      } catch (error) {
+        console.error('Error in SAVE_TO_HISTORY:', error)
+        sendResponse({ success: false, error: error.message })
+      }
+    })()
+    return true // Indicate async response
+  }
+})
+
+browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.type === 'SAVE_TO_ARCHIVE') {
+    ;(async () => {
+      try {
+        const newArchiveId = await addSummary(message.payload.archiveEntry)
+        if (message.payload.historySourceId) {
+          await updateHistoryArchivedStatus(
+            message.payload.historySourceId,
+            true
+          )
+        }
+        console.log('SAVE_TO_ARCHIVE newArchiveId:', newArchiveId)
+        sendResponse({ success: true, newArchiveId: String(newArchiveId) })
+      } catch (error) {
+        console.error('Error in SAVE_TO_ARCHIVE:', error)
+        sendResponse({ success: false, error: error.message })
+      }
+    })()
+    return true // Indicate async response
+  }
+})
+
+browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  // Handle synchronous messages first
+  if (message.type === 'OPEN_SETTINGS') {
+    const url = browser.runtime.getURL('settings.html')
+    browser.tabs.create({ url, active: true })
+    // This is a fire-and-forget message, no response needed.
+    return true
+  }
+  return true
+})
 
 export default defineBackground(() => {
   let sidePanelPort = null
@@ -14,6 +257,84 @@ export default defineBackground(() => {
   loadSettings()
   subscribeToSettingsChanges()
 
+  // Initialize Ollama CORS service with default endpoint
+  ;(async () => {
+    try {
+      const settings = await loadSettings()
+      const endpoint = settings.ollamaEndpoint || 'http://127.0.0.1:11434'
+      await ollamaCorsService.setupOllamaCorsRules(endpoint)
+    } catch (error) {
+      console.error(
+        '[Background] Failed to initialize Ollama CORS service:',
+        error
+      )
+    }
+  })()
+
+  // Listen for Ollama endpoint changes from settings
+  browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message.type === 'UPDATE_OLLAMA_ENDPOINT') {
+      ;(async () => {
+        try {
+          const success = await ollamaCorsService.updateEndpoint(
+            message.endpoint
+          )
+          sendResponse({ success })
+        } catch (error) {
+          console.error('[Background] Failed to update Ollama endpoint:', error)
+          sendResponse({ success: false, error: error.message })
+        }
+      })()
+      return true // Indicate async response
+    }
+  })
+
+  // Listen for settings changes to apply Ollama CORS rules if Ollama is selected provider
+  subscribeToSettingsChanges(async (newSettings) => {
+    if (newSettings.selectedProvider === 'ollama') {
+      console.log(
+        '[Background] Ollama selected as provider, ensuring CORS rules are active.'
+      )
+      try {
+        const endpoint = newSettings.ollamaEndpoint || 'http://127.0.0.1:11434'
+        await ollamaCorsService.setupOllamaCorsRules(endpoint)
+      } catch (error) {
+        console.error(
+          '[Background] Error setting up Ollama CORS rules on provider change:',
+          error
+        )
+      }
+    } else {
+      // Optionally cleanup Ollama rules if a different provider is selected
+      // await ollamaCorsService.cleanup();
+    }
+  })
+
+  // Function to create the context menu
+  function initializeContextMenu() {
+    try {
+      if (browser.contextMenus) {
+        browser.contextMenus.create({
+          id: 'summarizeSelectedText',
+          title: 'Summarize selected text',
+          type: 'normal',
+          contexts: ['selection'],
+        })
+      }
+    } catch (error) {
+      // It's possible this fails if the menu already exists, which is fine.
+      console.log(
+        'Context menu creation failed, it might already exist:',
+        error
+      )
+    }
+  }
+
+  // Create the context menu on startup, specifically for Firefox persistence issue
+  if (import.meta.env.BROWSER === 'firefox') {
+    initializeContextMenu()
+  }
+
   const YOUTUBE_URL_PATTERN_STRING = '*://*.youtube.com/watch*'
   const UDEMY_URL_PATTERN_STRING = '*://*.udemy.com/course/*/learn/*'
   const COURSERA_URL_PATTERN_STRING = '*://*.coursera.org/learn/*'
@@ -22,18 +343,16 @@ export default defineBackground(() => {
   const UDEMY_REGEX = /udemy\.com\/course\/.*\/learn\//i
   const COURSERA_REGEX = /coursera\.org\/learn\//i
 
-  const YOUTUBE_CONTENT_SCRIPT_PATH =
-    'src/entrypoints/youtubetranscript.content.js'
-  const UDEMY_CONTENT_SCRIPT_PATH = 'src/entrypoints/udemy.content.js'
-  const COURSERA_CONTENT_SCRIPT_PATH = 'src/entrypoints/coursera.content.js'
+  const YOUTUBE_CONTENT_SCRIPT_PATH = 'content-scripts/youtubetranscript.js'
+
+  const UDEMY_CONTENT_SCRIPT_PATH = 'content-scripts/udemy.js'
+
+  const COURSERA_CONTENT_SCRIPT_PATH = 'content-scripts/coursera.js'
 
   // Hàm helper để inject content script
   async function injectContentScriptIntoTab(tabId, scriptPath) {
     if (import.meta.env.BROWSER === 'chrome') {
       if (!chrome.scripting) {
-        console.error(
-          'chrome.scripting API is not available. Check permissions or context.'
-        )
         return
       }
       try {
@@ -61,9 +380,6 @@ export default defineBackground(() => {
         })
 
         if (results[0]?.result === true) {
-          console.log(
-            `Content script ${scriptPath} already injected into tab ${tabId}.`
-          )
           return
         }
 
@@ -71,43 +387,20 @@ export default defineBackground(() => {
           target: { tabId: tabId },
           files: [scriptPath],
         })
-        console.log(`Content script ${scriptPath} injected into tab ${tabId}.`)
       } catch (err) {
-        console.warn(
-          `Failed to inject or check content script ${scriptPath} in tab ${tabId}:`,
-          err,
-          err.stack
-        )
         if (err.message?.includes('Cannot access contents of url')) {
-          console.warn(
-            `Cannot access tab ${tabId}, possibly a chrome:// or protected page.`
-          )
         } else if (err.message?.includes('Cannot access chrome://')) {
-          console.warn(`Skipping chrome:// tab ${tabId}.`)
         } else {
-          console.warn(`An unexpected error occurred for tab ${tabId}:`, err)
         }
       }
     } else if (import.meta.env.BROWSER === 'firefox') {
       try {
         const injected = await injectScript(tabId, [scriptPath])
         if (!injected) {
-          console.warn(
-            `[background.js] Failed to inject content script ${scriptPath} into tab ${tabId}.`
-          )
         }
       } catch (err) {
-        console.warn(
-          `Failed to inject or check content script ${scriptPath} in tab ${tabId}:`,
-          err,
-          err.stack
-        )
         if (err.message?.includes('Cannot access contents of url')) {
-          console.warn(
-            `Cannot access tab ${tabId}, possibly a browser:// or protected page.`
-          )
         } else {
-          console.warn(`An unexpected error occurred for tab ${tabId}:`, err)
         }
       }
     }
@@ -117,10 +410,6 @@ export default defineBackground(() => {
   // Helper function to send messages, preferring the side panel port but falling back to runtime.sendMessage.
   // This is more robust against the service worker going inactive.
   async function sendMessageToSidePanel(message) {
-    const logPrefix = `[background.js] ${
-      import.meta.env.BROWSER === 'chrome' ? 'Chrome' : 'Firefox'
-    }:`
-
     // First, try to send via the long-lived port if it exists.
     if (sidePanelPort) {
       try {
@@ -128,18 +417,10 @@ export default defineBackground(() => {
         // If the message is sent successfully, we're done.
         return
       } catch (error) {
-        console.warn(
-          `${logPrefix} Side panel port failed, likely disconnected. Error: ${error.message}. Falling back to runtime.sendMessage.`
-        )
         sidePanelPort = null // Port is no longer valid.
       }
     }
 
-    // If the port doesn't exist or failed, use runtime.sendMessage.
-    // This will be received by the side panel if it's open.
-    console.log(
-      `${logPrefix} Side panel port not available. Sending message via runtime.sendMessage.`
-    )
     try {
       await browser.runtime.sendMessage(message)
     } catch (error) {
@@ -148,80 +429,63 @@ export default defineBackground(() => {
         error.message.includes('Could not establish connection') ||
         error.message.includes('Receiving end does not exist')
       ) {
-        console.warn(
-          `${logPrefix} Side panel not open or no listener for runtime message.`
-        )
       } else {
-        console.error(
-          `${logPrefix} Error sending message via runtime.sendMessage:`,
-          error
-        )
       }
     }
   }
 
-  // Logic khởi tạo cho Chrome
   if (import.meta.env.BROWSER === 'chrome') {
-    chrome.sidePanel
-      .setPanelBehavior({ openPanelOnActionClick: true })
-      .catch((error) => console.error(error))
+    if (!isMobile) {
+      console.log('Hello Chrome.')
+      chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true })
+    }
+
+    //if mobile open popup
+
+    if (isMobile) {
+      console.log(userAgent + ' ___ ' + isMobile)
+      chrome.action.onClicked.addListener(async (tab) => {
+        browser.windows.create({
+          url: browser.runtime.getURL('popup.html'),
+          type: 'popup',
+          width: 400,
+          height: 600,
+        })
+      })
+    }
   } else if (import.meta.env.BROWSER === 'firefox') {
-    // Firefox specific action for browserAction.onClicked
-    browser.browserAction.onClicked.addListener(() => {
+    // background.js
+    ;(async function init() {
+      try {
+        if (isMobile) {
+          // Android: dùng popup
+          await browser.browserAction.setPopup({ popup: 'popop.html' })
+        } else {
+          // Desktop: tắt popup => click icon sẽ gọi onClicked
+          await browser.browserAction.setPopup({ popup: '' })
+        }
+      } catch (e) {
+        console.warn('setPopup failed:', e)
+      }
+    })()
+    // Desktop: click icon => mở sidebar
+    browser.browserAction.onClicked.addListener(async () => {
       browser.sidebarAction.toggle()
     })
   }
 
   // 1. Action Click (Toolbar Icon)
-  ;(import.meta.env.BROWSER === 'chrome'
-    ? chrome.action
-    : browser.browserAction
-  ).onClicked.addListener(async (tab) => {
-    if (!tab.id || !tab.url) {
-      console.warn('Action clicked on a tab without ID or URL.')
-      return
-    }
-
-    const isYouTube = YOUTUBE_REGEX.test(tab.url)
-    const isUdemy = UDEMY_REGEX.test(tab.url)
-    const isCoursera = COURSERA_REGEX.test(tab.url)
-
-    const currentTabInfo = {
-      action: 'currentTabInfo',
-      tabId: tab.id,
-      tabUrl: tab.url,
-      tabTitle: tab.title,
-      isYouTube: isYouTube,
-      isUdemy: isUdemy,
-      isCoursera: isCoursera,
-    }
-
-    await sendMessageToSidePanel(currentTabInfo)
-
-    if (isYouTube) {
-      await injectContentScriptIntoTab(tab.id, YOUTUBE_CONTENT_SCRIPT_PATH)
-    } else if (isUdemy) {
-      await injectContentScriptIntoTab(tab.id, UDEMY_CONTENT_SCRIPT_PATH)
-    } else if (isCoursera) {
-      await injectContentScriptIntoTab(tab.id, COURSERA_CONTENT_SCRIPT_PATH)
-    }
-  })
 
   // 2. Listen for commands (keyboard shortcuts)
   browser.commands.onCommand.addListener(async (command) => {
-    console.log(`[background.js] Command received: ${command}`)
     const tabs = await browser.tabs.query({ active: true, currentWindow: true })
     const activeTab = tabs[0]
 
     if (!activeTab || !activeTab.id || !activeTab.url) {
-      console.warn('No active tab found or tab info missing for command.')
       return
     }
 
     if (command === 'summarize-current-page') {
-      console.log(
-        '[background.js] Summarize current page command received. Sending message to side panel.'
-      )
       const isYouTube = YOUTUBE_REGEX.test(activeTab.url)
       const isUdemy = UDEMY_REGEX.test(activeTab.url)
       const isCoursera = COURSERA_REGEX.test(activeTab.url)
@@ -241,75 +505,39 @@ export default defineBackground(() => {
       if (import.meta.env.BROWSER === 'chrome') {
         try {
           await chrome.sidePanel.open({ windowId: activeTab.windowId })
-        } catch (error) {
-          console.error(
-            '[background.js] Chrome: Error opening side panel for summarization:',
-            error
-          )
-        }
+        } catch (error) {}
       } else if (import.meta.env.BROWSER === 'firefox') {
         try {
           await browser.sidebarAction.open()
-        } catch (error) {
-          console.error(
-            '[background.js] Firefox: Error opening sidebar for summarization:',
-            error
-          )
-        }
+        } catch (error) {}
       }
     } else if (command === 'open-prompt-page') {
-      console.log('[background.js] Open prompt page command received.')
       if (import.meta.env.BROWSER === 'chrome') {
         try {
           await chrome.tabs.create({
             url: chrome.runtime.getURL('prompt.html'),
           })
-          console.log('[background.js] Chrome: Prompt page opened.')
-        } catch (error) {
-          console.error(
-            '[background.js] Chrome: Error opening prompt page:',
-            error
-          )
-        }
+        } catch (error) {}
       } else if (import.meta.env.BROWSER === 'firefox') {
         try {
           await browser.tabs.create({
             url: browser.runtime.getURL('prompt.html'),
           })
-          console.log('[background.js] Firefox: Prompt page opened.')
-        } catch (error) {
-          console.error(
-            '[background.js] Firefox: Error opening prompt page:',
-            error
-          )
-        }
+        } catch (error) {}
       }
     } else if (command === 'open-archive-panel') {
-      console.log('[background.js] Open archive panel command received.')
       if (import.meta.env.BROWSER === 'chrome') {
         try {
           await chrome.tabs.create({
             url: chrome.runtime.getURL('archive.html'),
           })
-          console.log('[background.js] Chrome: Archive panel opened.')
-        } catch (error) {
-          console.error(
-            '[background.js] Chrome: Error opening archive panel:',
-            error
-          )
-        }
+        } catch (error) {}
       } else if (import.meta.env.BROWSER === 'firefox') {
         try {
           await browser.tabs.create({
             url: browser.runtime.getURL('archive.html'),
           })
-          console.log('[background.js] Firefox: Archive panel opened.')
-        } catch (error) {
-          console.error(
-            '[background.js] Firefox: Error opening archive panel:',
-            error
-          )
-        }
+        } catch (error) {}
       }
     }
   })
@@ -317,21 +545,9 @@ export default defineBackground(() => {
   // 3. Extension Install/Update
   browser.runtime.onInstalled.addListener(async (details) => {
     if (details.reason === 'install' || details.reason === 'update') {
-      // Tạo context menu
-      try {
-        if (browser.contextMenus) {
-          browser.contextMenus.create({
-            id: 'summarizeSelectedText',
-            title: 'Summarize selected text',
-            type: 'normal',
-            contexts: ['selection'],
-          })
-        } else {
-          console.warn('[background.js] browser.contextMenus is not available.')
-        }
-      } catch (error) {
-        console.error('[background.js] Error creating context menu:', error)
-      }
+      // For Chrome, create the context menu on install/update.
+      // For Firefox, this is handled on startup, but we can also do it here as a fallback.
+      initializeContextMenu()
 
       try {
         const youtubeTabs = await browser.tabs.query({
@@ -366,11 +582,7 @@ export default defineBackground(() => {
             )
           }
         }
-      } catch (error) {
-        console.error(
-          `Error querying or injecting into existing tabs: ${error}`
-        )
-      }
+      } catch (error) {}
     }
   })
 
@@ -405,127 +617,129 @@ export default defineBackground(() => {
     }
   })
 
-  // 5. Listen for messages from other parts of the extension (e.g., side panel)
+  // 5. Listen for messages from other parts of the extension
   browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    if (message.action === 'getTranscript' && message.tabId) {
-      const targetTabId = message.tabId
-
-      ;(async () => {
-        try {
-          // Gửi message đến content script để yêu cầu transcript
+    // Handle asynchronous actions
+    ;(async () => {
+      try {
+        if (message.action === 'getTranscript' && message.tabId) {
+          const targetTabId = message.tabId
           const response = await browser.tabs.sendMessage(targetTabId, {
             action: 'fetchTranscript',
-            lang: message.lang, // Truyền ngôn ngữ nếu có
+            lang: message.lang,
           })
-
           if (response && response.success) {
             sendResponse({ transcript: response.transcript })
           } else {
-            console.warn(
-              `[background.js] Content script failed to get transcript for tab ${targetTabId}:`,
-              response?.error || 'Unknown error.'
-            )
             sendResponse({
-              error:
-                response?.error ||
-                'Failed to get transcript from content script.',
+              error: response?.error || 'Failed to get transcript.',
             })
           }
-        } catch (err) {
-          console.error(
-            `[background.js] Error executing script for tab ${targetTabId}:`,
-            err
-          )
-          sendResponse({
-            error:
-              err.message || 'Unknown error occurred during script execution.',
+        } else if (message.action === 'courseContentFetched') {
+          if (sidePanelPort) {
+            sidePanelPort.postMessage({
+              action: 'courseContentAvailable',
+              content: message.content,
+              lang: message.lang,
+              courseType: message.courseType,
+            })
+          }
+        } else if (message.action === 'requestCurrentTabInfo') {
+          const tabs = await browser.tabs.query({
+            active: true,
+            currentWindow: true,
           })
-        }
-      })()
-      return true
-    } else if (message.action === 'courseContentFetched') {
-      // Xử lý nội dung Course đã lấy được từ content script (Udemy hoặc Coursera)
-      console.log(
-        '[background.js] Received courseContentFetched from content script.'
-      )
-      if (sidePanelPort) {
-        sidePanelPort.postMessage({
-          action: 'courseContentAvailable',
-          content: message.content,
-          lang: message.lang,
-          courseType: message.courseType, // Thêm loại khóa học (udemy/coursera)
-        })
-        console.log(
-          '[background.js] Sent courseContentAvailable to side panel.'
-        )
-      } else {
-        console.warn(
-          '[background.js] Side panel not connected, cannot send courseContentAvailable.'
-        )
-      }
-      return true
-    } else if (message.action === 'requestCurrentTabInfo') {
-      ;(async () => {
-        const tabs = await browser.tabs.query({
-          active: true,
-          currentWindow: true,
-        })
-        const activeTab = tabs[0]
-        const isYouTube = YOUTUBE_REGEX.test(activeTab?.url)
-        const isUdemy = UDEMY_REGEX.test(activeTab?.url)
-        const isCoursera = COURSERA_REGEX.test(activeTab?.url)
+          const activeTab = tabs[0]
+          const isYouTube = YOUTUBE_REGEX.test(activeTab?.url)
+          const isUdemy = UDEMY_REGEX.test(activeTab?.url)
+          const isCoursera = COURSERA_REGEX.test(activeTab?.url)
 
-        const currentTabInfo = activeTab
-          ? {
-              action: 'currentTabInfo',
-              tabId: activeTab.id,
-              tabUrl: activeTab.url,
-              tabTitle: activeTab.title,
-              isYouTube: isYouTube,
-              isUdemy: isUdemy,
-              isCoursera: isCoursera,
-            }
-          : {
-              action: 'currentTabInfo',
-              error: 'No active tab found.',
-            }
+          const currentTabInfo = activeTab
+            ? {
+                action: 'currentTabInfo',
+                tabId: activeTab.id,
+                tabUrl: activeTab.url,
+                tabTitle: activeTab.title,
+                isYouTube: isYouTube,
+                isUdemy: isUdemy,
+                isCoursera: isCoursera,
+              }
+            : { action: 'currentTabInfo', error: 'No active tab found.' }
 
-        if (sidePanelPort) {
-          try {
+          if (sidePanelPort) {
             sidePanelPort.postMessage(currentTabInfo)
-            console.log('[background.js] Sent currentTabInfo via port.')
-          } catch (error) {
-            console.error(
-              '[background.js] Error sending currentTabInfo via port:',
-              error
-            )
-            // Fallback to sendMessage if port fails (though less ideal for connect-based messages)
-            browser.runtime.sendMessage(currentTabInfo).catch((err) => {
-              console.warn('[background.js] Fallback sendMessage failed:', err)
-            })
+          } else {
+            browser.runtime.sendMessage(currentTabInfo).catch(() => {})
           }
-        } else {
-          // If sidePanelPort is not available, send via runtime.sendMessage as a fallback
-          // This might happen if the side panel connects and immediately requests info before onConnect fully processes
-          browser.runtime.sendMessage(currentTabInfo).catch((error) => {
-            if (
-              error.message.includes('Could not establish connection') ||
-              error.message.includes('Receiving end does not exist')
-            ) {
-              console.warn(
-                '[background.js] Side panel not open or no listener for currentTabInfo message.'
-              )
+        } else if (message.action === 'REQUEST_SUMMARY') {
+          const { type, payload, requestId } = message
+          // Set loading state
+          if (type === 'selectedText') {
+            summaryState.isSelectedTextLoading.set(true)
+            summaryState.selectedTextError.set(null)
+          } else {
+            summaryState.isLoading.set(true)
+            summaryState.summaryError.set(null)
+          }
+          try {
+            if (type === 'selectedText') {
+              const selectedText = payload.text
+              if (!selectedText) {
+                throw new Error('No text selected for summarization.')
+              }
+              await summarizeSelectedText(selectedText)
+              const summary = get(summaryState.selectedTextSummary)
+              sendResponse({
+                action: 'SUMMARY_RESPONSE',
+                summary: summary,
+                requestId: requestId,
+              })
+            } else if (type === 'pageSummary') {
+              if (sidePanelPort) {
+                sidePanelPort.postMessage({ action: 'summarizeCurrentPage' })
+                sendResponse({
+                  action: 'SUMMARY_STARTED',
+                  requestId: requestId,
+                })
+              } else {
+                throw new Error(
+                  'Side panel not open. Please open the side panel to summarize the page.'
+                )
+              }
             } else {
-              console.error(
-                '[background.js] Error sending currentTabInfo message via sendMessage:',
-                error
-              )
+              throw new Error(`Unknown summarization type: ${type}`)
             }
-          })
+          } catch (error) {
+            if (type === 'selectedText') {
+              summaryState.selectedTextError.set(error.message)
+            } else {
+              summaryState.summaryError.set(error.message)
+            }
+            sendResponse({
+              action: 'SUMMARY_ERROR',
+              error: error.message,
+              requestId: requestId,
+            })
+          } finally {
+            if (type === 'selectedText') {
+              summaryState.isSelectedTextLoading.set(false)
+            } else {
+              summaryState.isLoading.set(false)
+            }
+            logAllGeneratedSummariesToHistory()
+          }
         }
-      })()
-      return true
-    }
+      } catch (err) {
+        console.error(
+          `Error processing message type ${message.type || message.action}:`,
+          err
+        )
+        sendResponse({ success: false, error: err.message })
+      }
+    })()
+
+    // Return true to indicate that sendResponse will be called asynchronously.
+    return true
   })
 
   // 6. Listen for connections from side panel
@@ -560,41 +774,17 @@ export default defineBackground(() => {
                 error: 'No active tab found.',
               }
           sidePanelPort.postMessage(currentTabInfo)
-          console.log(
-            '[background.js] Sent currentTabInfo via port on connect.'
-          )
-        } catch (error) {
-          console.error(
-            '[background.js] Error sending currentTabInfo on connect:',
-            error
-          )
-        }
+        } catch (error) {}
       })()
 
       if (pendingSelectedText) {
         try {
-          console.log(
-            `[background.js] ${
-              import.meta.env.BROWSER === 'chrome' ? 'Chrome' : 'Firefox'
-            }: Sending pending summarizeSelectedText message via port...`
-          )
           sidePanelPort.postMessage({
             action: 'summarizeSelectedText',
             selectedText: pendingSelectedText,
           })
-          console.log(
-            `[background.js] ${
-              import.meta.env.BROWSER === 'chrome' ? 'Chrome' : 'Firefox'
-            }: Pending summarizeSelectedText message sent via port.`
-          )
           pendingSelectedText = null
         } catch (error) {
-          console.error(
-            `[background.js] ${
-              import.meta.env.BROWSER === 'chrome' ? 'Chrome' : 'Firefox'
-            }: Error sending pending summarizeSelectedText message via existing port:`,
-            error
-          )
           // Nếu gửi tin nhắn thất bại, không cần cố gắng mở lại side panel ở đây
           // vì logic mở side panel đã được xử lý khi pendingSelectedText được đặt.
           // Đặt lại pendingSelectedText để tránh lặp lại.
@@ -637,9 +827,7 @@ export default defineBackground(() => {
           await injectContentScriptIntoTab(tab.id, COURSERA_CONTENT_SCRIPT_PATH)
         }
       }
-    } catch (error) {
-      console.error('[background.js] Error in onActivated listener:', error)
-    }
+    } catch (error) {}
   })
 
   // 8. Listen for context menu clicks
@@ -647,45 +835,17 @@ export default defineBackground(() => {
     if (info.menuItemId === 'summarizeSelectedText' && info.selectionText) {
       const selectedText = info.selectionText
 
-      if (!selectedText) {
-        console.warn(
-          `[background.js] ${
-            import.meta.env.BROWSER === 'chrome' ? 'Chrome' : 'Firefox'
-          }: No text selected for summarization.`
-        )
-        return
-      }
+      if (!selectedText) return
 
       if (sidePanelPort) {
         try {
-          console.log(
-            `[background.js] ${
-              import.meta.env.BROWSER === 'chrome' ? 'Chrome' : 'Firefox'
-            }: Side panel is already connected. Sending message directly.`
-          )
           sidePanelPort.postMessage({
             action: 'summarizeSelectedText',
             selectedText: selectedText,
           })
-          console.log(
-            `[background.js] ${
-              import.meta.env.BROWSER === 'chrome' ? 'Chrome' : 'Firefox'
-            }: summarizeSelectedText message sent via port.`
-          )
           pendingSelectedText = null
         } catch (error) {
-          console.error(
-            `[background.js] ${
-              import.meta.env.BROWSER === 'chrome' ? 'Chrome' : 'Firefox'
-            }: Error sending summarizeSelectedText message via existing port:`,
-            error
-          )
           pendingSelectedText = selectedText
-          console.warn(
-            `[background.js] ${
-              import.meta.env.BROWSER === 'chrome' ? 'Chrome' : 'Firefox'
-            }: Retrying by storing pendingSelectedText and opening side panel.`
-          )
           if (tab && tab.windowId) {
             try {
               if (import.meta.env.BROWSER === 'chrome') {
@@ -694,45 +854,23 @@ export default defineBackground(() => {
                 await browser.sidebarAction.open()
               }
             } catch (openError) {
-              console.error(
-                `Error opening side panel after port error for window ${tab.windowId}: ${openError}`
-              )
               pendingSelectedText = null
             }
           }
         }
       } else {
         pendingSelectedText = selectedText
-        console.log(
-          `[background.js] ${
-            import.meta.env.BROWSER === 'chrome' ? 'Chrome' : 'Firefox'
-          }: Side panel not connected. Storing selected text and attempting to open side panel.`
-        )
         if (tab && tab.windowId) {
           try {
             if (import.meta.env.BROWSER === 'chrome') {
               await chrome.sidePanel.open({ windowId: tab.windowId })
-              console.log(
-                '[background.js] Chrome: Side panel opened successfully.'
-              )
             } else {
               await browser.sidebarAction.open()
-              console.log(
-                '[background.js] Firefox: Sidebar opened successfully.'
-              )
             }
           } catch (error) {
-            console.error(
-              `Error opening side panel from context menu for window ${tab.windowId}: ${error}`
-            )
             pendingSelectedText = null
           }
         } else {
-          console.warn(
-            `[background.js] ${
-              import.meta.env.BROWSER === 'chrome' ? 'Chrome' : 'Firefox'
-            }: No tab or window ID available to open side panel.`
-          )
           pendingSelectedText = null
         }
       }

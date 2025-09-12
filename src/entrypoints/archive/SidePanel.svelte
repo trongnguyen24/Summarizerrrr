@@ -35,6 +35,7 @@
   let deleteCandidateId = $state(null)
   let deleteTimeoutId = $state(null)
   let isConfirmingDelete = $state(false)
+  let isTouchScreen = $state(false)
 
   // Utility functions
   function resetDialogState() {
@@ -126,8 +127,21 @@
     defer: true,
   })
 
+  // Utility function to detect touch devices
+  function isTouchDevice() {
+    return (
+      'ontouchstart' in window ||
+      navigator.maxTouchPoints > 0 ||
+      navigator.msMaxTouchPoints > 0
+    )
+  }
+
   $effect(() => {
-    initializeScrollbars(document.getElementById('scroll-side'))
+    // Initialize OverlayScrollbars only on non-touch devices
+    isTouchScreen = isTouchDevice()
+    if (!isTouchDevice()) {
+      initializeScrollbars(document.getElementById('scroll-side'))
+    }
   })
 </script>
 
@@ -144,22 +158,29 @@
 
   <TabArchive {activeTab} onSelectTab={selectTab} />
 
-  <div id="scroll-side" class="text-text-secondary flex-1 relative gap-0.5">
+  <div
+    id="scroll-side"
+    class="text-text-secondary flex-1 relative gap-0.5 overflow-y-auto"
+  >
     <div
       class="sticky bg-linear-to-b from-background to-background/40 mask-b-from-50% left-0 top-0 w-78 h-4 backdrop-blur-[2px] z-30 pointer-events-none"
     ></div>
 
     <div
-      class="flex text-xs md:text-sm absolute inset-0 px-2 py-4 h-full flex-col gap-0.5"
+      class="flex text-xs md:text-sm absolute inset-0 px-2 py-4 h-full flex-col {isTouchScreen
+        ? 'gap-2 !text-sm'
+        : 'gap-0.5'}"
     >
       {#each list as item (item.id)}
         <div class="relative group">
           <button
-            class="list-button w-full relative p-2 pr-8 text-left hover:bg-blackwhite/5 rounded-md {selectedSummaryId ==
+            class="list-button w-full relative p-2 text-left hover:bg-blackwhite/5 rounded-md {selectedSummaryId ==
             item.id
               ? 'text-text-primary bg-neutral-100 hover:bg-white/60 dark:hover:bg-white/10 dark:bg-surface-2 active '
-              : 'hover:bg-surface-1 dark:hover:bg-surface-2'}"
-            onclick={() => selectSummary(item)}
+              : 'hover:bg-surface-1 dark:hover:bg-surface-2'} {isTouchScreen
+              ? 'pr-18'
+              : 'pr-8'}"
+            onclick={() => selectSummary(item, activeTab)}
             title={item.title}
           >
             <div
@@ -169,20 +190,24 @@
             </div>
           </button>
           <div
-            class="text-text-muted justify-center rounded-r-sm items-center bg-linear-to-l from-surface-1 dark:from-surface-2 from-80% to-surface-1/0 dark:to-surface-2/0 top-0 bottom-0 pl-4 pr-1 right-0 hidden group-hover:flex absolute"
+            class="text-text-muted justify-center rounded-r-sm items-center bg-linear-to-l from-surface-1 dark:from-surface-2 from-80% to-surface-1/0 dark:to-surface-2/0 top-0 bottom-0 pl-4 pr-1 right-0 absolute {isTouchScreen
+              ? 'flex bg-none'
+              : 'hidden group-hover:flex'}"
           >
             <button
               onclick={() => openRenameDialog(item)}
-              class="p-1 hover:text-text-primary"
+              class="p-1 hover:text-text-primary {isTouchScreen
+                ? 'p-2'
+                : 'p-1'}"
             >
               <Icon icon="tabler:pencil" width="20" height="20" />
             </button>
             <button
               onclick={() => handleDeleteClick(item.id)}
-              class="p-1 relative rounded-3xl transition-colors duration-150 {isConfirmingDelete &&
+              class=" relative rounded-3xl transition-colors duration-150 {isConfirmingDelete &&
               deleteCandidateId === item.id
                 ? 'text-red-50 '
-                : 'hover:text-text-primary'}"
+                : 'hover:text-text-primary'}  {isTouchScreen ? 'p-2' : 'p-1'}"
             >
               <Icon
                 icon="heroicons:trash"
@@ -198,7 +223,9 @@
                     startScale: 0.4,
                     slideDistance: '0rem',
                   }}
-                  class="rounded-sm block size-7 bg-error absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+                  class="rounded-sm block bg-error absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 {isTouchScreen
+                    ? 'size-9'
+                    : 'size-7'}"
                 >
                 </span>
               {/if}

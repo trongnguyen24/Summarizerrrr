@@ -12,6 +12,8 @@ import { createOpenAICompatible } from '@ai-sdk/openai-compatible'
 import { createOpenRouter } from '@openrouter/ai-sdk-provider'
 import { createOllama } from 'ai-sdk-ollama'
 import { getBrowserCompatibility } from '@/lib/utils/browserDetection.js'
+import { requiresApiProxy } from '@/lib/utils/contextDetection.js'
+import { createOllamaProxyModel } from './ollamaProxyModel.js'
 
 /**
  * Maps provider ID and settings to AI SDK model instance
@@ -20,6 +22,14 @@ import { getBrowserCompatibility } from '@/lib/utils/browserDetection.js'
  * @returns {object} AI SDK model instance
  */
 export function getAISDKModel(providerId, settings) {
+  // Check if we need to use proxy for this provider in current context
+  if (requiresApiProxy(providerId)) {
+    console.log(
+      `[aiSdkAdapter] Using proxy model for ${providerId} in content script context`
+    )
+    return createOllamaProxyModel(settings)
+  }
+
   switch (providerId) {
     case 'gemini':
       const geminiApiKey = settings.isAdvancedMode
@@ -201,46 +211,64 @@ export async function* generateContentStream(
   streamOptions = {}
 ) {
   const baseModel = getAISDKModel(providerId, settings)
-  const model = wrapModelWithReasoningExtraction(baseModel)
+
+  // Check if this is a proxy model (doesn't need reasoning extraction wrapper)
+  const isProxyModel = requiresApiProxy(providerId)
+  const model = isProxyModel
+    ? baseModel
+    : wrapModelWithReasoningExtraction(baseModel)
   const generationConfig = mapGenerationConfig(settings)
 
   // Get browser compatibility info
   const browserCompatibility = getBrowserCompatibility()
 
-  // Default smoothing options
-  const defaultSmoothingOptions = {
-    smoothing: {
-      minDelayMs: 15,
-      maxDelayMs: 80,
-    },
-  }
-
-  // Determine if we should use smoothing based on browser compatibility
-  const shouldUseSmoothing =
-    browserCompatibility.streamingOptions.useSmoothing &&
-    streamOptions.useSmoothing !== false
-
-  const streamConfig = {
-    model,
-    system: systemInstruction,
-    prompt: userPrompt,
-    ...generationConfig,
-    ...(shouldUseSmoothing ? defaultSmoothingOptions : {}),
-    ...streamOptions,
-  }
-
   try {
-    const result = await streamText(streamConfig)
+    if (isProxyModel) {
+      // Use proxy model's streamText method directly
+      const result = await model.streamText({
+        system: systemInstruction,
+        prompt: userPrompt,
+        ...generationConfig,
+      })
 
-    // Use smoothTextStream if available and supported by browser
-    const streamToUse =
-      shouldUseSmoothing && result.smoothTextStream
-        ? result.smoothTextStream
-        : result.textStream
+      // Yield chunks from proxy stream
+      for await (const chunk of result.textStream) {
+        yield chunk
+      }
+    } else {
+      // Use standard AI SDK streaming with smoothing options
+      const defaultSmoothingOptions = {
+        smoothing: {
+          minDelayMs: 15,
+          maxDelayMs: 80,
+        },
+      }
 
-    // Only yield text chunks, reasoning (<think> tags) is automatically extracted and discarded
-    for await (const chunk of streamToUse) {
-      yield chunk
+      const shouldUseSmoothing =
+        browserCompatibility.streamingOptions.useSmoothing &&
+        streamOptions.useSmoothing !== false
+
+      const streamConfig = {
+        model,
+        system: systemInstruction,
+        prompt: userPrompt,
+        ...generationConfig,
+        ...(shouldUseSmoothing ? defaultSmoothingOptions : {}),
+        ...streamOptions,
+      }
+
+      const result = await streamText(streamConfig)
+
+      // Use smoothTextStream if available and supported by browser
+      const streamToUse =
+        shouldUseSmoothing && result.smoothTextStream
+          ? result.smoothTextStream
+          : result.textStream
+
+      // Only yield text chunks, reasoning (<think> tags) is automatically extracted and discarded
+      for await (const chunk of streamToUse) {
+        yield chunk
+      }
     }
   } catch (error) {
     console.error('AI SDK Stream Error:', error)
@@ -286,7 +314,7 @@ export async function* generateContentStreamEnhanced(
   const browserCompatibility = getBrowserCompatibility()
 
   try {
-    // Use our updated generateContentStream that already handles reasoning extraction
+    // Use our updated generateContentStream that handles both proxy and direct models
     const streamGenerator = generateContentStream(
       providerId,
       settings,

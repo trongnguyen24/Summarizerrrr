@@ -56,6 +56,8 @@ import {
   addSummary,
   updateHistoryArchivedStatus,
 } from '@/lib/db/indexedDBService.js'
+import { getAISDKModel, mapGenerationConfig } from '@/lib/api/aiSdkAdapter.js'
+import { generateText, streamText } from 'ai'
 
 // Ollama CORS bypass service
 class OllamaCorsService {
@@ -190,6 +192,169 @@ class OllamaCorsService {
 
 // Global instance
 const ollamaCorsService = new OllamaCorsService()
+
+// Ollama API Proxy Service for Content Scripts
+class OllamaApiProxyService {
+  constructor() {
+    // Content script only uses blocking mode - no stream tracking needed
+  }
+
+  /**
+   * Handle non-streaming API requests from content scripts
+   * @param {string} providerId - The AI provider ID
+   * @param {object} settings - User settings
+   * @param {string} systemInstruction - System prompt
+   * @param {string} userPrompt - User prompt
+   * @returns {Promise<string>} Generated content
+   */
+  async handleApiRequest(providerId, settings, systemInstruction, userPrompt) {
+    try {
+      console.log(
+        `[OllamaApiProxy] Handling API request for provider: ${providerId}`
+      )
+
+      // Get AI SDK model (will use CORS bypassed context)
+      const baseModel = getAISDKModel(providerId, settings)
+      const generationConfig = mapGenerationConfig(settings)
+
+      // Generate content using AI SDK
+      const { text } = await generateText({
+        model: baseModel,
+        system: systemInstruction,
+        prompt: userPrompt,
+        ...generationConfig,
+      })
+
+      console.log(`[OllamaApiProxy] API request completed successfully`)
+      return text
+    } catch (error) {
+      console.error(`[OllamaApiProxy] API request failed:`, error)
+      throw error
+    }
+  }
+
+  /**
+   * Handle streaming API requests from content scripts
+   * @param {string} requestId - Unique request identifier
+   * @param {string} providerId - The AI provider ID
+   * @param {object} settings - User settings
+   * @param {string} systemInstruction - System prompt
+   * @param {string} userPrompt - User prompt
+   * @param {function} sendChunk - Callback to send chunks back to content script
+   * @returns {Promise<void>}
+   */
+  async handleStreamRequest(
+    requestId,
+    providerId,
+    settings,
+    systemInstruction,
+    userPrompt,
+    sendChunk
+  ) {
+    try {
+      console.log(
+        `[OllamaApiProxy] Handling stream request ${requestId} for provider: ${providerId}`
+      )
+
+      // Get AI SDK model (will use CORS bypassed context)
+      const baseModel = getAISDKModel(providerId, settings)
+      const generationConfig = mapGenerationConfig(settings)
+
+      // Start streaming
+      const result = await streamText({
+        model: baseModel,
+        system: systemInstruction,
+        prompt: userPrompt,
+        ...generationConfig,
+      })
+
+      // Store the stream reference
+      this.activeStreams.set(requestId, result)
+
+      let chunkCount = 0
+      try {
+        for await (const chunk of result.textStream) {
+          // Check if stream was cancelled
+          if (!this.activeStreams.has(requestId)) {
+            console.log(`[OllamaApiProxy] Stream ${requestId} was cancelled`)
+            break
+          }
+
+          // Send chunk back to content script
+          await sendChunk({
+            type: 'OLLAMA_STREAM_CHUNK',
+            requestId,
+            chunk,
+            chunkCount: ++chunkCount,
+          })
+        }
+
+        // Send completion signal
+        await sendChunk({
+          type: 'OLLAMA_STREAM_COMPLETE',
+          requestId,
+          totalChunks: chunkCount,
+        })
+
+        console.log(
+          `[OllamaApiProxy] Stream ${requestId} completed with ${chunkCount} chunks`
+        )
+      } catch (streamError) {
+        console.error(
+          `[OllamaApiProxy] Stream ${requestId} error:`,
+          streamError
+        )
+        throw streamError
+      } finally {
+        // Clean up stream reference
+        this.activeStreams.delete(requestId)
+      }
+    } catch (error) {
+      console.error(
+        `[OllamaApiProxy] Stream request ${requestId} failed:`,
+        error
+      )
+
+      // Clean up on error
+      this.activeStreams.delete(requestId)
+
+      // Send error back to content script
+      await sendChunk({
+        type: 'OLLAMA_STREAM_ERROR',
+        requestId,
+        error: {
+          message: error.message,
+          type: error.type || 'PROXY_ERROR',
+        },
+      })
+
+      throw error
+    }
+  }
+
+  /**
+   * Cancel an active streaming request
+   * @param {string} requestId - Request ID to cancel
+   */
+  cancelStream(requestId) {
+    if (this.activeStreams.has(requestId)) {
+      console.log(`[OllamaApiProxy] Cancelling stream ${requestId}`)
+      this.activeStreams.delete(requestId)
+      return true
+    }
+    return false
+  }
+
+  /**
+   * Get active stream count for debugging
+   */
+  getActiveStreamCount() {
+    return this.activeStreams.size
+  }
+}
+
+// Global instance
+const ollamaApiProxy = new OllamaApiProxyService()
 
 browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === 'OPEN_ARCHIVE') {

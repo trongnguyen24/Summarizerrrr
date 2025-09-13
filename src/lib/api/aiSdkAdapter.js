@@ -173,19 +173,34 @@ export async function generateContent(
   userPrompt
 ) {
   const baseModel = getAISDKModel(providerId, settings)
-  const model = wrapModelWithReasoningExtraction(baseModel)
+
+  // Check if this is a proxy model
+  const isProxyModel = requiresApiProxy(providerId)
+  const model = isProxyModel
+    ? baseModel
+    : wrapModelWithReasoningExtraction(baseModel)
   const generationConfig = mapGenerationConfig(settings)
 
   try {
-    const { text, reasoning } = await generateText({
-      model,
-      system: systemInstruction,
-      prompt: userPrompt,
-      ...generationConfig,
-    })
-
-    // Only return text content, reasoning (<think> tags) is automatically discarded
-    return text
+    if (isProxyModel) {
+      // Use the proxy model's custom generateText method
+      console.log('[aiSdkAdapter] Using proxy model for generateContent')
+      const result = await model.generateText({
+        system: systemInstruction,
+        prompt: userPrompt,
+        ...generationConfig,
+      })
+      return result.text
+    } else {
+      // Use the standard AI SDK generateText for direct calls
+      const { text } = await generateText({
+        model,
+        system: systemInstruction,
+        prompt: userPrompt,
+        ...generationConfig,
+      })
+      return text
+    }
   } catch (error) {
     console.error('AI SDK Error:', error)
     throw error

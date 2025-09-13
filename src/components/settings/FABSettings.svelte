@@ -106,34 +106,6 @@
           ></ButtonSet>
         </div>
       </div>
-
-      <!-- One Click Summarize Section -->
-      <div class="flex col-span-2 flex-col gap-2 pb-4">
-        <!-- svelte-ignore a11y_label_has_associated_control -->
-        <label class="block text-text-secondary">One Click Mode</label>
-        <div class="grid w-full grid-cols-2 gap-1">
-          <ButtonSet
-            title="Disabled"
-            class="setting-btn {!settings.oneClickSummarize ? 'active' : ''}"
-            onclick={() => handleUpdateSetting('oneClickSummarize', false)}
-            Description="Click button to toggle panel (default behavior)"
-          >
-            <Icon
-              icon="heroicons:cursor-arrow-rays-20-solid"
-              width="20"
-              height="20"
-            />
-          </ButtonSet>
-          <ButtonSet
-            title="Enabled"
-            class="setting-btn {settings.oneClickSummarize ? 'active' : ''}"
-            onclick={() => handleUpdateSetting('oneClickSummarize', true)}
-            Description="Click button to auto-start summarization"
-          >
-            <Icon icon="heroicons:bolt-20-solid" width="20" height="20" />
-          </ButtonSet>
-        </div>
-      </div>
     </div>
   </div>
 
@@ -147,6 +119,68 @@
       When enabled, clicking the floating button will automatically start
       summarization instead of just opening the panel.
     </p>
+
+    <div class="px-5 py-4 flex flex-col sm:flex-row gap-4">
+      <Preview
+        title={$t('settings.fab.preview')}
+        class=" w-full sm:w-60 h-40 shrink-0 mx-auto"
+      >
+        <div
+          class="w-40 z-30 border border-surface-2 absolute bottom-0 left-1/2 rounded-t-lg -translate-x-1/2 bg-surface-1 flex justify-center"
+          style=" height:{settings.mobileSheetHeight}%"
+        >
+          <span class=" block w-6 h-1 rounded-2xl mt-1.5 bg-blackwhite/10"
+          ></span>
+
+          <div></div>
+        </div>
+        <div
+          class="absolute z-20 transition-opacity inset-0 bg-black/40 {settings.mobileSheetBackdropOpacity
+            ? 'opacity-100'
+            : 'opacity-0'}"
+        ></div>
+      </Preview>
+      <div class="flex-auto">
+        <!-- One Click Summarize Section -->
+        <div class="flex flex-col gap-2 pb-4">
+          <!-- svelte-ignore a11y_label_has_associated_control -->
+          <label class="block text-text-secondary">One Click Mode</label>
+          <div class="grid w-full grid-cols-2 gap-1">
+            <div class="flex col-span-2 flex-col gap-2 pb-4">
+              <!-- svelte-ignore a11y_label_has_associated_control -->
+
+              <div class="grid w-full grid-cols-2 gap-1">
+                <ButtonSet
+                  title="Disabled"
+                  class="setting-btn {!settings.oneClickSummarize
+                    ? 'active'
+                    : ''}"
+                  onclick={() =>
+                    handleUpdateSetting('oneClickSummarize', false)}
+                  Description="Click button to toggle panel (default behavior)"
+                >
+                  <Icon
+                    icon="heroicons:cursor-arrow-rays-20-solid"
+                    width="20"
+                    height="20"
+                  />
+                </ButtonSet>
+                <ButtonSet
+                  title="Enabled"
+                  class="setting-btn {settings.oneClickSummarize
+                    ? 'active'
+                    : ''}"
+                  onclick={() => handleUpdateSetting('oneClickSummarize', true)}
+                  Description="Click button to auto-start summarization"
+                >
+                  <Icon icon="heroicons:bolt-20-solid" width="20" height="20" />
+                </ButtonSet>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <div class="flex flex-col gap-1 mt-2 px-5">

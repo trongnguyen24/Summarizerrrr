@@ -201,6 +201,7 @@
       <MobileSheet
         visible={isPanelVisible}
         onclose={() => (isPanelVisible = false)}
+        summarization={oneClickSummarization}
       />
     {/key}
   {:else}

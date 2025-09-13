@@ -11,6 +11,8 @@
     loadThemeSettings,
     subscribeToThemeChanges,
   } from '@/stores/themeStore.svelte.js'
+  import { slideScaleFade } from '@/lib/ui/slideScaleFade.js'
+  import Icon from '@iconify/svelte'
 
   // @ts-nocheck
   let { toggle, topButton, oneClickHandler, buttonState = 'idle' } = $props()
@@ -448,43 +450,46 @@
     class=" flex items-center justify-center h-10 w-10 text-gray-500/50 overflow-hidden rounded-4xl ease-out delay-150 duration-500 transition-all"
     class:round-l={buttonPosition === 'left'}
     class:round-r={buttonPosition === 'right'}
-    class:loading={buttonState === 'loading'}
     class:error={buttonState === 'error'}
   >
     <div class="floating-button-bg">
       <div class="BG-cri border border-slate-500/10">
         {#if buttonState === 'loading'}
-          <!-- Loading spinner -->
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            class="spinner"
+          <span
+            transition:slideScaleFade={{
+              duration: 300,
+              delay: 0,
+              slideFrom: 'left',
+              slideDistance: '0',
+              startScale: 0.8,
+            }}
+            class="blinking-cursor text-gray-500/80 absolute inset-0"
           >
-            <path
-              fill="currentColor"
-              d="M12,1A11,11,0,1,0,23,12,11,11,0,0,0,12,1Zm0,19a8,8,0,1,1,8-8A8,8,0,0,1,12,20Z"
-              opacity=".25"
-            />
-            <path
-              fill="currentColor"
-              d="M12,4a8,8,0,0,1,7.89,6.7A1.53,1.53,0,0,0,21.38,12h0a1.5,1.5,0,0,0,1.48-1.75,11,11,0,0,0-21.72,0A1.5,1.5,0,0,0,2.62,12h0a1.53,1.53,0,0,0,1.49-1.3A8,8,0,0,1,12,4Z"
-            />
-          </svg>
+          </span>
         {:else}
           <!-- Normal icon -->
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="18"
-            height="18"
-            viewBox="0 0 16 16"
+          <span
+            class=" size-9 flex justify-center items-center"
+            transition:slideScaleFade={{
+              duration: 400,
+              delay: 0,
+              slideFrom: 'left',
+              slideDistance: '0',
+              startScale: 0.8,
+            }}
           >
-            <path
-              fill="currentColor"
-              d="M7.53 1.282a.5.5 0 0 1 .94 0l.478 1.306a7.5 7.5 0 0 0 4.464 4.464l1.305.478a.5.5 0 0 1 0 .94l-1.305.478a7.5 7.5 0 0 0-4.464 4.464l-.478 1.305a.5.5 0 0 1-.94 0l-.478-1.305a7.5 7.5 0 0 0-4.464-4.464L1.282 8.47a.5.5 0 0 1 0-.94l1.306-.478a7.5 7.5 0 0 0 4.464-4.464Z"
-            />
-          </svg>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="18"
+              height="18"
+              viewBox="0 0 16 16"
+            >
+              <path
+                fill="currentColor"
+                d="M7.53 1.282a.5.5 0 0 1 .94 0l.478 1.306a7.5 7.5 0 0 0 4.464 4.464l1.305.478a.5.5 0 0 1 0 .94l-1.305.478a7.5 7.5 0 0 0-4.464 4.464l-.478 1.305a.5.5 0 0 1-.94 0l-.478-1.305a7.5 7.5 0 0 0-4.464-4.464L1.282 8.47a.5.5 0 0 1 0-.94l1.306-.478a7.5 7.5 0 0 0 4.464-4.464Z"
+              />
+            </svg>
+          </span>
         {/if}
       </div>
     </div>
@@ -567,20 +572,12 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    position: relative;
     transition: all 0.3s ease-in-out;
   }
 
   .floating-button-bg:hover .BG-cri {
     background: #25345c;
-  }
-
-  /* Loading state */
-  .loading .floating-button-bg {
-    background: #fbbf24 !important;
-  }
-
-  .loading .floating-button-bg:hover {
-    background: #f59e0b !important;
   }
 
   /* Error state */
@@ -593,20 +590,6 @@
     background: #dc2626 !important;
   }
 
-  /* Spinner animation */
-  .spinner {
-    animation: spin 1s linear infinite;
-  }
-
-  @keyframes spin {
-    from {
-      transform: rotate(0deg);
-    }
-    to {
-      transform: rotate(360deg);
-    }
-  }
-
   @keyframes errorFlash {
     0%,
     100% {
@@ -614,6 +597,62 @@
     }
     50% {
       background: #dc2626;
+    }
+  }
+
+  /* CSS để tạo con trỏ nhấp nháy được tối ưu */
+  .blinking-cursor::after {
+    content: '✢';
+    display: block;
+    margin: auto;
+    font-size: var(--text-xl);
+    text-align: center !important;
+    /* Sử dụng transform thay vì thay đổi content để tối ưu hiệu năng */
+    animation: cyberpunk-blink 1.2s linear infinite;
+
+    color: var(--cursor-color, #4b4b4b);
+    /* GPU acceleration */
+    will-change: transform;
+    /* Đảm bảo con trỏ luôn ở cuối */
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translateX(-50%) translateY(-50%) translateZ(0);
+  }
+
+  /* Optimized keyframes - giảm số frame để tối ưu hiệu năng */
+  @keyframes cyberpunk-blink {
+    0%,
+    10% {
+      content: '×';
+    }
+    15% {
+      content: '✢';
+    }
+    25% {
+      content: '✣';
+    }
+    35% {
+      content: '✥';
+    }
+    45% {
+      content: '✶';
+    }
+    55% {
+      content: '❉';
+    }
+    65% {
+      content: '❆';
+    }
+    75% {
+      content: '✺';
+    }
+    85% {
+      content: '❃';
+    }
+    95%,
+    100% {
+      content: '✽';
     }
   }
 </style>

@@ -22,11 +22,14 @@ export function createOllamaProxyModel(settings) {
           `[OllamaProxy] Sending API request ${requestId} to background`
         )
 
+        // Convert settings from a Svelte store (Proxy) to a plain object to avoid cloning errors in Firefox
+        const plainSettings = JSON.parse(JSON.stringify(settings))
+
         const response = await browser.runtime.sendMessage({
           type: 'OLLAMA_API_REQUEST',
           requestId,
           providerId: 'ollama',
-          settings,
+          settings: plainSettings,
           systemInstruction: config.system || '',
           userPrompt: config.prompt,
           config: {

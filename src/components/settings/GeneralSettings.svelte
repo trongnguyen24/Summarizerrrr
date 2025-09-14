@@ -3,6 +3,7 @@
   import Icon from '@iconify/svelte'
   import ButtonFont from '../buttons/ButtonFont.svelte'
   import ButtonIcon from '../buttons/ButtonIcon.svelte'
+  import ButtonSet from '../buttons/ButtonSet.svelte'
   import {
     settings,
     updateSettings,

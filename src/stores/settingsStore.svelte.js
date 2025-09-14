@@ -40,7 +40,11 @@ const DEFAULT_SETTINGS = {
   widthIndex: 1, // Default to max-w-3xl
   sidePanelDefaultWidth: 25, // Default width for side panel in em units
   oneClickSummarize: false, // Enable 1-click summarization on FAB
-
+  fabDomainControl: {
+    mode: 'all', // 'all' | 'whitelist' | 'blacklist'
+    whitelist: ['youtube.com', 'coursera.org', 'udemy.com'],
+    blacklist: [],
+  },
   // Onboarding
   hasCompletedOnboarding: false,
   onboardingStep: 0,
@@ -88,6 +92,29 @@ const DEFAULT_SETTINGS = {
 export let settings = $state({ ...DEFAULT_SETTINGS })
 let _isInitializedPromise = null
 
+// --- Helper Functions ---
+
+/**
+ * Converts fabDomainWhitelist from object format to array format
+ * @param {Object|Array} whitelist - The whitelist data
+ * @returns {Array} - Array of domain strings
+ */
+function normalizeFabWhitelist(whitelist) {
+  if (Array.isArray(whitelist)) {
+    return whitelist
+  }
+
+  if (typeof whitelist === 'object' && whitelist !== null) {
+    // Convert object format {"0": "youtube.com", "1": "coursera.org"} to array
+    return Object.values(whitelist).filter(
+      (domain) => typeof domain === 'string'
+    )
+  }
+
+  // Return default domains if invalid format
+  return ['youtube.com', 'coursera.org', 'udemy.com']
+}
+
 // --- Actions ---
 
 /**
@@ -103,8 +130,60 @@ export async function loadSettings() {
     try {
       const storedSettings = await settingsStorage.getValue()
       if (storedSettings && Object.keys(storedSettings).length > 0) {
-        // Merge stored settings with defaults to ensure all keys are present
-        const mergedSettings = { ...DEFAULT_SETTINGS, ...storedSettings }
+        // Handle migration from old fabDomainPermissions to new fabDomainControl format
+        if (
+          storedSettings.fabDomainPermissions &&
+          !storedSettings.fabDomainControl
+        ) {
+          const mode = storedSettings.fabDomainPermissions.enabled
+            ? 'whitelist'
+            : 'all'
+          const whitelist = normalizeFabWhitelist(
+            storedSettings.fabDomainPermissions.whitelist
+          )
+          storedSettings.fabDomainControl = {
+            mode,
+            whitelist,
+            blacklist: [],
+          }
+          delete storedSettings.fabDomainPermissions // Remove old key
+        }
+
+        // Handle migration from fabDomainPermissionsEnabled + fabDomainWhitelist to fabDomainControl
+        if (
+          (storedSettings.fabDomainPermissionsEnabled !== undefined ||
+            storedSettings.fabDomainWhitelist !== undefined) &&
+          !storedSettings.fabDomainControl
+        ) {
+          const mode = storedSettings.fabDomainPermissionsEnabled
+            ? 'whitelist'
+            : 'all'
+          const whitelist =
+            normalizeFabWhitelist(storedSettings.fabDomainWhitelist) || []
+          storedSettings.fabDomainControl = {
+            mode,
+            whitelist,
+            blacklist: [],
+          }
+          delete storedSettings.fabDomainPermissionsEnabled // Remove old key
+          delete storedSettings.fabDomainWhitelist // Remove old key
+        }
+
+        // Ensure fabDomainControl has proper structure
+        if (storedSettings.fabDomainControl) {
+          const { mode, whitelist, blacklist } = storedSettings.fabDomainControl
+          storedSettings.fabDomainControl = {
+            mode: mode || 'all',
+            whitelist: normalizeFabWhitelist(whitelist) || [],
+            blacklist: normalizeFabWhitelist(blacklist) || [],
+          }
+        }
+
+        // Merge settings with defaults
+        const mergedSettings = {
+          ...DEFAULT_SETTINGS,
+          ...storedSettings,
+        }
         Object.assign(settings, mergedSettings)
       } else {
         // No settings in storage, so initialize it with defaults
@@ -155,7 +234,49 @@ export async function updateSettings(newSettings) {
 export function subscribeToSettingsChanges() {
   return settingsStorage.watch((newValue, oldValue) => {
     if (JSON.stringify(newValue) !== JSON.stringify(settings)) {
-      const mergedSettings = { ...DEFAULT_SETTINGS, ...newValue }
+      // Handle migration from old formats to fabDomainControl
+      if (
+        (newValue.fabDomainPermissions ||
+          newValue.fabDomainPermissionsEnabled !== undefined ||
+          newValue.fabDomainWhitelist !== undefined) &&
+        !newValue.fabDomainControl
+      ) {
+        let mode = 'all'
+        let whitelist = []
+
+        if (newValue.fabDomainPermissions) {
+          mode = newValue.fabDomainPermissions.enabled ? 'whitelist' : 'all'
+          whitelist =
+            normalizeFabWhitelist(newValue.fabDomainPermissions.whitelist) || []
+          delete newValue.fabDomainPermissions
+        } else if (newValue.fabDomainPermissionsEnabled !== undefined) {
+          mode = newValue.fabDomainPermissionsEnabled ? 'whitelist' : 'all'
+          whitelist = normalizeFabWhitelist(newValue.fabDomainWhitelist) || []
+          delete newValue.fabDomainPermissionsEnabled
+          delete newValue.fabDomainWhitelist
+        }
+
+        newValue.fabDomainControl = {
+          mode,
+          whitelist,
+          blacklist: [],
+        }
+      }
+
+      // Ensure fabDomainControl has proper structure
+      if (newValue.fabDomainControl) {
+        const { mode, whitelist, blacklist } = newValue.fabDomainControl
+        newValue.fabDomainControl = {
+          mode: mode || 'all',
+          whitelist: normalizeFabWhitelist(whitelist) || [],
+          blacklist: normalizeFabWhitelist(blacklist) || [],
+        }
+      }
+
+      const mergedSettings = {
+        ...DEFAULT_SETTINGS,
+        ...newValue,
+      }
       Object.assign(settings, mergedSettings)
       if (newValue.uiLang !== settings.uiLang) {
         locale.set(newValue.uiLang)

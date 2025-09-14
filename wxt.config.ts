@@ -15,7 +15,6 @@ export default defineConfig({
     if (browser === 'chrome') {
       return {
         host_permissions: [
-          '<all_urls>',
           'http://127.0.0.1:11434/*',
           'http://localhost:11434/*',
         ],
@@ -83,10 +82,15 @@ export default defineConfig({
         permissions: [
           'storage',
           'tabs',
-          '<all_urls>',
           'contextMenus',
           'scripting',
           'declarativeNetRequest',
+        ],
+        optional_permissions: [
+          '<all_urls>',
+          '*://*.youtube.com/*',
+          '*://*.udemy.com/*',
+          '*://*.coursera.org/*',
         ],
         action: {
           default_icon: 'icon/48.png',

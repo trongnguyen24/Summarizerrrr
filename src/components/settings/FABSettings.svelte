@@ -12,6 +12,99 @@
   function handleUpdateSetting(key, value) {
     updateSettings({ [key]: value })
   }
+
+  let newWhitelistedDomain = ''
+  let newBlacklistedDomain = ''
+
+  // Simple helper to get current whitelist as array
+  function getCurrentWhitelist() {
+    return Array.isArray(settings.fabDomainControl?.whitelist)
+      ? settings.fabDomainControl.whitelist
+      : []
+  }
+
+  // Simple helper to get current blacklist as array
+  function getCurrentBlacklist() {
+    return Array.isArray(settings.fabDomainControl?.blacklist)
+      ? settings.fabDomainControl.blacklist
+      : []
+  }
+
+  // Helper to get current control mode
+  function getCurrentMode() {
+    return settings.fabDomainControl?.mode || 'all'
+  }
+
+  // Simple validation for domain patterns
+  function isValidDomainPattern(pattern) {
+    if (!pattern || typeof pattern !== 'string') return false
+
+    // Allow letters, numbers, dots, hyphens, and asterisks
+    const validChars = /^[a-zA-Z0-9.*-]+$/
+    if (!validChars.test(pattern)) return false
+
+    // Don't allow consecutive dots or starting/ending with dot (except wildcards)
+    if (
+      /\.{2,}/.test(pattern) ||
+      (pattern.startsWith('.') && !pattern.startsWith('*.'))
+    )
+      return false
+    if (pattern.endsWith('.') && !pattern.endsWith('.*')) return false
+
+    return true
+  }
+
+  function addDomain(listType = 'whitelist') {
+    const domain =
+      listType === 'whitelist'
+        ? newWhitelistedDomain.trim()
+        : newBlacklistedDomain.trim()
+    if (!domain) return
+
+    // Validate domain pattern
+    if (!isValidDomainPattern(domain)) {
+      // Could show toast notification here
+      console.warn('Invalid domain pattern:', domain)
+      return
+    }
+
+    const currentList =
+      listType === 'whitelist' ? getCurrentWhitelist() : getCurrentBlacklist()
+
+    if (!currentList.includes(domain)) {
+      const newList = [...currentList, domain]
+      const updatedControl = {
+        ...settings.fabDomainControl,
+        [listType]: newList,
+      }
+      handleUpdateSetting('fabDomainControl', updatedControl)
+
+      if (listType === 'whitelist') {
+        newWhitelistedDomain = ''
+      } else {
+        newBlacklistedDomain = ''
+      }
+    }
+  }
+
+  function removeDomain(domainToRemove, listType = 'whitelist') {
+    const currentList =
+      listType === 'whitelist' ? getCurrentWhitelist() : getCurrentBlacklist()
+    const newList = currentList.filter((d) => d !== domainToRemove)
+    const updatedControl = {
+      ...settings.fabDomainControl,
+      [listType]: newList,
+    }
+    handleUpdateSetting('fabDomainControl', updatedControl)
+  }
+
+  function updateControlMode(mode) {
+    const updatedControl = {
+      ...settings.fabDomainControl,
+      mode,
+    }
+    handleUpdateSetting('fabDomainControl', updatedControl)
+  }
 </script>
 
 <!-- FAB Section -->
@@ -85,97 +178,37 @@
         </div>
       </div>
 
-      <!-- FAB Position Section -->
-      <div class="flex col-span-2 flex-col gap-2 pb-4">
+      <!-- One Click Summarize Section -->
+      <div class="flex flex-col gap-2 pb-4">
         <!-- svelte-ignore a11y_label_has_associated_control -->
-        <label class="block text-text-secondary"
-          >{$t('settings.fab.position')}</label
-        >
+        <label class="block text-text-secondary">One Click Mode</label>
         <div class="grid w-full grid-cols-2 gap-1">
-          <ButtonSet
-            title={$t('settings.fab.position_option.left')}
-            class="setting-btn {settings.floatButtonLeft ? 'active' : ''}"
-            onclick={() => handleUpdateSetting('floatButtonLeft', true)}
-            Description={$t('settings.fab.position_option.left_desc')}
-          ></ButtonSet>
-          <ButtonSet
-            title={$t('settings.fab.position_option.right')}
-            class="setting-btn {!settings.floatButtonLeft ? 'active' : ''}"
-            onclick={() => handleUpdateSetting('floatButtonLeft', false)}
-            Description={$t('settings.fab.position_option.right_desc')}
-          ></ButtonSet>
-        </div>
-      </div>
-    </div>
-  </div>
+          <div class="flex col-span-2 flex-col gap-2 pb-4">
+            <!-- svelte-ignore a11y_label_has_associated_control -->
 
-  <!-- One Click Summarize Title Section -->
-  <div class="flex flex-col gap-1 mt-2 px-5">
-    <label
-      for="one-click-settings-toggle"
-      class="block font-bold text-text-primary">One Click Summarize</label
-    >
-    <p class="flex text-muted">
-      When enabled, clicking the floating button will automatically start
-      summarization instead of just opening the panel.
-    </p>
-
-    <div class="px-5 py-4 flex flex-col sm:flex-row gap-4">
-      <Preview
-        title={$t('settings.fab.preview')}
-        class=" w-full sm:w-60 h-40 shrink-0 mx-auto"
-      >
-        <div
-          class="w-40 z-30 border border-surface-2 absolute bottom-0 left-1/2 rounded-t-lg -translate-x-1/2 bg-surface-1 flex justify-center"
-          style=" height:{settings.mobileSheetHeight}%"
-        >
-          <span class=" block w-6 h-1 rounded-2xl mt-1.5 bg-blackwhite/10"
-          ></span>
-
-          <div></div>
-        </div>
-        <div
-          class="absolute z-20 transition-opacity inset-0 bg-black/40 {settings.mobileSheetBackdropOpacity
-            ? 'opacity-100'
-            : 'opacity-0'}"
-        ></div>
-      </Preview>
-      <div class="flex-auto">
-        <!-- One Click Summarize Section -->
-        <div class="flex flex-col gap-2 pb-4">
-          <!-- svelte-ignore a11y_label_has_associated_control -->
-          <label class="block text-text-secondary">One Click Mode</label>
-          <div class="grid w-full grid-cols-2 gap-1">
-            <div class="flex col-span-2 flex-col gap-2 pb-4">
-              <!-- svelte-ignore a11y_label_has_associated_control -->
-
-              <div class="grid w-full grid-cols-2 gap-1">
-                <ButtonSet
-                  title="Disabled"
-                  class="setting-btn {!settings.oneClickSummarize
-                    ? 'active'
-                    : ''}"
-                  onclick={() =>
-                    handleUpdateSetting('oneClickSummarize', false)}
-                  Description="Click button to toggle panel (default behavior)"
-                >
-                  <Icon
-                    icon="heroicons:cursor-arrow-rays-20-solid"
-                    width="20"
-                    height="20"
-                  />
-                </ButtonSet>
-                <ButtonSet
-                  title="Enabled"
-                  class="setting-btn {settings.oneClickSummarize
-                    ? 'active'
-                    : ''}"
-                  onclick={() => handleUpdateSetting('oneClickSummarize', true)}
-                  Description="Click button to auto-start summarization"
-                >
-                  <Icon icon="heroicons:bolt-20-solid" width="20" height="20" />
-                </ButtonSet>
-              </div>
+            <div class="grid w-full grid-cols-2 gap-1">
+              <ButtonSet
+                title="Disabled"
+                class="setting-btn {!settings.oneClickSummarize
+                  ? 'active'
+                  : ''}"
+                onclick={() => handleUpdateSetting('oneClickSummarize', false)}
+                Description="Click button to toggle panel (default behavior)"
+              >
+                <Icon
+                  icon="heroicons:cursor-arrow-rays-20-solid"
+                  width="20"
+                  height="20"
+                />
+              </ButtonSet>
+              <ButtonSet
+                title="Enabled"
+                class="setting-btn {settings.oneClickSummarize ? 'active' : ''}"
+                onclick={() => handleUpdateSetting('oneClickSummarize', true)}
+                Description="Click button to auto-start summarization"
+              >
+                <Icon icon="heroicons:bolt-20-solid" width="20" height="20" />
+              </ButtonSet>
             </div>
           </div>
         </div>
@@ -263,6 +296,7 @@
   </div>
 
   <div class="flex flex-col gap-1 mt-2 px-5">
+    <!-- svelte-ignore a11y_label_has_associated_control -->
     <label for="fab-settings-toggle" class="block font-bold text-text-primary"
       >{$t('settings.fab.float_sidepanel.title')}</label
     >
@@ -334,6 +368,121 @@
           ></ButtonSet>
         </div>
       </div>
+    </div>
+  </div>
+  <div class="flex flex-col gap-1 mt-2 px-5">
+    <label for="fab-settings-toggle" class="block font-bold text-text-primary"
+      >FAB Domain Control</label
+    >
+    <p class="flex text-muted">Control where the floating button appears.</p>
+  </div>
+  <div class="py-4 flex flex-col sm:flex-row gap-4 px-5">
+    <div class="w-full sm:w-60 h-40 shrink-0 flex flex-col gap-1">
+      <div class="flex flex-col gap-2 pb-4">
+        <!-- svelte-ignore a11y_label_has_associated_control -->
+        <label class="block text-text-secondary">Control Mode</label>
+        <div class="grid w-full grid-cols-1 gap-2">
+          <ButtonSet
+            title="All Sites"
+            class={getCurrentMode() === 'all' ? 'active' : ''}
+            onclick={() => updateControlMode('all')}
+            Description="Show FAB on all websites."
+          ></ButtonSet>
+          <ButtonSet
+            title="Whitelist"
+            class={getCurrentMode() === 'whitelist' ? 'active' : ''}
+            onclick={() => updateControlMode('whitelist')}
+            Description="Show FAB only on allowed domains."
+          ></ButtonSet>
+          <ButtonSet
+            title="Blacklist"
+            class={getCurrentMode() === 'blacklist' ? 'active' : ''}
+            onclick={() => updateControlMode('blacklist')}
+            Description="Hide FAB on blocked domains, show everywhere else."
+          ></ButtonSet>
+        </div>
+      </div>
+    </div>
+    <div class="flex-auto">
+      {#if getCurrentMode() !== 'all'}
+        <div class="flex flex-col gap-2 pb-4">
+          <!-- svelte-ignore a11y_label_has_associated_control -->
+          <label class="block text-text-secondary">
+            {getCurrentMode() === 'whitelist'
+              ? 'Add allowed domain'
+              : 'Add blocked domain'}
+          </label>
+          <div class="flex gap-1">
+            {#if getCurrentMode() === 'whitelist'}
+              <input
+                type="text"
+                placeholder="example.com or *.example.com"
+                bind:value={newWhitelistedDomain}
+                onkeydown={(e) => e.key === 'Enter' && addDomain('whitelist')}
+                class="bg-muted/10 border border-transparent hover:border-blackwhite/15 focus:border-blackwhite/30 focus:outline-none focus:ring-0 transition-colors duration-150 p-2 text-xs rounded invalid:border-red-500 w-full"
+              />
+            {:else}
+              <input
+                type="text"
+                placeholder="example.com or *.example.com"
+                bind:value={newBlacklistedDomain}
+                onkeydown={(e) => e.key === 'Enter' && addDomain('blacklist')}
+                class="bg-muted/10 border border-transparent hover:border-blackwhite/15 focus:border-blackwhite/30 focus:outline-none focus:ring-0 transition-colors duration-150 p-2 text-xs rounded invalid:border-red-500 w-full"
+              />
+            {/if}
+            <button
+              onclick={() => addDomain(getCurrentMode())}
+              class="p-2 w-10 flex justify-center font-bold transition-colors duration-150 bg-primary text-white hover:bg-primary/90 text-xs rounded"
+              ><Icon
+                icon="heroicons:plus-16-solid"
+                width="16"
+                height="16"
+              /></button
+            >
+          </div>
+        </div>
+        {#if getCurrentMode() === 'whitelist'}
+          <div class="text-xs text-text-secondary mb-1 font-medium">
+            Allowed Domains:
+          </div>
+          {#each getCurrentWhitelist() as domain}
+            <div
+              class="flex justify-between items-center bg-muted/10 text-text-secondary p-2 rounded text-xs"
+            >
+              <span>{domain}</span>
+              <button
+                onclick={() => removeDomain(domain, 'whitelist')}
+                class="p-2 transition-colors duration-150 bg-transparent hover:bg-blackwhite/5 !p-1 !h-auto"
+              >
+                <Icon icon="heroicons:trash-20-solid" width="16" height="16" />
+              </button>
+            </div>
+          {/each}
+        {:else if getCurrentMode() === 'blacklist'}
+          <div class="text-xs text-text-secondary mb-1 font-medium">
+            Blocked Domains:
+          </div>
+          {#each getCurrentBlacklist() as domain}
+            <div
+              class="flex justify-between items-center bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-2 rounded text-xs"
+            >
+              <span>{domain}</span>
+              <button
+                onclick={() => removeDomain(domain, 'blacklist')}
+                class="p-2 transition-colors duration-150 bg-transparent hover:bg-blackwhite/5 !p-1 !h-auto"
+              >
+                <Icon icon="heroicons:trash-20-solid" width="16" height="16" />
+              </button>
+            </div>
+          {/each}
+        {:else}
+          <div
+            class="flex items-center justify-center h-full text-text-secondary text-xs"
+          >
+            FAB will show on all websites
+          </div>
+        {/if}
+      {/if}
     </div>
   </div>
 </div>

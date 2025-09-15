@@ -2,6 +2,7 @@
   // @ts-nocheck
   import Icon from '@iconify/svelte'
   import ButtonSet from '../buttons/ButtonSet.svelte'
+  import ReusableSelect from '../inputs/ReusableSelect.svelte'
   import {
     settings,
     updateSettings,
@@ -104,6 +105,29 @@
       mode,
     }
     handleUpdateSetting('fabDomainControl', updatedControl)
+  }
+
+  // Items for ReusableSelect
+  const controlModeItems = [
+    {
+      value: 'all',
+      label: 'All Sites',
+    },
+    {
+      value: 'whitelist',
+      label: 'Allowed Sites Only',
+    },
+    {
+      value: 'blacklist',
+      label: 'Blocked Sites',
+    },
+  ]
+
+  // Reactive variable for current mode
+  let currentControlMode = $derived(getCurrentMode())
+
+  function handleControlModeChange(newMode) {
+    updateControlMode(newMode)
   }
 </script>
 
@@ -376,42 +400,21 @@
     >
     <p class="flex text-muted">Control where the floating button appears.</p>
   </div>
-  <div class="py-4 flex flex-col sm:flex-row gap-4 px-5">
-    <div class="w-full sm:w-60 h-40 shrink-0 flex flex-col gap-1">
-      <div class="flex flex-col gap-2 pb-4">
-        <!-- svelte-ignore a11y_label_has_associated_control -->
-        <label class="block text-text-secondary">Control Mode</label>
-        <div class="grid w-full grid-cols-1 gap-2">
-          <ButtonSet
-            title="All Sites"
-            class={getCurrentMode() === 'all' ? 'active' : ''}
-            onclick={() => updateControlMode('all')}
-            Description="Show FAB on all websites."
-          ></ButtonSet>
-          <ButtonSet
-            title="Whitelist"
-            class={getCurrentMode() === 'whitelist' ? 'active' : ''}
-            onclick={() => updateControlMode('whitelist')}
-            Description="Show FAB only on allowed domains."
-          ></ButtonSet>
-          <ButtonSet
-            title="Blacklist"
-            class={getCurrentMode() === 'blacklist' ? 'active' : ''}
-            onclick={() => updateControlMode('blacklist')}
-            Description="Hide FAB on blocked domains, show everywhere else."
-          ></ButtonSet>
-        </div>
+  <div class="py-4 flex flex-col gap-4 px-5">
+    <div class="w-full flex flex-col gap-1">
+      <div class="w-full">
+        <ReusableSelect
+          items={controlModeItems}
+          bind:bindValue={currentControlMode}
+          onValueChangeCallback={handleControlModeChange}
+          ariaLabel="Select FAB control mode"
+          className="w-full"
+        />
       </div>
     </div>
     <div class="flex-auto">
       {#if getCurrentMode() !== 'all'}
         <div class="flex flex-col gap-2 pb-4">
-          <!-- svelte-ignore a11y_label_has_associated_control -->
-          <label class="block text-text-secondary">
-            {getCurrentMode() === 'whitelist'
-              ? 'Add allowed domain'
-              : 'Add blocked domain'}
-          </label>
           <div class="flex gap-1">
             {#if getCurrentMode() === 'whitelist'}
               <input
@@ -442,9 +445,6 @@
           </div>
         </div>
         {#if getCurrentMode() === 'whitelist'}
-          <div class="text-xs text-text-secondary mb-1 font-medium">
-            Allowed Domains:
-          </div>
           {#each getCurrentWhitelist() as domain}
             <div
               class="flex justify-between items-center bg-muted/10 text-text-secondary p-2 rounded text-xs"
@@ -459,9 +459,6 @@
             </div>
           {/each}
         {:else if getCurrentMode() === 'blacklist'}
-          <div class="text-xs text-text-secondary mb-1 font-medium">
-            Blocked Domains:
-          </div>
           {#each getCurrentBlacklist() as domain}
             <div
               class="flex justify-between items-center bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-2 rounded text-xs"

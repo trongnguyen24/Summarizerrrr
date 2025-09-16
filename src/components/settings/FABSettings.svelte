@@ -415,14 +415,14 @@
     <div class="flex-auto">
       {#if getCurrentMode() !== 'all'}
         <div class="flex flex-col gap-2 pb-4">
-          <div class="flex gap-1">
+          <div class="flex relative gap-1">
             {#if getCurrentMode() === 'whitelist'}
               <input
                 type="text"
                 placeholder="example.com or *.example.com"
                 bind:value={newWhitelistedDomain}
                 onkeydown={(e) => e.key === 'Enter' && addDomain('whitelist')}
-                class="bg-muted/10 border border-transparent hover:border-blackwhite/15 focus:border-blackwhite/30 focus:outline-none focus:ring-0 transition-colors duration-150 p-2 text-xs rounded invalid:border-red-500 w-full"
+                class="w-full pl-3 text-text-primary text-xs pr-9 h-8.5 bg-muted/5 dark:bg-muted/5 border border-border hover:border-blackwhite/15 focus:border-blackwhite/30 dark:border-blackwhite/10 dark:focus:border-blackwhite/20 focus:outline-none focus:ring-0 placeholder:text-muted transition-colors duration-150"
               />
             {:else}
               <input
@@ -430,14 +430,14 @@
                 placeholder="example.com or *.example.com"
                 bind:value={newBlacklistedDomain}
                 onkeydown={(e) => e.key === 'Enter' && addDomain('blacklist')}
-                class="bg-muted/10 border border-transparent hover:border-blackwhite/15 focus:border-blackwhite/30 focus:outline-none focus:ring-0 transition-colors duration-150 p-2 text-xs rounded invalid:border-red-500 w-full"
+                class="w-full pl-3 text-text-primary text-xs pr-9 h-8.5 bg-muted/5 dark:bg-muted/5 border border-border hover:border-blackwhite/15 focus:border-blackwhite/30 dark:border-blackwhite/10 dark:focus:border-blackwhite/20 focus:outline-none focus:ring-0 placeholder:text-muted transition-colors duration-150"
               />
             {/if}
             <button
               onclick={() => addDomain(getCurrentMode())}
-              class="p-2 w-10 flex justify-center font-bold transition-colors duration-150 bg-primary text-white hover:bg-primary/90 text-xs rounded"
+              class=" absolute top-0 right-0 w-8.5 h-8.5 flex justify-center items-center transition-colors duration-150"
               ><Icon
-                icon="heroicons:plus-16-solid"
+                icon="heroicons:plus-circle-16-solid"
                 width="16"
                 height="16"
               /></button
@@ -445,33 +445,65 @@
           </div>
         </div>
         {#if getCurrentMode() === 'whitelist'}
-          {#each getCurrentWhitelist() as domain}
+          <div class="grid relative overflow-hidden grid-cols-3 p-1 gap-1">
+            <span
+              class="absolute z-30 size-4 rotate-45 bg-surface-1 border border-border bottom-px left-px -translate-x-1/2 translate-y-1/2"
+            ></span>
             <div
-              class="flex justify-between items-center bg-muted/10 text-text-secondary p-2 rounded text-xs"
-            >
-              <span>{domain}</span>
-              <button
-                onclick={() => removeDomain(domain, 'whitelist')}
-                class="p-2 transition-colors duration-150 bg-transparent hover:bg-blackwhite/5 !p-1 !h-auto"
+              class="absolute pointer-events-none z-20 border border-border inset-0"
+            ></div>
+
+            {#each getCurrentWhitelist() as domain}
+              <div
+                class="flex gap-2 z-10 overflow-hidden relative justify-between items-center bg-blackwhite-5 text-text-secondary pl-3 text-xs"
               >
-                <Icon icon="heroicons:trash-20-solid" width="16" height="16" />
-              </button>
-            </div>
-          {/each}
+                <span
+                  class="absolute z-20 size-3 rotate-45 bg-surface-1 bottom-px left-px -translate-x-1/2 translate-y-1/2"
+                ></span>
+                <span>{domain}</span>
+                <button
+                  onclick={() => removeDomain(domain, 'whitelist')}
+                  class="p-2 border-l border-blackwhite/5 transition-colors duration-150 bg-transparent hover:bg-blackwhite/5"
+                >
+                  <Icon
+                    icon="heroicons:minus-16-solid"
+                    width="16"
+                    height="16"
+                  />
+                </button>
+              </div>
+            {/each}
+          </div>
         {:else if getCurrentMode() === 'blacklist'}
-          {#each getCurrentBlacklist() as domain}
+          <div class="grid relative overflow-hidden grid-cols-3 p-1 gap-1">
+            <span
+              class="absolute z-30 size-4 rotate-45 bg-surface-1 border border-border bottom-px left-px -translate-x-1/2 translate-y-1/2"
+            ></span>
             <div
-              class="flex justify-between items-center bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-2 rounded text-xs"
-            >
-              <span>{domain}</span>
-              <button
-                onclick={() => removeDomain(domain, 'blacklist')}
-                class="p-2 transition-colors duration-150 bg-transparent hover:bg-blackwhite/5 !p-1 !h-auto"
+              class="absolute pointer-events-none z-20 border border-border inset-0"
+            ></div>
+
+            {#each getCurrentBlacklist() as domain}
+              <div
+                class="flex gap-2 z-10 overflow-hidden relative justify-between items-center bg-blackwhite-5 text-text-secondary pl-3 text-xs"
               >
-                <Icon icon="heroicons:trash-20-solid" width="16" height="16" />
-              </button>
-            </div>
-          {/each}
+                <span
+                  class="absolute z-20 size-3 rotate-45 bg-surface-1 bottom-px left-px -translate-x-1/2 translate-y-1/2"
+                ></span>
+                <span>{domain}</span>
+                <button
+                  onclick={() => removeDomain(domain, 'blacklist')}
+                  class="p-2 border-l border-blackwhite/5 transition-colors duration-150 bg-transparent hover:bg-blackwhite/5"
+                >
+                  <Icon
+                    icon="heroicons:minus-16-solid"
+                    width="16"
+                    height="16"
+                  />
+                </button>
+              </div>
+            {/each}
+          </div>
         {:else}
           <div
             class="flex items-center justify-center h-full text-text-secondary text-xs"

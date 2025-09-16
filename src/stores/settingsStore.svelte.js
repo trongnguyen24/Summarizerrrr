@@ -10,6 +10,7 @@ const DEFAULT_SETTINGS = {
   floatButtonLeft: false,
   showFloatingButton: true,
   floatingPanelLeft: false, // Default to right side
+  closePanelOnOutsideClick: true, // Close floating panel when clicking outside
   geminiApiKey: '',
   selectedGeminiModel: 'gemini-2.5-flash',
   geminiAdvancedApiKey: '',

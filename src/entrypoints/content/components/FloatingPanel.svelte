@@ -267,6 +267,15 @@
 </script>
 
 {#if showElement}
+  <!-- svelte-ignore a11y_click_events_have_key_events -->
+  <div
+    class="backdrop"
+    onclick={() => {
+      if (settings.closePanelOnOutsideClick) {
+        onclose?.()
+      }
+    }}
+  ></div>
   <!-- Sidepanel container -->
   <div
     class="floating-panel"
@@ -419,7 +428,7 @@
     font-size: 16px;
     display: flex;
     flex-direction: column;
-    z-index: 2147483640;
+    z-index: 2147483641;
     color: var(--color-text-primary);
     border-left: 1px solid var(--color-border);
     border-right: 1px solid var(--color-border);
@@ -461,5 +470,28 @@
   /* Active state khi đang resize */
   .resize-handle.resizing {
     background-color: oklch(50% 0 0 / 0.175) !important;
+  }
+
+  /* Backdrop */
+  .backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: transparent;
+    z-index: 2147483640;
+  }
+  .resize-handle.resizing {
+    background-color: oklch(50% 0 0 / 0.175) !important;
+  }
+  .backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: transparent;
+    z-index: 2147483640;
   }
 </style>

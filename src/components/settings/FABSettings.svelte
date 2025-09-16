@@ -394,6 +394,31 @@
         </div>
       </div>
     </div>
+
+    <div class="flex col-span-2 flex-col gap-2 pb-4">
+      <!-- svelte-ignore a11y_label_has_associated_control -->
+      <label class="block text-text-secondary"
+        >{$t('settings.fab.float_sidepanel.close_on_outside_click')}</label
+      >
+      <div class="grid w-full grid-cols-2 gap-1">
+        <ButtonSet
+          title="Enabled"
+          class="setting-btn {settings.closePanelOnOutsideClick
+            ? 'active'
+            : ''}"
+          onclick={() => handleUpdateSetting('closePanelOnOutsideClick', true)}
+          Description="Close the panel by clicking outside of it."
+        ></ButtonSet>
+        <ButtonSet
+          title="Disabled"
+          class="setting-btn {!settings.closePanelOnOutsideClick
+            ? 'active'
+            : ''}"
+          onclick={() => handleUpdateSetting('closePanelOnOutsideClick', false)}
+          Description="Keep the panel open when clicking outside."
+        ></ButtonSet>
+      </div>
+    </div>
   </div>
   <div class="flex flex-col gap-1 mt-2 px-5">
     <label for="fab-settings-toggle" class="block font-bold text-text-primary"

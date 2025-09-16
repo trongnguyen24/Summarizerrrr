@@ -375,48 +375,27 @@
 
       <div class="flex col-span-2 flex-col gap-2 pb-4">
         <!-- svelte-ignore a11y_label_has_associated_control -->
-        <label class="block text-text-secondary"
-          >{$t('settings.fab.float_sidepanel.sidepanel_position')}</label
-        >
+        <label class="block text-text-secondary">Close on click outside</label>
         <div class="grid w-full grid-cols-2 gap-1">
           <ButtonSet
-            title={$t('settings.fab.float_sidepanel.position_left')}
-            class="setting-btn {settings.floatingPanelLeft ? 'active' : ''}"
-            onclick={() => handleUpdateSetting('floatingPanelLeft', true)}
-            Description={$t('settings.fab.float_sidepanel.position_left')}
+            title="Disabled"
+            class="setting-btn {!settings.closePanelOnOutsideClick
+              ? 'active'
+              : ''}"
+            onclick={() =>
+              handleUpdateSetting('closePanelOnOutsideClick', false)}
+            Description="Keep the panel open when clicking outside."
           ></ButtonSet>
           <ButtonSet
-            title={$t('settings.fab.float_sidepanel.position_right')}
-            class="setting-btn {!settings.floatingPanelLeft ? 'active' : ''}"
-            onclick={() => handleUpdateSetting('floatingPanelLeft', false)}
-            Description={$t('settings.fab.float_sidepanel.position_right')}
+            title="Enabled"
+            class="setting-btn {settings.closePanelOnOutsideClick
+              ? 'active'
+              : ''}"
+            onclick={() =>
+              handleUpdateSetting('closePanelOnOutsideClick', true)}
+            Description="Close the panel by clicking outside of it."
           ></ButtonSet>
         </div>
-      </div>
-    </div>
-
-    <div class="flex col-span-2 flex-col gap-2 pb-4">
-      <!-- svelte-ignore a11y_label_has_associated_control -->
-      <label class="block text-text-secondary"
-        >{$t('settings.fab.float_sidepanel.close_on_outside_click')}</label
-      >
-      <div class="grid w-full grid-cols-2 gap-1">
-        <ButtonSet
-          title="Enabled"
-          class="setting-btn {settings.closePanelOnOutsideClick
-            ? 'active'
-            : ''}"
-          onclick={() => handleUpdateSetting('closePanelOnOutsideClick', true)}
-          Description="Close the panel by clicking outside of it."
-        ></ButtonSet>
-        <ButtonSet
-          title="Disabled"
-          class="setting-btn {!settings.closePanelOnOutsideClick
-            ? 'active'
-            : ''}"
-          onclick={() => handleUpdateSetting('closePanelOnOutsideClick', false)}
-          Description="Keep the panel open when clicking outside."
-        ></ButtonSet>
       </div>
     </div>
   </div>

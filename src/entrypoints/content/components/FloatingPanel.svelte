@@ -20,7 +20,7 @@
   // Import components
   import FloatingPanelContent from '@/components/displays/floating-panel/FloatingPanelContent.svelte'
 
-  let { visible, summary, status, onclose, children } = $props()
+  let { visible, summary, status, onclose, children, summarization } = $props()
 
   let panelElement = $state()
   let isResizing = $state(false)
@@ -88,7 +88,6 @@
   }
 
   // Initialize composables
-  const summarization = useSummarization()
   const panelState = useFloatingPanelState()
 
   // Computed properties để determine what to display

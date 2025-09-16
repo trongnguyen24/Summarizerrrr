@@ -131,6 +131,9 @@ export function useOneClickSummarization() {
         error
       )
 
+      // Handle error properly để hiển thị trong panel
+      handleSummarizationError(error)
+
       // Show error state briefly
       oneClickState.buttonState = 'error'
 

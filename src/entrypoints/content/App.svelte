@@ -212,6 +212,7 @@
         onclose={() => (isPanelVisible = false)}
         summary={oneClickSummarization.summaryToDisplay()}
         status={oneClickSummarization.statusToDisplay()}
+        summarization={oneClickSummarization}
       >
         {#snippet settingsMini()}
           <!-- <SettingsMini /> -->

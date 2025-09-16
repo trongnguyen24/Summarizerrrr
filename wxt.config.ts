@@ -8,6 +8,9 @@ export default defineConfig({
     optimizeDeps: {
       exclude: ['@wxt-dev/module-svelte'],
     },
+    esbuild: {
+      drop: ['console', 'debugger'],
+    },
   }),
   srcDir: 'src',
   modules: ['@wxt-dev/module-svelte'],

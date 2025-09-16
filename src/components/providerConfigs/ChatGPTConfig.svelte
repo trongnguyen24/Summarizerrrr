@@ -47,11 +47,8 @@
     }
   })
 
-  $effect(() => {
-    if (selectedChatgptModel) {
-      updateSettings({ selectedChatgptModel })
-    }
-  })
+  // Khối $effect đã được loại bỏ. Việc lưu model được xử lý bởi hàm `scheduleChatgptModelSave`
+  // được gọi từ sự kiện `oninput` của input.
 
   let saveStatus = $state('')
   let chatgptModelDebounceTimer = null

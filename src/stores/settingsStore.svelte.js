@@ -1,6 +1,13 @@
 // @ts-nocheck
 import { locale } from 'svelte-i18n'
 import { settingsStorage } from '@/services/wxtStorageService.js'
+import { secretKeyService } from '@/services/secretKeyService.js'
+import {
+  encrypt,
+  decrypt,
+  validateAndSanitizeApiKey,
+  isEncrypted,
+} from '@/lib/utils/crypto.js'
 
 // --- Default Settings (Merged) ---
 const DEFAULT_SETTINGS = {
@@ -96,6 +103,88 @@ let _isInitializedPromise = null
 // --- Helper Functions ---
 
 /**
+ * List of setting keys that contain API keys and should be encrypted
+ */
+const API_KEY_FIELDS = [
+  'geminiApiKey',
+  'geminiAdvancedApiKey',
+  'openaiCompatibleApiKey',
+  'openrouterApiKey',
+  'deepseekApiKey',
+  'chatgptApiKey',
+  'groqApiKey',
+]
+
+/**
+ * Encrypts API key fields in a settings object
+ * @param {Object} settings - The settings object
+ * @param {string} secretKey - The secret key for encryption
+ * @returns {Object} Settings object with encrypted API keys
+ */
+async function encryptApiKeys(settings, secretKey) {
+  const encryptedSettings = { ...settings }
+
+  for (const field of API_KEY_FIELDS) {
+    if (
+      settings[field] &&
+      typeof settings[field] === 'string' &&
+      settings[field].trim() !== ''
+    ) {
+      try {
+        // Validate and sanitize the API key first
+        const sanitizedKey = validateAndSanitizeApiKey(settings[field])
+        // Only encrypt if it's not already encrypted
+        if (!isEncrypted(sanitizedKey)) {
+          encryptedSettings[field] = encrypt(sanitizedKey, secretKey)
+        } else {
+          encryptedSettings[field] = sanitizedKey
+        }
+      } catch (error) {
+        console.warn(`[settingsStore] Failed to encrypt ${field}:`, error)
+        // Keep the original value if encryption fails
+        encryptedSettings[field] = settings[field]
+      }
+    }
+  }
+
+  return encryptedSettings
+}
+
+/**
+ * Decrypts API key fields in a settings object
+ * @param {Object} settings - The settings object with encrypted API keys
+ * @param {string} secretKey - The secret key for decryption
+ * @returns {Object} Settings object with decrypted API keys
+ */
+async function decryptApiKeys(settings, secretKey) {
+  const decryptedSettings = { ...settings }
+
+  for (const field of API_KEY_FIELDS) {
+    if (
+      settings[field] &&
+      typeof settings[field] === 'string' &&
+      settings[field].trim() !== ''
+    ) {
+      try {
+        // Only decrypt if it looks like encrypted data
+        if (isEncrypted(settings[field])) {
+          decryptedSettings[field] = decrypt(settings[field], secretKey)
+        } else {
+          // Keep as is if it's already plain text (for migration compatibility)
+          decryptedSettings[field] = settings[field]
+        }
+      } catch (error) {
+        console.warn(`[settingsStore] Failed to decrypt ${field}:`, error)
+        // Keep the original value if decryption fails
+        decryptedSettings[field] = settings[field]
+      }
+    }
+  }
+
+  return decryptedSettings
+}
+
+/**
  * Converts fabDomainWhitelist from object format to array format
  * @param {Object|Array} whitelist - The whitelist data
  * @returns {Array} - Array of domain strings
@@ -129,8 +218,17 @@ export async function loadSettings() {
 
   _isInitializedPromise = (async () => {
     try {
+      // Initialize secret key service first
+      await secretKeyService.initialize()
+      const secretKey = await secretKeyService.getSecretKey()
+
       const storedSettings = await settingsStorage.getValue()
       if (storedSettings && Object.keys(storedSettings).length > 0) {
+        // Decrypt API keys from stored settings
+        const decryptedStoredSettings = await decryptApiKeys(
+          storedSettings,
+          secretKey
+        )
         // Handle migration from old fabDomainPermissions to new fabDomainControl format
         if (
           storedSettings.fabDomainPermissions &&
@@ -183,7 +281,7 @@ export async function loadSettings() {
         // Merge settings with defaults
         const mergedSettings = {
           ...DEFAULT_SETTINGS,
-          ...storedSettings,
+          ...decryptedStoredSettings,
         }
         Object.assign(settings, mergedSettings)
       } else {
@@ -222,8 +320,12 @@ export async function updateSettings(newSettings) {
   }
 
   try {
-    // Save the entire updated settings object back to storage
-    await settingsStorage.setValue(updatedSettings)
+    // Get secret key and encrypt API keys before saving
+    const secretKey = await secretKeyService.getSecretKey()
+    const encryptedSettings = await encryptApiKeys(updatedSettings, secretKey)
+
+    // Save the encrypted settings object back to storage
+    await settingsStorage.setValue(encryptedSettings)
   } catch (error) {
     console.error('[settingsStore] Error saving settings:', error)
   }
@@ -233,54 +335,81 @@ export async function updateSettings(newSettings) {
  * Subscribes to changes in storage and updates the local state.
  */
 export function subscribeToSettingsChanges() {
-  return settingsStorage.watch((newValue, oldValue) => {
+  return settingsStorage.watch(async (newValue, oldValue) => {
     if (JSON.stringify(newValue) !== JSON.stringify(settings)) {
-      // Handle migration from old formats to fabDomainControl
-      if (
-        (newValue.fabDomainPermissions ||
-          newValue.fabDomainPermissionsEnabled !== undefined ||
-          newValue.fabDomainWhitelist !== undefined) &&
-        !newValue.fabDomainControl
-      ) {
-        let mode = 'all'
-        let whitelist = []
+      try {
+        // Decrypt API keys from the new value
+        const secretKey = await secretKeyService.getSecretKey()
+        const decryptedNewValue = await decryptApiKeys(newValue, secretKey)
 
-        if (newValue.fabDomainPermissions) {
-          mode = newValue.fabDomainPermissions.enabled ? 'whitelist' : 'all'
-          whitelist =
-            normalizeFabWhitelist(newValue.fabDomainPermissions.whitelist) || []
-          delete newValue.fabDomainPermissions
-        } else if (newValue.fabDomainPermissionsEnabled !== undefined) {
-          mode = newValue.fabDomainPermissionsEnabled ? 'whitelist' : 'all'
-          whitelist = normalizeFabWhitelist(newValue.fabDomainWhitelist) || []
-          delete newValue.fabDomainPermissionsEnabled
-          delete newValue.fabDomainWhitelist
+        // Handle migration from old formats to fabDomainControl
+        if (
+          (decryptedNewValue.fabDomainPermissions ||
+            decryptedNewValue.fabDomainPermissionsEnabled !== undefined ||
+            decryptedNewValue.fabDomainWhitelist !== undefined) &&
+          !decryptedNewValue.fabDomainControl
+        ) {
+          let mode = 'all'
+          let whitelist = []
+
+          if (decryptedNewValue.fabDomainPermissions) {
+            mode = decryptedNewValue.fabDomainPermissions.enabled
+              ? 'whitelist'
+              : 'all'
+            whitelist =
+              normalizeFabWhitelist(
+                decryptedNewValue.fabDomainPermissions.whitelist
+              ) || []
+            delete decryptedNewValue.fabDomainPermissions
+          } else if (
+            decryptedNewValue.fabDomainPermissionsEnabled !== undefined
+          ) {
+            mode = decryptedNewValue.fabDomainPermissionsEnabled
+              ? 'whitelist'
+              : 'all'
+            whitelist =
+              normalizeFabWhitelist(decryptedNewValue.fabDomainWhitelist) || []
+            delete decryptedNewValue.fabDomainPermissionsEnabled
+            delete decryptedNewValue.fabDomainWhitelist
+          }
+
+          decryptedNewValue.fabDomainControl = {
+            mode,
+            whitelist,
+            blacklist: [],
+          }
         }
 
-        newValue.fabDomainControl = {
-          mode,
-          whitelist,
-          blacklist: [],
+        // Ensure fabDomainControl has proper structure
+        if (decryptedNewValue.fabDomainControl) {
+          const { mode, whitelist, blacklist } =
+            decryptedNewValue.fabDomainControl
+          decryptedNewValue.fabDomainControl = {
+            mode: mode || 'all',
+            whitelist: normalizeFabWhitelist(whitelist) || [],
+            blacklist: normalizeFabWhitelist(blacklist) || [],
+          }
         }
-      }
 
-      // Ensure fabDomainControl has proper structure
-      if (newValue.fabDomainControl) {
-        const { mode, whitelist, blacklist } = newValue.fabDomainControl
-        newValue.fabDomainControl = {
-          mode: mode || 'all',
-          whitelist: normalizeFabWhitelist(whitelist) || [],
-          blacklist: normalizeFabWhitelist(blacklist) || [],
+        const mergedSettings = {
+          ...DEFAULT_SETTINGS,
+          ...decryptedNewValue,
         }
-      }
-
-      const mergedSettings = {
-        ...DEFAULT_SETTINGS,
-        ...newValue,
-      }
-      Object.assign(settings, mergedSettings)
-      if (newValue.uiLang !== settings.uiLang) {
-        locale.set(newValue.uiLang)
+        Object.assign(settings, mergedSettings)
+        if (decryptedNewValue.uiLang !== settings.uiLang) {
+          locale.set(decryptedNewValue.uiLang)
+        }
+      } catch (error) {
+        console.error(
+          '[settingsStore] Error processing settings change:',
+          error
+        )
+        // Fallback to using newValue directly if decryption fails
+        const mergedSettings = {
+          ...DEFAULT_SETTINGS,
+          ...newValue,
+        }
+        Object.assign(settings, mergedSettings)
       }
     }
   })

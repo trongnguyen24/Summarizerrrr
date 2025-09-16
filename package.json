@@ -46,6 +46,7 @@
     "ai-sdk-ollama": "^0.6.0",
     "animejs": "^4.0.2",
     "bits-ui": "^1.4.3",
+    "crypto-js": "^4.2.0",
     "highlight.js": "^11.11.1",
     "highlightjs-svelte": "^1.0.6",
     "marked": "^15.0.11",

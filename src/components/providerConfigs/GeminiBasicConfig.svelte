@@ -15,10 +15,8 @@
     selectedGeminiModel = geminiBasicModels[0].value
   }
 
-  // Sử dụng $effect để lưu API key khi nó thay đổi
-  $effect(() => {
-    updateSettings({ geminiApiKey: geminiApiKey.trim() })
-  })
+  // $effect để lưu API key đã được loại bỏ.
+  // Việc lưu trữ sẽ được xử lý bởi sự kiện `onSave` của `ApiKeyInput`.
 
   // Sử dụng $effect để lưu model khi nó thay đổi
   $effect(() => {

@@ -5,19 +5,17 @@
   <p>An intelligent AI extension to summarize YouTube, Udemy, Coursera, and any website. Crafted with a superior UI/UX design.</p>
   
   <p>
-    <a href="https://microsoftedge.microsoft.com/addons/detail/summarizerrrr/kgoolaebmcbhbjokofmhdcjbljagaiif">
-      <img src="https://img.shields.io/badge/Edge-Install%20Now-0078D7?style=for-the-badge&logo=microsoftedge&logoColor=white" alt="Edge Add-ons"/>
-    </a>
     <a href="https://chromewebstore.google.com/detail/summarizerrrr/ahfjndakflcegianjdojpldllodpkkpc">
       <img src="https://img.shields.io/badge/Chrome-Install%20Now-4285F4?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Chrome Web Store"/>
     </a>
     <a href="https://addons.mozilla.org/en-CA/firefox/addon/summarizerrrr/">
       <img src="https://img.shields.io/badge/Firefox-Install%20Now-FF7139?style=for-the-badge&logo=firefoxbrowser&logoColor=white" alt="Firefox Add-ons"/>
     </a>
+    <a href="https://microsoftedge.microsoft.com/addons/detail/summarizerrrr/kgoolaebmcbhbjokofmhdcjbljagaiif">
+      <img src="https://img.shields.io/badge/Edge-Install%20Now-0078D7?style=for-the-badge&logo=microsoftedge&logoColor=white" alt="Edge Add-ons"/>
+    </a>
   </p>
 </div>
-
----
 
 ## ✨ Key Features
 
@@ -30,8 +28,6 @@
 - 📱 **Cross-Platform Compatibility**  
   Works seamlessly on Desktop, Tablet, and Mobile browsers, including Firefox for Android and Kiwi Browser.
 
----
-
 ## 🚀 Installation
 
 1.  **Install from your browser's store:**
@@ -40,8 +36,6 @@
     - [Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/summarizerrrr/kgoolaebmcbhbjokofmhdcjbljagaiif)
 2.  **Get an API key** from your preferred provider (e.g., Google Gemini, OpenRouter, or run Ollama locally).
 3.  **Paste the key** into the extension's settings. You're ready to go!
-
----
 
 ## 👨‍💻 For Developers
 
@@ -61,8 +55,6 @@ npm run dev
 ```
 
 Then, load the `.output` folder as an unpacked extension in your browser's developer mode.
-
----
 
 ## 💬 Community & Support
 

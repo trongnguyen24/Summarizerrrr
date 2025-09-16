@@ -14,8 +14,8 @@
     updateSettings({ [key]: value })
   }
 
-  let newWhitelistedDomain = ''
-  let newBlacklistedDomain = ''
+  let newWhitelistedDomain = $state()
+  let newBlacklistedDomain = $state()
 
   // Simple helper to get current whitelist as array
   function getCurrentWhitelist() {
@@ -79,12 +79,13 @@
         [listType]: newList,
       }
       handleUpdateSetting('fabDomainControl', updatedControl)
+    }
 
-      if (listType === 'whitelist') {
-        newWhitelistedDomain = ''
-      } else {
-        newBlacklistedDomain = ''
-      }
+    // Always reset the input field after attempting to add
+    if (listType === 'whitelist') {
+      newWhitelistedDomain = ''
+    } else {
+      newBlacklistedDomain = ''
     }
   }
 
@@ -132,7 +133,7 @@
 </script>
 
 <!-- FAB Section -->
-<div class="setting-block flex flex-col pb-6 pt-5">
+<div class="setting-block flex flex-col pb-6 pt-6">
   <div class="flex flex-col gap-1 px-5">
     <label for="fab-settings-toggle" class="block font-bold text-text-primary"
       >{$t('settings.fab.title')}</label
@@ -445,21 +446,26 @@
           </div>
         </div>
         {#if getCurrentMode() === 'whitelist'}
-          <div class="grid relative overflow-hidden grid-cols-3 p-1 gap-1">
+          <div
+            class="grid relative overflow-hidden min-h-32 bg-background grid-cols-1 xs:grid-cols-2 p-2 gap-2"
+          >
             <span
-              class="absolute z-30 size-4 rotate-45 bg-surface-1 border border-border bottom-px left-px -translate-x-1/2 translate-y-1/2"
+              class="absolute z-40 size-4 rotate-45 bg-surface-1 border border-border bottom-px left-px -translate-x-1/2 translate-y-1/2"
             ></span>
             <div
-              class="absolute pointer-events-none z-20 border border-border inset-0"
+              class="absolute pointer-events-none bg-dot z-20 border border-border inset-0"
             ></div>
 
             {#each getCurrentWhitelist() as domain}
               <div
-                class="flex gap-2 z-10 overflow-hidden relative justify-between items-center bg-blackwhite-5 text-text-secondary pl-3 text-xs"
+                class="flex gap-2 z-30 h-8 overflow-hidden relative justify-between items-center bg-surface-2 text-text-secondary pl-3 text-xs"
               >
                 <span
-                  class="absolute z-20 size-3 rotate-45 bg-surface-1 bottom-px left-px -translate-x-1/2 translate-y-1/2"
+                  class="absolute z-20 size-3 rotate-45 border border-border bg-background bottom-px left-px -translate-x-1/2 translate-y-1/2"
                 ></span>
+                <div
+                  class="absolute pointer-events-none z-10 border border-border inset-0"
+                ></div>
                 <span>{domain}</span>
                 <button
                   onclick={() => removeDomain(domain, 'whitelist')}
@@ -473,24 +479,34 @@
                 </button>
               </div>
             {/each}
+            <div
+              class="flex items-center text-center col-span-2 justify-center font-medium text-text-secondary text-xs"
+            >
+              Show FAB only on allowed domains.
+            </div>
           </div>
         {:else if getCurrentMode() === 'blacklist'}
-          <div class="grid relative overflow-hidden grid-cols-3 p-1 gap-1">
+          <div
+            class="grid relative overflow-hidden bg-background min-h-32 grid-cols-2 p-2 gap-2"
+          >
             <span
-              class="absolute z-30 size-4 rotate-45 bg-surface-1 border border-border bottom-px left-px -translate-x-1/2 translate-y-1/2"
+              class="absolute z-40 size-4 rotate-45 bg-surface-1 border border-border bottom-px left-px -translate-x-1/2 translate-y-1/2"
             ></span>
             <div
-              class="absolute pointer-events-none z-20 border border-border inset-0"
+              class="absolute pointer-events-none bg-dot z-20 border border-border inset-0"
             ></div>
 
             {#each getCurrentBlacklist() as domain}
               <div
-                class="flex gap-2 z-10 overflow-hidden relative justify-between items-center bg-blackwhite-5 text-text-secondary pl-3 text-xs"
+                class="flex gap-2 z-30 h-8 overflow-hidden relative justify-between items-center bg-surface-2 text-text-secondary pl-3 text-xs"
               >
                 <span
-                  class="absolute z-20 size-3 rotate-45 bg-surface-1 bottom-px left-px -translate-x-1/2 translate-y-1/2"
+                  class="absolute z-20 size-3 rotate-45 border border-border bg-background bottom-px left-px -translate-x-1/2 translate-y-1/2"
                 ></span>
-                <span>{domain}</span>
+                <div
+                  class="absolute pointer-events-none z-10 border border-border inset-0"
+                ></div>
+                <p class=" flex-auto line-clamp-1">{domain}</p>
                 <button
                   onclick={() => removeDomain(domain, 'blacklist')}
                   class="p-2 border-l border-blackwhite/5 transition-colors duration-150 bg-transparent hover:bg-blackwhite/5"
@@ -503,14 +519,31 @@
                 </button>
               </div>
             {/each}
+
+            <div
+              class="flex mx-auto text-center col-span-2 items-center justify-center font-medium text-text-secondary text-xs"
+            >
+              Hide FAB on blocked domains, show everywhere else.
+            </div>
           </div>
-        {:else}
+        {/if}
+      {/if}
+      {#if getCurrentMode() === 'all'}
+        <div
+          class="grid relative overflow-hidden min-h-32 bg-background p-2 gap-2"
+        >
+          <span
+            class="absolute z-40 size-4 rotate-45 bg-surface-1 border border-border bottom-px left-px -translate-x-1/2 translate-y-1/2"
+          ></span>
           <div
-            class="flex items-center justify-center h-full text-text-secondary text-xs"
+            class="absolute pointer-events-none bg-dot z-20 border border-border inset-0"
+          ></div>
+          <div
+            class="flex items-center justify-center font-medium text-text-secondary text-xs"
           >
             FAB will show on all websites
           </div>
-        {/if}
+        </div>
       {/if}
     </div>
   </div>

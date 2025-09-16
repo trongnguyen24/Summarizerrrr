@@ -15,7 +15,6 @@
       <img src="https://img.shields.io/badge/Firefox-Install%20Now-FF7139?style=for-the-badge&logo=firefoxbrowser&logoColor=white" alt="Firefox Add-ons"/>
     </a>
   </p>
-  <p><strong>Version 2.0.2</strong></p>
 </div>
 
 ---

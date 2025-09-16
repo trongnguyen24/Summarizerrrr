@@ -282,7 +282,7 @@
   ></div>
   <!-- Sidepanel container -->
   <div
-    class="floating-panel"
+    class="floating-panel pt-8"
     class:left={panelPosition === 'left'}
     class:right={panelPosition === 'right'}
     bind:this={panelElement}
@@ -370,7 +370,7 @@
     </button>
     <button
       onclick={() => onclose?.()}
-      class="close-button absolute text-muted z-[9999] border-b border-border bg-surface-2 hover:text-text-primary transition-colors duration-200 cursor-pointer h-8 top-0 right-0 left-0 flex justify-center items-center"
+      class="close-button absolute text-muted z-[9999] border-b border-border bg-blackwhite-10 dark:bg-surface-2 hover:text-text-primary transition-colors duration-200 cursor-pointer h-8 top-0 right-0 left-0 flex justify-center items-center"
       aria-label="Close"
       ><Icon
         icon="heroicons:arrow-long-right"
@@ -379,10 +379,10 @@
         height="24"
       /></button
     >
-    <div id="shadow-scroll" class="w-full h-full py-8 overflow-y-auto">
+    <div id="shadow-scroll" class="w-full h-full overflow-y-auto">
       <div class="grid grid-rows-[10px_180px_10px_1fr] relative">
         <div
-          class="top-stripes border-t border-b border-border flex justify-center items-center w-full h-full"
+          class="top-stripes border-b border-border flex justify-center items-center w-full h-full"
         ></div>
         <div class="w-full flex items-center justify-center my-8">
           <button

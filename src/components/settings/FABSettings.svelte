@@ -375,7 +375,9 @@
 
       <div class="flex col-span-2 flex-col gap-2 pb-4">
         <!-- svelte-ignore a11y_label_has_associated_control -->
-        <label class="block text-text-secondary">Close on click outside</label>
+        <label class="block text-text-secondary"
+          >Auto-hide on outside click</label
+        >
         <div class="grid w-full grid-cols-2 gap-1">
           <ButtonSet
             title="Disabled"

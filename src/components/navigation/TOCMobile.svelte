@@ -11,6 +11,8 @@
   let headings = $state([])
   let isNavOpen = $state(false)
   let activeHeadingId = $state(null)
+  let isHovering = $state(false)
+  let hoverTimeout = null
   function generateRandomString(length = 4) {
     const characters = 'abcdefghijklmnopqrstuvwxyz'
     let result = ''
@@ -139,6 +141,47 @@
     )
   }
 
+  // Handle mouse enter for desktop hover
+  function handleMouseEnter() {
+    if (isTouchDevice()) return
+
+    if (hoverTimeout) {
+      clearTimeout(hoverTimeout)
+    }
+    isHovering = true
+  }
+
+  // Handle mouse leave for desktop hover
+  function handleMouseLeave() {
+    if (isTouchDevice()) return
+
+    hoverTimeout = setTimeout(() => {
+      isHovering = false
+    }, 200) // Small delay to prevent flicker when moving between button and nav
+  }
+
+  // Handle nav mouse enter to prevent hiding when hovering over nav
+  function handleNavMouseEnter() {
+    if (isTouchDevice()) return
+
+    if (hoverTimeout) {
+      clearTimeout(hoverTimeout)
+    }
+    isHovering = true
+  }
+
+  // Handle nav mouse leave
+  function handleNavMouseLeave() {
+    if (isTouchDevice()) return
+
+    hoverTimeout = setTimeout(() => {
+      isHovering = false
+    }, 200)
+  }
+
+  // Combined logic for showing nav: either clicked open OR hovering (on desktop)
+  const shouldShowNav = $derived(isNavOpen || (!isTouchDevice() && isHovering))
+
   // Bọc hàm highlight bằng throttle với giới hạn 80ms
   const throttledHighlight = throttle(highlight, 80)
 
@@ -175,6 +218,10 @@
 
     return () => {
       clearTimeout(timeoutId)
+      // Cleanup hover timeout
+      if (hoverTimeout) {
+        clearTimeout(hoverTimeout)
+      }
       // Cleanup scroll listeners
       const host = document.querySelector('wxt-svelte-integrated-ui')
       if (host?.shadowRoot) {
@@ -196,6 +243,8 @@
   <button
     class="flex items-end py-4 pl-6 pr-2 transition-all flex-col gap-1.5"
     onclick={() => (isNavOpen = !isNavOpen)}
+    onmouseenter={handleMouseEnter}
+    onmouseleave={handleMouseLeave}
   >
     {#each headings as heading}
       <span
@@ -212,8 +261,10 @@
   </button>
 
   <nav
-    class="fixed left-0 xs:left-auto xs:absolute xs:top-auto xs:w-80 bottom-0 max-w-[32em] right-0 p-0 top-8 z-20"
-    class:active={isNavOpen}
+    class="fixed left-0 xs:left-auto xs:absolute xs:top-auto xs:w-93 bottom-0 max-w-[38em] right-0 p-0 xs:pr-1.5 top-8 z-20"
+    class:active={shouldShowNav}
+    onmouseenter={handleNavMouseEnter}
+    onmouseleave={handleNavMouseLeave}
   >
     <div class="relative flex flex-col justify-end inset-0 h-full">
       <div
@@ -288,7 +339,7 @@
 
   nav {
     transform: translatey(100%);
-    transition: transform 0.3s ease-out;
+    transition: transform 0.2s ease-out;
     display: none;
   }
 

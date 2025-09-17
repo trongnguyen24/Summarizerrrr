@@ -100,7 +100,7 @@
   onMount(() => {
     const checkMobile = () => {
       // Đặt threshold thấp hơn để ưu tiên sidepanel trên desktop/tablet
-      isMobile = window.innerWidth < 480
+      isMobile = window.innerWidth < 608
     }
     checkMobile()
     window.addEventListener('resize', checkMobile)

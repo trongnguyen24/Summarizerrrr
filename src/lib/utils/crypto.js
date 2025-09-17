@@ -1,21 +1,23 @@
 // @ts-nocheck
-import CryptoJS from 'crypto-js'
-
 /**
  * Generates a random secret key for encryption
  * @returns {string} A random 256-bit key as hex string
  */
 export function generateSecretKey() {
-  return CryptoJS.lib.WordArray.random(256 / 8).toString(CryptoJS.enc.Hex)
+  const array = new Uint8Array(32) // 256 bits = 32 bytes
+  crypto.getRandomValues(array)
+  return Array.from(array)
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('')
 }
 
 /**
  * Encrypts a text string using AES encryption
  * @param {string} text - The plain text to encrypt
  * @param {string} secretKey - The secret key for encryption
- * @returns {string} The encrypted text as base64 string
+ * @returns {Promise<string>} The encrypted text as base64 string
  */
-export function encrypt(text, secretKey) {
+export async function encrypt(text, secretKey) {
   if (!text || typeof text !== 'string') {
     return text // Return unchanged if not a valid string
   }
@@ -25,7 +27,38 @@ export function encrypt(text, secretKey) {
   }
 
   try {
-    const encrypted = CryptoJS.AES.encrypt(text, secretKey).toString()
+    const encoder = new TextEncoder()
+    const data = encoder.encode(text)
+
+    // Convert hex secretKey to Uint8Array bytes (256 bits = 32 bytes)
+    const keyBytes = new Uint8Array(32)
+    for (let i = 0; i < secretKey.length; i += 2) {
+      keyBytes[i / 2] = parseInt(secretKey.substr(i, 2), 16)
+    }
+
+    const key = await crypto.subtle.importKey(
+      'raw',
+      keyBytes,
+      { name: 'AES-CBC' },
+      false,
+      ['encrypt']
+    )
+
+    const iv = crypto.getRandomValues(new Uint8Array(16)) // Random IV
+    const encryptedBuffer = await crypto.subtle.encrypt(
+      { name: 'AES-CBC', iv },
+      key,
+      data
+    )
+
+    // Combine IV + encrypted data
+    const combined = new Uint8Array(iv.length + encryptedBuffer.byteLength)
+    combined.set(iv, 0)
+    combined.set(new Uint8Array(encryptedBuffer), iv.length)
+
+    // Convert to base64
+    const binaryString = String.fromCharCode(...combined)
+    const encrypted = btoa(binaryString)
     const prefixed = `encv1:${encrypted}`
     return prefixed
   } catch (error) {
@@ -38,9 +71,9 @@ export function encrypt(text, secretKey) {
  * Decrypts an encrypted string using AES decryption
  * @param {string} encryptedText - The encrypted text to decrypt
  * @param {string} secretKey - The secret key for decryption
- * @returns {string} The decrypted plain text
+ * @returns {Promise<string>} The decrypted plain text
  */
-export function decrypt(encryptedText, secretKey) {
+export async function decrypt(encryptedText, secretKey) {
   if (
     !encryptedText ||
     typeof encryptedText !== 'string' ||
@@ -55,8 +88,38 @@ export function decrypt(encryptedText, secretKey) {
 
   try {
     const actualEncryptedText = encryptedText.substring(6) // Remove 'encv1:' prefix
-    const decrypted = CryptoJS.AES.decrypt(actualEncryptedText, secretKey)
-    const plainText = decrypted.toString(CryptoJS.enc.Utf8)
+    const binaryString = atob(actualEncryptedText)
+    const combined = new Uint8Array(binaryString.length)
+    for (let i = 0; i < binaryString.length; i++) {
+      combined[i] = binaryString.charCodeAt(i)
+    }
+
+    // Extract IV (first 16 bytes) and ciphertext
+    const iv = combined.slice(0, 16)
+    const ciphertext = combined.slice(16)
+
+    // Convert hex secretKey to Uint8Array bytes (256 bits = 32 bytes)
+    const keyBytes = new Uint8Array(32)
+    for (let i = 0; i < secretKey.length; i += 2) {
+      keyBytes[i / 2] = parseInt(secretKey.substr(i, 2), 16)
+    }
+
+    const key = await crypto.subtle.importKey(
+      'raw',
+      keyBytes,
+      { name: 'AES-CBC' },
+      false,
+      ['decrypt']
+    )
+
+    const decryptedBuffer = await crypto.subtle.decrypt(
+      { name: 'AES-CBC', iv },
+      key,
+      ciphertext
+    )
+
+    const decoder = new TextDecoder()
+    const plainText = decoder.decode(decryptedBuffer)
 
     if (!plainText) {
       throw new Error('Failed to decrypt - invalid key or corrupted data')

@@ -8,9 +8,9 @@ export default defineConfig({
     optimizeDeps: {
       exclude: ['@wxt-dev/module-svelte'],
     },
-    esbuild: {
-      drop: ['console', 'debugger'],
-    },
+    // esbuild: {
+    //   drop: ['console', 'debugger'],
+    // },
   }),
   srcDir: 'src',
   modules: ['@wxt-dev/module-svelte'],
@@ -89,12 +89,12 @@ export default defineConfig({
           'scripting',
           'declarativeNetRequest',
         ],
-        optional_permissions: [
-          '<all_urls>',
-          '*://*.youtube.com/*',
-          '*://*.udemy.com/*',
-          '*://*.coursera.org/*',
-        ],
+        // optional_permissions: [
+        //   '<all_urls>',
+        //   '*://*.youtube.com/*',
+        //   '*://*.udemy.com/*',
+        //   '*://*.coursera.org/*',
+        // ],
         action: {
           default_icon: 'icon/48.png',
           default_title: 'Open Summarizerrrr',

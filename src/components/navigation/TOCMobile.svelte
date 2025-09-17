@@ -212,13 +212,13 @@
   </button>
 
   <nav
-    class="fixed bottom-0 max-w-[32em] right-0 p-0 top-8 z-20"
+    class="fixed left-0 xs:left-auto xs:absolute xs:top-auto xs:w-80 bottom-0 max-w-[32em] right-0 p-0 top-8 z-20"
     class:active={isNavOpen}
   >
-    <div class="relative inset-0 h-full">
+    <div class="relative flex flex-col justify-end inset-0 h-full">
       <div
         id="toc-scroll"
-        class="w-full hide-scrollbar overflow-auto h-[calc(100%-4em)] border rounded-t-3xl border-border bg-surface-1"
+        class="w-full hide-scrollbar overflow-auto h-[calc(100%-4em)] xs:h-full xs:max-h-[calc(100vh-8em)] border rounded-t-3xl border-border bg-surface-1"
       >
         <div
           class="flex flex-col divide-y divide-border/50 dark:divide-border/70"
@@ -240,7 +240,7 @@
         </div>
       </div>
       <div
-        class="bg-surface-1 flex justify-between items-center border border-border overflow-hidden border-t-0"
+        class="bg-surface-1 flex justify-between items-center border border-border overflow-hidden xs:rounded-b-3xl border-t-0"
       >
         <button
           onclick={() => {

@@ -24,9 +24,6 @@ export class SummarizationService {
   shouldUseStreaming(settings) {
     // FORCE BLOCKING MODE cho tất cả content scripts
     // Content scripts có security restrictions làm streaming bị lỗi "Permission denied to access property flush"
-    console.log(
-      '[SummarizationService] Content script context detected - forcing blocking mode to avoid streaming errors'
-    )
     return false
 
     // Logic cũ đã được disable:
@@ -355,18 +352,9 @@ export class SummarizationService {
     const { content, contentType } =
       await this.contentExtractorService.extractPageContent()
 
-    console.log(
-      `[SummarizationService] Extracted ${contentType} content:`,
-      content.substring(0, 100) + '...'
-    )
-
     // Xác định phương thức summarization
     const useStreaming = this.shouldUseStreaming(settings)
     const selectedProvider = settings.selectedProvider || 'gemini'
-
-    console.log(
-      `[SummarizationService] Using ${selectedProvider} with streaming: ${useStreaming}`
-    )
 
     let result
     if (useStreaming) {
@@ -391,17 +379,9 @@ export class SummarizationService {
     const { content, contentType } =
       await this.contentExtractorService.extractPageContent()
 
-    console.log(
-      `[SummarizationService] Extracting course summary from ${contentType} content`
-    )
-
     // Xác định phương thức summarization
     const useStreaming = this.shouldUseStreaming(settings)
     const selectedProvider = settings.selectedProvider || 'gemini'
-
-    console.log(
-      `[SummarizationService] Using ${selectedProvider} with streaming: ${useStreaming} for course summary`
-    )
 
     let summary = ''
     const browserCompatibility = getBrowserCompatibility()
@@ -449,17 +429,9 @@ export class SummarizationService {
     const { content, contentType } =
       await this.contentExtractorService.extractPageContent()
 
-    console.log(
-      `[SummarizationService] Extracting course concepts from ${contentType} content`
-    )
-
     // Xác định phương thức summarization
     const useStreaming = this.shouldUseStreaming(settings)
     const selectedProvider = settings.selectedProvider || 'gemini'
-
-    console.log(
-      `[SummarizationService] Using ${selectedProvider} with streaming: ${useStreaming} for course concepts`
-    )
 
     let courseConcepts = ''
     const browserCompatibility = getBrowserCompatibility()

@@ -24,9 +24,6 @@ import { createOllamaProxyModel } from './ollamaProxyModel.js'
 export function getAISDKModel(providerId, settings) {
   // Check if we need to use proxy for this provider in current context
   if (requiresApiProxy(providerId)) {
-    console.log(
-      `[aiSdkAdapter] Using proxy model for ${providerId} in content script context`
-    )
     return createOllamaProxyModel(settings)
   }
 
@@ -56,9 +53,6 @@ export function getAISDKModel(providerId, settings) {
 
         // Tạo model từ provider
         const model = googleProvider(geminiModel)
-        console.log(
-          '[aiSdkAdapter] Google model created successfully with provider'
-        )
         return model
       } catch (error) {
         console.error('[aiSdkAdapter] Error creating Google model:', error)
@@ -193,14 +187,12 @@ export async function generateContent(
       return result.text
     } else {
       // Use the standard AI SDK generateText for direct calls - no middleware
-      console.log('[DEBUG] Direct model raw generateText call')
       const { text } = await generateText({
         model,
         system: systemInstruction,
         prompt: userPrompt,
         ...generationConfig,
       })
-      console.log('[DEBUG] Direct raw result:', text) // Add debug log
       return text
     }
   } catch (error) {
@@ -248,9 +240,7 @@ export async function* generateContentStream(
       })
 
       // Yield chunks from proxy stream - now with full <think> content
-      console.log('[DEBUG] Proxy stream chunks will include thinking tags')
       for await (const chunk of result.textStream) {
-        console.log('[DEBUG] Proxy stream chunk:', chunk) // Add debug log
         yield chunk
       }
     } else {
@@ -284,9 +274,7 @@ export async function* generateContentStream(
           : result.textStream
 
       // Yield full chunks including <think> tags (no extraction)
-      console.log('[DEBUG] Direct stream chunks will include thinking tags')
       for await (const chunk of streamToUse) {
-        console.log('[DEBUG] Direct stream chunk:', chunk) // Add debug log
         yield chunk
       }
     }
@@ -298,9 +286,6 @@ export async function* generateContentStream(
       browserCompatibility.isFirefoxMobile &&
       error.message.includes('flush')
     ) {
-      console.warn(
-        'Firefox mobile streaming error detected, suggesting fallback to non-streaming'
-      )
       // Re-throw with additional context for fallback handling
       error.isFirefoxMobileStreamingError = true
     }
@@ -359,14 +344,11 @@ export async function* generateContentStreamEnhanced(
       isComplete: true,
     }
   } catch (error) {
-    console.error('AI SDK Enhanced Stream Error:', error)
-
     // Check if this is a Firefox mobile specific error
     if (
       browserCompatibility.isFirefoxMobile &&
       error.message.includes('flush')
     ) {
-      console.log('Firefox mobile streaming error detected in enhanced stream')
       error.isFirefoxMobileStreamingError = true
     }
 

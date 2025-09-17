@@ -5,6 +5,7 @@
   import hljs from 'highlight.js'
   import svelte from 'highlightjs-svelte'
   svelte(hljs)
+  import { processThinkTags } from '@/lib/utils/thinkTagProcessor.js'
   import TOC from '@/components/navigation/TOCArchive.svelte'
   import TOCMobile from '@/components/navigation/TOCMobile.svelte'
   import TabNavigation from '@/components/navigation/TabNavigation.svelte'
@@ -21,6 +22,7 @@
 
   let activeTabId = $state(null)
   let tabs = $state([])
+  let parsedContent = $state('')
 
   // @ts-nocheck
   const fontSizeClasses = [
@@ -67,13 +69,46 @@
     }
   })
 
+  // Effect để parse markdown với think tags khi selectedSummary hoặc activeTabId thay đổi
+  $effect(() => {
+    if (selectedSummary && activeTabId) {
+      const currentSummary = selectedSummary.summaries.find(
+        (_, index) => `summary-tab-${index}` === activeTabId
+      )
+
+      if (currentSummary && typeof currentSummary.content === 'string') {
+        try {
+          marked.setOptions({
+            highlight: function (code, lang) {
+              const language = hljs.getLanguage(lang) ? lang : 'plaintext'
+              return hljs.highlight(code, { language }).value
+            },
+          })
+
+          const processedContent = processThinkTags(currentSummary.content)
+          parsedContent = marked.parse(processedContent)
+        } catch (error) {
+          console.warn('SummaryDisplay: Think tag processing error:', error)
+          // Fallback to original content
+          parsedContent = marked.parse(currentSummary.content)
+        }
+      } else {
+        parsedContent = ''
+      }
+    } else {
+      parsedContent = ''
+    }
+  })
+
   // Effect để highlight code và cuộn trang khi selectedSummary hoặc activeTabId thay đổi
   $effect(() => {
     if (selectedSummary && activeTabId) {
       // Svelte 5 $effect chạy sau khi DOM đã được cập nhật,
       // vì vậy các phần tử sẽ có sẵn để tô sáng.
       document
-        .querySelectorAll('.summary-content pre code')
+        .querySelectorAll(
+          '.summary-content pre code, .summary-content .think-section pre code'
+        )
         .forEach((block) => {
           hljs.highlightElement(block)
         })
@@ -142,7 +177,7 @@
           (_, index) => `summary-tab-${index}` === activeTabId
         )}
         {#if currentSummary}
-          <div id="copy-cat">{@html marked.parse(currentSummary.content)}</div>
+          <div id="copy-cat">{@html parsedContent}</div>
         {/if}
       {/if}
 
@@ -228,3 +263,10 @@
     No summary selected.
   </p>
 {/if}
+
+<style>
+  :global(.think-section) {
+    opacity: 0.75;
+    overflow: hidden;
+  }
+</style>

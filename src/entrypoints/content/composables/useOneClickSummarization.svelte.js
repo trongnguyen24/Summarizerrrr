@@ -54,10 +54,6 @@ export function useOneClickSummarization() {
     } else {
       oneClickState.buttonState = 'idle'
     }
-
-    console.log(
-      `[useOneClickSummarization] Initialized for URL: ${url}, hasCache: ${!!cachedSummary}`
-    )
   }
 
   /**
@@ -85,16 +81,8 @@ export function useOneClickSummarization() {
 
     // Nếu đã có summary cho URL hiện tại, toggle panel thay vì re-summarize
     if (oneClickState.hasSummaryForCurrentUrl) {
-      console.log(
-        '[useOneClickSummarization] Has summary, toggling panel instead'
-      )
       return false // Let normal toggle happen
     }
-
-    // Bắt đầu one-click summarization
-    console.log(
-      '[useOneClickSummarization] Starting one-click summarization...'
-    )
 
     try {
       // Set loading state
@@ -122,7 +110,6 @@ export function useOneClickSummarization() {
 
       // Auto-open panel
       if (oneClickState.onPanelOpen) {
-        console.log('[useOneClickSummarization] Auto-opening panel...')
         oneClickState.onPanelOpen()
       }
     } catch (error) {
@@ -160,10 +147,8 @@ export function useOneClickSummarization() {
     if (url) {
       const cacheKey = getCacheKey(url)
       summaryCache.delete(cacheKey)
-      console.log(`[useOneClickSummarization] Cleared cache for URL: ${url}`)
     } else {
       summaryCache.clear()
-      console.log('[useOneClickSummarization] Cleared entire summary cache')
     }
 
     // Reset current URL state nếu match
@@ -178,11 +163,6 @@ export function useOneClickSummarization() {
    */
   function updateOneClickMode(enabled) {
     oneClickState.isOneClickMode = enabled
-    console.log(
-      `[useOneClickSummarization] One-click mode ${
-        enabled ? 'enabled' : 'disabled'
-      }`
-    )
   }
 
   // Reactively update one-click mode khi settings thay đổi

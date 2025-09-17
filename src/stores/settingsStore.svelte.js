@@ -122,10 +122,6 @@ const API_KEY_FIELDS = [
  * @returns {Object} Settings object with encrypted API keys
  */
 async function encryptApiKeys(settings, secretKey) {
-  console.log(
-    '[settingsStore] Starting encryptApiKeys, secretKey length:',
-    secretKey ? secretKey.length : 'null'
-  )
   const encryptedSettings = { ...settings }
 
   for (const field of API_KEY_FIELDS) {
@@ -135,27 +131,13 @@ async function encryptApiKeys(settings, secretKey) {
       settings[field].trim() !== ''
     ) {
       try {
-        console.log(
-          `[settingsStore] Processing field ${field}, value:`,
-          settings[field].substring(0, 10) + '...',
-          'isEncrypted:',
-          isEncrypted(settings[field])
-        )
         // Validate and sanitize the API key first
         const sanitizedKey = validateAndSanitizeApiKey(settings[field])
         // Only encrypt if it's not already encrypted
         if (!isEncrypted(sanitizedKey)) {
-          console.log(`[settingsStore] Encrypting ${field}`)
           const encryptedValue = await encrypt(sanitizedKey, secretKey)
-          console.log(
-            `[settingsStore] Encrypted ${field} success, starts with encv1:`,
-            encryptedValue.startsWith('encv1:')
-          )
           encryptedSettings[field] = encryptedValue
         } else {
-          console.log(
-            `[settingsStore] Skipping encrypt ${field} (already encrypted)`
-          )
           encryptedSettings[field] = sanitizedKey
         }
       } catch (error) {
@@ -169,11 +151,9 @@ async function encryptApiKeys(settings, secretKey) {
         encryptedSettings[field] = settings[field]
       }
     } else {
-      console.log(`[settingsStore] Skipping empty field ${field}`)
     }
   }
 
-  console.log('[settingsStore] encryptApiKeys completed')
   return encryptedSettings
 }
 
@@ -184,10 +164,6 @@ async function encryptApiKeys(settings, secretKey) {
  * @returns {Object} Settings object with decrypted API keys
  */
 async function decryptApiKeys(settings, secretKey) {
-  console.log(
-    '[settingsStore] Starting decryptApiKeys, secretKey length:',
-    secretKey ? secretKey.length : 'null'
-  )
   const decryptedSettings = { ...settings }
 
   for (const field of API_KEY_FIELDS) {
@@ -197,21 +173,11 @@ async function decryptApiKeys(settings, secretKey) {
       settings[field].trim() !== ''
     ) {
       try {
-        console.log(
-          `[settingsStore] Processing decrypt field ${field}, starts with encv1:`,
-          settings[field].startsWith('encv1:')
-        )
         // Only decrypt if it looks like encrypted data
         if (isEncrypted(settings[field])) {
-          console.log(`[settingsStore] Decrypting ${field}`)
           const decryptedValue = await decrypt(settings[field], secretKey)
-          console.log(
-            `[settingsStore] Decrypted ${field} success, length:`,
-            decryptedValue ? decryptedValue.length : 0
-          )
           decryptedSettings[field] = decryptedValue
         } else {
-          console.log(`[settingsStore] Skipping decrypt ${field} (plain text)`)
           // Keep as is if it's already plain text (for migration compatibility)
           decryptedSettings[field] = settings[field]
         }
@@ -226,11 +192,9 @@ async function decryptApiKeys(settings, secretKey) {
         decryptedSettings[field] = settings[field]
       }
     } else {
-      console.log(`[settingsStore] Skipping empty field ${field} for decrypt`)
     }
   }
 
-  console.log('[settingsStore] decryptApiKeys completed')
   return decryptedSettings
 }
 
@@ -374,15 +338,10 @@ export async function updateSettings(newSettings) {
     await loadSettings()
     // Get secret key and encrypt API keys before saving
     const secretKey = await secretKeyService.getSecretKey()
-    console.log(
-      '[settingsStore] updateSettings: secretKey ready, length:',
-      secretKey.length
-    )
     const encryptedSettings = await encryptApiKeys(updatedSettings, secretKey)
 
     // Save the encrypted settings object back to storage
     await settingsStorage.setValue(encryptedSettings)
-    console.log('[settingsStore] Settings saved to storage')
   } catch (error) {
     console.error('[settingsStore] Error saving settings:', error)
     // Re-throw to alert, but don't break UI

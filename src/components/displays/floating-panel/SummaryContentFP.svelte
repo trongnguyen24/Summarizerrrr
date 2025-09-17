@@ -113,6 +113,7 @@
   /* Think section styling */
   :global(.think-section) {
     opacity: 0.75;
+    margin-bottom: 1em;
     overflow: hidden;
   }
 </style>

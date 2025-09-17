@@ -109,20 +109,20 @@
   }
 
   // Items for ReusableSelect
-  const controlModeItems = [
+  const controlModeItems = $derived([
     {
       value: 'all',
-      label: 'All Sites',
+      label: $t('settings.fab.domain_control.all_sites'),
     },
     {
       value: 'whitelist',
-      label: 'Allowed Sites Only',
+      label: $t('settings.fab.domain_control.allowed_sites_only'),
     },
     {
       value: 'blacklist',
-      label: 'Blocked Sites',
+      label: $t('settings.fab.domain_control.blocked_sites'),
     },
-  ]
+  ])
 
   // Reactive variable for current mode
   let currentControlMode = $derived(getCurrentMode())
@@ -206,19 +206,21 @@
       <!-- One Click Summarize Section -->
       <div class="flex flex-col gap-2 pb-4">
         <!-- svelte-ignore a11y_label_has_associated_control -->
-        <label class="block text-text-secondary">One Click Mode</label>
+        <label class="block text-text-secondary"
+          >{$t('settings.fab.one_click_mode')}</label
+        >
         <div class="grid w-full grid-cols-2 gap-1">
           <div class="flex col-span-2 flex-col gap-2 pb-4">
             <!-- svelte-ignore a11y_label_has_associated_control -->
 
             <div class="grid w-full grid-cols-2 gap-1">
               <ButtonSet
-                title="Disabled"
+                title={$t('settings.fab.one_click_disabled_title')}
                 class="setting-btn {!settings.oneClickSummarize
                   ? 'active'
                   : ''}"
                 onclick={() => handleUpdateSetting('oneClickSummarize', false)}
-                Description="Click button to toggle panel (default behavior)"
+                Description={$t('settings.fab.one_click_disabled_desc')}
               >
                 <Icon
                   icon="heroicons:cursor-arrow-rays-20-solid"
@@ -227,10 +229,10 @@
                 />
               </ButtonSet>
               <ButtonSet
-                title="Enabled"
+                title={$t('settings.fab.one_click_enabled_title')}
                 class="setting-btn {settings.oneClickSummarize ? 'active' : ''}"
                 onclick={() => handleUpdateSetting('oneClickSummarize', true)}
-                Description="Click button to auto-start summarization"
+                Description={$t('settings.fab.one_click_enabled_desc')}
               >
                 <Icon icon="heroicons:bolt-20-solid" width="20" height="20" />
               </ButtonSet>
@@ -376,26 +378,26 @@
       <div class="flex col-span-2 flex-col gap-2 pb-4">
         <!-- svelte-ignore a11y_label_has_associated_control -->
         <label class="block text-text-secondary"
-          >Auto-hide on outside click</label
+          >{$t('settings.fab.auto_hide_outside_click')}</label
         >
         <div class="grid w-full grid-cols-2 gap-1">
           <ButtonSet
-            title="Disabled"
+            title={$t('settings.fab.auto_hide_disabled_title')}
             class="setting-btn {!settings.closePanelOnOutsideClick
               ? 'active'
               : ''}"
             onclick={() =>
               handleUpdateSetting('closePanelOnOutsideClick', false)}
-            Description="Keep the panel open when clicking outside."
+            Description={$t('settings.fab.auto_hide_disabled_desc')}
           ></ButtonSet>
           <ButtonSet
-            title="Enabled"
+            title={$t('settings.fab.auto_hide_enabled_title')}
             class="setting-btn {settings.closePanelOnOutsideClick
               ? 'active'
               : ''}"
             onclick={() =>
               handleUpdateSetting('closePanelOnOutsideClick', true)}
-            Description="Close the panel by clicking outside of it."
+            Description={$t('settings.fab.auto_hide_enabled_desc')}
           ></ButtonSet>
         </div>
       </div>
@@ -403,9 +405,11 @@
   </div>
   <div class="flex flex-col gap-1 mt-2 px-5">
     <label for="fab-settings-toggle" class="block font-bold text-text-primary"
-      >FAB Domain Control</label
+      >{$t('settings.fab.domain_control.title')}</label
     >
-    <p class="flex text-muted">Control where the floating button appears.</p>
+    <p class="flex text-muted">
+      {$t('settings.fab.domain_control.description')}
+    </p>
   </div>
   <div class="py-4 flex flex-col gap-4 px-5">
     <div class="w-full flex flex-col gap-1">
@@ -414,7 +418,7 @@
           items={controlModeItems}
           bind:bindValue={currentControlMode}
           onValueChangeCallback={handleControlModeChange}
-          ariaLabel="Select FAB control mode"
+          ariaLabel={$t('settings.fab.domain_control.aria_label')}
           className="w-full"
         />
       </div>
@@ -426,7 +430,7 @@
             {#if getCurrentMode() === 'whitelist'}
               <input
                 type="text"
-                placeholder="example.com or *.example.com"
+                placeholder={$t('settings.fab.domain_input_placeholder')}
                 bind:value={newWhitelistedDomain}
                 onkeydown={(e) => e.key === 'Enter' && addDomain('whitelist')}
                 class="w-full pl-3 text-text-primary text-xs pr-9 h-8.5 bg-muted/5 dark:bg-muted/5 border border-border hover:border-blackwhite/15 focus:border-blackwhite/30 dark:border-blackwhite/10 dark:focus:border-blackwhite/20 focus:outline-none focus:ring-0 placeholder:text-muted transition-colors duration-150"
@@ -434,7 +438,7 @@
             {:else}
               <input
                 type="text"
-                placeholder="example.com or *.example.com"
+                placeholder={$t('settings.fab.domain_input_placeholder')}
                 bind:value={newBlacklistedDomain}
                 onkeydown={(e) => e.key === 'Enter' && addDomain('blacklist')}
                 class="w-full pl-3 text-text-primary text-xs pr-9 h-8.5 bg-muted/5 dark:bg-muted/5 border border-border hover:border-blackwhite/15 focus:border-blackwhite/30 dark:border-blackwhite/10 dark:focus:border-blackwhite/20 focus:outline-none focus:ring-0 placeholder:text-muted transition-colors duration-150"
@@ -488,7 +492,7 @@
             <div
               class="flex items-center text-center col-span-2 justify-center font-medium text-text-secondary text-xs"
             >
-              Show FAB only on allowed domains.
+              {$t('settings.fab.domain_whitelist_helper')}
             </div>
           </div>
         {:else if getCurrentMode() === 'blacklist'}
@@ -529,7 +533,7 @@
             <div
               class="flex mx-auto text-center col-span-2 items-center justify-center font-medium text-text-secondary text-xs"
             >
-              Hide FAB on blocked domains, show everywhere else.
+              {$t('settings.fab.domain_blacklist_helper')}
             </div>
           </div>
         {/if}
@@ -547,7 +551,7 @@
           <div
             class="flex items-center justify-center font-medium text-text-secondary text-xs"
           >
-            FAB will show on all websites
+            {$t('settings.fab.domain_all_helper')}
           </div>
         </div>
       {/if}

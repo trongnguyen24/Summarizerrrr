@@ -219,6 +219,7 @@
   .markdown-container-v2 :global(.think-section) {
     opacity: 0.75;
     overflow: hidden;
+    margin-bottom: 1rem;
     transition: all 0.2s ease-in-out;
   }
 </style>

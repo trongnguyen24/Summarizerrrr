@@ -265,8 +265,9 @@
 {/if}
 
 <style>
-  :global(.think-section) {
+  .think-section {
     opacity: 0.75;
     overflow: hidden;
+    margin-bottom: 1rem;
   }
 </style>

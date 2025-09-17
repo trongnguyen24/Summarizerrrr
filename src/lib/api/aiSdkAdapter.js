@@ -176,9 +176,8 @@ export async function generateContent(
 
   // Check if this is a proxy model
   const isProxyModel = requiresApiProxy(providerId)
-  const model = isProxyModel
-    ? baseModel
-    : wrapModelWithReasoningExtraction(baseModel)
+  // DISABLE REASONING EXTRACTION MIDDLEWARE FOR TESTING - KEEP FULL OUTPUT WITH <think> TAGS
+  const model = baseModel // Use raw baseModel without wrapping to preserve <think> tags
   const generationConfig = mapGenerationConfig(settings)
 
   try {
@@ -190,15 +189,18 @@ export async function generateContent(
         prompt: userPrompt,
         ...generationConfig,
       })
+      console.log('[DEBUG] Proxy raw result:', result.text) // Add debug log
       return result.text
     } else {
-      // Use the standard AI SDK generateText for direct calls
+      // Use the standard AI SDK generateText for direct calls - no middleware
+      console.log('[DEBUG] Direct model raw generateText call')
       const { text } = await generateText({
         model,
         system: systemInstruction,
         prompt: userPrompt,
         ...generationConfig,
       })
+      console.log('[DEBUG] Direct raw result:', text) // Add debug log
       return text
     }
   } catch (error) {
@@ -229,9 +231,8 @@ export async function* generateContentStream(
 
   // Check if this is a proxy model (doesn't need reasoning extraction wrapper)
   const isProxyModel = requiresApiProxy(providerId)
-  const model = isProxyModel
-    ? baseModel
-    : wrapModelWithReasoningExtraction(baseModel)
+  // DISABLE REASONING EXTRACTION MIDDLEWARE FOR TESTING - KEEP FULL OUTPUT WITH <think> TAGS
+  const model = baseModel // Use raw baseModel without wrapping to preserve <think> tags
   const generationConfig = mapGenerationConfig(settings)
 
   // Get browser compatibility info
@@ -246,12 +247,14 @@ export async function* generateContentStream(
         ...generationConfig,
       })
 
-      // Yield chunks from proxy stream
+      // Yield chunks from proxy stream - now with full <think> content
+      console.log('[DEBUG] Proxy stream chunks will include thinking tags')
       for await (const chunk of result.textStream) {
+        console.log('[DEBUG] Proxy stream chunk:', chunk) // Add debug log
         yield chunk
       }
     } else {
-      // Use standard AI SDK streaming with smoothing options
+      // Use standard AI SDK streaming with smoothing options - no middleware
       const defaultSmoothingOptions = {
         smoothing: {
           minDelayMs: 15,
@@ -280,8 +283,10 @@ export async function* generateContentStream(
           ? result.smoothTextStream
           : result.textStream
 
-      // Only yield text chunks, reasoning (<think> tags) is automatically extracted and discarded
+      // Yield full chunks including <think> tags (no extraction)
+      console.log('[DEBUG] Direct stream chunks will include thinking tags')
       for await (const chunk of streamToUse) {
+        console.log('[DEBUG] Direct stream chunk:', chunk) // Add debug log
         yield chunk
       }
     }

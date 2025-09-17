@@ -3,6 +3,7 @@
   import 'highlight.js/styles/github-dark.css'
   import hljs from 'highlight.js'
   import SvelteMarkdown from '@humanspeak/svelte-markdown'
+  import { processThinkTags } from '@/lib/utils/thinkTagProcessor.js'
 
   /**
    * Props của component - Hybrid approach: svelte-markdown cho DOM stability
@@ -28,6 +29,34 @@
   let hasCalledFinish = false
   let highlightTimeout = null
 
+  // === Xử lý think tags ===
+  let processedMarkdown = $state('')
+
+  function processMarkdown() {
+    if (sourceMarkdown) {
+      try {
+        // Process <think> tags before streaming with error handling
+        if (typeof sourceMarkdown !== 'string') {
+          console.warn(
+            'StreamingMarkdownV2: sourceMarkdown is not a string:',
+            typeof sourceMarkdown,
+            sourceMarkdown
+          )
+          processedMarkdown = String(sourceMarkdown || '')
+          return
+        }
+
+        processedMarkdown = processThinkTags(sourceMarkdown)
+      } catch (error) {
+        console.warn('StreamingMarkdownV2: Think tag processing error:', error)
+        // Fallback to original content if processing fails
+        processedMarkdown = sourceMarkdown
+      }
+    } else {
+      processedMarkdown = ''
+    }
+  }
+
   // --- Logic phát hiện hoàn thành stream ---
 
   function markComplete() {
@@ -44,7 +73,7 @@
 
   function scheduleCompletion() {
     clearTimeout(completionTimeout)
-    if (sourceMarkdown && sourceMarkdown.length > 0) {
+    if (processedMarkdown && processedMarkdown.length > 0) {
       completionTimeout = setTimeout(markComplete, 500)
     }
   }
@@ -66,9 +95,14 @@
     }, 100) // Đợi 100ms sau khi DOM cập nhật
   }
 
-  // Effect để theo dõi sourceMarkdown và lên lịch các tác vụ
+  // Effect để xử lý think tags khi sourceMarkdown thay đổi
   $effect(() => {
-    if (sourceMarkdown) {
+    processMarkdown()
+  })
+
+  // Effect để theo dõi processedMarkdown và lên lịch các tác vụ
+  $effect(() => {
+    if (processedMarkdown && processedMarkdown.length > 0) {
       isStreaming = true
       hasCalledFinish = false
       scheduleCompletion()
@@ -83,7 +117,7 @@
 
   // Effect để hoàn thành ngay lập tức nếu cursor bị tắt
   $effect(() => {
-    if (sourceMarkdown && !enableCursor) {
+    if (processedMarkdown && processedMarkdown.length > 0 && !enableCursor) {
       setTimeout(markComplete, 100)
     }
   })
@@ -103,7 +137,7 @@
     ? 'blinking-cursor'
     : ''} {className}"
 >
-  <SvelteMarkdown source={sourceMarkdown} />
+  <SvelteMarkdown source={processedMarkdown} />
 </div>
 
 <style>
@@ -179,5 +213,12 @@
     transition:
       background-color 0.2s ease-in-out,
       padding 0.2s ease-in-out;
+  }
+
+  /* === Think Tags Styling === */
+  .markdown-container-v2 :global(.think-section) {
+    opacity: 0.75;
+    overflow: hidden;
+    transition: all 0.2s ease-in-out;
   }
 </style>

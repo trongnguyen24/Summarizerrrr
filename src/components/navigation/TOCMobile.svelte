@@ -261,7 +261,7 @@
   </button>
 
   <nav
-    class="fixed left-0 xs:left-auto xs:absolute xs:top-auto xs:w-93 bottom-0 max-w-[38em] right-0 p-0 xs:pr-1.5 top-8 z-20"
+    class="fixed left-0 xs:left-auto xs:absolute xs:top-auto xs:w-80 bottom-0 max-w-[38em] right-0 p-0 xs:pr-1.5 top-8 z-20"
     class:active={shouldShowNav}
     onmouseenter={handleNavMouseEnter}
     onmouseleave={handleNavMouseLeave}
@@ -269,7 +269,7 @@
     <div class="relative flex flex-col justify-end inset-0 h-full">
       <div
         id="toc-scroll"
-        class="w-full hide-scrollbar overflow-auto h-[calc(100%-4em)] xs:h-full xs:max-h-[calc(100vh-8em)] border rounded-t-3xl border-border bg-surface-1"
+        class="w-full hide-scrollbar overflow-auto h-[calc(100%-4em)] xs:h-full xs:max-h-[calc(100vh-12em)] border rounded-t-3xl xs:rounded-t-lg border-border bg-surface-1"
       >
         <div
           class="flex flex-col divide-y divide-border/50 dark:divide-border/70"
@@ -291,7 +291,7 @@
         </div>
       </div>
       <div
-        class="bg-surface-1 flex justify-between items-center border border-border overflow-hidden xs:rounded-b-3xl border-t-0"
+        class="bg-surface-1 flex justify-between items-center border border-border overflow-hidden xs:rounded-b-lg border-t-0"
       >
         <button
           onclick={() => {
@@ -314,12 +314,14 @@
           class="px-4 flex justify-center flex-1/3 items-center gap-1 py-6 font-mono text-sm/4 no-underline transition-colors"
           ><Icon width="20" icon="carbon:up-to-top" /></button
         >
-        <button
-          onclick={() => (isNavOpen = false)}
-          class="px-4 flex-1/3 border-border border-l flex justify-center items-center gap-1 py-6 font-mono text-sm/4 no-underline transition-colors"
-        >
-          <Icon width="20" icon="carbon:close" />
-        </button>
+        {#if isTouchDevice()}
+          <button
+            onclick={() => (isNavOpen = false)}
+            class="px-4 flex-1/3 border-border border-l flex justify-center items-center gap-1 py-6 font-mono text-sm/4 no-underline transition-colors"
+          >
+            <Icon width="20" icon="carbon:close" />
+          </button>
+        {/if}
       </div>
     </div>
   </nav>

@@ -13,12 +13,19 @@
   } from '@/stores/themeStore.svelte.js'
   import { slideScaleFade } from '@/lib/ui/slideScaleFade.js'
   import Icon from '@iconify/svelte'
+  import { isFirefox } from '@/lib/utils/browserDetection.js'
 
   // @ts-nocheck
   let { toggle, topButton, oneClickHandler, buttonState = 'idle' } = $props()
   let buttonElement
   let buttonElementBG
   let snapedge
+  let isFirefoxBrowser = $state(false)
+
+  // Kiểm tra Firefox khi component mount
+  $effect(() => {
+    isFirefoxBrowser = isFirefox()
+  })
 
   // Reactive state để quản lý button position - khởi tạo dựa trên settings để tránh nhảy khi re-render
   let buttonPosition = $state(
@@ -453,7 +460,7 @@
     class:error={buttonState === 'error'}
   >
     <div class="floating-button-bg">
-      <div class="BG-cri border border-slate-500/10">
+      <div class="BG-cri border border-slate-500/20">
         {#if buttonState === 'loading'}
           <span
             transition:slideScaleFade={{
@@ -463,7 +470,8 @@
               slideDistance: '0',
               startScale: 0.8,
             }}
-            class="blinking-cursor text-gray-500/80 absolute inset-0"
+            class="blinking-cursor text-gray-400/70 absolute inset-0"
+            class:firefox={isFirefoxBrowser}
           >
           </span>
         {:else}
@@ -603,14 +611,12 @@
   /* CSS để tạo con trỏ nhấp nháy được tối ưu */
   .blinking-cursor::after {
     content: '✢';
-    display: block;
+    display: flex;
     margin: auto;
     font-size: var(--text-xl);
     text-align: center !important;
     /* Sử dụng transform thay vì thay đổi content để tối ưu hiệu năng */
-    animation: cyberpunk-blink 1.2s linear infinite;
-
-    color: var(--cursor-color, #4b4b4b);
+    animation: cyberpunk-blink 1.6s linear infinite;
     /* GPU acceleration */
     will-change: transform;
     /* Đảm bảo con trỏ luôn ở cuối */
@@ -618,6 +624,11 @@
     left: 50%;
     top: 50%;
     transform: translateX(-50%) translateY(-50%) translateZ(0);
+  }
+
+  /* Firefox-specific adjustment for better cursor positioning */
+  .blinking-cursor.firefox::after {
+    transform: translateX(-50%) translateY(-55%) translateZ(0);
   }
 
   /* Optimized keyframes - giảm số frame để tối ưu hiệu năng */

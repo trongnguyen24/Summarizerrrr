@@ -24,6 +24,7 @@ export default defineConfig({
         permissions: [
           'sidePanel',
           'storage',
+          '<all_urls>',
           'activeTab',
           'scripting',
           'tabs',
@@ -85,6 +86,7 @@ export default defineConfig({
         permissions: [
           'storage',
           'tabs',
+          '<all_urls>',
           'contextMenus',
           'scripting',
           'declarativeNetRequest',

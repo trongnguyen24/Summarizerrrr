@@ -70,7 +70,29 @@
         "sidepanel_position": "사이드패널 위치",
         "position_left": "왼쪽",
         "position_right": "오른쪽"
-      }
+      },
+      "one_click_mode": "원클릭 모드",
+      "one_click_disabled_title": "비활성화",
+      "one_click_disabled_desc": "패널을 토글하기 위해 버튼 클릭 (기본 동작)",
+      "one_click_enabled_title": "활성화",
+      "one_click_enabled_desc": "요약을 자동 시작하기 위해 버튼 클릭",
+      "auto_hide_outside_click": "외부 클릭 시 자동 숨김",
+      "auto_hide_disabled_title": "비활성화",
+      "auto_hide_disabled_desc": "외부를 클릭해도 패널을 열린 상태로 유지합니다.",
+      "auto_hide_enabled_title": "활성화",
+      "auto_hide_enabled_desc": "패널 외부를 클릭하여 패널을 닫습니다.",
+      "domain_control": {
+        "title": "FAB 도메인 제어",
+        "description": "플로팅 버튼이 나타날 위치를 제어합니다.",
+        "all_sites": "모든 사이트",
+        "allowed_sites_only": "허용된 사이트만",
+        "blocked_sites": "차단된 사이트",
+        "aria_label": "FAB 제어 모드 선택"
+      },
+      "domain_input_placeholder": "example.com 또는 *.example.com",
+      "domain_whitelist_helper": "허용된 도메인에서만 FAB 표시",
+      "domain_blacklist_helper": "차단된 도메인에서 FAB 숨기기, 나머지 모든 곳 표시",
+      "domain_all_helper": "FAB는 모든 웹사이트에 표시됩니다"
     },
     "ai_model": {
       "title": "제공자",
@@ -233,81 +255,6 @@
     "downloaded": "다운로드됨!",
     "save_to_archive": "아카이브에 저장",
     "saved": "저장됨!"
-  },
-  "errors": {
-    "api_key": "API 키가 구성되지 않았습니다. 설정에서 API 키를 확인하세요.",
-    "unauthorized": "무단 액세스입니다. API 키와 권한을 확인하세요.",
-    "quota": "API 할당량을 초과했습니다. 사용량 한도를 확인하거나 나중에 다시 시도하세요.",
-    "network": "네트워크 오류입니다. 인터넷 연결을 확인하세요.",
-    "server": "API 서버 오류입니다. 나중에 다시 시도하세요.",
-    "content": "콘텐츠를 찾을 수 없거나 처리할 수 없습니다.",
-    "permission": "브라우저 권한이 없습니다. 확장 프로그램 설정을 확인하세요.",
-    "timeout": "요청 시간이 초과되었습니다. 다시 시도하세요.",
-    "streaming": "스트리밍 오류입니다. 데이터가 불완전할 수 있습니다.",
-    "unknown": "예상치 못한 오류가 발생했습니다. 다시 시도하세요."
-  },
-  "helpSystem": {
-    "apiKey": {
-      "title": "유효하지 않은 API 키",
-      "message": "제공한 API 키가 유효하지 않거나 비활성화되었습니다. 설정에서 키를 확인하고 다시 시도하세요.",
-      "suggestions": ["설정에서 API 키를 확인하세요."]
-    },
-    "unauthorized": {
-      "title": "무단 액세스",
-      "message": "API 키에 이 작업에 필요한 권한이 없습니다. 튜닝된 모델이나 특정 API 제한으로 인해 발생할 수 있습니다.",
-      "suggestions": [
-        "API 권한을 확인하고 충분한지 확인하세요.",
-        "지원을 위해 API 제공자에게 문의하세요."
-      ]
-    },
-    "quota": {
-      "title": "API 할당량 초과",
-      "message": "선택한 API의 사용량 한도를 초과했습니다. 계정 청구를 확인하거나 나중에 다시 시도하세요.",
-      "suggestions": [
-        "API 사용량 및 청구 세부 정보를 검토하세요.",
-        "한도에 자주 도달하는 경우 플랜 업그레이드를 고려하세요."
-      ]
-    },
-    "network": {
-      "title": "네트워크 연결 오류",
-      "message": "서버에 연결할 수 없습니다. 인터넷 연결과 방화벽 또는 프록시 설정을 확인하세요.",
-      "suggestions": [
-        "안정적인 인터넷 연결을 확인하고 활성화된 VPN/프록시를 비활성화하세요."
-      ]
-    },
-    "server": {
-      "title": "API 서버 오류",
-      "message": "AI 제공자의 서버에서 내부 오류(5xx)가 발생했습니다. 일반적으로 일시적인 문제입니다. 잠시 기다린 후 다시 시도하세요.",
-      "suggestions": [
-        "잠시 기다린 후 요청을 다시 시도하세요.",
-        "알려진 장애에 대해 제공자의 상태 페이지를 확인하세요."
-      ]
-    },
-    "content": {
-      "title": "콘텐츠 오류",
-      "message": "확장 프로그램이 이 페이지에서 필요한 콘텐츠를 검색할 수 없습니다(예: 자막을 찾을 수 없음, 페이지 텍스트가 너무 짧음).",
-      "suggestions": [
-        "비디오에 자막이 있는지 확인하세요",
-        "웹 페이지가 완전히 로드되고 접근 가능한지 확인하세요."
-      ]
-    },
-    "permission": {
-      "title": "권한 거부됨",
-      "message": "확장 프로그램에 이 작업을 수행하는 데 필요한 브라우저 권한이 없습니다. 확장 프로그램 설정을 확인하세요.",
-      "suggestions": [
-        "브라우저의 확장 프로그램 설정에서 필요한 권한을 검토하고 부여하세요."
-      ]
-    },
-    "unknown": {
-      "title": "알 수 없는 오류",
-      "message": "예상치 못한 오류가 발생했습니다. 이 문제가 지속되면 신고를 고려하세요.",
-      "suggestions": [
-        "비디오에 자막이 있는지 확인하세요.",
-        "페이지가 완전히 로드되었는지 확인하세요.",
-        "다른 페이지나 비디오로 다시 시도하세요.",
-        "이 URL에 액세스할 수 없습니다."
-      ]
-    }
   },
   "welcome": {
     "choose_interface_language": "Summarizerrrr에 오신 것을 환영합니다!",

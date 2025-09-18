@@ -70,7 +70,29 @@
         "sidepanel_position": "Position des Seitenbereichs",
         "position_left": "Links",
         "position_right": "Rechts"
-      }
+      },
+      "one_click_mode": "Ein-Klick-Modus",
+      "one_click_disabled_title": "Deaktiviert",
+      "one_click_disabled_desc": "Button klicken, um Panel umzuschalten (Standardverhalten)",
+      "one_click_enabled_title": "Aktiviert",
+      "one_click_enabled_desc": "Button klicken, um automatisch Zusammenfassung zu starten",
+      "auto_hide_outside_click": "Automatisch ausblenden bei Klick außerhalb",
+      "auto_hide_disabled_title": "Deaktiviert",
+      "auto_hide_disabled_desc": "Panel offen halten beim Klicken außerhalb.",
+      "auto_hide_enabled_title": "Aktiviert",
+      "auto_hide_enabled_desc": "Panel durch Klicken außerhalb schließen.",
+      "domain_control": {
+        "title": "FAB Domain-Kontrolle",
+        "description": "Kontrollieren Sie, wo der schwebende Button erscheint.",
+        "all_sites": "Alle Seiten",
+        "allowed_sites_only": "Nur erlaubte Seiten",
+        "blocked_sites": "Blockierte Seiten",
+        "aria_label": "FAB-Kontrollmodus auswählen"
+      },
+      "domain_input_placeholder": "example.com oder *.example.com",
+      "domain_whitelist_helper": "FAB nur auf erlaubten Domains anzeigen.",
+      "domain_blacklist_helper": "FAB auf blockierten Domains ausblenden, überall sonst anzeigen.",
+      "domain_all_helper": "FAB wird auf allen Websites angezeigt"
     },
     "ai_model": {
       "title": "KI-Einstellungen",
@@ -233,83 +255,6 @@
     "downloaded": "Heruntergeladen!",
     "save_to_archive": "Im Archiv speichern",
     "saved": "Gespeichert!"
-  },
-  "errors": {
-    "api_key": "API-Schlüssel nicht konfiguriert. Bitte überprüfen Sie Ihren API-Schlüssel in den Einstellungen.",
-    "unauthorized": "Unautorisierter Zugriff. Bitte überprüfen Sie Ihren API-Schlüssel und Ihre Berechtigungen.",
-    "quota": "API-Kontingent überschritten. Bitte überprüfen Sie Ihre Nutzungslimits oder versuchen Sie es später erneut.",
-    "network": "Netzwerkfehler. Bitte überprüfen Sie Ihre Internetverbindung.",
-    "server": "API-Serverfehler. Bitte versuchen Sie es später erneut.",
-    "content": "Inhalt nicht gefunden oder konnte nicht verarbeitet werden.",
-    "permission": "Fehlende Browserberechtigungen. Bitte überprüfen Sie die Erweiterungseinstellungen.",
-    "timeout": "Anfragezeitüberschreitung. Bitte versuchen Sie es erneut.",
-    "streaming": "Streaming-Fehler. Daten könnten unvollständig sein.",
-    "unknown": "Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es erneut."
-  },
-  "helpSystem": {
-    "apiKey": {
-      "title": "Ungültiger API-Schlüssel",
-      "message": "Der bereitgestellte API-Schlüssel ist ungültig oder deaktiviert. Bitte überprüfen Sie den Schlüssel in den Einstellungen.",
-      "suggestions": [
-        "Überprüfen Sie Ihren API-Schlüssel in den Einstellungen."
-      ]
-    },
-    "unauthorized": {
-      "title": "Unautorisierter Zugriff",
-      "message": "Ihr API-Schlüssel hat nicht die erforderlichen Berechtigungen. Dies kann bei bestimmten Modellen oder API-Einschränkungen auftreten.",
-      "suggestions": [
-        "Überprüfen Sie Ihre API-Berechtigungen und stellen Sie sicher, dass sie ausreichend sind.",
-        "Kontaktieren Sie den Support des API-Anbieters."
-      ]
-    },
-    "quota": {
-      "title": "API-Kontingent überschritten",
-      "message": "Sie haben Ihr Nutzungslimit für die ausgewählte API überschritten. Überprüfen Sie Ihr Konto oder versuchen Sie es später erneut.",
-      "suggestions": [
-        "Überprüfen Sie Ihre API-Nutzung und Abrechnungsdetails.",
-        "Erwägen Sie ein Upgrade Ihres Plans, wenn Sie häufig an die Grenzen stoßen."
-      ]
-    },
-    "network": {
-      "title": "Netzwerkverbindungsfehler",
-      "message": "Verbindung zum Server konnte nicht hergestellt werden. Überprüfen Sie Ihre Internetverbindung und Firewall/Proxy-Einstellungen.",
-      "suggestions": [
-        "Stellen Sie sicher, dass Sie eine stabile Internetverbindung haben und deaktivieren Sie VPN/Proxy, falls aktiv."
-      ]
-    },
-    "server": {
-      "title": "API-Serverfehler",
-      "message": "Der Server des AI-Anbieters hat einen internen Fehler (5xx) festgestellt. Dies ist meist ein temporäres Problem. Versuchen Sie es später erneut.",
-      "suggestions": [
-        "Warten Sie einen Moment und versuchen Sie Ihre Anfrage erneut.",
-        "Überprüfen Sie die Statusseite des Anbieters auf bekannte Ausfälle."
-      ]
-    },
-    "content": {
-      "title": "Inhaltsfehler",
-      "message": "Die Erweiterung konnte den notwendigen Inhalt (z.B. Transkript, Text) nicht abrufen.",
-      "suggestions": [
-        "Stellen Sie sicher, dass für das Video ein Transkript verfügbar und nicht privat ist.",
-        "Stellen Sie sicher, dass die Webseite vollständig geladen und zugänglich ist."
-      ]
-    },
-    "permission": {
-      "title": "Berechtigung verweigert",
-      "message": "Der Erweiterung fehlen die notwendigen Browserberechtigungen. Überprüfen Sie die Erweiterungseinstellungen.",
-      "suggestions": [
-        "Überprüfen und erteilen Sie die notwendigen Berechtigungen in den Erweiterungseinstellungen Ihres Browsers."
-      ]
-    },
-    "unknown": {
-      "title": "Unbekannter Fehler",
-      "message": "Ein unerwarteter Fehler ist aufgetreten. Falls das Problem weiterhin besteht, melden Sie es bitte.",
-      "suggestions": [
-        "Überprüfen Sie, ob das Video ein Transkript hat.",
-        "Stellen Sie sicher, dass die Seite vollständig geladen ist.",
-        "Versuchen Sie es mit einer anderen Seite oder einem anderen Video.",
-        "Melden Sie dieses Problem dem Entwickler."
-      ]
-    }
   },
   "welcome": {
     "choose_interface_language": "Willkommen bei Summarizerrrr!",

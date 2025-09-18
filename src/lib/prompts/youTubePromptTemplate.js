@@ -10,11 +10,12 @@ Summarize YouTube video content from <INPUT_CONTENT>. Focus on main points, spec
 </INPUT_PARAMETERS>
 
 <OUTPUT_STRUCTURE>
+## Key Takeaways
+[Main message or actions to implement]
+
 ## [Video title or main topic]
 [Summary content presented using ###, ####, bullet points, or paragraphs depending on content]
 
-## Key Takeaways
-[Main message or actions to implement]
 </OUTPUT_STRUCTURE>
 
 <REQUIREMENTS>

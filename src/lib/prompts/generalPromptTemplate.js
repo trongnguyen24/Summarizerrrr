@@ -10,11 +10,12 @@ Summarize <INPUT_CONTENT> in a structured format, including both main content an
 </PARAMETERS>
 
 <OUTPUT_FORMAT>
-## Key Takeaways
-[3-5 bullet points highlighting the most important insights, conclusions, or actionable information from the content. These should give readers an immediate understanding of what they'll gain from reading the full summary.]
 
 ## [Main Title]
 [Structured summary using ##, ###, #### and bullets, tables, emoji for clear presentation]
+
+### Key Takeaways
+[3-5 bullet points highlighting the most important insights, conclusions, or actionable information from the content. These should give readers an immediate understanding of what they'll gain from reading the full summary.]
 
 ### [Topic-based Subsections]
 - **Key points** with important terms bolded
@@ -22,9 +23,10 @@ Summarize <INPUT_CONTENT> in a structured format, including both main content an
 - Emoji for highlighting
 
 ## Community Response *(if comments exist)*
-- Can group by themes, sentiment, or types
+- Can group by themes, sentiment, or types, drop low-signal remarks.
 - Use emoji and flexible structure
 - Focus on valuable insights, don't force into fixed categories
+- Prioritize the most upvoted/most replied/most cited comments.
 </OUTPUT_FORMAT>
 
 <CORE_REQUIREMENTS>

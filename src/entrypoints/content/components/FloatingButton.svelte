@@ -11,12 +11,21 @@
     loadThemeSettings,
     subscribeToThemeChanges,
   } from '@/stores/themeStore.svelte.js'
+  import { slideScaleFade } from '@/lib/ui/slideScaleFade.js'
+  import Icon from '@iconify/svelte'
+  import { isFirefox } from '@/lib/utils/browserDetection.js'
 
   // @ts-nocheck
-  let { toggle, topButton } = $props()
+  let { toggle, topButton, oneClickHandler, buttonState = 'idle' } = $props()
   let buttonElement
   let buttonElementBG
   let snapedge
+  let isFirefoxBrowser = $state(false)
+
+  // Kiểm tra Firefox khi component mount
+  $effect(() => {
+    isFirefoxBrowser = isFirefox()
+  })
 
   // Reactive state để quản lý button position - khởi tạo dựa trên settings để tránh nhảy khi re-render
   let buttonPosition = $state(
@@ -310,7 +319,7 @@
   /**
    * Unified event handler for end (mouseup/touchend)
    */
-  function handleEnd(e) {
+  async function handleEnd(e) {
     const wasDragging =
       stateButton.isDragThresholdMet &&
       (Math.abs(stateButton.velocityX) > 2 ||
@@ -331,7 +340,22 @@
       stateButton.animationFrameId = requestAnimationFrame(animationLoop)
     } else {
       // It was a click, not a drag (either no threshold met or low velocity)
-      if (toggle) {
+      if (oneClickHandler) {
+        // Handle one-click logic first
+        try {
+          const handled = await oneClickHandler()
+          // If not handled by one-click, fall back to normal toggle
+          if (!handled && toggle) {
+            toggle()
+          }
+        } catch (error) {
+          console.error('[FloatingButton] Error in oneClickHandler:', error)
+          // Fall back to normal toggle on error
+          if (toggle) {
+            toggle()
+          }
+        }
+      } else if (toggle) {
         toggle()
       }
       // Snap back if it wasn't a real drag
@@ -433,20 +457,48 @@
     class=" flex items-center justify-center h-10 w-10 text-gray-500/50 overflow-hidden rounded-4xl ease-out delay-150 duration-500 transition-all"
     class:round-l={buttonPosition === 'left'}
     class:round-r={buttonPosition === 'right'}
+    class:error={buttonState === 'error'}
   >
     <div class="floating-button-bg">
-      <div class="BG-cri border border-slate-500/10">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="18"
-          height="18"
-          viewBox="0 0 16 16"
-        >
-          <path
-            fill="currentColor"
-            d="M7.53 1.282a.5.5 0 0 1 .94 0l.478 1.306a7.5 7.5 0 0 0 4.464 4.464l1.305.478a.5.5 0 0 1 0 .94l-1.305.478a7.5 7.5 0 0 0-4.464 4.464l-.478 1.305a.5.5 0 0 1-.94 0l-.478-1.305a7.5 7.5 0 0 0-4.464-4.464L1.282 8.47a.5.5 0 0 1 0-.94l1.306-.478a7.5 7.5 0 0 0 4.464-4.464Z"
-          />
-        </svg>
+      <div class="BG-cri border border-slate-500/20">
+        {#if buttonState === 'loading'}
+          <span
+            transition:slideScaleFade={{
+              duration: 300,
+              delay: 0,
+              slideFrom: 'left',
+              slideDistance: '0',
+              startScale: 0.8,
+            }}
+            class="blinking-cursor text-gray-400/70 absolute inset-0"
+            class:firefox={isFirefoxBrowser}
+          >
+          </span>
+        {:else}
+          <!-- Normal icon -->
+          <span
+            class=" size-9 flex justify-center items-center"
+            transition:slideScaleFade={{
+              duration: 400,
+              delay: 0,
+              slideFrom: 'left',
+              slideDistance: '0',
+              startScale: 0.8,
+            }}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="18"
+              height="18"
+              viewBox="0 0 16 16"
+            >
+              <path
+                fill="currentColor"
+                d="M7.53 1.282a.5.5 0 0 1 .94 0l.478 1.306a7.5 7.5 0 0 0 4.464 4.464l1.305.478a.5.5 0 0 1 0 .94l-1.305.478a7.5 7.5 0 0 0-4.464 4.464l-.478 1.305a.5.5 0 0 1-.94 0l-.478-1.305a7.5 7.5 0 0 0-4.464-4.464L1.282 8.47a.5.5 0 0 1 0-.94l1.306-.478a7.5 7.5 0 0 0 4.464-4.464Z"
+              />
+            </svg>
+          </span>
+        {/if}
       </div>
     </div>
   </div>
@@ -528,10 +580,90 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    position: relative;
     transition: all 0.3s ease-in-out;
   }
 
   .floating-button-bg:hover .BG-cri {
     background: #25345c;
+  }
+
+  /* Error state */
+  .error .floating-button-bg {
+    background: #ef4444 !important;
+    animation: errorFlash 1.5s ease-in-out;
+  }
+
+  .error .floating-button-bg:hover {
+    background: #dc2626 !important;
+  }
+
+  @keyframes errorFlash {
+    0%,
+    100% {
+      background: #ef4444;
+    }
+    50% {
+      background: #dc2626;
+    }
+  }
+
+  /* CSS để tạo con trỏ nhấp nháy được tối ưu */
+  .blinking-cursor::after {
+    content: '✢';
+    display: flex;
+    margin: auto;
+    font-size: var(--text-xl);
+    text-align: center !important;
+    /* Sử dụng transform thay vì thay đổi content để tối ưu hiệu năng */
+    animation: cyberpunk-blink 1.6s linear infinite;
+    /* GPU acceleration */
+    will-change: transform;
+    /* Đảm bảo con trỏ luôn ở cuối */
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translateX(-50%) translateY(-50%) translateZ(0);
+  }
+
+  /* Firefox-specific adjustment for better cursor positioning */
+  .blinking-cursor.firefox::after {
+    transform: translateX(-50%) translateY(-55%) translateZ(0);
+  }
+
+  /* Optimized keyframes - giảm số frame để tối ưu hiệu năng */
+  @keyframes cyberpunk-blink {
+    0%,
+    10% {
+      content: '×';
+    }
+    15% {
+      content: '✢';
+    }
+    25% {
+      content: '✣';
+    }
+    35% {
+      content: '✥';
+    }
+    45% {
+      content: '✶';
+    }
+    55% {
+      content: '❉';
+    }
+    65% {
+      content: '❆';
+    }
+    75% {
+      content: '✺';
+    }
+    85% {
+      content: '❃';
+    }
+    95%,
+    100% {
+      content: '✽';
+    }
   }
 </style>

@@ -70,7 +70,24 @@
         "sidepanel_position": "Vị trí thanh bên",
         "position_left": "Trái",
         "position_right": "Phải"
-      }
+      },
+      "auto_hide_outside_click": "Tự động ẩn khi click bên ngoài",
+      "auto_hide_disabled_title": "Tắt",
+      "auto_hide_disabled_desc": "Giữ thanh bên mở khi click bên ngoài.",
+      "auto_hide_enabled_title": "Bật",
+      "auto_hide_enabled_desc": "Đóng thanh bên khi click bên ngoài.",
+      "domain_control": {
+        "title": "Kiểm soát chèn script FAB",
+        "description": "Kiểm soát tên miền FAB được phép chèn vào.",
+        "all_sites": "Tất cả trang web",
+        "allowed_sites_only": "Chỉ trang web được phép",
+        "blocked_sites": "Chặn trên trang web",
+        "aria_label": "Chọn chế độ kiểm soát FAB"
+      },
+      "domain_input_placeholder": "example.com hoặc *.example.com",
+      "domain_whitelist_helper": "Chỉ hiển thị FAB trên các tên miền được phép.",
+      "domain_blacklist_helper": "Ẩn FAB trên các tên miền bị chặn, hiển thị ở nơi khác.",
+      "domain_all_helper": "FAB sẽ hiển thị trên tất cả trang web"
     },
     "ai_model": {
       "title": "Nhà cung cấp",
@@ -233,81 +250,6 @@
     "save_to_archive": "Lưu vào lưu trữ",
     "saved": "Đã lưu!"
   },
-  "errors": {
-    "api_key": "Chưa định cấu hình Khóa API. Vui lòng kiểm tra Khóa API của bạn trong cài đặt.",
-    "unauthorized": "Truy cập trái phép. Vui lòng kiểm tra Khóa API và quyền của bạn.",
-    "quota": "Đã vượt quá hạn mức API. Vui lòng kiểm tra giới hạn sử dụng của bạn hoặc thử lại sau.",
-    "network": "Lỗi mạng. Vui lòng kiểm tra kết nối internet của bạn.",
-    "server": "Lỗi máy chủ API. Vui lòng thử lại sau.",
-    "content": "Không tìm thấy hoặc không thể xử lý nội dung.",
-    "permission": "Thiếu quyền trình duyệt. Vui lòng kiểm tra cài đặt tiện ích mở rộng.",
-    "timeout": "Yêu cầu hết thời gian. Vui lòng thử lại.",
-    "streaming": "Lỗi truyền dữ liệu. Dữ liệu có thể không đầy đủ.",
-    "unknown": "Đã xảy ra lỗi không mong muốn. Vui lòng thử lại."
-  },
-  "helpSystem": {
-    "apiKey": {
-      "title": "Khóa API không hợp lệ",
-      "message": "Khóa API đã cung cấp không hợp lệ hoặc đã bị vô hiệu hóa. Vui lòng kiểm tra khóa trong cài đặt.",
-      "suggestions": ["Kiểm tra khóa API của bạn trong cài đặt."]
-    },
-    "unauthorized": {
-      "title": "Truy cập không được phép",
-      "message": "Khóa API của bạn không có quyền cần thiết cho thao tác này. Điều này có thể xảy ra với các mô hình được tinh chỉnh hoặc các hạn chế API cụ thể.",
-      "suggestions": [
-        "Kiểm tra quyền API của bạn và đảm bảo chúng đủ.",
-        "Liên hệ bộ phận hỗ trợ của nhà cung cấp API để được hỗ trợ."
-      ]
-    },
-    "quota": {
-      "title": "Vượt quá hạn mức API",
-      "message": "Bạn đã vượt quá giới hạn sử dụng cho API đã chọn. Vui lòng kiểm tra thanh toán tài khoản của bạn hoặc thử lại sau.",
-      "suggestions": [
-        "Xem lại mức sử dụng API và chi tiết thanh toán của bạn.",
-        "Cân nhắc nâng cấp gói của bạn nếu bạn thường xuyên đạt giới hạn."
-      ]
-    },
-    "network": {
-      "title": "Lỗi kết nối mạng",
-      "message": "Không thể kết nối với máy chủ. Vui lòng kiểm tra kết nối internet và cài đặt tường lửa hoặc proxy của bạn.",
-      "suggestions": [
-        "Đảm bảo bạn có kết nối internet ổn định và tắt mọi VPN/proxy nếu đang hoạt động."
-      ]
-    },
-    "server": {
-      "title": "Lỗi máy chủ API",
-      "message": "Máy chủ của nhà cung cấp AI gặp lỗi nội bộ (5xx). Đây thường là sự cố tạm thời. Vui lòng đợi một lát và thử lại.",
-      "suggestions": [
-        "Đợi vài phút và thử lại yêu cầu của bạn.",
-        "Kiểm tra trang trạng thái của nhà cung cấp để biết các sự cố đã biết."
-      ]
-    },
-    "content": {
-      "title": "Lỗi nội dung",
-      "message": "Tiện ích không thể truy xuất nội dung cần thiết từ trang này (ví dụ: không tìm thấy bản ghi, văn bản trang quá ngắn).",
-      "suggestions": [
-        "Đảm bảo video có bản chép lời và không phải là riêng tư.",
-        "Đảm bảo trang web đã tải hoàn toàn và có thể truy cập được."
-      ]
-    },
-    "permission": {
-      "title": "Quyền bị từ chối",
-      "message": "Tiện ích thiếu quyền trình duyệt cần thiết để thực hiện thao tác này. Vui lòng kiểm tra cài đặt tiện ích.",
-      "suggestions": [
-        "Xem lại và cấp các quyền cần thiết trong cài đặt tiện ích của trình duyệt của bạn."
-      ]
-    },
-    "unknown": {
-      "title": "Lỗi không xác định",
-      "message": "Đã xảy ra lỗi không mong muốn. Nếu vấn đề này vẫn tiếp diễn, vui lòng cân nhắc báo cáo.",
-      "suggestions": [
-        "Kiểm tra xem video có bản chép lời không.",
-        "Đảm bảo trang web đã tải hoàn toàn.",
-        "Thử lại với một trang hoặc video khác.",
-        "Báo cáo sự cố này cho nhà phát triển."
-      ]
-    }
-  },
   "welcome": {
     "choose_interface_language": "Chào mừng đến với Summarizer!",
     "select_your_language": "Chọn ngôn ngữ giao diện của bạn",
@@ -316,7 +258,7 @@
     "configure_api_keys": "Vui lòng cấu hình API keys trong cài đặt trước",
     "api_setup_guide": "Bạn cần thiết lập API key của nhà cung cấp AI để bắt đầu sử dụng Summarizer.",
     "go_to_settings": "Đi tới Cài đặt",
-    "setup_guide_link": "📺 Hướng dẫn lấy API key",
+    "setup_guide_link": "Hướng dẫn lấy API key",
     "font_selection": "Phông chữ",
     "theme_selection": "Giao diện",
     "summary_language": "Ngôn ngữ tóm tắt",

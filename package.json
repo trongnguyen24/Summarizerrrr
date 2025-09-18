@@ -2,7 +2,7 @@
   "name": "Summarizerrrr",
   "description": "Extension helps you summarize for YouTube, Udemy, Coursera, any websites. Crafted with superior UI/UX design.",
   "private": true,
-  "version": "2.0.2",
+  "version": "2.1.0",
   "type": "module",
   "scripts": {
     "dev": "wxt",
@@ -46,6 +46,7 @@
     "ai-sdk-ollama": "^0.6.0",
     "animejs": "^4.0.2",
     "bits-ui": "^1.4.3",
+    "crypto-js": "^4.2.0",
     "highlight.js": "^11.11.1",
     "highlightjs-svelte": "^1.0.6",
     "marked": "^15.0.11",
@@ -56,6 +57,7 @@
     "rehype-highlight": "^7.0.2",
     "rehype-raw": "^7.0.0",
     "svelte-i18n": "^3.7.1",
+    "svelte-markdown": "^0.4.1",
     "svelte-sonner": "^1.0.5",
     "tailwindcss": "^4.1.8",
     "webextension-polyfill": "^0.12.0"

@@ -31,6 +31,7 @@
     {targetId}
   />
 {/if}
+<span id="footer"></span>
 {#if showTOC}
   <TOC targetDivId={targetId} />
 {/if}

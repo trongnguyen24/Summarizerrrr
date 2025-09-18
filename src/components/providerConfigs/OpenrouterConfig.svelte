@@ -43,11 +43,8 @@
     }
   })
 
-  $effect(() => {
-    if (selectedOpenrouterModel) {
-      updateSettings({ selectedOpenrouterModel })
-    }
-  })
+  // Khối $effect đã được loại bỏ. Việc lưu model được xử lý bởi hàm `scheduleOpenrouterModelSave`
+  // được gọi từ sự kiện `oninput` của input.
 
   let saveStatus = $state('')
   let openrouterModelDebounceTimer = null

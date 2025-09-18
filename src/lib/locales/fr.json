@@ -70,7 +70,29 @@
         "sidepanel_position": "Position du panneau latéral",
         "position_left": "Gauche",
         "position_right": "Droite"
-      }
+      },
+      "one_click_mode": "Mode d'un seul clic",
+      "one_click_disabled_title": "Désactivé",
+      "one_click_disabled_desc": "Cliquez sur le bouton pour basculer le panneau (comportement par défaut)",
+      "one_click_enabled_title": "Activé",
+      "one_click_enabled_desc": "Cliquez sur le bouton pour démarrer automatiquement la résumé",
+      "auto_hide_outside_click": "Masquer automatiquement en cliquant à l'extérieur",
+      "auto_hide_disabled_title": "Désactivé",
+      "auto_hide_disabled_desc": "Garder le panneau ouvert en cliquant à l'extérieur.",
+      "auto_hide_enabled_title": "Activé",
+      "auto_hide_enabled_desc": "Fermer le panneau en cliquant à l'extérieur de celui-ci.",
+      "domain_control": {
+        "title": "Contrôle de domaine FAB",
+        "description": "Contrôlez où apparaît le bouton flottant.",
+        "all_sites": "Tous les sites",
+        "allowed_sites_only": "Seulement les sites autorisés",
+        "blocked_sites": "Sites bloqués",
+        "aria_label": "Sélectionner le mode de contrôle FAB"
+      },
+      "domain_input_placeholder": "example.com ou *.example.com",
+      "domain_whitelist_helper": "Afficher le FAB seulement sur les domaines autorisés.",
+      "domain_blacklist_helper": "Masquer le FAB sur les domaines bloqués, afficher partout ailleurs.",
+      "domain_all_helper": "Le FAB apparaîtra sur tous les sites web"
     },
     "ai_model": {
       "title": "Modèle IA",
@@ -233,81 +255,6 @@
     "downloaded": "Téléchargé !",
     "save_to_archive": "Sauvegarder dans l'archive",
     "saved": "Sauvegardé !"
-  },
-  "errors": {
-    "api_key": "Clé API non configurée. Veuillez vérifier votre clé API dans les paramètres.",
-    "unauthorized": "Accès non autorisé. Veuillez vérifier votre clé API et vos autorisations.",
-    "quota": "Quota API dépassé. Veuillez vérifier vos limites d'utilisation ou réessayer plus tard.",
-    "network": "Erreur réseau. Veuillez vérifier votre connexion Internet.",
-    "server": "Erreur de serveur API. Veuillez réessayer plus tard.",
-    "content": "Contenu introuvable ou n'a pas pu être traité.",
-    "permission": "Autorisations du navigateur manquantes. Veuillez vérifier les paramètres de l'extension.",
-    "timeout": "Délai de requête dépassé. Veuillez réessayer.",
-    "streaming": "Erreur de streaming. Les données peuvent être incomplètes.",
-    "unknown": "Une erreur inattendue est survenue. Veuillez réessayer."
-  },
-  "helpSystem": {
-    "apiKey": {
-      "title": "Clé API invalide",
-      "message": "La clé API fournie est invalide ou a été désactivée. Veuillez vérifier la clé dans les paramètres.",
-      "suggestions": ["Vérifiez votre clé API dans les paramètres."]
-    },
-    "unauthorized": {
-      "title": "Accès non autorisé",
-      "message": "Votre clé API n'a pas les autorisations requises. Cela peut se produire avec des modèles ajustés ou des restrictions d'API spécifiques.",
-      "suggestions": [
-        "Vérifiez vos autorisations API et assurez-vous qu'elles sont suffisantes.",
-        "Contactez le support du fournisseur d'API pour obtenir de l'aide."
-      ]
-    },
-    "quota": {
-      "title": "Quota API dépassé",
-      "message": "Vous avez dépassé votre limite d'utilisation pour l'API sélectionnée. Veuillez vérifier votre facturation ou réessayer plus tard.",
-      "suggestions": [
-        "Vérifiez votre utilisation de l'API et les détails de facturation.",
-        "Envisagez de mettre à niveau votre plan si vous atteignez fréquemment les limites."
-      ]
-    },
-    "network": {
-      "title": "Erreur de connexion réseau",
-      "message": "Impossible de se connecter au serveur. Veuillez vérifier votre connexion Internet et les paramètres de pare-feu ou de proxy.",
-      "suggestions": [
-        "Assurez-vous d'avoir une connexion Internet stable et désactivez tout VPN/proxy si actif."
-      ]
-    },
-    "server": {
-      "title": "Erreur de serveur API",
-      "message": "Le serveur du fournisseur d'IA a rencontré une erreur interne (5xx). C'est généralement un problème temporaire. Veuillez patienter un instant et réessayer.",
-      "suggestions": [
-        "Attendez quelques instants et réessayez votre demande.",
-        "Vérifiez la page d'état du fournisseur pour les pannes connues."
-      ]
-    },
-    "content": {
-      "title": "Erreur de contenu",
-      "message": "L'extension n'a pas pu récupérer le contenu nécessaire de cette page (par exemple, transcription introuvable, texte de page trop court).",
-      "suggestions": [
-        "Assurez-vous que la vidéo a une transcription disponible et n'est pas privée.",
-        "Assurez-vous que la page web est entièrement chargée et accessible."
-      ]
-    },
-    "permission": {
-      "title": "Autorisation refusée",
-      "message": "L'extension ne dispose pas des autorisations de navigateur nécessaires pour effectuer cette action. Veuillez vérifier les paramètres de l'extension.",
-      "suggestions": [
-        "Vérifiez et accordez les autorisations nécessaires dans les paramètres d'extension de votre navigateur."
-      ]
-    },
-    "unknown": {
-      "title": "Erreur inconnue",
-      "message": "Une erreur inattendue est survenue. Si ce problème persiste, veuillez envisager de le signaler.",
-      "suggestions": [
-        "Vérifiez si la vidéo a une transcription.",
-        "Assurez-vous que la page est entièrement chargée.",
-        "Essayez avec une autre page ou vidéo.",
-        "Signalez ce problème au développeur."
-      ]
-    }
   },
   "welcome": {
     "choose_interface_language": "Bienvenue dans Summarizerrrr !",

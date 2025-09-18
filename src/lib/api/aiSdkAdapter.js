@@ -12,6 +12,8 @@ import { createOpenAICompatible } from '@ai-sdk/openai-compatible'
 import { createOpenRouter } from '@openrouter/ai-sdk-provider'
 import { createOllama } from 'ai-sdk-ollama'
 import { getBrowserCompatibility } from '@/lib/utils/browserDetection.js'
+import { requiresApiProxy } from '@/lib/utils/contextDetection.js'
+import { createOllamaProxyModel } from './ollamaProxyModel.js'
 
 /**
  * Maps provider ID and settings to AI SDK model instance
@@ -20,6 +22,11 @@ import { getBrowserCompatibility } from '@/lib/utils/browserDetection.js'
  * @returns {object} AI SDK model instance
  */
 export function getAISDKModel(providerId, settings) {
+  // Check if we need to use proxy for this provider in current context
+  if (requiresApiProxy(providerId)) {
+    return createOllamaProxyModel(settings)
+  }
+
   switch (providerId) {
     case 'gemini':
       const geminiApiKey = settings.isAdvancedMode
@@ -46,9 +53,6 @@ export function getAISDKModel(providerId, settings) {
 
         // Tạo model từ provider
         const model = googleProvider(geminiModel)
-        console.log(
-          '[aiSdkAdapter] Google model created successfully with provider'
-        )
         return model
       } catch (error) {
         console.error('[aiSdkAdapter] Error creating Google model:', error)
@@ -163,19 +167,34 @@ export async function generateContent(
   userPrompt
 ) {
   const baseModel = getAISDKModel(providerId, settings)
-  const model = wrapModelWithReasoningExtraction(baseModel)
+
+  // Check if this is a proxy model
+  const isProxyModel = requiresApiProxy(providerId)
+  // DISABLE REASONING EXTRACTION MIDDLEWARE FOR TESTING - KEEP FULL OUTPUT WITH <think> TAGS
+  const model = baseModel // Use raw baseModel without wrapping to preserve <think> tags
   const generationConfig = mapGenerationConfig(settings)
 
   try {
-    const { text, reasoning } = await generateText({
-      model,
-      system: systemInstruction,
-      prompt: userPrompt,
-      ...generationConfig,
-    })
-
-    // Only return text content, reasoning (<think> tags) is automatically discarded
-    return text
+    if (isProxyModel) {
+      // Use the proxy model's custom generateText method
+      console.log('[aiSdkAdapter] Using proxy model for generateContent')
+      const result = await model.generateText({
+        system: systemInstruction,
+        prompt: userPrompt,
+        ...generationConfig,
+      })
+      console.log('[DEBUG] Proxy raw result:', result.text) // Add debug log
+      return result.text
+    } else {
+      // Use the standard AI SDK generateText for direct calls - no middleware
+      const { text } = await generateText({
+        model,
+        system: systemInstruction,
+        prompt: userPrompt,
+        ...generationConfig,
+      })
+      return text
+    }
   } catch (error) {
     console.error('AI SDK Error:', error)
     throw error
@@ -201,46 +220,63 @@ export async function* generateContentStream(
   streamOptions = {}
 ) {
   const baseModel = getAISDKModel(providerId, settings)
-  const model = wrapModelWithReasoningExtraction(baseModel)
+
+  // Check if this is a proxy model (doesn't need reasoning extraction wrapper)
+  const isProxyModel = requiresApiProxy(providerId)
+  // DISABLE REASONING EXTRACTION MIDDLEWARE FOR TESTING - KEEP FULL OUTPUT WITH <think> TAGS
+  const model = baseModel // Use raw baseModel without wrapping to preserve <think> tags
   const generationConfig = mapGenerationConfig(settings)
 
   // Get browser compatibility info
   const browserCompatibility = getBrowserCompatibility()
 
-  // Default smoothing options
-  const defaultSmoothingOptions = {
-    smoothing: {
-      minDelayMs: 15,
-      maxDelayMs: 80,
-    },
-  }
-
-  // Determine if we should use smoothing based on browser compatibility
-  const shouldUseSmoothing =
-    browserCompatibility.streamingOptions.useSmoothing &&
-    streamOptions.useSmoothing !== false
-
-  const streamConfig = {
-    model,
-    system: systemInstruction,
-    prompt: userPrompt,
-    ...generationConfig,
-    ...(shouldUseSmoothing ? defaultSmoothingOptions : {}),
-    ...streamOptions,
-  }
-
   try {
-    const result = await streamText(streamConfig)
+    if (isProxyModel) {
+      // Use proxy model's streamText method directly
+      const result = await model.streamText({
+        system: systemInstruction,
+        prompt: userPrompt,
+        ...generationConfig,
+      })
 
-    // Use smoothTextStream if available and supported by browser
-    const streamToUse =
-      shouldUseSmoothing && result.smoothTextStream
-        ? result.smoothTextStream
-        : result.textStream
+      // Yield chunks from proxy stream - now with full <think> content
+      for await (const chunk of result.textStream) {
+        yield chunk
+      }
+    } else {
+      // Use standard AI SDK streaming with smoothing options - no middleware
+      const defaultSmoothingOptions = {
+        smoothing: {
+          minDelayMs: 15,
+          maxDelayMs: 80,
+        },
+      }
 
-    // Only yield text chunks, reasoning (<think> tags) is automatically extracted and discarded
-    for await (const chunk of streamToUse) {
-      yield chunk
+      const shouldUseSmoothing =
+        browserCompatibility.streamingOptions.useSmoothing &&
+        streamOptions.useSmoothing !== false
+
+      const streamConfig = {
+        model,
+        system: systemInstruction,
+        prompt: userPrompt,
+        ...generationConfig,
+        ...(shouldUseSmoothing ? defaultSmoothingOptions : {}),
+        ...streamOptions,
+      }
+
+      const result = await streamText(streamConfig)
+
+      // Use smoothTextStream if available and supported by browser
+      const streamToUse =
+        shouldUseSmoothing && result.smoothTextStream
+          ? result.smoothTextStream
+          : result.textStream
+
+      // Yield full chunks including <think> tags (no extraction)
+      for await (const chunk of streamToUse) {
+        yield chunk
+      }
     }
   } catch (error) {
     console.error('AI SDK Stream Error:', error)
@@ -250,9 +286,6 @@ export async function* generateContentStream(
       browserCompatibility.isFirefoxMobile &&
       error.message.includes('flush')
     ) {
-      console.warn(
-        'Firefox mobile streaming error detected, suggesting fallback to non-streaming'
-      )
       // Re-throw with additional context for fallback handling
       error.isFirefoxMobileStreamingError = true
     }
@@ -286,7 +319,7 @@ export async function* generateContentStreamEnhanced(
   const browserCompatibility = getBrowserCompatibility()
 
   try {
-    // Use our updated generateContentStream that already handles reasoning extraction
+    // Use our updated generateContentStream that handles both proxy and direct models
     const streamGenerator = generateContentStream(
       providerId,
       settings,
@@ -311,14 +344,11 @@ export async function* generateContentStreamEnhanced(
       isComplete: true,
     }
   } catch (error) {
-    console.error('AI SDK Enhanced Stream Error:', error)
-
     // Check if this is a Firefox mobile specific error
     if (
       browserCompatibility.isFirefoxMobile &&
       error.message.includes('flush')
     ) {
-      console.log('Firefox mobile streaming error detected in enhanced stream')
       error.isFirefoxMobileStreamingError = true
     }
 

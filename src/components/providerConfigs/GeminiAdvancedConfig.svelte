@@ -23,12 +23,9 @@
 
   function handleGeminiAdvancedModelChange(newValue) {
     selectedGeminiAdvancedModel = newValue
+    // Lưu trực tiếp khi giá trị thay đổi từ ReusableSelect
+    updateSettings({ selectedGeminiAdvancedModel: newValue })
   }
-
-  // Sử dụng $effect để lưu model khi nó thay đổi
-  $effect(() => {
-    updateSettings({ selectedGeminiAdvancedModel })
-  })
 </script>
 
 <ApiKeyInput

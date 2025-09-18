@@ -18,11 +18,8 @@
     updateSettings({ deepseekApiKey: key })
   }
 
-  $effect(() => {
-    if (selectedDeepseekModel) {
-      updateSettings({ selectedDeepseekModel })
-    }
-  })
+  // Khối $effect đã được loại bỏ. Việc lưu model được xử lý bởi hàm `scheduleDeepseekModelSave`
+  // được gọi từ sự kiện `oninput` của input.
 
   let saveStatus = $state('')
   let deepseekModelDebounceTimer = null

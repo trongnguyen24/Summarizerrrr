@@ -8,7 +8,7 @@
   import { useNavigationManager } from '../composables/useNavigationManager.svelte.js'
   import { useSummarization } from '../composables/useSummarization.svelte.js'
   import { useFloatingPanelState } from '../composables/useFloatingPanelState.svelte.js'
-  import { settings } from '@/stores/settingsStore.svelte.js'
+  import { settings, updateSettings } from '@/stores/settingsStore.svelte.js'
   import { useApiKeyValidation } from '../composables/useApiKeyValidation.svelte.js'
   import ApiKeySetupPrompt from '@/components/ui/ApiKeySetupPrompt.svelte'
 
@@ -20,7 +20,7 @@
   // Import components
   import FloatingPanelContent from '@/components/displays/floating-panel/FloatingPanelContent.svelte'
 
-  let { visible, summary, status, onclose, children } = $props()
+  let { visible, summary, status, onclose, children, summarization } = $props()
 
   let panelElement = $state()
   let isResizing = $state(false)
@@ -58,6 +58,9 @@
   function handleSummarizeClick() {
     summarization.summarizePageContent()
   }
+  function togglePanelPosition() {
+    updateSettings({ floatingPanelLeft: !settings.floatingPanelLeft })
+  }
   // Constants in px units
   const MIN_WIDTH_PX = 380 // 380px
   const MAX_WIDTH_PX = 860 // 860px
@@ -88,7 +91,6 @@
   }
 
   // Initialize composables
-  const summarization = useSummarization()
   const panelState = useFloatingPanelState()
 
   // Computed properties để determine what to display
@@ -268,9 +270,19 @@
 </script>
 
 {#if showElement}
+  <!-- svelte-ignore a11y_click_events_have_key_events -->
+  <!-- svelte-ignore a11y_no_static_element_interactions -->
+  <div
+    class="backdrop"
+    onclick={() => {
+      if (settings.closePanelOnOutsideClick) {
+        onclose?.()
+      }
+    }}
+  ></div>
   <!-- Sidepanel container -->
   <div
-    class="floating-panel"
+    class="floating-panel pt-8"
     class:left={panelPosition === 'left'}
     class:right={panelPosition === 'right'}
     bind:this={panelElement}
@@ -335,9 +347,30 @@
         </svg>
       </span>
     </div>
+    <!-- svelte-ignore a11y_consider_explicit_label -->
+    <button
+      onclick={togglePanelPosition}
+      class="close-button absolute text-muted z-[99999] border-r border-border hover:text-text-primary transition-colors w-14 duration-200 cursor-pointer h-8 top-0 left-0 flex justify-center items-center"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="20"
+        viewBox="0 0 24 24"
+        class="{panelPosition === 'left'
+          ? '-scale-x-100'
+          : ''} delay-200 transition-transform duration-300"
+      >
+        <g fill="none" stroke="currentColor" stroke-width="2">
+          <path
+            d="M2 11c0-3.771 0-5.657 1.172-6.828S6.229 3 10 3h4c3.771 0 5.657 0 6.828 1.172S22 7.229 22 11v2c0 3.771 0 5.657-1.172 6.828S17.771 21 14 21h-4c-3.771 0-5.657 0-6.828-1.172S2 16.771 2 13z"
+          />
+          <path stroke-linecap="round" d="M5.5 10h6m-5 4h4m4.5 7V3" />
+        </g>
+      </svg>
+    </button>
     <button
       onclick={() => onclose?.()}
-      class="close-button absolute text-muted z-[9999] border-b border-border bg-surface-2 hover:text-text-primary transition-colors duration-200 cursor-pointer h-8 top-0 right-0 left-0 flex justify-center items-center"
+      class="close-button absolute text-muted z-[9999] border-b border-border bg-blackwhite-10 dark:bg-surface-2 hover:text-text-primary transition-colors duration-200 cursor-pointer h-8 top-0 right-0 left-0 flex justify-center items-center"
       aria-label="Close"
       ><Icon
         icon="heroicons:arrow-long-right"
@@ -346,10 +379,10 @@
         height="24"
       /></button
     >
-    <div id="shadow-scroll" class="w-full h-full py-8 overflow-y-auto">
+    <div id="shadow-scroll" class="w-full h-full overflow-y-auto">
       <div class="grid grid-rows-[10px_180px_10px_1fr] relative">
         <div
-          class="top-stripes border-t border-b border-border flex justify-center items-center w-full h-full"
+          class="top-stripes border-b border-border flex justify-center items-center w-full h-full"
         ></div>
         <div class="w-full flex items-center justify-center my-8">
           <button
@@ -420,7 +453,7 @@
     font-size: 16px;
     display: flex;
     flex-direction: column;
-    z-index: 2147483640;
+    z-index: 2147483641;
     color: var(--color-text-primary);
     border-left: 1px solid var(--color-border);
     border-right: 1px solid var(--color-border);
@@ -462,5 +495,28 @@
   /* Active state khi đang resize */
   .resize-handle.resizing {
     background-color: oklch(50% 0 0 / 0.175) !important;
+  }
+
+  /* Backdrop */
+  .backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: transparent;
+    z-index: 2147483640;
+  }
+  .resize-handle.resizing {
+    background-color: oklch(50% 0 0 / 0.175) !important;
+  }
+  .backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: transparent;
+    z-index: 2147483640;
   }
 </style>

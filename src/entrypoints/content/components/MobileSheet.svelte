@@ -17,9 +17,8 @@
   import { useApiKeyValidation } from '../composables/useApiKeyValidation.svelte.js'
   import { fade } from 'svelte/transition'
 
-  let { visible, onclose } = $props()
-
-  const summarization = useSummarization()
+  let { visible, onclose, summarization } = $props()
+  // const summarization = useSummarization() // No longer needed, passed as prop
   const panelState = useFloatingPanelState()
   const navigationManager = useNavigationManager()
   const { needsApiKeySetup } = useApiKeyValidation()
@@ -355,16 +354,10 @@
           <ApiKeySetupPrompt />
         {:else}
           <FloatingPanelContent
-            status={summarization.localSummaryState().isLoading
-              ? 'loading'
-              : summarization.localSummaryState().error
-                ? 'error'
-                : ''}
-            summary={summarization.localSummaryState().summary}
+            status={statusToDisplay}
+            summary={summaryToDisplay}
             error={summarization.localSummaryState().error}
-            contentType={summarization.localSummaryState().isYouTubeVideoActive
-              ? 'youtube'
-              : summarization.localSummaryState().contentType}
+            contentType={summarization.localSummaryState().contentType}
             chapterSummary={summarization.localSummaryState().chapterSummary}
             isChapterLoading={summarization.localSummaryState()
               .isChapterLoading}

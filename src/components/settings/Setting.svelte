@@ -3,6 +3,7 @@
   import { fade } from 'svelte/transition'
   import Icon, { loadIcons } from '@iconify/svelte'
   import { t } from 'svelte-i18n'
+  import Logdev from './Logdev.svelte'
   import 'overlayscrollbars/overlayscrollbars.css'
   import { useOverlayScrollbars } from 'overlayscrollbars-svelte'
   import {
@@ -106,6 +107,7 @@
   ])
 </script>
 
+<Logdev />
 <!-- Apply Tailwind classes for overall layout and styling -->
 <div
   class="relative settings font-mono text-text-primary dark:text-text-secondary text-xs bg-surface-1 overflow-hidden w-full flex-shrink-0 flex flex-col"

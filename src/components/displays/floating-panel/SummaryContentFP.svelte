@@ -5,6 +5,7 @@
   import 'highlight.js/styles/github-dark.css'
   import TocMobile from '@/components/navigation/TOCMobile.svelte'
   import { settings } from '@/stores/settingsStore.svelte.js'
+  import { processThinkTags } from '@/lib/utils/thinkTagProcessor.js'
 
   let { summary, isLoading, targetId, showTOC = false, error } = $props()
 
@@ -19,7 +20,26 @@
           return hljs.highlight(code, { language }).value
         },
       })
-      parsedContent = marked.parse(summary)
+
+      try {
+        // Process <think> tags before parsing markdown with error handling
+        if (typeof summary !== 'string') {
+          console.warn(
+            'SummaryContentFP: summary is not a string:',
+            typeof summary,
+            summary
+          )
+          parsedContent = marked.parse(String(summary || ''))
+          return
+        }
+
+        const processedSummary = processThinkTags(summary)
+        parsedContent = marked.parse(processedSummary)
+      } catch (error) {
+        console.warn('SummaryContentFP: Think tag processing error:', error)
+        // Fallback to original content if processing fails
+        parsedContent = marked.parse(summary)
+      }
     }
   }
 
@@ -29,9 +49,12 @@
 
   $effect(() => {
     if (parsedContent && container) {
-      container.querySelectorAll('pre code').forEach((block) => {
-        hljs.highlightElement(block)
-      })
+      // Highlight code blocks in main content and think sections
+      container
+        .querySelectorAll('pre code, .think-content pre code')
+        .forEach((block) => {
+          hljs.highlightElement(block)
+        })
     }
   })
 </script>
@@ -85,5 +108,12 @@
     50% {
       opacity: 0.5;
     }
+  }
+
+  /* Think section styling */
+  :global(.think-section) {
+    opacity: 0.75;
+    margin-bottom: 1em;
+    overflow: hidden;
   }
 </style>

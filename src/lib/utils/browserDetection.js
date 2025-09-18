@@ -1,6 +1,21 @@
 // @ts-nocheck
 
 /**
+ * Detects if the current browser is Firefox (desktop or mobile)
+ * @returns {boolean} True if Firefox, false otherwise
+ */
+export function isFirefox() {
+  try {
+    const userAgent = navigator.userAgent
+    const isFirefox = /Firefox/.test(userAgent)
+    return isFirefox
+  } catch (error) {
+    console.log('Error detecting browser:', error)
+    return false
+  }
+}
+
+/**
  * Detects if the current browser is Firefox Mobile
  * @returns {boolean} True if Firefox Mobile, false otherwise
  */

@@ -8,6 +8,9 @@ export default defineConfig({
     optimizeDeps: {
       exclude: ['@wxt-dev/module-svelte'],
     },
+    // esbuild: {
+    //   drop: ['console', 'debugger'],
+    // },
   }),
   srcDir: 'src',
   modules: ['@wxt-dev/module-svelte'],
@@ -15,13 +18,13 @@ export default defineConfig({
     if (browser === 'chrome') {
       return {
         host_permissions: [
-          '<all_urls>',
           'http://127.0.0.1:11434/*',
           'http://localhost:11434/*',
         ],
         permissions: [
           'sidePanel',
           'storage',
+          '<all_urls>',
           'activeTab',
           'scripting',
           'tabs',
@@ -88,6 +91,12 @@ export default defineConfig({
           'scripting',
           'declarativeNetRequest',
         ],
+        // optional_permissions: [
+        //   '<all_urls>',
+        //   '*://*.youtube.com/*',
+        //   '*://*.udemy.com/*',
+        //   '*://*.coursera.org/*',
+        // ],
         action: {
           default_icon: 'icon/48.png',
           default_title: 'Open Summarizerrrr',

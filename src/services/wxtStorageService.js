@@ -21,3 +21,8 @@ export const themeStorage = storage.defineItem('sync:theme', {
 export const appStateStorage = storage.defineItem('sync:appState', {
   defaultValue: {},
 })
+
+// Secret key storage for API key encryption (stored locally, not synced)
+export const secretKeyStorage = storage.defineItem('local:secretKey', {
+  defaultValue: null,
+})

@@ -70,7 +70,29 @@
         "sidepanel_position": "Sidepanel Position",
         "position_left": "Left",
         "position_right": "Right"
-      }
+      },
+      "one_click_mode": "One Click Mode",
+      "one_click_disabled_title": "Disabled",
+      "one_click_disabled_desc": "Click button to toggle panel (default behavior)",
+      "one_click_enabled_title": "Enabled",
+      "one_click_enabled_desc": "Click button to auto-start summarization",
+      "auto_hide_outside_click": "Auto-hide on outside click",
+      "auto_hide_disabled_title": "Disabled",
+      "auto_hide_disabled_desc": "Keep the panel open when clicking outside.",
+      "auto_hide_enabled_title": "Enabled",
+      "auto_hide_enabled_desc": "Close the panel by clicking outside of it.",
+      "domain_control": {
+        "title": "FAB Domain Control",
+        "description": "Control where the floating button appears.",
+        "all_sites": "All Sites",
+        "allowed_sites_only": "Allowed Sites Only",
+        "blocked_sites": "Blocked Sites",
+        "aria_label": "Select FAB control mode"
+      },
+      "domain_input_placeholder": "example.com or *.example.com",
+      "domain_whitelist_helper": "Show FAB only on allowed domains.",
+      "domain_blacklist_helper": "Hide FAB on blocked domains, show everywhere else.",
+      "domain_all_helper": "FAB will show on all websites"
     },
     "ai_model": {
       "title": "Provider",
@@ -234,82 +256,6 @@
     "save_to_archive": "Save to archive",
     "saved": "Saved!"
   },
-
-  "errors": {
-    "api_key": "API Key not configured. Please check your API key in the settings.",
-    "unauthorized": "Unauthorized access. Please check your API key and permissions.",
-    "quota": "API quota exceeded. Please check your usage limits or try again later.",
-    "network": "Network error. Please check your internet connection.",
-    "server": "API server error. Please try again later.",
-    "content": "Content not found or could not be processed.",
-    "permission": "Missing browser permissions. Please check extension settings.",
-    "timeout": "Request timed out. Please try again.",
-    "streaming": "Streaming error. Data might be incomplete.",
-    "unknown": "An unexpected error occurred. Please try again."
-  },
-  "helpSystem": {
-    "apiKey": {
-      "title": "Invalid API Key",
-      "message": "The API key you provided is invalid or has been disabled. Please check the key in the settings and try again.",
-      "suggestions": ["Verify your API key in the settings."]
-    },
-    "unauthorized": {
-      "title": "Unauthorized Access",
-      "message": "Your API key does not have the required permissions for this operation. This can happen with tuned models or specific API restrictions.",
-      "suggestions": [
-        "Check your API permissions and ensure they are sufficient.",
-        "Contact the API provider's support for assistance."
-      ]
-    },
-    "quota": {
-      "title": "API Quota Exceeded",
-      "message": "You have exceeded your usage limit for the selected API. Please check your account billing or try again later.",
-      "suggestions": [
-        "Review your API usage and billing details.",
-        "Consider upgrading your plan if you frequently hit limits."
-      ]
-    },
-    "network": {
-      "title": "Network Connection Error",
-      "message": "Could not connect to the server. Please check your internet connection and any firewall or proxy settings.",
-      "suggestions": [
-        "Ensure you have a stable internet connection and disable any VPN/proxy if active."
-      ]
-    },
-    "server": {
-      "title": "API Server Error",
-      "message": "The AI provider's server encountered an internal error (5xx). This is usually a temporary issue. Please wait a moment and try again.",
-      "suggestions": [
-        "Wait a few moments and try your request again.",
-        "Check the provider's status page for known outages."
-      ]
-    },
-    "content": {
-      "title": "Content Error",
-      "message": "The extension could not retrieve the necessary content from this page (e.g., transcript not found, page text too short).",
-      "suggestions": [
-        "Ensure the video has a transcript available",
-        "Make sure the web page is fully loaded and accessible."
-      ]
-    },
-    "permission": {
-      "title": "Permission Denied",
-      "message": "The extension lacks the necessary browser permissions to perform this action. Please check the extension settings.",
-      "suggestions": [
-        "Review and grant necessary permissions in your browser's extension settings."
-      ]
-    },
-    "unknown": {
-      "title": "Unknown Error",
-      "message": "An unexpected error occurred. If this problem persists, please consider reporting it.",
-      "suggestions": [
-        "Check if the video has a transcript.",
-        "Ensure the page has fully loaded.",
-        "Try again with a different page or video.",
-        "No access to this URL."
-      ]
-    }
-  },
   "welcome": {
     "choose_interface_language": "Welcome to Summarizerrrr!",
     "select_your_language": "Choose your interface language",
@@ -318,7 +264,7 @@
     "configure_api_keys": "Please configure API keys in the settings first",
     "api_setup_guide": "You'll need to set up your AI provider API key to start using Summarizer.",
     "go_to_settings": "Go to Settings",
-    "setup_guide_link": "📺 How to setup API key",
+    "setup_guide_link": "How to setup API key",
     "font_selection": "Font Family",
     "theme_selection": "Theme",
     "summary_language": "Summary Language",

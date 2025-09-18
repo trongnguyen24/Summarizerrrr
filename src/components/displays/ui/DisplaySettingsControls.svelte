@@ -54,7 +54,9 @@
   }
 </script>
 
-<div class="absolute text-base flex gap-2 top-3 md:top-4 right-2">
+<div
+  class="absolute text-base flex gap-2 top-3 md:top-4 sm:right-8 right-5 md:right-12"
+>
   <button
     class=" size-10 md:size-8 flex justify-center items-center hover:bg-blackwhite/5 rounded-3xl"
     onclick={toggleTheme}

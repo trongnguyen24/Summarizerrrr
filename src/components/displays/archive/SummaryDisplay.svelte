@@ -7,7 +7,6 @@
   svelte(hljs)
   import { processThinkTags } from '@/lib/utils/thinkTagProcessor.js'
   import TOC from '@/components/navigation/TOCArchive.svelte'
-  import TOCMobile from '@/components/navigation/TOCMobile.svelte'
   import TabNavigation from '@/components/navigation/TabNavigation.svelte'
   import FoooterDisplay from '@/components/displays/ui/FoooterDisplay.svelte'
   import SaveToArchiveFromHistoryButton from '@/components/buttons/SaveToArchiveFromHistoryButton.svelte'
@@ -227,12 +226,9 @@
       </div>
     </div>
   </div>
-  {#if isTouchDevice()}
-    <TOC targetDivId="summary-content" />
-    <!-- <TOCMobile targetDivId="summary-content" /> -->
-  {:else}
-    <TOC targetDivId="summary-content" />
-  {/if}
+
+  <TOC targetDivId="summary-content" />
+
   {@const currentSummary = selectedSummary.summaries.find(
     (_, index) => `summary-tab-${index}` === activeTabId
   )}

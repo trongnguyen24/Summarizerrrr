@@ -22,7 +22,7 @@ export const appStateStorage = storage.defineItem('sync:appState', {
   defaultValue: {},
 })
 
-// Secret key storage for API key encryption (synced across devices)
-export const secretKeyStorage = storage.defineItem('sync:secretKey', {
-  defaultValue: null,
+// API Keys storage (local only for security - not synced)
+export const apiKeysStorage = storage.defineItem('local:apiKeys', {
+  defaultValue: {},
 })

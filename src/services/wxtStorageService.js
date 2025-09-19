@@ -21,8 +21,3 @@ export const themeStorage = storage.defineItem('sync:theme', {
 export const appStateStorage = storage.defineItem('sync:appState', {
   defaultValue: {},
 })
-
-// API Keys storage (local only for security - not synced)
-export const apiKeysStorage = storage.defineItem('local:apiKeys', {
-  defaultValue: {},
-})

@@ -1,9 +1,6 @@
 // @ts-nocheck
 import { locale } from 'svelte-i18n'
-import {
-  settingsStorage,
-  apiKeysStorage,
-} from '@/services/wxtStorageService.js'
+import { settingsStorage } from '@/services/wxtStorageService.js'
 
 // --- Default Settings (Merged) ---
 const DEFAULT_SETTINGS = {
@@ -99,75 +96,6 @@ let _isInitializedPromise = null
 // --- Helper Functions ---
 
 /**
- * List of setting keys that contain API keys (stored in local storage separately)
- */
-const API_KEY_FIELDS = [
-  'geminiApiKey',
-  'geminiAdvancedApiKey',
-  'openaiCompatibleApiKey',
-  'openrouterApiKey',
-  'deepseekApiKey',
-  'chatgptApiKey',
-  'groqApiKey',
-]
-
-/**
- * Loads API keys from local storage
- * @returns {Object} API keys object
- */
-async function loadApiKeys() {
-  try {
-    const apiKeys = await apiKeysStorage.getValue()
-    return apiKeys || {}
-  } catch (error) {
-    console.error('[settingsStore] Error loading API keys:', error)
-    return {}
-  }
-}
-
-/**
- * Saves API keys to local storage
- * @param {Object} apiKeys - The API keys object
- */
-async function saveApiKeys(apiKeys) {
-  try {
-    await apiKeysStorage.setValue(apiKeys)
-  } catch (error) {
-    console.error('[settingsStore] Error saving API keys:', error)
-    throw error
-  }
-}
-
-/**
- * Separates API keys from settings object
- * @param {Object} settings - The settings object
- * @returns {Object} {apiKeys, settingsWithoutApiKeys}
- */
-function separateApiKeys(settings) {
-  const apiKeys = {}
-  const settingsWithoutApiKeys = { ...settings }
-
-  for (const field of API_KEY_FIELDS) {
-    if (settings[field] !== undefined) {
-      apiKeys[field] = settings[field]
-      delete settingsWithoutApiKeys[field]
-    }
-  }
-
-  return { apiKeys, settingsWithoutApiKeys }
-}
-
-/**
- * Merges API keys back into settings object
- * @param {Object} settings - The settings object
- * @param {Object} apiKeys - The API keys object
- * @returns {Object} Merged settings with API keys
- */
-function mergeApiKeys(settings, apiKeys) {
-  return { ...settings, ...apiKeys }
-}
-
-/**
  * Converts fabDomainWhitelist from object format to array format
  * @param {Object|Array} whitelist - The whitelist data
  * @returns {Array} - Array of domain strings
@@ -201,10 +129,7 @@ export async function loadSettings() {
 
   _isInitializedPromise = (async () => {
     try {
-      // Load settings and API keys separately
       const storedSettings = await settingsStorage.getValue()
-      const apiKeys = await loadApiKeys()
-
       if (storedSettings && Object.keys(storedSettings).length > 0) {
         // Handle migration from old fabDomainPermissions to new fabDomainControl format
         if (
@@ -255,27 +180,16 @@ export async function loadSettings() {
           }
         }
 
-        // Remove any API keys from storedSettings (they shouldn't be there in new system)
-        const { settingsWithoutApiKeys } = separateApiKeys(storedSettings)
-
-        // Merge settings with defaults and add API keys
+        // Merge settings with defaults
         const mergedSettings = {
           ...DEFAULT_SETTINGS,
-          ...settingsWithoutApiKeys,
-          ...apiKeys, // Add API keys from local storage
+          ...storedSettings,
         }
         Object.assign(settings, mergedSettings)
       } else {
-        // No settings in storage, so initialize it with defaults (without API keys)
-        const { settingsWithoutApiKeys } = separateApiKeys(DEFAULT_SETTINGS)
-        await settingsStorage.setValue(settingsWithoutApiKeys)
-
-        // Merge with API keys from local storage
-        const mergedSettings = {
-          ...DEFAULT_SETTINGS,
-          ...apiKeys,
-        }
-        Object.assign(settings, mergedSettings)
+        // No settings in storage, so initialize it with defaults
+        await settingsStorage.setValue(DEFAULT_SETTINGS)
+        Object.assign(settings, DEFAULT_SETTINGS)
       }
     } catch (error) {
       console.error('[settingsStore] Error loading settings:', error)
@@ -308,18 +222,10 @@ export async function updateSettings(newSettings) {
   }
 
   try {
-    // Separate API keys from other settings
-    const { apiKeys, settingsWithoutApiKeys } = separateApiKeys(updatedSettings)
-
-    // Save API keys to local storage
-    await saveApiKeys(apiKeys)
-
-    // Save other settings to sync storage
-    await settingsStorage.setValue(settingsWithoutApiKeys)
+    // Save the entire updated settings object back to storage
+    await settingsStorage.setValue(updatedSettings)
   } catch (error) {
     console.error('[settingsStore] Error saving settings:', error)
-    // Re-throw to alert, but don't break UI
-    throw error
   }
 }
 
@@ -327,76 +233,54 @@ export async function updateSettings(newSettings) {
  * Subscribes to changes in storage and updates the local state.
  */
 export function subscribeToSettingsChanges() {
-  return settingsStorage.watch(async (newValue, oldValue) => {
+  return settingsStorage.watch((newValue, oldValue) => {
     if (JSON.stringify(newValue) !== JSON.stringify(settings)) {
-      try {
-        // Load API keys from local storage
-        const apiKeys = await loadApiKeys()
+      // Handle migration from old formats to fabDomainControl
+      if (
+        (newValue.fabDomainPermissions ||
+          newValue.fabDomainPermissionsEnabled !== undefined ||
+          newValue.fabDomainWhitelist !== undefined) &&
+        !newValue.fabDomainControl
+      ) {
+        let mode = 'all'
+        let whitelist = []
 
-        // Handle migration from old formats to fabDomainControl
-        if (
-          (newValue.fabDomainPermissions ||
-            newValue.fabDomainPermissionsEnabled !== undefined ||
-            newValue.fabDomainWhitelist !== undefined) &&
-          !newValue.fabDomainControl
-        ) {
-          let mode = 'all'
-          let whitelist = []
-
-          if (newValue.fabDomainPermissions) {
-            mode = newValue.fabDomainPermissions.enabled ? 'whitelist' : 'all'
-            whitelist =
-              normalizeFabWhitelist(newValue.fabDomainPermissions.whitelist) ||
-              []
-            delete newValue.fabDomainPermissions
-          } else if (newValue.fabDomainPermissionsEnabled !== undefined) {
-            mode = newValue.fabDomainPermissionsEnabled ? 'whitelist' : 'all'
-            whitelist = normalizeFabWhitelist(newValue.fabDomainWhitelist) || []
-            delete newValue.fabDomainPermissionsEnabled
-            delete newValue.fabDomainWhitelist
-          }
-
-          newValue.fabDomainControl = {
-            mode,
-            whitelist,
-            blacklist: [],
-          }
+        if (newValue.fabDomainPermissions) {
+          mode = newValue.fabDomainPermissions.enabled ? 'whitelist' : 'all'
+          whitelist =
+            normalizeFabWhitelist(newValue.fabDomainPermissions.whitelist) || []
+          delete newValue.fabDomainPermissions
+        } else if (newValue.fabDomainPermissionsEnabled !== undefined) {
+          mode = newValue.fabDomainPermissionsEnabled ? 'whitelist' : 'all'
+          whitelist = normalizeFabWhitelist(newValue.fabDomainWhitelist) || []
+          delete newValue.fabDomainPermissionsEnabled
+          delete newValue.fabDomainWhitelist
         }
 
-        // Ensure fabDomainControl has proper structure
-        if (newValue.fabDomainControl) {
-          const { mode, whitelist, blacklist } = newValue.fabDomainControl
-          newValue.fabDomainControl = {
-            mode: mode || 'all',
-            whitelist: normalizeFabWhitelist(whitelist) || [],
-            blacklist: normalizeFabWhitelist(blacklist) || [],
-          }
+        newValue.fabDomainControl = {
+          mode,
+          whitelist,
+          blacklist: [],
         }
+      }
 
-        // Remove any API keys from newValue (they shouldn't be there)
-        const { settingsWithoutApiKeys } = separateApiKeys(newValue)
+      // Ensure fabDomainControl has proper structure
+      if (newValue.fabDomainControl) {
+        const { mode, whitelist, blacklist } = newValue.fabDomainControl
+        newValue.fabDomainControl = {
+          mode: mode || 'all',
+          whitelist: normalizeFabWhitelist(whitelist) || [],
+          blacklist: normalizeFabWhitelist(blacklist) || [],
+        }
+      }
 
-        // Merge settings with API keys from local storage
-        const mergedSettings = {
-          ...DEFAULT_SETTINGS,
-          ...settingsWithoutApiKeys,
-          ...apiKeys,
-        }
-        Object.assign(settings, mergedSettings)
-        if (newValue.uiLang !== settings.uiLang) {
-          locale.set(newValue.uiLang)
-        }
-      } catch (error) {
-        console.error(
-          '[settingsStore] Error processing settings change:',
-          error
-        )
-        // Fallback to using newValue directly
-        const mergedSettings = {
-          ...DEFAULT_SETTINGS,
-          ...newValue,
-        }
-        Object.assign(settings, mergedSettings)
+      const mergedSettings = {
+        ...DEFAULT_SETTINGS,
+        ...newValue,
+      }
+      Object.assign(settings, mergedSettings)
+      if (newValue.uiLang !== settings.uiLang) {
+        locale.set(newValue.uiLang)
       }
     }
   })

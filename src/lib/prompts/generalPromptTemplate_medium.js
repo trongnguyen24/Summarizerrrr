@@ -15,10 +15,10 @@ Provide a structured summary (100-200 words) of <INPUT_CONTENT>, covering the ma
 [Brief overview in 1-2 sentences]
 
 ## Key Points
-• [Main point 1 - concise sentence]
-• [Main point 2 - concise sentence] 
-• [Main point 3 - concise sentence]
-• [Additional points if necessary, max 5 total]
+- [Main point 1 - concise sentence]
+- [Main point 2 - concise sentence] 
+- [Main point 3 - concise sentence]
+- [Additional points if necessary, max 5 total]
 
 ## Conclusion
 [Summary statement or key takeaway]

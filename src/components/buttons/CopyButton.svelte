@@ -35,18 +35,29 @@
     )
   }
 
-  async function writeToClipboard(content) {
-    // 1) Ưu tiên Clipboard API hiện đại
-    if (navigator?.clipboard?.writeText && window.isSecureContext) {
-      try {
-        await navigator.clipboard.writeText(content)
-        return
-      } catch (_) {
-        /* rơi xuống fallback */
-      }
-    }
+  async function copyWithSelection(element) {
+    // Sử dụng Selection API để copy HTML format như code example
+    const range = document.createRange()
+    range.selectNode(element)
 
-    // 2) Fallback: textarea ẩn trong *document.body* (không append vào ShadowRoot)
+    const selection = window.getSelection()
+    selection.removeAllRanges()
+    selection.addRange(range)
+
+    try {
+      const successful = document.execCommand('copy')
+      if (!successful) {
+        throw new Error('execCommand returned false')
+      }
+      return true
+    } finally {
+      // Bỏ chọn nội dung sau khi copy xong
+      selection.removeAllRanges()
+    }
+  }
+
+  async function writeToClipboard(content) {
+    // Fallback cho plain text: textarea ẩn trong *document.body*
     const ta = document.createElement('textarea')
     ta.value = content
     ta.setAttribute('readonly', '')
@@ -81,7 +92,9 @@
       let content = ''
 
       if (text != null) {
+        // Nếu có text được truyền trực tiếp, chỉ copy plain text
         content = asString(text)
+        await writeToClipboard(content)
       } else {
         const sel = normalizeId(targetId)
         const el = sel ? findInSameTree(sel, root) : null
@@ -91,23 +104,33 @@
           )
           return
         }
+
         if (
           el instanceof HTMLInputElement ||
           el instanceof HTMLTextAreaElement
         ) {
+          // Input/textarea chỉ có plain text
           content = asString(el.value)
+          await writeToClipboard(content)
         } else {
-          // ưu tiên innerText để giữ format line-break thân thiện
-          content = asString(el.innerText?.trim() || el.textContent?.trim())
+          // Element khác: thử copy với Selection API trước (giữ HTML format)
+          try {
+            await copyWithSelection(el)
+          } catch (selectionError) {
+            // Fallback: copy plain text nếu Selection API thất bại
+            console.warn(
+              'Selection API failed, falling back to plain text:',
+              selectionError
+            )
+            content = asString(el.innerText?.trim() || el.textContent?.trim())
+            if (!content) {
+              console.warn('Không có nội dung để copy')
+              return
+            }
+            await writeToClipboard(content)
+          }
         }
       }
-
-      if (!content) {
-        console.warn('Không có nội dung để copy')
-        return
-      }
-
-      await writeToClipboard(content)
 
       isCopied = true
       setTimeout(() => (isCopied = false), 1600)

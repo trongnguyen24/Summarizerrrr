@@ -107,13 +107,12 @@
   ])
 </script>
 
-<Logdev />
 <!-- Apply Tailwind classes for overall layout and styling -->
 <div
   class="relative settings font-mono text-text-primary dark:text-text-secondary text-xs bg-surface-1 overflow-hidden w-full flex-shrink-0 flex flex-col"
 >
   <div
-    class="px-4 sm:order-1 bg-surface-1 dark:bg-surface-2 py-2 border-b-0 border-border"
+    class="px-4 sm:order-1 sm:bg-surface-1 bg-background dark:bg-surface-2 py-2 border-b-0 border-border"
   >
     <p class="!text-center">{$t('settings.title')}</p>
   </div>

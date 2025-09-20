@@ -15,10 +15,10 @@ Provide a structured summary (100-200 words) of this YouTube video content, cove
 [Brief overview of what the video covers]
 
 ## Main Points
-• [Key point 1 - concise sentence]
-• [Key point 2 - concise sentence]
-• [Key point 3 - concise sentence]
-• [Additional points if necessary, max 5 total]
+- [Key point 1 - concise sentence]
+- [Key point 2 - concise sentence]
+- [Key point 3 - concise sentence]
+- [Additional points if necessary, max 5 total]
 
 ## Key Takeaways
 [Most important conclusions or actionable insights]

@@ -467,7 +467,7 @@
         </div>
         {#if getCurrentMode() === 'whitelist'}
           <div
-            class="grid relative overflow-hidden min-h-32 bg-background grid-cols-1 xs:grid-cols-2 p-2 gap-2"
+            class="xs:grid flex flex-col relative overflow-hidden min-h-32 bg-background grid-cols-2 p-2 gap-2"
           >
             <span
               class="absolute z-40 size-4 rotate-45 bg-surface-1 border border-border bottom-px left-px -translate-x-1/2 translate-y-1/2"
@@ -507,7 +507,7 @@
           </div>
         {:else if getCurrentMode() === 'blacklist'}
           <div
-            class="grid relative overflow-hidden bg-background min-h-32 grid-cols-2 p-2 gap-2"
+            class="xs:grid flex flex-col relative overflow-hidden min-h-32 bg-background grid-cols-2 p-2 gap-2"
           >
             <span
               class="absolute z-40 size-4 rotate-45 bg-surface-1 border border-border bottom-px left-px -translate-x-1/2 translate-y-1/2"

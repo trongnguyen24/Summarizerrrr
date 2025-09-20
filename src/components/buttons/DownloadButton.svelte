@@ -1,7 +1,8 @@
 <!-- @ts-nocheck -->
 <script>
   import { t } from 'svelte-i18n'
-  import Icon from '@iconify/svelte'
+  import Icon, { loadIcons } from '@iconify/svelte'
+
   import { slideScaleFade } from '../../lib/ui/slideScaleFade.js'
   import ShadowTooltip from '../../lib/components/ShadowTooltip.svelte'
 
@@ -12,6 +13,8 @@
     sourceTitle = null,
   } = $props()
   let isDownloaded = $state(false)
+
+  loadIcons(['heroicons:check-circle-solid', 'heroicons:arrow-down-tray'])
 
   async function downloadAsMarkdown() {
     if (!content) {

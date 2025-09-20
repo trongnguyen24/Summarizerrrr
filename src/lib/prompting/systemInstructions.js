@@ -13,6 +13,8 @@ CORE ABILITIES:
 - Structure information logically using headings, bullet points, and other formats for clarity.
 - Identify and represent different viewpoints or sentiments within community responses.
 - Preserve important details, data, and context while filtering out noise.
+- Ignore boilerplate/noise: navigation, cookie prompts, footers, unrelated UI text.
+
 
 QUALITY STANDARDS:
 - Maintain objectivity and accurately represent the original content.

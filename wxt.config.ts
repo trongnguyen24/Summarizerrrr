@@ -20,6 +20,7 @@ export default defineConfig({
         host_permissions: [
           'http://127.0.0.1:11434/*',
           'http://localhost:11434/*',
+          'http://localhost:1234/*',
         ],
         permissions: [
           'sidePanel',
@@ -90,12 +91,17 @@ export default defineConfig({
           'scripting',
           'declarativeNetRequest',
         ],
-        // optional_permissions: [
-        //   '<all_urls>',
-        //   '*://*.youtube.com/*',
-        //   '*://*.udemy.com/*',
-        //   '*://*.coursera.org/*',
-        // ],
+        optional_permissions: [
+          '<all_urls>',
+          '*://*.youtube.com/*',
+          '*://*.udemy.com/*',
+          '*://*.coursera.org/*',
+        ],
+        host_permissions: [
+          'http://127.0.0.1:11434/*',
+          'http://localhost:11434/*',
+          'http://localhost:1234/*',
+        ],
         action: {
           default_icon: 'icon/48.png',
           default_title: 'Open Summarizerrrr',

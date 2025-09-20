@@ -1,6 +1,6 @@
 <!-- @ts-nocheck -->
 <script>
-  import Icon from '@iconify/svelte'
+  import Icon, { loadIcons } from '@iconify/svelte'
   import { t } from 'svelte-i18n'
   import { slideScaleFade } from '@/lib/ui/slideScaleFade.js'
   import ShadowTooltip from '../../lib/components/ShadowTooltip.svelte'
@@ -9,6 +9,7 @@
 
   let { selectedSummary } = $props()
   let isItemArchived = $state(selectedSummary.isArchived || false)
+  loadIcons(['heroicons:archive-box', 'heroicons:archive-box-solid'])
 
   // Effect để cập nhật isItemArchived khi selectedSummary thay đổi
   $effect(() => {

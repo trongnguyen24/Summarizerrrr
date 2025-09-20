@@ -5,7 +5,7 @@
     saveAllGeneratedSummariesToArchive,
   } from '@/stores/summaryStore.svelte.js'
   import { t } from 'svelte-i18n'
-  import Icon from '@iconify/svelte'
+  import Icon, { loadIcons } from '@iconify/svelte'
   import { slideScaleFade } from '@/lib/ui/slideScaleFade.js'
   import ShadowTooltip from '../../lib/components/ShadowTooltip.svelte'
 
@@ -13,6 +13,7 @@
     if (summaryState.isArchived) return
     await saveAllGeneratedSummariesToArchive()
   }
+  loadIcons(['heroicons:archive-box', 'heroicons:archive-box-solid'])
 </script>
 
 <ShadowTooltip

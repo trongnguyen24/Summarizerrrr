@@ -1,7 +1,7 @@
 <!-- @ts-nocheck -->
 <script>
   import { t } from 'svelte-i18n'
-  import Icon from '@iconify/svelte'
+  import Icon, { loadIcons } from '@iconify/svelte'
   import { slideScaleFade } from '../../lib/ui/slideScaleFade.js'
   import ShadowTooltip from '../../lib/components/ShadowTooltip.svelte'
 
@@ -9,6 +9,8 @@
 
   let isCopied = $state(false)
   let btn // bind tới nút để xác định đúng root
+
+  loadIcons(['heroicons:check-circle-solid', 'heroicons:square-2-stack'])
 
   const asString = (v) => (typeof v === 'string' ? v : String(v ?? ''))
 
@@ -35,24 +37,155 @@
     )
   }
 
-  async function copyWithSelection(element) {
-    // Sử dụng Selection API để copy HTML format như code example
-    const range = document.createRange()
-    range.selectNode(element)
+  function cleanElementStyles(element) {
+    // Clone element để không ảnh hưởng đến original
+    const cleanElement = element.cloneNode(true)
 
-    const selection = window.getSelection()
-    selection.removeAllRanges()
-    selection.addRange(range)
+    // Force reset màu mặc định cho element gốc
+    cleanElement.style.cssText = `
+      color: black !important;
+      background-color: transparent !important;
+    `
+    cleanElement.removeAttribute('class')
+
+    // Force reset màu cho tất cả children
+    cleanElement.querySelectorAll('*').forEach((el) => {
+      el.style.cssText = `
+        color: inherit !important;
+        background-color: transparent !important;
+      `
+      el.removeAttribute('class')
+      el.removeAttribute('bgcolor')
+      el.removeAttribute('color')
+    })
+
+    return cleanElement
+  }
+
+  async function copyWithSelection(element) {
+    // Tạo element sạch với force reset colors
+    const cleanElement = cleanElementStyles(element)
+
+    // Tạo isolated container với unique class
+    const uniqueId = `temp-copy-container-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+    const tempContainer = document.createElement('div')
+    tempContainer.className = uniqueId
+    tempContainer.style.cssText = `
+      position: absolute !important;
+      left: -9999px !important;
+      top: -9999px !important;
+      opacity: 0 !important;
+      pointer-events: none !important;
+      width: 1px !important;
+      height: 1px !important;
+      overflow: hidden !important;
+      
+      /* Force reset all inherited styles */
+      color: black !important;
+      background-color: white !important;
+      font-size: 16px !important;
+      line-height: 1.4 !important;
+      
+      /* Isolate from parent CSS inheritance */
+      all: initial;
+      
+      /* Re-enable basic text properties */
+      unicode-bidi: isolate !important;
+    `
+
+    // Tạo style element với specific selector để không ảnh hưởng trang
+    const styleElement = document.createElement('style')
+    styleElement.textContent = `
+      .${uniqueId} ul {
+        list-style-type: disc !important;
+        margin: 1em 0 !important;
+        padding-left: 40px !important;
+        display: block !important;
+      }
+      .${uniqueId} ol {
+        list-style-type: decimal !important;
+        margin: 1em 0 !important;
+        padding-left: 40px !important;
+        display: block !important;
+      }
+      .${uniqueId} ul li,
+      .${uniqueId} ol li {
+        display: list-item !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+      .${uniqueId} ul ul {
+        list-style-type: circle !important;
+        margin: 0 !important;
+        padding-left: 20px !important;
+      }
+      .${uniqueId} ul ul ul {
+        list-style-type: square !important;
+      }
+      .${uniqueId} ol ol {
+        list-style-type: lower-alpha !important;
+        margin: 0 !important;
+        padding-left: 20px !important;
+      }
+      .${uniqueId} ol ol ol {
+        list-style-type: lower-roman !important;
+      }
+      .${uniqueId} h1, .${uniqueId} h2, .${uniqueId} h3,
+      .${uniqueId} h4, .${uniqueId} h5, .${uniqueId} h6 {
+        font-weight: bold !important;
+        margin: 0.5em 0 !important;
+        display: block !important;
+      }
+      .${uniqueId} h1 { font-size: 2em !important; }
+      .${uniqueId} h2 { font-size: 1.5em !important; }
+      .${uniqueId} h3 { font-size: 1.17em !important; }
+      .${uniqueId} h4 { font-size: 1em !important; }
+      .${uniqueId} h5 { font-size: 0.83em !important; }
+      .${uniqueId} h6 { font-size: 0.67em !important; }
+      .${uniqueId} p {
+        margin: 1em 0 !important;
+        display: block !important;
+      }
+      .${uniqueId} strong {
+        font-weight: bold !important;
+      }
+      .${uniqueId} em {
+        font-style: italic !important;
+      }
+      .${uniqueId} b {
+        font-weight: bold !important;
+      }
+      .${uniqueId} i {
+        font-style: italic !important;
+      }
+      .${uniqueId} u {
+        text-decoration: underline !important;
+      }
+    `
+
+    tempContainer.appendChild(styleElement)
+    tempContainer.appendChild(cleanElement)
+    document.body.appendChild(tempContainer)
 
     try {
+      // Sử dụng Selection API với element trong isolated container
+      const range = document.createRange()
+      range.selectNode(cleanElement)
+
+      const selection = window.getSelection()
+      selection.removeAllRanges()
+      selection.addRange(range)
+
       const successful = document.execCommand('copy')
       if (!successful) {
         throw new Error('execCommand returned false')
       }
       return true
     } finally {
-      // Bỏ chọn nội dung sau khi copy xong
+      // Cleanup: bỏ chọn và xóa temp container
+      const selection = window.getSelection()
       selection.removeAllRanges()
+      tempContainer.remove()
     }
   }
 

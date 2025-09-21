@@ -33,10 +33,112 @@
   let animationFrameId
   let drawerContainer, drawerBackdrop, drawerPanel, drawerHeader, drawerContent
 
+  // Multi-level drawer state
+  let currentHeightLevel = 'default' // 'default' | 'expanded'
+  let dragDirection = null // 'up' | 'down' | null
+  let lastDragY = 0 // Track drag direction
+  let isTransitioning = false // Prevent multiple transitions
+
+  // Height constants
+  const HEIGHT_LEVELS = {
+    DEFAULT: settings.mobileSheetHeight, // 80svh từ settings
+    EXPANDED: 100, // 100svh
+    CLOSED: 0,
+  }
+
+  // Helper functions for multi-level drawer
+  function getThresholds() {
+    const viewportHeight = window.innerHeight
+    const defaultHeight = (HEIGHT_LEVELS.DEFAULT / 100) * viewportHeight
+    const expandedHeight = (HEIGHT_LEVELS.EXPANDED / 100) * viewportHeight
+
+    return {
+      expandThreshold: (expandedHeight - defaultHeight) / 4, // 1/4 distance to expand
+      collapseThreshold: defaultHeight / 4, // 1/4 of default height to close
+      contractThreshold: (expandedHeight - defaultHeight) / 4, // 1/4 distance to contract
+    }
+  }
+
+  function getTargetHeight(level) {
+    return `${HEIGHT_LEVELS[level.toUpperCase()]}svh`
+  }
+
+  function getLevelPosition(level) {
+    if (level === 'default') return '0%'
+    if (level === 'expanded') return '0%'
+    return 'calc(100% + 10vh)' // closed
+  }
+
+  function animateToLevel(targetLevel) {
+    if (isTransitioning) return
+    isTransitioning = true
+
+    // Restore transitions for animations
+    drawerPanel.style.transition = ''
+    drawerBackdrop.style.transition = ''
+
+    // Update height first for non-closed levels
+    if (targetLevel !== 'closed') {
+      drawerPanel.style.height = getTargetHeight(targetLevel)
+    }
+
+    const targetPosition = getLevelPosition(targetLevel)
+
+    if (targetLevel === 'closed') {
+      // Close animation (existing logic)
+      unlockBodyScroll()
+
+      const panelHeight = drawerPanel.offsetHeight
+      const closePosition = panelHeight + window.innerHeight * 0.1
+
+      const panelAnimation = animate(drawerPanel, {
+        translateY: `${closePosition}px`,
+        duration: 200,
+        ease: 'linear',
+      })
+
+      animate(drawerBackdrop, {
+        opacity: 0,
+        duration: 250,
+        ease: 'inCubic',
+        delay: 50,
+      })
+
+      panelAnimation.then(() => {
+        drawerContainer.classList.add('pointer-events-none')
+        currentHeightLevel = 'default' // Reset to default for next open
+        isTransitioning = false
+        onclose?.()
+      })
+    } else {
+      // Level transition animation
+      animate(drawerPanel, {
+        translateY: targetPosition,
+        duration: 400,
+        ease: 'outCubic',
+        complete: () => {
+          currentHeightLevel = targetLevel
+          isTransitioning = false
+        },
+      })
+
+      // Update backdrop opacity
+      animate(drawerBackdrop, {
+        opacity: settings.mobileSheetBackdropOpacity ? 1 : 0,
+        duration: 250,
+        ease: 'outCubic',
+      })
+    }
+  }
+
   function openDrawer() {
     if (!drawerContainer) return
     drawerContainer.classList.remove('pointer-events-none')
     lockBodyScroll() // Lock body scroll when opening
+
+    // Set initial height to default level
+    currentHeightLevel = 'default'
+    drawerPanel.style.height = getTargetHeight('default')
 
     // Backdrop fade in
     animate(drawerBackdrop, {
@@ -45,11 +147,11 @@
       ease: 'outCubic',
     })
 
-    // Panel slide up with elastic effect
+    // Panel slide up with elastic effect to default level
     animate(drawerPanel, {
       translateY: '0%',
       duration: 600,
-      ease: 'outExpo',
+      ease: 'outCubic',
     })
 
     // Content fade in with stagger
@@ -123,6 +225,12 @@
     // Ensure body scroll is unlocked on component unmount
     unlockBodyScroll()
 
+    // Reset multi-level drawer state
+    currentHeightLevel = 'default'
+    dragDirection = null
+    lastDragY = 0
+    isTransitioning = false
+
     // Cleanup navigation subscription
     if (unsubscribeNavigation) {
       unsubscribeNavigation()
@@ -145,6 +253,8 @@
       // e.preventDefault()
       isDragging = true
       startY = e.pageY || e.touches[0].pageY
+      lastDragY = startY // Initialize lastDragY
+      dragDirection = null // Reset drag direction
 
       // Remove any existing transitions for real-time drag
       drawerPanel.style.transition = 'none'
@@ -162,8 +272,23 @@
     }
 
     const currentY = e.pageY || e.touches[0].pageY
-    // Only allow pulling down (positive deltaY)
-    const deltaY = Math.max(0, currentY - startY)
+
+    // Detect drag direction
+    if (lastDragY !== 0) {
+      dragDirection = currentY > lastDragY ? 'down' : 'up'
+    }
+    lastDragY = currentY
+
+    // Calculate deltaY based on current level and drag direction
+    let deltaY
+    if (currentHeightLevel === 'expanded') {
+      // From 100svh, only allow dragging down
+      deltaY = Math.max(0, currentY - startY)
+    } else {
+      // From default level, allow dragging both up and down
+      deltaY = currentY - startY
+    }
+
     currentTranslateY = deltaY
 
     if (!animationFrameId) {
@@ -174,7 +299,8 @@
         // Update backdrop opacity
         const panelHeight = drawerPanel.offsetHeight
         const maxOpacity = settings.mobileSheetBackdropOpacity ? 1 : 0
-        const opacity = maxOpacity - (currentTranslateY / panelHeight) * 0.8
+        const opacity =
+          maxOpacity - (Math.abs(currentTranslateY) / panelHeight) * 0.8
         drawerBackdrop.style.opacity = Math.max(0, opacity).toString()
 
         animationFrameId = null
@@ -183,57 +309,43 @@
   }
 
   const onDragEnd = () => {
-    if (!isDragging) return
+    if (!isDragging || isTransitioning) return
     isDragging = false
 
-    // Restore transitions for animations
-    drawerPanel.style.transition = ''
-    drawerBackdrop.style.transition = ''
+    const thresholds = getThresholds()
+    const absDeltaY = Math.abs(currentTranslateY)
 
-    const panelHeight = drawerPanel.offsetHeight
-    if (currentTranslateY > panelHeight / 4) {
-      // Tạo animation mượt mà từ vị trí hiện tại thay vì gọi closeDrawer()
-      unlockBodyScroll()
-
-      // Tính toán vị trí đóng chính xác bằng pixel thay vì calc()
-      // 100% = panelHeight, 10vh = window.innerHeight * 0.1
-      const closePosition = panelHeight + window.innerHeight * 0.1
-
-      // Animation panel từ vị trí hiện tại xuống vị trí đóng
-      const panelAnimation = animate(drawerPanel, {
-        translateY: `${closePosition}px`,
-        duration: 200,
-        ease: 'linear',
-      })
-
-      // Animation backdrop fade out
-      animate(drawerBackdrop, {
-        opacity: 0,
-        duration: 250,
-        ease: 'inCubic',
-        delay: 50,
-      })
-
-      // Cleanup callback
-      panelAnimation.then(() => {
-        drawerContainer.classList.add('pointer-events-none')
-        onclose?.()
-      })
-    } else {
-      // Snap back to open position with elastic effect
-      animate(drawerPanel, {
-        translateY: '0px',
-        duration: 400,
-        ease: 'outBack(1.25)',
-      })
-
-      // Restore backdrop opacity
-      animate(drawerBackdrop, {
-        opacity: settings.mobileSheetBackdropOpacity ? 1 : 0,
-        duration: 250,
-        ease: 'outCubic',
-      })
+    // Multi-level logic based on current level and drag direction
+    if (currentHeightLevel === 'default') {
+      if (dragDirection === 'up' && absDeltaY > thresholds.expandThreshold) {
+        // Expand to 100svh
+        animateToLevel('expanded')
+      } else if (
+        dragDirection === 'down' &&
+        absDeltaY > thresholds.collapseThreshold
+      ) {
+        // Close drawer
+        animateToLevel('closed')
+      } else {
+        // Snap back to default
+        animateToLevel('default')
+      }
+    } else if (currentHeightLevel === 'expanded') {
+      if (
+        dragDirection === 'down' &&
+        absDeltaY > thresholds.contractThreshold
+      ) {
+        // Contract to default level
+        animateToLevel('default')
+      } else {
+        // Snap back to expanded
+        animateToLevel('expanded')
+      }
     }
+
+    // Reset drag state
+    dragDirection = null
+    lastDragY = 0
   }
 
   function openArchive() {

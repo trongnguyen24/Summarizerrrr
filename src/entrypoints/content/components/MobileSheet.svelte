@@ -31,10 +31,6 @@
   let startY
   let currentTranslateY
   let animationFrameId
-  let velocity = 0
-  let lastDragY = 0
-  let lastDragTime = 0
-  let velocityThreshold = 500 // px/s, có thể lấy từ settings sau
   let drawerContainer, drawerBackdrop, drawerPanel, drawerHeader, drawerContent
 
   function openDrawer() {
@@ -150,11 +146,6 @@
       isDragging = true
       startY = e.pageY || e.touches[0].pageY
 
-      // Khởi tạo velocity tracking
-      lastDragY = startY
-      lastDragTime = Date.now()
-      velocity = 0
-
       // Remove any existing transitions for real-time drag
       drawerPanel.style.transition = 'none'
       drawerBackdrop.style.transition = 'none'
@@ -171,22 +162,9 @@
     }
 
     const currentY = e.pageY || e.touches[0].pageY
-    const now = Date.now()
-    const deltaTime = now - lastDragTime
-
-    // Tính vận tốc nếu có thời gian trước đó
-    if (deltaTime > 0 && lastDragTime > 0) {
-      const deltaDragY = currentY - lastDragY
-      velocity = (deltaDragY / deltaTime) * 1000 // px/s
-    }
-
     // Only allow pulling down (positive deltaY)
     const deltaY = Math.max(0, currentY - startY)
     currentTranslateY = deltaY
-
-    // Cập nhật last positions
-    lastDragY = currentY
-    lastDragTime = now
 
     if (!animationFrameId) {
       animationFrameId = requestAnimationFrame(() => {
@@ -213,59 +191,49 @@
     drawerBackdrop.style.transition = ''
 
     const panelHeight = drawerPanel.offsetHeight
-    const positionThreshold = panelHeight / 3 // Ngưỡng vị trí để snap/đóng
-
-    // Quyết định dựa trên vận tốc và vị trí
-    const isFastSwipeDown = velocity > velocityThreshold
-    const isPastPositionThreshold = currentTranslateY > positionThreshold
-
-    if (isFastSwipeDown || isPastPositionThreshold) {
-      // Đóng sheet (di chuyển theo hướng vuốt xuống)
+    if (currentTranslateY > panelHeight / 4) {
+      // Tạo animation mượt mà từ vị trí hiện tại thay vì gọi closeDrawer()
       unlockBodyScroll()
 
+      // Tính toán vị trí đóng chính xác bằng pixel thay vì calc()
+      // 100% = panelHeight, 10vh = window.innerHeight * 0.1
       const closePosition = panelHeight + window.innerHeight * 0.1
 
-      // Duration ngắn hơn nếu vuốt nhanh
-      const closeDuration = isFastSwipeDown ? 150 : 250
-
+      // Animation panel từ vị trí hiện tại xuống vị trí đóng
       const panelAnimation = animate(drawerPanel, {
         translateY: `${closePosition}px`,
-        duration: closeDuration,
-        ease: 'inQuart',
+        duration: 200,
+        ease: 'linear',
       })
 
+      // Animation backdrop fade out
       animate(drawerBackdrop, {
         opacity: 0,
-        duration: 200,
+        duration: 250,
         ease: 'inCubic',
+        delay: 50,
       })
 
+      // Cleanup callback
       panelAnimation.then(() => {
         drawerContainer.classList.add('pointer-events-none')
         onclose?.()
       })
     } else {
-      // Snap back vào điểm neo gần nhất (mở ở 0%)
+      // Snap back to open position with elastic effect
       animate(drawerPanel, {
         translateY: '0px',
-        duration: 300,
-        ease: 'outBack(1.2)',
+        duration: 400,
+        ease: 'outBack(1.25)',
       })
 
+      // Restore backdrop opacity
       animate(drawerBackdrop, {
         opacity: settings.mobileSheetBackdropOpacity ? 1 : 0,
         duration: 250,
         ease: 'outCubic',
       })
-
-      // Lock scroll lại khi snap back
-      lockBodyScroll()
     }
-
-    // Reset biến
-    velocity = 0
-    lastDragY = 0
-    lastDragTime = 0
   }
 
   function openArchive() {

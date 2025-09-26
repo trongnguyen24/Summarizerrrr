@@ -54,7 +54,8 @@ export async function updateThemeSettings(newThemeSettings) {
   Object.assign(themeSettings, updatedSettings)
 
   try {
-    await themeStorage.setValue(updatedSettings)
+    // Convert Svelte Proxy to a plain JS object before saving
+    await themeStorage.setValue(JSON.parse(JSON.stringify(updatedSettings)))
   } catch (error) {
     console.error('[themeStore] Error saving theme settings:', error)
   }

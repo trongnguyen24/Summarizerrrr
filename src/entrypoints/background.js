@@ -1,5 +1,6 @@
 // @ts-nocheck
 import 'webextension-polyfill'
+import { storage } from '@wxt-dev/storage'
 import { browser } from 'wxt/browser'
 import {
   loadSettings,
@@ -142,6 +143,33 @@ class OllamaApiProxyService {
 // --- Main Background Logic ---
 
 export default defineBackground(() => {
+  async function migrateStorageFromSyncToLocal() {
+    const keysToMigrate = ['settings', 'theme', 'appState']
+
+    for (const key of keysToMigrate) {
+      try {
+        const syncData = await storage.getItem(`sync:${key}`)
+        if (syncData && Object.keys(syncData).length > 0) {
+          const localData = (await storage.getItem(`local:${key}`)) || {}
+
+          // Merge sync data into local data, with sync data taking precedence.
+          const mergedData = { ...localData, ...syncData }
+
+          // 1. Write to local storage
+          await storage.setItem(`local:${key}`, mergedData)
+
+          // 2. After successful write, remove from sync storage
+          await storage.removeItem(`sync:${key}`)
+        }
+      } catch (error) {
+        console.error(
+          `Error migrating '${key}' from sync to local storage:`,
+          error
+        )
+      }
+    }
+  }
+
   const ollamaCorsService = new OllamaCorsService()
   const ollamaApiProxy = new OllamaApiProxyService()
   let sidePanelPort = null
@@ -416,7 +444,14 @@ export default defineBackground(() => {
     }
   })
 
-  browser.runtime.onInstalled.addListener(() => initializeContextMenu())
+  browser.runtime.onInstalled.addListener(async (details) => {
+    // Run migration only on install/update, not on every startup
+    if (details.reason === 'install' || details.reason === 'update') {
+      await migrateStorageFromSyncToLocal()
+    }
+
+    initializeContextMenu()
+  })
   if (import.meta.env.BROWSER === 'firefox') {
     browser.runtime.onStartup.addListener(() => initializeContextMenu())
   }

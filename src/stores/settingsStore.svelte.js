@@ -223,7 +223,8 @@ export async function updateSettings(newSettings) {
 
   try {
     // Save the entire updated settings object back to storage
-    await settingsStorage.setValue(updatedSettings)
+    // Convert Svelte Proxy to a plain JS object before saving to prevent DataCloneError
+    await settingsStorage.setValue(JSON.parse(JSON.stringify(updatedSettings)))
   } catch (error) {
     console.error('[settingsStore] Error saving settings:', error)
   }

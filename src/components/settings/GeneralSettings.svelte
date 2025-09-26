@@ -15,10 +15,52 @@
   } from '../../stores/themeStore.svelte' // Import themeSettings và updateThemeSettings
   import UILanguageSelect from '../inputs/UILanguageSelect.svelte'
   import { t } from 'svelte-i18n'
+  import { onMount } from 'svelte'
 
   function handleUpdateSetting(key, value) {
     updateSettings({ [key]: value })
   }
+
+  const all_origins = [
+    'https://*/*',
+    '*://*.youtube.com/*',
+    '*://*.udemy.com/*',
+    '*://*.coursera.org/*',
+  ]
+
+  let permissionsStatus = {}
+
+  async function checkAllPermissions() {
+    const newStatus = {}
+    for (const origin of all_origins) {
+      newStatus[origin] = await browser.permissions.contains({
+        origins: [origin],
+      })
+    }
+    permissionsStatus = newStatus
+  }
+
+  async function togglePermission(origin, checked) {
+    const permission = { origins: [origin] }
+    let success = false
+    if (checked) {
+      success = await browser.permissions.request(permission)
+    } else {
+      success = await browser.permissions.remove(permission)
+    }
+
+    // After request/remove, re-check the actual status
+    if (success) {
+      permissionsStatus[origin] = await browser.permissions.contains(permission)
+      permissionsStatus = { ...permissionsStatus } // Trigger reactivity
+    } else {
+      // If the user denied the request, the checkbox should reflect the actual state
+      permissionsStatus[origin] = false
+      permissionsStatus = { ...permissionsStatus }
+    }
+  }
+
+  onMount(checkAllPermissions)
   // effect on load update settings.hasCompletedOnboarding = false
   // $effect(() => {
   //   // This effect runs once when the component is mounted
@@ -211,4 +253,27 @@
       {/if}
     </div>
   </div>
+  {#if import.meta.env.BROWSER === 'firefox'}
+    <div class="flex flex-col gap-2 px-5 pb-4">
+      <!-- svelte-ignore a11y_label_has_associated_control -->
+      <label class="block text-text-secondary">Optional permissions</label>
+
+      <div class="space-y-2">
+        {#each all_origins as origin (origin)}
+          <label
+            class="flex items-center justify-between p-2 rounded-lg hover:bg-gray-100"
+          >
+            <span class="font-mono text-sm">{origin}</span>
+            <input
+              type="checkbox"
+              class="h-6 w-6 rounded"
+              bind:checked={permissionsStatus[origin]}
+              onchange={(e) =>
+                togglePermission(origin, e.currentTarget.checked)}
+            />
+          </label>
+        {/each}
+      </div>
+    </div>
+  {/if}
 </div>

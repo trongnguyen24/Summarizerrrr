@@ -92,10 +92,11 @@ export default defineConfig({
           'declarativeNetRequest',
         ],
         optional_permissions: [
-          '<all_urls>',
+          'https://*/*',
           '*://*.youtube.com/*',
           '*://*.udemy.com/*',
           '*://*.coursera.org/*',
+          '*://*.reddit.com/*',
         ],
         host_permissions: [
           'http://127.0.0.1:11434/*',

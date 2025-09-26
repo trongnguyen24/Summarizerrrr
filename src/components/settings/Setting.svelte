@@ -11,13 +11,12 @@
     loadSettings,
     updateSettings,
   } from '@/stores/settingsStore.svelte.js'
-  import AIModelSettings from '@/components/settings/AIModelSettings.svelte'
-  import SummarySettings from '@/components/settings/SummarySettings.svelte'
+  import ModelSummarySettings from '@/components/settings/ModelSummarySettings.svelte'
   import GeneralSettings from '@/components/settings/GeneralSettings.svelte'
   import FABSettings from '@/components/settings/FABSettings.svelte'
   import AboutSettings from './AboutSettings.svelte'
 
-  let activeTab = $state('ai-model') // State variable for current tab
+  let activeTab = $state('ai-summary') // State variable for current tab
   let tabContainerEl // Reference to the tab container element
   let activeBarEl // Reference to the active bar element
   let scrollContainerEl // Reference to the scroll container element
@@ -122,38 +121,21 @@
     bind:this={tabContainerEl}
   >
     <button
-      data-tab="ai-model"
+      data-tab="ai-summary"
       class="flex flex-col w-16 items-center justify-center gap-1 cursor-pointer rounded-md transition-colors duration-200 {activeTab ===
-      'ai-model'
+      'ai-summary'
         ? ' text-blackwhite '
         : 'text-text-secondary'}"
-      onclick={() => (activeTab = 'ai-model')}
+      onclick={() => (activeTab = 'ai-summary')}
     >
       <div class="size-5">
-        {#if activeTab === 'ai-model'}
+        {#if activeTab === 'ai-summary'}
           <Icon icon="heroicons:sparkles-solid" width="20" height="20" />
         {:else}
           <Icon icon="heroicons:sparkles" width="20" height="20" />
         {/if}
       </div>
-      <span>Model</span>
-    </button>
-    <button
-      data-tab="summary"
-      class="flex flex-col w-16 items-center gap-1 justify-center cursor-pointer rounded-md transition-colors duration-200 {activeTab ===
-      'summary'
-        ? ' text-blackwhite '
-        : 'text-text-secondary'}"
-      onclick={() => (activeTab = 'summary')}
-    >
-      <div class="size-5">
-        {#if activeTab === 'summary'}
-          <Icon icon="heroicons:document-text-solid" width="20" height="20" />
-        {:else}
-          <Icon icon="heroicons:document-text" width="20" height="20" />
-        {/if}
-      </div>
-      <span> Summary</span>
+      <span class="text-center">Summary</span>
     </button>
     <button
       data-tab="fab"
@@ -239,10 +221,8 @@
     bind:this={scrollContainerEl}
   >
     <div>
-      {#if activeTab === 'ai-model'}
-        <AIModelSettings />
-      {:else if activeTab === 'summary'}
-        <SummarySettings />
+      {#if activeTab === 'ai-summary'}
+        <ModelSummarySettings />
       {:else if activeTab === 'general'}
         <GeneralSettings />
       {:else if activeTab === 'fab'}

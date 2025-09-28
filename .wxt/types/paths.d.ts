@@ -21,6 +21,8 @@ declare module "wxt/browser" {
     | "/icon/64.png"
     | "/icon/96.png"
     | "/libs/protobuf.min.js"
+    | "/logo.svg"
+    | "/pearl.webp"
     | "/popop.html"
     | "/prompt.html"
     | "/settings.html"

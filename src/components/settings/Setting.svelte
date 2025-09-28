@@ -15,6 +15,11 @@
   import GeneralSettings from '@/components/settings/GeneralSettings.svelte'
   import FABSettings from '@/components/settings/FABSettings.svelte'
   import AboutSettings from './AboutSettings.svelte'
+  import Version from '../ui/version.svelte'
+  import packageJson from '../../../package.json'
+  import LogoColor from '../ui/Logo-color.svelte'
+  import Pivot from '../ui/Pivot.svelte'
+  import ButtonSupport from '../buttons/ButtonSupport.svelte'
 
   let activeTab = $state('ai-summary') // State variable for current tab
   let tabContainerEl // Reference to the tab container element
@@ -107,6 +112,29 @@
 </script>
 
 <!-- Apply Tailwind classes for overall layout and styling -->
+<div class=" absolute inset-0 bg-surface-1 z-50">
+  <div
+    class="w-full relative border-6 bg-background border-background flex justify-center overflow-hidden"
+  >
+    <div
+      class="font-mono absolute z-20 right-0 bottom-0 text-xs py-1.5 px-2 bg-background border border-border"
+    >
+      <span class=" text-text-secondary">Version</span>
+      <b>{packageJson.version}</b>
+    </div>
+    <div
+      class=" absolute flex p-3 md:p-4 font-mono font-medium tracking-tight gap-2 md:text-lg left-0 top-0 items-center"
+    >
+      <LogoColor class="w-7 md:w-9" /> Summarizerrrr
+    </div>
+    <div class=" absolute z-[999] left-4 bottom-2">
+      <ButtonSupport />
+    </div>
+
+    <div class=" absolute inset-0 border border-dashed border-border"></div>
+    <Version class=" w-140 md:w-200 shrink-0 mx-auto" />
+  </div>
+</div>
 <div
   class="relative settings font-mono text-text-primary dark:text-text-secondary text-xs bg-surface-1 overflow-hidden w-full flex-shrink-0 flex flex-col"
 >

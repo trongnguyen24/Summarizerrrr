@@ -1,5 +1,7 @@
 <script>
   // @ts-nocheck
+  import { onMount } from 'svelte'
+  import { animate } from 'animejs'
   let { class: className } = $props()
 </script>
 
@@ -99,3 +101,28 @@
     />
   </defs>
 </svg>
+
+<style>
+  #c {
+    animation: moveInSquare 7s linear infinite;
+    transform-origin: top left;
+  }
+
+  @keyframes moveInSquare {
+    0% {
+      transform: translate(300px, 0);
+    }
+    25% {
+      transform: translate(-500px, -100px);
+    }
+    50% {
+      transform: translate(200px, -400px);
+    }
+    75% {
+      transform: translate(-100px, -100px);
+    }
+    100% {
+      transform: translate(300px, 0);
+    }
+  }
+</style>

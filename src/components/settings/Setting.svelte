@@ -127,8 +127,8 @@
     >
       <LogoColor class="w-7 md:w-9" /> Summarizerrrr
     </div>
-    <div class=" absolute z-[999] left-4 bottom-2">
-      <ButtonSupport />
+    <div class=" absolute z-[999] size-12 left-4 bottom-2">
+      <Pivot />
     </div>
 
     <div class=" absolute inset-0 border border-dashed border-border"></div>

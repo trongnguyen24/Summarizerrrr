@@ -91,10 +91,10 @@
             `-=${6 + random(-2, 2, 2)}`,
             `+=${4 + random(-2, 2, 2)}`,
           ],
-          translateY: [pointerY + random(-5, 5), `-=${random(30, 50)}`],
+          translateY: [pointerY + random(-5, 5), `-=${random(55, 70)}`],
           scale: [0, 1, 0],
-          duration: 1200,
-          ease: 'outExpo',
+          duration: 1600,
+          ease: 'inOutQuad',
           onComplete: () => removeElement(particle),
         })
       },

@@ -36,6 +36,9 @@
       <p class="text-pretty mt-4 text-text-secondary">
         {@html $t('about.description')}
       </p>
+      <div>
+        <button>Release Note</button>
+      </div>
     </div>
   </div>
 

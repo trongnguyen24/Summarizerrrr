@@ -101,7 +101,11 @@
       />
     </svg>
 
-    <div class="relative z-20 flex justify-center items-center">Support</div>
+    <div
+      class="relative z-20 flex text-text-primary justify-center items-center"
+    >
+      Support
+    </div>
     <span
       class="absolute z-50 size-4 border border-transparent group-hover:border-blackwhite/15 rotate-45 bg-surface-1 -bottom-px -left-px -translate-x-1/2 translate-y-1/2 duration-150"
     ></span>

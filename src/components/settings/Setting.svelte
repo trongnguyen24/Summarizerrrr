@@ -2,6 +2,7 @@
   // @ts-nocheck
   import { fade } from 'svelte/transition'
   import Icon, { loadIcons } from '@iconify/svelte'
+  import { Dialog } from 'bits-ui'
   import { t } from 'svelte-i18n'
   import Logdev from './Logdev.svelte'
   import 'overlayscrollbars/overlayscrollbars.css'
@@ -11,6 +12,7 @@
     loadSettings,
     updateSettings,
   } from '@/stores/settingsStore.svelte.js'
+  import { domVisibility } from '@/stores/stateAbout.svelte.js'
   import ModelSummarySettings from '@/components/settings/ModelSummarySettings.svelte'
   import GeneralSettings from '@/components/settings/GeneralSettings.svelte'
   import FABSettings from '@/components/settings/FABSettings.svelte'
@@ -108,7 +110,35 @@
 </script>
 
 <!-- Apply Tailwind classes for overall layout and styling -->
-<!-- <ReleaseNote /> -->
+<Dialog.Root bind:open={domVisibility.value}>
+  <Dialog.Content>
+    <button
+      onclick={domVisibility.toggle}
+      aria-label="Close"
+      class="group absolute font-mono z-[999] flex items-center right-1.5 top-1.5 text-sm py-1.5 px-2 bg-surface-1 dark:bg-surface-2 border border-border"
+      ><svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+      >
+        <path
+          fill="none"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="1.5"
+          d="M6 18L18 6M6 6l12 12"
+        />
+      </svg>
+      <span
+        class=" absolute inset-0 bg-blackwhite/0 transition-colors group-hover:bg-blackwhite/5"
+      ></span>
+    </button>
+    <ReleaseNote />
+  </Dialog.Content>
+</Dialog.Root>
+
 <div
   class="relative settings font-mono text-text-primary dark:text-text-secondary text-xs bg-surface-1 overflow-hidden w-full flex-shrink-0 flex flex-col"
 >

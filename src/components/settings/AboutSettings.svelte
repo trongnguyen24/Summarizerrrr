@@ -1,18 +1,18 @@
 <script>
   // @ts-nocheck
   import Icon from '@iconify/svelte'
-  import {
-    settings,
-    updateSettings,
-  } from '../../stores/settingsStore.svelte.js'
+  import { settings, updateSettings } from '@/stores/settingsStore.svelte.js'
+  import { domVisibility } from '@/stores/stateAbout.svelte.js'
   import {
     themeSettings,
     setTheme,
     // updateThemeSettings as updateThemeStoreSettings, // Không còn cần thiết, dùng setTheme thay thế
-  } from '../../stores/themeStore.svelte' // Import themeSettings và updateThemeSettings
+  } from '@/stores/themeStore.svelte' // Import themeSettings và updateThemeSettings
   import { t } from 'svelte-i18n'
   import Logo from '../ui/Logo.svelte'
   import packageJson from '../../../package.json'
+  import ButtonSupport from '../buttons/ButtonSupport.svelte'
+  import ButtonRate from '../buttons/ButtonRate.svelte'
 
   function handleUpdateSetting(key, value) {
     updateSettings({ [key]: value })
@@ -23,7 +23,7 @@
 <div class=" text-pretty flex pb-12 pt-5 px-5 flex-col space-y-6">
   <!-- Logo và tên -->
   <div class="flex gap-2 sm:gap-6 flex-col sm:flex-row items-center">
-    <div class="w-52 relative shrink-0 p-4"><Logo /></div>
+    <div class="w-56 relative shrink-0 p-4"><Logo /></div>
     <div>
       <h2 class="text-lg text-center sm:text-left font-bold text-primary">
         Summarizerrrr
@@ -31,13 +31,20 @@
 
       <p class="text-center sm:text-left text-muted">
         {$t('about.version')}
-        {packageJson.version}
+        {packageJson.version} -
+        <button class=" underline" onclick={domVisibility.show}
+          >What's new?</button
+        >
       </p>
       <p class="text-pretty mt-4 text-text-secondary">
         {@html $t('about.description')}
       </p>
-      <div>
-        <button>Release Note</button>
+      <p class="text-pretty mt-2 text-text-secondary">
+        Help us by sharing and reviewing!
+      </p>
+      <div class="flex mt-4 gap-4">
+        <ButtonSupport />
+        <ButtonRate />
       </div>
     </div>
   </div>

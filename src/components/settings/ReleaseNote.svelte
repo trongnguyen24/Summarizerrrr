@@ -5,6 +5,7 @@
   import LogoColor from '../ui/Logo-color.svelte'
   import Pivot from '../ui/Pivot.svelte'
   import { render } from 'svelte/server'
+  import { domVisibility } from '@/stores/stateAbout.svelte.js'
   import 'overlayscrollbars/overlayscrollbars.css'
   import { useOverlayScrollbars } from 'overlayscrollbars-svelte'
 
@@ -44,7 +45,7 @@
 <div class=" absolute inset-0 bg-surface-1 z-50">
   <div
     id="release-note-scroll"
-    class="overflow-y-auto h-full pb-20"
+    class="h-full overflow-hidden pb-20"
     bind:this={scrollContainerEl}
   >
     <div

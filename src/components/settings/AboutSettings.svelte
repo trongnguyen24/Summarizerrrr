@@ -40,7 +40,7 @@
         {@html $t('about.description')}
       </p>
       <p class="text-pretty mt-2 text-text-secondary">
-        Help us by sharing and reviewing!
+        Help me by sharing and reviewing!
       </p>
       <div class="flex mt-4 gap-4">
         <ButtonSupport />

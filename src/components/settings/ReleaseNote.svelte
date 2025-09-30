@@ -74,11 +74,11 @@
       <ul class="mt-0">
         {@render note(
           '[Enhanced] Copy-to-Clipboard Functionality',
-          'The copy-to-clipboard feature has been significantly upgraded to support copying formatted content (HTML) from generated summaries, ensuring that rich text elements like lists and headings are preserved. It includes a fallback to plain text copying if formatted copy fails.'
+          'Supports copying formatted content (lists, headings) with a fallback to plain text if it fails.'
         )}
         {@render note(
           '[Improved] AI Prompting for Summary Quality',
-          `Updates to the AI prompt templates now explicitly emphasize 'Key Takeaways' and refine the handling of 'Community Response' sections, instructing the AI to filter low-signal remarks and prioritize valuable comments for more structured and insightful summaries.`
+          `AI prompts are updated to focus on "Key Takeaways" and filter out low-value comments.`
         )}
       </ul>
 
@@ -86,19 +86,15 @@
       <ul class="mt-0">
         {@render note(
           'One-Click Summarization:',
-          'A new mode has been introduced where clicking the floating action button automatically triggers summarization for the current page.'
+          'A new mode has been introduced where clicking the floating action button automatically triggers summarization.'
         )}
         {@render note(
-          '[Improved] AI Prompting for Summary Quality',
-          `Updates to the AI prompt templates now explicitly emphasize 'Key Takeaways' and refine the handling of 'Community Response' sections, instructing the AI to filter low-signal remarks and prioritize valuable comments for more structured and insightful summaries.`
+          'Ollama API Proxy:',
+          `Fixes CORS connection errors for improved reliability.`
         )}
         {@render note(
-          'Ollama API Proxy',
-          `API requests to Ollama from content scripts are now securely routed through the background script, resolving potential Cross-Origin Resource Sharing (CORS) issues and improving reliability in restricted browser environments.`
-        )}
-        {@render note(
-          'AI Thought Process Display',
-          `The AI's internal reasoning, often marked with '<think>' or '◁think▷' tags in responses, is now parsed and displayed in collapsible sections within summaries, offering deeper insights into the generation process.`
+          'AI Thought Process Display:',
+          `The AI's reasoning is now shown in a collapsible section.`
         )}
       </ul>
       <b class="font-mono text-primary">2.0.0</b>
@@ -109,7 +105,7 @@
         )}
         {@render note(
           'Improved YouTube Transcript Extraction:',
-          `Implementation of a new message-based system for YouTube transcript extraction, leveraging protobuf.min.js for more robust content retrieval, especially for mobile.`
+          ` A more robust system for retrieving video transcripts, especially on mobile.`
         )}
       </ul>
     </div>

@@ -2,6 +2,7 @@
 <script>
   import { onMount } from 'svelte'
   import { animate } from 'animejs'
+  import { DropdownMenu } from 'bits-ui'
   import {
     createTimer,
     createParticleAnimation,
@@ -23,7 +24,7 @@
 
     heartsAnimation = createTimer({
       autoplay: false,
-      duration: 100,
+      duration: 130,
       loop: true,
       onLoop: () => {
         createParticleAnimation({
@@ -104,7 +105,7 @@
     <div
       class="relative z-20 flex text-text-primary justify-center items-center"
     >
-      Support
+      Donate
     </div>
     <span
       class="absolute z-50 size-4 border border-transparent group-hover:border-blackwhite/15 rotate-45 bg-surface-1 -bottom-px -left-px -translate-x-1/2 translate-y-1/2 duration-150"

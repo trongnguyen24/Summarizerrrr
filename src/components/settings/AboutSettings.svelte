@@ -32,8 +32,9 @@
       <p class="text-center sm:text-left text-muted">
         {$t('about.version')}
         {packageJson.version} -
-        <button class=" underline" onclick={domVisibility.show}
-          >What's new?</button
+        <button
+          class=" underline hover:text-text-primary transition-colors underline-offset-2"
+          onclick={domVisibility.show}>What's new?</button
         >
       </p>
       <p class="text-pretty mt-4 text-text-secondary">

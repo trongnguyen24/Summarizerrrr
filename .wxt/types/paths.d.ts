@@ -6,6 +6,7 @@ declare module "wxt/browser" {
     | ""
     | "/"
     | "/Sumarizzerrrr.png"
+    | "/Untitled-1.png"
     | "/Vietcombank.svg"
     | "/archive.html"
     | "/background.js"

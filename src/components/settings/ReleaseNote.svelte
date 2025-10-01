@@ -70,7 +70,8 @@
       <Version class=" w-140 md:w-200 shrink-0 mx-auto" />
     </div>
     <div class="p-6 prose prose-sm w-full max-w-full">
-      <b class="  font-mono text-primary">2.1.6</b>
+      <h2>Release note</h2>
+      <b class="  font-mono">2.1.6</b>
       <ul class="mt-0">
         {@render note(
           '[Enhanced] Copy-to-Clipboard Functionality',
@@ -82,7 +83,7 @@
         )}
       </ul>
 
-      <b class="font-mono text-primary">2.1.0</b>
+      <b class="font-mono">2.1.0</b>
       <ul class="mt-0">
         {@render note(
           'One-Click Summarization:',
@@ -97,7 +98,7 @@
           `The AI's reasoning is now shown in a collapsible section.`
         )}
       </ul>
-      <b class="font-mono text-primary">2.0.0</b>
+      <b class="font-mono">2.0.0</b>
       <ul class="mt-0">
         {@render note(
           'Enhanced Mobile Support & UI Overhaul:',

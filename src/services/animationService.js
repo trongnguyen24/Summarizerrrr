@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { animate } from 'animejs'
+import { animate, createSpring } from 'animejs'
 
 // Utility functions
 function random(min, max, precision = 0) {
@@ -104,4 +104,26 @@ export function createParticleAnimation({
 // Utility functions from components
 export function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max)
+}
+
+export const animationService = {
+  show(element) {
+    if (!element) return
+    animate(element, {
+      width: ['20rem'],
+      duration: 200,
+      ease: createSpring({ stiffness: 125, damping: 14 }),
+      alternate: false,
+    })
+  },
+
+  hide(element) {
+    if (!element) return
+    animate(element, {
+      width: [0],
+      duration: 300,
+      ease: 'outExpo',
+      alternate: false,
+    })
+  },
 }

@@ -18,8 +18,14 @@
   import FABSettings from '@/components/settings/FABSettings.svelte'
   import AboutSettings from './AboutSettings.svelte'
   import ReleaseNote from './ReleaseNote.svelte'
+  import {
+    getTabFromURL,
+    updateURLTab,
+    setupURLListener,
+    navigateToTab,
+  } from '@/lib/utils/urlUtils.js'
 
-  let activeTab = $state('ai-summary') // State variable for current tab
+  let activeTab = $state(getTabFromURL()) // Initialize tab from URL
   let tabContainerEl // Reference to the tab container element
   let activeBarEl // Reference to the active bar element
   let scrollContainerEl // Reference to the scroll container element
@@ -49,6 +55,15 @@
   // Effect to update the bar when the active tab changes
   $effect(updateActiveBarPosition)
 
+  // Effect for handling URL navigation (browser back/forward)
+  $effect(() => {
+    const cleanup = setupURLListener((newTab) => {
+      activeTab = newTab
+    })
+
+    return cleanup
+  })
+
   // Effect for handling resize events
   $effect(() => {
     if (!tabContainerEl) return
@@ -63,6 +78,12 @@
       resizeObserver.disconnect()
     }
   })
+
+  // Function to handle tab switching with URL update
+  function switchTab(tabName) {
+    activeTab = tabName
+    updateURLTab(tabName)
+  }
   const options = {
     scrollbars: {
       theme: 'os-theme-custom-app',
@@ -158,7 +179,7 @@
       'ai-summary'
         ? ' text-blackwhite '
         : 'text-text-secondary'}"
-      onclick={() => (activeTab = 'ai-summary')}
+      onclick={() => switchTab('ai-summary')}
     >
       <div class="size-5">
         {#if activeTab === 'ai-summary'}
@@ -175,7 +196,7 @@
       'fab'
         ? ' text-blackwhite '
         : 'text-text-secondary'}"
-      onclick={() => (activeTab = 'fab')}
+      onclick={() => switchTab('fab')}
     >
       <div class="size-5">
         {#if activeTab === 'fab'}
@@ -196,7 +217,7 @@
       'general'
         ? ' text-blackwhite '
         : 'text-text-secondary'}"
-      onclick={() => (activeTab = 'general')}
+      onclick={() => switchTab('general')}
     >
       <div class="size-5">
         {#if activeTab === 'general'}
@@ -214,7 +235,7 @@
       'about'
         ? ' text-blackwhite '
         : 'text-text-secondary'}"
-      onclick={() => (activeTab = 'about')}
+      onclick={() => switchTab('about')}
     >
       <div class="size-5">
         {#if activeTab === 'about'}

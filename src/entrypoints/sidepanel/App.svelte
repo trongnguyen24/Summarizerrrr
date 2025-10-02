@@ -44,6 +44,10 @@
   // Track if settings are loaded
   let settingsLoaded = $state(false)
 
+  // Permission state for Firefox
+  let hasPermission = $state(true) // Default to true for non-Firefox
+  let currentTabUrl = $state('')
+
   // Use API key validation composable
   const { needsApiKeySetup, currentProviderDisplayName } = useApiKeyValidation()
 
@@ -114,6 +118,28 @@
       document.removeListener('summarizeClick', handleSummarizeClick)
     }
   })
+
+  // Track current tab URL for permission checking
+  $effect(async () => {
+    if (import.meta.env.BROWSER === 'firefox') {
+      try {
+        const [tab] = await browser.tabs.query({
+          active: true,
+          currentWindow: true,
+        })
+        if (tab?.url) {
+          currentTabUrl = tab.url
+        }
+      } catch (error) {
+        console.error('[App] Error getting current tab:', error)
+      }
+    }
+  })
+
+  // Handle permission status changes from PermissionWarningPrompt
+  function handlePermissionChange(granted) {
+    hasPermission = granted
+  }
 </script>
 
 {#if !settings.hasCompletedOnboarding}
@@ -183,6 +209,7 @@
           <SummarizeButton
             isLoading={summaryState.isLoading || isAnyCourseLoading}
             isChapterLoading={summaryState.isChapterLoading}
+            disabled={!hasPermission && import.meta.env.BROWSER === 'firefox'}
           />
         {/if}
       </div>
@@ -199,6 +226,25 @@
     <div
       class="relative prose main-sidepanel prose-h2:mt-4 p z-10 flex flex-col gap-8 px-6 pt-8 pb-[40vh] max-w-[52rem] w-screen mx-auto"
     >
+      <!-- NEW: Permission Warning Component for Firefox -->
+      {#if import.meta.env.BROWSER === 'firefox'}
+        {#await import('@/components/ui/PermissionWarningPrompt.svelte')}
+          <!-- Loading placeholder - có thể để trống hoặc thêm loading indicator nhỏ -->
+        {:then { default: PermissionWarningPrompt }}
+          <PermissionWarningPrompt
+            currentUrl={currentTabUrl}
+            onPermissionGranted={handlePermissionChange}
+          />
+        {:catch error}
+          <!-- Silent fail - log error nhưng không block UI -->
+          <script>
+            console.error(
+              '[App] Failed to load PermissionWarningPrompt:',
+              error
+            )
+          </script>
+        {/await}
+      {/if}
       {#if needsApiKeySetup()()}
         <ApiKeySetupPrompt />
       {:else if anyError}

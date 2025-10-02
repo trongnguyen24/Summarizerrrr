@@ -184,3 +184,163 @@ export async function reloadCurrentTab() {
     return false
   }
 }
+
+/**
+ * Get current active tab info
+ * @returns {Promise<Object|null>} - Tab info object hoặc null
+ */
+export async function getCurrentTabInfo() {
+  try {
+    const [tab] = await browser.tabs.query({
+      active: true,
+      currentWindow: true,
+    })
+    return tab || null
+  } catch (error) {
+    console.error('[FirefoxPermissionService] Error getting tab info:', error)
+    return null
+  }
+}
+
+/**
+ * Enhanced permission request với feedback
+ * @param {string} url - URL cần permission
+ * @returns {Promise<Object>} - Object chứa result và metadata
+ */
+export async function requestPermissionWithFeedback(url) {
+  try {
+    const permission = getRequiredPermission(url)
+    const granted = await browser.permissions.request({
+      origins: [permission],
+    })
+
+    return {
+      granted,
+      permission,
+      needsReload: granted, // Nếu granted, có thể cần reload để inject scripts
+      url,
+    }
+  } catch (error) {
+    console.error(
+      '[FirefoxPermissionService] Error requesting permission with feedback:',
+      error
+    )
+    return {
+      granted: false,
+      error: error.message,
+      permission: getRequiredPermission(url),
+      url,
+    }
+  }
+}
+
+/**
+ * Check multiple permissions at once
+ * @param {string[]} urls - Array of URLs to check
+ * @returns {Promise<Object>} - Object với permission status cho từng URL
+ */
+export async function checkMultiplePermissions(urls) {
+  const results = {}
+
+  for (const url of urls) {
+    try {
+      results[url] = await checkPermission(url)
+    } catch (error) {
+      console.error(
+        `[FirefoxPermissionService] Error checking permission for ${url}:`,
+        error
+      )
+      results[url] = false
+    }
+  }
+
+  return results
+}
+
+/**
+ * Phân tích lỗi permission và trả về thông tin để handle
+ * @param {Error} error - Error object
+ * @param {string} url - URL context
+ * @returns {Object} - Error analysis object
+ */
+export function analyzePermissionError(error, url) {
+  const errorMessage = error?.message || error?.toString() || ''
+
+  if (
+    errorMessage.includes('Permission denied') ||
+    errorMessage.includes('permission denied')
+  ) {
+    return {
+      type: 'PERMISSION_DENIED',
+      isRecoverable: true,
+      requiredPermission: getRequiredPermission(url),
+      userAction: 'grant_permission',
+      suggestion:
+        'Click "Grant Permission" to enable summarization for this site.',
+    }
+  }
+
+  if (isConnectionError(error)) {
+    return {
+      type: 'CONNECTION_ERROR',
+      isRecoverable: true,
+      needsReload: true,
+      userAction: 'reload_page',
+      suggestion: 'Page reload required to complete permission setup.',
+    }
+  }
+
+  if (errorMessage.includes('Extension context invalidated')) {
+    return {
+      type: 'CONTEXT_INVALIDATED',
+      isRecoverable: true,
+      userAction: 'reload_extension',
+      suggestion: 'Extension needs to be reloaded.',
+    }
+  }
+
+  return {
+    type: 'UNKNOWN_ERROR',
+    isRecoverable: false,
+    originalError: error,
+    suggestion: 'An unexpected error occurred. Please try again.',
+  }
+}
+
+/**
+ * Constants cho error types
+ */
+export const PERMISSION_ERROR_TYPES = {
+  PERMISSION_DENIED: {
+    type: 'PERMISSION_DENIED',
+    isRecoverable: true,
+    userAction: 'grant_permission',
+    defaultMessage: 'Permission required to access this website content.',
+    suggestion:
+      'Click "Grant Permission" to enable summarization for this site.',
+  },
+
+  CONNECTION_ERROR: {
+    type: 'CONNECTION_ERROR',
+    isRecoverable: true,
+    userAction: 'reload_page',
+    defaultMessage: 'Content script not available after permission change.',
+    suggestion: 'Page reload required to complete permission setup.',
+  },
+
+  PERMISSION_GRANTED_NEEDS_RELOAD: {
+    type: 'PERMISSION_GRANTED_NEEDS_RELOAD',
+    isRecoverable: true,
+    userAction: 'reload_page',
+    defaultMessage: 'Permission granted successfully!',
+    suggestion: 'Please reload the page to activate the extension.',
+  },
+
+  CONTEXT_INVALIDATED: {
+    type: 'CONTEXT_INVALIDATED',
+    isRecoverable: true,
+    userAction: 'reload_extension',
+    defaultMessage: 'Extension context was invalidated.',
+    suggestion: 'Extension needs to be reloaded.',
+  },
+}

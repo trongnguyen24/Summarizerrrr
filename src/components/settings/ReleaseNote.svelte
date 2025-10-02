@@ -45,7 +45,7 @@
 <div class=" absolute inset-0 bg-surface-1 z-50">
   <div
     id="release-note-scroll"
-    class="h-full pb-20"
+    class="h-full pb-20 {isTouchDevice() ? 'overflow-y-auto' : ''}"
     bind:this={scrollContainerEl}
   >
     <div

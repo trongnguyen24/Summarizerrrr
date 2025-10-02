@@ -19,6 +19,7 @@
   const spread = 16
   let svgElement = null
   let dialogOpen = $state(false)
+  let DropdownOpen = $state(false)
 
   onMount(() => {
     const svgContainer = document.createElement('div')
@@ -84,7 +85,7 @@
   }
 </script>
 
-<DropdownMenu.Root>
+<DropdownMenu.Root bind:open={DropdownOpen}>
   <DropdownMenu.Trigger>
     <button
       bind:this={buttonElement}
@@ -101,7 +102,7 @@
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 16 16"
           fill="currentColor"
-          class="size-4 z-20 transition-transform"
+          class="size-5 z-20 transition-transform"
         >
           <path
             d="M2 6.342a3.375 3.375 0 0 1 6-2.088 3.375 3.375 0 0 1 5.997 2.26c-.063 2.134-1.618 3.76-2.955 4.784a14.437 14.437 0 0 1-2.676 1.61c-.02.01-.038.017-.05.022l-.014.006-.004.002h-.002a.75.75 0 0 1-.592.001h-.002l-.004-.003-.015-.006a5.528 5.528 0 0 1-.232-.107 14.395 14.395 0 0 1-2.535-1.557C3.564 10.22 1.999 8.558 1.999 6.38L2 6.342Z"
@@ -130,7 +131,7 @@
         {#snippet child({ props })}
           <button
             {...props}
-            onclick={() => (dialogOpen = true)}
+            onclick={() => ((dialogOpen = true), (DropdownOpen = false))}
             class=" p-3 flex gap-2 hover:bg-blackwhite-5 transition-colors duration-75 items-center"
           >
             <span
@@ -215,10 +216,11 @@
             </div>
 
             <div
-              class="bg-white border-t border-dashed text-center text-gray-900 p-8"
+              class="bg-white border-t text-sm font-mono flex flex-col gap-1 border-dashed text-center text-gray-900 p-4"
             >
-              <b>Lê Trọng Nguyên</b>
-              <p>3213123219</p>
+              <p class=" font-bold">Vietcombank</p>
+              <p>Lê Trọng Nguyên</p>
+              <p>0181003567127</p>
             </div>
           </div>
         {/if}

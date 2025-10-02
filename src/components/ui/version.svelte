@@ -46,8 +46,8 @@
       class="stroke-blackwhite/30"
     />
     <path
+      fill="url(#magic-gradient)"
       d="m449.152 179.667 17.731-6.139c10.165-3.522 21.798-5.383 33.653-5.383 11.856 0 23.488 1.861 33.653 5.383l17.731 6.139-10.633-10.237c-6.1-5.869-9.323-12.585-9.323-19.43 0-6.844 3.223-13.56 9.323-19.429l10.633-10.237-17.731 6.139c-10.162 3.521-21.791 5.382-33.644 5.384-11.853.001-23.483-1.857-33.648-5.376l-17.745-6.147 10.647 10.245c6.095 5.868 9.314 12.583 9.312 19.426-.003 6.844-3.226 13.558-9.326 19.425l-10.633 10.237Z"
-      fill="url(#b)"
     />
     <g stroke-linecap="round" class=" stroke-blackwhite">
       <path
@@ -78,6 +78,53 @@
     <clipPath id="a">
       <path fill="#fff" d="M0 0h950v300H0z" />
     </clipPath>
+    <linearGradient
+      id="magic-gradient"
+      gradientTransform="rotate(30)"
+      x1="0%"
+      y1="0%"
+      x2="250%"
+      y2="0%"
+    >
+      <stop offset="0%" style="stop-color:#E0F2FE" />
+      <stop offset="25%" style="stop-color:#38BDF8" />
+      <stop offset="50%" style="stop-color:#E0F2FE" />
+      <stop offset="75%" style="stop-color:#38BDF8" />
+      <stop offset="100%" style="stop-color:#E0F2FE" />
+      <stop offset="125%" style="stop-color:#38BDF8" />
+      <stop offset="150%" style="stop-color:#E0F2FE" />
+      <stop offset="175%" style="stop-color:#38BDF8" />
+      <stop offset="200%" style="stop-color:#E0F2FE" />
+      <stop offset="225%" style="stop-color:#38BDF8" />
+      <stop offset="250%" style="stop-color:#E0F2FE" />
+      <!-- svelte-ignore component_name_lowercase -->
+      <animateTransform
+        attributeName="transform"
+        attributeType="XML"
+        type="rotate"
+        from="0 60 70"
+        to="360 60 70"
+        dur="10s"
+        repeatCount="indefinite"
+      />
+
+      <!-- svelte-ignore component_name_lowercase -->
+      <animate
+        attributeName="x1"
+        from="-125%"
+        to="0%"
+        dur="5s"
+        repeatCount="indefinite"
+      />
+      <!-- svelte-ignore component_name_lowercase -->
+      <animate
+        attributeName="x2"
+        from="125%"
+        to="250%"
+        dur="5s"
+        repeatCount="indefinite"
+      />
+    </linearGradient>
     <pattern
       id="b"
       patternContentUnits="objectBoundingBox"
@@ -93,36 +140,28 @@
       xmlns="http://www.w3.org/2000/svg"
       id="c"
       data-name="image.png"
-      width="1400"
-      height="1000"
+      width="2800"
+      height="400"
       preserveAspectRatio="none"
       xmlns:xlink="http://www.w3.org/1999/xlink"
-      xlink:href="/pearl.webp"
+      xlink:href="/Untitled-1.png"
     />
   </defs>
 </svg>
 
 <style>
   #c {
-    animation: moveInSquare 7s linear infinite;
+    animation: moveInSquare 4s linear infinite;
     transform-origin: top left;
   }
 
   @keyframes moveInSquare {
     0% {
-      transform: translate(300px, 0);
+      transform: translateX(0%) translateY(30%);
     }
-    25% {
-      transform: translate(-500px, -100px);
-    }
-    50% {
-      transform: translate(200px, -400px);
-    }
-    75% {
-      transform: translate(-100px, -100px);
-    }
+
     100% {
-      transform: translate(300px, 0);
+      transform: translateX(-50%) translateY(30%);
     }
   }
 </style>

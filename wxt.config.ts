@@ -86,14 +86,18 @@ export default defineConfig({
         permissions: [
           'storage',
           'tabs',
-          'activeTab',
           'contextMenus',
           'scripting',
           'declarativeNetRequest',
         ],
-
+        optional_permissions: [
+          'https://*/*',
+          '*://*.youtube.com/*',
+          '*://*.udemy.com/*',
+          '*://*.reddit.com/*',
+          '*://*.coursera.org/*',
+        ],
         host_permissions: [
-          '*://*/*',
           'http://127.0.0.1:11434/*',
           'http://localhost:11434/*',
           'http://localhost:1234/*',

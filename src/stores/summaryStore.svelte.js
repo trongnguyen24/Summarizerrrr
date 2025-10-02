@@ -19,6 +19,11 @@ import {
 import { appStateStorage } from '@/services/wxtStorageService.js'
 import { generateUUID } from '@/lib/utils/utils.js'
 import { handleError } from '@/lib/error/simpleErrorHandler.js'
+// Import Firefox permission service
+import {
+  checkPermission,
+  requestPermission,
+} from '@/services/firefoxPermissionService.js'
 
 // --- State ---
 export const summaryState = $state({
@@ -179,6 +184,20 @@ export async function fetchAndSummarize() {
     })
     if (!tabInfo || !tabInfo.url) {
       throw new Error('Could not get current tab information or URL.')
+    }
+
+    // Check permissions cho Firefox trước khi tiếp tục
+    if (import.meta.env.BROWSER === 'firefox') {
+      const hasPermission = await checkPermission(tabInfo.url)
+
+      if (!hasPermission) {
+        const permissionGranted = await requestPermission(tabInfo.url)
+        if (!permissionGranted) {
+          throw new Error(
+            'Permission denied for this website. Please enable permissions in Settings or grant access when prompted.'
+          )
+        }
+      }
     }
 
     // LƯU TIÊU ĐỀ VÀ URL VÀO STATE NGAY TẠI ĐÂY
@@ -352,6 +371,20 @@ export async function fetchAndSummarizeStream() {
     })
     if (!tabInfo || !tabInfo.url) {
       throw new Error('Could not get current tab information or URL.')
+    }
+
+    // Check permissions cho Firefox trước khi tiếp tục (stream mode)
+    if (import.meta.env.BROWSER === 'firefox') {
+      const hasPermission = await checkPermission(tabInfo.url)
+
+      if (!hasPermission) {
+        const permissionGranted = await requestPermission(tabInfo.url)
+        if (!permissionGranted) {
+          throw new Error(
+            'Permission denied for this website. Please enable permissions in Settings or grant access when prompted.'
+          )
+        }
+      }
     }
 
     summaryState.pageTitle = tabInfo.title || 'Unknown Title'

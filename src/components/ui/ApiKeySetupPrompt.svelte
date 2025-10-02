@@ -10,7 +10,7 @@
 </script>
 
 <div
-  class="flex font-mono flex-col text-center w-full justify-center items-center gap-4"
+  class="flex font-mono min-w-[22.5rem] flex-col text-center w-full justify-center items-center gap-4"
   in:fade={{ duration: 300 }}
   out:fade={{ duration: 200 }}
 >

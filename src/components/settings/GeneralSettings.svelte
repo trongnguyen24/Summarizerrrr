@@ -16,9 +16,129 @@
   import UILanguageSelect from '../inputs/UILanguageSelect.svelte'
   import { t } from 'svelte-i18n'
 
+  // Import Firefox permission service
+  import {
+    checkSpecificPermission,
+    requestSpecificPermission,
+    removeSpecificPermission,
+  } from '../../services/firefoxPermissionService.js'
+
   function handleUpdateSetting(key, value) {
     updateSettings({ [key]: value })
   }
+
+  // Permission states - chỉ dùng khi build cho Firefox
+  let youtubePermission = $state(false)
+  let udemyPermission = $state(false)
+  let redditPermission = $state(false)
+  let courseraPermission = $state(false)
+  let httpsPermission = $state(false)
+
+  // Load permission states từ Firefox API khi component mount
+  async function loadPermissionStates() {
+    if (import.meta.env.BROWSER === 'firefox') {
+      try {
+        youtubePermission = await checkSpecificPermission('*://*.youtube.com/*')
+        udemyPermission = await checkSpecificPermission('*://*.udemy.com/*')
+        redditPermission = await checkSpecificPermission('*://*.reddit.com/*')
+        courseraPermission = await checkSpecificPermission(
+          '*://*.coursera.org/*'
+        )
+        httpsPermission = await checkSpecificPermission('https://*/*')
+      } catch (error) {
+        console.error('Error loading permission states:', error)
+      }
+    }
+  }
+
+  // Event handlers cho các checkbox
+  async function handleYouTubePermission(event) {
+    const checked = event.target.checked
+    if (checked) {
+      const granted = await requestSpecificPermission('*://*.youtube.com/*')
+      youtubePermission = granted
+      if (granted) {
+        showPermissionGrantedMessage()
+      }
+    } else {
+      const removed = await removeSpecificPermission('*://*.youtube.com/*')
+      youtubePermission = !removed
+    }
+  }
+
+  async function handleUdemyPermission(event) {
+    const checked = event.target.checked
+    if (checked) {
+      const granted = await requestSpecificPermission('*://*.udemy.com/*')
+      udemyPermission = granted
+      if (granted) {
+        showPermissionGrantedMessage()
+      }
+    } else {
+      const removed = await removeSpecificPermission('*://*.udemy.com/*')
+      udemyPermission = !removed
+    }
+  }
+
+  async function handleRedditPermission(event) {
+    const checked = event.target.checked
+    if (checked) {
+      const granted = await requestSpecificPermission('*://*.reddit.com/*')
+      redditPermission = granted
+      if (granted) {
+        showPermissionGrantedMessage()
+      }
+    } else {
+      const removed = await removeSpecificPermission('*://*.reddit.com/*')
+      redditPermission = !removed
+    }
+  }
+
+  async function handleCourseraPermission(event) {
+    const checked = event.target.checked
+    if (checked) {
+      const granted = await requestSpecificPermission('*://*.coursera.org/*')
+      courseraPermission = granted
+      if (granted) {
+        showPermissionGrantedMessage()
+      }
+    } else {
+      const removed = await removeSpecificPermission('*://*.coursera.org/*')
+      courseraPermission = !removed
+    }
+  }
+
+  async function handleHttpsPermission(event) {
+    const checked = event.target.checked
+    if (checked) {
+      const granted = await requestSpecificPermission('https://*/*')
+      httpsPermission = granted
+      if (granted) {
+        showPermissionGrantedMessage()
+      }
+    } else {
+      const removed = await removeSpecificPermission('https://*/*')
+      httpsPermission = !removed
+    }
+  }
+
+  // State để hiển thị thông báo
+  let showMessage = $state(false)
+
+  // Function để hiển thị thông báo
+  function showPermissionGrantedMessage() {
+    showMessage = true
+    // Tự động ẩn sau 10 giây
+    setTimeout(() => {
+      showMessage = false
+    }, 10000)
+  }
+
+  // Load permissions khi component mount
+  $effect(() => {
+    loadPermissionStates()
+  })
+
   // effect on load update settings.hasCompletedOnboarding = false
   // $effect(() => {
   //   // This effect runs once when the component is mounted
@@ -211,4 +331,97 @@
       {/if}
     </div>
   </div>
+
+  <!-- Optional Permissions Section - Chỉ hiển thị trên Firefox -->
+  {#if import.meta.env.BROWSER === 'firefox'}
+    <div class="flex flex-col gap-2 px-5 pb-4">
+      <!-- svelte-ignore a11y_label_has_associated_control -->
+      <label class="block text-text-secondary"> Optional Permissions </label>
+
+      <!-- Checkbox đơn giản, check trực tiếp từ Firefox API -->
+      <div class="flex flex-col gap-3">
+        <label
+          class="flex items-center gap-2 text-text-primary hover:text-text-secondary transition-colors"
+        >
+          <input
+            type="checkbox"
+            bind:checked={youtubePermission}
+            onchange={handleYouTubePermission}
+            class="w-4 h-4 text-primary bg-surface-2 border-border rounded focus:ring-primary focus:ring-2"
+          />
+          <span>YouTube Access</span>
+        </label>
+
+        <label
+          class="flex items-center gap-2 text-text-primary hover:text-text-secondary transition-colors"
+        >
+          <input
+            type="checkbox"
+            bind:checked={udemyPermission}
+            onchange={handleUdemyPermission}
+            class="w-4 h-4 text-primary bg-surface-2 border-border rounded focus:ring-primary focus:ring-2"
+          />
+          <span>Udemy Access</span>
+        </label>
+
+        <label
+          class="flex items-center gap-2 text-text-primary hover:text-text-secondary transition-colors"
+        >
+          <input
+            type="checkbox"
+            bind:checked={redditPermission}
+            onchange={handleRedditPermission}
+            class="w-4 h-4 text-primary bg-surface-2 border-border rounded focus:ring-primary focus:ring-2"
+          />
+          <span>Reddit Access</span>
+        </label>
+
+        <label
+          class="flex items-center gap-2 text-text-primary hover:text-text-secondary transition-colors"
+        >
+          <input
+            type="checkbox"
+            bind:checked={courseraPermission}
+            onchange={handleCourseraPermission}
+            class="w-4 h-4 text-primary bg-surface-2 border-border rounded focus:ring-primary focus:ring-2"
+          />
+          <span>Coursera Access</span>
+        </label>
+
+        <label
+          class="flex items-center gap-2 text-text-primary hover:text-text-secondary transition-colors"
+        >
+          <input
+            type="checkbox"
+            bind:checked={httpsPermission}
+            onchange={handleHttpsPermission}
+            class="w-4 h-4 text-primary bg-surface-2 border-border rounded focus:ring-primary focus:ring-2"
+          />
+          <span>General Website Access</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Thông báo reload trang -->
+    {#if showMessage}
+      <div class="mt-4 p-3 bg-primary/10 border border-primary/20 rounded-md">
+        <div class="flex items-start gap-2">
+          <Icon
+            icon="heroicons:information-circle-20-solid"
+            class="text-primary mt-0.5"
+            width="16"
+            height="16"
+          />
+          <div class="text-sm text-text-primary">
+            <p class="font-medium mb-1">Permission granted successfully!</p>
+            <p class="text-text-secondary">
+              Please <strong>reload any open tabs</strong> where you want to use
+              the extension. The extension will work properly after reloading the
+              page.
+            </p>
+          </div>
+        </div>
+      </div>
+    {/if}
+  {/if}
 </div>

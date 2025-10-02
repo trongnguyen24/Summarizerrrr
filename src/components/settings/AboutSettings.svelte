@@ -81,7 +81,7 @@
         </div>
         <div>
           <h4 class=" font-medium">{$t('about.data_sovereignty_title')}</h4>
-          <p class=" text-muted">
+          <p class="mt-1 text-muted">
             {$t('about.data_sovereignty_desc')}
           </p>
         </div>
@@ -112,7 +112,7 @@
         </div>
         <div>
           <h4 class=" font-medium">{$t('about.customizable_title')}</h4>
-          <p class=" text-muted">
+          <p class="mt-1 text-muted">
             {$t('about.customizable_desc')}
           </p>
         </div>
@@ -143,7 +143,7 @@
         </div>
         <div>
           <h4 class=" font-medium">{$t('about.cross_platform_title')}</h4>
-          <p class=" text-muted">
+          <p class="mt-1 text-muted">
             {$t('about.cross_platform_desc')}
           </p>
         </div>

@@ -153,10 +153,18 @@
 
   <!-- Developer -->
   <div class="border-t border-border pt-4">
-    <p class=" text-text-primary">
+    <p class=" text-text-primary mt-2">
       {@html $t('about.developer_credit')}
     </p>
-    <p class=" text-text-secondary tẽ mt-1">{$t('about.availability')}</p>
+    <p class=" text-text-secondary mt-1">
+      <a
+        href="https://summarizerrrr.com/"
+        class=" underline underline-offset-1"
+        target="_blank">Summarizerrrr.com</a
+      >
+      •
+      {$t('about.availability')}
+    </p>
   </div>
 
   <!-- Links -->
@@ -167,7 +175,9 @@
       rel="noopener noreferrer"
       class="flex items-center space-x-2 sm:space-x-1 transition-colors hover:underline"
     >
-      <Icon icon="mdi:github" class="w-4 h-4" />
+      <div class="size-4">
+        <Icon icon="mdi:github" class="w-4 h-4" />
+      </div>
       <span class="flex items-center"
         >{$t('about.github')}
         <Icon width={12} icon="heroicons:arrow-up-right-16-solid" />
@@ -179,7 +189,9 @@
       rel="noopener noreferrer"
       class="flex items-center space-x-2 sm:space-x-1 transition-colors hover:underline"
     >
-      <Icon icon="logos:chrome" class="w-4 h-4" />
+      <div class="size-4">
+        <Icon icon="logos:chrome" class="w-4 h-4" />
+      </div>
       <span class="flex items-center"
         >{$t('about.chrome_store')}
         <Icon width={12} icon="heroicons:arrow-up-right-16-solid" />
@@ -191,9 +203,25 @@
       rel="noopener noreferrer"
       class="flex items-center space-x-2 sm:space-x-1 transition-colors hover:underline"
     >
-      <Icon icon="logos:firefox" class="w-4 h-4" />
+      <div class="size-4">
+        <Icon icon="logos:firefox" class="w-4 h-4" />
+      </div>
       <span class="flex items-center"
         >{$t('about.firefox_addons')}
+        <Icon width={12} icon="heroicons:arrow-up-right-16-solid" />
+      </span>
+    </a>
+    <a
+      href="https://addons.mozilla.org/en-CA/firefox/addon/summarizerrrr/"
+      target="_blank"
+      rel="noopener noreferrer"
+      class="flex items-center space-x-2 sm:space-x-1 transition-colors hover:underline"
+    >
+      <div class="size-4">
+        <Icon icon="logos:microsoft-edge" class="w-4 h-4" />
+      </div>
+      <span class="flex items-center"
+        >Edge Add-ons
         <Icon width={12} icon="heroicons:arrow-up-right-16-solid" />
       </span>
     </a>

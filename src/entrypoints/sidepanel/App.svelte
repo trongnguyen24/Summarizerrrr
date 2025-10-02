@@ -224,7 +224,7 @@
     <div class="bg-border"></div>
 
     <div
-      class="relative prose main-sidepanel prose-h2:mt-4 p z-10 flex flex-col gap-8 px-6 pt-8 pb-[40vh] max-w-[52rem] w-screen mx-auto"
+      class="relative prose main-sidepanel prose-h2:mt-4 p z-10 flex flex-col gap-8 px-6 pt-8 pb-[40vh] min-w-[22.5rem] max-w-[52rem] w-screen mx-auto"
     >
       <!-- NEW: Permission Warning Component for Firefox -->
       {#if import.meta.env.BROWSER === 'firefox'}

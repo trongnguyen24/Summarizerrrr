@@ -251,6 +251,43 @@ export default defineBackground(() => {
   // --- Consolidated Message Listener ---
   browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
     // Async handlers that need `return true`
+    if (message.type === 'CHECK_FIREFOX_PERMISSION') {
+      // Chỉ xử lý cho Firefox
+      if (import.meta.env.BROWSER === 'firefox') {
+        ;(async () => {
+          try {
+            // Import permission service functions
+            const { checkPermission } = await import(
+              '../services/firefoxPermissionService.js'
+            )
+            const hasPermission = await checkPermission(message.url)
+            sendResponse({
+              success: true,
+              hasPermission,
+              url: message.url,
+            })
+          } catch (error) {
+            console.error(
+              '[Background] Error checking Firefox permissions:',
+              error
+            )
+            sendResponse({
+              success: false,
+              error: error.message,
+              url: message.url,
+            })
+          }
+        })()
+      } else {
+        // Cho browser khác, luôn trả về true
+        sendResponse({
+          success: true,
+          hasPermission: true,
+          url: message.url,
+        })
+      }
+      return true
+    }
     if (message.type === 'OLLAMA_API_REQUEST') {
       ;(async () => {
         try {

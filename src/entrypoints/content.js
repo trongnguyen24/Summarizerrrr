@@ -4,7 +4,6 @@ import { init, getLocaleFromNavigator } from 'svelte-i18n'
 import { loadSettings, settings } from '@/stores/settingsStore.svelte.js'
 import { subscribeToLocaleChanges } from '@/stores/i18nShadowStore.svelte.js'
 import { shouldShowFab } from '@/services/fabPermissionService.js'
-import { checkPermission } from '@/services/firefoxPermissionService.js'
 import '@/lib/i18n/i18n.js' // Ensure locales are registered
 
 import './content/styles/floating-ui.css'
@@ -21,13 +20,18 @@ export default defineContentScript({
     // Check Firefox permissions trước khi kiểm tra shouldShowFab
     if (import.meta.env.BROWSER === 'firefox') {
       try {
-        const hasPermission = await checkPermission(window.location.href)
+        // Gửi message đến background script để kiểm tra permission
+        const response = await browser.runtime.sendMessage({
+          type: 'CHECK_FIREFOX_PERMISSION',
+          url: window.location.href,
+        })
+
         console.log(
           `[Content] Firefox permission check for ${window.location.href}:`,
-          hasPermission
+          response
         )
 
-        if (!hasPermission) {
+        if (!response.success || !response.hasPermission) {
           console.log(
             '[Content] No optional permission for this site - UI not mounted'
           )

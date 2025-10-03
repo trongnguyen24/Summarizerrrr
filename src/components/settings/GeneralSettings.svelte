@@ -77,9 +77,11 @@
   }
 
   // Load permissions khi component mount
-  $effect(() => {
-    loadPermissionStates()
-  })
+  if (import.meta.env.BROWSER === 'firefox') {
+    $effect(() => {
+      loadPermissionStates()
+    })
+  }
 
   // effect on load update settings.hasCompletedOnboarding = false
   // $effect(() => {

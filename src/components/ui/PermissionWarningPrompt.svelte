@@ -138,8 +138,9 @@
 {#if showWarning && !isCheckingPermission}
   <div class="p-4 min-w-90 absolute abs-center bg-surface-1 z-10">
     <div class="flex gap-1 justify-center flex-col space-y-3">
-      <p class="text-xs text-balance !text-center text-text-secondary mt-1">
-        Requires permission to access this website content.
+      <p class="text-xs text-balance !text-center text-text-secondary mt-4">
+        Built-in access permission: YouTube, Udemy, Coursera. For other sites,
+        grant permissions below.
       </p>
 
       {#if permissionCheckError}
@@ -158,7 +159,7 @@
           <span>Requesting...</span>
         {:else}
           <Icon icon="solar:shield-check-bold" class="w-3 h-3" />
-          <span>Grant Website Access</span>
+          <span>Grant Access</span>
         {/if}
       </button>
 

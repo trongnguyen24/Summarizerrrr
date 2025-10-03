@@ -90,7 +90,7 @@ export default defineConfig({
           'scripting',
           'declarativeNetRequest',
         ],
-        optional_permissions: ['https://*/*', '*://*.reddit.com/*'],
+        optional_permissions: ['https://*/*'],
         host_permissions: [
           'http://127.0.0.1:11434/*',
           'http://localhost:11434/*',
@@ -98,6 +98,7 @@ export default defineConfig({
           '*://*.youtube.com/*',
           '*://*.udemy.com/*',
           '*://*.coursera.org/*',
+          '*://*.reddit.com/*',
           '*://*.iconify.design/*',
         ],
         action: {

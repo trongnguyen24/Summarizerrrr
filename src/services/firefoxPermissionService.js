@@ -12,20 +12,17 @@
  * @returns {string|null} - Permission pattern hoặc null nếu đã có host permission
  */
 export function getRequiredPermission(url) {
-  // YouTube, Udemy, Coursera đã có host_permissions - không cần optional permission
+  // YouTube, Udemy, Coursera, Reddit đã có host_permissions - không cần optional permission
   if (
     url.includes('youtube.com') ||
     url.includes('udemy.com') ||
-    url.includes('coursera.org')
+    url.includes('coursera.org') ||
+    url.includes('reddit.com')
   ) {
     return null // Đã có host permission
   }
 
-  if (url.includes('reddit.com')) {
-    return '*://*.reddit.com/*'
-  }
-
-  // Default cho tất cả các site khác (trừ educational sites)
+  // Default cho tất cả các site khác (trừ sites có host permissions)
   return 'https://*/*'
 }
 

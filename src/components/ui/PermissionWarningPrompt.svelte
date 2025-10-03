@@ -85,6 +85,9 @@
           onPermissionGranted(true)
         }
 
+        // Trigger sidepanel update để refresh permission status
+        triggerSidepanelUpdate()
+
         // Show success feedback briefly
         setTimeout(() => {
           console.log(
@@ -106,6 +109,21 @@
     }
   }
 
+  // Trigger sidepanel update bằng cách fake history change
+  function triggerSidepanelUpdate() {
+    try {
+      const currentUrl = window.location.href
+      // Push state với temporary hash
+      window.history.pushState({}, '', currentUrl + '#permission-updated')
+      // Sử dụng history.back() để quay lại state trước đó
+      setTimeout(() => {
+        window.history.back()
+      }, 50)
+    } catch (error) {
+      console.log('Could not trigger sidepanel update:', error)
+    }
+  }
+
   // Expose permission status to parent
   let permissionStatus = $derived({
     hasPermission,
@@ -121,11 +139,7 @@
   <div class="p-4 min-w-90 absolute abs-center bg-surface-1 z-10">
     <div class="flex gap-1 justify-center flex-col space-y-3">
       <p class="text-xs text-balance !text-center text-text-secondary mt-1">
-        {#if currentUrl.includes('reddit.com')}
-          Requires permission to access Reddit content.
-        {:else}
-          Requires permission to access this website content
-        {/if}
+        Requires permission to access this website content.
       </p>
 
       {#if permissionCheckError}
@@ -144,11 +158,7 @@
           <span>Requesting...</span>
         {:else}
           <Icon icon="solar:shield-check-bold" class="w-3 h-3" />
-          <span
-            >{currentUrl.includes('reddit.com')
-              ? 'Grant Reddit Access'
-              : 'Grant Website Access'}</span
-          >
+          <span>Grant Website Access</span>
         {/if}
       </button>
 

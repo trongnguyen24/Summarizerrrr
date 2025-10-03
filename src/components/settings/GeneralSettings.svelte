@@ -28,16 +28,14 @@
   }
 
   // Permission states - chỉ dùng khi build cho Firefox
-  // Chỉ còn Reddit và General Website Access, loại bỏ YouTube/Udemy/Coursera vì đã có host_permissions
-  let redditPermission = $state(false)
+  // Chỉ còn General Website Access, loại bỏ tất cả specific sites vì đã có host_permissions
   let httpsPermission = $state(false)
 
   // Load permission states từ Firefox API khi component mount
   async function loadPermissionStates() {
     if (import.meta.env.BROWSER === 'firefox') {
       try {
-        // Chỉ check 2 permissions còn lại: Reddit và General Website Access
-        redditPermission = await checkSpecificPermission('*://*.reddit.com/*')
+        // Chỉ check General Website Access
         httpsPermission = await checkSpecificPermission('https://*/*')
       } catch (error) {
         console.error('Error loading permission states:', error)
@@ -45,45 +43,37 @@
     }
   }
 
-  // Event handlers cho các checkbox - chỉ còn Reddit và General Website Access
-  async function handleRedditPermission(event) {
-    const checked = event.target.checked
-    if (checked) {
-      const granted = await requestSpecificPermission('*://*.reddit.com/*')
-      redditPermission = granted
-      if (granted) {
-        showPermissionGrantedMessage()
-      }
-    } else {
-      const removed = await removeSpecificPermission('*://*.reddit.com/*')
-      redditPermission = !removed
-    }
-  }
-
+  // Event handlers cho checkbox - chỉ còn General Website Access
   async function handleHttpsPermission(event) {
     const checked = event.target.checked
     if (checked) {
       const granted = await requestSpecificPermission('https://*/*')
       httpsPermission = granted
-      if (granted) {
-        showPermissionGrantedMessage()
-      }
+
+      // Trigger sidepanel update sau khi thay đổi permission
+      triggerSidepanelUpdate()
     } else {
       const removed = await removeSpecificPermission('https://*/*')
       httpsPermission = !removed
+
+      // Trigger sidepanel update sau khi remove permission
+      triggerSidepanelUpdate()
     }
   }
 
-  // State để hiển thị thông báo
-  let showMessage = $state(false)
-
-  // Function để hiển thị thông báo
-  function showPermissionGrantedMessage() {
-    showMessage = true
-    // Tự động ẩn sau 10 giây
-    setTimeout(() => {
-      showMessage = false
-    }, 10000)
+  // Trigger sidepanel update bằng cách fake history change
+  function triggerSidepanelUpdate() {
+    try {
+      const currentUrl = window.location.href
+      // Push state với temporary hash
+      window.history.pushState({}, '', currentUrl + '#permission-updated')
+      // Sử dụng history.back() để quay lại state trước đó
+      setTimeout(() => {
+        window.history.back()
+      }, 50)
+    } catch (error) {
+      console.log('Could not trigger sidepanel update:', error)
+    }
   }
 
   // Load permissions khi component mount
@@ -101,12 +91,40 @@
 </script>
 
 <!-- General Section -->
+<!-- Optional Permissions Section - Chỉ hiển thị trên Firefox -->
+{#if import.meta.env.BROWSER === 'firefox'}
+  <div class="flex flex-col gap-2 px-5 mt-6">
+    <!-- svelte-ignore a11y_label_has_associated_control -->
+    <label class="block font-bold text-primary">Permissions </label>
+    <p class="text-xs text-text-secondary">
+      Built-in access: YouTube, Udemy, Coursera. For other sites, grant
+      permissions below.
+    </p>
+
+    <!-- Chỉ còn 1 checkbox: General Website Access -->
+    <!-- YouTube, Udemy, Coursera, Reddit đã có host_permissions nên không cần settings -->
+    <div class="flex flex-col gap-3">
+      <label
+        class="flex items-center gap-2 text-text-primary hover:text-text-secondary transition-colors"
+      >
+        <input
+          type="checkbox"
+          bind:checked={httpsPermission}
+          onchange={handleHttpsPermission}
+          class="w-4 h-4 text-primary bg-surface-2 border-border rounded focus:ring-primary focus:ring-2"
+        />
+        <span>General Website Access</span>
+      </label>
+    </div>
+  </div>
+{/if}
 <div class="setting-block flex pb-6 pt-5 flex-col">
   <div class="flex items-center h-6 justify-between px-5">
     <label for="advanced-mode-toggle" class="block font-bold text-text-primary"
       >{$t('settings.general.title')}</label
     >
   </div>
+
   <div class="flex flex-col gap-2 p-5">
     <!-- svelte-ignore a11y_label_has_associated_control -->
     <label class="block text-text-secondary"
@@ -283,70 +301,4 @@
       {/if}
     </div>
   </div>
-
-  <!-- Optional Permissions Section - Chỉ hiển thị trên Firefox -->
-  {#if import.meta.env.BROWSER === 'firefox'}
-    <div class="flex flex-col gap-2 px-5 pb-4">
-      <!-- svelte-ignore a11y_label_has_associated_control -->
-      <label class="block text-text-secondary"> Optional Permissions </label>
-
-      <!-- Chỉ còn 2 checkbox: Reddit và General Website Access -->
-      <!-- YouTube, Udemy, Coursera đã có host_permissions nên không cần settings -->
-      <div class="flex flex-col gap-3">
-        <label
-          class="flex items-center gap-2 text-text-primary hover:text-text-secondary transition-colors"
-        >
-          <input
-            type="checkbox"
-            bind:checked={redditPermission}
-            onchange={handleRedditPermission}
-            class="w-4 h-4 text-primary bg-surface-2 border-border rounded focus:ring-primary focus:ring-2"
-          />
-          <span>Reddit Access</span>
-        </label>
-
-        <label
-          class="flex items-center gap-2 text-text-primary hover:text-text-secondary transition-colors"
-        >
-          <input
-            type="checkbox"
-            bind:checked={httpsPermission}
-            onchange={handleHttpsPermission}
-            class="w-4 h-4 text-primary bg-surface-2 border-border rounded focus:ring-primary focus:ring-2"
-          />
-          <span>General Website Access</span>
-        </label>
-      </div>
-
-      <!-- Thông tin về host permissions -->
-      <div class="mt-3 p-2 bg-primary/5 border border-primary/10 rounded-md">
-        <p class="text-xs text-text-secondary">
-          <strong>Automatically enabled:</strong> YouTube, Udemy, Coursera access
-          is built-in and doesn't require permission.
-        </p>
-      </div>
-    </div>
-
-    <!-- Thông báo reload trang -->
-    {#if showMessage}
-      <div class="mt-4 p-3 bg-primary/10 border border-primary/20 rounded-md">
-        <div class="flex items-start gap-2">
-          <Icon
-            icon="heroicons:information-circle-20-solid"
-            class="text-primary mt-0.5"
-            width="16"
-            height="16"
-          />
-          <div class="text-sm text-text-primary">
-            <p class="font-medium mb-1">Permission granted successfully!</p>
-            <p class="text-text-secondary">
-              Please <strong>reload any open tabs</strong> where you want to use
-              the extension. The extension will work properly after reloading the
-              page.
-            </p>
-          </div>
-        </div>
-      </div>
-    {/if}
-  {/if}
 </div>

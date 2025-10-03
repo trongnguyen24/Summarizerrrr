@@ -119,9 +119,10 @@
     }
   })
 
-  // Track current tab URL for permission checking
+  // Track current tab URL for permission checking with tab change listener (Firefox only)
   $effect(async () => {
     if (import.meta.env.BROWSER === 'firefox') {
+      // Get initial tab URL
       try {
         const [tab] = await browser.tabs.query({
           active: true,
@@ -132,6 +133,34 @@
         }
       } catch (error) {
         console.error('[App] Error getting current tab:', error)
+      }
+
+      // Listen for tab activation changes (Firefox only)
+      const handleTabActivated = async (activeInfo) => {
+        try {
+          const tab = await browser.tabs.get(activeInfo.tabId)
+          if (tab?.url) {
+            currentTabUrl = tab.url
+          }
+        } catch (error) {
+          console.error('[App] Error getting activated tab:', error)
+        }
+      }
+
+      // Listen for tab updates (URL changes within same tab) - Firefox only
+      const handleTabUpdated = (tabId, changeInfo, tab) => {
+        if (changeInfo.url && tab.active) {
+          currentTabUrl = changeInfo.url
+        }
+      }
+
+      browser.tabs.onActivated.addListener(handleTabActivated)
+      browser.tabs.onUpdated.addListener(handleTabUpdated)
+
+      // Cleanup listeners
+      return () => {
+        browser.tabs.onActivated.removeListener(handleTabActivated)
+        browser.tabs.onUpdated.removeListener(handleTabUpdated)
       }
     }
   })
@@ -189,7 +218,7 @@
     <div class="bg-border"></div>
 
     <div class="flex font-mono flex-col gap-1 justify-center items-center">
-      <div class="size-6 absolute top-12 left-2 text-text-secondary">
+      <div class="size-6 absolute z-50 top-12 left-2 text-text-secondary">
         <button
           onclick={() => {
             browser.tabs.create({ url: 'archive.html' })
@@ -200,7 +229,7 @@
           <Icon icon="solar:history-linear" width="24" height="24" />
         </button>
       </div>
-      <div class="size-6 absolute top-12 right-4 text-text-secondary">
+      <div class="size-6 z-50 absolute top-12 right-4 text-text-secondary">
         <SettingButton />
       </div>
 
@@ -213,19 +242,7 @@
           />
         {/if}
       </div>
-    </div>
 
-    <div class="bg-border"></div>
-
-    <div
-      class="top-stripes flex justify-center items-center w-full h-full"
-    ></div>
-
-    <div class="bg-border"></div>
-
-    <div
-      class="relative prose main-sidepanel prose-h2:mt-4 p z-10 flex flex-col gap-8 px-6 pt-8 pb-[40vh] min-w-[22.5rem] max-w-[52rem] w-screen mx-auto"
-    >
       <!-- NEW: Permission Warning Component for Firefox -->
       {#if import.meta.env.BROWSER === 'firefox'}
         {#await import('@/components/ui/PermissionWarningPrompt.svelte')}
@@ -237,14 +254,21 @@
           />
         {:catch error}
           <!-- Silent fail - log error nhưng không block UI -->
-          <script>
-            console.error(
-              '[App] Failed to load PermissionWarningPrompt:',
-              error
-            )
-          </script>
         {/await}
       {/if}
+    </div>
+
+    <div class="bg-border"></div>
+
+    <div
+      class="top-stripes flex justify-center items-center w-full h-full"
+    ></div>
+
+    <div class="bg-border"></div>
+
+    <div
+      class="relative prose wrap-anywhere main-sidepanel prose-h2:mt-4 p z-10 flex flex-col gap-8 px-6 pt-8 pb-[40vh] min-w-[22.5rem] max-w-[52rem] w-screen mx-auto"
+    >
       {#if needsApiKeySetup()()}
         <ApiKeySetupPrompt />
       {:else if anyError}

@@ -6,23 +6,26 @@
 
 /**
  * Lấy permission pattern cần thiết cho URL
+ * Chỉ trả về pattern cho sites cần optional permission
+ * YouTube, Udemy, Coursera đã có host_permissions nên không cần check
  * @param {string} url - URL hiện tại
- * @returns {string} - Permission pattern
+ * @returns {string|null} - Permission pattern hoặc null nếu đã có host permission
  */
 export function getRequiredPermission(url) {
-  if (url.includes('youtube.com')) {
-    return '*://*.youtube.com/*'
+  // YouTube, Udemy, Coursera đã có host_permissions - không cần optional permission
+  if (
+    url.includes('youtube.com') ||
+    url.includes('udemy.com') ||
+    url.includes('coursera.org')
+  ) {
+    return null // Đã có host permission
   }
-  if (url.includes('udemy.com')) {
-    return '*://*.udemy.com/*'
-  }
+
   if (url.includes('reddit.com')) {
     return '*://*.reddit.com/*'
   }
-  if (url.includes('coursera.org')) {
-    return '*://*.coursera.org/*'
-  }
-  // Default cho tất cả các site khác
+
+  // Default cho tất cả các site khác (trừ educational sites)
   return 'https://*/*'
 }
 
@@ -34,6 +37,12 @@ export function getRequiredPermission(url) {
 export async function checkPermission(url) {
   try {
     const permission = getRequiredPermission(url)
+
+    // Nếu null, nghĩa là đã có host permission - trả về true
+    if (permission === null) {
+      return true
+    }
+
     return await browser.permissions.contains({
       origins: [permission],
     })
@@ -54,6 +63,12 @@ export async function checkPermission(url) {
 export async function requestPermission(url) {
   try {
     const permission = getRequiredPermission(url)
+
+    // Nếu null, nghĩa là đã có host permission - trả về true
+    if (permission === null) {
+      return true
+    }
+
     return await browser.permissions.request({
       origins: [permission],
     })
@@ -210,6 +225,17 @@ export async function getCurrentTabInfo() {
 export async function requestPermissionWithFeedback(url) {
   try {
     const permission = getRequiredPermission(url)
+
+    // Nếu null, nghĩa là đã có host permission
+    if (permission === null) {
+      return {
+        granted: true,
+        permission: 'host_permission',
+        needsReload: false, // Host permissions không cần reload
+        url,
+      }
+    }
+
     const granted = await browser.permissions.request({
       origins: [permission],
     })

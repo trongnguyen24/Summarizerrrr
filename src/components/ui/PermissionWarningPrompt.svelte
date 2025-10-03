@@ -23,12 +23,28 @@
       permissionCheckError = null
 
       try {
-        hasPermission = await checkPermission(currentUrl)
-        showWarning = !hasPermission
+        // Kiểm tra ngay nếu là educational sites (có host permissions)
+        const isEducationalSite =
+          currentUrl.includes('youtube.com') ||
+          currentUrl.includes('udemy.com') ||
+          currentUrl.includes('coursera.org')
 
-        // Notify parent component về permission status
-        if (hasPermission && onPermissionGranted) {
-          onPermissionGranted(true)
+        if (isEducationalSite) {
+          // Educational sites có host permissions - ngay lập tức set true
+          hasPermission = true
+          showWarning = false
+          if (onPermissionGranted) {
+            onPermissionGranted(true)
+          }
+        } else {
+          // Chỉ check permission cho Reddit và general sites
+          hasPermission = await checkPermission(currentUrl)
+          showWarning = !hasPermission
+
+          // Notify parent component về permission status
+          if (hasPermission && onPermissionGranted) {
+            onPermissionGranted(true)
+          }
         }
       } catch (error) {
         console.error(
@@ -99,71 +115,53 @@
   })
 </script>
 
-<!-- Loading state khi đang check permission -->
-{#if isCheckingPermission}
-  <div
-    class="mx-6 mb-2 rounded-xl border border-surface-2 bg-surface-1/50 p-3"
-    in:fade={{ duration: 200 }}
-    out:fade={{ duration: 200 }}
-  >
-    <div class="flex items-center gap-3">
-      <Icon
-        icon="solar:loader-2-bold"
-        class="w-4 h-4 text-text-secondary animate-spin shrink-0"
-      />
-      <span class="text-xs text-text-secondary"> Checking permissions... </span>
-    </div>
-  </div>
-{/if}
-
-<!-- Warning banner khi cần permission -->
+<!-- Warning banner khi cần permission - chỉ cho Reddit và general websites -->
+<!-- YouTube, Udemy, Coursera đã có host_permissions nên không bao giờ hiển thị warning -->
 {#if showWarning && !isCheckingPermission}
-  <div
-    class="mx-6 mb-4 rounded-xl border border-warning/20 bg-warning/5 p-4"
-    in:slide={{ duration: 300 }}
-    out:slide={{ duration: 200 }}
-  >
-    <div class="flex items-start gap-3">
-      <Icon
-        icon="solar:shield-warning-bold"
-        class="w-5 h-5 text-warning mt-0.5 shrink-0"
-      />
-      <div class="flex-1 space-y-3">
-        <div>
-          <h3 class="text-sm font-medium text-text-primary">
-            Permission Required
-          </h3>
-          <p class="text-xs text-text-secondary mt-1">
-            This website requires permission to access content for
-            summarization.
-          </p>
-          {#if permissionCheckError}
-            <p class="text-xs text-error mt-1">
-              Error: {permissionCheckError}
-            </p>
-          {/if}
-        </div>
+  <div class="p-4 min-w-90 absolute abs-center bg-surface-1 z-10">
+    <div class="flex gap-1 justify-center flex-col space-y-3">
+      <p class="text-xs text-balance !text-center text-text-secondary mt-1">
+        {#if currentUrl.includes('reddit.com')}
+          Requires permission to access Reddit content.
+        {:else}
+          Requires permission to access this website content
+        {/if}
+      </p>
 
-        <button
-          onclick={handleGrantPermission}
-          disabled={isRequestingPermission}
-          class="flex items-center gap-2 px-3 py-1.5 bg-warning text-white rounded-lg text-xs font-medium hover:bg-warning/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-        >
-          {#if isRequestingPermission}
-            <Icon icon="solar:loader-2-bold" class="w-3 h-3 animate-spin" />
-            <span>Requesting...</span>
-          {:else}
-            <Icon icon="solar:shield-check-bold" class="w-3 h-3" />
-            <span>Grant Permission</span>
-          {/if}
-        </button>
-      </div>
+      {#if permissionCheckError}
+        <p class="text-xs text-error mt-1">
+          Error: {permissionCheckError}
+        </p>
+      {/if}
+
+      <button
+        onclick={handleGrantPermission}
+        disabled={isRequestingPermission}
+        class="flex w-fit mx-auto items-center gap-2 px-3 py-1.5 bg-blackwhite/5 text-white rounded-lg text-xs font-medium hover:bg-warning/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+      >
+        {#if isRequestingPermission}
+          <Icon icon="solar:loader-2-bold" class="w-3 h-3 animate-spin" />
+          <span>Requesting...</span>
+        {:else}
+          <Icon icon="solar:shield-check-bold" class="w-3 h-3" />
+          <span
+            >{currentUrl.includes('reddit.com')
+              ? 'Grant Reddit Access'
+              : 'Grant Website Access'}</span
+          >
+        {/if}
+      </button>
+
+      <!-- Thông tin về educational sites -->
+      <!-- <p class="text-xs text-text-secondary/70 !text-center">
+        YouTube, Udemy, and Coursera work automatically without permission.
+      </p> -->
     </div>
   </div>
 {/if}
 
 <!-- Success state (optional, minimal) -->
-{#if hasPermission && !isCheckingPermission && import.meta.env.BROWSER === 'firefox'}
+<!-- {#if hasPermission && !isCheckingPermission && import.meta.env.BROWSER === 'firefox'}
   <div
     class="mx-6 mb-2 rounded-xl border border-success/20 bg-success/5 p-2"
     in:fade={{ duration: 300 }}
@@ -177,4 +175,4 @@
       <span class="text-xs text-success"> Permissions granted </span>
     </div>
   </div>
-{/if}
+{/if} -->

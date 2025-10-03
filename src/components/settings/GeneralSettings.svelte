@@ -28,22 +28,16 @@
   }
 
   // Permission states - chỉ dùng khi build cho Firefox
-  let youtubePermission = $state(false)
-  let udemyPermission = $state(false)
+  // Chỉ còn Reddit và General Website Access, loại bỏ YouTube/Udemy/Coursera vì đã có host_permissions
   let redditPermission = $state(false)
-  let courseraPermission = $state(false)
   let httpsPermission = $state(false)
 
   // Load permission states từ Firefox API khi component mount
   async function loadPermissionStates() {
     if (import.meta.env.BROWSER === 'firefox') {
       try {
-        youtubePermission = await checkSpecificPermission('*://*.youtube.com/*')
-        udemyPermission = await checkSpecificPermission('*://*.udemy.com/*')
+        // Chỉ check 2 permissions còn lại: Reddit và General Website Access
         redditPermission = await checkSpecificPermission('*://*.reddit.com/*')
-        courseraPermission = await checkSpecificPermission(
-          '*://*.coursera.org/*'
-        )
         httpsPermission = await checkSpecificPermission('https://*/*')
       } catch (error) {
         console.error('Error loading permission states:', error)
@@ -51,35 +45,7 @@
     }
   }
 
-  // Event handlers cho các checkbox
-  async function handleYouTubePermission(event) {
-    const checked = event.target.checked
-    if (checked) {
-      const granted = await requestSpecificPermission('*://*.youtube.com/*')
-      youtubePermission = granted
-      if (granted) {
-        showPermissionGrantedMessage()
-      }
-    } else {
-      const removed = await removeSpecificPermission('*://*.youtube.com/*')
-      youtubePermission = !removed
-    }
-  }
-
-  async function handleUdemyPermission(event) {
-    const checked = event.target.checked
-    if (checked) {
-      const granted = await requestSpecificPermission('*://*.udemy.com/*')
-      udemyPermission = granted
-      if (granted) {
-        showPermissionGrantedMessage()
-      }
-    } else {
-      const removed = await removeSpecificPermission('*://*.udemy.com/*')
-      udemyPermission = !removed
-    }
-  }
-
+  // Event handlers cho các checkbox - chỉ còn Reddit và General Website Access
   async function handleRedditPermission(event) {
     const checked = event.target.checked
     if (checked) {
@@ -91,20 +57,6 @@
     } else {
       const removed = await removeSpecificPermission('*://*.reddit.com/*')
       redditPermission = !removed
-    }
-  }
-
-  async function handleCourseraPermission(event) {
-    const checked = event.target.checked
-    if (checked) {
-      const granted = await requestSpecificPermission('*://*.coursera.org/*')
-      courseraPermission = granted
-      if (granted) {
-        showPermissionGrantedMessage()
-      }
-    } else {
-      const removed = await removeSpecificPermission('*://*.coursera.org/*')
-      courseraPermission = !removed
     }
   }
 
@@ -338,32 +290,9 @@
       <!-- svelte-ignore a11y_label_has_associated_control -->
       <label class="block text-text-secondary"> Optional Permissions </label>
 
-      <!-- Checkbox đơn giản, check trực tiếp từ Firefox API -->
+      <!-- Chỉ còn 2 checkbox: Reddit và General Website Access -->
+      <!-- YouTube, Udemy, Coursera đã có host_permissions nên không cần settings -->
       <div class="flex flex-col gap-3">
-        <label
-          class="flex items-center gap-2 text-text-primary hover:text-text-secondary transition-colors"
-        >
-          <input
-            type="checkbox"
-            bind:checked={youtubePermission}
-            onchange={handleYouTubePermission}
-            class="w-4 h-4 text-primary bg-surface-2 border-border rounded focus:ring-primary focus:ring-2"
-          />
-          <span>YouTube Access</span>
-        </label>
-
-        <label
-          class="flex items-center gap-2 text-text-primary hover:text-text-secondary transition-colors"
-        >
-          <input
-            type="checkbox"
-            bind:checked={udemyPermission}
-            onchange={handleUdemyPermission}
-            class="w-4 h-4 text-primary bg-surface-2 border-border rounded focus:ring-primary focus:ring-2"
-          />
-          <span>Udemy Access</span>
-        </label>
-
         <label
           class="flex items-center gap-2 text-text-primary hover:text-text-secondary transition-colors"
         >
@@ -381,24 +310,20 @@
         >
           <input
             type="checkbox"
-            bind:checked={courseraPermission}
-            onchange={handleCourseraPermission}
-            class="w-4 h-4 text-primary bg-surface-2 border-border rounded focus:ring-primary focus:ring-2"
-          />
-          <span>Coursera Access</span>
-        </label>
-
-        <label
-          class="flex items-center gap-2 text-text-primary hover:text-text-secondary transition-colors"
-        >
-          <input
-            type="checkbox"
             bind:checked={httpsPermission}
             onchange={handleHttpsPermission}
             class="w-4 h-4 text-primary bg-surface-2 border-border rounded focus:ring-primary focus:ring-2"
           />
           <span>General Website Access</span>
         </label>
+      </div>
+
+      <!-- Thông tin về host permissions -->
+      <div class="mt-3 p-2 bg-primary/5 border border-primary/10 rounded-md">
+        <p class="text-xs text-text-secondary">
+          <strong>Automatically enabled:</strong> YouTube, Udemy, Coursera access
+          is built-in and doesn't require permission.
+        </p>
       </div>
     </div>
 

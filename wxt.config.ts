@@ -90,17 +90,15 @@ export default defineConfig({
           'scripting',
           'declarativeNetRequest',
         ],
-        optional_permissions: [
-          'https://*/*',
-          '*://*.youtube.com/*',
-          '*://*.udemy.com/*',
-          '*://*.reddit.com/*',
-          '*://*.coursera.org/*',
-        ],
+        optional_permissions: ['https://*/*', '*://*.reddit.com/*'],
         host_permissions: [
           'http://127.0.0.1:11434/*',
           'http://localhost:11434/*',
           'http://localhost:1234/*',
+          '*://*.youtube.com/*',
+          '*://*.udemy.com/*',
+          '*://*.coursera.org/*',
+          '*://*.iconify.design/*',
         ],
         action: {
           default_icon: 'icon/48.png',

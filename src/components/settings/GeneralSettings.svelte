@@ -4,6 +4,7 @@
   import ButtonFont from '../buttons/ButtonFont.svelte'
   import ButtonIcon from '../buttons/ButtonIcon.svelte'
   import ButtonSet from '../buttons/ButtonSet.svelte'
+  import SwitchPermission from '../inputs/SwitchPermission.svelte'
   import {
     settings,
     updateSettings,
@@ -44,8 +45,7 @@
   }
 
   // Event handlers cho checkbox - chỉ còn General Website Access
-  async function handleHttpsPermission(event) {
-    const checked = event.target.checked
+  async function handleHttpsPermission(checked) {
     if (checked) {
       const granted = await requestSpecificPermission('https://*/*')
       httpsPermission = granted
@@ -99,25 +99,19 @@
     <!-- svelte-ignore a11y_label_has_associated_control -->
     <label class="block font-bold text-primary">Permissions </label>
     <p class="text-xs text-text-secondary">
-      Built-in access: YouTube, Udemy, Coursera. For other sites, grant
-      permissions below.
+      Built-in access YouTube, Udemy and Coursera. For summarize other sites,
+      please grant permissions below.
     </p>
 
     <!-- Chỉ còn 1 checkbox: General Website Access -->
     <!-- YouTube, Udemy, Coursera, Reddit đã có host_permissions nên không cần settings -->
-    <div class="flex flex-col gap-3">
-      <label
-        class="flex items-center gap-2 text-text-primary hover:text-text-secondary transition-colors"
-      >
-        <input
-          type="checkbox"
-          bind:checked={httpsPermission}
-          onchange={handleHttpsPermission}
-          class="w-4 h-4 text-primary bg-surface-2 border-border rounded focus:ring-primary focus:ring-2"
-        />
-        <span>General Website Access</span>
-      </label>
-    </div>
+
+    <SwitchPermission
+      id="https-permission-switch"
+      name="Grant permissions"
+      bind:checked={httpsPermission}
+      onCheckedChange={handleHttpsPermission}
+    />
   </div>
 {/if}
 <div class="setting-block flex pb-6 pt-5 flex-col">

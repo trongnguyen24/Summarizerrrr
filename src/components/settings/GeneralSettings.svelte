@@ -108,7 +108,7 @@
 
     <SwitchPermission
       id="https-permission-switch"
-      name="Grant permissions"
+      name="Access your data for all websites"
       bind:checked={httpsPermission}
       onCheckedChange={handleHttpsPermission}
     />

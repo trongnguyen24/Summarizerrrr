@@ -211,6 +211,31 @@
     </div>
   </div>
 
+  <!-- Sidepanel Support Setting - Only show on Chrome -->
+  {#if import.meta.env.BROWSER === 'chrome'}
+    <div class="flex flex-col gap-2 px-5 pb-4">
+      <div class="flex items-center justify-between">
+        <!-- svelte-ignore a11y_label_has_associated_control -->
+        <label class="block text-text-secondary">Sidepanel Support</label>
+        <input
+          type="checkbox"
+          id="sidepanel-support-toggle"
+          class="toggle"
+          bind:checked={settings.enableSidepanelSupport}
+          onchange={() =>
+            handleUpdateSetting(
+              'enableSidepanelSupport',
+              settings.enableSidepanelSupport
+            )}
+        />
+      </div>
+      <p class="text-xs text-text-secondary">
+        Enable sidepanel support. Disable this for Arc, Dia, or other browsers
+        that don't support Chrome sidepanel.
+      </p>
+    </div>
+  {/if}
+
   <div class="flex flex-col gap-2 px-5 pb-4">
     <!-- svelte-ignore a11y_label_has_associated_control -->
     <div class="flex items-center gap-1 justify-between">

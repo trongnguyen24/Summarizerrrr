@@ -41,6 +41,7 @@ const DEFAULT_SETTINGS = {
   widthIndex: 1, // Default to max-w-3xl
   sidePanelDefaultWidth: 25, // Default width for side panel in em units
   oneClickSummarize: false, // Enable 1-click summarization on FAB
+  enableSidepanelSupport: true, // Enable sidepanel support for Chrome (false for Arc/Dia browsers)
   fabDomainControl: {
     mode: 'all', // 'all' | 'whitelist' | 'blacklist'
     whitelist: ['youtube.com', 'coursera.org', 'udemy.com'],

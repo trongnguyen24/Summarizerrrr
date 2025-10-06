@@ -273,6 +273,20 @@ export default defineBackground(() => {
           type: 'normal',
           contexts: ['selection'],
         })
+
+        // Create context menu for Chrome (action) and Firefox (browser_action)
+        const contexts = []
+        if (browser.action) contexts.push('action')
+        if (browser.browserAction) contexts.push('browser_action')
+
+        if (contexts.length > 0) {
+          browser.contextMenus.create({
+            id: 'openSettings',
+            title: 'Open Settings',
+            type: 'normal',
+            contexts: contexts,
+          })
+        }
       }
     } catch (error) {
       console.log('Context menu creation failed, might already exist:', error)
@@ -612,6 +626,11 @@ export default defineBackground(() => {
           pendingSelectedText = null
         }
       }
+    } else if (info.menuItemId === 'openSettings') {
+      browser.tabs.create({
+        url: browser.runtime.getURL('settings.html'),
+        active: true,
+      })
     }
   })
 

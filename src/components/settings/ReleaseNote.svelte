@@ -71,6 +71,30 @@
     </div>
     <div class="p-6 prose prose-sm w-full max-w-full">
       <h2>Release note</h2>
+      <b class="font-mono">2.2.0</b>
+      <ul class="mt-0">
+        {@render note(
+          'Proactive Permission System for Firefox:',
+          'Implemented a new permission system that checks website access when opening sidepanel and displays warnings if permissions are missing. The Summarize button is disabled until permissions are granted.'
+        )}
+        {@render note(
+          'Storage Migration from Sync to Local:',
+          'Settings, themes, and app state data have been moved from sync storage to local storage for improved performance and reliability.'
+        )}
+        {@render note(
+          'Configurable Chrome Action Button:',
+          'Chrome action button behavior can now be configured to open either sidepanel or popup window, especially useful for browsers like Arc or Dia.'
+        )}
+        {@render note(
+          'New Review and Donate Buttons:',
+          'Added Review and Donate buttons to the About section with particle animation effects and dropdown menus for interaction.'
+        )}
+        {@render note(
+          'Release Notes Dialog:',
+          'A new release notes dialog has been added, accessible from the About section in settings, to display version changes and improvements.'
+        )}
+      </ul>
+
       <b class="  font-mono">2.1.6</b>
       <ul class="mt-0">
         {@render note(

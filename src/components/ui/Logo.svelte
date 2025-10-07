@@ -140,9 +140,6 @@
     stroke: var(--color-primary);
     transform-origin: center;
   }
-  .stroke-blue {
-    transform-origin: center;
-  }
 
   .chip__filter {
     position: absolute; /* Or other positioning if needed */

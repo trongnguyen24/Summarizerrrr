@@ -23,13 +23,56 @@
   let showWarning = $state(false)
   let permissionCheckError = $state(null)
 
-  // Reactive update when settings store changes
+  // Track if permission check has been completed to avoid infinite loops
+  let hasInitialized = $state(false)
+
+  // Listen for permission changes via runtime messages
   $effect(() => {
-    hasPermission = getFirefoxPermission('httpsPermission')
-    showWarning = !hasPermission && !isCheckingPermission
+    const messageListener = (message) => {
+      if (
+        message.type === 'PERMISSION_CHANGED' &&
+        message.permissionKey === 'httpsPermission'
+      ) {
+        console.log(
+          '[PermissionWarningPrompt] Received permission change message:',
+          message
+        )
+
+        // Update local state immediately
+        hasPermission = message.value
+        showWarning = !message.value && !isCheckingPermission
+
+        // Sync with store for consistency
+        updateFirefoxPermission('httpsPermission', message.value)
+
+        // Notify parent component if permission was granted
+        if (message.value && onPermissionGranted) {
+          onPermissionGranted(true)
+        }
+      }
+    }
+
+    // Add message listener
+    browser.runtime.onMessage.addListener(messageListener)
+
+    // Cleanup function
+    return () => {
+      browser.runtime.onMessage.removeListener(messageListener)
+    }
   })
 
-  // Check permission with store integration and caching
+  // Reactive update when settings store changes - but only after initialization
+  $effect(() => {
+    if (hasInitialized) {
+      const storePermission = getFirefoxPermission('httpsPermission')
+      if (storePermission !== hasPermission) {
+        hasPermission = storePermission
+        showWarning = !storePermission && !isCheckingPermission
+      }
+    }
+  })
+
+  // Check permission with store integration and caching - run only once per URL change
   $effect(async () => {
     if (currentUrl && import.meta.env.BROWSER === 'firefox') {
       isCheckingPermission = true
@@ -130,13 +173,29 @@
         await updateFirefoxPermission('httpsPermission', true)
         showWarning = false
 
+        // Broadcast permission change via runtime message
+        try {
+          await browser.runtime.sendMessage({
+            type: 'PERMISSION_CHANGED',
+            permissionKey: 'httpsPermission',
+            value: true,
+            source: 'PermissionWarningPrompt',
+            timestamp: Date.now(),
+          })
+          console.log(
+            '[PermissionWarningPrompt] Permission change broadcasted successfully'
+          )
+        } catch (error) {
+          console.warn(
+            '[PermissionWarningPrompt] Failed to broadcast permission change:',
+            error
+          )
+        }
+
         // Notify parent component
         if (onPermissionGranted) {
           onPermissionGranted(true)
         }
-
-        // Trigger sidepanel update để refresh permission status
-        triggerSidepanelUpdate()
 
         // Show success feedback briefly
         setTimeout(() => {
@@ -161,20 +220,7 @@
     }
   }
 
-  // Trigger sidepanel update bằng cách fake history change
-  function triggerSidepanelUpdate() {
-    try {
-      const currentUrl = window.location.href
-      // Push state với temporary hash
-      window.history.pushState({}, '', currentUrl + '#permission-updated')
-      // Sử dụng history.back() để quay lại state trước đó
-      setTimeout(() => {
-        window.history.back()
-      }, 50)
-    } catch (error) {
-      console.log('Could not trigger sidepanel update:', error)
-    }
-  }
+  // triggerSidepanelUpdate function removed - now using browser.runtime.sendMessage instead
 
   // Expose permission status to parent
   let permissionStatus = $derived({

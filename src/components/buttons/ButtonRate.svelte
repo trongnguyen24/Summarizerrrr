@@ -105,7 +105,7 @@
       </div>
     </button>
   </DropdownMenu.Trigger>
-  <DropdownMenu.Portal>
+  <DropdownMenu.Portal class="z-[999]">
     <DropdownMenu.Content
       class="mt-2 bg-surface-2/80 divide-y divide-border divide-dashed font-mono text-xs backdrop-blur-md border border-border  rounded flex flex-col"
     >

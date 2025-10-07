@@ -27,6 +27,7 @@
     removeSpecificPermission,
   } from '../../services/firefoxPermissionService.js'
   import { getBrowserCompatibility } from '../../lib/utils/browserDetection.js'
+  import { browser } from 'wxt/browser'
 
   const browserCompatibility = getBrowserCompatibility()
 
@@ -37,10 +38,16 @@
   // Permission states - sử dụng settings store thay vì local state
   // Đảm bảo permission state được persist khi chuyển tab
   let httpsPermission = $state(getFirefoxPermission('httpsPermission'))
+  let hasInitialized = $state(false)
 
-  // Reactive update khi settings store thay đổi
+  // Reactive update khi settings store thay đổi - but only after initialization
   $effect(() => {
-    httpsPermission = getFirefoxPermission('httpsPermission')
+    if (hasInitialized) {
+      const storePermission = getFirefoxPermission('httpsPermission')
+      if (storePermission !== httpsPermission) {
+        httpsPermission = storePermission
+      }
+    }
   })
 
   // Load permission states từ Firefox API với caching
@@ -92,18 +99,53 @@
         // Update store thay vì local state
         await updateFirefoxPermission(permissionKey, granted)
 
-        // Trigger sidepanel update sau khi thay đổi permission
-        triggerSidepanelUpdate()
+        // Broadcast permission change via runtime message
+        try {
+          await browser.runtime.sendMessage({
+            type: 'PERMISSION_CHANGED',
+            permissionKey,
+            value: granted,
+            source: 'GeneralSettings',
+            timestamp: Date.now(),
+          })
+          console.log(
+            '[GeneralSettings] Permission change broadcasted successfully'
+          )
+        } catch (error) {
+          console.warn(
+            '[GeneralSettings] Failed to broadcast permission change:',
+            error
+          )
+          // Store updates will still work as fallback
+        }
       } else {
         console.log('[GeneralSettings] Removing Firefox permission...')
         const removed = await removeSpecificPermission('https://*/*')
         console.log('[GeneralSettings] Permission removed:', removed)
 
         // Update store - nếu removed thành công thì permission = false
-        await updateFirefoxPermission(permissionKey, !removed)
+        const newPermissionState = !removed
+        await updateFirefoxPermission(permissionKey, newPermissionState)
 
-        // Trigger sidepanel update sau khi remove permission
-        triggerSidepanelUpdate()
+        // Broadcast permission change via runtime message
+        try {
+          await browser.runtime.sendMessage({
+            type: 'PERMISSION_CHANGED',
+            permissionKey,
+            value: newPermissionState,
+            source: 'GeneralSettings',
+            timestamp: Date.now(),
+          })
+          console.log(
+            '[GeneralSettings] Permission removal broadcasted successfully'
+          )
+        } catch (error) {
+          console.warn(
+            '[GeneralSettings] Failed to broadcast permission change:',
+            error
+          )
+          // Store updates will still work as fallback
+        }
       }
     } catch (error) {
       console.error(
@@ -115,20 +157,7 @@
     }
   }
 
-  // Trigger sidepanel update bằng cách fake history change
-  function triggerSidepanelUpdate() {
-    try {
-      const currentUrl = window.location.href
-      // Push state với temporary hash
-      window.history.pushState({}, '', currentUrl + '#permission-updated')
-      // Sử dụng history.back() để quay lại state trước đó
-      setTimeout(() => {
-        window.history.back()
-      }, 50)
-    } catch (error) {
-      console.log('Could not trigger sidepanel update:', error)
-    }
-  }
+  // triggerSidepanelUpdate function removed - now using browser.runtime.sendMessage instead
 
   // Load permissions khi component mount
   if (import.meta.env.BROWSER === 'firefox') {

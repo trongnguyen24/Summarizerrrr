@@ -360,6 +360,49 @@ export default defineBackground(() => {
   // --- Consolidated Message Listener ---
   browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
     // Async handlers that need `return true`
+    if (message.type === 'PERMISSION_CHANGED') {
+      // Broadcast permission change to all tabs and sidepanel
+      ;(async () => {
+        try {
+          console.log('[Background] Broadcasting permission change:', message)
+
+          // Send to sidepanel if connected
+          if (sidePanelPort) {
+            sidePanelPort.postMessage({
+              type: 'PERMISSION_CHANGED',
+              permissionKey: message.permissionKey,
+              value: message.value,
+              timestamp: Date.now(),
+            })
+          }
+
+          // Send to all tabs (for content scripts that might be listening)
+          const tabs = await browser.tabs.query({})
+          for (const tab of tabs) {
+            try {
+              await browser.tabs.sendMessage(tab.id, {
+                type: 'PERMISSION_CHANGED',
+                permissionKey: message.permissionKey,
+                value: message.value,
+                timestamp: Date.now(),
+              })
+            } catch (error) {
+              // Ignore errors for tabs without content scripts
+              // console.log(`Tab ${tab.id} không có content script`)
+            }
+          }
+
+          sendResponse({ success: true, broadcasted: true })
+        } catch (error) {
+          console.error(
+            '[Background] Error broadcasting permission change:',
+            error
+          )
+          sendResponse({ success: false, error: error.message })
+        }
+      })()
+      return true
+    }
     if (message.type === 'CHECK_FIREFOX_PERMISSION') {
       // Chỉ xử lý cho Firefox
       if (import.meta.env.BROWSER === 'firefox') {

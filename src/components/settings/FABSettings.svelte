@@ -7,6 +7,7 @@
     settings,
     updateSettings,
   } from '../../stores/settingsStore.svelte.js'
+  import { isMobile } from '../../lib/utils/browserDetection.js'
   import { t } from 'svelte-i18n'
   import Preview from '../ui/Preview.svelte'
 
@@ -130,6 +131,8 @@
   function handleControlModeChange(newMode) {
     updateControlMode(newMode)
   }
+
+  const mobile = isMobile()
 </script>
 
 <!-- FAB Section -->
@@ -411,7 +414,7 @@
       {$t('settings.fab.domain_control.description')}
     </p>
   </div>
-  <div class="py-4 flex flex-col gap-4 px-5">
+  <div class="py-4 flex flex-col gap-4 px-5 {mobile ? 'pb-60' : ''}">
     <div class="w-full flex flex-col gap-1">
       <div class="w-full">
         <ReusableSelect

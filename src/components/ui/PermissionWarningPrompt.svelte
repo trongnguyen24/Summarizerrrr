@@ -139,7 +139,7 @@
   <div class="p-4 min-w-90 absolute abs-center bg-surface-1 z-10">
     <div class="flex gap-1 justify-center flex-col space-y-3">
       <p class="text-xs text-balance !text-center text-text-secondary mt-4">
-        Built-in access YouTube, Udemy and Coursera. For summarize other sites,
+        Default access YouTube, Udemy and Coursera. For summarize other sites,
         please grant permissions below.
       </p>
 
@@ -152,7 +152,7 @@
       <button
         onclick={handleGrantPermission}
         disabled={isRequestingPermission}
-        class="flex w-fit mx-auto items-center gap-2 px-3 py-1.5 bg-blackwhite/5 text-white rounded-lg text-xs font-medium hover:bg-warning/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+        class="flex w-fit mx-auto items-center gap-2 px-3 py-1.5 bg-blackwhite/5 text-text-primary rounded-2xl text-xs font-medium hover:bg-blackwhite/15 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
       >
         {#if isRequestingPermission}
           <Icon icon="solar:loader-2-bold" class="w-3 h-3 animate-spin" />

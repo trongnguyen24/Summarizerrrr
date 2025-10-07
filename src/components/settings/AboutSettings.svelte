@@ -212,7 +212,7 @@
       </span>
     </a>
     <a
-      href="https://addons.mozilla.org/en-CA/firefox/addon/summarizerrrr/"
+      href="https://microsoftedge.microsoft.com/addons/detail/summarizerrrr/kgoolaebmcbhbjokofmhdcjbljagaiif"
       target="_blank"
       rel="noopener noreferrer"
       class="flex items-center space-x-2 sm:space-x-1 transition-colors hover:underline"

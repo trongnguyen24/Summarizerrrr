@@ -162,7 +162,7 @@
       </DropdownMenu.Item>
       <DropdownMenu.Item>
         {#snippet child({ props })}
-          <a class=" select-none" href="#" {...props}>
+          <a class=" select-none" href="https://www.apple.com/store" {...props}>
             <div
               class=" p-3 flex text-muted gap-2 hover:bg-blackwhite-5 transition-colors duration-75 items-center"
             >

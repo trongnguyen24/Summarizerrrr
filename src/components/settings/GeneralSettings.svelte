@@ -23,6 +23,9 @@
     requestSpecificPermission,
     removeSpecificPermission,
   } from '../../services/firefoxPermissionService.js'
+  import { getBrowserCompatibility } from '../../lib/utils/browserDetection.js'
+
+  const browserCompatibility = getBrowserCompatibility()
 
   function handleUpdateSetting(key, value) {
     updateSettings({ [key]: value })
@@ -99,7 +102,7 @@
     <!-- svelte-ignore a11y_label_has_associated_control -->
     <label class="block font-bold text-primary">Permissions </label>
     <p class="text-xs text-text-secondary">
-      Built-in access YouTube, Udemy and Coursera. For summarize other sites,
+      Default access YouTube, Udemy and Coursera. For summarize other sites,
       please grant permissions below.
     </p>
 
@@ -111,6 +114,29 @@
       name="Access your data for all websites"
       bind:checked={httpsPermission}
       onCheckedChange={handleHttpsPermission}
+    />
+  </div>
+{/if}
+
+<!-- Sidepanel Support Setting - Only show on Chrome -->
+{#if import.meta.env.BROWSER === 'chrome'}
+  <div class="flex flex-col gap-2 px-5 mt-6">
+    <!-- svelte-ignore a11y_label_has_associated_control -->
+    <label class="block font-bold text-primary">Icon Click Action</label>
+
+    <p class="text-xs text-text-secondary">
+      Use popup instead of side panel when clicking the extension icon. Useful
+      for browsers like Arc or Dia browser.
+    </p>
+    <SwitchPermission
+      id="open-settings-as-popup-switch"
+      name="Open as Popup instead of Side Panel"
+      bind:checked={settings.openSettingsOnClick}
+      onCheckedChange={() =>
+        handleUpdateSetting(
+          'openSettingsOnClick',
+          settings.openSettingsOnClick
+        )}
     />
   </div>
 {/if}
@@ -211,115 +237,94 @@
     </div>
   </div>
 
-  <!-- Sidepanel Support Setting - Only show on Chrome -->
-  {#if import.meta.env.BROWSER === 'chrome'}
-    <div class="flex flex-col gap-2 px-5 pb-4">
-      <div class="flex items-center justify-between">
+  {#if !browserCompatibility.isMobile}
+    {#if !browserCompatibility.isMobile}
+      <div class="flex flex-col gap-2 px-5 pb-4">
         <!-- svelte-ignore a11y_label_has_associated_control -->
-        <label class="block text-text-secondary">Sidepanel Support</label>
-        <input
-          type="checkbox"
-          id="sidepanel-support-toggle"
-          class="toggle"
-          bind:checked={settings.enableSidepanelSupport}
-          onchange={() =>
-            handleUpdateSetting(
-              'enableSidepanelSupport',
-              settings.enableSidepanelSupport
-            )}
-        />
+        <div class="flex items-center gap-1 justify-between">
+          {$t('settings.general.shortcuts')}
+          {#if import.meta.env.BROWSER === 'chrome'}
+            <button
+              onclick={() =>
+                chrome.tabs.create({ url: 'chrome://extensions/shortcuts' })}
+              class="text-xs flex items-center gap-0.5 text-primary outline-gray-500 hover:underline"
+            >
+              {$t('settings.general.shortcuts_settings')}
+              <Icon width={12} icon="heroicons:arrow-up-right-16-solid" />
+            </button>
+          {/if}
+        </div>
+
+        <div class="flex flex-col pl-3 gap-3">
+          {#snippet keyboard(a)}
+            <span
+              class=" p-1 px-2 mr-auto text-[0.65rem] ml-1 bg-blackwhite/5 rounded-sm"
+              >{a}</span
+            >
+          {/snippet}
+          {#if import.meta.env.BROWSER === 'firefox'}
+            <div class="flex justify-between gap-1">
+              Open Sidepanel
+
+              <div>
+                {@render keyboard('Alt')}{@render keyboard('A')}
+              </div>
+            </div>
+
+            <div class="flex justify-between gap-1">
+              Start Summarize
+
+              <div>
+                {@render keyboard('Alt')}{@render keyboard('Z')}
+              </div>
+            </div>
+            <div class="flex justify-between gap-1">
+              Prompt Editer
+
+              <div>
+                {@render keyboard('Alt')}{@render keyboard('P')}
+              </div>
+            </div>
+            <div class="flex justify-between gap-1">
+              History
+
+              <div>
+                {@render keyboard('Alt')}{@render keyboard('X')}
+              </div>
+            </div>
+          {:else}
+            <div class="flex justify-between gap-1">
+              Open Sidepanel
+
+              <div>
+                {@render keyboard('Alt')}{@render keyboard('A')}
+              </div>
+            </div>
+
+            <div class="flex justify-between gap-1">
+              Start Summarize
+
+              <div>
+                {@render keyboard('Alt')}{@render keyboard('S')}
+              </div>
+            </div>
+            <div class="flex justify-between gap-1">
+              Prompt Editer
+
+              <div>
+                {@render keyboard('Alt')}{@render keyboard('P')}
+              </div>
+            </div>
+            <div class="flex justify-between gap-1">
+              History
+
+              <div>
+                {@render keyboard('Alt')}{@render keyboard('X')}
+              </div>
+            </div>
+          {/if}
+        </div>
       </div>
-      <p class="text-xs text-text-secondary">
-        Enable sidepanel support. Disable this for Arc, Dia, or other browsers
-        that don't support Chrome sidepanel.
-      </p>
-    </div>
+    {/if}
   {/if}
-
-  <div class="flex flex-col gap-2 px-5 pb-4">
-    <!-- svelte-ignore a11y_label_has_associated_control -->
-    <div class="flex items-center gap-1 justify-between">
-      {$t('settings.general.shortcuts')}
-      {#if import.meta.env.BROWSER === 'chrome'}
-        <button
-          onclick={() =>
-            chrome.tabs.create({ url: 'chrome://extensions/shortcuts' })}
-          class="text-xs flex items-center gap-0.5 text-primary outline-gray-500 hover:underline"
-        >
-          {$t('settings.general.shortcuts_settings')}
-          <Icon width={12} icon="heroicons:arrow-up-right-16-solid" />
-        </button>
-      {/if}
-    </div>
-
-    <div class="flex flex-col pl-3 gap-3">
-      {#snippet keyboard(a)}
-        <span
-          class=" p-1 px-2 mr-auto text-[0.65rem] ml-1 bg-blackwhite/5 rounded-sm"
-          >{a}</span
-        >
-      {/snippet}
-      {#if import.meta.env.BROWSER === 'firefox'}
-        <div class="flex justify-between gap-1">
-          Open Sidepanel
-
-          <div>
-            {@render keyboard('Alt')}{@render keyboard('A')}
-          </div>
-        </div>
-
-        <div class="flex justify-between gap-1">
-          Start Summarize
-
-          <div>
-            {@render keyboard('Alt')}{@render keyboard('Z')}
-          </div>
-        </div>
-        <div class="flex justify-between gap-1">
-          Prompt Editer
-
-          <div>
-            {@render keyboard('Alt')}{@render keyboard('P')}
-          </div>
-        </div>
-        <div class="flex justify-between gap-1">
-          History
-
-          <div>
-            {@render keyboard('Alt')}{@render keyboard('X')}
-          </div>
-        </div>
-      {:else}
-        <div class="flex justify-between gap-1">
-          Open Sidepanel
-
-          <div>
-            {@render keyboard('Alt')}{@render keyboard('A')}
-          </div>
-        </div>
-
-        <div class="flex justify-between gap-1">
-          Start Summarize
-
-          <div>
-            {@render keyboard('Alt')}{@render keyboard('S')}
-          </div>
-        </div>
-        <div class="flex justify-between gap-1">
-          Prompt Editer
-
-          <div>
-            {@render keyboard('Alt')}{@render keyboard('P')}
-          </div>
-        </div>
-        <div class="flex justify-between gap-1">
-          History
-
-          <div>
-            {@render keyboard('Alt')}{@render keyboard('X')}
-          </div>
-        </div>
-      {/if}
-    </div>
-  </div>
 </div>

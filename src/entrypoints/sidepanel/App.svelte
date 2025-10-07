@@ -218,7 +218,7 @@
     <div class="bg-border"></div>
 
     <div class="flex font-mono flex-col gap-1 justify-center items-center">
-      <div class="size-6 absolute z-50 top-12 left-2 text-text-secondary">
+      <div class="size-6 absolute z-20 top-12 left-2 text-text-secondary">
         <button
           onclick={() => {
             browser.tabs.create({ url: 'archive.html' })
@@ -229,7 +229,7 @@
           <Icon icon="solar:history-linear" width="24" height="24" />
         </button>
       </div>
-      <div class="size-6 z-50 absolute top-12 right-4 text-text-secondary">
+      <div class="size-6 z-20 absolute top-12 right-4 text-text-secondary">
         <SettingButton />
       </div>
 

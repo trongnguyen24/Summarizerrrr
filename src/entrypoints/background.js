@@ -186,23 +186,23 @@ export default defineBackground(() => {
     console.log('[Background] Settings storage changed:', newValue)
     if (
       import.meta.env.BROWSER === 'chrome' &&
-      newValue?.enableSidepanelSupport !== undefined
+      newValue?.openSettingsOnClick !== undefined
     ) {
       console.log(
         '[Background] Updating Chrome action behavior due to settings change'
       )
-      updateChromeActionBehavior(newValue.enableSidepanelSupport)
+      updateChromeActionBehavior(newValue.openSettingsOnClick)
     }
   })
 
   // Function to update Chrome action behavior
   let chromeActionListener = null
-  function updateChromeActionBehavior(enableSidepanel) {
+  function updateChromeActionBehavior(usePopup) {
     if (import.meta.env.BROWSER !== 'chrome') return
 
     console.log(
-      '[Background] updateChromeActionBehavior called with:',
-      enableSidepanel
+      '[Background] updateChromeActionBehavior called with usePopup:',
+      usePopup
     )
     console.log('[Background] isMobile:', isMobile)
 
@@ -214,13 +214,9 @@ export default defineBackground(() => {
         console.log('[Background] Removed existing click listener')
       }
 
-      if (!isMobile && enableSidepanel) {
-        // Enable sidepanel
-        console.log('[Background] Enabling sidepanel')
-        chrome.sidePanel?.setPanelBehavior({ openPanelOnActionClick: true })
-      } else {
-        // Disable sidepanel and use popup instead
-        console.log('[Background] Disabling sidepanel, using popup instead')
+      // If on mobile or if the setting to use a popup is enabled, set up the popup.
+      if (isMobile || usePopup) {
+        console.log('[Background] Using popup action')
         chrome.sidePanel?.setPanelBehavior({ openPanelOnActionClick: false })
         chromeActionListener = () => {
           console.log('[Background] Opening popup window')
@@ -233,6 +229,10 @@ export default defineBackground(() => {
         }
         chrome.action.onClicked.addListener(chromeActionListener)
         console.log('[Background] Added popup click listener')
+      } else {
+        // Otherwise, use the side panel.
+        console.log('[Background] Using side panel action')
+        chrome.sidePanel?.setPanelBehavior({ openPanelOnActionClick: true })
       }
     } catch (error) {
       console.error(
@@ -286,6 +286,12 @@ export default defineBackground(() => {
             type: 'normal',
             contexts: contexts,
           })
+          browser.contextMenus.create({
+            id: 'openHistory',
+            title: 'Open History',
+            type: 'normal',
+            contexts: contexts,
+          })
         }
       }
     } catch (error) {
@@ -310,23 +316,22 @@ export default defineBackground(() => {
           )
           const resolvedSettings = await currentSettings
           console.log('[Background] Resolved settings:', resolvedSettings)
-          const enableSidepanel =
-            resolvedSettings?.enableSidepanelSupport ?? true
-          updateChromeActionBehavior(enableSidepanel)
+          const usePopup = resolvedSettings?.openSettingsOnClick ?? false
+          updateChromeActionBehavior(usePopup)
         } else if (currentSettings && typeof currentSettings === 'object') {
           console.log('[Background] loadSettings returned object directly')
-          const enableSidepanel = currentSettings.enableSidepanelSupport ?? true
+          const usePopup = currentSettings.openSettingsOnClick ?? false
           console.log(
-            '[Background] enableSidepanelSupport value:',
-            currentSettings.enableSidepanelSupport
+            '[Background] openSettingsOnClick (usePopup) value:',
+            currentSettings.openSettingsOnClick
           )
-          console.log('[Background] Using enableSidepanel:', enableSidepanel)
-          updateChromeActionBehavior(enableSidepanel)
+          console.log('[Background] Using usePopup:', usePopup)
+          updateChromeActionBehavior(usePopup)
         } else {
           console.log(
             '[Background] loadSettings returned invalid data, using default'
           )
-          updateChromeActionBehavior(true) // Default to true
+          updateChromeActionBehavior(false) // Default to false (use side panel)
         }
       } catch (error) {
         console.error('[Background] Error setting up Chrome action:', error)
@@ -629,6 +634,11 @@ export default defineBackground(() => {
     } else if (info.menuItemId === 'openSettings') {
       browser.tabs.create({
         url: browser.runtime.getURL('settings.html'),
+        active: true,
+      })
+    } else if (info.menuItemId === 'openHistory') {
+      browser.tabs.create({
+        url: browser.runtime.getURL('archive.html'),
         active: true,
       })
     }

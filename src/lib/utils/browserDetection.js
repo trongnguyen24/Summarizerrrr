@@ -34,6 +34,21 @@ export function isFirefoxMobile() {
 }
 
 /**
+ * Detects if the current browser is a mobile browser
+ * @returns {boolean} True if a mobile browser, false otherwise
+ */
+export function isMobile() {
+  try {
+    const userAgent = navigator.userAgent
+    const isMobile = /Mobi|Android/i.test(userAgent)
+    return isMobile
+  } catch (error) {
+    console.log('Error detecting mobile device:', error)
+    return false
+  }
+}
+
+/**
  * Checks if the browser supports advanced streaming features
  * @returns {boolean} True if advanced streaming is supported, false otherwise
  */
@@ -92,6 +107,7 @@ export function isInWebExtensionContext() {
  */
 export function getBrowserCompatibility() {
   const compatibility = {
+    isMobile: isMobile(),
     isFirefoxMobile: isFirefoxMobile(),
     supportsAdvancedStreaming: supportsAdvancedStreaming(),
     isInWebExtensionContext: isInWebExtensionContext(),

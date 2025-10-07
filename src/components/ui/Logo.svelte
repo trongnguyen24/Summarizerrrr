@@ -11,7 +11,7 @@
     }),
       animate('.field-in', {
         opacity: [0, 1],
-        delay: 900,
+        delay: 1100,
       })
   })
 </script>
@@ -57,10 +57,10 @@
       fill="none"
     />
     <path
-      class="stroke-blue text-surface-1 stroke-blue-300 dark:stroke-sky-700 in"
+      class=" !stroke-0 field-in"
       d="M128 192L132.42 174.336C134.952 164.206 140.189 154.955 147.572 147.572C154.955 140.189 164.206 134.952 174.336 132.42L192 128L174.336 123.58C164.206 121.048 154.955 115.811 147.572 108.428C140.189 101.045 134.952 91.7937 132.42 81.664L128 64L123.58 81.664C121.05 91.7916 115.815 101.041 108.435 108.424C101.055 115.807 91.8076 121.045 81.6811 123.58L64 128L81.6811 132.42C91.8076 134.955 101.055 140.193 108.435 147.576C115.815 154.959 121.05 164.208 123.58 174.336L128 192Z"
       stroke="#949494"
-      fill="currentColor"
+      fill="url(#magic-gradient)"
       stroke-linecap="round"
       stroke-linejoin="round"
       stroke-width="1.5"
@@ -71,6 +71,53 @@
     <clipPath id="clip0_220_253">
       <rect width="256" height="256" fill="currentColor" />
     </clipPath>
+    <linearGradient
+      id="magic-gradient"
+      gradientTransform="rotate(30)"
+      x1="0%"
+      y1="0%"
+      x2="250%"
+      y2="0%"
+    >
+      <stop offset="0%" style="stop-color:#E0F2FE" />
+      <stop offset="25%" style="stop-color:#38BDF8" />
+      <stop offset="50%" style="stop-color:#E0F2FE" />
+      <stop offset="75%" style="stop-color:#38BDF8" />
+      <stop offset="100%" style="stop-color:#E0F2FE" />
+      <stop offset="125%" style="stop-color:#38BDF8" />
+      <stop offset="150%" style="stop-color:#E0F2FE" />
+      <stop offset="175%" style="stop-color:#38BDF8" />
+      <stop offset="200%" style="stop-color:#E0F2FE" />
+      <stop offset="225%" style="stop-color:#38BDF8" />
+      <stop offset="250%" style="stop-color:#E0F2FE" />
+      <!-- svelte-ignore component_name_lowercase -->
+      <animateTransform
+        attributeName="transform"
+        attributeType="XML"
+        type="rotate"
+        from="0 60 70"
+        to="360 60 70"
+        dur="10s"
+        repeatCount="indefinite"
+      />
+
+      <!-- svelte-ignore component_name_lowercase -->
+      <animate
+        attributeName="x1"
+        from="-125%"
+        to="0%"
+        dur="5s"
+        repeatCount="indefinite"
+      />
+      <!-- svelte-ignore component_name_lowercase -->
+      <animate
+        attributeName="x2"
+        from="125%"
+        to="250%"
+        dur="5s"
+        repeatCount="indefinite"
+      />
+    </linearGradient>
   </defs>
 </svg>
 

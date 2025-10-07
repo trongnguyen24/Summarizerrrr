@@ -17,6 +17,32 @@ export default defineContentScript({
     // Initialize i18n before mounting Shadow DOM
     await loadSettings()
 
+    // Check Firefox permissions trước khi kiểm tra shouldShowFab
+    if (import.meta.env.BROWSER === 'firefox') {
+      try {
+        // Gửi message đến background script để kiểm tra permission
+        const response = await browser.runtime.sendMessage({
+          type: 'CHECK_FIREFOX_PERMISSION',
+          url: window.location.href,
+        })
+
+        console.log(
+          `[Content] Firefox permission check for ${window.location.href}:`,
+          response
+        )
+
+        if (!response.success || !response.hasPermission) {
+          console.log(
+            '[Content] No optional permission for this site - UI not mounted'
+          )
+          return // Return sớm, không mount UI
+        }
+      } catch (error) {
+        console.error('[Content] Error checking Firefox permissions:', error)
+        return // Lỗi thì không mount UI
+      }
+    }
+
     if (!shouldShowFab(window.location.href, settings.fabDomainControl)) {
       return // Do not mount the UI
     }

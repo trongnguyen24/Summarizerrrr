@@ -40,7 +40,12 @@
         "hide_desc": "웹 페이지에서 플로팅 버튼 숨기기"
       },
       "shortcuts": "단축키",
-      "shortcuts_settings": "단축키 설정"
+      "shortcuts_settings": "단축키 설정",
+      "icon_click_action": {
+        "title": "아이콘 클릭 동작",
+        "description": "확장 아이콘을 클릭할 때 사이드 패널 대신 팝업을 사용합니다. Arc 또는 Dia 브라우저에 유용합니다.",
+        "open_as_popup": "팝업으로 열기 (사이드 패널 대신)"
+      }
     },
     "fab": {
       "title": "플로팅 액션 버튼",
@@ -281,18 +286,28 @@
   },
   "about": {
     "version": "버전",
-    "description": "한 번의 클릭으로 모든 것을 요약하고 시간을 절약하세요. 확장 프로그램은 <b>YouTube, Udemy, Coursera, 모든 웹사이트</b>를 요약하는 데 도움을 줍니다. 우수한 UI/UX 디자인으로 제작되었습니다.",
+    "description": "1클릭으로 모든 콘텐츠를 요약하고 시간을 절약하세요. YouTube, Udemy, Coursera, 웹사이트에서 시간을 절약하세요. 우수한 UI/UX 디자인으로 제작되었습니다.",
     "key_features": "주요 기능",
     "data_sovereignty_title": "귀하의 데이터는 귀하의 것입니다",
     "data_sovereignty_desc": "귀하의 키, 귀하의 데이터, 귀하의 통제. 완전한 개인정보 보호를 위해 Ollama와의 통합을 통해 로컬 모델을 사용하세요.",
     "customizable_title": "사용자 정의 가능",
     "customizable_desc": "제공자, 온도, Top P, 길이, 형식, 언어, 외관, 시스템 프롬프트 및 사용자 프롬프트...",
     "cross_platform_title": "크로스 플랫폼 호환성",
-    "cross_platform_desc": "데스크톱, 태블릿 및 모바일. Firefox Android 및 Kiwi Browser를 포함한 모바일 브라우저에서 작동합니다.",
-    "developer_credit": "❤️ 베트남에서 설계 및 개발 🇻🇳",
+    "cross_platform_desc": "데스크톱, 태블릿 및 모바일. Firefox Android 및 Edge Canary Browser를 포함한 모바일 브라우저에서 작동합니다.",
+    "developer_credit": "❤️ 베트남에서 설계 및 개발",
     "availability": "오픈 소스 • 사용 가능",
     "github": "GitHub",
     "chrome_store": "Chrome 스토어",
-    "firefox_addons": "Firefox 애드온"
+    "firefox_addons": "Firefox 애드온",
+    "whats_new": "새로운 기능은?",
+    "help_project": "기부하거나 리뷰로 프로젝트를 도와주세요!",
+    "edge_addons": "Edge 애드온"
+  },
+  "permissionWarning": {
+    "title": "권한",
+    "button": "모든 웹사이트의 데이터 접근",
+    "description": "기본적으로 YouTube, Udemy, Coursera에 접근합니다. 다른 사이트를 요약하려면 아래에서 권한을 부여해 주세요.",
+    "requesting": "요청 중...",
+    "grant_permissions": "권한 부여"
   }
 }

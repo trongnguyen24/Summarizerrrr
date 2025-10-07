@@ -48,8 +48,8 @@
     // Panel slide up with elastic effect
     animate(drawerPanel, {
       translateY: '0%',
-      duration: 600,
-      ease: 'outExpo',
+      duration: 450,
+      ease: 'outCubic',
     })
 
     // Content fade in with stagger
@@ -62,7 +62,7 @@
     // Panel slide down
     const panelAnimation = animate(drawerPanel, {
       translateY: 'calc(100% + 10vh)',
-      duration: 450,
+      duration: 400,
       ease: 'inQuart',
     })
 
@@ -224,7 +224,7 @@
       animate(drawerPanel, {
         translateY: '0px',
         duration: 400,
-        ease: 'outBack(1.25)',
+        ease: 'outCubic',
       })
 
       // Restore backdrop opacity

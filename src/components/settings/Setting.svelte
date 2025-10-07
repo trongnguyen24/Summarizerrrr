@@ -2,6 +2,7 @@
   // @ts-nocheck
   import { fade } from 'svelte/transition'
   import Icon, { loadIcons } from '@iconify/svelte'
+  import { Dialog } from 'bits-ui'
   import { t } from 'svelte-i18n'
   import Logdev from './Logdev.svelte'
   import 'overlayscrollbars/overlayscrollbars.css'
@@ -11,13 +12,20 @@
     loadSettings,
     updateSettings,
   } from '@/stores/settingsStore.svelte.js'
-  import AIModelSettings from '@/components/settings/AIModelSettings.svelte'
-  import SummarySettings from '@/components/settings/SummarySettings.svelte'
+  import { domVisibility } from '@/stores/stateAbout.svelte.js'
+  import ModelSummarySettings from '@/components/settings/ModelSummarySettings.svelte'
   import GeneralSettings from '@/components/settings/GeneralSettings.svelte'
   import FABSettings from '@/components/settings/FABSettings.svelte'
   import AboutSettings from './AboutSettings.svelte'
+  import ReleaseNote from './ReleaseNote.svelte'
+  // import {
+  //   getTabFromURL,
+  //   updateURLTab,
+  //   setupURLListener,
+  //   navigateToTab,
+  // } from '@/lib/utils/urlUtils.js'
 
-  let activeTab = $state('ai-model') // State variable for current tab
+  let activeTab = $state('ai-summary') // Initialize tab from URL
   let tabContainerEl // Reference to the tab container element
   let activeBarEl // Reference to the active bar element
   let scrollContainerEl // Reference to the scroll container element
@@ -47,6 +55,15 @@
   // Effect to update the bar when the active tab changes
   $effect(updateActiveBarPosition)
 
+  // Effect for handling URL navigation (browser back/forward)
+  // $effect(() => {
+  //   const cleanup = setupURLListener((newTab) => {
+  //     activeTab = newTab
+  //   })
+  //
+  //   return cleanup
+  // })
+
   // Effect for handling resize events
   $effect(() => {
     if (!tabContainerEl) return
@@ -61,6 +78,12 @@
       resizeObserver.disconnect()
     }
   })
+
+  // Function to handle tab switching with URL update
+  function switchTab(tabName) {
+    activeTab = tabName
+    // updateURLTab(tabName)
+  }
   const options = {
     scrollbars: {
       theme: 'os-theme-custom-app',
@@ -104,10 +127,48 @@
     'heroicons:swatch',
     'heroicons:information-circle-solid',
     'heroicons:information-circle',
+    // Icons from AboutSettings.svelte
+    'heroicons:circle-stack',
+    'heroicons:adjustments-horizontal',
+    'heroicons:device-phone-mobile',
+    'mdi:github',
+    'logos:chrome',
+    'logos:firefox',
+    'logos:microsoft-edge',
+    'heroicons:arrow-up-right-16-solid',
   ])
 </script>
 
 <!-- Apply Tailwind classes for overall layout and styling -->
+<Dialog.Root bind:open={domVisibility.value}>
+  <Dialog.Content>
+    <button
+      onclick={domVisibility.toggle}
+      aria-label="Close"
+      class="group absolute font-mono z-[999] flex items-center right-1.5 top-1.5 text-sm py-1.5 px-2 bg-surface-1 dark:bg-surface-2 border border-border"
+      ><svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+      >
+        <path
+          fill="none"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="1.5"
+          d="M6 18L18 6M6 6l12 12"
+        />
+      </svg>
+      <span
+        class=" absolute inset-0 bg-blackwhite/0 transition-colors group-hover:bg-blackwhite/5"
+      ></span>
+    </button>
+    <ReleaseNote />
+  </Dialog.Content>
+</Dialog.Root>
+
 <div
   class="relative settings font-mono text-text-primary dark:text-text-secondary text-xs bg-surface-1 overflow-hidden w-full flex-shrink-0 flex flex-col"
 >
@@ -122,38 +183,21 @@
     bind:this={tabContainerEl}
   >
     <button
-      data-tab="ai-model"
+      data-tab="ai-summary"
       class="flex flex-col w-16 items-center justify-center gap-1 cursor-pointer rounded-md transition-colors duration-200 {activeTab ===
-      'ai-model'
+      'ai-summary'
         ? ' text-blackwhite '
         : 'text-text-secondary'}"
-      onclick={() => (activeTab = 'ai-model')}
+      onclick={() => switchTab('ai-summary')}
     >
       <div class="size-5">
-        {#if activeTab === 'ai-model'}
+        {#if activeTab === 'ai-summary'}
           <Icon icon="heroicons:sparkles-solid" width="20" height="20" />
         {:else}
           <Icon icon="heroicons:sparkles" width="20" height="20" />
         {/if}
       </div>
-      <span>Model</span>
-    </button>
-    <button
-      data-tab="summary"
-      class="flex flex-col w-16 items-center gap-1 justify-center cursor-pointer rounded-md transition-colors duration-200 {activeTab ===
-      'summary'
-        ? ' text-blackwhite '
-        : 'text-text-secondary'}"
-      onclick={() => (activeTab = 'summary')}
-    >
-      <div class="size-5">
-        {#if activeTab === 'summary'}
-          <Icon icon="heroicons:document-text-solid" width="20" height="20" />
-        {:else}
-          <Icon icon="heroicons:document-text" width="20" height="20" />
-        {/if}
-      </div>
-      <span> Summary</span>
+      <span class="text-center">Summary</span>
     </button>
     <button
       data-tab="fab"
@@ -161,7 +205,7 @@
       'fab'
         ? ' text-blackwhite '
         : 'text-text-secondary'}"
-      onclick={() => (activeTab = 'fab')}
+      onclick={() => switchTab('fab')}
     >
       <div class="size-5">
         {#if activeTab === 'fab'}
@@ -182,7 +226,7 @@
       'general'
         ? ' text-blackwhite '
         : 'text-text-secondary'}"
-      onclick={() => (activeTab = 'general')}
+      onclick={() => switchTab('general')}
     >
       <div class="size-5">
         {#if activeTab === 'general'}
@@ -200,7 +244,7 @@
       'about'
         ? ' text-blackwhite '
         : 'text-text-secondary'}"
-      onclick={() => (activeTab = 'about')}
+      onclick={() => switchTab('about')}
     >
       <div class="size-5">
         {#if activeTab === 'about'}
@@ -239,10 +283,8 @@
     bind:this={scrollContainerEl}
   >
     <div>
-      {#if activeTab === 'ai-model'}
-        <AIModelSettings />
-      {:else if activeTab === 'summary'}
-        <SummarySettings />
+      {#if activeTab === 'ai-summary'}
+        <ModelSummarySettings />
       {:else if activeTab === 'general'}
         <GeneralSettings />
       {:else if activeTab === 'fab'}
@@ -254,9 +296,3 @@
   </div>
   <!-- Summary Format Section -->
 </div>
-
-<style>
-  .setting-block {
-    background-color: var(--color-surface-1);
-  }
-</style>

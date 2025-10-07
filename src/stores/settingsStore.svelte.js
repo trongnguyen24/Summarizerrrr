@@ -1,4 +1,5 @@
 // @ts-nocheck
+import { get } from 'svelte/store'
 import { locale } from 'svelte-i18n'
 import { settingsStorage } from '@/services/wxtStorageService.js'
 
@@ -41,10 +42,17 @@ const DEFAULT_SETTINGS = {
   widthIndex: 1, // Default to max-w-3xl
   sidePanelDefaultWidth: 25, // Default width for side panel in em units
   oneClickSummarize: false, // Enable 1-click summarization on FAB
+  openSettingsOnClick: false, // By default, clicking the icon opens the side panel. Enable this to open a popup instead (for browsers like Arc/Dia).
   fabDomainControl: {
     mode: 'all', // 'all' | 'whitelist' | 'blacklist'
     whitelist: ['youtube.com', 'coursera.org', 'udemy.com'],
     blacklist: [],
+  },
+
+  // Firefox Permissions - Persist permission states across tab switches
+  firefoxPermissions: {
+    httpsPermission: false,
+    lastChecked: null,
   },
   // Onboarding
   hasCompletedOnboarding: false,
@@ -223,7 +231,8 @@ export async function updateSettings(newSettings) {
 
   try {
     // Save the entire updated settings object back to storage
-    await settingsStorage.setValue(updatedSettings)
+    // Convert Svelte Proxy to a plain JS object before saving to prevent DataCloneError
+    await settingsStorage.setValue(JSON.parse(JSON.stringify(updatedSettings)))
   } catch (error) {
     console.error('[settingsStore] Error saving settings:', error)
   }
@@ -279,9 +288,82 @@ export function subscribeToSettingsChanges() {
         ...newValue,
       }
       Object.assign(settings, mergedSettings)
-      if (newValue.uiLang !== settings.uiLang) {
+      if (newValue.uiLang && newValue.uiLang !== get(locale)) {
         locale.set(newValue.uiLang)
       }
     }
   })
+}
+
+// --- Firefox Permission Management Functions ---
+
+/**
+ * Permission check cache để tránh redundant API calls
+ */
+let permissionCheckCache = new Map()
+const CACHE_DURATION = 5000 // 5 seconds
+
+/**
+ * Updates Firefox permission state and saves to storage
+ * @param {string} permissionKey - Key for the permission (e.g., 'httpsPermission')
+ * @param {boolean} value - Permission state value
+ */
+export async function updateFirefoxPermission(permissionKey, value) {
+  if (!_isInitializedPromise) {
+    await loadSettings()
+  }
+  await _isInitializedPromise
+
+  const newPermissions = {
+    ...settings.firefoxPermissions,
+    [permissionKey]: value,
+    lastChecked: Date.now(),
+  }
+
+  // Update cache
+  permissionCheckCache.set(permissionKey, {
+    value,
+    timestamp: Date.now(),
+  })
+
+  await updateSettings({ firefoxPermissions: newPermissions })
+}
+
+/**
+ * Gets Firefox permission state from settings
+ * @param {string} permissionKey - Key for the permission
+ * @returns {boolean} - Permission state
+ */
+export function getFirefoxPermission(permissionKey) {
+  return settings.firefoxPermissions?.[permissionKey] || false
+}
+
+/**
+ * Checks if permission cache is still valid
+ * @param {string} permissionKey - Key for the permission
+ * @returns {Object|null} - Cached permission object or null if invalid/expired
+ */
+export function getCachedPermission(permissionKey) {
+  const cached = permissionCheckCache.get(permissionKey)
+  if (!cached) return null
+
+  const now = Date.now()
+  if (now - cached.timestamp > CACHE_DURATION) {
+    permissionCheckCache.delete(permissionKey)
+    return null
+  }
+
+  return cached
+}
+
+/**
+ * Clears permission cache for a specific key or all keys
+ * @param {string} [permissionKey] - Optional specific key to clear
+ */
+export function clearPermissionCache(permissionKey = null) {
+  if (permissionKey) {
+    permissionCheckCache.delete(permissionKey)
+  } else {
+    permissionCheckCache.clear()
+  }
 }

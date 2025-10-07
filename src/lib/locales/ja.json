@@ -40,7 +40,12 @@
         "hide_desc": "Webページからフローティングボタンを非表示にします。"
       },
       "shortcuts": "ショートカット",
-      "shortcuts_settings": "ショートカット設定"
+      "shortcuts_settings": "ショートカット設定",
+      "icon_click_action": {
+        "title": "アイコンクリック時の動作",
+        "description": "拡張機能のアイコンをクリックしたときにサイドパネルの代わりにポップアップを使用します。ArcやDiaなどのブラウザで便利です。",
+        "open_as_popup": "ポップアップとして開く（サイドパネルの代わりに）"
+      }
     },
     "fab": {
       "title": "フローティングアクションボタン",
@@ -281,18 +286,28 @@
   },
   "about": {
     "version": "バージョン",
-    "description": "1クリックで全てを要約し、時間を節約。YouTube、Udemy、Coursera、あらゆるウェブサイトの要約に役立つ拡張機能です。優れたUI/UXデザインで作られています。",
+    "description": "1クリックであらゆるコンテンツを要約。YouTube、Udemy、Coursera、ウェブサイトで時間を節約。優れたUI/UXデザインで作られています。",
     "key_features": "主な機能",
     "data_sovereignty_title": "あなたのデータはあなた自身のものです",
     "data_sovereignty_desc": "あなたのキー、あなたのデータ、あなたの管理。完全なプライバシーのために、Ollamaとの統合を通じてローカルモデルを使用してください。",
     "customizable_title": "カスタマイズ可能",
     "customizable_desc": "プロバイダー、温度、Top P、長さ、フォーマット、言語、外観、システムプロンプト、ユーザープロンプト...",
     "cross_platform_title": "クロスプラットフォーム互換性",
-    "cross_platform_desc": "デスクトップ、タブレット、モバイル。Firefox AndroidやKiwiブラウザを含むモバイルブラウザで動作します。",
-    "developer_credit": "❤️を込めてベトナムで設計・開発 🇻🇳",
+    "cross_platform_desc": "デスクトップ、タブレット、モバイル。Firefox AndroidやEdge Canaryブラウザを含むモバイルブラウザで動作します。",
+    "developer_credit": "❤️を込めてベトナムで設計・開発",
     "availability": "オープンソース • 利用可能",
     "github": "GitHub",
     "chrome_store": "Chromeストア",
-    "firefox_addons": "Firefoxアドオン"
+    "firefox_addons": "Firefoxアドオン",
+    "whats_new": "新機能は？",
+    "help_project": "プロジェクトを支援するために寄付またはレビューを残してください！",
+    "edge_addons": "Edgeアドオン"
+  },
+  "permissionWarning": {
+    "title": "権限",
+    "button": "すべてのウェブサイトのデータにアクセス",
+    "description": "デフォルトではYouTube、Udemy、Courseraにアクセスします。他のサイトを要約するには、以下で権限を付与してください。",
+    "requesting": "リクエスト中...",
+    "grant_permissions": "権限を付与"
   }
 }

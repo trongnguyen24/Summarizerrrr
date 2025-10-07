@@ -25,7 +25,7 @@
         "system": "Sistema",
         "system_desc": "Usa el tema de tu dispositivo."
       },
-      "responseMode": "Chế độ phản hồi (Chỉ làm việc trên Thanh bên)",
+      "responseMode": "Modo de respuesta (Solo funciona en el panel lateral)",
       "response_mode": {
         "streaming": "Streaming",
         "streaming_desc": "Respuestas instantáneas. Recomendado.",
@@ -40,7 +40,12 @@
         "hide_desc": "Ocultar botón flotante de las páginas web."
       },
       "shortcuts": "Atajos",
-      "shortcuts_settings": "Gestionar atajos"
+      "shortcuts_settings": "Gestionar atajos",
+      "icon_click_action": {
+        "title": "Acción al hacer clic en el icono",
+        "description": "Usar ventana emergente en lugar de panel lateral al hacer clic en el icono de la extensión. Útil para navegadores como Arc o Dia.",
+        "open_as_popup": "Abrir como ventana emergente en lugar de panel lateral"
+      }
     },
     "fab": {
       "title": "Botón de Acción Flotante",
@@ -281,18 +286,28 @@
   },
   "about": {
     "version": "Versión",
-    "description": "Resume todo en 1 clic, ahorra tiempo. La extensión te ayuda a resumir <b>YouTube, Udemy, Coursera, cualquier sitio web</b>. Diseñada con una interfaz superior.",
+    "description": "Resume cualquier contenido con 1 clic. Ahorra tiempo en YouTube, Udemy, Coursera y sitios web. Diseñada con una interfaz superior.",
     "key_features": "Características Principales",
     "data_sovereignty_title": "Tus datos son tuyos",
     "data_sovereignty_desc": "Tus claves, tus datos, tu control. Para una privacidad completa, usa un modelo local a través de nuestra integración con Ollama.",
     "customizable_title": "Personalizable",
     "customizable_desc": "Proveedor, temperatura, top P, longitud, formato, idiomas, apariencia, prompt del sistema y prompt del usuario...",
     "cross_platform_title": "Compatibilidad Multiplataforma",
-    "cross_platform_desc": "Escritorio, tableta y móvil. Funciona en navegadores móviles incluyendo Firefox Android y Kiwi Browser.",
-    "developer_credit": "Diseñado y Desarrollado con ❤️ en Vietnam 🇻🇳",
+    "cross_platform_desc": "Escritorio, tableta y móvil. Funciona en navegadores móviles incluyendo Firefox Android y Edge Canary Browser.",
+    "developer_credit": "Diseñado y Desarrollado con ❤️ en Vietnam",
     "availability": "Código abierto • Disponible en",
     "github": "GitHub",
     "chrome_store": "Chrome Store",
-    "firefox_addons": "Firefox Add-ons"
+    "firefox_addons": "Firefox Add-ons",
+    "whats_new": "¿Qué hay de nuevo?",
+    "help_project": "¡Ayuda al proyecto con una donación o deja una reseña!",
+    "edge_addons": "Edge Add-ons"
+  },
+  "permissionWarning": {
+    "title": "Permisos",
+    "button": "Acceder a tus datos para todos los sitios web",
+    "description": "Acceso predeterminado a YouTube, Udemy y Coursera. Para resumir otros sitios, otorgue permisos a continuación.",
+    "requesting": "Solicitando...",
+    "grant_permissions": "Conceder permisos"
   }
 }

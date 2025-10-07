@@ -4,9 +4,13 @@
   import ButtonFont from '../buttons/ButtonFont.svelte'
   import ButtonIcon from '../buttons/ButtonIcon.svelte'
   import ButtonSet from '../buttons/ButtonSet.svelte'
+  import SwitchPermission from '../inputs/SwitchPermission.svelte'
   import {
     settings,
     updateSettings,
+    updateFirefoxPermission,
+    getFirefoxPermission,
+    getCachedPermission,
   } from '../../stores/settingsStore.svelte.js'
   import {
     themeSettings,
@@ -16,9 +20,123 @@
   import UILanguageSelect from '../inputs/UILanguageSelect.svelte'
   import { t } from 'svelte-i18n'
 
+  // Import Firefox permission service
+  import {
+    checkSpecificPermission,
+    requestSpecificPermission,
+    removeSpecificPermission,
+  } from '../../services/firefoxPermissionService.js'
+  import { getBrowserCompatibility } from '../../lib/utils/browserDetection.js'
+
+  const browserCompatibility = getBrowserCompatibility()
+
   function handleUpdateSetting(key, value) {
     updateSettings({ [key]: value })
   }
+
+  // Permission states - sử dụng settings store thay vì local state
+  // Đảm bảo permission state được persist khi chuyển tab
+  let httpsPermission = $state(getFirefoxPermission('httpsPermission'))
+
+  // Reactive update khi settings store thay đổi
+  $effect(() => {
+    httpsPermission = getFirefoxPermission('httpsPermission')
+  })
+
+  // Load permission states từ Firefox API với caching
+  async function loadPermissionStates() {
+    if (import.meta.env.BROWSER === 'firefox') {
+      try {
+        const permissionKey = 'httpsPermission'
+
+        // Check cache trước
+        const cached = getCachedPermission(permissionKey)
+        if (cached) {
+          console.log(
+            '[GeneralSettings] Using cached permission state:',
+            cached.value
+          )
+          await updateFirefoxPermission(permissionKey, cached.value)
+          return
+        }
+
+        // Nếu không có cache, check actual permission
+        console.log('[GeneralSettings] Checking actual Firefox permission...')
+        const hasPermission = await checkSpecificPermission('https://*/*')
+        console.log(
+          '[GeneralSettings] Firefox permission result:',
+          hasPermission
+        )
+
+        // Update store với kết quả
+        await updateFirefoxPermission(permissionKey, hasPermission)
+      } catch (error) {
+        console.error(
+          '[GeneralSettings] Error loading permission states:',
+          error
+        )
+      }
+    }
+  }
+
+  // Event handlers cho checkbox - persist state qua settings store
+  async function handleHttpsPermission(checked) {
+    const permissionKey = 'httpsPermission'
+
+    try {
+      if (checked) {
+        console.log('[GeneralSettings] Requesting Firefox permission...')
+        const granted = await requestSpecificPermission('https://*/*')
+        console.log('[GeneralSettings] Permission granted:', granted)
+
+        // Update store thay vì local state
+        await updateFirefoxPermission(permissionKey, granted)
+
+        // Trigger sidepanel update sau khi thay đổi permission
+        triggerSidepanelUpdate()
+      } else {
+        console.log('[GeneralSettings] Removing Firefox permission...')
+        const removed = await removeSpecificPermission('https://*/*')
+        console.log('[GeneralSettings] Permission removed:', removed)
+
+        // Update store - nếu removed thành công thì permission = false
+        await updateFirefoxPermission(permissionKey, !removed)
+
+        // Trigger sidepanel update sau khi remove permission
+        triggerSidepanelUpdate()
+      }
+    } catch (error) {
+      console.error(
+        '[GeneralSettings] Error handling permission change:',
+        error
+      )
+      // Reset về trạng thái trước đó nếu có lỗi
+      await updateFirefoxPermission(permissionKey, !checked)
+    }
+  }
+
+  // Trigger sidepanel update bằng cách fake history change
+  function triggerSidepanelUpdate() {
+    try {
+      const currentUrl = window.location.href
+      // Push state với temporary hash
+      window.history.pushState({}, '', currentUrl + '#permission-updated')
+      // Sử dụng history.back() để quay lại state trước đó
+      setTimeout(() => {
+        window.history.back()
+      }, 50)
+    } catch (error) {
+      console.log('Could not trigger sidepanel update:', error)
+    }
+  }
+
+  // Load permissions khi component mount
+  if (import.meta.env.BROWSER === 'firefox') {
+    $effect(() => {
+      loadPermissionStates()
+    })
+  }
+
   // effect on load update settings.hasCompletedOnboarding = false
   // $effect(() => {
   //   // This effect runs once when the component is mounted
@@ -29,12 +147,59 @@
 </script>
 
 <!-- General Section -->
+<!-- Optional Permissions Section - Chỉ hiển thị trên Firefox -->
+{#if import.meta.env.BROWSER === 'firefox'}
+  <div class="flex flex-col gap-2 px-5 mt-6">
+    <!-- svelte-ignore a11y_label_has_associated_control -->
+    <label class="block font-bold text-primary">
+      {$t('permissionWarning.title')}</label
+    >
+    <p class="text-xs text-text-secondary">
+      {$t('permissionWarning.description')}
+    </p>
+
+    <!-- Chỉ còn 1 checkbox: General Website Access -->
+    <!-- YouTube, Udemy, Coursera, Reddit đã có host_permissions nên không cần settings -->
+
+    <SwitchPermission
+      id="https-permission-switch"
+      name=" {$t('permissionWarning.button')}"
+      bind:checked={httpsPermission}
+      onCheckedChange={handleHttpsPermission}
+    />
+  </div>
+{/if}
+
+<!-- Sidepanel Support Setting - Only show on Chrome -->
+{#if import.meta.env.BROWSER === 'chrome'}
+  <div class="flex flex-col gap-2 px-5 mt-6">
+    <!-- svelte-ignore a11y_label_has_associated_control -->
+    <label class="block font-bold text-primary"
+      >{$t('settings.general.icon_click_action.title')}</label
+    >
+
+    <p class="text-xs text-text-secondary">
+      {$t('settings.general.icon_click_action.description')}
+    </p>
+    <SwitchPermission
+      id="open-settings-as-popup-switch"
+      name={$t('settings.general.icon_click_action.open_as_popup')}
+      bind:checked={settings.openSettingsOnClick}
+      onCheckedChange={() =>
+        handleUpdateSetting(
+          'openSettingsOnClick',
+          settings.openSettingsOnClick
+        )}
+    />
+  </div>
+{/if}
 <div class="setting-block flex pb-6 pt-5 flex-col">
   <div class="flex items-center h-6 justify-between px-5">
     <label for="advanced-mode-toggle" class="block font-bold text-text-primary"
       >{$t('settings.general.title')}</label
     >
   </div>
+
   <div class="flex flex-col gap-2 p-5">
     <!-- svelte-ignore a11y_label_has_associated_control -->
     <label class="block text-text-secondary"
@@ -125,90 +290,94 @@
     </div>
   </div>
 
-  <div class="flex flex-col gap-2 px-5 pb-4">
-    <!-- svelte-ignore a11y_label_has_associated_control -->
-    <div class="flex items-center gap-1 justify-between">
-      {$t('settings.general.shortcuts')}
-      {#if import.meta.env.BROWSER === 'chrome'}
-        <button
-          onclick={() =>
-            chrome.tabs.create({ url: 'chrome://extensions/shortcuts' })}
-          class="text-xs flex items-center gap-0.5 text-primary outline-gray-500 hover:underline"
-        >
-          {$t('settings.general.shortcuts_settings')}
-          <Icon width={12} icon="heroicons:arrow-up-right-16-solid" />
-        </button>
-      {/if}
-    </div>
-
-    <div class="flex flex-col pl-3 gap-3">
-      {#snippet keyboard(a)}
-        <span
-          class=" p-1 px-2 mr-auto text-[0.65rem] ml-1 bg-blackwhite/5 rounded-sm"
-          >{a}</span
-        >
-      {/snippet}
-      {#if import.meta.env.BROWSER === 'firefox'}
-        <div class="flex justify-between gap-1">
-          Open Sidepanel
-
-          <div>
-            {@render keyboard('Alt')}{@render keyboard('A')}
-          </div>
+  {#if !browserCompatibility.isMobile}
+    {#if !browserCompatibility.isMobile}
+      <div class="flex flex-col gap-2 px-5 pb-4">
+        <!-- svelte-ignore a11y_label_has_associated_control -->
+        <div class="flex items-center gap-1 justify-between">
+          {$t('settings.general.shortcuts')}
+          {#if import.meta.env.BROWSER === 'chrome'}
+            <button
+              onclick={() =>
+                chrome.tabs.create({ url: 'chrome://extensions/shortcuts' })}
+              class="text-xs flex items-center gap-0.5 text-primary outline-gray-500 hover:underline"
+            >
+              {$t('settings.general.shortcuts_settings')}
+              <Icon width={12} icon="heroicons:arrow-up-right-16-solid" />
+            </button>
+          {/if}
         </div>
 
-        <div class="flex justify-between gap-1">
-          Start Summarize
+        <div class="flex flex-col pl-3 gap-3">
+          {#snippet keyboard(a)}
+            <span
+              class=" p-1 px-2 mr-auto text-[0.65rem] ml-1 bg-blackwhite/5 rounded-sm"
+              >{a}</span
+            >
+          {/snippet}
+          {#if import.meta.env.BROWSER === 'firefox'}
+            <div class="flex justify-between gap-1">
+              Open Sidepanel
 
-          <div>
-            {@render keyboard('Alt')}{@render keyboard('Z')}
-          </div>
+              <div>
+                {@render keyboard('Alt')}{@render keyboard('A')}
+              </div>
+            </div>
+
+            <div class="flex justify-between gap-1">
+              Start Summarize
+
+              <div>
+                {@render keyboard('Alt')}{@render keyboard('Z')}
+              </div>
+            </div>
+            <div class="flex justify-between gap-1">
+              Prompt Editer
+
+              <div>
+                {@render keyboard('Alt')}{@render keyboard('P')}
+              </div>
+            </div>
+            <div class="flex justify-between gap-1">
+              History
+
+              <div>
+                {@render keyboard('Alt')}{@render keyboard('X')}
+              </div>
+            </div>
+          {:else}
+            <div class="flex justify-between gap-1">
+              Open Sidepanel
+
+              <div>
+                {@render keyboard('Alt')}{@render keyboard('A')}
+              </div>
+            </div>
+
+            <div class="flex justify-between gap-1">
+              Start Summarize
+
+              <div>
+                {@render keyboard('Alt')}{@render keyboard('S')}
+              </div>
+            </div>
+            <div class="flex justify-between gap-1">
+              Prompt Editer
+
+              <div>
+                {@render keyboard('Alt')}{@render keyboard('P')}
+              </div>
+            </div>
+            <div class="flex justify-between gap-1">
+              History
+
+              <div>
+                {@render keyboard('Alt')}{@render keyboard('X')}
+              </div>
+            </div>
+          {/if}
         </div>
-        <div class="flex justify-between gap-1">
-          Prompt Editer
-
-          <div>
-            {@render keyboard('Alt')}{@render keyboard('P')}
-          </div>
-        </div>
-        <div class="flex justify-between gap-1">
-          History
-
-          <div>
-            {@render keyboard('Alt')}{@render keyboard('X')}
-          </div>
-        </div>
-      {:else}
-        <div class="flex justify-between gap-1">
-          Open Sidepanel
-
-          <div>
-            {@render keyboard('Alt')}{@render keyboard('A')}
-          </div>
-        </div>
-
-        <div class="flex justify-between gap-1">
-          Start Summarize
-
-          <div>
-            {@render keyboard('Alt')}{@render keyboard('S')}
-          </div>
-        </div>
-        <div class="flex justify-between gap-1">
-          Prompt Editer
-
-          <div>
-            {@render keyboard('Alt')}{@render keyboard('P')}
-          </div>
-        </div>
-        <div class="flex justify-between gap-1">
-          History
-
-          <div>
-            {@render keyboard('Alt')}{@render keyboard('X')}
-          </div>
-        </div>
-      {/if}
-    </div>
-  </div>
+      </div>
+    {/if}
+  {/if}
 </div>

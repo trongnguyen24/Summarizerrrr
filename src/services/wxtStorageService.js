@@ -9,15 +9,15 @@ import { storage } from '@wxt-dev/storage'
 
 // --- Storage Definitions ---
 
-export const settingsStorage = storage.defineItem('sync:settings', {
+export const settingsStorage = storage.defineItem('local:settings', {
   // The defaultValue will be set in the store itself to ensure all keys are present.
   defaultValue: {},
 })
 
-export const themeStorage = storage.defineItem('sync:theme', {
+export const themeStorage = storage.defineItem('local:theme', {
   defaultValue: {},
 })
 
-export const appStateStorage = storage.defineItem('sync:appState', {
+export const appStateStorage = storage.defineItem('local:appState', {
   defaultValue: {},
 })

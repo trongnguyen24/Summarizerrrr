@@ -1,10 +1,12 @@
 // @ts-nocheck
 import 'webextension-polyfill'
+import { storage } from '@wxt-dev/storage'
 import { browser } from 'wxt/browser'
 import {
   loadSettings,
   subscribeToSettingsChanges,
 } from '../stores/settingsStore.svelte.js'
+import { settingsStorage } from '../services/wxtStorageService.js'
 import {
   summaryState,
   summarizeSelectedText,
@@ -142,6 +144,33 @@ class OllamaApiProxyService {
 // --- Main Background Logic ---
 
 export default defineBackground(() => {
+  async function migrateStorageFromSyncToLocal() {
+    const keysToMigrate = ['settings', 'theme', 'appState']
+
+    for (const key of keysToMigrate) {
+      try {
+        const syncData = await storage.getItem(`sync:${key}`)
+        if (syncData && Object.keys(syncData).length > 0) {
+          const localData = (await storage.getItem(`local:${key}`)) || {}
+
+          // Merge sync data into local data, with sync data taking precedence.
+          const mergedData = { ...localData, ...syncData }
+
+          // 1. Write to local storage
+          await storage.setItem(`local:${key}`, mergedData)
+
+          // 2. After successful write, remove from sync storage
+          await storage.removeItem(`sync:${key}`)
+        }
+      } catch (error) {
+        console.error(
+          `Error migrating '${key}' from sync to local storage:`,
+          error
+        )
+      }
+    }
+  }
+
   const ollamaCorsService = new OllamaCorsService()
   const ollamaApiProxy = new OllamaApiProxyService()
   let sidePanelPort = null
@@ -151,13 +180,74 @@ export default defineBackground(() => {
 
   // --- Initial Setup ---
   loadSettings()
-  subscribeToSettingsChanges(async (newSettings) => {
-    if (newSettings.selectedProvider === 'ollama') {
-      await ollamaCorsService.setupOllamaCorsRules(
-        newSettings.ollamaEndpoint || 'http://127.0.0.1:11434'
+
+  // Watch settings storage directly for changes
+  settingsStorage.watch((newValue, oldValue) => {
+    console.log('[Background] Settings storage changed:', newValue)
+    if (
+      import.meta.env.BROWSER === 'chrome' &&
+      newValue?.openSettingsOnClick !== undefined
+    ) {
+      console.log(
+        '[Background] Updating Chrome action behavior due to settings change'
       )
+      updateChromeActionBehavior(newValue.openSettingsOnClick)
     }
   })
+
+  // Function to update Chrome action behavior
+  let chromeActionListener = null
+  function updateChromeActionBehavior(usePopup) {
+    if (import.meta.env.BROWSER !== 'chrome') return
+
+    console.log(
+      '[Background] updateChromeActionBehavior called with usePopup:',
+      usePopup
+    )
+    console.log('[Background] isMobile:', isMobile)
+
+    try {
+      // Remove existing listener if any
+      if (chromeActionListener) {
+        chrome.action.onClicked.removeListener(chromeActionListener)
+        chromeActionListener = null
+        console.log('[Background] Removed existing click listener')
+      }
+
+      // If on mobile or if the setting to use a popup is enabled, set up the popup.
+      if (isMobile || usePopup) {
+        console.log('[Background] Using popup action')
+        chrome.sidePanel?.setPanelBehavior({ openPanelOnActionClick: false })
+        chromeActionListener = () => {
+          console.log('[Background] Opening popup window')
+          browser.windows.create({
+            url: browser.runtime.getURL('popop.html'),
+            type: 'popup',
+            width: 400,
+            height: 600,
+          })
+        }
+        chrome.action.onClicked.addListener(chromeActionListener)
+        console.log('[Background] Added popup click listener')
+      } else {
+        // Otherwise, use the side panel.
+        console.log('[Background] Using side panel action')
+        chrome.sidePanel?.setPanelBehavior({ openPanelOnActionClick: true })
+      }
+    } catch (error) {
+      console.error(
+        '[Background] Error updating Chrome action behavior:',
+        error
+      )
+    }
+  }
+
+  // Subscribe to settings changes - this function returns a watcher
+  const unsubscribe = subscribeToSettingsChanges()
+  console.log(
+    '[Background] Settings change watcher setup:',
+    unsubscribe ? 'success' : 'failed'
+  )
   ;(async () => {
     try {
       const settings = await loadSettings()
@@ -183,6 +273,26 @@ export default defineBackground(() => {
           type: 'normal',
           contexts: ['selection'],
         })
+
+        // Create context menu for Chrome (action) and Firefox (browser_action)
+        const contexts = []
+        if (browser.action) contexts.push('action')
+        if (browser.browserAction) contexts.push('browser_action')
+
+        if (contexts.length > 0) {
+          browser.contextMenus.create({
+            id: 'openSettings',
+            title: 'Open Settings',
+            type: 'normal',
+            contexts: contexts,
+          })
+          browser.contextMenus.create({
+            id: 'openHistory',
+            title: 'Open History',
+            type: 'normal',
+            contexts: contexts,
+          })
+        }
       }
     } catch (error) {
       console.log('Context menu creation failed, might already exist:', error)
@@ -191,18 +301,45 @@ export default defineBackground(() => {
 
   // --- Browser/Platform Specific Setup ---
   if (import.meta.env.BROWSER === 'chrome') {
-    if (!isMobile) {
-      chrome.sidePanel?.setPanelBehavior({ openPanelOnActionClick: true })
-    } else {
-      chrome.action.onClicked.addListener(() => {
-        browser.windows.create({
-          url: browser.runtime.getURL('popop.html'),
-          type: 'popup',
-          width: 400,
-          height: 600,
-        })
-      })
+    // Setup Chrome action behavior based on settings
+    async function setupChromeAction() {
+      try {
+        console.log('[Background] Starting to load settings...')
+        const currentSettings = await loadSettings()
+        console.log('[Background] Loaded settings:', currentSettings)
+        console.log('[Background] Settings type:', typeof currentSettings)
+
+        // Check if currentSettings is actually the resolved value or Promise
+        if (currentSettings && typeof currentSettings.then === 'function') {
+          console.log(
+            '[Background] loadSettings returned a Promise, waiting...'
+          )
+          const resolvedSettings = await currentSettings
+          console.log('[Background] Resolved settings:', resolvedSettings)
+          const usePopup = resolvedSettings?.openSettingsOnClick ?? false
+          updateChromeActionBehavior(usePopup)
+        } else if (currentSettings && typeof currentSettings === 'object') {
+          console.log('[Background] loadSettings returned object directly')
+          const usePopup = currentSettings.openSettingsOnClick ?? false
+          console.log(
+            '[Background] openSettingsOnClick (usePopup) value:',
+            currentSettings.openSettingsOnClick
+          )
+          console.log('[Background] Using usePopup:', usePopup)
+          updateChromeActionBehavior(usePopup)
+        } else {
+          console.log(
+            '[Background] loadSettings returned invalid data, using default'
+          )
+          updateChromeActionBehavior(false) // Default to false (use side panel)
+        }
+      } catch (error) {
+        console.error('[Background] Error setting up Chrome action:', error)
+        // Fallback to popup if settings load fails
+        updateChromeActionBehavior(false)
+      }
     }
+    setupChromeAction()
   } else if (import.meta.env.BROWSER === 'firefox') {
     ;(async () => {
       try {
@@ -223,6 +360,43 @@ export default defineBackground(() => {
   // --- Consolidated Message Listener ---
   browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
     // Async handlers that need `return true`
+    if (message.type === 'CHECK_FIREFOX_PERMISSION') {
+      // Chỉ xử lý cho Firefox
+      if (import.meta.env.BROWSER === 'firefox') {
+        ;(async () => {
+          try {
+            // Import permission service functions
+            const { checkPermission } = await import(
+              '../services/firefoxPermissionService.js'
+            )
+            const hasPermission = await checkPermission(message.url)
+            sendResponse({
+              success: true,
+              hasPermission,
+              url: message.url,
+            })
+          } catch (error) {
+            console.error(
+              '[Background] Error checking Firefox permissions:',
+              error
+            )
+            sendResponse({
+              success: false,
+              error: error.message,
+              url: message.url,
+            })
+          }
+        })()
+      } else {
+        // Cho browser khác, luôn trả về true
+        sendResponse({
+          success: true,
+          hasPermission: true,
+          url: message.url,
+        })
+      }
+      return true
+    }
     if (message.type === 'OLLAMA_API_REQUEST') {
       ;(async () => {
         try {
@@ -416,7 +590,14 @@ export default defineBackground(() => {
     }
   })
 
-  browser.runtime.onInstalled.addListener(() => initializeContextMenu())
+  browser.runtime.onInstalled.addListener(async (details) => {
+    // Run migration only on install/update, not on every startup
+    if (details.reason === 'install' || details.reason === 'update') {
+      await migrateStorageFromSyncToLocal()
+    }
+
+    initializeContextMenu()
+  })
   if (import.meta.env.BROWSER === 'firefox') {
     browser.runtime.onStartup.addListener(() => initializeContextMenu())
   }
@@ -450,6 +631,16 @@ export default defineBackground(() => {
           pendingSelectedText = null
         }
       }
+    } else if (info.menuItemId === 'openSettings') {
+      browser.tabs.create({
+        url: browser.runtime.getURL('settings.html'),
+        active: true,
+      })
+    } else if (info.menuItemId === 'openHistory') {
+      browser.tabs.create({
+        url: browser.runtime.getURL('archive.html'),
+        active: true,
+      })
     }
   })
 

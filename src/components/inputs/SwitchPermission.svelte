@@ -45,7 +45,7 @@
         : ' drop-shadow-[0_0_0_rgba(255,255,255,0),0_0_0_rgba(255,255,255,0)]'}"
     /> -->
     <Label.Root
-      class="cursor-pointer flex flex-col overflow-hidden font-black justify-start line-clamp-1 text-text-secondary select-none {checked
+      class="cursor-pointer flex flex-col overflow-hidden justify-start line-clamp-1 text-text-secondary select-none {checked
         ? ' !text-text-primary '
         : ''}"
       for={id}

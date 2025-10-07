@@ -286,19 +286,22 @@
   },
   "about": {
     "version": "Version",
-    "description": "Fassen Sie alles mit einem Klick zusammen und sparen Sie Zeit. Die Erweiterung hilft Ihnen bei Zusammenfassungen für <b>YouTube, Udemy, Coursera, beliebige Websites</b>. Entwickelt mit hervorragendem UI/UX-Design.",
+    "description": "Fassen Sie beliebigen Inhalt mit einem Klick zusammen und sparen Sie Zeit. Sparen Sie Zeit auf YouTube, Udemy, Coursera und Websites. Entwickelt mit hervorragendem UI/UX-Design.",
     "key_features": "Hauptfunktionen",
     "data_sovereignty_title": "Ihre Daten gehören Ihnen",
     "data_sovereignty_desc": "Ihre Schlüssel, Ihre Daten, Ihre Kontrolle. Für vollständige Privatsphäre - verwenden Sie ein lokales Modell über unsere Integration mit Ollama.",
     "customizable_title": "Anpassbar",
     "customizable_desc": "Anbieter, Temperatur, Top-P, Länge, Format, Sprachen, Erscheinungsbild, System-Prompt und Benutzer-Prompt...",
     "cross_platform_title": "Plattformübergreifende Kompatibilität",
-    "cross_platform_desc": "Desktop, Tablet und Mobil. Funktioniert auf mobilen Browsern einschließlich Firefox Android und Kiwi Browser.",
+    "cross_platform_desc": "Desktop, Tablet und Mobil. Funktioniert auf mobilen Browsern einschließlich Firefox Android und Edge Canary Browser.",
     "developer_credit": "Entworfen und entwickelt mit ❤️ in Vietnam",
     "availability": "Open Source • Verfügbar auf",
     "github": "GitHub",
     "chrome_store": "Chrome Store",
-    "firefox_addons": "Firefox Add-ons"
+    "firefox_addons": "Firefox Add-ons",
+    "whats_new": "Was ist neu?",
+    "help_project": "Helfen Sie dem Projekt durch eine Spende oder eine Bewertung!",
+    "edge_addons": "Edge Add-ons"
   },
   "permissionWarning": {
     "title": "Berechtigungen",

@@ -286,19 +286,22 @@
   },
   "about": {
     "version": "Version",
-    "description": "Résumez tout en 1 clic, gagnez du temps. L'extension vous aide à résumer pour <b>YouTube, Udemy, Coursera, tous les sites web</b>. Conçue avec un design UI/UX supérieur.",
+    "description": "Résumez n'importe quel contenu en 1 clic. Gagnez du temps sur YouTube, Udemy, Coursera et les sites web. Conçue avec un design UI/UX supérieur.",
     "key_features": "Fonctionnalités clés",
     "data_sovereignty_title": "Vos données vous appartiennent",
     "data_sovereignty_desc": "Vos clés, vos données, votre contrôle. Pour une confidentialité totale - utilisez un modèle local via notre intégration avec Ollama.",
     "customizable_title": "Personnalisable",
     "customizable_desc": "Fournisseur, température, top P, longueur, format, langues, apparence, prompt système et prompt utilisateur...",
     "cross_platform_title": "Compatibilité multiplateforme",
-    "cross_platform_desc": "Ordinateur de bureau, tablette et mobile. Fonctionne sur les navigateurs mobiles, y compris Firefox Android et Kiwi Browser.",
+    "cross_platform_desc": "Ordinateur de bureau, tablette et mobile. Fonctionne sur les navigateurs mobiles, y compris Firefox Android et Edge Canary Browser.",
     "developer_credit": "Conçu et développé avec ❤️ au Viet Nam",
     "availability": "Open source • Disponible sur",
     "github": "GitHub",
     "chrome_store": "Chrome Store",
-    "firefox_addons": "Firefox Add-ons"
+    "firefox_addons": "Firefox Add-ons",
+    "whats_new": "Quoi de neuf ?",
+    "help_project": "Aidez le projet par un don ou en laissant un avis !",
+    "edge_addons": "Edge Add-ons"
   },
   "permissionWarning": {
     "title": "Permissions",

@@ -286,19 +286,22 @@
   },
   "about": {
     "version": "Version",
-    "description": "Summarize everything in 1 click, save time. Extension helps you summarize for <b>YouTube, Udemy, Coursera, any websites</b>. Crafted with superior UI/UX design.",
+    "description": "Summarize any content in 1 click. Save time on YouTube, Udemy, Coursera, and websites. Crafted with superior UI/UX design.",
     "key_features": "Key Features",
     "data_sovereignty_title": "Your data is yours",
     "data_sovereignty_desc": "Your keys, your data, your control. For complete privacy - use a local model through our integration with Ollama.",
     "customizable_title": "Customizable",
     "customizable_desc": "Provider, temperature, top P, length, format, languages, appearance, sytem prompt and user prompt...",
     "cross_platform_title": "Cross-Platform Compatibility",
-    "cross_platform_desc": "Desktop, Tablet, and Mobile. Work on Mobile browsers including Firefox Android and Kiwi Browser.",
+    "cross_platform_desc": "Desktop, Tablet, and Mobile. Work on Mobile browsers including Firefox Android and Edge Canary Browser.",
     "developer_credit": "Designed and Developed with ❤️ in Viet Nam",
     "availability": "Open source • Available on",
     "github": "GitHub",
     "chrome_store": "Chrome Store",
-    "firefox_addons": "Firefox Add-ons"
+    "firefox_addons": "Firefox Add-ons",
+    "whats_new": "What's new?",
+    "help_project": "Help project by donate or leave review!",
+    "edge_addons": "Edge Add-ons"
   },
   "permissionWarning": {
     "title": "Permissions",

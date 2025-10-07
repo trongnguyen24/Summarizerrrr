@@ -280,19 +280,22 @@
   },
   "about": {
     "version": "Phiên bản",
-    "description": "Tóm tắt mọi thứ chỉ bằng 1 cú nhấp chuột, tiết kiệm thời gian. Tiện ích mở rộng giúp bạn tóm tắt cho <b>YouTube, Udemy, Coursera, bất kỳ trang web nào</b>. Được chế tác với thiết kế UI/UX vượt trội.",
+    "description": "Tóm tắt mọi nội dung chỉ với 1 cú nhấp chuột. Tiết kiệm thời gian trên YouTube, Udemy, Coursera và các trang web. Được chế tác với thiết kế UI/UX vượt trội.",
     "key_features": "Tính năng chính",
     "data_sovereignty_title": "Dữ liệu của bạn là của bạn",
     "data_sovereignty_desc": "Khóa của bạn, dữ liệu của bạn, quyền kiểm soát của bạn. Để có sự riêng tư hoàn toàn - hãy sử dụng mô hình cục bộ thông qua tích hợp của chúng tôi với Ollama.",
     "customizable_title": "Tùy chỉnh",
     "customizable_desc": "Nhà cung cấp, nhiệt độ, top P, độ dài, định dạng, ngôn ngữ, giao diện, sytem prompt và user prompt...",
     "cross_platform_title": "Tương thích đa nền tảng",
-    "cross_platform_desc": "Máy tính để bàn, Máy tính bảng và Di động. Hoạt động trên các trình duyệt di động bao gồm Firefox Android và Kiwi Browser.",
+    "cross_platform_desc": "Máy tính để bàn, Máy tính bảng và Di động. Hoạt động trên các trình duyệt di động bao gồm Firefox Android và Edge Canary Browser.",
     "developer_credit": "Được thiết kế và phát triển với ❤️ tại Việt Nam",
     "availability": "Mã nguồn mở • Có sẵn trên",
     "github": "GitHub",
     "chrome_store": "Cửa hàng Chrome",
-    "firefox_addons": "Tiện ích Firefox"
+    "firefox_addons": "Tiện ích Firefox",
+    "whats_new": "Có gì mới?",
+    "help_project": "Hỗ trợ dự án bằng cách quyên góp hoặc để lại đánh giá!",
+    "edge_addons": "Tiện ích Edge"
   },
   "permissionWarning": {
     "title": "Quyền truy cập",

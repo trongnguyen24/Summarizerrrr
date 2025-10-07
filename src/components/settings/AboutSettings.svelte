@@ -1,6 +1,6 @@
 <script>
   // @ts-nocheck
-  import Icon from '@iconify/svelte'
+  import Icon, { loadIcons } from '@iconify/svelte'
   import { settings, updateSettings } from '@/stores/settingsStore.svelte.js'
   import { domVisibility } from '@/stores/stateAbout.svelte.js'
   import {
@@ -17,6 +17,17 @@
   function handleUpdateSetting(key, value) {
     updateSettings({ [key]: value })
   }
+
+  // Load icons for Donate and Review buttons to prevent layout shift
+  loadIcons([
+    // Icons from ButtonSupport.svelte
+    'hugeicons:ko-fi',
+    // Icons from ButtonRate.svelte
+    'hugeicons:chrome',
+    'mingcute:firefox-line',
+    'mingcute:edge-line',
+    'mingcute:apple-line',
+  ])
 </script>
 
 <!-- About Section -->
@@ -34,7 +45,7 @@
         {packageJson.version} -
         <button
           class=" underline hover:text-text-primary transition-colors underline-offset-2"
-          onclick={domVisibility.show}>What's new?</button
+          onclick={domVisibility.show}>{$t('about.whats_new')}</button
         >
       </p>
 
@@ -42,7 +53,7 @@
         {@html $t('about.description')}
       </p>
       <p class="text-pretty mt-2 text-text-secondary">
-        Help project by donate or leave review!
+        {$t('about.help_project')}
       </p>
       <div class="flex justify-center sm:justify-start mt-4 gap-4">
         <ButtonSupport />
@@ -221,7 +232,7 @@
         <Icon icon="logos:microsoft-edge" class="w-4 h-4" />
       </div>
       <span class="flex items-center"
-        >Edge Add-ons
+        >{$t('about.edge_addons')}
         <Icon width={12} icon="heroicons:arrow-up-right-16-solid" />
       </span>
     </a>

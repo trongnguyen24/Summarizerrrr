@@ -127,6 +127,15 @@
     'heroicons:swatch',
     'heroicons:information-circle-solid',
     'heroicons:information-circle',
+    // Icons from AboutSettings.svelte
+    'heroicons:circle-stack',
+    'heroicons:adjustments-horizontal',
+    'heroicons:device-phone-mobile',
+    'mdi:github',
+    'logos:chrome',
+    'logos:firefox',
+    'logos:microsoft-edge',
+    'heroicons:arrow-up-right-16-solid',
   ])
 </script>
 

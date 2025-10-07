@@ -264,19 +264,22 @@
   },
   "about": {
     "version": "版本",
-    "description": "一键总结，节省时间。扩展程序可帮助您总结 <b>YouTube、Udemy、Coursera 和任何网站</b> 的内容。采用卓越的 UI/UX 设计精心打造。",
+    "description": "一键总结任何内容，节省时间。在 YouTube、Udemy、Coursera 和网站上节省时间。采用卓越的 UI/UX 设计精心打造。",
     "key_features": "主要功能",
     "data_sovereignty_title": "您的数据归您所有",
     "data_sovereignty_desc": "您的密钥、您的数据、您的控制权。为了完全的隐私保护，请通过我们与 Ollama 的集成使用本地模型。",
     "customizable_title": "可定制",
     "customizable_desc": "提供商、温度、Top P、长度、格式、语言、外观、系统提示词和用户提示词...",
     "cross_platform_title": "跨平台兼容性",
-    "cross_platform_desc": "桌面端、平板和移动端。可在包括 Firefox Android 和 Kiwi Browser 在内的移动浏览器上使用。",
+    "cross_platform_desc": "桌面端、平板和移动端。可在包括 Firefox Android 和 Edge Canary Browser 在内的移动浏览器上使用。",
     "developer_credit": "在越南 用 ❤️ 设计和开发",
     "availability": "开源 • 可在以下平台获取",
     "github": "GitHub",
     "chrome_store": "Chrome 网上应用店",
-    "firefox_addons": "Firefox 附加组件"
+    "firefox_addons": "Firefox 附加组件",
+    "whats_new": "有什么新功能？",
+    "help_project": "通过捐赠或留下评论来帮助项目！",
+    "edge_addons": "Edge 附加组件"
   },
   "permissionWarning": {
     "title": "权限",

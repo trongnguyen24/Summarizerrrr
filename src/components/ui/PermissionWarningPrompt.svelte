@@ -1,6 +1,7 @@
 <script>
   // @ts-nocheck
   import Icon from '@iconify/svelte'
+  import { t } from 'svelte-i18n'
   import { fade, slide } from 'svelte/transition'
   import {
     checkPermission,
@@ -139,15 +140,8 @@
   <div class="p-4 min-w-90 absolute abs-center bg-surface-1 z-10">
     <div class="flex gap-1 justify-center flex-col space-y-3">
       <p class="text-xs text-balance !text-center text-text-secondary mt-4">
-        Default access YouTube, Udemy and Coursera. For summarize other sites,
-        please grant permissions below.
+        {$t('permissionWarning.description')}
       </p>
-
-      {#if permissionCheckError}
-        <p class="text-xs text-error mt-1">
-          Error: {permissionCheckError}
-        </p>
-      {/if}
 
       <button
         onclick={handleGrantPermission}
@@ -156,34 +150,12 @@
       >
         {#if isRequestingPermission}
           <Icon icon="solar:loader-2-bold" class="w-3 h-3 animate-spin" />
-          <span>Requesting...</span>
+          <span>{$t('permissionWarning.requesting')}</span>
         {:else}
           <Icon icon="solar:shield-check-bold" class="w-3 h-3" />
-          <span>Grant permissions</span>
+          <span>{$t('permissionWarning.grant_permissions')}</span>
         {/if}
       </button>
-
-      <!-- Thông tin về educational sites -->
-      <!-- <p class="text-xs text-text-secondary/70 !text-center">
-        YouTube, Udemy, and Coursera work automatically without permission.
-      </p> -->
     </div>
   </div>
 {/if}
-
-<!-- Success state (optional, minimal) -->
-<!-- {#if hasPermission && !isCheckingPermission && import.meta.env.BROWSER === 'firefox'}
-  <div
-    class="mx-6 mb-2 rounded-xl border border-success/20 bg-success/5 p-2"
-    in:fade={{ duration: 300 }}
-    out:fade={{ duration: 200 }}
-  >
-    <div class="flex items-center gap-2">
-      <Icon
-        icon="solar:shield-check-bold"
-        class="w-3 h-3 text-success shrink-0"
-      />
-      <span class="text-xs text-success"> Permissions granted </span>
-    </div>
-  </div>
-{/if} -->

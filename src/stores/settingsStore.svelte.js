@@ -1,4 +1,5 @@
 // @ts-nocheck
+import { get } from 'svelte/store'
 import { locale } from 'svelte-i18n'
 import { settingsStorage } from '@/services/wxtStorageService.js'
 
@@ -281,7 +282,7 @@ export function subscribeToSettingsChanges() {
         ...newValue,
       }
       Object.assign(settings, mergedSettings)
-      if (newValue.uiLang !== settings.uiLang) {
+      if (newValue.uiLang && newValue.uiLang !== get(locale)) {
         locale.set(newValue.uiLang)
       }
     }

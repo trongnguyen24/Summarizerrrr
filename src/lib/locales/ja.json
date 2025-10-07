@@ -294,5 +294,10 @@
     "github": "GitHub",
     "chrome_store": "Chromeストア",
     "firefox_addons": "Firefoxアドオン"
+  },
+  "permissionWarning": {
+    "description": "デフォルトではYouTube、Udemy、Courseraにアクセスします。他のサイトを要約するには、以下で権限を付与してください。",
+    "requesting": "リクエスト中...",
+    "grant_permissions": "権限を付与"
   }
 }

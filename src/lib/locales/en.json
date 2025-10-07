@@ -294,5 +294,10 @@
     "github": "GitHub",
     "chrome_store": "Chrome Store",
     "firefox_addons": "Firefox Add-ons"
+  },
+  "permissionWarning": {
+    "description": "Default access YouTube, Udemy and Coursera. For summarize other sites, please grant permissions below.",
+    "requesting": "Requesting...",
+    "grant_permissions": "Grant permissions"
   }
 }

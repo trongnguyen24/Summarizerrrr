@@ -288,5 +288,10 @@
     "github": "GitHub",
     "chrome_store": "Cửa hàng Chrome",
     "firefox_addons": "Tiện ích Firefox"
+  },
+  "permissionWarning": {
+    "description": "Mặc định truy cập YouTube, Udemy và Coursera. Để tóm tắt các trang web khác, vui lòng cấp quyền bên dưới.",
+    "requesting": "Đang yêu cầu...",
+    "grant_permissions": "Cấp quyền"
   }
 }

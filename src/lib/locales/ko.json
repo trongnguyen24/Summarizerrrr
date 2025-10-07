@@ -294,5 +294,10 @@
     "github": "GitHub",
     "chrome_store": "Chrome 스토어",
     "firefox_addons": "Firefox 애드온"
+  },
+  "permissionWarning": {
+    "description": "기본적으로 YouTube, Udemy, Coursera에 접근합니다. 다른 사이트를 요약하려면 아래에서 권한을 부여해 주세요.",
+    "requesting": "요청 중...",
+    "grant_permissions": "권한 부여"
   }
 }

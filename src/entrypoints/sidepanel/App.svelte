@@ -205,7 +205,9 @@
   >
     <div class=" flex justify-center items-center w-full h-full">
       <div class="text-text-secondary">
-        <div class="line-clamp-1 text-[0.75rem] px-2 text-text-secondary">
+        <div
+          class="line-clamp-1 w-screen !text-center text-[0.75rem] px-2 text-text-secondary"
+        >
           {$tabTitle}
         </div>
       </div>

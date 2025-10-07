@@ -294,5 +294,10 @@
     "github": "GitHub",
     "chrome_store": "Chrome Store",
     "firefox_addons": "Firefox Add-ons"
+  },
+  "permissionWarning": {
+    "description": "Acceso predeterminado a YouTube, Udemy y Coursera. Para resumir otros sitios, otorgue permisos a continuación.",
+    "requesting": "Solicitando...",
+    "grant_permissions": "Conceder permisos"
   }
 }

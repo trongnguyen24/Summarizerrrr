@@ -287,9 +287,3 @@
   </div>
   <!-- Summary Format Section -->
 </div>
-
-<style>
-  .setting-block {
-    background-color: var(--color-surface-1);
-  }
-</style>

@@ -48,6 +48,12 @@ const DEFAULT_SETTINGS = {
     whitelist: ['youtube.com', 'coursera.org', 'udemy.com'],
     blacklist: [],
   },
+
+  // Firefox Permissions - Persist permission states across tab switches
+  firefoxPermissions: {
+    httpsPermission: false,
+    lastChecked: null,
+  },
   // Onboarding
   hasCompletedOnboarding: false,
   onboardingStep: 0,
@@ -287,4 +293,77 @@ export function subscribeToSettingsChanges() {
       }
     }
   })
+}
+
+// --- Firefox Permission Management Functions ---
+
+/**
+ * Permission check cache để tránh redundant API calls
+ */
+let permissionCheckCache = new Map()
+const CACHE_DURATION = 5000 // 5 seconds
+
+/**
+ * Updates Firefox permission state and saves to storage
+ * @param {string} permissionKey - Key for the permission (e.g., 'httpsPermission')
+ * @param {boolean} value - Permission state value
+ */
+export async function updateFirefoxPermission(permissionKey, value) {
+  if (!_isInitializedPromise) {
+    await loadSettings()
+  }
+  await _isInitializedPromise
+
+  const newPermissions = {
+    ...settings.firefoxPermissions,
+    [permissionKey]: value,
+    lastChecked: Date.now(),
+  }
+
+  // Update cache
+  permissionCheckCache.set(permissionKey, {
+    value,
+    timestamp: Date.now(),
+  })
+
+  await updateSettings({ firefoxPermissions: newPermissions })
+}
+
+/**
+ * Gets Firefox permission state from settings
+ * @param {string} permissionKey - Key for the permission
+ * @returns {boolean} - Permission state
+ */
+export function getFirefoxPermission(permissionKey) {
+  return settings.firefoxPermissions?.[permissionKey] || false
+}
+
+/**
+ * Checks if permission cache is still valid
+ * @param {string} permissionKey - Key for the permission
+ * @returns {Object|null} - Cached permission object or null if invalid/expired
+ */
+export function getCachedPermission(permissionKey) {
+  const cached = permissionCheckCache.get(permissionKey)
+  if (!cached) return null
+
+  const now = Date.now()
+  if (now - cached.timestamp > CACHE_DURATION) {
+    permissionCheckCache.delete(permissionKey)
+    return null
+  }
+
+  return cached
+}
+
+/**
+ * Clears permission cache for a specific key or all keys
+ * @param {string} [permissionKey] - Optional specific key to clear
+ */
+export function clearPermissionCache(permissionKey = null) {
+  if (permissionKey) {
+    permissionCheckCache.delete(permissionKey)
+  } else {
+    permissionCheckCache.clear()
+  }
 }

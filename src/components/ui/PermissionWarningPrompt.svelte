@@ -7,17 +7,29 @@
     checkPermission,
     requestPermission,
   } from '@/services/firefoxPermissionService.js'
+  import {
+    updateFirefoxPermission,
+    getFirefoxPermission,
+    getCachedPermission,
+  } from '@/stores/settingsStore.svelte.js'
   import { browser } from 'wxt/browser'
 
   let { currentUrl = '', onPermissionGranted = () => {} } = $props()
 
-  let hasPermission = $state(false)
+  // Use settings store instead of local state for permission persistence
+  let hasPermission = $state(getFirefoxPermission('httpsPermission'))
   let isCheckingPermission = $state(true)
   let isRequestingPermission = $state(false)
   let showWarning = $state(false)
   let permissionCheckError = $state(null)
 
-  // Check permission khi component mount hoặc URL thay đổi
+  // Reactive update when settings store changes
+  $effect(() => {
+    hasPermission = getFirefoxPermission('httpsPermission')
+    showWarning = !hasPermission && !isCheckingPermission
+  })
+
+  // Check permission with store integration and caching
   $effect(async () => {
     if (currentUrl && import.meta.env.BROWSER === 'firefox') {
       isCheckingPermission = true
@@ -32,19 +44,47 @@
 
         if (isEducationalSite) {
           // Educational sites có host permissions - ngay lập tức set true
-          hasPermission = true
+          await updateFirefoxPermission('httpsPermission', true)
           showWarning = false
           if (onPermissionGranted) {
             onPermissionGranted(true)
           }
         } else {
-          // Chỉ check permission cho Reddit và general sites
-          hasPermission = await checkPermission(currentUrl)
-          showWarning = !hasPermission
+          // Check cache first
+          const permissionKey = 'httpsPermission'
+          const cached = getCachedPermission(permissionKey)
 
-          // Notify parent component về permission status
-          if (hasPermission && onPermissionGranted) {
-            onPermissionGranted(true)
+          if (cached) {
+            console.log(
+              '[PermissionWarningPrompt] Using cached permission:',
+              cached.value
+            )
+            await updateFirefoxPermission(permissionKey, cached.value)
+            showWarning = !cached.value
+
+            if (cached.value && onPermissionGranted) {
+              onPermissionGranted(true)
+            }
+          } else {
+            // Check actual permission for general sites
+            console.log(
+              '[PermissionWarningPrompt] Checking Firefox permission for:',
+              currentUrl
+            )
+            const permission = await checkPermission(currentUrl)
+            console.log(
+              '[PermissionWarningPrompt] Permission result:',
+              permission
+            )
+
+            // Update store with result
+            await updateFirefoxPermission(permissionKey, permission)
+            showWarning = !permission
+
+            // Notify parent component về permission status
+            if (permission && onPermissionGranted) {
+              onPermissionGranted(true)
+            }
           }
         }
       } catch (error) {
@@ -54,13 +94,13 @@
         )
         permissionCheckError = error.message
         showWarning = true
-        hasPermission = false
+        await updateFirefoxPermission('httpsPermission', false)
       } finally {
         isCheckingPermission = false
       }
     } else {
       // Non-Firefox browsers hoặc không có URL
-      hasPermission = true
+      await updateFirefoxPermission('httpsPermission', true)
       showWarning = false
       isCheckingPermission = false
       if (onPermissionGranted) {
@@ -75,10 +115,19 @@
     isRequestingPermission = true
 
     try {
+      console.log(
+        '[PermissionWarningPrompt] Requesting permission for:',
+        currentUrl
+      )
       const granted = await requestPermission(currentUrl)
+      console.log(
+        '[PermissionWarningPrompt] Permission request result:',
+        granted
+      )
 
       if (granted) {
-        hasPermission = true
+        // Update store instead of local state
+        await updateFirefoxPermission('httpsPermission', true)
         showWarning = false
 
         // Notify parent component
@@ -98,6 +147,7 @@
       } else {
         // User denied permission
         console.log('[PermissionWarningPrompt] Permission denied by user')
+        await updateFirefoxPermission('httpsPermission', false)
       }
     } catch (error) {
       console.error(
@@ -105,6 +155,7 @@
         error
       )
       permissionCheckError = error.message
+      await updateFirefoxPermission('httpsPermission', false)
     } finally {
       isRequestingPermission = false
     }

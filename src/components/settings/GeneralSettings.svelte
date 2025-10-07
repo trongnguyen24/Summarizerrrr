@@ -8,6 +8,9 @@
   import {
     settings,
     updateSettings,
+    updateFirefoxPermission,
+    getFirefoxPermission,
+    getCachedPermission,
   } from '../../stores/settingsStore.svelte.js'
   import {
     themeSettings,
@@ -31,36 +34,84 @@
     updateSettings({ [key]: value })
   }
 
-  // Permission states - chỉ dùng khi build cho Firefox
-  // Chỉ còn General Website Access, loại bỏ tất cả specific sites vì đã có host_permissions
-  let httpsPermission = $state(false)
+  // Permission states - sử dụng settings store thay vì local state
+  // Đảm bảo permission state được persist khi chuyển tab
+  let httpsPermission = $state(getFirefoxPermission('httpsPermission'))
 
-  // Load permission states từ Firefox API khi component mount
+  // Reactive update khi settings store thay đổi
+  $effect(() => {
+    httpsPermission = getFirefoxPermission('httpsPermission')
+  })
+
+  // Load permission states từ Firefox API với caching
   async function loadPermissionStates() {
     if (import.meta.env.BROWSER === 'firefox') {
       try {
-        // Chỉ check General Website Access
-        httpsPermission = await checkSpecificPermission('https://*/*')
+        const permissionKey = 'httpsPermission'
+
+        // Check cache trước
+        const cached = getCachedPermission(permissionKey)
+        if (cached) {
+          console.log(
+            '[GeneralSettings] Using cached permission state:',
+            cached.value
+          )
+          await updateFirefoxPermission(permissionKey, cached.value)
+          return
+        }
+
+        // Nếu không có cache, check actual permission
+        console.log('[GeneralSettings] Checking actual Firefox permission...')
+        const hasPermission = await checkSpecificPermission('https://*/*')
+        console.log(
+          '[GeneralSettings] Firefox permission result:',
+          hasPermission
+        )
+
+        // Update store với kết quả
+        await updateFirefoxPermission(permissionKey, hasPermission)
       } catch (error) {
-        console.error('Error loading permission states:', error)
+        console.error(
+          '[GeneralSettings] Error loading permission states:',
+          error
+        )
       }
     }
   }
 
-  // Event handlers cho checkbox - chỉ còn General Website Access
+  // Event handlers cho checkbox - persist state qua settings store
   async function handleHttpsPermission(checked) {
-    if (checked) {
-      const granted = await requestSpecificPermission('https://*/*')
-      httpsPermission = granted
+    const permissionKey = 'httpsPermission'
 
-      // Trigger sidepanel update sau khi thay đổi permission
-      triggerSidepanelUpdate()
-    } else {
-      const removed = await removeSpecificPermission('https://*/*')
-      httpsPermission = !removed
+    try {
+      if (checked) {
+        console.log('[GeneralSettings] Requesting Firefox permission...')
+        const granted = await requestSpecificPermission('https://*/*')
+        console.log('[GeneralSettings] Permission granted:', granted)
 
-      // Trigger sidepanel update sau khi remove permission
-      triggerSidepanelUpdate()
+        // Update store thay vì local state
+        await updateFirefoxPermission(permissionKey, granted)
+
+        // Trigger sidepanel update sau khi thay đổi permission
+        triggerSidepanelUpdate()
+      } else {
+        console.log('[GeneralSettings] Removing Firefox permission...')
+        const removed = await removeSpecificPermission('https://*/*')
+        console.log('[GeneralSettings] Permission removed:', removed)
+
+        // Update store - nếu removed thành công thì permission = false
+        await updateFirefoxPermission(permissionKey, !removed)
+
+        // Trigger sidepanel update sau khi remove permission
+        triggerSidepanelUpdate()
+      }
+    } catch (error) {
+      console.error(
+        '[GeneralSettings] Error handling permission change:',
+        error
+      )
+      // Reset về trạng thái trước đó nếu có lỗi
+      await updateFirefoxPermission(permissionKey, !checked)
     }
   }
 

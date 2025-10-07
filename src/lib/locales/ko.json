@@ -40,7 +40,12 @@
         "hide_desc": "웹 페이지에서 플로팅 버튼 숨기기"
       },
       "shortcuts": "단축키",
-      "shortcuts_settings": "단축키 설정"
+      "shortcuts_settings": "단축키 설정",
+      "icon_click_action": {
+        "title": "아이콘 클릭 동작",
+        "description": "확장 아이콘을 클릭할 때 사이드 패널 대신 팝업을 사용합니다. Arc 또는 Dia 브라우저에 유용합니다.",
+        "open_as_popup": "팝업으로 열기 (사이드 패널 대신)"
+      }
     },
     "fab": {
       "title": "플로팅 액션 버튼",

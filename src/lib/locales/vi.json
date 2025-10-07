@@ -40,7 +40,12 @@
         "hide_desc": "Ẩn nút nổi khỏi trang web."
       },
       "shortcuts": "Phím tắt",
-      "shortcuts_settings": "Cài Phím tắt"
+      "shortcuts_settings": "Cài Phím tắt",
+      "icon_click_action": {
+        "title": "Hành động khi nhấp vào biểu tượng",
+        "description": "Sử dụng popup thay vì thanh bên khi nhấp vào biểu tượng tiện ích. Hữu ích cho các trình duyệt như Arc hoặc Dia.",
+        "open_as_popup": "Mở dưới dạng Popup thay vì Thanh bên"
+      }
     },
     "fab": {
       "title": "Nút hành động nổi",

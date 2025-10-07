@@ -25,7 +25,7 @@
         "system": "Sistema",
         "system_desc": "Usa el tema de tu dispositivo."
       },
-      "responseMode": "Chế độ phản hồi (Chỉ làm việc trên Thanh bên)",
+      "responseMode": "Modo de respuesta (Solo funciona en el panel lateral)",
       "response_mode": {
         "streaming": "Streaming",
         "streaming_desc": "Respuestas instantáneas. Recomendado.",
@@ -40,7 +40,12 @@
         "hide_desc": "Ocultar botón flotante de las páginas web."
       },
       "shortcuts": "Atajos",
-      "shortcuts_settings": "Gestionar atajos"
+      "shortcuts_settings": "Gestionar atajos",
+      "icon_click_action": {
+        "title": "Acción al hacer clic en el icono",
+        "description": "Usar ventana emergente en lugar de panel lateral al hacer clic en el icono de la extensión. Útil para navegadores como Arc o Dia.",
+        "open_as_popup": "Abrir como ventana emergente en lugar de panel lateral"
+      }
     },
     "fab": {
       "title": "Botón de Acción Flotante",

@@ -33,7 +33,12 @@
         "non_streaming_desc": "适用于网络较慢的情况，避免卡顿。"
       },
       "shortcuts": "快捷键",
-      "shortcuts_settings": "管理快捷键"
+      "shortcuts_settings": "管理快捷键",
+      "icon_click_action": {
+        "title": "图标点击动作",
+        "description": "点击扩展图标时使用弹出窗口而不是侧边栏。对于 Arc 或 Dia 等浏览器很有用。",
+        "open_as_popup": "以弹出窗口形式打开而不是侧边栏"
+      }
     },
     "ai_model": {
       "title": "AI 模型",

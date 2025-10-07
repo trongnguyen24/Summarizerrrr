@@ -25,7 +25,7 @@
         "system": "System",
         "system_desc": "System-Design verwenden."
       },
-      "responseMode": "Chế độ phản hồi (Chỉ làm việc trên Thanh bên)",
+      "responseMode": "Antwortmodus (Funktioniert nur in der Seitenleiste)",
       "response_mode": {
         "streaming": "Streaming",
         "streaming_desc": "Echtzeitanzeige, bessere Erfahrung.",
@@ -40,7 +40,12 @@
         "hide_desc": "Schwebenden Button auf Webseiten ausblenden."
       },
       "shortcuts": "Tastenkürzel",
-      "shortcuts_settings": "Tastenkürzel"
+      "shortcuts_settings": "Tastenkürzel",
+      "icon_click_action": {
+        "title": "Icon-Klick-Aktion",
+        "description": "Beim Klicken auf das Icon-Popup anstelle des Seitenbereichs verwenden. Nützlich für Browser wie Arc oder Dia.",
+        "open_as_popup": "Als Popup anstelle des Seitenbereichs öffnen"
+      }
     },
     "fab": {
       "title": "Schwebender Aktionsbutton",

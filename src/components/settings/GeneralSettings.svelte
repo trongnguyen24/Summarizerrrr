@@ -123,15 +123,16 @@
 {#if import.meta.env.BROWSER === 'chrome'}
   <div class="flex flex-col gap-2 px-5 mt-6">
     <!-- svelte-ignore a11y_label_has_associated_control -->
-    <label class="block font-bold text-primary">Icon Click Action</label>
+    <label class="block font-bold text-primary"
+      >{$t('settings.general.icon_click_action.title')}</label
+    >
 
     <p class="text-xs text-text-secondary">
-      Use popup instead of side panel when clicking the extension icon. Useful
-      for browsers like Arc or Dia browser.
+      {$t('settings.general.icon_click_action.description')}
     </p>
     <SwitchPermission
       id="open-settings-as-popup-switch"
-      name="Open as Popup instead of Side Panel"
+      name={$t('settings.general.icon_click_action.open_as_popup')}
       bind:checked={settings.openSettingsOnClick}
       onCheckedChange={() =>
         handleUpdateSetting(

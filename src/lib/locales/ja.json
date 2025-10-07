@@ -40,7 +40,12 @@
         "hide_desc": "Webページからフローティングボタンを非表示にします。"
       },
       "shortcuts": "ショートカット",
-      "shortcuts_settings": "ショートカット設定"
+      "shortcuts_settings": "ショートカット設定",
+      "icon_click_action": {
+        "title": "アイコンクリック時の動作",
+        "description": "拡張機能のアイコンをクリックしたときにサイドパネルの代わりにポップアップを使用します。ArcやDiaなどのブラウザで便利です。",
+        "open_as_popup": "ポップアップとして開く（サイドパネルの代わりに）"
+      }
     },
     "fab": {
       "title": "フローティングアクションボタン",

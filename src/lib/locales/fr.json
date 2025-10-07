@@ -25,7 +25,7 @@
         "system": "Système",
         "system_desc": "Utilise le thème de votre appareil."
       },
-      "responseMode": "Chế độ phản hồi (Chỉ làm việc trên Thanh bên)",
+      "responseMode": "Mode de réponse (Fonctionne uniquement dans le panneau latéral)",
       "response_mode": {
         "streaming": "Streaming",
         "streaming_desc": "Réponses instantanées. Recommandé.",
@@ -40,7 +40,12 @@
         "hide_desc": "Masquer le bouton flottant des pages web."
       },
       "shortcuts": "Raccourcis",
-      "shortcuts_settings": "Gérer les raccourcis"
+      "shortcuts_settings": "Gérer les raccourcis",
+      "icon_click_action": {
+        "title": "Action au clic sur l'icône",
+        "description": "Utiliser une popup au lieu du panneau latéral lors du clic sur l'icône de l'extension. Utile pour les navigateurs comme Arc ou Dia.",
+        "open_as_popup": "Ouvrir en popup au lieu du panneau latéral"
+      }
     },
     "fab": {
       "title": "Bouton d'action flottant",

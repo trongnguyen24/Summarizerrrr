@@ -40,7 +40,12 @@
         "hide_desc": "Hide floating button from web pages."
       },
       "shortcuts": "Shortcuts",
-      "shortcuts_settings": "Shortcut Settings"
+      "shortcuts_settings": "Shortcut Settings",
+      "icon_click_action": {
+        "title": "Icon Click Action",
+        "description": "Use popup instead of side panel when clicking the extension icon. Useful for browsers like Arc or Dia browser.",
+        "open_as_popup": "Open as Popup instead of Side Panel"
+      }
     },
     "fab": {
       "title": "Floating Action Button",

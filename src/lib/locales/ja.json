@@ -296,6 +296,8 @@
     "firefox_addons": "Firefoxアドオン"
   },
   "permissionWarning": {
+    "title": "権限",
+    "button": "すべてのウェブサイトのデータにアクセス",
     "description": "デフォルトではYouTube、Udemy、Courseraにアクセスします。他のサイトを要約するには、以下で権限を付与してください。",
     "requesting": "リクエスト中...",
     "grant_permissions": "権限を付与"

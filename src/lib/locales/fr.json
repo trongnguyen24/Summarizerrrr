@@ -296,6 +296,8 @@
     "firefox_addons": "Firefox Add-ons"
   },
   "permissionWarning": {
+    "title": "Permissions",
+    "button": "Accéder à vos données pour tous les sites Web",
     "description": "Accès par défaut à YouTube, Udemy et Coursera. Pour résumer d'autres sites, veuillez accorder les autorisations ci-dessous.",
     "requesting": "Demande en cours...",
     "grant_permissions": "Accorder les autorisations"

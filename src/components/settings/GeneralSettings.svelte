@@ -100,10 +100,11 @@
 {#if import.meta.env.BROWSER === 'firefox'}
   <div class="flex flex-col gap-2 px-5 mt-6">
     <!-- svelte-ignore a11y_label_has_associated_control -->
-    <label class="block font-bold text-primary">Permissions </label>
+    <label class="block font-bold text-primary">
+      {$t('permissionWarning.title')}</label
+    >
     <p class="text-xs text-text-secondary">
-      Default access YouTube, Udemy and Coursera. For summarize other sites,
-      please grant permissions below.
+      {$t('permissionWarning.description')}
     </p>
 
     <!-- Chỉ còn 1 checkbox: General Website Access -->
@@ -111,7 +112,7 @@
 
     <SwitchPermission
       id="https-permission-switch"
-      name="Access your data for all websites"
+      name=" {$t('permissionWarning.button')}"
       bind:checked={httpsPermission}
       onCheckedChange={handleHttpsPermission}
     />

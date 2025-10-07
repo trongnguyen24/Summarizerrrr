@@ -272,5 +272,12 @@
     "github": "GitHub",
     "chrome_store": "Chrome 网上应用店",
     "firefox_addons": "Firefox 附加组件"
+  },
+  "permissionWarning": {
+    "title": "权限",
+    "button": "访问您在所有网站上的数据",
+    "description": "默认访问 YouTube、Udemy 和 Coursera。要总结其他网站，请在下方授予权限。",
+    "requesting": "请求中...",
+    "grant_permissions": "授予权限"
   }
 }

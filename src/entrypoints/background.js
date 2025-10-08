@@ -313,40 +313,46 @@ export default defineBackground(() => {
   if (import.meta.env.BROWSER === 'chrome') {
     // Setup Chrome action behavior based on settings
     async function setupChromeAction() {
-      try {
-        console.log('[Background] Starting to load settings...')
-        const currentSettings = await loadSettings()
-        console.log('[Background] Loaded settings:', currentSettings)
-        console.log('[Background] Settings type:', typeof currentSettings)
+      const MAX_RETRIES = 3
+      const RETRY_DELAY = 500 // ms
 
-        // Check if currentSettings is actually the resolved value or Promise
-        if (currentSettings && typeof currentSettings.then === 'function') {
-          console.log(
-            '[Background] loadSettings returned a Promise, waiting...'
+      for (let i = 0; i < MAX_RETRIES; i++) {
+        try {
+          console.log(`[Background] Attempt ${i + 1} to load settings...`)
+          const settings = await loadSettings()
+
+          if (settings && typeof settings === 'object') {
+            const action = settings.iconClickAction ?? 'sidepanel'
+            console.log(
+              `[Background] Settings loaded successfully. Setting action to: ${action}`
+            )
+            updateChromeActionBehavior(action)
+            return // Success, exit the function
+          }
+
+          // This case handles if loadSettings() resolves with a non-object value
+          console.warn(
+            '[Background] loadSettings resolved with invalid data:',
+            settings
           )
-          const resolvedSettings = await currentSettings
-          console.log('[Background] Resolved settings:', resolvedSettings)
-          const action = resolvedSettings?.iconClickAction ?? 'sidepanel'
-          updateChromeActionBehavior(action)
-        } else if (currentSettings && typeof currentSettings === 'object') {
-          console.log('[Background] loadSettings returned object directly')
-          const action = currentSettings.iconClickAction ?? 'sidepanel'
-          console.log(
-            '[Background] iconClickAction value:',
-            currentSettings.iconClickAction
+        } catch (error) {
+          console.error(
+            `[Background] Error on attempt ${i + 1} to set up Chrome action:`,
+            error
           )
-          console.log('[Background] Using action:', action)
-          updateChromeActionBehavior(action)
-        } else {
-          console.log(
-            '[Background] loadSettings returned invalid data, using default'
-          )
-          updateChromeActionBehavior('sidepanel') // Default to false (use side panel)
         }
-      } catch (error) {
-        console.error('[Background] Error setting up Chrome action:', error)
-              // Fallback to popup if settings load fails
-              updateChromeActionBehavior('sidepanel')      }
+
+        // If not the last attempt, wait before retrying
+        if (i < MAX_RETRIES - 1) {
+          await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY))
+        }
+      }
+
+      console.error(
+        `[Background] Failed to load settings after ${MAX_RETRIES} attempts. Action will not be set on startup.`
+      )
+      // Do not set a default action. The settings watcher will still pick up
+      // any eventual successful load.
     }
     setupChromeAction()
   } else if (import.meta.env.BROWSER === 'firefox') {

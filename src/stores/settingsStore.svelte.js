@@ -42,7 +42,7 @@ const DEFAULT_SETTINGS = {
   widthIndex: 1, // Default to max-w-3xl
   sidePanelDefaultWidth: 25, // Default width for side panel in em units
   oneClickSummarize: false, // Enable 1-click summarization on FAB
-  openSettingsOnClick: false, // By default, clicking the icon opens the side panel. Enable this to open a popup instead (for browsers like Arc/Dia).
+    iconClickAction: 'sidepanel', // 'sidepanel', 'popup', or 'floating'
   fabDomainControl: {
     mode: 'all', // 'all' | 'whitelist' | 'blacklist'
     whitelist: ['youtube.com', 'coursera.org', 'udemy.com'],

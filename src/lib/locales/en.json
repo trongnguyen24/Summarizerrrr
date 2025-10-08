@@ -43,8 +43,10 @@
       "shortcuts_settings": "Shortcut Settings",
       "icon_click_action": {
         "title": "Icon Click Action",
-        "description": "Use popup instead of side panel when clicking the extension icon. Useful for browsers like Arc or Dia browser.",
-        "open_as_popup": "Open as Popup instead of Side Panel"
+        "description": "Determines the action taken when the toolbar icon is clicked: open the side panel, a popup, or the floating panel (recommended for Arc or Dia browser).",
+        "open_sidepanel": "Open the sidepanel",
+        "open_popup": "Open a popup settings",
+        "open_floating": "Open a floating panel on the page"
       }
     },
     "fab": {

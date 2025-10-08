@@ -43,8 +43,10 @@
       "shortcuts_settings": "Tastenkürzel",
       "icon_click_action": {
         "title": "Icon-Klick-Aktion",
-        "description": "Beim Klicken auf das Icon-Popup anstelle des Seitenbereichs verwenden. Nützlich für Browser wie Arc oder Dia.",
-        "open_as_popup": "Als Popup anstelle des Seitenbereichs öffnen"
+        "description": "Legt fest, welche Aktion beim Klicken auf das Symbol der Symbolleiste ausgeführt wird: Seitenbereich, Popup oder schwebendes Panel (für Browser wie Arc oder Dia empfohlen).",
+        "open_sidepanel": "Seitenbereich öffnen",
+        "open_popup": "Popup-Einstellungen öffnen",
+        "open_floating": "Schwebendes Panel auf der Seite öffnen"
       }
     },
     "fab": {

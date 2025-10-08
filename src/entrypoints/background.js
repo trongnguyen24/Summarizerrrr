@@ -186,53 +186,41 @@ export default defineBackground(() => {
     console.log('[Background] Settings storage changed:', newValue)
     if (
       import.meta.env.BROWSER === 'chrome' &&
-      newValue?.openSettingsOnClick !== undefined
+      newValue?.iconClickAction !== undefined
     ) {
       console.log(
         '[Background] Updating Chrome action behavior due to settings change'
       )
-      updateChromeActionBehavior(newValue.openSettingsOnClick)
+      updateChromeActionBehavior(newValue.iconClickAction)
     }
   })
 
   // Function to update Chrome action behavior
-  let chromeActionListener = null
-  function updateChromeActionBehavior(usePopup) {
-    if (import.meta.env.BROWSER !== 'chrome') return
-
-    console.log(
-      '[Background] updateChromeActionBehavior called with usePopup:',
-      usePopup
-    )
-    console.log('[Background] isMobile:', isMobile)
+  function updateChromeActionBehavior(iconClickAction) {
+    if (import.meta.env.BROWSER !== 'chrome' || isMobile) return
 
     try {
-      // Remove existing listener if any
-      if (chromeActionListener) {
-        chrome.action.onClicked.removeListener(chromeActionListener)
-        chromeActionListener = null
-        console.log('[Background] Removed existing click listener')
-      }
-
-      // If on mobile or if the setting to use a popup is enabled, set up the popup.
-      if (isMobile || usePopup) {
-        console.log('[Background] Using popup action')
-        chrome.sidePanel?.setPanelBehavior({ openPanelOnActionClick: false })
-        chromeActionListener = () => {
-          console.log('[Background] Opening popup window')
-          browser.windows.create({
-            url: browser.runtime.getURL('popop.html'),
-            type: 'popup',
-            width: 400,
-            height: 600,
+      switch (iconClickAction) {
+        case 'popup':
+          console.log('[Background] Setting action to POPUP')
+          chrome.sidePanel?.setPanelBehavior({ openPanelOnActionClick: false })
+          browser.action.setPopup({
+            popup: browser.runtime.getURL('popop.html'),
           })
-        }
-        chrome.action.onClicked.addListener(chromeActionListener)
-        console.log('[Background] Added popup click listener')
-      } else {
-        // Otherwise, use the side panel.
-        console.log('[Background] Using side panel action')
-        chrome.sidePanel?.setPanelBehavior({ openPanelOnActionClick: true })
+          break
+
+        case 'floating':
+          console.log('[Background] Setting action to FLOATING')
+          chrome.sidePanel?.setPanelBehavior({ openPanelOnActionClick: false })
+          browser.action.setPopup({ popup: '' }) // Clear popup to enable onClicked
+          break
+
+        case 'sidepanel':
+        default:
+          console.log('[Background] Setting action to SIDEPANEL')
+          chrome.sidePanel?.setPanelBehavior({ openPanelOnActionClick: true })
+          browser.action.setPopup({ popup: '' }) // Clear popup to enable onClicked
+          break
       }
     } catch (error) {
       console.error(
@@ -241,6 +229,28 @@ export default defineBackground(() => {
       )
     }
   }
+
+  // Single, persistent listener for the browser action
+  browser.action.onClicked.addListener(async (tab) => {
+    const settings = await settingsStorage.getValue()
+    const action = settings?.iconClickAction ?? 'sidepanel'
+
+    if (action === 'floating') {
+      console.log('[Background] Floating action clicked, toggling panel...')
+      try {
+        await browser.tabs.sendMessage(tab.id, {
+          type: 'TOGGLE_FLOATING_PANEL',
+        })
+      } catch (error) {
+        console.error(
+          '[Background] Could not send TOGGLE_FLOATING_PANEL message:',
+          error
+        )
+      }
+    }
+    // Note: 'popup' action is handled by browser.action.setPopup and will not trigger this listener.
+    // 'sidepanel' action is handled by chrome.sidePanel.setPanelBehavior and also won't trigger this listener.
+  })
 
   // Subscribe to settings changes - this function returns a watcher
   const unsubscribe = subscribeToSettingsChanges()
@@ -316,28 +326,27 @@ export default defineBackground(() => {
           )
           const resolvedSettings = await currentSettings
           console.log('[Background] Resolved settings:', resolvedSettings)
-          const usePopup = resolvedSettings?.openSettingsOnClick ?? false
-          updateChromeActionBehavior(usePopup)
+          const action = resolvedSettings?.iconClickAction ?? 'sidepanel'
+          updateChromeActionBehavior(action)
         } else if (currentSettings && typeof currentSettings === 'object') {
           console.log('[Background] loadSettings returned object directly')
-          const usePopup = currentSettings.openSettingsOnClick ?? false
+          const action = currentSettings.iconClickAction ?? 'sidepanel'
           console.log(
-            '[Background] openSettingsOnClick (usePopup) value:',
-            currentSettings.openSettingsOnClick
+            '[Background] iconClickAction value:',
+            currentSettings.iconClickAction
           )
-          console.log('[Background] Using usePopup:', usePopup)
-          updateChromeActionBehavior(usePopup)
+          console.log('[Background] Using action:', action)
+          updateChromeActionBehavior(action)
         } else {
           console.log(
             '[Background] loadSettings returned invalid data, using default'
           )
-          updateChromeActionBehavior(false) // Default to false (use side panel)
+          updateChromeActionBehavior('sidepanel') // Default to false (use side panel)
         }
       } catch (error) {
         console.error('[Background] Error setting up Chrome action:', error)
-        // Fallback to popup if settings load fails
-        updateChromeActionBehavior(false)
-      }
+              // Fallback to popup if settings load fails
+              updateChromeActionBehavior('sidepanel')      }
     }
     setupChromeAction()
   } else if (import.meta.env.BROWSER === 'firefox') {

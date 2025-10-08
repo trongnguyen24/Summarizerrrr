@@ -43,8 +43,10 @@
       "shortcuts_settings": "Gestionar atajos",
       "icon_click_action": {
         "title": "Acción al hacer clic en el icono",
-        "description": "Usar ventana emergente en lugar de panel lateral al hacer clic en el icono de la extensión. Útil para navegadores como Arc o Dia.",
-        "open_as_popup": "Abrir como ventana emergente en lugar de panel lateral"
+        "description": "Determina la acción realizada al hacer clic en el icono de la barra de herramientas: abrir el panel lateral, una ventana emergente, o el panel flotante (recomendado para navegadores como Arc o Dia).",
+        "open_sidepanel": "Abrir el panel lateral",
+        "open_popup": "Abrir configuración emergente",
+        "open_floating": "Abrir panel flotante en la página"
       }
     },
     "fab": {

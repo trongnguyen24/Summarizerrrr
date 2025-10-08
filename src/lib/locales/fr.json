@@ -43,8 +43,10 @@
       "shortcuts_settings": "Gérer les raccourcis",
       "icon_click_action": {
         "title": "Action au clic sur l'icône",
-        "description": "Utiliser une popup au lieu du panneau latéral lors du clic sur l'icône de l'extension. Utile pour les navigateurs comme Arc ou Dia.",
-        "open_as_popup": "Ouvrir en popup au lieu du panneau latéral"
+        "description": "Détermine l'action effectuée lors du clic sur l'icône de la barre d'outils : ouvrir le panneau latéral, une popup, ou le panneau flottant (recommandé pour les navigateurs comme Arc ou Dia).",
+        "open_sidepanel": "Ouvrir le panneau latéral",
+        "open_popup": "Ouvrir les paramètres en popup",
+        "open_floating": "Ouvrir un panneau flottant sur la page"
       }
     },
     "fab": {

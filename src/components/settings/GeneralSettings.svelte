@@ -200,38 +200,48 @@
 {/if}
 
 <!-- Sidepanel Support Setting - Only show on Chrome -->
-{#if import.meta.env.BROWSER === 'chrome'}
+{#if import.meta.env.BROWSER === 'chrome' && !browserCompatibility.isMobile}
   <div class="flex flex-col gap-2 px-5 mt-6">
     <!-- svelte-ignore a11y_label_has_associated_control -->
-    <label class="block font-bold text-primary"
+    <label class="block text-text-primary font-bold"
       >{$t('settings.general.icon_click_action.title')}</label
     >
 
     <p class="text-xs text-text-secondary">
       {$t('settings.general.icon_click_action.description')}
     </p>
-    <SwitchPermission
-      id="open-settings-as-popup-switch"
-      name={$t('settings.general.icon_click_action.open_as_popup')}
-      bind:checked={settings.openSettingsOnClick}
-      onCheckedChange={() =>
-        handleUpdateSetting(
-          'openSettingsOnClick',
-          settings.openSettingsOnClick
-        )}
-    />
+    <div class="flex w-full gap-1">
+      <ButtonSet
+        title="Sidepanel"
+        class={`setting-btn ${
+          settings.iconClickAction === 'sidepanel' ? 'active' : ''
+        }`}
+        onclick={() => handleUpdateSetting('iconClickAction', 'sidepanel')}
+        Description={$t('settings.general.icon_click_action.open_sidepanel')}
+      />
+      <ButtonSet
+        title="Settings"
+        class={`setting-btn ${
+          settings.iconClickAction === 'popup' ? 'active' : ''
+        }`}
+        onclick={() => handleUpdateSetting('iconClickAction', 'popup')}
+        Description={$t('settings.general.icon_click_action.open_popup')}
+      />
+      <ButtonSet
+        title="FAB"
+        class={`setting-btn ${
+          settings.iconClickAction === 'floating' ? 'active' : ''
+        }`}
+        onclick={() => handleUpdateSetting('iconClickAction', 'floating')}
+        Description={$t('settings.general.icon_click_action.open_floating')}
+      />
+    </div>
   </div>
 {/if}
-<div class="setting-block flex pb-6 pt-5 flex-col">
-  <div class="flex items-center h-6 justify-between px-5">
-    <label for="advanced-mode-toggle" class="block font-bold text-text-primary"
-      >{$t('settings.general.title')}</label
-    >
-  </div>
-
+<div class="setting-block flex pb-6 pt-1 flex-col">
   <div class="flex flex-col gap-2 p-5">
     <!-- svelte-ignore a11y_label_has_associated_control -->
-    <label class="block text-text-secondary"
+    <label class="block text-text-primary font-bold"
       >{$t('settings.general.fontFamily')}</label
     >
     <div class="flex flex-col w-full gap-1">
@@ -274,7 +284,7 @@
 
   <div class="flex flex-col gap-2 px-5 pb-4">
     <!-- svelte-ignore a11y_label_has_associated_control -->
-    <label class="block text-text-secondary"
+    <label class="block text-text-primary font-bold"
       >{$t('settings.general.theme')}</label
     >
     <div class="flex w-full gap-1">
@@ -311,7 +321,7 @@
 
   <div class="flex flex-col gap-2 px-5 pb-4">
     <!-- svelte-ignore a11y_label_has_associated_control -->
-    <label class="block text-text-secondary"
+    <label class="block text-text-primary font-bold"
       >{$t('settings.general.lang_ui')}</label
     >
     <div class="flex w-full gap-1">

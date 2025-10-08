@@ -43,8 +43,10 @@
       "shortcuts_settings": "Cài Phím tắt",
       "icon_click_action": {
         "title": "Hành động khi nhấp vào biểu tượng",
-        "description": "Sử dụng popup thay vì thanh bên khi nhấp vào biểu tượng tiện ích. Hữu ích cho các trình duyệt như Arc hoặc Dia.",
-        "open_as_popup": "Mở dưới dạng Popup thay vì Thanh bên"
+        "description": "Xác định hành động được thực hiện khi nhấp vào biểu tượng thanh công cụ: mở thanh bên, popup, hoặc bảng điều khiển nổi (khuyến nghị cho trình duyệt Arc hoặc Dia).",
+        "open_sidepanel": "Mở thanh bên",
+        "open_popup": "Mở cài đặt popup",
+        "open_floating": "Mở bảng điều khiển nổi trên trang"
       }
     },
     "fab": {

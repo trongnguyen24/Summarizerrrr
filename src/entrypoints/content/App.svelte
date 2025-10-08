@@ -123,6 +123,12 @@
     }
     mediaQuery.addEventListener('change', handleSystemThemeChange)
 
+    browser.runtime.onMessage.addListener((message) => {
+      if (message.type === 'TOGGLE_FLOATING_PANEL') {
+        togglePanel()
+      }
+    })
+
     return () => {
       window.removeEventListener('resize', checkMobile)
       mediaQuery.removeEventListener('change', handleSystemThemeChange)

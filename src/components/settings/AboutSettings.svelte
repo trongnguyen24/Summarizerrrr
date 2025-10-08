@@ -33,7 +33,9 @@
 <!-- About Section -->
 <div class=" text-pretty flex pb-12 pt-5 px-5 flex-col space-y-6">
   <!-- Logo và tên -->
-  <div class="flex gap-2 sm:gap-6 flex-col sm:flex-row items-center">
+  <div
+    class="flex relative z-50 gap-2 sm:gap-6 flex-col sm:flex-row items-center"
+  >
     <div class="w-56 relative shrink-0 p-4"><Logo /></div>
     <div>
       <h2 class="text-lg text-center sm:text-left font-bold text-primary">
@@ -70,20 +72,20 @@
       <li class="flex gap-4 items-start">
         <div class="size-16 shrink-0 overflow-hidden relative">
           <div
-            class="absolute z-40 border border-border dark:border-surface-2 inset-0"
+            class="absolute z-[4] border border-border dark:border-surface-2 inset-0"
           ></div>
           <div class="absolute inset-1 bg-white/50 dark:bg-white/3"></div>
           <span
-            class="absolute z-20 size-6 rotate-45 bg-surface-1 bottom-px left-px -translate-x-1/2 translate-y-1/2"
+            class="absolute z-[2] size-6 rotate-45 bg-surface-1 bottom-px left-px -translate-x-1/2 translate-y-1/2"
           ></span>
           <span
-            class="absolute z-20 size-6 rotate-45 bg-surface-1 top-px right-px translate-x-1/2 -translate-y-1/2"
+            class="absolute z-[2] size-6 rotate-45 bg-surface-1 top-px right-px translate-x-1/2 -translate-y-1/2"
           ></span>
           <span
-            class="absolute z-50 size-4 rotate-45 bg-surface-1 border border-border dark:border-surface-2 bottom-px left-px -translate-x-1/2 translate-y-1/2"
+            class="absolute z-[5] size-4 rotate-45 bg-surface-1 border border-border dark:border-surface-2 bottom-px left-px -translate-x-1/2 translate-y-1/2"
           ></span>
           <span
-            class="absolute z-50 size-4 rotate-45 border-surface-1 bg-border dark:bg-muted border dark:border-surface-2 top-px right-px translate-x-1/2 -translate-y-1/2"
+            class="absolute z-[5] size-4 rotate-45 border-surface-1 bg-border dark:bg-muted border dark:border-surface-2 top-px right-px translate-x-1/2 -translate-y-1/2"
           ></span>
           <Icon
             icon="heroicons:circle-stack"
@@ -101,20 +103,20 @@
       <li class="flex gap-4 items-start">
         <div class="size-16 shrink-0 overflow-hidden relative">
           <div
-            class="absolute z-40 border border-border dark:border-surface-2 inset-0"
+            class="absolute z-[4] border border-border dark:border-surface-2 inset-0"
           ></div>
           <div class="absolute inset-1 bg-white/50 dark:bg-white/3"></div>
           <span
-            class="absolute z-20 size-6 rotate-45 bg-surface-1 bottom-px left-px -translate-x-1/2 translate-y-1/2"
+            class="absolute z-[2] size-6 rotate-45 bg-surface-1 bottom-px left-px -translate-x-1/2 translate-y-1/2"
           ></span>
           <span
-            class="absolute z-20 size-6 rotate-45 bg-surface-1 top-px right-px translate-x-1/2 -translate-y-1/2"
+            class="absolute z-[2] size-6 rotate-45 bg-surface-1 top-px right-px translate-x-1/2 -translate-y-1/2"
           ></span>
           <span
-            class="absolute z-50 size-4 rotate-45 bg-surface-1 border border-border dark:border-surface-2 bottom-px left-px -translate-x-1/2 translate-y-1/2"
+            class="absolute z-[5] size-4 rotate-45 bg-surface-1 border border-border dark:border-surface-2 bottom-px left-px -translate-x-1/2 translate-y-1/2"
           ></span>
           <span
-            class="absolute z-50 size-4 rotate-45 border-surface-1 bg-border dark:bg-muted border dark:border-surface-2 top-px right-px translate-x-1/2 -translate-y-1/2"
+            class="absolute z-[5] size-4 rotate-45 border-surface-1 bg-border dark:bg-muted border dark:border-surface-2 top-px right-px translate-x-1/2 -translate-y-1/2"
           ></span>
           <Icon
             icon="heroicons:adjustments-horizontal"
@@ -132,20 +134,20 @@
       <li class="flex gap-4 items-start">
         <div class="size-16 shrink-0 overflow-hidden relative">
           <div
-            class="absolute z-40 border border-border dark:border-surface-2 inset-0"
+            class="absolute z-[4] border border-border dark:border-surface-2 inset-0"
           ></div>
           <div class="absolute inset-1 bg-white/50 dark:bg-white/3"></div>
           <span
-            class="absolute z-20 size-6 rotate-45 bg-surface-1 bottom-px left-px -translate-x-1/2 translate-y-1/2"
+            class="absolute z-[2] size-6 rotate-45 bg-surface-1 bottom-px left-px -translate-x-1/2 translate-y-1/2"
           ></span>
           <span
-            class="absolute z-20 size-6 rotate-45 bg-surface-1 top-px right-px translate-x-1/2 -translate-y-1/2"
+            class="absolute z-[2] size-6 rotate-45 bg-surface-1 top-px right-px translate-x-1/2 -translate-y-1/2"
           ></span>
           <span
-            class="absolute z-50 size-4 rotate-45 bg-surface-1 border border-border dark:border-surface-2 bottom-px left-px -translate-x-1/2 translate-y-1/2"
+            class="absolute z-[5] size-4 rotate-45 bg-surface-1 border border-border dark:border-surface-2 bottom-px left-px -translate-x-1/2 translate-y-1/2"
           ></span>
           <span
-            class="absolute z-50 size-4 rotate-45 border-surface-1 bg-border dark:bg-muted border dark:border-surface-2 top-px right-px translate-x-1/2 -translate-y-1/2"
+            class="absolute z-[5] size-4 rotate-45 border-surface-1 bg-border dark:bg-muted border dark:border-surface-2 top-px right-px translate-x-1/2 -translate-y-1/2"
           ></span>
           <Icon
             icon="heroicons:device-phone-mobile"

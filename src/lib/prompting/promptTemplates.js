@@ -181,7 +181,7 @@ __CONTENT__
 </INPUT_CONTENT>`,
   },
 
-  reply: {
+  debate: {
     systemPrompt: `You are an objective analyst.  
 Your task is to examine a concept, idea, or issue from **two opposing perspectives** — those in favor and those against.  
 Remain neutral, factual, and concise.  

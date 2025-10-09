@@ -21,10 +21,10 @@
       description: 'Explain in simple terms',
     },
     {
-      key: 'reply',
-      label: 'Reply',
+      key: 'debate',
+      label: 'Debate',
       icon: 'heroicons:chat-bubble-oval-left-16-solid',
-      description: 'Generate thoughtful response',
+      description: 'Analyze from multiple perspectives',
     },
   ]
 

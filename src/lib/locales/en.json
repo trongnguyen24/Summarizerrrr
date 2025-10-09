@@ -315,7 +315,7 @@
   "custom_actions": {
     "analyze": "Analyze",
     "explain": "Explain",
-    "reply": "Reply",
+    "debate": "Debate",
     "analyze_description": "Analyze content structure and arguments",
     "explain_description": "Explain in simple terms",
     "reply_description": "Generate thoughtful response",

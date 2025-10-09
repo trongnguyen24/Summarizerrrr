@@ -90,7 +90,7 @@ function validateApiKey(userSettings, selectedProviderId) {
 /**
  * Summarizes content using the selected AI provider.
  * @param {string} text - Content to summarize (transcript, web page text, or selected text).
- * @param {'youtube' | 'general' | 'selectedText' | 'analyze' | 'explain' | 'reply'} contentType - The type of content being summarized.
+ * @param {'youtube' | 'general' | 'selectedText' | 'analyze' | 'explain' | 'debate'} contentType - The type of content being summarized.
  * @returns {Promise<string>} - Promise that resolves with the summary in Markdown format.
  */
 export async function summarizeContent(text, contentType) {
@@ -107,9 +107,9 @@ export async function summarizeContent(text, contentType) {
   // Validate API key
   validateApiKey(userSettings, selectedProviderId)
 
-  let systemInstruction, userPrompt;
+  let systemInstruction, userPrompt
 
-  const customActionTypes = ['analyze', 'explain', 'reply'];
+  const customActionTypes = ['analyze', 'explain', 'debate']
 
   if (customActionTypes.includes(contentType)) {
     systemInstruction = customActionTemplates[contentType].systemPrompt
@@ -117,7 +117,8 @@ export async function summarizeContent(text, contentType) {
       .replace('__CONTENT__', text)
       .replace('__LANG__', userSettings.summaryLang)
   } else {
-    const contentConfig = promptBuilders[contentType] || promptBuilders['general'] // Fallback to general
+    const contentConfig =
+      promptBuilders[contentType] || promptBuilders['general'] // Fallback to general
 
     if (!contentConfig.buildPrompt) {
       throw new Error(
@@ -125,13 +126,13 @@ export async function summarizeContent(text, contentType) {
       )
     }
 
-    ({ systemInstruction, userPrompt } = contentConfig.buildPrompt(
+    ;({ systemInstruction, userPrompt } = contentConfig.buildPrompt(
       text,
       userSettings.summaryLang,
       userSettings.summaryLength,
       userSettings.summaryFormat,
       userSettings.summaryTone
-    ));
+    ))
   }
 
   try {

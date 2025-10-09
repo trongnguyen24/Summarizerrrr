@@ -51,7 +51,7 @@ export const summaryState = $state({
   pageTitle: '', // Thêm pageTitle vào state
   pageUrl: '', // Thêm pageUrl vào state
   isArchived: false,
-  currentActionType: 'summarize', // 'summarize' | 'analyze' | 'explain' | 'reply'
+  currentActionType: 'summarize', // 'summarize' | 'analyze' | 'explain' | 'debate'
   customActionResult: '',
   isCustomActionLoading: false,
   customActionError: null,
@@ -801,8 +801,8 @@ export async function logAllGeneratedSummariesToHistory() {
 }
 
 /**
- * Execute custom action (analyze, explain, reply) on current page content
- * @param {string} actionType - 'analyze' | 'explain' | 'reply'
+ * Execute custom action (analyze, explain, debate) on current page content
+ * @param {string} actionType - 'analyze' | 'explain' | 'debate'
  */
 export async function executeCustomAction(actionType) {
   // Prevent multiple simultaneous actions

@@ -43,52 +43,15 @@ async function isStorageReady() {
 }
 
 /**
- * Debug storage to understand what keys exist and their structure
- * @returns {Promise<void>}
- */
-async function debugStorage() {
-  try {
-    console.log('[Background] === STORAGE DEBUG START ===')
-
-    // Get all local storage data
-    const allLocalData = await browser.storage.local.get(null)
-    console.log(
-      '[Background] All local storage keys:',
-      Object.keys(allLocalData)
-    )
-    console.log('[Background] All local storage data:', allLocalData)
-
-    // Check specific possible keys
-    const possibleKeys = [
-      'local:settings',
-      'settings',
-      'wxt:settings',
-      'local_settings',
-    ]
-    for (const key of possibleKeys) {
-      const result = await browser.storage.local.get(key)
-      console.log(`[Background] Key '${key}':`, result[key] || 'NOT FOUND')
-    }
-
-    console.log('[Background] === STORAGE DEBUG END ===')
-  } catch (error) {
-    console.error('[Background] Storage debug error:', error)
-  }
-}
-
-/**
- * Load settings directly from browser.storage with comprehensive key checking
+ * Load settings directly from browser.storage with multiple key patterns
  * @returns {Promise<Object|null>} Settings object or null if failed
  */
 async function loadSettingsDirectly() {
   try {
-    // Debug storage first
-    await debugStorage()
-
-    // Try multiple possible storage keys
+    // Try multiple possible storage keys based on discovered patterns
     const possibleKeys = [
-      'local:settings',
       'settings',
+      'local:settings',
       'wxt:settings',
       'local_settings',
     ]
@@ -102,15 +65,10 @@ async function loadSettingsDirectly() {
         typeof storedSettings === 'object' &&
         Object.keys(storedSettings).length > 0
       ) {
-        console.log(
-          `[Background] Found settings with key '${key}':`,
-          storedSettings.iconClickAction || 'no iconClickAction'
-        )
         return storedSettings
       }
     }
 
-    console.warn('[Background] No settings found with any known key patterns')
     return null
   } catch (error) {
     console.error('[Background] Error loading settings directly:', error)
@@ -150,62 +108,35 @@ async function initializeDefaultSettings() {
  */
 async function loadSettingsWithReadiness() {
   try {
-    console.log('[Background] Starting comprehensive settings loading...')
-
     // Strategy 1: Check if storage is ready and try WXT storage
     if (await isStorageReady()) {
       try {
-        console.log('[Background] Storage is ready, trying WXT storage...')
         const settings = await loadSettings()
         if (
           settings &&
           typeof settings === 'object' &&
           settings.iconClickAction
         ) {
-          console.log(
-            '[Background] Settings loaded via WXT storage:',
-            settings.iconClickAction
-          )
           return settings
         }
-        console.warn(
-          '[Background] WXT storage returned invalid settings:',
-          settings
-        )
       } catch (error) {
-        console.warn(
-          '[Background] WXT storage failed, trying direct access:',
-          error.message
-        )
+        console.warn('[Background] WXT storage failed, trying direct access')
       }
-    } else {
-      console.warn('[Background] Storage readiness check failed')
     }
 
     // Strategy 2: Direct browser.storage access as backup
-    console.log('[Background] Trying direct storage access...')
     const directSettings = await loadSettingsDirectly()
     if (directSettings && directSettings.iconClickAction) {
-      console.log('[Background] Found settings via direct access')
       return directSettings
     }
 
     // Strategy 3: Initialize default settings as last resort
-    console.warn(
-      '[Background] No existing settings found, initializing defaults...'
-    )
     const defaultSettings = await initializeDefaultSettings()
     if (defaultSettings && defaultSettings.iconClickAction) {
-      console.log(
-        '[Background] Using initialized default settings:',
-        defaultSettings.iconClickAction
-      )
       return defaultSettings
     }
 
-    console.error(
-      '[Background] All settings loading strategies failed completely'
-    )
+    console.warn('[Background] All settings loading strategies failed')
     return null
   } catch (error) {
     console.error('[Background] Error in loadSettingsWithReadiness:', error)

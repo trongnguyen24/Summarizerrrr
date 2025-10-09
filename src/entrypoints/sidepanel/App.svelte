@@ -5,6 +5,7 @@
   import 'overlayscrollbars/overlayscrollbars.css'
   import SettingButton from '@/components/buttons/SettingButton.svelte'
   import SummarizeButton from '@/components/buttons/SummarizeButton.svelte'
+  import ActionButtons from '@/components/buttons/ActionButtons.svelte'
   import TabNavigation from '@/components/navigation/TabNavigation.svelte'
   import GenericSummaryDisplay from '@/components/displays/core/GenericSummaryDisplay.svelte'
   import YouTubeSummaryDisplay from '@/components/displays/platform/YouTubeSummaryDisplay.svelte'
@@ -40,6 +41,7 @@
   import '@fontsource/opendyslexic'
   import '@fontsource/mali'
   import { fade, slide } from 'svelte/transition'
+  import ActionButtonsMini from '@/components/buttons/ActionButtonsMini.svelte'
 
   // Track if settings are loaded
   let settingsLoaded = $state(false)
@@ -102,7 +104,8 @@
       summaryState.chapterError ||
       summaryState.courseSummaryError ||
       summaryState.courseConceptsError ||
-      summaryState.selectedTextError
+      summaryState.selectedTextError ||
+      summaryState.customActionError
   )
 
   // Handle summarize button click
@@ -201,7 +204,7 @@
 {/if}
 <div class="main-container flex min-w-[22.5rem] bg-surface-1 w-full flex-col">
   <div
-    class="grid grid-rows-[32px_1px_8px_1px_160px_1px_8px_1px_1fr] min-h-screen"
+    class="grid grid-rows-[32px_1px_8px_1px_180px_1px_8px_1px_1fr] min-h-screen"
   >
     <div class=" flex justify-center items-center w-full h-full">
       <div class="text-text-secondary">
@@ -219,8 +222,10 @@
     ></div>
     <div class="bg-border"></div>
 
-    <div class="flex font-mono flex-col gap-1 justify-center items-center">
-      <div class="size-6 absolute z-20 top-12 left-2 text-text-secondary">
+    <div
+      class="flex relative font-mono flex-col gap-1 justify-center items-center"
+    >
+      <div class="size-6 absolute z-20 top-2 left-2 text-text-secondary">
         <button
           onclick={() => {
             browser.tabs.create({ url: 'archive.html' })
@@ -231,17 +236,24 @@
           <Icon icon="solar:history-linear" width="24" height="24" />
         </button>
       </div>
-      <div class="size-6 z-20 absolute top-12 right-4 text-text-secondary">
+      <div class="size-6 z-20 absolute top-2 right-4 text-text-secondary">
         <SettingButton />
       </div>
 
-      <div class="flex flex-col gap-6 items-center justify-center">
+      <div class="flex flex-col gap-4 items-center justify-center">
         {#if !needsApiKeySetup()()}
-          <SummarizeButton
-            isLoading={summaryState.isLoading || isAnyCourseLoading}
-            isChapterLoading={summaryState.isChapterLoading}
-            disabled={!hasPermission && import.meta.env.BROWSER === 'firefox'}
-          />
+          <span class=" -translate-y-4">
+            <SummarizeButton
+              isLoading={summaryState.isLoading ||
+                isAnyCourseLoading ||
+                summaryState.isCustomActionLoading}
+              isChapterLoading={summaryState.isChapterLoading}
+              disabled={!hasPermission && import.meta.env.BROWSER === 'firefox'}
+            />
+          </span>
+          <!-- Custom Action Buttons -->
+
+          <ActionButtonsMini />
         {/if}
       </div>
 
@@ -297,6 +309,16 @@
           targetId="web-summary-display"
           showTOC={true}
         />
+      {:else if summaryState.lastSummaryTypeDisplayed === 'custom'}
+        <GenericSummaryDisplay
+          summary={summaryState.customActionResult}
+          isLoading={summaryState.isCustomActionLoading}
+          loadingText="Processing {summaryState.currentActionType}..."
+          targetId="custom-action-display"
+          showTOC={true}
+        />
+      {:else}
+        <ActionButtons />
       {/if}
     </div>
 

@@ -98,6 +98,71 @@
     summaryState.isCourseSummaryLoading || summaryState.isCourseConceptsLoading
   )
 
+  // Create derived variable to check if all summaries for the current page type are completed
+  const areAllSummariesCompleted = $derived(() => {
+    // No loading states should be active
+    const noLoadingStates =
+      !summaryState.isLoading &&
+      !summaryState.isChapterLoading &&
+      !summaryState.isCourseSummaryLoading &&
+      !summaryState.isCourseConceptsLoading &&
+      !summaryState.isSelectedTextLoading &&
+      !summaryState.isCustomActionLoading
+
+    if (!noLoadingStates) return false
+
+    // Check if we have content OR error based on the last summary type displayed
+    switch (summaryState.lastSummaryTypeDisplayed) {
+      case 'youtube':
+        // For YouTube, we need either content or error
+        const hasYouTubeContent =
+          (summaryState.summary && summaryState.summary.trim() !== '') ||
+          (summaryState.chapterSummary &&
+            summaryState.chapterSummary.trim() !== '')
+        const hasYouTubeError =
+          summaryState.summaryError || summaryState.chapterError
+        return hasYouTubeContent || hasYouTubeError
+
+      case 'course':
+        // For courses, we need either content or error
+        const hasCourseContent =
+          (summaryState.courseSummary &&
+            summaryState.courseSummary.trim() !== '') ||
+          (summaryState.courseConcepts &&
+            summaryState.courseConcepts.trim() !== '')
+        const hasCourseError =
+          summaryState.courseSummaryError || summaryState.courseConceptsError
+        return hasCourseContent || hasCourseError
+
+      case 'web':
+        // For web pages, we need content or error
+        const hasWebContent =
+          summaryState.summary && summaryState.summary.trim() !== ''
+        const hasWebError = summaryState.summaryError
+        return hasWebContent || hasWebError
+
+      case 'selectedText':
+        // For selected text, we need content or error
+        const hasSelectedTextContent =
+          summaryState.selectedTextSummary &&
+          summaryState.selectedTextSummary.trim() !== ''
+        const hasSelectedTextError = summaryState.selectedTextError
+        return hasSelectedTextContent || hasSelectedTextError
+
+      case 'custom':
+        // For custom actions, we need content or error
+        const hasCustomContent =
+          summaryState.customActionResult &&
+          summaryState.customActionResult.trim() !== ''
+        const hasCustomError = summaryState.customActionError
+        return hasCustomContent || hasCustomError
+
+      default:
+        // If no summary type is set, no summaries are completed
+        return false
+    }
+  })
+
   // Derived state to find the first active error object
   const anyError = $derived(
     summaryState.summaryError ||
@@ -204,7 +269,7 @@
 {/if}
 <div class="main-container flex min-w-[22.5rem] bg-surface-1 w-full flex-col">
   <div
-    class="grid grid-rows-[32px_1px_8px_1px_180px_1px_8px_1px_1fr] min-h-screen"
+    class="grid grid-rows-[32px_1px_8px_1px_192px_1px_8px_1px_1fr] min-h-screen"
   >
     <div class=" flex justify-center items-center w-full h-full">
       <div class="text-text-secondary">
@@ -242,7 +307,7 @@
 
       <div class="flex flex-col gap-4 items-center justify-center">
         {#if !needsApiKeySetup()()}
-          <span class=" -translate-y-4">
+          <span class=" ">
             <SummarizeButton
               isLoading={summaryState.isLoading ||
                 isAnyCourseLoading ||
@@ -251,9 +316,10 @@
               disabled={!hasPermission && import.meta.env.BROWSER === 'firefox'}
             />
           </span>
-          <!-- Custom Action Buttons -->
-
-          <ActionButtonsMini />
+          <!-- Custom Action Buttons - Only show when all summaries are completed -->
+          {#if areAllSummariesCompleted()}
+            <ActionButtonsMini />
+          {/if}
         {/if}
       </div>
 

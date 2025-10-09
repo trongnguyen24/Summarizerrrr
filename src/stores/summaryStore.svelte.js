@@ -848,8 +848,13 @@ export async function executeCustomAction(actionType) {
     summaryState.pageUrl = tabInfo.url
 
     // Get page content
+    const YOUTUBE_MATCH_PATTERN = /youtube\.com\/watch/i;
+    const contentTypeToFetch = YOUTUBE_MATCH_PATTERN.test(tabInfo.url)
+      ? 'transcript'
+      : 'webpageText';
+
     const contentResult = await getPageContent(
-      'webpageText',
+      contentTypeToFetch,
       userSettings.summaryLang
     )
 

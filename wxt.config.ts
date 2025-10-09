@@ -35,7 +35,7 @@ export default defineConfig({
         ],
         action: {
           default_title: 'Click to Open Summarizerrrr',
-          default_popup: 'popop.html',
+          // Removed default_popup to allow dynamic action behavior control
         },
         side_panel: {
           default_path: 'sidepanel.html',

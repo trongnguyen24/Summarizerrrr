@@ -6,9 +6,11 @@ import {
   saveToHistory,
   saveToArchive,
 } from '../services/FloatingPanelStorageService.js'
+import { summarizeContent } from '@/lib/api/api.js'
 
-// Flag để prevent concurrent requests
+// Flags để prevent concurrent requests
 let isProcessing = false
+let isCustomActionProcessing = false
 
 /**
  * Composable quản lý summarization state và logic
@@ -34,6 +36,12 @@ export function useSummarization() {
     saveError: null,
     pageTitle: '', // Thêm pageTitle
     pageUrl: '', // Thêm pageUrl
+    // Custom Action State
+    currentActionType: 'summarize', // 'summarize' | 'analyze' | 'explain' | 'debate'
+    customActionResult: '',
+    isCustomActionLoading: false,
+    customActionError: null,
+    lastActionType: null, // Track loại action cuối cùng
   })
 
   /**
@@ -56,6 +64,12 @@ export function useSummarization() {
     localSummaryState.saveError = null
     localSummaryState.pageTitle = ''
     localSummaryState.pageUrl = ''
+    // Reset custom action state
+    localSummaryState.currentActionType = 'summarize'
+    localSummaryState.customActionResult = ''
+    localSummaryState.isCustomActionLoading = false
+    localSummaryState.customActionError = null
+    localSummaryState.lastActionType = null
   }
 
   /**
@@ -255,14 +269,181 @@ export function useSummarization() {
     }
   }
 
+  /**
+   * Execute custom action (analyze, explain, debate) on current page content
+   * @param {string} actionType - 'analyze' | 'explain' | 'debate'
+   */
+  async function executeCustomAction(actionType) {
+    // Prevent multiple simultaneous custom actions
+    if (isCustomActionProcessing || isProcessing) {
+      console.log(
+        '[useSummarization] Custom action already in progress, ignoring duplicate request'
+      )
+      return
+    }
+
+    // Set immediate loading state
+    localSummaryState.isCustomActionLoading = true
+    localSummaryState.currentActionType = actionType
+    localSummaryState.customActionResult = ''
+    localSummaryState.customActionError = null
+    localSummaryState.lastActionType = actionType
+    isCustomActionProcessing = true
+
+    try {
+      console.log(`[useSummarization] Starting custom action: ${actionType}`)
+
+      // Get Page Info directly from the document
+      localSummaryState.pageTitle = document.title || 'Custom Action Result'
+      localSummaryState.pageUrl = window.location.href
+
+      // Load settings
+      await loadSettings()
+
+      // Initialize services
+      const contentExtractor = new ContentExtractorService(
+        (settings?.uiLanguage || 'en').slice(0, 2)
+      )
+
+      // Get page content
+      const { content, contentType } =
+        await contentExtractor.extractPageContent()
+
+      if (!content || content.trim() === '') {
+        throw new Error('No content found on this page.')
+      }
+
+      console.log(`[useSummarization] Executing ${actionType} action...`)
+
+      // Execute custom action using summarizeContent API
+      const result = await summarizeContent(content, actionType)
+
+      localSummaryState.customActionResult =
+        result || '<p><i>Could not generate result.</i></p>'
+
+      console.log(`[useSummarization] Custom action ${actionType} completed`)
+
+      // Auto-save to history với custom action result
+      await autoSaveToHistoryWithCustomAction()
+    } catch (error) {
+      console.error(
+        `[useSummarization] Custom action ${actionType} error:`,
+        error
+      )
+
+      localSummaryState.customActionError = {
+        message: error.message || 'Unknown error occurred',
+        type: error.type || 'CUSTOM_ACTION_ERROR',
+        timestamp: Date.now(),
+      }
+
+      // Display user-friendly error messages
+      if (error.type === 'API_KEY') {
+        localSummaryState.customActionError.message =
+          'API key not configured. Please check settings.'
+      } else if (error.type === 'CONTENT') {
+        localSummaryState.customActionError.message =
+          'Could not extract content from this page.'
+      } else if (error.type === 'NETWORK') {
+        localSummaryState.customActionError.message =
+          'Network error. Please check your connection.'
+      }
+    } finally {
+      localSummaryState.isCustomActionLoading = false
+      isCustomActionProcessing = false
+    }
+  }
+
+  /**
+   * Auto-save to history including custom action results
+   */
+  async function autoSaveToHistoryWithCustomAction() {
+    try {
+      console.log(
+        '[useSummarization] Auto-saving to history with custom action...'
+      )
+      const pageInfo = {
+        title: localSummaryState.pageTitle,
+        url: localSummaryState.pageUrl,
+      }
+
+      // Create state object that includes custom action data
+      const stateWithCustomAction = {
+        ...localSummaryState,
+        // Ensure we have the custom action data for saving
+        customActionType: localSummaryState.currentActionType,
+        customActionContent: localSummaryState.customActionResult,
+      }
+
+      const newHistoryId = await saveToHistory(stateWithCustomAction, pageInfo)
+      if (newHistoryId) {
+        localSummaryState.isSavedToHistory = true
+        localSummaryState.historyId = newHistoryId
+        console.log(
+          `[useSummarization] Auto-saved custom action to history with ID: ${newHistoryId}`
+        )
+      }
+    } catch (error) {
+      console.error(
+        '[useSummarization] Auto-save custom action to history failed:',
+        error
+      )
+      localSummaryState.saveError = error
+    }
+  }
+
+  /**
+   * Check if any summaries are completed
+   */
+  function areAllSummariesCompleted() {
+    const hasSummary =
+      localSummaryState.summary && localSummaryState.summary.trim() !== ''
+    const hasChapterSummary =
+      localSummaryState.chapterSummary &&
+      localSummaryState.chapterSummary.trim() !== ''
+    const hasCourseSummary =
+      localSummaryState.courseConcepts &&
+      localSummaryState.courseConcepts.trim() !== ''
+    const hasCustomAction =
+      localSummaryState.customActionResult &&
+      localSummaryState.customActionResult.trim() !== ''
+
+    return (
+      hasSummary || hasChapterSummary || hasCourseSummary || hasCustomAction
+    )
+  }
+
+  /**
+   * Check if has any custom action result
+   */
+  function hasAnyCustomActionResult() {
+    return (
+      localSummaryState.customActionResult &&
+      localSummaryState.customActionResult.trim() !== ''
+    )
+  }
+
   // Computed properties
-  let summaryToDisplay = $derived(localSummaryState.summary)
+  let summaryToDisplay = $derived(
+    localSummaryState.lastActionType &&
+      localSummaryState.lastActionType !== 'summarize'
+      ? localSummaryState.customActionResult
+      : localSummaryState.summary
+  )
+
   let statusToDisplay = $derived(
-    localSummaryState.isLoading
+    localSummaryState.isLoading || localSummaryState.isCustomActionLoading
       ? 'loading'
-      : localSummaryState.error
+      : localSummaryState.error || localSummaryState.customActionError
       ? 'error'
       : 'idle'
+  )
+
+  let contentTypeToDisplay = $derived(
+    localSummaryState.lastActionType &&
+      localSummaryState.lastActionType !== 'summarize'
+      ? 'custom'
+      : localSummaryState.contentType
   )
 
   return {
@@ -270,11 +451,17 @@ export function useSummarization() {
     localSummaryState: () => localSummaryState,
     summaryToDisplay: () => summaryToDisplay,
     statusToDisplay: () => statusToDisplay,
+    contentTypeToDisplay: () => contentTypeToDisplay,
 
     // Actions
     summarizePageContent,
+    executeCustomAction,
     resetLocalSummaryState,
     handleSummarizationError,
     manualSaveToArchive,
+
+    // Helper functions
+    areAllSummariesCompleted,
+    hasAnyCustomActionResult,
   }
 }

@@ -58,10 +58,30 @@ function prepareSummaries(localState, contentType) {
         content: localState.courseConcepts,
       })
     }
+  } else if (contentType === 'custom') {
+    // Custom action results
+    if (localState.customActionResult) {
+      const actionType = localState.currentActionType || 'custom'
+      const title = actionType.charAt(0).toUpperCase() + actionType.slice(1)
+      summaries.push({
+        title: title,
+        content: localState.customActionResult,
+      })
+    }
   } else {
     if (localState.summary) {
       summaries.push({ title: 'Summary', content: localState.summary })
     }
+  }
+
+  // Also include custom action results regardless of content type if they exist
+  if (localState.customActionResult && contentType !== 'custom') {
+    const actionType = localState.currentActionType || 'custom'
+    const title = actionType.charAt(0).toUpperCase() + actionType.slice(1)
+    summaries.push({
+      title: title,
+      content: localState.customActionResult,
+    })
   }
 
   return summaries.filter((s) => s.content && s.content.trim() !== '')

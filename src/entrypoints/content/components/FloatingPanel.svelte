@@ -5,6 +5,8 @@
   // Import composables
   import Icon from '@iconify/svelte'
   import SummarizeButton from '@/components/buttons/SummarizeButton.svelte'
+  import ActionButtonsFP from '@/components/buttons/ActionButtonsFP.svelte'
+  import ActionButtonsMiniFP from '@/components/buttons/ActionButtonsMiniFP.svelte'
   import { useNavigationManager } from '../composables/useNavigationManager.svelte.js'
   import { useSummarization } from '../composables/useSummarization.svelte.js'
   import { useFloatingPanelState } from '../composables/useFloatingPanelState.svelte.js'
@@ -92,15 +94,48 @@
 
   // Initialize composables
   const panelState = useFloatingPanelState()
+  // Local summarization instance để access areAllSummariesCompleted function
+  const localSummarization = useSummarization()
 
-  // Computed properties để determine what to display
-  let summaryToDisplay = $derived(summarization.summaryToDisplay() || summary)
+  // Computed properties để determine what to display với fallback
+  let summaryToDisplay = $derived(
+    summarization.summaryToDisplay?.() ||
+      localSummarization.summaryToDisplay() ||
+      summary ||
+      ''
+  )
   let statusToDisplay = $derived(
-    summarization.localSummaryState().isLoading
-      ? 'loading'
-      : summarization.localSummaryState().error
-        ? 'error'
-        : status
+    summarization.statusToDisplay?.() ||
+      localSummarization.statusToDisplay() ||
+      (summarization.localSummaryState().isLoading ||
+      summarization.localSummaryState().isCustomActionLoading
+        ? 'loading'
+        : summarization.localSummaryState().error ||
+            summarization.localSummaryState().customActionError
+          ? 'error'
+          : status)
+  )
+
+  // Content type để display (bao gồm custom actions) - with fallback
+  let contentTypeToDisplay = $derived(
+    summarization.contentTypeToDisplay?.() ||
+      localSummarization.contentTypeToDisplay() ||
+      summarization.localSummaryState().contentType ||
+      'general'
+  )
+
+  // Check if all summaries completed using either local or props summarization
+  let areAllSummariesCompleted = $derived(
+    summarization.areAllSummariesCompleted?.() ||
+      localSummarization.areAllSummariesCompleted() ||
+      (summarization.localSummaryState().summary &&
+        summarization.localSummaryState().summary.trim() !== '') ||
+      (summarization.localSummaryState().customActionResult &&
+        summarization.localSummaryState().customActionResult.trim() !== '') ||
+      (summarization.localSummaryState().chapterSummary &&
+        summarization.localSummaryState().chapterSummary.trim() !== '') ||
+      (summarization.localSummaryState().courseConcepts &&
+        summarization.localSummaryState().courseConcepts.trim() !== '')
   )
 
   // Load saved width
@@ -384,7 +419,9 @@
         <div
           class="top-stripes border-b border-border flex justify-center items-center w-full h-full"
         ></div>
-        <div class="w-full flex items-center justify-center my-8">
+        <div
+          class="w-full flex flex-col items-center justify-center my-8 gap-4"
+        >
           <button
             class="size-10 absolute cursor-pointer z-10 top-3 text-text-secondary hover:text-text-primary transition-colors left-2 flex justify-center items-center"
             onclick={openArchive}
@@ -398,12 +435,26 @@
           >
             <Icon width={24} icon="heroicons:cog-6-tooth" />
           </button>
+
           {#if !needsApiKeySetup()()}
+            <!-- Main Summarize Button -->
             <SummarizeButton
               isLoading={summarization.localSummaryState().isLoading}
               isChapterLoading={summarization.localSummaryState()
                 .isChapterLoading}
             />
+
+            <!-- Mini Action Buttons - Show when summaries completed and not loading (positioned absolute) -->
+            {#if areAllSummariesCompleted && !summarization.localSummaryState().isLoading && !summarization.localSummaryState().isCustomActionLoading}
+              <ActionButtonsMiniFP
+                onActionClick={summarization.executeCustomAction}
+              />
+            {/if}
+
+            <!-- Custom Action Buttons - Show after summarization completed and not loading -->
+            <!-- {#if areAllSummariesCompleted && !summarization.localSummaryState().isLoading && !summarization.localSummaryState().isCustomActionLoading}
+             
+            {/if} -->
           {/if}
         </div>
         <div
@@ -416,23 +467,28 @@
           <ApiKeySetupPrompt />
         </div>
       {:else}
-        <FloatingPanelContent
-          status={statusToDisplay}
-          summary={summaryToDisplay}
-          error={summarization.localSummaryState().error}
-          contentType={summarization.localSummaryState().contentType}
-          chapterSummary={summarization.localSummaryState().chapterSummary}
-          isChapterLoading={summarization.localSummaryState().isChapterLoading}
-          courseConcepts={summarization.localSummaryState().courseConcepts}
-          isCourseSummaryLoading={summarization.localSummaryState().isLoading}
-          isCourseConceptsLoading={summarization.localSummaryState()
-            .isCourseConceptsLoading}
-          activeYouTubeTab={panelState.activeYouTubeTab()}
-          activeCourseTab={panelState.activeCourseTab()}
-          onSelectYouTubeTab={panelState.setActiveYouTubeTab}
-          onSelectCourseTab={panelState.setActiveCourseTab}
-          {summarization}
-        />
+        <div class="relative">
+          <FloatingPanelContent
+            status={statusToDisplay}
+            summary={summaryToDisplay}
+            error={summarization.localSummaryState().error ||
+              summarization.localSummaryState().customActionError}
+            contentType={contentTypeToDisplay}
+            chapterSummary={summarization.localSummaryState().chapterSummary}
+            isChapterLoading={summarization.localSummaryState()
+              .isChapterLoading}
+            courseConcepts={summarization.localSummaryState().courseConcepts}
+            isCourseSummaryLoading={summarization.localSummaryState().isLoading}
+            isCourseConceptsLoading={summarization.localSummaryState()
+              .isCourseConceptsLoading}
+            activeYouTubeTab={panelState.activeYouTubeTab()}
+            activeCourseTab={panelState.activeCourseTab()}
+            onSelectYouTubeTab={panelState.setActiveYouTubeTab}
+            onSelectCourseTab={panelState.setActiveCourseTab}
+            {summarization}
+          />
+          <ActionButtonsFP onActionClick={summarization.executeCustomAction} />
+        </div>
       {/if}
 
       {#if children?.settingsMini}

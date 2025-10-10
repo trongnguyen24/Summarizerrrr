@@ -39,6 +39,12 @@
       )
       return CourseSummaryDisplayFP
     }
+    if (t === 'custom') {
+      console.log(
+        '[FloatingPanelContent] Display selected: GenericSummaryDisplayFP (custom action)'
+      )
+      return GenericSummaryDisplayFP
+    }
     console.log(
       '[FloatingPanelContent] Display selected: GenericSummaryDisplayFP (fallback)'
     )
@@ -53,6 +59,16 @@
   <div class="prose text-base mx-auto px-6 py-8">
     {#if status === 'error'}
       <ErrorDisplay {error} />
+    {:else if contentType === 'custom'}
+      <!-- Custom Action Results Display -->
+      <DisplayComponent
+        summary={summarization.localSummaryState().customActionResult}
+        isLoading={summarization.localSummaryState().isCustomActionLoading}
+        loadingText="Processing {summarization.localSummaryState()
+          .currentActionType}..."
+        targetId="fp-custom-action-display"
+        {summarization}
+      />
     {:else if contentType === 'course'}
       <DisplayComponent
         courseSummary={summary}

@@ -187,72 +187,51 @@ Your task is to examine a concept, idea, or issue from **two opposing perspectiv
 Remain neutral, factual, and concise.  
 If no content is provided, ask which idea or issue the user wants to analyze from both sides.`,
     userPrompt: `<TASK>
-Analyze <INPUT_CONTENT> from two opposing viewpoints.
-Summarize the main **arguments for** and **against** the idea clearly and objectively.  
-Then conclude with a short note on which aspects need more evidence or clarification.
+Analyze <INPUT_CONTENT> from two opposing viewpoints. Present arguments for and against objectively, then note which aspects need more evidence.
 </TASK>
 
 <INPUT_PARAMETERS>
-1. **Length:** __LENGTH_DESCRIPTION__  
-2. **Language:** __LANG__  
-3. **Tone:** __TONE_DESCRIPTION__
+- **Length:** __LENGTH_DESCRIPTION__
+- **Language:** __LANG__
+- **Tone:** __TONE_DESCRIPTION__
 </INPUT_PARAMETERS>
 
 <RESPONSE_STRUCTURE>
 ## Arguments For
-[Summarize the strongest arguments supporting the idea — evidence, logic, benefits, reasoning]
+[Strongest supporting arguments: evidence, logic, benefits, reasoning]
 
 ## Arguments Against
-[Summarize the strongest counterarguments — criticisms, risks, flaws, opposing logic]
+[Strongest counterarguments: criticisms, risks, flaws, opposing logic]
 
 ## Evaluation Note
-[Briefly indicate which claims need more evidence, are weakly supported, or unclear in reasoning]
+[Which claims need more evidence, are weakly supported, or unclear in reasoning]
 </RESPONSE_STRUCTURE>
 
-<ANALYSIS_REQUIREMENTS>
-✅ **Neutrality**: Present both sides fairly, without judgmental phrasing  
-✅ **Clarity**: Organize arguments logically, avoid redundancy  
-✅ **Balance**: Equal depth for both “For” and “Against”  
-✅ **Precision**: Use evidence and examples when available  
-✅ **Brevity**: Be clear and efficient — no unnecessary filler  
-❌ **No opinions**: Don’t state which side is better; just highlight clarity and evidence gaps
-</ANALYSIS_REQUIREMENTS>
+<REQUIREMENTS>
+**Analysis:**
+- Present both sides fairly with equal depth
+- Use evidence and examples when available
+- Identify assumptions and biases underlying each position
+- Consider social, ethical, or technical implications
 
-<ANALYTICAL_FOCUS>
-🔹 **Rationale**: What logic or data supports each position?  
-🔹 **Assumptions**: What premises or biases underlie them?  
-🔹 **Impact**: What are the social, ethical, or technical implications of each view?  
-🔹 **Uncertainties**: Which aspects lack empirical grounding or consistent evidence?
-</ANALYTICAL_FOCUS>
-
-<STYLE_GUIDELINES>
-- Use ## and ### headers exactly as shown  
-- Use **bold** for key terms or points  
-- Write in __LANG__ and follow the __TONE_DESCRIPTION__  
-- Keep tone formal, clear, and neutral  
-- No meta references or system notes in output
-</STYLE_GUIDELINES>
-
-<FORMAT_CONTROL>
-If <INPUT_CONTENT> is missing, ask:  
-“What topic or idea would you like me to analyze from both sides?”  
-Never generate placeholder content or opinions.
-</FORMAT_CONTROL>
+**Style:**
+- Write in __LANG__ following Tone
+- Use **bold** for key terms
+- Keep tone formal, clear, and neutral
+- No opinions on which side is better
+</REQUIREMENTS>
 
 <EXAMPLE>
 ## Arguments For
-- **Increased efficiency**: Automation saves time and reduces human error.  
-- **Economic growth**: AI-driven industries create new markets and opportunities.  
-- **Accessibility**: Tools can democratize knowledge and services.
+- **Increased efficiency**: Automation saves time and reduces human error
+- **Economic growth**: Creates new markets and opportunities
 
 ## Arguments Against
-- **Job displacement**: Automation may replace low- and mid-skill labor.  
-- **Bias propagation**: AI can amplify societal biases embedded in training data.  
-- **Accountability issues**: Difficult to assign responsibility when AI causes harm.
+- **Job displacement**: May replace low- and mid-skill labor
+- **Bias propagation**: Can amplify societal biases in training data
 
 ## Evaluation Note
-The “economic growth” argument lacks strong empirical evidence across developing nations.  
-Both sides could benefit from more longitudinal studies on **employment adaptation** and **ethical governance**.
+Economic growth claims lack strong evidence in developing nations. Both sides need more data on employment adaptation and ethical governance.
 </EXAMPLE>
 
 <INPUT_CONTENT>

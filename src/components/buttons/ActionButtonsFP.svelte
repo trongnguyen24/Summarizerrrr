@@ -1,7 +1,6 @@
 <script>
   // @ts-nocheck
   import Icon from '@iconify/svelte'
-  import { animate, stagger } from 'animejs'
 
   let { onActionClick } = $props()
 
@@ -31,15 +30,15 @@
   {#each actions as action}
     <button
       onclick={() => onActionClick(action.key)}
-      class="action-btn font-mono relative py-2 px-4 text-sm rounded-full border border-border hover:bg-blackwhite-5 text-text-secondary hover:text-text-primary transition-colors duration-125 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+      class="action-btn font-mono relative py-2 px-4 rounded-full border border-border hover:bg-blackwhite-5 text-text-secondary hover:text-text-primary transition-colors duration-125 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
       title={action.description}
     >
       <Icon
-        width={16}
+        width={20}
         icon={action.icon}
         class="transition-colors duration-125"
       />
-      <span class="transition-colors duration-125">{action.label}</span>
+      <span class="transition-colors duration-125 text-sm">{action.label}</span>
     </button>
   {/each}
 </div>

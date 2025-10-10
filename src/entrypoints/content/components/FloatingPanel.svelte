@@ -11,15 +11,11 @@
   import { settings, updateSettings } from '@/stores/settingsStore.svelte.js'
   import { useApiKeyValidation } from '../composables/useApiKeyValidation.svelte.js'
   import ApiKeySetupPrompt from '@/components/ui/ApiKeySetupPrompt.svelte'
-
   import { fade } from 'svelte/transition'
-
-  // Reactive variable for panel position
-  let panelPosition = $derived(settings.floatingPanelLeft ? 'left' : 'right')
-
-  // Import components
   import FloatingPanelContent from '@/components/displays/floating-panel/FloatingPanelContent.svelte'
+  import ActionButtonsFP from '@/components/buttons/ActionButtonsFP.svelte'
 
+  let panelPosition = $derived(settings.floatingPanelLeft ? 'left' : 'right')
   let { visible, summary, status, onclose, children, summarization } = $props()
 
   let panelElement = $state()
@@ -434,6 +430,8 @@
           {summarization}
         />
       {/if}
+
+      <ActionButtonsFP />
 
       {#if children?.settingsMini}
         {@render children.settingsMini()}

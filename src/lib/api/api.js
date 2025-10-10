@@ -2,6 +2,7 @@
 import { settings, loadSettings } from '@/stores/settingsStore.svelte.js'
 import { promptBuilders } from '@/lib/prompting/promptBuilders.js'
 import { customActionTemplates } from '@/lib/prompting/promptTemplates.js'
+import { replacePlaceholders } from '@/lib/prompting/promptUtils.js'
 import {
   generateContent as aiSdkGenerateContent,
   generateContentStream as aiSdkGenerateContentStream,
@@ -113,9 +114,21 @@ export async function summarizeContent(text, contentType) {
 
   if (customActionTypes.includes(contentType)) {
     systemInstruction = customActionTemplates[contentType].systemPrompt
-    userPrompt = customActionTemplates[contentType].userPrompt
-      .replace('__CONTENT__', text)
-      .replace('__LANG__', userSettings.summaryLang)
+
+    // First, replace content placeholder
+    const userPromptWithContent = customActionTemplates[contentType].userPrompt.replace(
+      '__CONTENT__',
+      text
+    )
+
+    // Then, replace other placeholders using the utility function
+    userPrompt = replacePlaceholders(
+      userPromptWithContent,
+      userSettings.summaryLang,
+      userSettings.summaryLength,
+      userSettings.summaryFormat,
+      userSettings.summaryTone
+    )
   } else {
     const contentConfig =
       promptBuilders[contentType] || promptBuilders['general'] // Fallback to general

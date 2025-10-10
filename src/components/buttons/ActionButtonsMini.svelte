@@ -2,10 +2,7 @@
   // @ts-nocheck
   import Icon from '@iconify/svelte'
   import { animate, stagger } from 'animejs'
-  import {
-    summaryState,
-    executeCustomAction,
-  } from '@/stores/summaryStore.svelte.js'
+  import { executeCustomAction } from '@/stores/summaryStore.svelte.js'
 
   const actions = [
     {
@@ -32,13 +29,6 @@
     await executeCustomAction(actionType)
   }
 
-  const isAnyLoading = $derived(
-    summaryState.isLoading ||
-      summaryState.isChapterLoading ||
-      summaryState.isCourseSummaryLoading ||
-      summaryState.isCourseConceptsLoading ||
-      summaryState.isCustomActionLoading
-  )
   $effect(() => {
     animate('.action-btn-mini', {
       opacity: 1,
@@ -54,7 +44,6 @@
     <button
       class="action-btn-mini font-mono opacity-0 relative p-2.5 text-xs rounded-full border border-border text-text-secondary hover:text-text-primary hover:bg-blackwhite-5 transition-colors duration-125 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
       onclick={() => handleActionClick(action.key)}
-      disabled={isAnyLoading}
       title={action.description}
     >
       <Icon

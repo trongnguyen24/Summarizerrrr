@@ -2,7 +2,8 @@
   // @ts-nocheck
   import Icon from '@iconify/svelte'
   import { animate, stagger } from 'animejs'
-  import { executeCustomAction } from '@/stores/summaryStore.svelte.js'
+
+  let { onActionClick } = $props()
 
   const actions = [
     {
@@ -24,26 +25,13 @@
       description: 'Analyze from multiple perspectives',
     },
   ]
-
-  async function handleActionClick(actionType) {
-    await executeCustomAction(actionType)
-  }
-
-  $effect(() => {
-    animate('.action-btn', {
-      opacity: 1,
-      scale: [0.8, 1],
-      delay: stagger(250),
-      ease: 'outCirc',
-    })
-  })
 </script>
 
 <div class="flex flex-col w-36 mx-auto gap-4 flex-wrap justify-center">
   {#each actions as action}
     <button
-      class="action-btn font-mono opacity-0 relative py-2 px-4 text-sm rounded-full border border-border hover:bg-blackwhite-5 text-text-secondary hover:text-text-primary transition-colors duration-125 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-      onclick={() => handleActionClick(action.key)}
+      onclick={() => onActionClick(action.key)}
+      class="action-btn font-mono relative py-2 px-4 text-sm rounded-full border border-border hover:bg-blackwhite-5 text-text-secondary hover:text-text-primary transition-colors duration-125 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
       title={action.description}
     >
       <Icon

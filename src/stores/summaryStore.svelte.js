@@ -848,10 +848,10 @@ export async function executeCustomAction(actionType) {
     summaryState.pageUrl = tabInfo.url
 
     // Get page content
-    const YOUTUBE_MATCH_PATTERN = /youtube\.com\/watch/i;
+    const YOUTUBE_MATCH_PATTERN = /youtube\.com\/watch/i
     const contentTypeToFetch = YOUTUBE_MATCH_PATTERN.test(tabInfo.url)
       ? 'transcript'
-      : 'webpageText';
+      : 'webpageText'
 
     const contentResult = await getPageContent(
       contentTypeToFetch,
@@ -862,11 +862,49 @@ export async function executeCustomAction(actionType) {
       throw new Error('No content found on this page.')
     }
 
-    // Execute custom action using existing summarizeContent function
-    const result = await summarizeContent(contentResult.content, actionType)
+    // Determine the actual provider to use based on isAdvancedMode
+    let selectedProviderId = userSettings.selectedProvider || 'gemini'
+    if (!userSettings.isAdvancedMode) {
+      selectedProviderId = 'gemini' // Force Gemini in basic mode
+    }
 
-    summaryState.customActionResult =
-      result || '<p><i>Could not generate result.</i></p>'
+    // Check if we should use streaming mode
+    const shouldUseStreaming =
+      userSettings.enableStreaming &&
+      providerSupportsStreaming(selectedProviderId)
+
+    if (shouldUseStreaming) {
+      // Use streaming mode
+      try {
+        console.log(`[summaryStore] Starting ${actionType} streaming...`)
+        const actionStream = summarizeContentStream(
+          contentResult.content,
+          actionType
+        )
+        let chunkCount = 0
+        for await (const chunk of actionStream) {
+          summaryState.customActionResult += chunk
+          chunkCount++
+        }
+        console.log(
+          `[summaryStore] ${actionType} streaming completed, chunks: ${chunkCount}`
+        )
+      } catch (streamError) {
+        console.log(
+          `[summaryStore] ${actionType} streaming error, falling back to blocking mode:`,
+          streamError
+        )
+        // Fallback to blocking mode on streaming error
+        const result = await summarizeContent(contentResult.content, actionType)
+        summaryState.customActionResult =
+          result || '<p><i>Could not generate result.</i></p>'
+      }
+    } else {
+      // Use non-streaming mode
+      const result = await summarizeContent(contentResult.content, actionType)
+      summaryState.customActionResult =
+        result || '<p><i>Could not generate result.</i></p>'
+    }
   } catch (e) {
     const errorObject = handleError(e, {
       source: `customAction_${actionType}`,

@@ -72,7 +72,7 @@
     <div class="p-6 prose prose-sm w-full max-w-full">
       <h2>Release note</h2>
 
-      <b class="font-mono">2.2.4</b>
+      <b class="font-mono">2.2.5</b>
       <ul class="mt-0">
         {@render note(
           'Custom AI Actions:',

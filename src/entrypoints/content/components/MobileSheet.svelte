@@ -16,6 +16,8 @@
   import { settings } from '@/stores/settingsStore.svelte.js'
   import { useApiKeyValidation } from '../composables/useApiKeyValidation.svelte.js'
   import { fade } from 'svelte/transition'
+  import ActionButtonsFP from '@/components/buttons/ActionButtonsFP.svelte'
+  import ActionButtonsMiniFP from '@/components/buttons/ActionButtonsMiniFP.svelte'
 
   let { visible, onclose, summarization } = $props()
   // const summarization = useSummarization() // No longer needed, passed as prop
@@ -246,6 +248,11 @@
   function handleSummarizeClick() {
     summarization.summarizePageContent()
   }
+
+  function handleCustomAction(actionType) {
+    console.log(`[MobileSheet] Executing custom action: ${actionType}`)
+    summarization.summarizePageContent(actionType)
+  }
 </script>
 
 <!-- Drawer Container -->
@@ -344,6 +351,9 @@
               isChapterLoading={false}
             />
           {/if}
+          {#if summaryToDisplay || summarization.localSummaryState().error}
+            <ActionButtonsMiniFP onActionClick={handleCustomAction} />
+          {/if}
         </div>
         <div
           class="top-stripes border-t border-b border-border flex justify-center items-center w-full h-full"
@@ -371,6 +381,10 @@
             onSelectCourseTab={panelState.setActiveCourseTab}
             {summarization}
           />
+        {/if}
+
+        {#if !summaryToDisplay && !summarization.localSummaryState().isLoading}
+          <ActionButtonsFP onActionClick={handleCustomAction} />
         {/if}
       </div>
     </div>

@@ -71,6 +71,14 @@
     </div>
     <div class="p-6 prose prose-sm w-full max-w-full">
       <h2>Release note</h2>
+
+      <b class="font-mono">2.2.4</b>
+      <ul class="mt-0">
+        {@render note(
+          'Custom AI Actions:',
+          "Enhances the Summarizerrrr extension by introducing custom AI actions ('Analyze', 'Explain', 'Debate') that allow users to perform specialized content analysis."
+        )}
+      </ul>
       <b class="font-mono">2.2.0</b>
       <ul class="mt-0">
         {@render note(

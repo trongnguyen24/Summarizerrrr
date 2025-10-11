@@ -210,7 +210,7 @@
     <p class="text-xs text-text-secondary">
       {$t('settings.general.icon_click_action.description')}
     </p>
-    <div class="flex w-full gap-1">
+    <div class="flex w-full mt-1 gap-1">
       <ButtonSet
         title="Sidepanel"
         class={`setting-btn ${
@@ -331,10 +331,10 @@
 
   {#if !browserCompatibility.isMobile}
     {#if !browserCompatibility.isMobile}
-      <div class="flex flex-col gap-2 px-5 pb-4">
+      <div class="flex flex-col gap-2 mt-2 px-5 pb-4">
         <!-- svelte-ignore a11y_label_has_associated_control -->
-        <div class="flex items-center gap-1 justify-between">
-          {$t('settings.general.shortcuts')}
+        <div class="flex items-center text-text-primary gap-1 justify-between">
+          <span class=" font-bold">{$t('settings.general.shortcuts')}</span>
           {#if import.meta.env.BROWSER === 'chrome'}
             <button
               onclick={() =>

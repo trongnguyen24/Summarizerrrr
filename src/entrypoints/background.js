@@ -298,7 +298,10 @@ export default defineBackground(() => {
   let sidePanelPort = null
   let pendingSelectedText = null
   const userAgent = navigator.userAgent
-  const isMobile = userAgent.includes('Android')
+  const isMobile = userAgent.includes('Android') || userAgent.includes('Mobile')
+  const isEdgeMobile =
+    userAgent.includes('EdgMob') ||
+    (userAgent.includes('Edge') && userAgent.includes('Mobile'))
 
   // --- Initial Setup ---
   loadSettings()
@@ -319,9 +322,20 @@ export default defineBackground(() => {
 
   // Function to update Chrome action behavior
   function updateChromeActionBehavior(iconClickAction) {
-    if (import.meta.env.BROWSER !== 'chrome' || isMobile) return
+    if (import.meta.env.BROWSER !== 'chrome') return
 
     try {
+      // Force popup for mobile devices regardless of settings
+      if (isMobile) {
+        console.log('[Background] Mobile detected, setting action to POPUP')
+        chrome.sidePanel?.setPanelBehavior({ openPanelOnActionClick: false })
+        browser.action.setPopup({
+          popup: browser.runtime.getURL('popop.html'),
+        })
+        return
+      }
+
+      // Desktop behavior based on settings
       switch (iconClickAction) {
         case 'popup':
           console.log('[Background] Setting action to POPUP')
@@ -491,8 +505,12 @@ export default defineBackground(() => {
         `[Background] Failed to load settings after ${MAX_RETRIES} attempts. Using fallback default behavior.`
       )
       try {
-        updateChromeActionBehavior('sidepanel') // Use sidepanel as safe fallback
-        console.log('[Background] Applied fallback action behavior: sidepanel')
+        // Use popup for mobile, sidepanel for desktop as fallback
+        const fallbackAction = isMobile ? 'popup' : 'sidepanel'
+        updateChromeActionBehavior(fallbackAction)
+        console.log(
+          `[Background] Applied fallback action behavior: ${fallbackAction}`
+        )
       } catch (error) {
         console.error('[Background] Failed to apply fallback behavior:', error)
       }

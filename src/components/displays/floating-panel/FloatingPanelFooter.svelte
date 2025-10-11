@@ -9,7 +9,7 @@
 </script>
 
 <div
-  class="w-fit mx-auto relative mt-12 flex justify-center items-center gap-2"
+  class="w-fit mx-auto relative mt-12 pb-48 flex justify-center items-center gap-2"
 >
   <div class="absolute left-0">
     <svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" fill="none"

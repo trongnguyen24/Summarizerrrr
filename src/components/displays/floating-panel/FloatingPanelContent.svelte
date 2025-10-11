@@ -77,7 +77,7 @@
       <DisplayComponent
         {summary}
         isLoading={status === 'loading'}
-        loadingText="Processing summary..."
+        loadingText="Processing..."
         targetId="fp-generic-summary"
         {summarization}
       />

@@ -287,7 +287,7 @@
       ontouchstart={onDragStart}
     >
       <div
-        class="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-blackwhite/10"
+        class="mx-auto w-12 h-1.5 flex-shrink-0 drag-handle rounded-full bg-blackwhite/10"
       ></div>
     </div>
 
@@ -327,11 +327,13 @@
           {/await}
         </div>
       {/if}
-      <div class="grid grid-rows-[10px_180px_10px_1fr] relative">
+      <div class="grid grid-rows-[10px_200px_10px_1fr] relative">
         <div
-          class="top-stripes border-t border-b border-border flex justify-center items-center w-full h-full"
+          class="top-stripes border-t border-b drag-handle border-border flex justify-center items-center w-full h-full"
         ></div>
-        <div class="w-full flex items-center justify-center my-8">
+        <div
+          class="w-full no-pull-to-refresh flex items-center justify-center my-8"
+        >
           <button
             class="size-10 absolute z-10 top-4 text-text-secondary transition-colors left-2 flex justify-center items-center"
             onclick={openArchive}
@@ -356,10 +358,10 @@
           {/if}
         </div>
         <div
-          class="top-stripes border-t border-b border-border flex justify-center items-center w-full h-full"
+          class="top-stripes border-t border-b drag-handle border-border flex justify-center items-center w-full h-full"
         ></div>
       </div>
-      <div class="py-8">
+      <div class="pt-8 relative">
         {#if needsApiKeySetup()()}
           <ApiKeySetupPrompt />
         {:else}
@@ -383,13 +385,17 @@
           />
         {/if}
 
-        {#if !summaryToDisplay && !summarization.localSummaryState().isLoading}
-          <ActionButtonsFP onActionClick={handleCustomAction} />
+        {#if !summaryToDisplay && !summarization.localSummaryState().isLoading && !needsApiKeySetup()()}
+          <div
+            class="no-pull-to-refresh w-full flex justify-center items-center inset-0"
+          >
+            <ActionButtonsFP onActionClick={handleCustomAction} />
+          </div>
         {/if}
       </div>
     </div>
     <div
-      class="absolute bottom-0 left-0 right-0 h-16 bg-surface-1 translate-y-15"
+      class="absolute bottom-px left-0 right-0 h-15 bg-surface-1 translate-y-15"
     ></div>
   </div>
 </div>
@@ -415,6 +421,12 @@
     touch-action: pan-y;
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
+  }
+  .no-pull-to-refresh {
+    touch-action: none;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
   }
 
   /* Remove tap highlight on mobile */

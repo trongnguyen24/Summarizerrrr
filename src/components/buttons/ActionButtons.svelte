@@ -1,7 +1,6 @@
 <script>
   // @ts-nocheck
   import Icon from '@iconify/svelte'
-  import { animate, stagger } from 'animejs'
   import { executeCustomAction } from '@/stores/summaryStore.svelte.js'
 
   const actions = [
@@ -28,15 +27,6 @@
   async function handleActionClick(actionType) {
     await executeCustomAction(actionType)
   }
-
-  $effect(() => {
-    animate('.action-btn', {
-      opacity: 1,
-      scale: [0.8, 1],
-      delay: stagger(250),
-      ease: 'outCirc',
-    })
-  })
 </script>
 
 <div class="flex flex-col w-36 mx-auto gap-4 flex-wrap justify-center">
@@ -55,3 +45,30 @@
     </button>
   {/each}
 </div>
+
+<style>
+  .action-btn {
+    animation: fadeInScale 400ms ease-out forwards;
+    opacity: 0;
+    transform: scale(0.7);
+  }
+
+  .action-btn:nth-child(1) {
+    animation-delay: 500ms;
+  }
+
+  .action-btn:nth-child(2) {
+    animation-delay: 600ms;
+  }
+
+  .action-btn:nth-child(3) {
+    animation-delay: 700ms;
+  }
+
+  @keyframes fadeInScale {
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+</style>

@@ -1,6 +1,8 @@
 // @ts-nocheck
 import { settings, loadSettings } from '@/stores/settingsStore.svelte.js'
 import { promptBuilders } from '@/lib/prompting/promptBuilders.js'
+import { customActionTemplates } from '@/lib/prompting/promptTemplates.js'
+import { replacePlaceholders } from '@/lib/prompting/promptUtils.js'
 import {
   generateContent as aiSdkGenerateContent,
   generateContentStream as aiSdkGenerateContentStream,
@@ -89,7 +91,7 @@ function validateApiKey(userSettings, selectedProviderId) {
 /**
  * Summarizes content using the selected AI provider.
  * @param {string} text - Content to summarize (transcript, web page text, or selected text).
- * @param {'youtube' | 'general' | 'selectedText'} contentType - The type of content being summarized.
+ * @param {'youtube' | 'general' | 'selectedText' | 'analyze' | 'explain' | 'debate'} contentType - The type of content being summarized.
  * @returns {Promise<string>} - Promise that resolves with the summary in Markdown format.
  */
 export async function summarizeContent(text, contentType) {
@@ -106,21 +108,45 @@ export async function summarizeContent(text, contentType) {
   // Validate API key
   validateApiKey(userSettings, selectedProviderId)
 
-  const contentConfig = promptBuilders[contentType] || promptBuilders['general'] // Fallback to general
+  let systemInstruction, userPrompt
 
-  if (!contentConfig.buildPrompt) {
-    throw new Error(
-      `Configuration for content type "${contentType}" is incomplete.`
+  const customActionTypes = ['analyze', 'explain', 'debate']
+
+  if (customActionTypes.includes(contentType)) {
+    systemInstruction = customActionTemplates[contentType].systemPrompt
+
+    // First, replace content placeholder
+    const userPromptWithContent = customActionTemplates[contentType].userPrompt.replace(
+      '__CONTENT__',
+      text
     )
-  }
 
-  const { systemInstruction, userPrompt } = contentConfig.buildPrompt(
-    text,
-    userSettings.summaryLang,
-    userSettings.summaryLength,
-    userSettings.summaryFormat,
-    userSettings.summaryTone
-  )
+    // Then, replace other placeholders using the utility function
+    userPrompt = replacePlaceholders(
+      userPromptWithContent,
+      userSettings.summaryLang,
+      userSettings.summaryLength,
+      userSettings.summaryFormat,
+      userSettings.summaryTone
+    )
+  } else {
+    const contentConfig =
+      promptBuilders[contentType] || promptBuilders['general'] // Fallback to general
+
+    if (!contentConfig.buildPrompt) {
+      throw new Error(
+        `Configuration for content type "${contentType}" is incomplete.`
+      )
+    }
+
+    ;({ systemInstruction, userPrompt } = contentConfig.buildPrompt(
+      text,
+      userSettings.summaryLang,
+      userSettings.summaryLength,
+      userSettings.summaryFormat,
+      userSettings.summaryTone
+    ))
+  }
 
   try {
     // Use AI SDK adapter for unified content generation

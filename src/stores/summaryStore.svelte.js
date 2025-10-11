@@ -51,6 +51,10 @@ export const summaryState = $state({
   pageTitle: '', // Thêm pageTitle vào state
   pageUrl: '', // Thêm pageUrl vào state
   isArchived: false,
+  currentActionType: 'summarize', // 'summarize' | 'analyze' | 'explain' | 'debate'
+  customActionResult: '',
+  isCustomActionLoading: false,
+  customActionError: null,
 })
 
 // --- Actions ---
@@ -83,6 +87,10 @@ export function resetState() {
   summaryState.pageTitle = ''
   summaryState.pageUrl = ''
   summaryState.isArchived = false
+  summaryState.currentActionType = 'summarize'
+  summaryState.customActionResult = ''
+  summaryState.isCustomActionLoading = false
+  summaryState.customActionError = null
 }
 
 /**
@@ -102,6 +110,8 @@ export function resetDisplayState() {
   summaryState.lastSummaryTypeDisplayed = null
   summaryState.activeYouTubeTab = 'videoSummary'
   summaryState.activeCourseTab = 'courseSummary'
+  summaryState.customActionResult = ''
+  summaryState.customActionError = null
 }
 
 /**
@@ -667,6 +677,19 @@ export async function saveAllGeneratedSummariesToArchive() {
     })
   }
 
+  // Add custom action result
+  if (
+    summaryState.customActionResult &&
+    summaryState.customActionResult.trim() !== ''
+  ) {
+    summariesToSave.push({
+      title:
+        summaryState.currentActionType.charAt(0).toUpperCase() +
+        summaryState.currentActionType.slice(1),
+      content: summaryState.customActionResult,
+    })
+  }
+
   if (summariesToSave.length === 0) {
     // TODO: Thêm thông báo cho người dùng
     return
@@ -734,6 +757,19 @@ export async function logAllGeneratedSummariesToHistory() {
     })
   }
 
+  // Add custom action result
+  if (
+    summaryState.customActionResult &&
+    summaryState.customActionResult.trim() !== ''
+  ) {
+    summariesToLog.push({
+      title:
+        summaryState.currentActionType.charAt(0).toUpperCase() +
+        summaryState.currentActionType.slice(1),
+      content: summaryState.customActionResult,
+    })
+  }
+
   if (summariesToLog.length === 0) {
     return
   }
@@ -761,5 +797,122 @@ export async function logAllGeneratedSummariesToHistory() {
         detail: { message: `Error logging to History: ${error}` },
       })
     )
+  }
+}
+
+/**
+ * Execute custom action (analyze, explain, debate) on current page content
+ * @param {string} actionType - 'analyze' | 'explain' | 'debate'
+ */
+export async function executeCustomAction(actionType) {
+  // Prevent multiple simultaneous actions
+  if (summaryState.isCustomActionLoading || summaryState.isLoading) {
+    return
+  }
+
+  // Wait for settings to be initialized
+  await loadSettings()
+  const userSettings = settings
+
+  // Reset custom action state
+  summaryState.isCustomActionLoading = true
+  summaryState.currentActionType = actionType
+  summaryState.customActionResult = ''
+  summaryState.customActionError = null
+  summaryState.lastSummaryTypeDisplayed = 'custom'
+
+  try {
+    // Get current tab info
+    const [tabInfo] = await browser.tabs.query({
+      active: true,
+      currentWindow: true,
+    })
+
+    if (!tabInfo || !tabInfo.url) {
+      throw new Error('Could not get current tab information or URL.')
+    }
+
+    // Check Firefox permissions
+    if (import.meta.env.BROWSER === 'firefox') {
+      const hasPermission = await checkPermission(tabInfo.url)
+      if (!hasPermission) {
+        const permissionGranted = await requestPermission(tabInfo.url)
+        if (!permissionGranted) {
+          throw new Error('Permission denied for this website.')
+        }
+      }
+    }
+
+    // Set page info
+    summaryState.pageTitle = tabInfo.title || 'Custom Action Result'
+    summaryState.pageUrl = tabInfo.url
+
+    // Get page content
+    const YOUTUBE_MATCH_PATTERN = /youtube\.com\/watch/i
+    const contentTypeToFetch = YOUTUBE_MATCH_PATTERN.test(tabInfo.url)
+      ? 'transcript'
+      : 'webpageText'
+
+    const contentResult = await getPageContent(
+      contentTypeToFetch,
+      userSettings.summaryLang
+    )
+
+    if (!contentResult.content || contentResult.content.trim() === '') {
+      throw new Error('No content found on this page.')
+    }
+
+    // Determine the actual provider to use based on isAdvancedMode
+    let selectedProviderId = userSettings.selectedProvider || 'gemini'
+    if (!userSettings.isAdvancedMode) {
+      selectedProviderId = 'gemini' // Force Gemini in basic mode
+    }
+
+    // Check if we should use streaming mode
+    const shouldUseStreaming =
+      userSettings.enableStreaming &&
+      providerSupportsStreaming(selectedProviderId)
+
+    if (shouldUseStreaming) {
+      // Use streaming mode
+      try {
+        console.log(`[summaryStore] Starting ${actionType} streaming...`)
+        const actionStream = summarizeContentStream(
+          contentResult.content,
+          actionType
+        )
+        let chunkCount = 0
+        for await (const chunk of actionStream) {
+          summaryState.customActionResult += chunk
+          chunkCount++
+        }
+        console.log(
+          `[summaryStore] ${actionType} streaming completed, chunks: ${chunkCount}`
+        )
+      } catch (streamError) {
+        console.log(
+          `[summaryStore] ${actionType} streaming error, falling back to blocking mode:`,
+          streamError
+        )
+        // Fallback to blocking mode on streaming error
+        const result = await summarizeContent(contentResult.content, actionType)
+        summaryState.customActionResult =
+          result || '<p><i>Could not generate result.</i></p>'
+      }
+    } else {
+      // Use non-streaming mode
+      const result = await summarizeContent(contentResult.content, actionType)
+      summaryState.customActionResult =
+        result || '<p><i>Could not generate result.</i></p>'
+    }
+  } catch (e) {
+    const errorObject = handleError(e, {
+      source: `customAction_${actionType}`,
+    })
+    summaryState.customActionError = errorObject
+  } finally {
+    summaryState.isCustomActionLoading = false
+    // Log to history
+    await logAllGeneratedSummariesToHistory()
   }
 }

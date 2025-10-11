@@ -305,5 +305,15 @@
     "description": "Mặc định truy cập YouTube, Udemy và Coursera. Để tóm tắt các trang web khác, vui lòng cấp quyền bên dưới.",
     "requesting": "Đang yêu cầu...",
     "grant_permissions": "Cấp quyền"
+  },
+  "custom_actions": {
+    "analyze": "Phân tích",
+    "explain": "Giải thích",
+    "debate": "Tranh luận",
+    "analyze_description": "Phân tích cấu trúc và lập luận nội dung",
+    "explain_description": "Giải thích bằng ngôn ngữ đơn giản",
+    "description": "Tạo phản hồi sâu sắc",
+    "processing": "Đang xử lý {action}...",
+    "error": "Không thể {action} nội dung"
   }
 }

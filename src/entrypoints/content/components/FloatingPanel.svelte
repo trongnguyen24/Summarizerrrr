@@ -11,15 +11,12 @@
   import { settings, updateSettings } from '@/stores/settingsStore.svelte.js'
   import { useApiKeyValidation } from '../composables/useApiKeyValidation.svelte.js'
   import ApiKeySetupPrompt from '@/components/ui/ApiKeySetupPrompt.svelte'
-
   import { fade } from 'svelte/transition'
-
-  // Reactive variable for panel position
-  let panelPosition = $derived(settings.floatingPanelLeft ? 'left' : 'right')
-
-  // Import components
   import FloatingPanelContent from '@/components/displays/floating-panel/FloatingPanelContent.svelte'
+  import ActionButtonsFP from '@/components/buttons/ActionButtonsFP.svelte'
+  import ActionButtonsMiniFP from '@/components/buttons/ActionButtonsMiniFP.svelte'
 
+  let panelPosition = $derived(settings.floatingPanelLeft ? 'left' : 'right')
   let { visible, summary, status, onclose, children, summarization } = $props()
 
   let panelElement = $state()
@@ -57,6 +54,11 @@
 
   function handleSummarizeClick() {
     summarization.summarizePageContent()
+  }
+
+  function handleCustomAction(actionType) {
+    console.log(`[FloatingPanel] Executing custom action: ${actionType}`)
+    summarization.summarizePageContent(actionType)
   }
   function togglePanelPosition() {
     updateSettings({ floatingPanelLeft: !settings.floatingPanelLeft })
@@ -380,7 +382,7 @@
       /></button
     >
     <div id="shadow-scroll" class="w-full h-full overflow-y-auto">
-      <div class="grid grid-rows-[10px_180px_10px_1fr] relative">
+      <div class="grid grid-rows-[10px_200px_10px_1fr] relative">
         <div
           class="top-stripes border-b border-border flex justify-center items-center w-full h-full"
         ></div>
@@ -404,6 +406,9 @@
               isChapterLoading={summarization.localSummaryState()
                 .isChapterLoading}
             />
+          {/if}
+          {#if summaryToDisplay || summarization.localSummaryState().error}
+            <ActionButtonsMiniFP onActionClick={handleCustomAction} />
           {/if}
         </div>
         <div
@@ -433,6 +438,10 @@
           onSelectCourseTab={panelState.setActiveCourseTab}
           {summarization}
         />
+      {/if}
+
+      {#if !summaryToDisplay && !summarization.localSummaryState().isLoading}
+        <ActionButtonsFP onActionClick={handleCustomAction} />
       {/if}
 
       {#if children?.settingsMini}

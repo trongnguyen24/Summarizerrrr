@@ -311,5 +311,15 @@
     "description": "Default access YouTube, Udemy and Coursera. For summarize other sites, please grant permissions below.",
     "requesting": "Requesting...",
     "grant_permissions": "Grant permissions"
+  },
+  "custom_actions": {
+    "analyze": "Analyze",
+    "explain": "Explain",
+    "debate": "Debate",
+    "analyze_description": "Analyze content structure and arguments",
+    "explain_description": "Explain in simple terms",
+    "reply_description": "Generate thoughtful response",
+    "processing": "Processing {action}...",
+    "error": "Failed to {action} content"
   }
 }

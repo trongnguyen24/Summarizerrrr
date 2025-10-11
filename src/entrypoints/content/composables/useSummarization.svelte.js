@@ -87,7 +87,7 @@ export function useSummarization() {
   /**
    * Main summarization function với independent loading
    */
-  async function summarizePageContent() {
+  async function summarizePageContent(customContentType = null) {
     // Prevent multiple concurrent requests
     if (isProcessing) {
       console.log(
@@ -122,8 +122,19 @@ export function useSummarization() {
       )
       const summarizationService = new SummarizationService(contentExtractor)
 
-      // 4. Detect content type trước
-      const { contentType } = await contentExtractor.extractPageContent()
+      // 4. Detect content type trước hoặc sử dụng customContentType
+      let contentType, content
+      if (customContentType) {
+        // Nếu có customContentType, chỉ extract content không detect type
+        const extractResult = await contentExtractor.extractPageContent()
+        content = extractResult.content
+        contentType = customContentType
+      } else {
+        // Logic gốc - detect content type tự động
+        const extractResult = await contentExtractor.extractPageContent()
+        contentType = extractResult.contentType
+        content = extractResult.content
+      }
       localSummaryState.contentType = contentType
       localSummaryState.streamingEnabled =
         summarizationService.shouldUseStreaming(settings)
@@ -177,17 +188,29 @@ export function useSummarization() {
         // Don't wait for both to complete - let them update UI independently
         await Promise.allSettled([courseSummaryPromise, courseConceptsPromise])
       } else {
-        // Non-course content: Use original logic
+        // Non-course content: Use original logic hoặc custom actions
         localSummaryState.isLoading = true
         if (contentType === 'youtube') {
           localSummaryState.isChapterLoading = true
         }
 
-        const result = await summarizationService.summarize(settings)
-
-        localSummaryState.summary = result.summary
-        if (result.chapterSummary) {
-          localSummaryState.chapterSummary = result.chapterSummary
+        // Nếu là custom action, gọi API trực tiếp
+        if (
+          customContentType &&
+          ['analyze', 'explain', 'debate'].includes(customContentType)
+        ) {
+          const { summarizeContent } = await import('@/lib/api/api.js')
+          localSummaryState.summary = await summarizeContent(
+            content,
+            customContentType
+          )
+        } else {
+          // Logic gốc cho content thường
+          const result = await summarizationService.summarize(settings)
+          localSummaryState.summary = result.summary
+          if (result.chapterSummary) {
+            localSummaryState.chapterSummary = result.chapterSummary
+          }
         }
 
         localSummaryState.isLoading = false

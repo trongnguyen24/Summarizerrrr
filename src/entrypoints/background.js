@@ -22,6 +22,128 @@ import { getAISDKModel, mapGenerationConfig } from '@/lib/api/aiSdkAdapter.js'
 import { generateText } from 'ai'
 
 // --- Helper Functions ---
+
+/**
+ * Checks if browser storage is ready and accessible
+ * @returns {Promise<boolean>} True if storage is ready
+ */
+async function isStorageReady() {
+  try {
+    // Try to write and read a test value to verify storage is working
+    const testKey = '__storage_readiness_test__'
+    const testValue = Date.now().toString()
+    await browser.storage.local.set({ [testKey]: testValue })
+    const result = await browser.storage.local.get(testKey)
+    await browser.storage.local.remove(testKey)
+    return result[testKey] === testValue
+  } catch (error) {
+    console.warn('[Background] Storage readiness check failed:', error)
+    return false
+  }
+}
+
+/**
+ * Load settings directly from browser.storage with multiple key patterns
+ * @returns {Promise<Object|null>} Settings object or null if failed
+ */
+async function loadSettingsDirectly() {
+  try {
+    // Try multiple possible storage keys based on discovered patterns
+    const possibleKeys = [
+      'settings',
+      'local:settings',
+      'wxt:settings',
+      'local_settings',
+    ]
+
+    for (const key of possibleKeys) {
+      const result = await browser.storage.local.get(key)
+      const storedSettings = result[key]
+
+      if (
+        storedSettings &&
+        typeof storedSettings === 'object' &&
+        Object.keys(storedSettings).length > 0
+      ) {
+        return storedSettings
+      }
+    }
+
+    return null
+  } catch (error) {
+    console.error('[Background] Error loading settings directly:', error)
+    return null
+  }
+}
+
+/**
+ * Initialize default settings if none exist
+ * @returns {Promise<Object>} Default settings object
+ */
+async function initializeDefaultSettings() {
+  const defaultSettings = {
+    iconClickAction: 'floating', // Use floating as default for this fix
+    selectedProvider: 'gemini',
+    hasCompletedOnboarding: false,
+    // Add other essential defaults as needed
+  }
+
+  try {
+    // Try to save default settings to storage
+    await browser.storage.local.set({ 'local:settings': defaultSettings })
+    console.log(
+      '[Background] Initialized default settings:',
+      defaultSettings.iconClickAction
+    )
+    return defaultSettings
+  } catch (error) {
+    console.error('[Background] Failed to initialize default settings:', error)
+    return defaultSettings // Return anyway, don't persist but use in memory
+  }
+}
+
+/**
+ * Enhanced settings loading with multiple fallback strategies
+ * @returns {Promise<Object|null>} Settings object or null if failed
+ */
+async function loadSettingsWithReadiness() {
+  try {
+    // Strategy 1: Check if storage is ready and try WXT storage
+    if (await isStorageReady()) {
+      try {
+        const settings = await loadSettings()
+        if (
+          settings &&
+          typeof settings === 'object' &&
+          settings.iconClickAction
+        ) {
+          return settings
+        }
+      } catch (error) {
+        console.warn('[Background] WXT storage failed, trying direct access')
+      }
+    }
+
+    // Strategy 2: Direct browser.storage access as backup
+    const directSettings = await loadSettingsDirectly()
+    if (directSettings && directSettings.iconClickAction) {
+      return directSettings
+    }
+
+    // Strategy 3: Initialize default settings as last resort
+    const defaultSettings = await initializeDefaultSettings()
+    if (defaultSettings && defaultSettings.iconClickAction) {
+      return defaultSettings
+    }
+
+    console.warn('[Background] All settings loading strategies failed')
+    return null
+  } catch (error) {
+    console.error('[Background] Error in loadSettingsWithReadiness:', error)
+    return null
+  }
+}
+
 export async function injectScript(tabId, files) {
   if (!browser.scripting) return false
   try {
@@ -176,7 +298,10 @@ export default defineBackground(() => {
   let sidePanelPort = null
   let pendingSelectedText = null
   const userAgent = navigator.userAgent
-  const isMobile = userAgent.includes('Android')
+  const isMobile = userAgent.includes('Android') || userAgent.includes('Mobile')
+  const isEdgeMobile =
+    userAgent.includes('EdgMob') ||
+    (userAgent.includes('Edge') && userAgent.includes('Mobile'))
 
   // --- Initial Setup ---
   loadSettings()
@@ -197,9 +322,20 @@ export default defineBackground(() => {
 
   // Function to update Chrome action behavior
   function updateChromeActionBehavior(iconClickAction) {
-    if (import.meta.env.BROWSER !== 'chrome' || isMobile) return
+    if (import.meta.env.BROWSER !== 'chrome') return
 
     try {
+      // Force popup for mobile devices regardless of settings
+      if (isMobile) {
+        console.log('[Background] Mobile detected, setting action to POPUP')
+        chrome.sidePanel?.setPanelBehavior({ openPanelOnActionClick: false })
+        browser.action.setPopup({
+          popup: browser.runtime.getURL('popop.html'),
+        })
+        return
+      }
+
+      // Desktop behavior based on settings
       switch (iconClickAction) {
         case 'popup':
           console.log('[Background] Setting action to POPUP')
@@ -260,11 +396,14 @@ export default defineBackground(() => {
   )
   ;(async () => {
     try {
-      const settings = await loadSettings()
-      if (settings.selectedProvider === 'ollama') {
+      // Wait a bit for settings to be ready, then initialize Ollama if needed
+      await new Promise((resolve) => setTimeout(resolve, 1000))
+      const settings = await loadSettingsWithReadiness()
+      if (settings && settings.selectedProvider === 'ollama') {
         await ollamaCorsService.setupOllamaCorsRules(
           settings.ollamaEndpoint || 'http://127.0.0.1:11434'
         )
+        console.log('[Background] Ollama CORS service initialized successfully')
       }
     } catch (error) {
       console.error(
@@ -311,29 +450,38 @@ export default defineBackground(() => {
 
   // --- Browser/Platform Specific Setup ---
   if (import.meta.env.BROWSER === 'chrome') {
-    // Setup Chrome action behavior based on settings
+    // Setup Chrome action behavior based on settings with enhanced retry and fallback
     async function setupChromeAction() {
-      const MAX_RETRIES = 3
-      const RETRY_DELAY = 500 // ms
+      // Immediately clear any manifest popup override
+      try {
+        await browser.action.setPopup({ popup: '' })
+        console.log('[Background] Cleared manifest popup override')
+      } catch (error) {
+        console.warn('[Background] Failed to clear popup:', error)
+      }
+
+      const MAX_RETRIES = 6
+      const INITIAL_DELAY = 100 // Start with 100ms
+      const MAX_DELAY = 3000 // Cap at 3s
 
       for (let i = 0; i < MAX_RETRIES; i++) {
         try {
           console.log(`[Background] Attempt ${i + 1} to load settings...`)
-          const settings = await loadSettings()
+          const settings = await loadSettingsWithReadiness()
 
-          if (settings && typeof settings === 'object') {
-            const action = settings.iconClickAction ?? 'sidepanel'
+          if (settings && settings.iconClickAction) {
             console.log(
-              `[Background] Settings loaded successfully. Setting action to: ${action}`
+              `[Background] Settings loaded successfully. Setting action to: ${settings.iconClickAction}`
             )
-            updateChromeActionBehavior(action)
+            updateChromeActionBehavior(settings.iconClickAction)
             return // Success, exit the function
           }
 
-          // This case handles if loadSettings() resolves with a non-object value
           console.warn(
-            '[Background] loadSettings resolved with invalid data:',
+            '[Background] Settings not ready or invalid:',
             settings
+              ? 'settings loaded but missing iconClickAction'
+              : 'settings is null/undefined'
           )
         } catch (error) {
           console.error(
@@ -342,17 +490,30 @@ export default defineBackground(() => {
           )
         }
 
-        // If not the last attempt, wait before retrying
+        // If not the last attempt, wait with exponential backoff
         if (i < MAX_RETRIES - 1) {
-          await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY))
+          const delay = Math.min(INITIAL_DELAY * Math.pow(1.5, i), MAX_DELAY)
+          console.log(
+            `[Background] Waiting ${delay}ms before retry ${i + 2}...`
+          )
+          await new Promise((resolve) => setTimeout(resolve, delay))
         }
       }
 
-      console.error(
-        `[Background] Failed to load settings after ${MAX_RETRIES} attempts. Action will not be set on startup.`
+      // Fallback to safe default behavior
+      console.warn(
+        `[Background] Failed to load settings after ${MAX_RETRIES} attempts. Using fallback default behavior.`
       )
-      // Do not set a default action. The settings watcher will still pick up
-      // any eventual successful load.
+      try {
+        // Use popup for mobile, sidepanel for desktop as fallback
+        const fallbackAction = isMobile ? 'popup' : 'sidepanel'
+        updateChromeActionBehavior(fallbackAction)
+        console.log(
+          `[Background] Applied fallback action behavior: ${fallbackAction}`
+        )
+      } catch (error) {
+        console.error('[Background] Failed to apply fallback behavior:', error)
+      }
     }
     setupChromeAction()
   } else if (import.meta.env.BROWSER === 'firefox') {

@@ -88,6 +88,7 @@ export default defineContentScript({
           display: inline-flex;
           align-items: center;
           height: 100%;
+          padding: 0 0.4rem;
         `
 
         // Insert before .ytp-right-controls

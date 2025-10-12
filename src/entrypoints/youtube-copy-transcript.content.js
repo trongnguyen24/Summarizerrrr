@@ -1,8 +1,9 @@
 // @ts-nocheck
 import { defineContentScript, createShadowRootUi } from '#imports'
 import { MessageBasedTranscriptExtractor } from './content/extractors/MessageBasedTranscriptExtractor.js'
-import CopyTranscriptIcon from '../components/ui/CopyTranscriptIcon.svelte'
+import CopyTranscriptIcon from './content/CopyTranscriptIcon.svelte'
 import { mount, unmount } from 'svelte'
+import './content/styles/floating-ui.css'
 
 export default defineContentScript({
   matches: ['*://*.youtube.com/watch*'],
@@ -14,11 +15,11 @@ export default defineContentScript({
     const waitForPlayer = () => {
       return new Promise((resolve) => {
         const checkPlayer = () => {
-          const player = document.querySelector(
+          const rightControls = document.querySelector(
             '.ytp-chrome-controls .ytp-right-controls'
           )
-          if (player) {
-            resolve(player)
+          if (rightControls) {
+            resolve(rightControls)
           } else {
             setTimeout(checkPlayer, 100)
           }
@@ -60,7 +61,7 @@ export default defineContentScript({
     }
 
     // Insert copy transcript icon
-    const insertCopyIcon = async (playerControls) => {
+    const insertCopyIcon = async (rightControls) => {
       try {
         // Check if transcript is available before showing icon
         const hasTranscript = await checkTranscriptAvailability()
@@ -71,17 +72,8 @@ export default defineContentScript({
           return
         }
 
-        // Find the settings button to position our icon next to it
-        const settingsButton = playerControls.querySelector(
-          '.ytp-settings-button'
-        )
-        if (!settingsButton) {
-          console.log('[YouTube Copy Transcript] Settings button not found')
-          return
-        }
-
         // Check if our icon is already inserted
-        const existingIcon = playerControls.querySelector(
+        const existingIcon = document.querySelector(
           '.copy-transcript-container'
         )
         if (existingIcon) {
@@ -98,8 +90,8 @@ export default defineContentScript({
           height: 100%;
         `
 
-        // Insert before settings button
-        settingsButton.parentNode.insertBefore(iconContainer, settingsButton)
+        // Insert before .ytp-right-controls
+        rightControls.parentNode.insertBefore(iconContainer, rightControls)
 
         // Create shadow DOM UI for the icon
         const ui = await createShadowRootUi(ctx, {
@@ -136,8 +128,8 @@ export default defineContentScript({
           // Wait a bit for YouTube to load the new page
           setTimeout(async () => {
             try {
-              const playerControls = await waitForPlayer()
-              await insertCopyIcon(playerControls)
+              const rightControls = await waitForPlayer()
+              await insertCopyIcon(rightControls)
             } catch (error) {
               console.error(
                 '[YouTube Copy Transcript] Error on navigation:',
@@ -169,11 +161,11 @@ export default defineContentScript({
     // Initialize the feature
     try {
       // Wait for initial player load
-      const playerControls = await waitForPlayer()
-      console.log('[YouTube Copy Transcript] Player controls found')
+      const rightControls = await waitForPlayer()
+      console.log('[YouTube Copy Transcript] Right controls found')
 
       // Insert the copy icon
-      await insertCopyIcon(playerControls)
+      await insertCopyIcon(rightControls)
 
       // Setup navigation watcher for SPA navigation
       setupNavigationWatcher()

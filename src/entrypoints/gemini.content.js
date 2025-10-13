@@ -1,176 +1,75 @@
 // @ts-nocheck
 /**
- * Simple Gemini content script - detect ?ref parameter and handle form filling
+ * Gemini content script - Optimized for speed
  */
-
 export default defineContentScript({
   matches: ['*://gemini.google.com/*'],
   main() {
-    console.log('[GeminiContentScript] Content script loaded')
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('ref') !== 'summarizerrrr') return;
 
-    // Check if this page has our ref parameter
-    const urlParams = new URLSearchParams(window.location.search)
-    const hasRefParam = urlParams.get('ref') === 'summarizerrrr'
-
-    if (!hasRefParam) {
-      console.log('[GeminiContentScript] No ref parameter, exiting')
-      return
-    }
-
-    console.log(
-      '[GeminiContentScript] Detected ref=summarizerrrr, waiting for content...'
-    )
-
-    // Listen for content from background script
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-      console.log('[GeminiContentScript] Received message:', message.type)
-
       if (message.type === 'FILL_GEMINI_FORM') {
-        handleFillForm(message.content, sendResponse)
-        return true
+        handleFillForm(message.content, sendResponse);
+        return true;
       }
-    })
+    });
 
-    /**
-     * Handle form filling with the provided content
-     */
     async function handleFillForm(content, sendResponse) {
       try {
-        console.log('[GeminiContentScript] Starting form fill process...')
-        console.log('[GeminiContentScript] Content length:', content.length)
-        console.log(
-          '[GeminiContentScript] Content preview:',
-          content.substring(0, 200) + '...'
-        )
-
-        // Wait for page to be ready
-        await waitForPageReady()
-
-        // Find text area with multiple selectors
-        const textAreaSelectors = [
-          '.ql-editor.textarea.new-input-ui[contenteditable="true"]',
+        const editor = await waitForElement([
+          '.ql-editor.textarea',
           '.ql-editor[contenteditable="true"]',
-          'div[contenteditable="true"][role="textbox"]',
-          'textarea',
-        ]
+        ]);
+        if (!editor) throw new Error('Text area not found');
 
-        const textArea = await waitForElement(textAreaSelectors)
-        if (!textArea) {
-          throw new Error('Text area not found')
+        // Directly set content and dispatch event
+        editor.focus();
+        if (editor.querySelector('p')) {
+            editor.querySelector('p').textContent = content;
+        } else {
+            editor.textContent = content;
         }
+        editor.dispatchEvent(new Event('input', { bubbles: true, cancelable: true }));
 
-        console.log('[GeminiContentScript] Text area found, filling content...')
+        // Wait for the submit button to become enabled
+        const submitButton = await waitForElement(
+            ['button:has(span.send-icon)', 'button[aria-label*="Send" i]'],
+            { timeout: 5000, checkDisabled: true }
+        );
+        if (!submitButton) throw new Error('Submit button not found or remained disabled');
 
-        // Fill content using textContent instead of innerHTML
-        textArea.focus()
-        textArea.innerHTML = '' // Clear first
-        textArea.textContent = content // Use textContent for full content
+        submitButton.click();
 
-        // Trigger events
-        const events = ['input', 'change', 'keyup', 'paste']
-        for (const eventType of events) {
-          textArea.dispatchEvent(
-            new Event(eventType, { bubbles: true, cancelable: true })
-          )
-        }
-
-        // Also try to set the value if it's a textarea
-        if (textArea.value !== undefined) {
-          textArea.value = content
-          textArea.dispatchEvent(new Event('input', { bubbles: true }))
-        }
-
-        textArea.focus()
-
-        // Log what was actually set
-        console.log(
-          '[GeminiContentScript] Text area content after fill:',
-          textArea.textContent.substring(0, 200) + '...'
-        )
-
-        // Wait and find submit button
-        await new Promise((resolve) => setTimeout(resolve, 2000))
-
-        const submitSelectors = [
-          'button[aria-label*="Send" i]',
-          'button[aria-label*="Submit" i]',
-          'button[data-testid="send-button"]',
-          'button:has(svg[data-testid="send-icon"])',
-        ]
-
-        const submitButton = await waitForElement(submitSelectors)
-        if (!submitButton) {
-          throw new Error('Submit button not found')
-        }
-
-        console.log('[GeminiContentScript] Submit button found, clicking...')
-
-        // Click submit
-        submitButton.scrollIntoView({ behavior: 'smooth', block: 'center' })
-        await new Promise((resolve) => setTimeout(resolve, 500))
-        submitButton.click()
-
-        console.log(
-          '[GeminiContentScript] Form filled and submitted successfully'
-        )
-        sendResponse({ success: true })
+        sendResponse({ success: true });
       } catch (error) {
-        console.error('[GeminiContentScript] Form fill failed:', error)
-        sendResponse({ success: false, error: error.message })
+        console.error('[GeminiContentScript] Form fill failed:', error);
+        sendResponse({ success: false, error: error.message });
       }
     }
 
-    /**
-     * Wait for page to be ready
-     */
-    async function waitForPageReady() {
-      return new Promise((resolve) => {
-        if (document.readyState === 'complete') {
-          setTimeout(() => resolve(), 1000) // Extra wait for dynamic content
-          return
-        }
-
-        const onReady = () => {
-          document.removeEventListener('readystatechange', onReady)
-          setTimeout(() => resolve(), 1000)
-        }
-
-        document.addEventListener('readystatechange', onReady)
-      })
-    }
-
-    /**
-     * Wait for element with multiple selectors
-     */
-    async function waitForElement(selectors, timeout = 20000) {
-      const selectorList = Array.isArray(selectors) ? selectors : [selectors]
-
-      return new Promise((resolve) => {
-        const startTime = Date.now()
-
-        const checkElements = () => {
-          for (const selector of selectorList) {
-            const element = document.querySelector(selector)
-            if (element && element.offsetParent !== null) {
-              console.log(`[GeminiContentScript] Element found: ${selector}`)
-              resolve(element)
-              return
-            }
-          }
-
-          if (Date.now() - startTime > timeout) {
-            console.warn(
-              '[GeminiContentScript] Element not found after timeout'
-            )
-            resolve(null)
-            return
-          }
-
-          setTimeout(checkElements, 500)
-        }
-
-        checkElements()
-      })
+    async function waitForElement(selectors, options = { timeout: 10000, checkDisabled: false }) {
+        const { timeout, checkDisabled } = options;
+        const selectorList = Array.isArray(selectors) ? selectors : [selectors];
+        return new Promise((resolve) => {
+            const startTime = Date.now();
+            const check = () => {
+                for (const selector of selectorList) {
+                    const element = document.querySelector(selector);
+                    if (element && element.offsetParent !== null) {
+                        if (checkDisabled && element.disabled) continue;
+                        resolve(element);
+                        return;
+                    }
+                }
+                if (Date.now() - startTime > timeout) {
+                    resolve(null);
+                    return;
+                }
+                setTimeout(check, 100); // Poll faster
+            };
+            check();
+        });
     }
   },
-})
+});

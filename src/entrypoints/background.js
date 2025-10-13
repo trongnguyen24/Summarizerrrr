@@ -981,7 +981,7 @@ export default defineBackground(() => {
       console.log(`[Background] ${service} tab created: ${tab.id}`)
 
       // Wait for tab to load and send content
-      const prompt = `<task>Please provide a clear and concise summary of the given <content> in ${summaryLang}.Start with one short main takeaway or overall conclusion. Then list key ideas, facts, or points found in the content — one sentence per idea.Be concise, neutral, and avoid filler or repetition.If no content is provided, politely ask the user what they would like summarized. End by identifying the most significant topic 'X' from the summary and ask a direct question inviting the user to learn more about it.</task><content>${message.transcript}</content>`
+      const prompt = `<task>Please provide a clear and concise summary of the given <content> in ${summaryLang}.Start with one short main takeaway or overall conclusion. Then list key ideas, facts, or points found in the content - one sentence per idea.Be concise, neutral, and avoid filler or repetition.If no content is provided, politely ask the user what they would like summarized. End by identifying the most significant topic from the summary and ask a direct question inviting the user to learn more about it</task><transcript> ${transcript}</transcript>`
 
       console.log(`[Background] ${service} prompt length:`, prompt.length)
 

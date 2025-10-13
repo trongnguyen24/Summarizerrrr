@@ -9,6 +9,7 @@
   let isGeminiLoading = $state(false)
   let isChatGPTLoading = $state(false)
   let isPerplexityLoading = $state(false)
+  let isGrokLoading = $state(false)
   let showPopover = $state(false)
   let wrapElement = $state()
 
@@ -180,6 +181,52 @@
       )
     } finally {
       isPerplexityLoading = false
+    }
+  }
+
+  const handleSummarizeOnGrok = async () => {
+    if (isGrokLoading) return
+
+    isGrokLoading = true
+    try {
+      console.log('[CopyTranscriptIcon] Starting Grok summarization...')
+
+      // Get transcript
+      const transcriptExtractor = new MessageBasedTranscriptExtractor('en')
+      const transcript = await transcriptExtractor.getPlainTranscript()
+
+      if (!transcript || transcript.trim().length === 0) {
+        console.warn('[CopyTranscriptIcon] No transcript available')
+        return
+      }
+
+      const fullContent = `<title>${videoTitle}</title>\n\n<transcript>${transcript.trim()}</transcript>`
+      console.log(
+        `[CopyTranscriptIcon] Transcript extracted: ${fullContent.length} characters`
+      )
+
+      // Send simple message to background script
+      chrome.runtime.sendMessage(
+        {
+          type: 'SUMMARIZE_ON_GROK',
+          transcript: fullContent,
+        },
+        (response) => {
+          if (response && response.success) {
+            console.log('[CopyTranscriptIcon] Grok tab opened successfully')
+            showPopover = false // Hide popover after success
+          } else {
+            console.error(
+              '[CopyTranscriptIcon] Failed to open Grok:',
+              response?.error
+            )
+          }
+        }
+      )
+    } catch (error) {
+      console.error('[CopyTranscriptIcon] Error in Grok summarization:', error)
+    } finally {
+      isGrokLoading = false
     }
   }
 
@@ -428,6 +475,64 @@
             </svg>
           {/if}
           Summarize on Perplexity
+        </button>
+
+        <button
+          class="summarizerrrr-btn-item"
+          title="Summarize on Grok"
+          aria-label="Summarize on Grok"
+          onclick={handleSummarizeOnGrok}
+          disabled={isGrokLoading}
+        >
+          {#if isGrokLoading}
+            <svg
+              class="copy-transcript-spinner"
+              viewBox="0 0 24 24"
+              fill="none"
+            >
+              <circle
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-dasharray="31.416"
+                stroke-dashoffset="31.416"
+              >
+                <animate
+                  attributeName="stroke-dasharray"
+                  dur="2s"
+                  values="0 31.416;15.708 15.708;0 31.416"
+                  repeatCount="indefinite"
+                />
+                <animate
+                  attributeName="stroke-dashoffset"
+                  dur="2s"
+                  values="0;-15.708;-31.416"
+                  repeatCount="indefinite"
+                />
+              </circle>
+            </svg>
+          {:else}
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path
+                d="M12 2L2 7V17L12 22L22 17V7L12 2Z"
+                stroke-linejoin="round"
+              />
+              <path d="M12 22V12" />
+              <path d="M2 7L12 12L22 7" />
+            </svg>
+          {/if}
+          Summarize on Grok
         </button>
       </div>
     </div>

@@ -15,6 +15,7 @@ declare module "wxt/browser" {
     | "/content-scripts/content.js"
     | "/content-scripts/coursera.js"
     | "/content-scripts/gemini.js"
+    | "/content-scripts/grok.js"
     | "/content-scripts/perplexity.js"
     | "/content-scripts/udemy.js"
     | "/content-scripts/youtube-copy-transcript.js"

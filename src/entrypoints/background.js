@@ -769,6 +769,10 @@ export default defineBackground(() => {
       handleAISummarization('perplexity', message.transcript, sendResponse)
       return true
     }
+    if (message.type === 'SUMMARIZE_ON_GROK') {
+      handleAISummarization('grok', message.transcript, sendResponse)
+      return true
+    }
 
     // Sync handlers
     if (message.type === 'OPEN_ARCHIVE') {
@@ -968,6 +972,10 @@ export default defineBackground(() => {
         perplexity: {
           url: 'https://www.perplexity.ai/?ref=summarizerrrr',
           messageType: 'FILL_PERPLEXITY_FORM',
+        },
+        grok: {
+          url: 'https://grok.com/?ref=summarizerrrr',
+          messageType: 'FILL_GROK_FORM',
         },
       }
 

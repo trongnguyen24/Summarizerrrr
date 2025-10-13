@@ -712,6 +712,59 @@ export default defineBackground(() => {
       })()
       return true
     }
+    if (message.type === 'CREATE_AI_TAB') {
+      ;(async () => {
+        try {
+          console.log(`[Background] Creating AI tab: ${message.provider}`)
+
+          const tab = await browser.tabs.create({
+            url: message.url,
+            active: true,
+          })
+
+          sendResponse({
+            success: true,
+            tabId: tab.id,
+            provider: message.provider,
+          })
+        } catch (error) {
+          console.error('[Background] Failed to create AI tab:', error)
+          sendResponse({
+            success: false,
+            error: error.message,
+          })
+        }
+      })()
+      return true
+    }
+    if (message.type === 'CHECK_TAB_STATUS') {
+      ;(async () => {
+        try {
+          const tab = await browser.tabs.get(message.tabId)
+
+          sendResponse({
+            success: true,
+            completed: tab.status === 'complete',
+            url: tab.url || '',
+            title: tab.title || '',
+          })
+        } catch (error) {
+          sendResponse({
+            success: false,
+            error: error.message,
+          })
+        }
+      })()
+      return true
+    }
+    if (message.type === 'SUMMARIZE_ON_GEMINI') {
+      handleAISummarization('gemini', message.transcript, sendResponse)
+      return true
+    }
+    if (message.type === 'SUMMARIZE_ON_CHATGPT') {
+      handleAISummarization('chatgpt', message.transcript, sendResponse)
+      return true
+    }
 
     // Sync handlers
     if (message.type === 'OPEN_ARCHIVE') {
@@ -892,4 +945,82 @@ export default defineBackground(() => {
       handleTabChange(tabId)
     }
   })
+
+  // --- AI Service Handler (Generalized) ---
+  async function handleAISummarization(service, transcript, sendResponse) {
+    try {
+      console.log(`[Background] Processing ${service} summarization request`)
+
+      // AI service configuration
+      const aiConfig = {
+        gemini: {
+          url: 'https://gemini.google.com/app?ref=summarizerrrr',
+          messageType: 'FILL_GEMINI_FORM',
+        },
+        chatgpt: {
+          url: 'https://chatgpt.com/?ref=summarizerrrr',
+          messageType: 'FILL_CHATGPT_FORM',
+        },
+      }
+
+      const config = aiConfig[service]
+      if (!config) {
+        throw new Error(`Unsupported AI service: ${service}`)
+      }
+
+      // Load settings to get summary language
+      const settings = await loadSettingsWithReadiness()
+      const summaryLang = settings?.summaryLang || 'English'
+
+      // Create AI service tab
+      const tab = await browser.tabs.create({
+        url: config.url,
+        active: true,
+      })
+
+      console.log(`[Background] ${service} tab created: ${tab.id}`)
+
+      // Wait for tab to load and send content
+      const prompt = `Please provide a clear, concise summary of the <transcript> content in ${summaryLang}. Begin with a simple answer distilling the main point. Then cover 3-4 main ideas. Be concise. Like one sentence for each, max two.
+If there is no attached content or user input, ask the user what might be helpful to summarize: <transcript> ${transcript}</transcript>`
+
+      console.log(`[Background] ${service} prompt length:`, prompt.length)
+
+      let retries = 0
+      const maxRetries = 15
+
+      const waitAndSend = async () => {
+        try {
+          await browser.tabs.sendMessage(tab.id, {
+            type: config.messageType,
+            content: prompt,
+          })
+
+          console.log(`[Background] Transcript sent to ${service} successfully`)
+          sendResponse({ success: true, tabId: tab.id })
+        } catch (error) {
+          if (retries < maxRetries) {
+            retries++
+            console.log(
+              `[Background] ${service} retry ${retries}/${maxRetries}`
+            )
+            setTimeout(waitAndSend, 1000)
+          } else {
+            console.error(
+              `[Background] ${service} content script not ready after max retries`
+            )
+            sendResponse({
+              success: false,
+              error: `${service} content script not ready`,
+            })
+          }
+        }
+      }
+
+      setTimeout(waitAndSend, 2000)
+    } catch (error) {
+      console.error(`[Background] Error processing ${service} request:`, error)
+      sendResponse({ success: false, error: error.message })
+    }
+  }
 })

@@ -70,7 +70,7 @@
     >
       <div class="summarizerrrr-background">
         <button
-          class="copy-transcript-btn"
+          class="copy-transcript-btn summarizerrrr-btn-item"
           title="Copy Transcript"
           aria-label="Copy Transcript"
           onclick={handleCopyTranscript}
@@ -118,11 +118,9 @@
         </button>
 
         <button
-          class="copy-transcript-btn"
+          class="summarizerrrr-btn-item"
           title="Summarize on Gemini"
           aria-label="Summarize on Gemini"
-          onclick={handleCopyTranscript}
-          disabled={isLoading}
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"

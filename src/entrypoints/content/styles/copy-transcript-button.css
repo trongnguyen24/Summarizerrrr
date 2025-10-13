@@ -1,5 +1,5 @@
 /* Copy Transcript Button Styles */
-.copy-transcript-btn {
+.summarizerrrr-btn-item {
   display: flex;
   align-items: center;
   padding: 0 1.2rem;
@@ -16,21 +16,21 @@
   outline: none;
 }
 
-.copy-transcript-btn:hover {
+.summarizerrrr-btn-item:hover {
   background: rgba(255, 255, 255, 0.1); /* hover:bg-white/10 */
   opacity: 1; /* hover:opacity-100 */
 }
 
-.copy-transcript-btn:active {
+.summarizerrrr-btn-item:active {
   background: rgba(255, 255, 255, 0.2); /* active:bg-white/20 */
 }
 
-.copy-transcript-btn:disabled {
+.summarizerrrr-btn-item:disabled {
   cursor: not-allowed; /* disabled:cursor-not-allowed */
   opacity: 0.5; /* disabled:opacity-50 */
 }
 
-.copy-transcript-btn:disabled:hover {
+.summarizerrrr-btn-item:disabled:hover {
   background: transparent;
   opacity: 0.5;
 }
@@ -97,5 +97,14 @@
   position: relative;
   &:hover {
     background-color: hsla(0, 0%, 100%, 0.1);
+  }
+}
+
+@media screen and (min-width: 1300px) {
+  .summarizerrrr-btn {
+    height: 4.2rem; /* h-12 */
+  }
+  .summarizerrrr-popover {
+    bottom: 6.7rem;
   }
 }

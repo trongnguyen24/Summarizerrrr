@@ -48,15 +48,19 @@ export default defineContentScript({
           })
         }
 
+        const videoTitle =
+          document.querySelector('h1.ytd-watch-metadata')?.textContent?.trim() ||
+          document.title
         const transcriptExtractor = new MessageBasedTranscriptExtractor('en')
         const transcript = await transcriptExtractor.getPlainTranscript()
-        return transcript && transcript.trim().length > 0
+        const hasTranscript = transcript && transcript.trim().length > 0
+        return { hasTranscript, videoTitle }
       } catch (error) {
         console.log(
           '[YouTube Copy Transcript] Error checking transcript availability:',
           error
         )
-        return false
+        return { hasTranscript: false, videoTitle: '' }
       }
     }
 
@@ -64,7 +68,8 @@ export default defineContentScript({
     const insertCopyIcon = async (rightControls) => {
       try {
         // Check if transcript is available before showing icon
-        const hasTranscript = await checkTranscriptAvailability()
+        const { hasTranscript, videoTitle } =
+          await checkTranscriptAvailability()
         if (!hasTranscript) {
           console.log(
             '[YouTube Copy Transcript] No transcript available, not showing icon'
@@ -100,7 +105,10 @@ export default defineContentScript({
           position: 'inline',
           anchor: iconContainer,
           onMount(container) {
-            const app = mount(CopyTranscriptIcon, { target: container })
+            const app = mount(CopyTranscriptIcon, {
+              target: container,
+              props: { videoTitle },
+            })
             return app
           },
           onRemove(app) {

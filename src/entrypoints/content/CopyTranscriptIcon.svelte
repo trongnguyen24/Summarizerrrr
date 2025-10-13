@@ -4,9 +4,11 @@
   import './styles/copy-transcript-button.css'
   import { onMount } from 'svelte'
 
+  let { videoTitle = '' } = $props()
   let isLoading = $state(false)
   let isGeminiLoading = $state(false)
   let isChatGPTLoading = $state(false)
+  let isPerplexityLoading = $state(false)
   let showPopover = $state(false)
   let wrapElement = $state()
 
@@ -19,8 +21,9 @@
       const transcript = await transcriptExtractor.getPlainTranscript()
 
       if (transcript && transcript.trim().length > 0) {
-        await navigator.clipboard.writeText(transcript.trim())
-        console.log('Transcript copied to clipboard')
+        const fullContent = `<title>${videoTitle}</title>\n\n<transcript>${transcript.trim()}</transcript>`
+        await navigator.clipboard.writeText(fullContent)
+        console.log('Transcript with title copied to clipboard')
       } else {
         console.log('No transcript available to copy')
       }
@@ -47,15 +50,16 @@
         return
       }
 
+      const fullContent = `<title>${videoTitle}</title>\n\n<transcript>${transcript.trim()}</transcript>`
       console.log(
-        `[CopyTranscriptIcon] Transcript extracted: ${transcript.length} characters`
+        `[CopyTranscriptIcon] Transcript extracted: ${fullContent.length} characters`
       )
 
       // Send simple message to background script
       chrome.runtime.sendMessage(
         {
           type: 'SUMMARIZE_ON_GEMINI',
-          transcript: transcript.trim(),
+          transcript: fullContent,
         },
         (response) => {
           if (response && response.success) {
@@ -95,15 +99,16 @@
         return
       }
 
+      const fullContent = `<title>${videoTitle}</title>\n\n<transcript>${transcript.trim()}</transcript>`
       console.log(
-        `[CopyTranscriptIcon] Transcript extracted: ${transcript.length} characters`
+        `[CopyTranscriptIcon] Transcript extracted: ${fullContent.length} characters`
       )
 
       // Send simple message to background script
       chrome.runtime.sendMessage(
         {
           type: 'SUMMARIZE_ON_CHATGPT',
-          transcript: transcript.trim(),
+          transcript: fullContent,
         },
         (response) => {
           if (response && response.success) {
@@ -124,6 +129,57 @@
       )
     } finally {
       isChatGPTLoading = false
+    }
+  }
+
+  const handleSummarizeOnPerplexity = async () => {
+    if (isPerplexityLoading) return
+
+    isPerplexityLoading = true
+    try {
+      console.log('[CopyTranscriptIcon] Starting Perplexity summarization...')
+
+      // Get transcript
+      const transcriptExtractor = new MessageBasedTranscriptExtractor('en')
+      const transcript = await transcriptExtractor.getPlainTranscript()
+
+      if (!transcript || transcript.trim().length === 0) {
+        console.warn('[CopyTranscriptIcon] No transcript available')
+        return
+      }
+
+      const fullContent = `<title>${videoTitle}</title>\n\n<transcript>${transcript.trim()}</transcript>`
+      console.log(
+        `[CopyTranscriptIcon] Transcript extracted: ${fullContent.length} characters`
+      )
+
+      // Send simple message to background script
+      chrome.runtime.sendMessage(
+        {
+          type: 'SUMMARIZE_ON_PERPLEXITY',
+          transcript: fullContent,
+        },
+        (response) => {
+          if (response && response.success) {
+            console.log(
+              '[CopyTranscriptIcon] Perplexity tab opened successfully'
+            )
+            showPopover = false // Hide popover after success
+          } else {
+            console.error(
+              '[CopyTranscriptIcon] Failed to open Perplexity:',
+              response?.error
+            )
+          }
+        }
+      )
+    } catch (error) {
+      console.error(
+        '[CopyTranscriptIcon] Error in Perplexity summarization:',
+        error
+      )
+    } finally {
+      isPerplexityLoading = false
     }
   }
 
@@ -319,6 +375,59 @@
             </svg>
           {/if}
           Summarize on ChatGPT
+        </button>
+
+        <button
+          class="summarizerrrr-btn-item"
+          title="Summarize on Perplexity"
+          aria-label="Summarize on Perplexity"
+          onclick={handleSummarizeOnPerplexity}
+          disabled={isPerplexityLoading}
+        >
+          {#if isPerplexityLoading}
+            <svg
+              class="copy-transcript-spinner"
+              viewBox="0 0 24 24"
+              fill="none"
+            >
+              <circle
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-dasharray="31.416"
+                stroke-dashoffset="31.416"
+              >
+                <animate
+                  attributeName="stroke-dasharray"
+                  dur="2s"
+                  values="0 31.416;15.708 15.708;0 31.416"
+                  repeatCount="indefinite"
+                />
+                <animate
+                  attributeName="stroke-dashoffset"
+                  dur="2s"
+                  values="0;-15.708;-31.416"
+                  repeatCount="indefinite"
+                />
+              </circle>
+            </svg>
+          {:else}
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 256 256"
+            >
+              <path
+                fill="currentColor"
+                d="M128 24a104 104 0 1 0 104 104A104.11 104.11 0 0 0 128 24m0 192a88 88 0 1 1 88-88a88.1 88.1 0 0 1-88 88m-8-88a8 8 0 0 1 8-8h16a8 8 0 0 1 0 16h-16a8 8 0 0 1-8-8m40 0a8 8 0 0 1 8-8h16a8 8 0 0 1 0 16h-16a8 8 0 0 1-8-8"
+              />
+            </svg>
+          {/if}
+          Summarize on Perplexity
         </button>
       </div>
     </div>

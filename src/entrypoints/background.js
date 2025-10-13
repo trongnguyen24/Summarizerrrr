@@ -765,6 +765,10 @@ export default defineBackground(() => {
       handleAISummarization('chatgpt', message.transcript, sendResponse)
       return true
     }
+    if (message.type === 'SUMMARIZE_ON_PERPLEXITY') {
+      handleAISummarization('perplexity', message.transcript, sendResponse)
+      return true
+    }
 
     // Sync handlers
     if (message.type === 'OPEN_ARCHIVE') {
@@ -961,6 +965,10 @@ export default defineBackground(() => {
           url: 'https://chatgpt.com/?ref=summarizerrrr',
           messageType: 'FILL_CHATGPT_FORM',
         },
+        perplexity: {
+          url: 'https://www.perplexity.ai/?ref=summarizerrrr',
+          messageType: 'FILL_PERPLEXITY_FORM',
+        },
       }
 
       const config = aiConfig[service]
@@ -981,7 +989,7 @@ export default defineBackground(() => {
       console.log(`[Background] ${service} tab created: ${tab.id}`)
 
       // Wait for tab to load and send content
-      const prompt = `<task>Please provide a clear and concise summary of the given <content> in ${summaryLang}.Start with one short main takeaway or overall conclusion. Then list key ideas, facts, or points found in the content - one sentence per idea.Be concise, neutral, and avoid filler or repetition.If no content is provided, politely ask the user what they would like summarized. End by identifying the most significant topic from the summary and ask a direct question inviting the user to learn more about it</task><transcript> ${transcript}</transcript>`
+      const prompt = `<task>Please provide a clear and concise summary of the given <content> in ${summaryLang}.Start with one short main takeaway or overall conclusion. Then list key ideas, facts, or points found in the content - one sentence per idea.Be concise, neutral, and avoid filler or repetition.If no content is provided, politely ask the user what they would like summarized. End by identifying the most significant topic from the summary and ask a direct question inviting the user to learn more about it</task><content> ${transcript}</content>`
 
       console.log(`[Background] ${service} prompt length:`, prompt.length)
 

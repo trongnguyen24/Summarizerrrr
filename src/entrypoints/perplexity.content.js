@@ -1,13 +1,26 @@
-// @ts-nocheck
 /**
  * Perplexity content script - Fills and submits the form, inspired by Gemini/ChatGPT scripts.
  */
+import { waitForElement } from '../lib/utils/domUtils.js'
+
 export default defineContentScript({
   matches: ['*://www.perplexity.ai/*'],
 
+  /**
+   * Main function for the content script
+   * @returns {Promise<void>}
+   */
   async main() {
     console.log('[PerplexityContentScript] Content script loaded')
 
+    /**
+     * @param {object} message - The message object
+     * @param {string} message.type - The type of message
+     * @param {string} message.content - The content to fill in the form
+     * @param {object} sender - The sender of the message
+     * @param {function} sendResponse - The response callback function
+     * @returns {boolean} - Returns true to keep the message channel open for async response
+     */
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       if (message.type === 'FILL_PERPLEXITY_FORM') {
         handleFillForm(message.content, sendResponse)
@@ -17,6 +30,12 @@ export default defineContentScript({
   },
 })
 
+/**
+ * Handles filling the Perplexity form with content
+ * @param {string} content - The content to fill in the form
+ * @param {function} sendResponse - The response callback function
+ * @returns {Promise<void>}
+ */
 async function handleFillForm(content, sendResponse) {
   try {
     console.log('[PerplexityContentScript] Starting form fill...')
@@ -103,31 +122,4 @@ async function handleFillForm(content, sendResponse) {
     console.error('[PerplexityContentScript] Error during form fill:', error)
     sendResponse({ success: false, error: error.message })
   }
-}
-
-function waitForElement(
-  selectors,
-  options = { timeout: 10000, checkDisabled: false }
-) {
-  const { timeout, checkDisabled } = options
-  const selectorList = Array.isArray(selectors) ? selectors : [selectors]
-  return new Promise((resolve) => {
-    const startTime = Date.now()
-    const check = () => {
-      for (const selector of selectorList) {
-        const element = document.querySelector(selector)
-        if (element && element.offsetParent !== null) {
-          if (checkDisabled && element.disabled) continue
-          resolve(element)
-          return
-        }
-      }
-      if (Date.now() - startTime > timeout) {
-        resolve(null)
-        return
-      }
-      setTimeout(check, 100) // Poll faster
-    }
-    check()
-  })
 }

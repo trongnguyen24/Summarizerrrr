@@ -3,7 +3,6 @@
   display: flex;
   align-items: center;
   padding: 0 1.2rem;
-  font-weight: 600;
   gap: 0.8rem;
   font-size: 1.2rem;
   width: 24rem; /* w-14 */
@@ -58,7 +57,7 @@
 
 .summarizerrrr-popover {
   position: absolute;
-  bottom: 5.4rem;
+  bottom: 6rem;
   display: none;
   right: 0;
 }
@@ -68,14 +67,14 @@
 }
 
 .summarizerrrr-background {
-  background: hsla(0, 0%, 10%, 0.9);
+  background: hsla(0, 0%, 5%, 0.9);
   border-radius: 1.6rem;
   padding: 0.8rem;
   display: flex;
   flex-direction: column;
 }
 .summarizerrrr-wrap {
-  background: hsl(0deg 0% 0% / 0%);
+  background: hsl(0deg 0% 0% / 30%);
   padding: 0.4rem;
   position: relative;
   border-radius: 4rem;
@@ -85,8 +84,8 @@
   position: relative;
   align-items: center;
   justify-content: center;
-  width: 4.8rem; /* w-14 */
-  height: 3.2rem; /* h-12 */
+  width: 3.2rem;
+  height: 3.2rem;
   background: transparent; /* bg-transparent */
   color: white; /* text-white */
   border: none; /* border-none */
@@ -107,7 +106,7 @@
   border-radius: 0.4rem;
   color: white;
   background-color: #231b1c;
-  bottom: 5.9rem;
+  bottom: 5.8rem;
   left: 50%;
   width: fit-content;
   transform: translateX(-50%);
@@ -123,13 +122,14 @@
 
 @media screen and (min-width: 1300px) {
   .summarizerrrr-btn {
-    height: 4.2rem; /* h-12 */
+    width: 4.2rem;
+    height: 4.2rem;
   }
   .summarizerrrr-popover {
-    bottom: 6.7rem;
+    bottom: 7.8rem;
   }
   .summarizerrrr-tooltip {
-    bottom: 5.4rem;
+    bottom: 8.1rem;
     font-size: 2rem;
   }
 }

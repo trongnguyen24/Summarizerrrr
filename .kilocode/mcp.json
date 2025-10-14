@@ -20,7 +20,8 @@
         "think_about_collected_information",
         "find_symbol",
         "find_referencing_symbols"
-      ]
+      ],
+      "disabled": true
     },
     "context7": {
       "command": "npx",
@@ -34,7 +35,8 @@
       "alwaysAllow": [
         "resolve-library-id",
         "get-library-docs"
-      ]
+      ],
+      "disabled": true
     }
   }
 }

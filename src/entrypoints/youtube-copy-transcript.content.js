@@ -13,7 +13,7 @@ export default defineContentScript({
 
     // Wait for YouTube player to load
     const waitForPlayer = () => {
-      return new Promise((resolve) => {
+      return new Promise((resolve, reject) => {
         const checkPlayer = () => {
           const rightControls = document.querySelector(
             '.ytp-chrome-controls .ytp-right-controls'
@@ -49,8 +49,9 @@ export default defineContentScript({
         }
 
         const videoTitle =
-          document.querySelector('h1.ytd-watch-metadata')?.textContent?.trim() ||
-          document.title
+          document
+            .querySelector('h1.ytd-watch-metadata')
+            ?.textContent?.trim() || document.title
         const transcriptExtractor = new MessageBasedTranscriptExtractor('en')
         const transcript = await transcriptExtractor.getPlainTranscript()
         const hasTranscript = transcript && transcript.trim().length > 0
@@ -127,6 +128,50 @@ export default defineContentScript({
     const setupNavigationWatcher = () => {
       let currentUrl = window.location.href
 
+      // Wait for player controls to be available using MutationObserver
+      const waitForPlayerWithObserver = () => {
+        return new Promise((resolve, reject) => {
+          // First check if controls already exist
+          const rightControls = document.querySelector(
+            '.ytp-chrome-controls .ytp-right-controls'
+          )
+          if (rightControls) {
+            resolve(rightControls)
+            return
+          }
+
+          // Set up MutationObserver to watch for DOM changes
+          const observer = new MutationObserver((mutations, obs) => {
+            const controls = document.querySelector(
+              '.ytp-chrome-controls .ytp-right-controls'
+            )
+            if (controls) {
+              obs.disconnect()
+              resolve(controls)
+            }
+          })
+
+          // Start observing the document body for added nodes
+          observer.observe(document.body, {
+            childList: true,
+            subtree: true,
+          })
+
+          // Fallback timeout after 5 seconds
+          setTimeout(() => {
+            observer.disconnect()
+            const controls = document.querySelector(
+              '.ytp-chrome-controls .ytp-right-controls'
+            )
+            if (controls) {
+              resolve(controls)
+            } else {
+              reject(new Error('Player controls not found after timeout'))
+            }
+          }, 5000)
+        })
+      }
+
       const handleNavigation = async () => {
         if (window.location.href !== currentUrl) {
           currentUrl = window.location.href
@@ -134,18 +179,16 @@ export default defineContentScript({
             '[YouTube Copy Transcript] Navigation detected, re-initializing...'
           )
 
-          // Wait a bit for YouTube to load the new page
-          setTimeout(async () => {
-            try {
-              const rightControls = await waitForPlayer()
-              await insertCopyIcon(rightControls)
-            } catch (error) {
-              console.error(
-                '[YouTube Copy Transcript] Error on navigation:',
-                error
-              )
-            }
-          }, 1000)
+          try {
+            // Wait for player controls to be available using MutationObserver
+            const rightControls = await waitForPlayerWithObserver()
+            await insertCopyIcon(rightControls)
+          } catch (error) {
+            console.error(
+              '[YouTube Copy Transcript] Error on navigation:',
+              error
+            )
+          }
         }
       }
 

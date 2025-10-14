@@ -23,7 +23,7 @@
       const transcript = await transcriptExtractor.getPlainTranscript()
 
       if (transcript && transcript.trim().length > 0) {
-        const fullContent = `<title>${videoTitle}</title>\n\n<transcript>${transcript.trim()}</transcript>`
+        const fullContent = `${transcript.trim()}`
         await navigator.clipboard.writeText(fullContent)
         console.log('Transcript with title copied to clipboard')
       } else {

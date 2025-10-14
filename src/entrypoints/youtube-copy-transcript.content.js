@@ -11,20 +11,47 @@ export default defineContentScript({
   async main(ctx) {
     console.log('[YouTube Copy Transcript] Content script loaded')
 
-    // Wait for YouTube player to load
-    const waitForPlayer = () => {
+    // Wait for YouTube player controls to load using MutationObserver
+    const waitForPlayerControls = (timeout = 5000) => {
       return new Promise((resolve, reject) => {
-        const checkPlayer = () => {
-          const rightControls = document.querySelector(
-            '.ytp-chrome-controls .ytp-right-controls'
-          )
-          if (rightControls) {
-            resolve(rightControls)
-          } else {
-            setTimeout(checkPlayer, 100)
-          }
+        const selector = '.ytp-chrome-controls .ytp-right-controls'
+
+        // First check if controls already exist
+        const rightControls = document.querySelector(selector)
+        if (rightControls) {
+          resolve(rightControls)
+          return
         }
-        checkPlayer()
+
+        // Set up MutationObserver to watch for DOM changes
+        const observer = new MutationObserver((mutations, obs) => {
+          const controls = document.querySelector(selector)
+          if (controls) {
+            obs.disconnect()
+            resolve(controls)
+          }
+        })
+
+        // Start observing the document body for added nodes
+        observer.observe(document.body, {
+          childList: true,
+          subtree: true,
+        })
+
+        // Fallback timeout
+        setTimeout(() => {
+          observer.disconnect()
+          const controls = document.querySelector(selector)
+          if (controls) {
+            resolve(controls)
+          } else {
+            reject(
+              new Error(
+                `YouTube player controls not found after ${timeout}ms timeout`
+              )
+            )
+          }
+        }, timeout)
       })
     }
 
@@ -128,50 +155,6 @@ export default defineContentScript({
     const setupNavigationWatcher = () => {
       let currentUrl = window.location.href
 
-      // Wait for player controls to be available using MutationObserver
-      const waitForPlayerWithObserver = () => {
-        return new Promise((resolve, reject) => {
-          // First check if controls already exist
-          const rightControls = document.querySelector(
-            '.ytp-chrome-controls .ytp-right-controls'
-          )
-          if (rightControls) {
-            resolve(rightControls)
-            return
-          }
-
-          // Set up MutationObserver to watch for DOM changes
-          const observer = new MutationObserver((mutations, obs) => {
-            const controls = document.querySelector(
-              '.ytp-chrome-controls .ytp-right-controls'
-            )
-            if (controls) {
-              obs.disconnect()
-              resolve(controls)
-            }
-          })
-
-          // Start observing the document body for added nodes
-          observer.observe(document.body, {
-            childList: true,
-            subtree: true,
-          })
-
-          // Fallback timeout after 5 seconds
-          setTimeout(() => {
-            observer.disconnect()
-            const controls = document.querySelector(
-              '.ytp-chrome-controls .ytp-right-controls'
-            )
-            if (controls) {
-              resolve(controls)
-            } else {
-              reject(new Error('Player controls not found after timeout'))
-            }
-          }, 5000)
-        })
-      }
-
       const handleNavigation = async () => {
         if (window.location.href !== currentUrl) {
           currentUrl = window.location.href
@@ -180,8 +163,8 @@ export default defineContentScript({
           )
 
           try {
-            // Wait for player controls to be available using MutationObserver
-            const rightControls = await waitForPlayerWithObserver()
+            // Wait for player controls to be available using standardized function
+            const rightControls = await waitForPlayerControls()
             await insertCopyIcon(rightControls)
           } catch (error) {
             console.error(
@@ -212,8 +195,8 @@ export default defineContentScript({
 
     // Initialize the feature
     try {
-      // Wait for initial player load
-      const rightControls = await waitForPlayer()
+      // Wait for initial player load using standardized function
+      const rightControls = await waitForPlayerControls()
       console.log('[YouTube Copy Transcript] Right controls found')
 
       // Insert the copy icon

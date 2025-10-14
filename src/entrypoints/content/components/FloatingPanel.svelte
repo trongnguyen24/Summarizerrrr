@@ -352,7 +352,7 @@
     <!-- svelte-ignore a11y_consider_explicit_label -->
     <button
       onclick={togglePanelPosition}
-      class="close-button absolute text-muted z-[99999] border-r border-border hover:text-text-primary transition-colors w-14 duration-200 cursor-pointer h-8 top-0 left-0 flex justify-center items-center"
+      class="close-button absolute text-muted z-[99] border-r border-border hover:text-text-primary transition-colors w-14 duration-200 cursor-pointer h-8 top-0 left-0 flex justify-center items-center"
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -372,7 +372,7 @@
     </button>
     <button
       onclick={() => onclose?.()}
-      class="close-button absolute text-muted z-[9999] border-b border-border bg-blackwhite-10 dark:bg-surface-2 hover:text-text-primary transition-colors duration-200 cursor-pointer h-8 top-0 right-0 left-0 flex justify-center items-center"
+      class="close-button absolute text-muted z-[98] border-b border-border bg-blackwhite-10 dark:bg-surface-2 hover:text-text-primary transition-colors duration-200 cursor-pointer h-8 top-0 right-0 left-0 flex justify-center items-center"
       aria-label="Close"
       ><Icon
         icon="heroicons:arrow-long-right"
@@ -440,7 +440,7 @@
         />
       {/if}
 
-      {#if !summaryToDisplay && !summarization.localSummaryState().isLoading}
+      {#if !summaryToDisplay && !summarization.localSummaryState().isLoading && !needsApiKeySetup()()}
         <ActionButtonsFP onActionClick={handleCustomAction} />
       {/if}
 

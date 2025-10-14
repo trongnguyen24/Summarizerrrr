@@ -1,0 +1,135 @@
+/* Copy Transcript Button Styles */
+.summarizerrrr-btn-item {
+  display: flex;
+  align-items: center;
+  padding: 0 1.2rem;
+  font-weight: 600;
+  gap: 0.8rem;
+  font-size: 1.2rem;
+  width: 24rem; /* w-14 */
+  height: 4.8rem; /* h-12 */
+  background: transparent; /* bg-transparent */
+  color: white; /* text-white */
+  border: none; /* border-none */
+  cursor: pointer; /* cursor-pointer */
+  border-radius: 0.8rem; /* rounded-full */
+  outline: none;
+}
+
+.summarizerrrr-btn-item:hover {
+  background: rgba(255, 255, 255, 0.1); /* hover:bg-white/10 */
+  opacity: 1; /* hover:opacity-100 */
+}
+
+.summarizerrrr-btn-item:active {
+  background: rgba(255, 255, 255, 0.2); /* active:bg-white/20 */
+}
+
+.summarizerrrr-btn-item:disabled {
+  cursor: not-allowed; /* disabled:cursor-not-allowed */
+  opacity: 0.5; /* disabled:opacity-50 */
+}
+
+.summarizerrrr-btn-item:disabled:hover {
+  background: transparent;
+  opacity: 0.5;
+}
+
+/* Icon styles */
+.copy-transcript-icon {
+  width: 1.5em; /* w-6 */
+  height: 1.5em; /* h-6 */
+}
+
+.copy-transcript-spinner {
+  width: 1.5em; /* w-6 */
+  height: 1.5em; /* h-6 */
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.summarizerrrr-popover {
+  position: absolute;
+  bottom: 5.4rem;
+  display: none;
+  right: 0;
+}
+
+.summarizerrrr-popover.visible {
+  display: flex;
+}
+
+.summarizerrrr-background {
+  background: hsla(0, 0%, 10%, 0.9);
+  border-radius: 1.6rem;
+  padding: 0.8rem;
+  display: flex;
+  flex-direction: column;
+}
+.summarizerrrr-wrap {
+  background: hsl(0deg 0% 0% / 0%);
+  padding: 0.4rem;
+  position: relative;
+  border-radius: 4rem;
+}
+.summarizerrrr-btn {
+  display: flex;
+  position: relative;
+  align-items: center;
+  justify-content: center;
+  width: 4.8rem; /* w-14 */
+  height: 3.2rem; /* h-12 */
+  background: transparent; /* bg-transparent */
+  color: white; /* text-white */
+  border: none; /* border-none */
+  cursor: pointer; /* cursor-pointer */
+  border-radius: 9999px; /* rounded-full */
+  opacity: 0.9; /* opacity-90 */
+  outline: none;
+  position: relative;
+  &:hover {
+    background-color: hsla(0, 0%, 100%, 0.1);
+  }
+}
+
+.summarizerrrr-tooltip {
+  display: none;
+  position: absolute;
+  padding: 0.4rem 0.8rem;
+  border-radius: 0.4rem;
+  color: white;
+  background-color: #231b1c;
+  bottom: 5.9rem;
+  left: 50%;
+  width: fit-content;
+  transform: translateX(-50%);
+  font-size: 1.2rem;
+}
+.summarizerrrr-btn:hover .summarizerrrr-tooltip {
+  display: block;
+}
+
+.hidden-tooltip {
+  display: none !important;
+}
+
+@media screen and (min-width: 1300px) {
+  .summarizerrrr-btn {
+    height: 4.2rem; /* h-12 */
+  }
+  .summarizerrrr-popover {
+    bottom: 6.7rem;
+  }
+  .summarizerrrr-tooltip {
+    bottom: 5.4rem;
+    font-size: 2rem;
+  }
+}

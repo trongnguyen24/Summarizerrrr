@@ -304,24 +304,25 @@ export default defineBackground(() => {
     (userAgent.includes('Edge') && userAgent.includes('Mobile'))
 
   // --- Initial Setup ---
-  loadSettings()
+  // Only load settings for Chrome as it handles iconClickAction
+  if (import.meta.env.BROWSER === 'chrome') {
+    loadSettings()
 
-  // Watch settings storage directly for changes
-  settingsStorage.watch((newValue, oldValue) => {
-    console.log('[Background] Settings storage changed:', newValue)
-    if (
-      import.meta.env.BROWSER === 'chrome' &&
-      newValue?.iconClickAction !== undefined
-    ) {
-      console.log(
-        '[Background] Updating Chrome action behavior due to settings change'
-      )
-      updateChromeActionBehavior(newValue.iconClickAction)
-    }
-  })
+    // Watch settings storage directly for changes
+    settingsStorage.watch((newValue, oldValue) => {
+      console.log('[Background] Settings storage changed:', newValue)
+      if (newValue?.iconClickAction !== undefined) {
+        console.log(
+          '[Background] Updating Chrome action behavior due to settings change'
+        )
+        updateChromeActionBehavior(newValue.iconClickAction)
+      }
+    })
+  }
 
-  // Function to update Chrome action behavior
+  // Function to update Chrome action behavior (Chrome only)
   function updateChromeActionBehavior(iconClickAction) {
+    // Double check for Chrome to prevent any Firefox execution
     if (import.meta.env.BROWSER !== 'chrome') return
 
     try {
@@ -366,34 +367,38 @@ export default defineBackground(() => {
     }
   }
 
-  // Single, persistent listener for the browser action
-  browser.action.onClicked.addListener(async (tab) => {
-    const settings = await settingsStorage.getValue()
-    const action = settings?.iconClickAction ?? 'sidepanel'
+  // Single, persistent listener for the browser action (Chrome only)
+  if (import.meta.env.BROWSER === 'chrome') {
+    browser.action.onClicked.addListener(async (tab) => {
+      const settings = await settingsStorage.getValue()
+      const action = settings?.iconClickAction ?? 'sidepanel'
 
-    if (action === 'floating') {
-      console.log('[Background] Floating action clicked, toggling panel...')
-      try {
-        await browser.tabs.sendMessage(tab.id, {
-          type: 'TOGGLE_FLOATING_PANEL',
-        })
-      } catch (error) {
-        console.error(
-          '[Background] Could not send TOGGLE_FLOATING_PANEL message:',
-          error
-        )
+      if (action === 'floating') {
+        console.log('[Background] Floating action clicked, toggling panel...')
+        try {
+          await browser.tabs.sendMessage(tab.id, {
+            type: 'TOGGLE_FLOATING_PANEL',
+          })
+        } catch (error) {
+          console.error(
+            '[Background] Could not send TOGGLE_FLOATING_PANEL message:',
+            error
+          )
+        }
       }
-    }
-    // Note: 'popup' action is handled by browser.action.setPopup and will not trigger this listener.
-    // 'sidepanel' action is handled by chrome.sidePanel.setPanelBehavior and also won't trigger this listener.
-  })
+      // Note: 'popup' action is handled by browser.action.setPopup and will not trigger this listener.
+      // 'sidepanel' action is handled by chrome.sidePanel.setPanelBehavior and also won't trigger this listener.
+    })
+  }
 
-  // Subscribe to settings changes - this function returns a watcher
-  const unsubscribe = subscribeToSettingsChanges()
-  console.log(
-    '[Background] Settings change watcher setup:',
-    unsubscribe ? 'success' : 'failed'
-  )
+  // Subscribe to settings changes - this function returns a watcher (Chrome only)
+  if (import.meta.env.BROWSER === 'chrome') {
+    const unsubscribe = subscribeToSettingsChanges()
+    console.log(
+      '[Background] Settings change watcher setup:',
+      unsubscribe ? 'success' : 'failed'
+    )
+  }
   ;(async () => {
     try {
       // Wait a bit for settings to be ready, then initialize Ollama if needed
@@ -864,9 +869,12 @@ export default defineBackground(() => {
       if (sidePanelPort) sidePanelPort.postMessage(summarizePageInfo)
       else browser.runtime.sendMessage(summarizePageInfo).catch(() => {})
 
-      if (import.meta.env.BROWSER === 'chrome')
+      // Browser-specific panel opening
+      if (import.meta.env.BROWSER === 'chrome') {
         await chrome.sidePanel.open({ windowId: activeTab.windowId })
-      else await browser.sidebarAction.open()
+      } else {
+        await browser.sidebarAction.open()
+      }
     }
   })
 
@@ -901,9 +909,12 @@ export default defineBackground(() => {
         // If message failed or port wasn't open
         if (tab?.windowId) {
           try {
-            if (import.meta.env.BROWSER === 'chrome')
+            // Browser-specific panel opening
+            if (import.meta.env.BROWSER === 'chrome') {
               await chrome.sidePanel.open({ windowId: tab.windowId })
-            else await browser.sidebarAction.open()
+            } else {
+              await browser.sidebarAction.open()
+            }
           } catch (e) {
             pendingSelectedText = null
           }

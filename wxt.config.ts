@@ -88,6 +88,7 @@ export default defineConfig({
         permissions: [
           'storage',
           'tabs',
+          'activeTab',
           'contextMenus',
           'scripting',
           'declarativeNetRequest',

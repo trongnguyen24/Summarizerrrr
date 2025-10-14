@@ -72,6 +72,13 @@
     <div class="p-6 prose prose-sm w-full max-w-full">
       <h2>Release note</h2>
 
+      <b class="font-mono">2.2.6</b>
+      <ul class="mt-0">
+        {@render note(
+          'YouTube Transcript to AI:',
+          'Added direct integration button to YouTube player for sending transcripts to Gemini, ChatGPT, Perplexity, and Grok quickly.'
+        )}
+      </ul>
       <b class="font-mono">2.2.5</b>
       <ul class="mt-0">
         {@render note(

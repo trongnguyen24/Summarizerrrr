@@ -5,10 +5,12 @@
 
   let { videoTitle = '' } = $props()
   let isLoading = $state(false)
-  let isGeminiLoading = $state(false)
-  let isChatGPTLoading = $state(false)
-  let isPerplexityLoading = $state(false)
-  let isGrokLoading = $state(false)
+  let loadingStates = $state({
+    gemini: false,
+    chatgpt: false,
+    perplexity: false,
+    grok: false,
+  })
   let showPopover = $state(false)
   let wrapElement = $state()
 
@@ -34,12 +36,12 @@
     }
   }
 
-  const handleSummarizeOnGemini = async () => {
-    if (isGeminiLoading) return
+  const handleSummarizeOnAI = async (provider) => {
+    if (loadingStates[provider]) return
 
-    isGeminiLoading = true
+    loadingStates[provider] = true
     try {
-      console.log('[CopyTranscriptIcon] Starting Gemini summarization...')
+      console.log(`[CopyTranscriptIcon] Starting ${provider} summarization...`)
 
       // Get transcript
       const transcriptExtractor = new MessageBasedTranscriptExtractor('en')
@@ -58,116 +60,18 @@
       // Send simple message to background script
       chrome.runtime.sendMessage(
         {
-          type: 'SUMMARIZE_ON_GEMINI',
-          transcript: fullContent,
-        },
-        (response) => {
-          if (response && response.success) {
-            console.log('[CopyTranscriptIcon] Gemini tab opened successfully')
-            showPopover = false // Hide popover after success
-          } else {
-            console.error(
-              '[CopyTranscriptIcon] Failed to open Gemini:',
-              response?.error
-            )
-          }
-        }
-      )
-    } catch (error) {
-      console.error(
-        '[CopyTranscriptIcon] Error in Gemini summarization:',
-        error
-      )
-    } finally {
-      isGeminiLoading = false
-    }
-  }
-
-  const handleSummarizeOnChatGPT = async () => {
-    if (isChatGPTLoading) return
-
-    isChatGPTLoading = true
-    try {
-      console.log('[CopyTranscriptIcon] Starting ChatGPT summarization...')
-
-      // Get transcript
-      const transcriptExtractor = new MessageBasedTranscriptExtractor('en')
-      const transcript = await transcriptExtractor.getPlainTranscript()
-
-      if (!transcript || transcript.trim().length === 0) {
-        console.warn('[CopyTranscriptIcon] No transcript available')
-        return
-      }
-
-      const fullContent = `<title>${videoTitle}</title>\n\n<transcript>${transcript.trim()}</transcript>`
-      console.log(
-        `[CopyTranscriptIcon] Transcript extracted: ${fullContent.length} characters`
-      )
-
-      // Send simple message to background script
-      chrome.runtime.sendMessage(
-        {
-          type: 'SUMMARIZE_ON_CHATGPT',
-          transcript: fullContent,
-        },
-        (response) => {
-          if (response && response.success) {
-            console.log('[CopyTranscriptIcon] ChatGPT tab opened successfully')
-            showPopover = false // Hide popover after success
-          } else {
-            console.error(
-              '[CopyTranscriptIcon] Failed to open ChatGPT:',
-              response?.error
-            )
-          }
-        }
-      )
-    } catch (error) {
-      console.error(
-        '[CopyTranscriptIcon] Error in ChatGPT summarization:',
-        error
-      )
-    } finally {
-      isChatGPTLoading = false
-    }
-  }
-
-  const handleSummarizeOnPerplexity = async () => {
-    if (isPerplexityLoading) return
-
-    isPerplexityLoading = true
-    try {
-      console.log('[CopyTranscriptIcon] Starting Perplexity summarization...')
-
-      // Get transcript
-      const transcriptExtractor = new MessageBasedTranscriptExtractor('en')
-      const transcript = await transcriptExtractor.getPlainTranscript()
-
-      if (!transcript || transcript.trim().length === 0) {
-        console.warn('[CopyTranscriptIcon] No transcript available')
-        return
-      }
-
-      const fullContent = `<title>${videoTitle}</title>\n\n<transcript>${transcript.trim()}</transcript>`
-      console.log(
-        `[CopyTranscriptIcon] Transcript extracted: ${fullContent.length} characters`
-      )
-
-      // Send simple message to background script
-      chrome.runtime.sendMessage(
-        {
-          type: 'SUMMARIZE_ON_PERPLEXITY',
+          type: `SUMMARIZE_ON_${provider.toUpperCase()}`,
           transcript: fullContent,
         },
         (response) => {
           if (response && response.success) {
             console.log(
-              '[CopyTranscriptIcon] Perplexity tab opened successfully'
+              `[CopyTranscriptIcon] ${provider} tab opened successfully`
             )
             showPopover = false // Hide popover after success
           } else {
             console.error(
-              '[CopyTranscriptIcon] Failed to open Perplexity:',
+              `[CopyTranscriptIcon] Failed to open ${provider}:`,
               response?.error
             )
           }
@@ -175,57 +79,11 @@
       )
     } catch (error) {
       console.error(
-        '[CopyTranscriptIcon] Error in Perplexity summarization:',
+        `[CopyTranscriptIcon] Error in ${provider} summarization:`,
         error
       )
     } finally {
-      isPerplexityLoading = false
-    }
-  }
-
-  const handleSummarizeOnGrok = async () => {
-    if (isGrokLoading) return
-
-    isGrokLoading = true
-    try {
-      console.log('[CopyTranscriptIcon] Starting Grok summarization...')
-
-      // Get transcript
-      const transcriptExtractor = new MessageBasedTranscriptExtractor('en')
-      const transcript = await transcriptExtractor.getPlainTranscript()
-
-      if (!transcript || transcript.trim().length === 0) {
-        console.warn('[CopyTranscriptIcon] No transcript available')
-        return
-      }
-
-      const fullContent = `<title>${videoTitle}</title>\n\n<transcript>${transcript.trim()}</transcript>`
-      console.log(
-        `[CopyTranscriptIcon] Transcript extracted: ${fullContent.length} characters`
-      )
-
-      // Send simple message to background script
-      chrome.runtime.sendMessage(
-        {
-          type: 'SUMMARIZE_ON_GROK',
-          transcript: fullContent,
-        },
-        (response) => {
-          if (response && response.success) {
-            console.log('[CopyTranscriptIcon] Grok tab opened successfully')
-            showPopover = false // Hide popover after success
-          } else {
-            console.error(
-              '[CopyTranscriptIcon] Failed to open Grok:',
-              response?.error
-            )
-          }
-        }
-      )
-    } catch (error) {
-      console.error('[CopyTranscriptIcon] Error in Grok summarization:', error)
-    } finally {
-      isGrokLoading = false
+      loadingStates[provider] = false
     }
   }
 
@@ -325,10 +183,10 @@
           class="summarizerrrr-btn-item"
           title="Summarize on Gemini"
           aria-label="Summarize on Gemini"
-          onclick={handleSummarizeOnGemini}
-          disabled={isGeminiLoading}
+          onclick={() => handleSummarizeOnAI('gemini')}
+          disabled={loadingStates.gemini}
         >
-          {#if isGeminiLoading}
+          {#if loadingStates.gemini}
             {@render spinner()}
           {:else}
             <svg
@@ -350,10 +208,10 @@
           class="summarizerrrr-btn-item"
           title="Summarize on ChatGPT"
           aria-label="Summarize on ChatGPT"
-          onclick={handleSummarizeOnChatGPT}
-          disabled={isChatGPTLoading}
+          onclick={() => handleSummarizeOnAI('chatgpt')}
+          disabled={loadingStates.chatgpt}
         >
-          {#if isChatGPTLoading}
+          {#if loadingStates.chatgpt}
             {@render spinner()}
           {:else}
             <svg
@@ -375,10 +233,10 @@
           class="summarizerrrr-btn-item"
           title="Summarize on Perplexity"
           aria-label="Summarize on Perplexity"
-          onclick={handleSummarizeOnPerplexity}
-          disabled={isPerplexityLoading}
+          onclick={() => handleSummarizeOnAI('perplexity')}
+          disabled={loadingStates.perplexity}
         >
-          {#if isPerplexityLoading}
+          {#if loadingStates.perplexity}
             {@render spinner()}
           {:else}
             <svg
@@ -401,10 +259,10 @@
           class="summarizerrrr-btn-item"
           title="Summarize on Grok"
           aria-label="Summarize on Grok"
-          onclick={handleSummarizeOnGrok}
-          disabled={isGrokLoading}
+          onclick={() => handleSummarizeOnAI('grok')}
+          disabled={loadingStates.grok}
         >
-          {#if isGrokLoading}
+          {#if loadingStates.grok}
             {@render spinner()}
           {:else}
             <svg

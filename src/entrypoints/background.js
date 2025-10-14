@@ -20,6 +20,8 @@ import {
 } from '@/lib/db/indexedDBService.js'
 import { getAISDKModel, mapGenerationConfig } from '@/lib/api/aiSdkAdapter.js'
 import { generateText } from 'ai'
+import { aiConfig } from '../lib/config/aiConfig.js'
+import { generateAISummaryPrompt } from '../lib/prompts/aiSummaryPrompt.js'
 
 // --- Helper Functions ---
 
@@ -717,51 +719,6 @@ export default defineBackground(() => {
       })()
       return true
     }
-    if (message.type === 'CREATE_AI_TAB') {
-      ;(async () => {
-        try {
-          console.log(`[Background] Creating AI tab: ${message.provider}`)
-
-          const tab = await browser.tabs.create({
-            url: message.url,
-            active: true,
-          })
-
-          sendResponse({
-            success: true,
-            tabId: tab.id,
-            provider: message.provider,
-          })
-        } catch (error) {
-          console.error('[Background] Failed to create AI tab:', error)
-          sendResponse({
-            success: false,
-            error: error.message,
-          })
-        }
-      })()
-      return true
-    }
-    if (message.type === 'CHECK_TAB_STATUS') {
-      ;(async () => {
-        try {
-          const tab = await browser.tabs.get(message.tabId)
-
-          sendResponse({
-            success: true,
-            completed: tab.status === 'complete',
-            url: tab.url || '',
-            title: tab.title || '',
-          })
-        } catch (error) {
-          sendResponse({
-            success: false,
-            error: error.message,
-          })
-        }
-      })()
-      return true
-    }
     if (message.type === 'SUMMARIZE_ON_GEMINI') {
       handleAISummarization('gemini', message.transcript, sendResponse)
       return true
@@ -965,85 +922,135 @@ export default defineBackground(() => {
     }
   })
 
+  // --- AI Service Helper Functions ---
+
+  /**
+   * Validates if the AI service is supported
+   * @param {string} service - The AI service name
+   * @returns {boolean} True if service is supported
+   */
+  function validateService(service) {
+    return aiConfig[service] !== undefined
+  }
+
+  /**
+   * Creates a new tab for the specified AI service
+   * @param {string} service - The AI service name
+   * @param {Object} config - The service configuration
+   * @returns {Promise<Object>} The created tab object
+   */
+  async function createAITab(service, config) {
+    console.log(`[Background] Creating ${service} tab`)
+    const tab = await browser.tabs.create({
+      url: config.url,
+      active: true,
+    })
+    console.log(`[Background] ${service} tab created: ${tab.id}`)
+    return tab
+  }
+
+  /**
+   * Builds the prompt for AI summarization
+   * @param {string} transcript - The transcript to summarize
+   * @param {string} summaryLang - The language for summary
+   * @returns {string} The formatted prompt
+   */
+  function buildPrompt(transcript, summaryLang) {
+    return generateAISummaryPrompt(transcript, summaryLang)
+  }
+
+  /**
+   * Sends content to a tab with retry mechanism
+   * @param {number} tabId - The ID of the tab
+   * @param {string} messageType - The message type to send
+   * @param {string} content - The content to send
+   * @param {number} retries - Current retry count
+   * @param {number} maxRetries - Maximum retry attempts
+   * @param {string} service - The AI service name (for logging)
+   * @param {Function} sendResponse - The response callback function
+   * @returns {Promise<void>}
+   */
+  async function sendContentToTab(
+    tabId,
+    messageType,
+    content,
+    retries,
+    maxRetries,
+    service,
+    sendResponse
+  ) {
+    try {
+      await browser.tabs.sendMessage(tabId, {
+        type: messageType,
+        content: content,
+      })
+
+      console.log(`[Background] Transcript sent to ${service} successfully`)
+      sendResponse({ success: true, tabId: tabId })
+    } catch (error) {
+      if (retries < maxRetries) {
+        retries++
+        console.log(`[Background] ${service} retry ${retries}/${maxRetries}`)
+        setTimeout(
+          () =>
+            sendContentToTab(
+              tabId,
+              messageType,
+              content,
+              retries,
+              maxRetries,
+              service,
+              sendResponse
+            ),
+          1000
+        )
+      } else {
+        console.error(
+          `[Background] ${service} content script not ready after max retries`
+        )
+        sendResponse({
+          success: false,
+          error: `${service} content script not ready`,
+        })
+      }
+    }
+  }
+
   // --- AI Service Handler (Generalized) ---
   async function handleAISummarization(service, transcript, sendResponse) {
     try {
       console.log(`[Background] Processing ${service} summarization request`)
 
-      // AI service configuration
-      const aiConfig = {
-        gemini: {
-          url: 'https://gemini.google.com/app?ref=summarizerrrr',
-          messageType: 'FILL_GEMINI_FORM',
-        },
-        chatgpt: {
-          url: 'https://chatgpt.com/?ref=summarizerrrr',
-          messageType: 'FILL_CHATGPT_FORM',
-        },
-        perplexity: {
-          url: 'https://www.perplexity.ai/?ref=summarizerrrr',
-          messageType: 'FILL_PERPLEXITY_FORM',
-        },
-        grok: {
-          url: 'https://grok.com/?ref=summarizerrrr',
-          messageType: 'FILL_GROK_FORM',
-        },
+      // Validate service
+      if (!validateService(service)) {
+        throw new Error(`Unsupported AI service: ${service}`)
       }
 
       const config = aiConfig[service]
-      if (!config) {
-        throw new Error(`Unsupported AI service: ${service}`)
-      }
 
       // Load settings to get summary language
       const settings = await loadSettingsWithReadiness()
       const summaryLang = settings?.summaryLang || 'English'
 
       // Create AI service tab
-      const tab = await browser.tabs.create({
-        url: config.url,
-        active: true,
-      })
+      const tab = await createAITab(service, config)
 
-      console.log(`[Background] ${service} tab created: ${tab.id}`)
-
-      // Wait for tab to load and send content
-      const prompt = `<task>Please provide a clear and concise summary of the given <content> in ${summaryLang}.Start with one short main takeaway or overall conclusion. Then list key ideas, facts, or points found in the content - one sentence per idea.Be concise, neutral, and avoid filler or repetition.If no content is provided, politely ask the user what they would like summarized. End by identifying the most significant topic from the summary and ask a direct question inviting the user to learn more about it</task><content> ${transcript}</content>`
-
+      // Build prompt
+      const prompt = buildPrompt(transcript, summaryLang)
       console.log(`[Background] ${service} prompt length:`, prompt.length)
 
-      let retries = 0
-      const maxRetries = 15
-
-      const waitAndSend = async () => {
-        try {
-          await browser.tabs.sendMessage(tab.id, {
-            type: config.messageType,
-            content: prompt,
-          })
-
-          console.log(`[Background] Transcript sent to ${service} successfully`)
-          sendResponse({ success: true, tabId: tab.id })
-        } catch (error) {
-          if (retries < maxRetries) {
-            retries++
-            console.log(
-              `[Background] ${service} retry ${retries}/${maxRetries}`
-            )
-            setTimeout(waitAndSend, 1000)
-          } else {
-            console.error(
-              `[Background] ${service} content script not ready after max retries`
-            )
-            sendResponse({
-              success: false,
-              error: `${service} content script not ready`,
-            })
-          }
-        }
-      }
-
-      setTimeout(waitAndSend, 2000)
+      // Send content to tab with retry mechanism
+      setTimeout(() => {
+        sendContentToTab(
+          tab.id,
+          config.messageType,
+          prompt,
+          0,
+          15,
+          service,
+          sendResponse
+        )
+      }, 2000)
     } catch (error) {
       console.error(`[Background] Error processing ${service} request:`, error)
       sendResponse({ success: false, error: error.message })

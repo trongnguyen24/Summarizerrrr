@@ -1,13 +1,22 @@
-// @ts-nocheck
 /**
  * Grok content script - Optimized for speed
  */
+import { waitForElement } from '../lib/utils/domUtils.js'
+
 export default defineContentScript({
   matches: ['*://grok.com/*'],
   main() {
     const urlParams = new URLSearchParams(window.location.search)
     if (urlParams.get('ref') !== 'summarizerrrr') return
 
+    /**
+     * @param {object} message - The message object
+     * @param {string} message.type - The type of message
+     * @param {string} message.content - The content to fill in the form
+     * @param {object} sender - The sender of the message
+     * @param {function} sendResponse - The response callback function
+     * @returns {boolean} - Returns true to keep the message channel open
+     */
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       if (message.type === 'FILL_GROK_FORM') {
         handleFillForm(message.content, sendResponse)
@@ -15,6 +24,12 @@ export default defineContentScript({
       }
     })
 
+    /**
+     * Handles filling the Grok form with content
+     * @param {string} content - The content to fill in the form
+     * @param {function} sendResponse - The response callback function
+     * @returns {Promise<void>}
+     */
     async function handleFillForm(content, sendResponse) {
       try {
         const textArea = await waitForElement([
@@ -51,33 +66,6 @@ export default defineContentScript({
         console.error('[GrokContentScript] Form fill failed:', error)
         sendResponse({ success: false, error: error.message })
       }
-    }
-
-    async function waitForElement(
-      selectors,
-      options = { timeout: 10000, checkDisabled: false }
-    ) {
-      const { timeout, checkDisabled } = options
-      const selectorList = Array.isArray(selectors) ? selectors : [selectors]
-      return new Promise((resolve) => {
-        const startTime = Date.now()
-        const check = () => {
-          for (const selector of selectorList) {
-            const element = document.querySelector(selector)
-            if (element && element.offsetParent !== null) {
-              if (checkDisabled && element.disabled) continue
-              resolve(element)
-              return
-            }
-          }
-          if (Date.now() - startTime > timeout) {
-            resolve(null)
-            return
-          }
-          setTimeout(check, 100) // Poll faster
-        }
-        check()
-      })
     }
   },
 })

@@ -1,75 +1,69 @@
-// @ts-nocheck
 /**
  * ChatGPT content script - Optimized for speed
  */
+import { waitForElement } from '../lib/utils/domUtils.js'
+
 export default defineContentScript({
   matches: ['*://chatgpt.com/*', '*://chat.openai.com/*'],
   main() {
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('ref') !== 'summarizerrrr') return;
+    const urlParams = new URLSearchParams(window.location.search)
+    if (urlParams.get('ref') !== 'summarizerrrr') return
 
+    /**
+     * @param {object} message - The message object
+     * @param {string} message.type - The type of message
+     * @param {string} message.content - The content to fill in the form
+     * @param {object} sender - The sender of the message
+     * @param {function} sendResponse - The response callback function
+     * @returns {boolean} - Returns true to keep the message channel open
+     */
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       if (message.type === 'FILL_CHATGPT_FORM') {
-        handleFillForm(message.content, sendResponse);
-        return true;
+        handleFillForm(message.content, sendResponse)
+        return true
       }
-    });
+    })
 
+    /**
+     * Handles filling the ChatGPT form with content
+     * @param {string} content - The content to fill in the form
+     * @param {function} sendResponse - The response callback function
+     * @returns {Promise<void>}
+     */
     async function handleFillForm(content, sendResponse) {
       try {
         const textArea = await waitForElement([
           '#prompt-textarea',
           'div[contenteditable="true"].ProseMirror',
-        ]);
-        if (!textArea) throw new Error('Text area not found');
+        ])
+        if (!textArea) throw new Error('Text area not found')
 
         // Use a more direct way to set content and trigger updates
-        textArea.focus();
+        textArea.focus()
         if (textArea.matches('div[contenteditable="true"]')) {
-          textArea.textContent = content;
+          textArea.textContent = content
         } else {
-          textArea.value = content;
+          textArea.value = content
         }
-        textArea.dispatchEvent(new Event('input', { bubbles: true, cancelable: true }));
-        
+        textArea.dispatchEvent(
+          new Event('input', { bubbles: true, cancelable: true })
+        )
+
         // The submit button is often disabled briefly after input
         const submitButton = await waitForElement(
           ['button[data-testid="send-button"]', 'button[aria-label*="Send" i]'],
           { timeout: 5000, checkDisabled: true }
-        );
-        if (!submitButton) throw new Error('Submit button not found or remained disabled');
+        )
+        if (!submitButton)
+          throw new Error('Submit button not found or remained disabled')
 
-        submitButton.click();
+        submitButton.click()
 
-        sendResponse({ success: true });
+        sendResponse({ success: true })
       } catch (error) {
-        console.error('[ChatGPTContentScript] Form fill failed:', error);
-        sendResponse({ success: false, error: error.message });
+        console.error('[ChatGPTContentScript] Form fill failed:', error)
+        sendResponse({ success: false, error: error.message })
       }
     }
-
-    async function waitForElement(selectors, options = { timeout: 10000, checkDisabled: false }) {
-      const { timeout, checkDisabled } = options;
-      const selectorList = Array.isArray(selectors) ? selectors : [selectors];
-      return new Promise((resolve) => {
-        const startTime = Date.now();
-        const check = () => {
-          for (const selector of selectorList) {
-            const element = document.querySelector(selector);
-            if (element && (element.offsetParent !== null)) {
-              if (checkDisabled && element.disabled) continue;
-              resolve(element);
-              return;
-            }
-          }
-          if (Date.now() - startTime > timeout) {
-            resolve(null);
-            return;
-          }
-          setTimeout(check, 100); // Poll faster
-        };
-        check();
-      });
-    }
   },
-});
+})

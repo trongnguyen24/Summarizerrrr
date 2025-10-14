@@ -1,9 +1,10 @@
 <script>
   import { MessageBasedTranscriptExtractor } from '../../entrypoints/content/extractors/MessageBasedTranscriptExtractor.js'
   import './styles/copy-transcript-button.css'
-  import { onMount } from 'svelte'
+  import { onMount, onDestroy } from 'svelte'
 
   let { videoTitle = '' } = $props()
+  let currentVideoTitle = $state(videoTitle) // Reactive state for video title
   let isLoading = $state(false)
   let loadingStates = $state({
     gemini: false,
@@ -13,14 +14,63 @@
   })
   let showPopover = $state(false)
   let wrapElement = $state()
+  let currentVideoId = $state('')
+  let currentTranscriptExtractor = $state(null)
+
+  // Reactive video tracking
+  $effect(() => {
+    const newVideoId = getCurrentVideoId()
+    if (newVideoId && newVideoId !== currentVideoId) {
+      console.log(
+        '[CopyTranscriptIcon] Video changed:',
+        currentVideoId,
+        '->',
+        newVideoId
+      )
+      currentVideoId = newVideoId
+
+      // Update video title from DOM
+      currentVideoTitle = getVideoTitleFromDOM()
+
+      // Reset transcript extractor to clear any cached data
+      currentTranscriptExtractor = new MessageBasedTranscriptExtractor('en')
+      // Close popover if open when video changes
+      showPopover = false
+    }
+  })
+
+  // Function to get current video ID from URL
+  const getCurrentVideoId = () => {
+    const url = window.location.href
+    const match = url.match(/[?&]v=([^&]+)/)
+    return match ? match[1] : null
+  }
+
+  // Function to get video title from DOM
+  const getVideoTitleFromDOM = () => {
+    return (
+      document.querySelector('h1.ytd-watch-metadata')?.textContent?.trim() ||
+      document.title
+    )
+  }
+
+  // Initialize video tracking
+  onMount(() => {
+    currentVideoId = getCurrentVideoId()
+    currentVideoTitle = getVideoTitleFromDOM() // Initialize video title from DOM
+    currentTranscriptExtractor = new MessageBasedTranscriptExtractor('en')
+  })
 
   const handleCopyTranscript = async () => {
     if (isLoading) return
 
     isLoading = true
     try {
-      const transcriptExtractor = new MessageBasedTranscriptExtractor('en')
-      const transcript = await transcriptExtractor.getPlainTranscript()
+      // Ensure we use fresh extractor instance
+      if (!currentTranscriptExtractor) {
+        currentTranscriptExtractor = new MessageBasedTranscriptExtractor('en')
+      }
+      const transcript = await currentTranscriptExtractor.getPlainTranscript()
 
       if (transcript && transcript.trim().length > 0) {
         const fullContent = `${transcript.trim()}`
@@ -43,16 +93,18 @@
     try {
       console.log(`[CopyTranscriptIcon] Starting ${provider} summarization...`)
 
-      // Get transcript
-      const transcriptExtractor = new MessageBasedTranscriptExtractor('en')
-      const transcript = await transcriptExtractor.getPlainTranscript()
+      // Ensure we use fresh extractor instance
+      if (!currentTranscriptExtractor) {
+        currentTranscriptExtractor = new MessageBasedTranscriptExtractor('en')
+      }
+      const transcript = await currentTranscriptExtractor.getPlainTranscript()
 
       if (!transcript || transcript.trim().length === 0) {
         console.warn('[CopyTranscriptIcon] No transcript available')
         return
       }
 
-      const fullContent = `<title>${videoTitle}</title>\n\n<transcript>${transcript.trim()}</transcript>`
+      const fullContent = `<title>${currentVideoTitle}</title>\n\n<transcript>${transcript.trim()}</transcript>`
       console.log(
         `[CopyTranscriptIcon] Transcript extracted: ${fullContent.length} characters`
       )

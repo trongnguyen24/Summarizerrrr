@@ -10,6 +10,43 @@ export class MessageBasedTranscriptExtractor {
    */
   constructor(defaultLang = 'en') {
     this.defaultLang = defaultLang
+    this.transcriptCache = new Map() // Cache transcript theo videoId
+    this.lastVideoId = null
+  }
+
+  /**
+   * Clear cache cho video cụ thể hoặc toàn bộ cache
+   * @param {string|null} videoId - Video ID cần clear cache, null để clear toàn bộ
+   */
+  clearCache(videoId = null) {
+    if (videoId) {
+      this.transcriptCache.delete(videoId)
+      console.log(
+        `[MessageBasedTranscriptExtractor] Cache cleared for video: ${videoId}`
+      )
+    } else {
+      this.transcriptCache.clear()
+      console.log('[MessageBasedTranscriptExtractor] All cache cleared')
+    }
+  }
+
+  /**
+   * Kiểm tra và clear cache nếu video đã thay đổi
+   */
+  checkVideoChange() {
+    const currentVideoId = this.getVideoId()
+    if (currentVideoId && currentVideoId !== this.lastVideoId) {
+      console.log(
+        `[MessageBasedTranscriptExtractor] Video changed from ${this.lastVideoId} to ${currentVideoId}`
+      )
+      // Clear cache của video cũ (giữ lại cache của video mới nếu có)
+      if (this.lastVideoId) {
+        this.clearCache(this.lastVideoId)
+      }
+      this.lastVideoId = currentVideoId
+      return true
+    }
+    return false
   }
 
   /**
@@ -46,11 +83,42 @@ export class MessageBasedTranscriptExtractor {
         return null
       }
 
+      // Always check if video has changed and clear cache if needed
+      const videoChanged = this.checkVideoChange()
+
+      // Create cache key
+      const cacheKey = `${videoId}_${preferredLang}_${includeTimestamps}`
+
+      // Only use cache if video hasn't changed
+      if (!videoChanged && this.transcriptCache.has(cacheKey)) {
+        console.log(
+          `[MessageBasedTranscriptExtractor] Using cached transcript for ${cacheKey}`
+        )
+        return this.transcriptCache.get(cacheKey)
+      }
+
       if (!this.isCaptionsAvailable()) {
         console.error(
           '[MessageBasedTranscriptExtractor] getCaptions function is not available. Make sure youtube_transcript.js is loaded.'
         )
         return null
+      }
+
+      console.log(
+        `[MessageBasedTranscriptExtractor] Fetching fresh transcript for video: ${videoId}, lang: ${preferredLang}, videoChanged: ${videoChanged}`
+      )
+
+      // Force clear any existing cache for this video if video changed
+      if (videoChanged) {
+        // Clear all cache entries for this video ID
+        for (const key of this.transcriptCache.keys()) {
+          if (key.startsWith(`${videoId}_`)) {
+            this.transcriptCache.delete(key)
+          }
+        }
+        console.log(
+          `[MessageBasedTranscriptExtractor] Cleared all cache for video: ${videoId}`
+        )
       }
 
       // Prioritize the preferred language, then fall back to others
@@ -59,6 +127,8 @@ export class MessageBasedTranscriptExtractor {
 
       for (const langCode of uniqueLanguageCodes) {
         try {
+          // Add small delay to ensure fresh fetch
+          await new Promise((resolve) => setTimeout(resolve, 100))
           const transcriptData = await getCaptions(videoUrl, langCode)
 
           if (
@@ -67,11 +137,12 @@ export class MessageBasedTranscriptExtractor {
             transcriptData.length > 0
           ) {
             console.log(
-              `[MessageBasedTranscriptExtractor] Transcript found for language: ${langCode}`
+              `[MessageBasedTranscriptExtractor] Fresh transcript found for language: ${langCode}, segments: ${transcriptData.length}`
             )
 
+            let result
             if (includeTimestamps) {
-              return transcriptData
+              result = transcriptData
                 .map((segment) => {
                   const timeRange =
                     segment.startTime && segment.endTime
@@ -83,12 +154,21 @@ export class MessageBasedTranscriptExtractor {
                 })
                 .join('\n')
             } else {
-              return transcriptData.map((segment) => segment.text).join(' ')
+              result = transcriptData.map((segment) => segment.text).join(' ')
             }
+
+            // Cache the fresh result
+            this.transcriptCache.set(cacheKey, result)
+            console.log(
+              `[MessageBasedTranscriptExtractor] Fresh transcript cached with key: ${cacheKey}, length: ${result.length}`
+            )
+
+            return result
           }
         } catch (error) {
-          // This is expected if a transcript for a language doesn't exist.
-          // console.log(`[MessageBasedTranscriptExtractor] No transcript for language ${langCode}.`);
+          console.log(
+            `[MessageBasedTranscriptExtractor] No transcript for language ${langCode}: ${error.message}`
+          )
         }
       }
 

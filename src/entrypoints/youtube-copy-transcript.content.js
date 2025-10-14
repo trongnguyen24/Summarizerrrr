@@ -6,7 +6,7 @@ import { mount, unmount } from 'svelte'
 import './content/styles/floating-ui.css'
 
 export default defineContentScript({
-  matches: ['*://*.youtube.com/watch*'],
+  matches: ['*://*.youtube.com/*'],
   cssInjectionMode: 'ui',
   async main(ctx) {
     console.log('[YouTube Copy Transcript] Content script loaded')
@@ -92,6 +92,9 @@ export default defineContentScript({
       }
     }
 
+    // Store reference to current UI instance
+    let currentUI = null
+
     // Insert copy transcript icon
     const insertCopyIcon = async (rightControls) => {
       try {
@@ -102,16 +105,35 @@ export default defineContentScript({
           console.log(
             '[YouTube Copy Transcript] No transcript available, not showing icon'
           )
+          // Remove existing icon if no transcript available
+          if (currentUI) {
+            currentUI.remove()
+            currentUI = null
+            const existingIcon = document.querySelector(
+              '.copy-transcript-container'
+            )
+            if (existingIcon) {
+              existingIcon.remove()
+            }
+          }
           return
         }
 
-        // Check if our icon is already inserted
+        // Remove existing icon to create a fresh one with updated props
+        if (currentUI) {
+          console.log(
+            '[YouTube Copy Transcript] Removing existing icon for refresh'
+          )
+          currentUI.remove()
+          currentUI = null
+        }
+
+        // Remove existing container
         const existingIcon = document.querySelector(
           '.copy-transcript-container'
         )
         if (existingIcon) {
-          console.log('[YouTube Copy Transcript] Icon already exists')
-          return
+          existingIcon.remove()
         }
 
         // Create container for our icon
@@ -128,7 +150,7 @@ export default defineContentScript({
         rightControls.parentNode.insertBefore(iconContainer, rightControls)
 
         // Create shadow DOM UI for the icon
-        const ui = await createShadowRootUi(ctx, {
+        currentUI = await createShadowRootUi(ctx, {
           name: 'youtube-copy-transcript-icon',
           position: 'inline',
           anchor: iconContainer,
@@ -144,32 +166,61 @@ export default defineContentScript({
           },
         })
 
-        ui.mount()
-        console.log('[YouTube Copy Transcript] Icon inserted successfully')
+        currentUI.mount()
+        console.log(
+          '[YouTube Copy Transcript] Icon inserted successfully with title:',
+          videoTitle
+        )
       } catch (error) {
         console.error('[YouTube Copy Transcript] Error inserting icon:', error)
       }
     }
 
+    // Helper function to get current video ID
+    const getCurrentVideoId = () => {
+      const url = window.location.href
+      const match = url.match(/[?&]v=([^&]+)/)
+      return match ? match[1] : null
+    }
+
     // Watch for navigation changes in YouTube SPA
     const setupNavigationWatcher = () => {
       let currentUrl = window.location.href
+      let currentVideoId = getCurrentVideoId()
 
       const handleNavigation = async () => {
-        if (window.location.href !== currentUrl) {
-          currentUrl = window.location.href
-          console.log(
-            '[YouTube Copy Transcript] Navigation detected, re-initializing...'
-          )
+        const newUrl = window.location.href
+        const newVideoId = getCurrentVideoId()
 
-          try {
-            // Wait for player controls to be available using standardized function
-            const rightControls = await waitForPlayerControls()
-            await insertCopyIcon(rightControls)
-          } catch (error) {
-            console.error(
-              '[YouTube Copy Transcript] Error on navigation:',
-              error
+        if (newUrl !== currentUrl || newVideoId !== currentVideoId) {
+          console.log('[YouTube Copy Transcript] Navigation detected:', {
+            oldUrl: currentUrl,
+            newUrl,
+            oldVideoId: currentVideoId,
+            newVideoId,
+          })
+
+          currentUrl = newUrl
+          currentVideoId = newVideoId
+
+          // Only proceed if we're on a watch page with a video ID
+          if (newVideoId) {
+            // Small delay to ensure DOM is ready
+            setTimeout(async () => {
+              try {
+                // Wait for player controls to be available
+                const rightControls = await waitForPlayerControls()
+                await insertCopyIcon(rightControls)
+              } catch (error) {
+                console.error(
+                  '[YouTube Copy Transcript] Error on navigation:',
+                  error
+                )
+              }
+            }, 200)
+          } else {
+            console.log(
+              '[YouTube Copy Transcript] Not a watch page, skipping icon insertion'
             )
           }
         }
@@ -184,17 +235,55 @@ export default defineContentScript({
 
       history.pushState = function (...args) {
         originalPushState.apply(this, args)
-        setTimeout(handleNavigation, 100)
+        setTimeout(handleNavigation, 50)
       }
 
       history.replaceState = function (...args) {
         originalReplaceState.apply(this, args)
-        setTimeout(handleNavigation, 100)
+        setTimeout(handleNavigation, 50)
       }
+
+      // Additional observer for YouTube-specific navigation
+      const observerCallback = (mutations) => {
+        for (const mutation of mutations) {
+          // Check for changes in video title or other key elements
+          if (
+            mutation.target.matches &&
+            (mutation.target.matches('h1.ytd-watch-metadata') ||
+              mutation.target.matches('#movie_player'))
+          ) {
+            setTimeout(handleNavigation, 100)
+            break
+          }
+        }
+      }
+
+      const observer = new MutationObserver(observerCallback)
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+        attributeFilter: ['src', 'href'],
+      })
+
+      // Additional interval check as fallback
+      setInterval(() => {
+        handleNavigation()
+      }, 2000)
     }
 
     // Initialize the feature
     try {
+      const currentVideoId = getCurrentVideoId()
+      if (!currentVideoId) {
+        console.log(
+          '[YouTube Copy Transcript] Not on a watch page, skipping initialization'
+        )
+        // Still setup navigation watcher to detect when user navigates to a watch page
+        setupNavigationWatcher()
+        return
+      }
+
       // Wait for initial player load using standardized function
       const rightControls = await waitForPlayerControls()
       console.log('[YouTube Copy Transcript] Right controls found')

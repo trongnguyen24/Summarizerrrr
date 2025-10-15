@@ -3,6 +3,7 @@
   import { getAllTags, addTag, deleteTag } from '@/lib/db/indexedDBService'
   import Icon from '@iconify/svelte'
   import { slideScaleFade } from '@/lib/ui/slideScaleFade.js'
+  import { fade } from 'svelte/transition'
   import {
     archiveFilterStore,
     setTagFilter,
@@ -48,59 +49,71 @@
   loadTags()
 </script>
 
-<div class="px-2 pt-2 pb-4 mb-2 border-b border-border/50">
+<div class="pt-2 pb-4 mb-2 border-b border-border/50">
   <h3
-    class="px-2 mb-2 text-xs font-semibold tracking-wider uppercase text-text-muted"
+    class="mb-2 px-2 text-xs font-semibold tracking-wider uppercase text-text-muted"
   >
     Tags
   </h3>
-  <div class="flex flex-wrap gap-2 px-2 min-h-6">
+  <div class="flex flex-col gap-px min-h-6">
     <!-- "All" button to clear filter -->
-    <button
+    <!-- <button
       onclick={() => setTagFilter(null)}
-      class="flex items-center justify-center gap-1.5 text-xs font-medium rounded-full pl-3 pr-3 py-1 transition-colors {archiveFilterStore.selectedTagId ===
+      class="flex items-center gap-1.5 text-sm font-medium py-1 hover:bg-surface-2 transition-colors {archiveFilterStore.selectedTagId ===
       null
-        ? 'bg-primary text-white'
-        : 'bg-surface-2 hover:bg-surface-3 text-text-secondary'}"
+        ? ' text-white'
+        : ' text-text-secondary'}"
     >
       All
-    </button>
+    </button> -->
 
     {#each tags as tag (tag.id)}
-      <div
-        transition:slideScaleFade={{
-          duration: 300,
-          startScale: 0.8,
-          slideFrom: 'bottom',
-          slideDistance: '0.2rem',
-        }}
-        class="relative"
-      >
-        <div
-          class="flex items-center justify-center gap-1 text-xs font-medium rounded-full pl-2.5 pr-1.5 py-1 transition-colors {archiveFilterStore.selectedTagId ===
+      <div class="relative flex hover:bg-blackwhite/5 rounded-md">
+        <button
+          class="flex items-center gap-1 text-sm w-full relative p-2 text-left{archiveFilterStore.selectedTagId ===
           tag.id
-            ? 'bg-primary text-white'
-            : 'bg-surface-2 text-text-secondary'}"
+            ? ' text-white'
+            : ' text-text-secondary'}"
+          onclick={() => setTagFilter(tag.id)}
         >
-          <button onclick={() => setTagFilter(tag.id)} class="hover:underline">
-            <span>{tag.name}</span>
-          </button>
-          <button
-            onclick={(e) => handleDeleteTag(e, tag.id)}
-            class="p-0.5 rounded-full hover:bg-black/10 dark:hover:bg-white/10 transition-colors z-10"
-          >
-            <Icon
-              icon="heroicons:x-mark-16-solid"
-              class={archiveFilterStore.selectedTagId === tag.id
-                ? 'text-white/70 hover:text-white'
-                : 'text-text-muted hover:text-error'}
-            />
-          </button>
-        </div>
+          <div class="size-5 relative">
+            {#if archiveFilterStore.selectedTagId === tag.id}
+              <span
+                transition:fade={{
+                  duration: 100,
+                }}
+                class="text-text-primary absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2"
+              >
+                <Icon icon="tabler:tag-filled" width="20" height="20" />
+              </span>
+            {:else}
+              <span
+                transition:fade={{
+                  duration: 100,
+                }}
+                class="text-text-primary absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2"
+              >
+                <Icon icon="tabler:tag" width="20" height="20" />
+              </span>
+            {/if}
+          </div>
+          {tag.name}
+        </button>
+        <button
+          onclick={(e) => handleDeleteTag(e, tag.id)}
+          class="p-0.5 rounded-full hover:bg-black/10 dark:hover:bg-white/10 transition-colors z-10"
+        >
+          <Icon
+            icon="heroicons:x-mark-16-solid"
+            class={archiveFilterStore.selectedTagId === tag.id
+              ? 'text-white/70 hover:text-white'
+              : 'text-text-muted hover:text-error'}
+          />
+        </button>
       </div>
     {/each}
   </div>
-  <div class="px-2 mt-3">
+  <!-- <div class="px-2 mt-3">
     <input
       type="text"
       placeholder="Create new tag..."
@@ -108,5 +121,5 @@
       bind:value={newTagName}
       onkeydown={(e) => e.key === 'Enter' && handleAddTag()}
     />
-  </div>
+  </div> -->
 </div>

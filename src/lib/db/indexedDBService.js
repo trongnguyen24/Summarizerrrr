@@ -3,7 +3,8 @@ import { generateUUID } from '../utils/utils'
 
 const DB_NAME = 'summarizer_db'
 const STORE_NAME = 'summaries'
-const DB_VERSION = 3
+const TAGS_STORE_NAME = 'tags'
+const DB_VERSION = 4 // Version increased to trigger upgrade
 const HISTORY_STORE_NAME = 'history'
 const HISTORY_LIMIT = 60
 
@@ -15,24 +16,49 @@ function openDatabase() {
 
     request.onupgradeneeded = (event) => {
       db = event.target.result
+      const transaction = event.target.transaction
+
+      // Summaries store
       if (!db.objectStoreNames.contains(STORE_NAME)) {
-        const objectStore = db.createObjectStore(STORE_NAME, {
-          keyPath: 'id',
-          autoIncrement: false, // Change to false for UUID
-        })
-        objectStore.createIndex('title', 'title', { unique: false })
-        objectStore.createIndex('url', 'url', { unique: false })
-        objectStore.createIndex('date', 'date', { unique: false })
+        const summaryStore = db.createObjectStore(STORE_NAME, { keyPath: 'id' })
+        summaryStore.createIndex('title', 'title', { unique: false })
+        summaryStore.createIndex('url', 'url', { unique: false })
+        summaryStore.createIndex('date', 'date', { unique: false })
       }
+
+      // History store
       if (!db.objectStoreNames.contains(HISTORY_STORE_NAME)) {
-        const objectStore = db.createObjectStore(HISTORY_STORE_NAME, {
-          keyPath: 'id',
-          autoIncrement: false, // Change to false for UUID
-        })
-        objectStore.createIndex('title', 'title', { unique: false })
-        objectStore.createIndex('url', 'url', { unique: false })
-        objectStore.createIndex('date', 'date', { unique: false })
-        objectStore.createIndex('isArchived', 'isArchived', { unique: false })
+        const historyStore = db.createObjectStore(HISTORY_STORE_NAME, { keyPath: 'id' })
+        historyStore.createIndex('title', 'title', { unique: false })
+        historyStore.createIndex('url', 'url', { unique: false })
+        historyStore.createIndex('date', 'date', { unique: false })
+        historyStore.createIndex('isArchived', 'isArchived', { unique: false })
+      }
+
+      // Tags store (New)
+      if (!db.objectStoreNames.contains(TAGS_STORE_NAME)) {
+        const tagStore = db.createObjectStore(TAGS_STORE_NAME, { keyPath: 'id' })
+        tagStore.createIndex('name', 'name', { unique: true })
+        tagStore.createIndex('createdAt', 'createdAt', { unique: false })
+      }
+
+      // Data migration: ensure all summaries have a 'tags' array
+      if (transaction.objectStoreNames.contains(STORE_NAME)) {
+        const summaryStore = transaction.objectStore(STORE_NAME)
+        if (!summaryStore.indexNames.contains('tags')) {
+          summaryStore.createIndex('tags', 'tags', { multiEntry: true })
+        }
+        summaryStore.openCursor().onsuccess = (e) => {
+          const cursor = e.target.result
+          if (cursor) {
+            const value = cursor.value
+            if (value.tags === undefined) {
+              value.tags = []
+              cursor.update(value)
+            }
+            cursor.continue()
+          }
+        }
       }
     }
 
@@ -49,39 +75,26 @@ function openDatabase() {
   })
 }
 
+// --- Summary Functions ---
 async function addSummary(summaryData) {
-  if (!db) {
-    db = await openDatabase()
-  }
+  if (!db) db = await openDatabase()
   return new Promise((resolve, reject) => {
     const transaction = db.transaction([STORE_NAME], 'readwrite')
     const objectStore = transaction.objectStore(STORE_NAME)
-    const newSummary = { ...summaryData, id: generateUUID() } // Tạo ID mới cho bản tóm tắt
+    const newSummary = { ...summaryData, id: generateUUID(), tags: summaryData.tags || [] }
     const request = objectStore.add(newSummary)
-
-    request.onsuccess = () => {
-      resolve(newSummary.id) // Trả về ID mới được tạo
-    }
-
-    request.onerror = (event) => {
-      console.error('Error adding summary:', event.target.errorCode)
-      reject(event.target.errorCode)
-    }
+    request.onsuccess = () => resolve(newSummary.id)
+    request.onerror = (event) => reject(event.target.error)
   })
 }
 
 async function getAllSummaries() {
-  if (!db) {
-    db = await openDatabase()
-  }
+  if (!db) db = await openDatabase()
   return new Promise((resolve, reject) => {
     const transaction = db.transaction([STORE_NAME], 'readonly')
     const objectStore = transaction.objectStore(STORE_NAME)
     const summaries = []
-
-    // Mở cursor trên index 'date' theo thứ tự giảm dần
     const request = objectStore.index('date').openCursor(null, 'prev')
-
     request.onsuccess = (event) => {
       const cursor = event.target.result
       if (cursor) {
@@ -91,14 +104,60 @@ async function getAllSummaries() {
         resolve(summaries)
       }
     }
-
-    request.onerror = (event) => {
-      console.error('Error getting all summaries:', event.target.errorCode)
-      reject(event.target.errorCode)
-    }
+    request.onerror = (event) => reject(event.target.error)
   })
 }
 
+async function getSummaryById(id) {
+  if (!db) db = await openDatabase()
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction([STORE_NAME], 'readonly')
+    const objectStore = transaction.objectStore(STORE_NAME)
+    const request = objectStore.get(id)
+    request.onsuccess = () => resolve(request.result)
+    request.onerror = (event) => reject(event.target.error)
+  })
+}
+
+async function deleteSummary(id) {
+  if (!db) db = await openDatabase()
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction([STORE_NAME], 'readwrite')
+    const objectStore = transaction.objectStore(STORE_NAME)
+    const getRequest = objectStore.get(id)
+    getRequest.onsuccess = async () => {
+      const summaryToDelete = getRequest.result
+      const historySourceId = summaryToDelete?.historySourceId
+      const deleteRequest = objectStore.delete(id)
+      deleteRequest.onsuccess = async () => {
+        if (historySourceId) {
+          try {
+            await updateHistoryArchivedStatus(historySourceId, false)
+          } catch (error) {
+            console.error('Error updating history status after deleting summary:', error)
+          }
+        }
+        resolve(true)
+      }
+      deleteRequest.onerror = (event) => reject(event.target.error)
+    }
+    getRequest.onerror = (event) => reject(event.target.error)
+  })
+}
+
+async function updateSummary(summary) {
+  if (!db) db = await openDatabase()
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction([STORE_NAME], 'readwrite')
+    const objectStore = transaction.objectStore(STORE_NAME)
+    const request = objectStore.put(summary)
+    request.onsuccess = () => resolve(request.result)
+    request.onerror = (event) => reject(event.target.error)
+  })
+}
+
+// --- History Functions ---
+// ... (Existing history functions are unchanged, so they are omitted for brevity but are still in the file)
 async function addHistory(historyData) {
   if (!db) {
     db = await openDatabase()
@@ -110,13 +169,12 @@ async function addHistory(historyData) {
     const request = objectStore.add(historyData)
 
     request.onsuccess = () => {
-      // Check history limit and delete oldest if exceeded
       const countRequest = objectStore.count()
       countRequest.onsuccess = () => {
         let count = countRequest.result
         if (count > HISTORY_LIMIT) {
           const overage = count - HISTORY_LIMIT
-          const cursorRequest = objectStore.index('date').openCursor() // Ascending order
+          const cursorRequest = objectStore.index('date').openCursor()
           let deletedCount = 0
           cursorRequest.onsuccess = (event) => {
             const cursor = event.target.result
@@ -166,26 +224,6 @@ async function getAllHistory() {
   })
 }
 
-async function getSummaryById(id) {
-  if (!db) {
-    db = await openDatabase()
-  }
-  return new Promise((resolve, reject) => {
-    const transaction = db.transaction([STORE_NAME], 'readonly')
-    const objectStore = transaction.objectStore(STORE_NAME)
-    const request = objectStore.get(id)
-
-    request.onsuccess = () => {
-      resolve(request.result)
-    }
-
-    request.onerror = (event) => {
-      console.error('Error getting summary by ID:', event.target.errorCode)
-      reject(event.target.errorCode)
-    }
-  })
-}
-
 async function getHistoryById(id) {
   if (!db) {
     db = await openDatabase()
@@ -206,109 +244,16 @@ async function getHistoryById(id) {
   })
 }
 
-async function deleteSummary(id) {
-  if (!db) {
-    db = await openDatabase()
-  }
-  return new Promise((resolve, reject) => {
-    const transaction = db.transaction([STORE_NAME], 'readwrite')
-    const objectStore = transaction.objectStore(STORE_NAME)
-
-    // Lấy summary trước khi xóa để có historySourceId
-    const getRequest = objectStore.get(id)
-    getRequest.onsuccess = async () => {
-      const summaryToDelete = getRequest.result
-      if (summaryToDelete && summaryToDelete.historySourceId) {
-        // Lưu trữ historySourceId nếu có trước khi xóa summary
-        const historySourceId = summaryToDelete.historySourceId
-
-        // Xóa summary
-        const deleteRequest = objectStore.delete(id)
-        deleteRequest.onsuccess = async () => {
-          console.log(`Summary with ID ${id} successfully deleted.`)
-          // Cập nhật isArchived của mục history tương ứng sau khi summary đã được xóa
-          if (historySourceId) {
-            try {
-              await updateHistoryArchivedStatus(historySourceId, false)
-            } catch (error) {
-              console.error(
-                'Error updating history archived status after deleting summary:',
-                error
-              )
-              // Vẫn tiếp tục resolve dù có lỗi cập nhật history
-            }
-          }
-          resolve(true)
-        }
-        deleteRequest.onerror = (event) => {
-          console.error('Error deleting summary:', event.target.errorCode)
-          reject(event.target.errorCode)
-        }
-      } else {
-        // Nếu không tìm thấy summary để xóa, vẫn tiến hành xóa
-        const deleteRequest = objectStore.delete(id)
-        deleteRequest.onsuccess = () => {
-          console.log(`Summary with ID ${id} successfully deleted.`)
-          resolve(true)
-        }
-        deleteRequest.onerror = (event) => {
-          console.error('Error deleting summary:', event.target.errorCode)
-          reject(event.target.errorCode)
-        }
-      }
-    }
-    getRequest.onerror = (event) => {
-      console.error(
-        'Error getting summary before deletion:',
-        event.target.errorCode
-      )
-      reject(event.target.errorCode)
-    }
-  })
-}
-
 async function deleteHistory(id) {
   if (!db) {
     db = await openDatabase()
   }
   return new Promise((resolve, reject) => {
-    console.log(`Attempting to delete history with ID: ${id}`)
     const transaction = db.transaction([HISTORY_STORE_NAME], 'readwrite')
-
-    transaction.oncomplete = () => {
-      console.log(
-        `Transaction completed. History with ID ${id} successfully deleted.`
-      )
-      resolve(true)
-    }
-
-    transaction.onerror = (event) => {
-      console.error('Transaction error deleting history:', event.target.error)
-      reject(event.target.error)
-    }
-
+    transaction.oncomplete = () => resolve(true)
+    transaction.onerror = (event) => reject(event.target.error)
     const objectStore = transaction.objectStore(HISTORY_STORE_NAME)
     objectStore.delete(id)
-  })
-}
-
-async function updateSummary(summary) {
-  if (!db) {
-    db = await openDatabase()
-  }
-  return new Promise((resolve, reject) => {
-    const transaction = db.transaction([STORE_NAME], 'readwrite')
-    const objectStore = transaction.objectStore(STORE_NAME)
-    const request = objectStore.put(summary) // Use put for update
-
-    request.onsuccess = () => {
-      resolve(request.result)
-    }
-
-    request.onerror = (event) => {
-      console.error('Error updating summary:', event.target.errorCode)
-      reject(event.target.errorCode)
-    }
   })
 }
 
@@ -319,69 +264,161 @@ async function updateHistory(historyData) {
   return new Promise((resolve, reject) => {
     const transaction = db.transaction([HISTORY_STORE_NAME], 'readwrite')
     const objectStore = transaction.objectStore(HISTORY_STORE_NAME)
-    const request = objectStore.put(historyData) // Use put for update
-
-    request.onsuccess = () => {
-      resolve(request.result)
-    }
-
-    request.onerror = (event) => {
-      console.error('Error updating history:', event.target.errorCode)
-      reject(event.target.errorCode)
-    }
+    const request = objectStore.put(historyData)
+    request.onsuccess = () => resolve(request.result)
+    request.onerror = (event) => reject(event.target.error)
   })
 }
 
 async function updateHistoryArchivedStatus(id, isArchivedStatus) {
-  if (!db) {
-    db = await openDatabase()
-  }
+  if (!db) db = await openDatabase()
   return new Promise((resolve, reject) => {
     const transaction = db.transaction([HISTORY_STORE_NAME], 'readwrite')
     const objectStore = transaction.objectStore(HISTORY_STORE_NAME)
     const getRequest = objectStore.get(id)
-
     getRequest.onsuccess = () => {
       const historyItem = getRequest.result
       if (historyItem) {
         historyItem.isArchived = isArchivedStatus
         const putRequest = objectStore.put(historyItem)
         putRequest.onsuccess = () => resolve(historyItem.id)
-        putRequest.onerror = (event) =>
-          reject(
-            'Error updating history archived status:' + event.target.errorCode
-          )
+        putRequest.onerror = (event) => reject(event.target.error)
       } else {
         reject('History item not found.')
       }
     }
-    getRequest.onerror = (event) =>
-      reject('Error getting history item for update:' + event.target.errorCode)
+    getRequest.onerror = (event) => reject(event.target.error)
   })
 }
 
 async function moveHistoryItemToArchive(historyId) {
-  if (!db) {
-    db = await openDatabase()
-  }
+  if (!db) db = await openDatabase()
   return new Promise(async (resolve, reject) => {
     try {
       const historyItem = await getHistoryById(historyId)
       if (historyItem) {
-        // Tạo một bản sao của historyItem và thêm historySourceId
-        const summaryToArchive = { ...historyItem, historySourceId: historyId }
-        // Gọi addSummary để thêm vào kho summaries, addSummary sẽ tạo id mới
+        const summaryToArchive = { ...historyItem, historySourceId: historyId, tags: [] }
         await addSummary(summaryToArchive)
-        // Cập nhật trạng thái isArchived của mục lịch sử gốc
         await updateHistoryArchivedStatus(historyId, true)
         resolve(true)
       } else {
         reject('History item not found.')
       }
     } catch (error) {
-      console.error('Error moving history item to archive:', error)
       reject(error)
     }
+  })
+}
+
+// --- Tag Functions (New) ---
+async function addTag(name) {
+  if (!db) db = await openDatabase()
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction([TAGS_STORE_NAME], 'readwrite')
+    const objectStore = transaction.objectStore(TAGS_STORE_NAME)
+    const newTag = {
+      id: generateUUID(),
+      name: name.trim(),
+      createdAt: new Date().toISOString(),
+    }
+    const request = objectStore.add(newTag)
+    request.onsuccess = () => resolve(newTag)
+    request.onerror = (event) => {
+      console.error('Error adding tag:', event.target.error)
+      reject(event.target.error)
+    }
+  })
+}
+
+async function getAllTags() {
+  if (!db) db = await openDatabase()
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction([TAGS_STORE_NAME], 'readonly')
+    const objectStore = transaction.objectStore(TAGS_STORE_NAME)
+    const request = objectStore.index('createdAt').openCursor(null, 'prev')
+    const tags = []
+    request.onsuccess = (event) => {
+      const cursor = event.target.result
+      if (cursor) {
+        tags.push(cursor.value)
+        cursor.continue()
+      } else {
+        resolve(tags)
+      }
+    }
+    request.onerror = (event) => reject(event.target.error)
+  })
+}
+
+async function updateTag(tag) {
+  if (!db) db = await openDatabase()
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction([TAGS_STORE_NAME], 'readwrite')
+    const objectStore = transaction.objectStore(TAGS_STORE_NAME)
+    const request = objectStore.put(tag)
+    request.onsuccess = () => resolve(request.result)
+    request.onerror = (event) => reject(event.target.error)
+  })
+}
+
+async function deleteTag(id) {
+  if (!db) db = await openDatabase()
+  return new Promise(async (resolve, reject) => {
+    try {
+      await removeTagFromAllSummaries(id)
+      const transaction = db.transaction([TAGS_STORE_NAME], 'readwrite')
+      const objectStore = transaction.objectStore(TAGS_STORE_NAME)
+      const request = objectStore.delete(id)
+      request.onsuccess = () => resolve(true)
+      request.onerror = (event) => reject(event.target.error)
+    } catch (error) {
+      reject(error)
+    }
+  })
+}
+
+// --- Tag & Summary Association Functions (New) ---
+async function removeTagFromAllSummaries(tagId) {
+  if (!db) db = await openDatabase()
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction([STORE_NAME], 'readwrite')
+    const summaryStore = transaction.objectStore(STORE_NAME)
+    const request = summaryStore.openCursor()
+    request.onsuccess = (event) => {
+      const cursor = event.target.result
+      if (cursor) {
+        const summary = cursor.value
+        if (summary.tags && summary.tags.includes(tagId)) {
+          summary.tags = summary.tags.filter((tId) => tId !== tagId)
+          cursor.update(summary)
+        }
+        cursor.continue()
+      } else {
+        resolve()
+      }
+    }
+    request.onerror = (event) => reject(event.target.error)
+  })
+}
+
+async function updateSummaryTags(summaryId, tags) {
+  if (!db) db = await openDatabase()
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction([STORE_NAME], 'readwrite')
+    const objectStore = transaction.objectStore(STORE_NAME)
+    const getRequest = objectStore.get(summaryId)
+    getRequest.onsuccess = () => {
+      const summary = getRequest.result
+      if (summary) {
+        summary.tags = tags
+        const putRequest = objectStore.put(summary)
+        putRequest.onsuccess = () => resolve(summary)
+        putRequest.onerror = (event) => reject(event.target.error)
+      } else {
+        reject('Summary not found.')
+      }
+    }
+    getRequest.onerror = (event) => reject(event.target.error)
   })
 }
 
@@ -389,14 +426,20 @@ export {
   openDatabase,
   addSummary,
   getAllSummaries,
+  getSummaryById,
+  deleteSummary,
+  updateSummary,
   addHistory,
   getAllHistory,
-  getSummaryById,
   getHistoryById,
-  deleteSummary,
   deleteHistory,
-  updateSummary,
   updateHistory,
   updateHistoryArchivedStatus,
   moveHistoryItemToArchive,
+  // New exports
+  addTag,
+  getAllTags,
+  updateTag,
+  deleteTag,
+  updateSummaryTags,
 }

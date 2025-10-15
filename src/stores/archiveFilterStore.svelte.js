@@ -15,12 +15,7 @@ export const archiveFilterStore = $state({
  * @param {string | null} tagId - The ID of the tag to filter by, or null to clear the filter.
  */
 export function setTagFilter(tagId) {
-  console.log('🏷️ DEBUG: setTagFilter called with tagId:', tagId)
   archiveFilterStore.selectedTagId = tagId
-  console.log(
-    '🏷️ DEBUG: selectedTagId updated to:',
-    archiveFilterStore.selectedTagId
-  )
 }
 
 /**

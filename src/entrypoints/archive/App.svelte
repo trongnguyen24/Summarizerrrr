@@ -92,15 +92,6 @@
       initializeScrollbars(document.body)
     }
     archiveStore.loadData().then((result) => {
-      console.log('📊 DEBUG: archiveStore.loadData result:', result)
-      console.log(
-        '📊 DEBUG: archiveList length:',
-        archiveStore.archiveList?.length || 0
-      )
-      console.log(
-        '📊 DEBUG: historyList length:',
-        archiveStore.historyList?.length || 0
-      )
       if (result && result.activeTab) {
         activeTab = result.activeTab // Set initial activeTab from URL
       }
@@ -109,7 +100,6 @@
     // Listen for archive updates
     const unsubscribe = appStateStorage.watch((newValue, oldValue) => {
       if (newValue && newValue.data_updated_at !== oldValue?.data_updated_at) {
-        console.log('Data updated, reloading data...')
         archiveStore.loadData()
       }
     })

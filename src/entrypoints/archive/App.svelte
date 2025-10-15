@@ -27,7 +27,10 @@
   import { formatDate } from '@/lib/utils/utils.js'
   import { archiveStore } from '@/stores/archiveStore.svelte.js'
   import { animationService } from '@/services/animationService.js'
-  import { setTagFilter } from '@/stores/archiveFilterStore.svelte.js';
+  import {
+    archiveFilterStore,
+    setTagFilter,
+  } from '@/stores/archiveFilterStore.svelte.js'
 
   // State management
   let isSidePanelVisible = $state(window.innerWidth >= 768) // Initialize based on current window size
@@ -89,6 +92,15 @@
       initializeScrollbars(document.body)
     }
     archiveStore.loadData().then((result) => {
+      console.log('📊 DEBUG: archiveStore.loadData result:', result)
+      console.log(
+        '📊 DEBUG: archiveList length:',
+        archiveStore.archiveList?.length || 0
+      )
+      console.log(
+        '📊 DEBUG: historyList length:',
+        archiveStore.historyList?.length || 0
+      )
       if (result && result.activeTab) {
         activeTab = result.activeTab // Set initial activeTab from URL
       }
@@ -198,8 +210,8 @@
         selectedSummaryId={archiveStore.selectedSummaryId}
         {activeTab}
         selectTab={(tabName) => {
-          activeTab = tabName;
-          setTagFilter(null); // Reset filter when changing tabs
+          activeTab = tabName
+          archiveFilterStore.selectedTagId = null // Reset filter when changing tabs
         }}
         onRefresh={archiveStore.loadData}
       />

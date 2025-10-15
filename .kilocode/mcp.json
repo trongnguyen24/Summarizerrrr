@@ -25,18 +25,17 @@
     },
     "context7": {
       "command": "npx",
-      "args": [
-        "-y",
-        "@upstash/context7-mcp"
-      ],
+      "args": ["-y", "@upstash/context7-mcp"],
       "env": {
         "DEFAULT_MINIMUM_TOKENS": ""
       },
-      "alwaysAllow": [
-        "resolve-library-id",
-        "get-library-docs"
-      ],
+      "alwaysAllow": ["resolve-library-id", "get-library-docs"],
       "disabled": true
+    },
+
+    "svelte": {
+      "command": "npx",
+      "args": ["-y", "@sveltejs/mcp"]
     }
   }
 }

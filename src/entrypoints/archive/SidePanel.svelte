@@ -41,6 +41,7 @@
   let deleteTimeoutId = $state(null)
   let isConfirmingDelete = $state(false)
   let isTouchScreen = $state(false)
+  let openMenuItemId = $state(null)
 
   // Use effect to compute categorized list instead of filtered list
   let categorizedList = $state({ matchedItems: [], unmatchedItems: [] })
@@ -94,6 +95,14 @@
     isOpen = false
     newSummaryName = ''
     currentSummaryIdToRename = null
+  }
+
+  function toggleMenu(itemId) {
+    openMenuItemId = openMenuItemId === itemId ? null : itemId
+  }
+
+  function closeMenu() {
+    openMenuItemId = null
   }
 
   function openAssignTagsModal(item) {
@@ -157,6 +166,7 @@
       await refreshSummaries()
       deleteCandidateId = null
       isConfirmingDelete = false
+      closeMenu()
     } catch (error) {
       console.error('Error deleting item:', error)
     }
@@ -201,6 +211,31 @@
     isTouchScreen = isTouchDevice()
     if (!isTouchDevice()) {
       initializeScrollbars(document.getElementById('scroll-side'))
+    }
+
+    // Close menu when clicking outside
+    function handleClickOutside(event) {
+      if (openMenuItemId && !event.target.closest('.action-menu-container')) {
+        closeMenu()
+      }
+    }
+
+    // Close menu when scrolling
+    function handleScroll() {
+      if (openMenuItemId) {
+        closeMenu()
+      }
+    }
+
+    const scrollContainer = document.getElementById('scroll-side')
+    if (scrollContainer) {
+      document.addEventListener('click', handleClickOutside)
+      scrollContainer.addEventListener('scroll', handleScroll)
+
+      return () => {
+        document.removeEventListener('click', handleClickOutside)
+        scrollContainer.removeEventListener('scroll', handleScroll)
+      }
     }
   })
 </script>
@@ -254,61 +289,128 @@
               {item.title}
             </div>
           </button>
-          <div
-            class="text-text-muted justify-center rounded-r-sm items-center bg-linear-to-l from-surface-1 dark:from-surface-2 from-80% to-surface-1/0 dark:to-surface-2/0 top-0 bottom-0 pl-4 pr-1 right-0 absolute {isTouchScreen
-              ? 'flex bg-none'
-              : 'hidden group-hover:flex'}"
-          >
-            {#if activeTab === 'archive'}
+          {#if isTouchScreen}
+            <div
+              class="action-menu-container text-text-muted justify-center rounded-r-sm items-center bg-none top-0 bottom-0 pr-1 right-0 absolute flex"
+            >
               <button
-                onclick={() => openAssignTagsModal(item)}
-                class="p-1 hover:text-text-primary {isTouchScreen
-                  ? 'p-2'
-                  : 'p-1'}"
-                title="Assign Tags"
+                onclick={() => toggleMenu(item.id)}
+                class="p-2 hover:text-text-primary relative"
+                title="Actions"
               >
-                <Icon icon="tabler:tag" width="20" height="20" />
+                <Icon icon="tabler:dots-vertical" width="20" height="20" />
               </button>
-            {/if}
-            <button
-              onclick={() => openRenameDialog(item)}
-              class="p-1 hover:text-text-primary {isTouchScreen
-                ? 'p-2'
-                : 'p-1'}"
-              title="Rename"
-            >
-              <Icon icon="tabler:pencil" width="20" height="20" />
-            </button>
-            <button
-              onclick={() => handleDeleteClick(item.id)}
-              class=" relative rounded-3xl transition-colors duration-150 {isConfirmingDelete &&
-              deleteCandidateId === item.id
-                ? 'text-red-50 '
-                : 'hover:text-text-primary'}  {isTouchScreen ? 'p-2' : 'p-1'}"
-              title="Delete"
-            >
-              <Icon
-                icon="heroicons:trash"
-                width="20"
-                height="20"
-                class=" relative z-10"
-              />
-              {#if isConfirmingDelete && deleteCandidateId === item.id}
-                <span
+
+              {#if openMenuItemId === item.id}
+                <div
                   transition:slideScaleFade={{
                     duration: 150,
-                    slideFrom: 'bottom',
-                    startScale: 0.4,
-                    slideDistance: '0rem',
+                    slideFrom: 'top',
+                    startScale: 0.9,
+                    slideDistance: '0.5rem',
                   }}
-                  class="rounded-sm block bg-error absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 {isTouchScreen
-                    ? 'size-9'
-                    : 'size-7'}"
+                  class="absolute top-full right-0 mt-1 bg-surface-1 dark:bg-surface-2 border border-border rounded-md shadow-lg z-50 min-w-40"
                 >
-                </span>
+                  {#if activeTab === 'archive'}
+                    <button
+                      onclick={() => {
+                        openAssignTagsModal(item)
+                        closeMenu()
+                      }}
+                      class="w-full px-4 py-2.5 text-left hover:bg-surface-2 dark:hover:bg-surface-3 flex items-center gap-2 text-sm"
+                    >
+                      <Icon icon="tabler:tag" width="18" height="18" />
+                      <span>Assign Tags</span>
+                    </button>
+                  {/if}
+                  <button
+                    onclick={() => {
+                      openRenameDialog(item)
+                      closeMenu()
+                    }}
+                    class="w-full px-4 py-2.5 text-left hover:bg-surface-2 dark:hover:bg-surface-3 flex items-center gap-2 text-sm"
+                  >
+                    <Icon icon="tabler:pencil" width="18" height="18" />
+                    <span>Rename</span>
+                  </button>
+                  <button
+                    onclick={() => {
+                      handleDeleteClick(item.id)
+                    }}
+                    class="w-full px-4 py-2.5 text-left hover:bg-error/10 hover:text-error flex items-center gap-2 text-sm relative"
+                  >
+                    <Icon
+                      icon="heroicons:trash"
+                      width="18"
+                      height="18"
+                      class="relative z-10"
+                    />
+                    <span class="relative z-10">Delete</span>
+                    {#if isConfirmingDelete && deleteCandidateId === item.id}
+                      <span
+                        transition:slideScaleFade={{
+                          duration: 150,
+                          slideFrom: 'bottom',
+                          startScale: 0.4,
+                          slideDistance: '0rem',
+                        }}
+                        class="rounded-sm block bg-error/20 absolute inset-0"
+                      >
+                      </span>
+                    {/if}
+                  </button>
+                </div>
               {/if}
-            </button>
-          </div>
+            </div>
+          {:else}
+            <div
+              class="text-text-muted justify-center rounded-r-sm items-center bg-linear-to-l from-surface-1 dark:from-surface-2 from-80% to-surface-1/0 dark:to-surface-2/0 top-0 bottom-0 pl-4 pr-1 right-0 absolute hidden group-hover:flex"
+            >
+              {#if activeTab === 'archive'}
+                <button
+                  onclick={() => openAssignTagsModal(item)}
+                  class="p-1 hover:text-text-primary"
+                  title="Assign Tags"
+                >
+                  <Icon icon="tabler:tag" width="20" height="20" />
+                </button>
+              {/if}
+              <button
+                onclick={() => openRenameDialog(item)}
+                class="p-1 hover:text-text-primary"
+                title="Rename"
+              >
+                <Icon icon="tabler:pencil" width="20" height="20" />
+              </button>
+              <button
+                onclick={() => handleDeleteClick(item.id)}
+                class="relative rounded-3xl transition-colors duration-150 p-1 {isConfirmingDelete &&
+                deleteCandidateId === item.id
+                  ? 'text-red-50'
+                  : 'hover:text-text-primary'}"
+                title="Delete"
+              >
+                <Icon
+                  icon="heroicons:trash"
+                  width="20"
+                  height="20"
+                  class="relative z-10"
+                />
+                {#if isConfirmingDelete && deleteCandidateId === item.id}
+                  <span
+                    transition:slideScaleFade={{
+                      duration: 150,
+                      slideFrom: 'bottom',
+                      startScale: 0.4,
+                      slideDistance: '0rem',
+                    }}
+                    class="rounded-sm block bg-error absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 size-7"
+                  >
+                  </span>
+                {/if}
+              </button>
+            </div>
+          {/if}
         </div>
       {/each}
 
@@ -333,61 +435,128 @@
               {item.title}
             </div>
           </button>
-          <div
-            class="text-text-muted justify-center rounded-r-sm items-center bg-linear-to-l from-surface-1 dark:from-surface-2 from-80% to-surface-1/0 dark:to-surface-2/0 top-0 bottom-0 pl-4 pr-1 right-0 absolute {isTouchScreen
-              ? 'flex bg-none'
-              : 'hidden group-hover:flex'}"
-          >
-            {#if activeTab === 'archive'}
+          {#if isTouchScreen}
+            <div
+              class="action-menu-container text-text-muted justify-center rounded-r-sm items-center bg-none top-0 bottom-0 pr-1 right-0 absolute flex"
+            >
               <button
-                onclick={() => openAssignTagsModal(item)}
-                class="p-1 hover:text-text-primary {isTouchScreen
-                  ? 'p-2'
-                  : 'p-1'}"
-                title="Assign Tags"
+                onclick={() => toggleMenu(item.id)}
+                class="p-2 hover:text-text-primary relative"
+                title="Actions"
               >
-                <Icon icon="tabler:tag" width="20" height="20" />
+                <Icon icon="tabler:dots-vertical" width="20" height="20" />
               </button>
-            {/if}
-            <button
-              onclick={() => openRenameDialog(item)}
-              class="p-1 hover:text-text-primary {isTouchScreen
-                ? 'p-2'
-                : 'p-1'}"
-              title="Rename"
-            >
-              <Icon icon="tabler:pencil" width="20" height="20" />
-            </button>
-            <button
-              onclick={() => handleDeleteClick(item.id)}
-              class=" relative rounded-3xl transition-colors duration-150 {isConfirmingDelete &&
-              deleteCandidateId === item.id
-                ? 'text-red-50 '
-                : 'hover:text-text-primary'}  {isTouchScreen ? 'p-2' : 'p-1'}"
-              title="Delete"
-            >
-              <Icon
-                icon="heroicons:trash"
-                width="20"
-                height="20"
-                class=" relative z-10"
-              />
-              {#if isConfirmingDelete && deleteCandidateId === item.id}
-                <span
+
+              {#if openMenuItemId === item.id}
+                <div
                   transition:slideScaleFade={{
                     duration: 150,
-                    slideFrom: 'bottom',
-                    startScale: 0.4,
-                    slideDistance: '0rem',
+                    slideFrom: 'top',
+                    startScale: 0.9,
+                    slideDistance: '0.5rem',
                   }}
-                  class="rounded-sm block bg-error absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 {isTouchScreen
-                    ? 'size-9'
-                    : 'size-7'}"
+                  class="absolute top-full right-0 mt-1 bg-surface-1 dark:bg-surface-2 border border-border rounded-md shadow-lg z-50 min-w-40"
                 >
-                </span>
+                  {#if activeTab === 'archive'}
+                    <button
+                      onclick={() => {
+                        openAssignTagsModal(item)
+                        closeMenu()
+                      }}
+                      class="w-full px-4 py-2.5 text-left hover:bg-surface-2 dark:hover:bg-surface-3 flex items-center gap-2 text-sm"
+                    >
+                      <Icon icon="tabler:tag" width="18" height="18" />
+                      <span>Assign Tags</span>
+                    </button>
+                  {/if}
+                  <button
+                    onclick={() => {
+                      openRenameDialog(item)
+                      closeMenu()
+                    }}
+                    class="w-full px-4 py-2.5 text-left hover:bg-surface-2 dark:hover:bg-surface-3 flex items-center gap-2 text-sm"
+                  >
+                    <Icon icon="tabler:pencil" width="18" height="18" />
+                    <span>Rename</span>
+                  </button>
+                  <button
+                    onclick={() => {
+                      handleDeleteClick(item.id)
+                    }}
+                    class="w-full px-4 py-2.5 text-left hover:bg-error/10 hover:text-error flex items-center gap-2 text-sm relative"
+                  >
+                    <Icon
+                      icon="heroicons:trash"
+                      width="18"
+                      height="18"
+                      class="relative z-10"
+                    />
+                    <span class="relative z-10">Delete</span>
+                    {#if isConfirmingDelete && deleteCandidateId === item.id}
+                      <span
+                        transition:slideScaleFade={{
+                          duration: 150,
+                          slideFrom: 'bottom',
+                          startScale: 0.4,
+                          slideDistance: '0rem',
+                        }}
+                        class="rounded-sm block bg-error/20 absolute inset-0"
+                      >
+                      </span>
+                    {/if}
+                  </button>
+                </div>
               {/if}
-            </button>
-          </div>
+            </div>
+          {:else}
+            <div
+              class="text-text-muted justify-center rounded-r-sm items-center bg-linear-to-l from-surface-1 dark:from-surface-2 from-80% to-surface-1/0 dark:to-surface-2/0 top-0 bottom-0 pl-4 pr-1 right-0 absolute hidden group-hover:flex"
+            >
+              {#if activeTab === 'archive'}
+                <button
+                  onclick={() => openAssignTagsModal(item)}
+                  class="p-1 hover:text-text-primary"
+                  title="Assign Tags"
+                >
+                  <Icon icon="tabler:tag" width="20" height="20" />
+                </button>
+              {/if}
+              <button
+                onclick={() => openRenameDialog(item)}
+                class="p-1 hover:text-text-primary"
+                title="Rename"
+              >
+                <Icon icon="tabler:pencil" width="20" height="20" />
+              </button>
+              <button
+                onclick={() => handleDeleteClick(item.id)}
+                class="relative rounded-3xl transition-colors duration-150 p-1 {isConfirmingDelete &&
+                deleteCandidateId === item.id
+                  ? 'text-red-50'
+                  : 'hover:text-text-primary'}"
+                title="Delete"
+              >
+                <Icon
+                  icon="heroicons:trash"
+                  width="20"
+                  height="20"
+                  class="relative z-10"
+                />
+                {#if isConfirmingDelete && deleteCandidateId === item.id}
+                  <span
+                    transition:slideScaleFade={{
+                      duration: 150,
+                      slideFrom: 'bottom',
+                      startScale: 0.4,
+                      slideDistance: '0rem',
+                    }}
+                    class="rounded-sm block bg-error absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 size-7"
+                  >
+                  </span>
+                {/if}
+              </button>
+            </div>
+          {/if}
         </div>
       {/each}
 

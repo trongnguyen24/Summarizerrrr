@@ -1,0 +1,14 @@
+{
+  "extensionName": {
+    "message": "Summarizerrrr",
+    "description": "Tên của extension"
+  },
+  "extensionDescription": {
+    "message": "Tiện ích giúp bạn tóm tắt cho YouTube, Udemy, Coursera và bất kỳ trang web nào. Được chế tác với thiết kế UI/UX vượt trội.",
+    "description": "Mô tả của extension"
+  },
+  "actionTitle": {
+    "message": "Nhấp để mở Summarizerrrr",
+    "description": "Văn bản hiển thị khi di chuột qua biểu tượng tiện ích"
+  }
+}

@@ -29,7 +29,7 @@
   import { animationService } from '@/services/animationService.js'
   import {
     archiveFilterStore,
-    setTagFilter,
+    clearAllTagFilters,
   } from '@/stores/archiveFilterStore.svelte.js'
 
   // State management
@@ -201,7 +201,7 @@
         {activeTab}
         selectTab={(tabName) => {
           activeTab = tabName
-          archiveFilterStore.selectedTagId = null // Reset filter when changing tabs
+          clearAllTagFilters() // Reset filter when changing tabs
         }}
         onRefresh={archiveStore.loadData}
       />

@@ -42,28 +42,47 @@
   let isConfirmingDelete = $state(false)
   let isTouchScreen = $state(false)
 
-  // Use effect to compute filtered list instead of derived
-  let filteredList = $state([])
+  // Use effect to compute categorized list instead of filtered list
+  let categorizedList = $state({ matchedItems: [], unmatchedItems: [] })
+  let filteredList = $state([]) // Keep for backward compatibility
 
   $effect(() => {
     // For history tab, always return original list
     if (activeTab !== 'archive') {
       filteredList = list || []
+      categorizedList = { matchedItems: list || [], unmatchedItems: [] }
       return
     }
 
     // For archive tab with no filter, return original list
-    if (!archiveFilterStore.selectedTagId) {
+    if (archiveFilterStore.selectedTagIds.length === 0) {
       filteredList = list || []
+      categorizedList = { matchedItems: list || [], unmatchedItems: [] }
       return
     }
 
-    // Apply filter only for archive tab with selected tag
-    const filtered = (list || []).filter((item) => {
-      return item.tags && item.tags.includes(archiveFilterStore.selectedTagId)
+    // Categorize items for archive tab with selected tags
+    const matched = []
+    const unmatched = []
+
+    ;(list || []).forEach((item) => {
+      if (!item.tags || !Array.isArray(item.tags)) {
+        unmatched.push(item)
+      } else {
+        const isMatched = archiveFilterStore.selectedTagIds.every((tagId) =>
+          item.tags.includes(tagId)
+        )
+
+        if (isMatched) {
+          matched.push(item)
+        } else {
+          unmatched.push(item)
+        }
+      }
     })
 
-    filteredList = filtered
+    categorizedList = { matchedItems: matched, unmatchedItems: unmatched }
+    filteredList = [...matched, ...unmatched] // Keep backward compatibility
   })
 
   // State for AssignTagsModal
@@ -215,8 +234,87 @@
       {#if activeTab === 'archive'}
         <TagManagement />
       {/if}
-      {#each filteredList as item (item.id)}
+
+      <!-- Render matched items -->
+      {#each categorizedList.matchedItems as item (item.id)}
         <div class="relative group">
+          <button
+            class="list-button w-full relative p-2 text-left hover:bg-blackwhite/5 rounded-md {selectedSummaryId ==
+            item.id
+              ? 'text-text-primary bg-neutral-100 hover:bg-white/60 dark:hover:bg-white/10 dark:bg-surface-2 active '
+              : 'hover:bg-surface-1 dark:hover:bg-surface-2'} {isTouchScreen
+              ? 'pr-24'
+              : 'pr-8'}"
+            onclick={() => selectSummary(item, activeTab)}
+            title={item.title}
+          >
+            <div
+              class="line-clamp-1 transition-colors w-full mask-r-from-85% mask-r-to-100%"
+            >
+              {item.title}
+            </div>
+          </button>
+          <div
+            class="text-text-muted justify-center rounded-r-sm items-center bg-linear-to-l from-surface-1 dark:from-surface-2 from-80% to-surface-1/0 dark:to-surface-2/0 top-0 bottom-0 pl-4 pr-1 right-0 absolute {isTouchScreen
+              ? 'flex bg-none'
+              : 'hidden group-hover:flex'}"
+          >
+            <button
+              onclick={() => openAssignTagsModal(item)}
+              class="p-1 hover:text-text-primary {isTouchScreen
+                ? 'p-2'
+                : 'p-1'}"
+              title="Assign Tags"
+            >
+              <Icon icon="tabler:tag" width="20" height="20" />
+            </button>
+            <button
+              onclick={() => openRenameDialog(item)}
+              class="p-1 hover:text-text-primary {isTouchScreen
+                ? 'p-2'
+                : 'p-1'}"
+              title="Rename"
+            >
+              <Icon icon="tabler:pencil" width="20" height="20" />
+            </button>
+            <button
+              onclick={() => handleDeleteClick(item.id)}
+              class=" relative rounded-3xl transition-colors duration-150 {isConfirmingDelete &&
+              deleteCandidateId === item.id
+                ? 'text-red-50 '
+                : 'hover:text-text-primary'}  {isTouchScreen ? 'p-2' : 'p-1'}"
+              title="Delete"
+            >
+              <Icon
+                icon="heroicons:trash"
+                width="20"
+                height="20"
+                class=" relative z-10"
+              />
+              {#if isConfirmingDelete && deleteCandidateId === item.id}
+                <span
+                  transition:slideScaleFade={{
+                    duration: 150,
+                    slideFrom: 'bottom',
+                    startScale: 0.4,
+                    slideDistance: '0rem',
+                  }}
+                  class="rounded-sm block bg-error absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 {isTouchScreen
+                    ? 'size-9'
+                    : 'size-7'}"
+                >
+                </span>
+              {/if}
+            </button>
+          </div>
+        </div>
+      {/each}
+
+      <!-- Render unmatched items with opacity -->
+      {#each categorizedList.unmatchedItems as item (item.id)}
+        <div
+          class="relative group opacity-50 transition-opacity duration-300 ease-in-out"
+        >
           <button
             class="list-button w-full relative p-2 text-left hover:bg-blackwhite/5 rounded-md {selectedSummaryId ==
             item.id
@@ -296,6 +394,7 @@
             : 'No history items found'}
         </div>
       {/if}
+
       <div class="">&nbsp;</div>
     </div>
   </div>
@@ -432,5 +531,17 @@
 
   .lang::before {
     transform: translateY(0);
+  }
+
+  /* Additional styles for smooth transitions */
+  .unmatched-item {
+    transition:
+      opacity 0.3s ease-in-out,
+      transform 0.3s ease-in-out;
+  }
+
+  .unmatched-item:hover {
+    opacity: 0.7 !important;
+    transform: translateX(2px);
   }
 </style>

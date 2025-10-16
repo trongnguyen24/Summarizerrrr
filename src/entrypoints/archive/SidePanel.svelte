@@ -259,15 +259,17 @@
               ? 'flex bg-none'
               : 'hidden group-hover:flex'}"
           >
-            <button
-              onclick={() => openAssignTagsModal(item)}
-              class="p-1 hover:text-text-primary {isTouchScreen
-                ? 'p-2'
-                : 'p-1'}"
-              title="Assign Tags"
-            >
-              <Icon icon="tabler:tag" width="20" height="20" />
-            </button>
+            {#if activeTab === 'archive'}
+              <button
+                onclick={() => openAssignTagsModal(item)}
+                class="p-1 hover:text-text-primary {isTouchScreen
+                  ? 'p-2'
+                  : 'p-1'}"
+                title="Assign Tags"
+              >
+                <Icon icon="tabler:tag" width="20" height="20" />
+              </button>
+            {/if}
             <button
               onclick={() => openRenameDialog(item)}
               class="p-1 hover:text-text-primary {isTouchScreen
@@ -313,7 +315,7 @@
       <!-- Render unmatched items with opacity -->
       {#each categorizedList.unmatchedItems as item (item.id)}
         <div
-          class="relative group opacity-50 transition-opacity duration-300 ease-in-out"
+          class="relative group opacity-40 transition-opacity duration-300 ease-in-out"
         >
           <button
             class="list-button w-full relative p-2 text-left hover:bg-blackwhite/5 rounded-md {selectedSummaryId ==
@@ -336,15 +338,17 @@
               ? 'flex bg-none'
               : 'hidden group-hover:flex'}"
           >
-            <button
-              onclick={() => openAssignTagsModal(item)}
-              class="p-1 hover:text-text-primary {isTouchScreen
-                ? 'p-2'
-                : 'p-1'}"
-              title="Assign Tags"
-            >
-              <Icon icon="tabler:tag" width="20" height="20" />
-            </button>
+            {#if activeTab === 'archive'}
+              <button
+                onclick={() => openAssignTagsModal(item)}
+                class="p-1 hover:text-text-primary {isTouchScreen
+                  ? 'p-2'
+                  : 'p-1'}"
+                title="Assign Tags"
+              >
+                <Icon icon="tabler:tag" width="20" height="20" />
+              </button>
+            {/if}
             <button
               onclick={() => openRenameDialog(item)}
               class="p-1 hover:text-text-primary {isTouchScreen

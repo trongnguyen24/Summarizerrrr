@@ -116,6 +116,17 @@ async function getAllSummaries() {
   })
 }
 
+async function getSummaryCount() {
+  if (!db) db = await openDatabase()
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction([STORE_NAME], 'readonly')
+    const objectStore = transaction.objectStore(STORE_NAME)
+    const request = objectStore.count()
+    request.onsuccess = () => resolve(request.result)
+    request.onerror = (event) => reject(event.target.error)
+  })
+}
+
 async function getSummaryById(id) {
   if (!db) db = await openDatabase()
   return new Promise((resolve, reject) => {
@@ -468,6 +479,7 @@ export {
   openDatabase,
   addSummary,
   getAllSummaries,
+  getSummaryCount,
   getSummaryById,
   deleteSummary,
   updateSummary,

@@ -25,3 +25,17 @@ export function setTagFilter(tagId) {
 export function getSelectedTagId() {
   return archiveFilterStore.selectedTagId
 }
+
+/**
+ * Store for tag refresh counter
+ */
+export const tagRefreshStore = $state({
+  counter: 0,
+})
+
+/**
+ * Triggers a refresh of tag counts in TagManagement component
+ */
+export function refreshTagCounts() {
+  tagRefreshStore.counter++
+}

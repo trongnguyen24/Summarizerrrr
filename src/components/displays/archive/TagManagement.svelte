@@ -1,16 +1,26 @@
 <script>
   // @ts-nocheck
-  import { getAllTags, addTag, deleteTag } from '@/lib/db/indexedDBService'
+  import {
+    getAllTags,
+    addTag,
+    deleteTag,
+    getTagCounts,
+    getAllSummaries,
+  } from '@/lib/db/indexedDBService'
   import Icon from '@iconify/svelte'
   import { slideScaleFade } from '@/lib/ui/slideScaleFade.js'
   import { fade } from 'svelte/transition'
   import {
     archiveFilterStore,
     setTagFilter,
+    tagRefreshStore,
   } from '@/stores/archiveFilterStore.svelte.js'
 
   let tags = $state([])
+  let tagCounts = $state({})
+  let totalCount = $state(0)
   let newTagName = $state('')
+  let isLoading = $state(false)
 
   // Delete confirmation states
   let deleteCandidateId = $state(null)
@@ -19,10 +29,29 @@
   let isTouchScreen = $state(false)
 
   async function loadTags() {
+    // Prevent multiple simultaneous loads
+    if (isLoading) return
+
+    isLoading = true
     try {
-      tags = await getAllTags()
+      const [tagsResult, tagCountsResult, allSummariesResult] =
+        await Promise.all([
+          getAllTags().catch(() => []), // Fallback to empty array
+          getTagCounts().catch(() => ({})), // Fallback to empty object
+          getAllSummaries().catch(() => []), // Fallback to empty array
+        ])
+
+      tags = tagsResult || []
+      tagCounts = tagCountsResult || {}
+      totalCount = allSummariesResult?.length || 0
     } catch (error) {
       console.error('Error loading tags:', error)
+      // Set fallback values
+      tags = []
+      tagCounts = {}
+      totalCount = 0
+    } finally {
+      isLoading = false
     }
   }
 
@@ -81,6 +110,18 @@
   $effect(() => {
     isTouchScreen = isTouchDevice()
   })
+
+  // Reload tags when refresh counter changes
+  $effect(() => {
+    // Access the counter to create a dependency
+    const _ = tagRefreshStore.counter
+    loadTags()
+
+    // Cleanup function
+    return () => {
+      // Any cleanup if needed
+    }
+  })
 </script>
 
 <div class="pt-2 pb-4 mb-2 border-b border-border/50">
@@ -120,7 +161,7 @@
             </span>
           {/if}
         </div>
-        All archive
+        All archive ({totalCount})
       </button>
     </div>
     {#each tags as tag (tag.id)}
@@ -156,7 +197,7 @@
           <div
             class="line-clamp-1 transition-colors w-full mask-r-from-85% mask-r-to-100%"
           >
-            {tag.name}
+            {tag.name} ({tagCounts[tag.id] || 0})
           </div>
         </button>
         <div
@@ -197,13 +238,4 @@
       </div>
     {/each}
   </div>
-  <!-- <div class="px-2 mt-3">
-    <input
-      type="text"
-      placeholder="Create new tag..."
-      class="w-full h-8 px-3 text-xs transition-colors duration-150 rounded-md bg-muted/5 dark:bg-muted/5 border-border hover:border-blackwhite/15 focus:border-blackwhite/30 dark:border-blackwhite/10 dark:focus:border-blackwhite/20 focus:outline-none focus:ring-0 placeholder:text-muted"
-      bind:value={newTagName}
-      onkeydown={(e) => e.key === 'Enter' && handleAddTag()}
-    />
-  </div> -->
 </div>

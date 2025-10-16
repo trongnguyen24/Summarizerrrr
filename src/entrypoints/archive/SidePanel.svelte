@@ -17,7 +17,10 @@
   import TabArchive from '@/components/navigation/TabArchive.svelte'
   import TagManagement from '@/components/displays/archive/TagManagement.svelte'
   import AssignTagsModal from '@/components/modals/AssignTagsModal.svelte' // Import the new modal
-  import { archiveFilterStore } from '@/stores/archiveFilterStore.svelte.js'
+  import {
+    archiveFilterStore,
+    refreshTagCounts,
+  } from '@/stores/archiveFilterStore.svelte.js'
 
   const {
     list,
@@ -91,6 +94,12 @@
   // Event handlers
   async function refreshSummaries() {
     if (onRefresh) await onRefresh()
+  }
+
+  // Create a wrapper function that calls both refreshSummaries and refreshTagCounts
+  async function handleRefreshWithTags() {
+    await refreshSummaries()
+    refreshTagCounts()
   }
 
   function openRenameDialog(item) {
@@ -355,7 +364,7 @@
     <AssignTagsModal
       summary={summaryToEditTags}
       close={closeAssignTagsModal}
-      onUpdate={onRefresh}
+      onUpdate={handleRefreshWithTags}
     />
   </Dialog>
 {/if}

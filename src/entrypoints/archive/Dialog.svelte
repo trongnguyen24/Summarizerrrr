@@ -28,7 +28,6 @@
       {...contentProps}
       onOpenAutoFocus={(e) => {
         e.preventDefault()
-        nameInput?.focus()
       }}
     >
       {#snippet child({ props, open })}

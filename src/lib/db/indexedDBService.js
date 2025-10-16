@@ -28,7 +28,9 @@ function openDatabase() {
 
       // History store
       if (!db.objectStoreNames.contains(HISTORY_STORE_NAME)) {
-        const historyStore = db.createObjectStore(HISTORY_STORE_NAME, { keyPath: 'id' })
+        const historyStore = db.createObjectStore(HISTORY_STORE_NAME, {
+          keyPath: 'id',
+        })
         historyStore.createIndex('title', 'title', { unique: false })
         historyStore.createIndex('url', 'url', { unique: false })
         historyStore.createIndex('date', 'date', { unique: false })
@@ -37,7 +39,9 @@ function openDatabase() {
 
       // Tags store (New)
       if (!db.objectStoreNames.contains(TAGS_STORE_NAME)) {
-        const tagStore = db.createObjectStore(TAGS_STORE_NAME, { keyPath: 'id' })
+        const tagStore = db.createObjectStore(TAGS_STORE_NAME, {
+          keyPath: 'id',
+        })
         tagStore.createIndex('name', 'name', { unique: true })
         tagStore.createIndex('createdAt', 'createdAt', { unique: false })
       }
@@ -81,7 +85,11 @@ async function addSummary(summaryData) {
   return new Promise((resolve, reject) => {
     const transaction = db.transaction([STORE_NAME], 'readwrite')
     const objectStore = transaction.objectStore(STORE_NAME)
-    const newSummary = { ...summaryData, id: generateUUID(), tags: summaryData.tags || [] }
+    const newSummary = {
+      ...summaryData,
+      id: generateUUID(),
+      tags: summaryData.tags || [],
+    }
     const request = objectStore.add(newSummary)
     request.onsuccess = () => resolve(newSummary.id)
     request.onerror = (event) => reject(event.target.error)
@@ -134,7 +142,10 @@ async function deleteSummary(id) {
           try {
             await updateHistoryArchivedStatus(historySourceId, false)
           } catch (error) {
-            console.error('Error updating history status after deleting summary:', error)
+            console.error(
+              'Error updating history status after deleting summary:',
+              error
+            )
           }
         }
         resolve(true)
@@ -297,7 +308,11 @@ async function moveHistoryItemToArchive(historyId) {
     try {
       const historyItem = await getHistoryById(historyId)
       if (historyItem) {
-        const summaryToArchive = { ...historyItem, historySourceId: historyId, tags: [] }
+        const summaryToArchive = {
+          ...historyItem,
+          historySourceId: historyId,
+          tags: [],
+        }
         await addSummary(summaryToArchive)
         await updateHistoryArchivedStatus(historyId, true)
         resolve(true)
@@ -422,6 +437,33 @@ async function updateSummaryTags(summaryId, tags) {
   })
 }
 
+// --- Tag Statistics Functions ---
+async function getTagCounts() {
+  if (!db) db = await openDatabase()
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction([STORE_NAME], 'readonly')
+    const objectStore = transaction.objectStore(STORE_NAME)
+    const request = objectStore.openCursor()
+    const tagCounts = {}
+
+    request.onsuccess = (event) => {
+      const cursor = event.target.result
+      if (cursor) {
+        const summary = cursor.value
+        if (summary.tags && Array.isArray(summary.tags)) {
+          summary.tags.forEach((tagId) => {
+            tagCounts[tagId] = (tagCounts[tagId] || 0) + 1
+          })
+        }
+        cursor.continue()
+      } else {
+        resolve(tagCounts)
+      }
+    }
+    request.onerror = (event) => reject(event.target.error)
+  })
+}
+
 export {
   openDatabase,
   addSummary,
@@ -442,4 +484,5 @@ export {
   updateTag,
   deleteTag,
   updateSummaryTags,
+  getTagCounts,
 }

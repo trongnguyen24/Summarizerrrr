@@ -336,7 +336,6 @@
           onclick={() => handleTagClick(tag.id)}
           aria-label={`Filter by ${tag.name} tag (${tagCounts[tag.id] || 0} items)`}
           aria-pressed={isTagSelected(tag.id)}
-          role="button"
         >
           <div class="size-5 relative">
             {#if isTagSelected(tag.id)}

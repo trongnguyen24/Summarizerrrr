@@ -631,15 +631,17 @@
 </Dialog>
 
 <!-- Assign Tags Modal -->
-{#if isAssigningTags}
-  <Dialog closeOnOutsideClick={true} bind:open={isAssigningTags}>
-    <AssignTagsModal
-      summary={summaryToEditTags}
-      close={closeAssignTagsModal}
-      onUpdate={handleRefreshWithTags}
-    />
-  </Dialog>
-{/if}
+<Dialog
+  closeOnOutsideClick={true}
+  bind:open={isAssigningTags}
+  contentClass="outline-hidden fixed flex justify-center left-2 sm:left-8 top-36 w-[calc(100vw-32px)] max-w-xs z-[100] "
+>
+  <AssignTagsModal
+    summary={summaryToEditTags}
+    close={closeAssignTagsModal}
+    onUpdate={handleRefreshWithTags}
+  />
+</Dialog>
 
 <style>
   .list-button::after {

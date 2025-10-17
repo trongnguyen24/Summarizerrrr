@@ -17,6 +17,7 @@
   import TabArchive from '@/components/navigation/TabArchive.svelte'
   import TagManagement from '@/components/displays/archive/TagManagement.svelte'
   import AssignTagsModal from '@/components/modals/AssignTagsModal.svelte' // Import the new modal
+  import ActionDropdownMenu from '@/components/ui/ActionDropdownMenu.svelte' // Import the new dropdown menu
   import {
     archiveFilterStore,
     refreshTagCounts,
@@ -41,7 +42,6 @@
   let deleteTimeoutId = $state(null)
   let isConfirmingDelete = $state(false)
   let isTouchScreen = $state(false)
-  let openMenuItemId = $state(null)
 
   // Use effect to compute categorized list instead of filtered list
   let categorizedList = $state({ matchedItems: [], unmatchedItems: [] })
@@ -95,14 +95,6 @@
     isOpen = false
     newSummaryName = ''
     currentSummaryIdToRename = null
-  }
-
-  function toggleMenu(itemId) {
-    openMenuItemId = openMenuItemId === itemId ? null : itemId
-  }
-
-  function closeMenu() {
-    openMenuItemId = null
   }
 
   function openAssignTagsModal(item) {
@@ -166,7 +158,6 @@
       await refreshSummaries()
       deleteCandidateId = null
       isConfirmingDelete = false
-      closeMenu()
     } catch (error) {
       console.error('Error deleting item:', error)
     }
@@ -211,31 +202,6 @@
     isTouchScreen = isTouchDevice()
     if (!isTouchDevice()) {
       initializeScrollbars(document.getElementById('scroll-side'))
-    }
-
-    // Close menu when clicking outside
-    function handleClickOutside(event) {
-      if (openMenuItemId && !event.target.closest('.action-menu-container')) {
-        closeMenu()
-      }
-    }
-
-    // Close menu when scrolling
-    function handleScroll() {
-      if (openMenuItemId) {
-        closeMenu()
-      }
-    }
-
-    const scrollContainer = document.getElementById('scroll-side')
-    if (scrollContainer) {
-      document.addEventListener('click', handleClickOutside)
-      scrollContainer.addEventListener('scroll', handleScroll)
-
-      return () => {
-        document.removeEventListener('click', handleClickOutside)
-        scrollContainer.removeEventListener('scroll', handleScroll)
-      }
     }
   })
 </script>
@@ -293,74 +259,15 @@
             <div
               class="action-menu-container text-text-muted justify-center rounded-r-sm items-center bg-none top-0 bottom-0 pr-1 right-0 absolute flex"
             >
-              <button
-                onclick={() => toggleMenu(item.id)}
-                class="p-2 hover:text-text-primary relative"
-                title="Actions"
-              >
-                <Icon icon="tabler:dots-vertical" width="20" height="20" />
-              </button>
-
-              {#if openMenuItemId === item.id}
-                <div
-                  transition:slideScaleFade={{
-                    duration: 150,
-                    slideFrom: 'top',
-                    startScale: 0.9,
-                    slideDistance: '0.5rem',
-                  }}
-                  class="absolute top-full right-0 mt-1 bg-surface-1 dark:bg-surface-2 border border-border rounded-md shadow-lg z-50 min-w-40"
-                >
-                  {#if activeTab === 'archive'}
-                    <button
-                      onclick={() => {
-                        openAssignTagsModal(item)
-                        closeMenu()
-                      }}
-                      class="w-full px-4 py-2.5 text-left hover:bg-surface-2 dark:hover:bg-surface-3 flex items-center gap-2 text-sm"
-                    >
-                      <Icon icon="tabler:tag" width="18" height="18" />
-                      <span>Assign Tags</span>
-                    </button>
-                  {/if}
-                  <button
-                    onclick={() => {
-                      openRenameDialog(item)
-                      closeMenu()
-                    }}
-                    class="w-full px-4 py-2.5 text-left hover:bg-surface-2 dark:hover:bg-surface-3 flex items-center gap-2 text-sm"
-                  >
-                    <Icon icon="tabler:pencil" width="18" height="18" />
-                    <span>Rename</span>
-                  </button>
-                  <button
-                    onclick={() => {
-                      handleDeleteClick(item.id)
-                    }}
-                    class="w-full px-4 py-2.5 text-left hover:bg-error/10 hover:text-error flex items-center gap-2 text-sm relative"
-                  >
-                    <Icon
-                      icon="heroicons:trash"
-                      width="18"
-                      height="18"
-                      class="relative z-10"
-                    />
-                    <span class="relative z-10">Delete</span>
-                    {#if isConfirmingDelete && deleteCandidateId === item.id}
-                      <span
-                        transition:slideScaleFade={{
-                          duration: 150,
-                          slideFrom: 'bottom',
-                          startScale: 0.4,
-                          slideDistance: '0rem',
-                        }}
-                        class="rounded-sm block bg-error/20 absolute inset-0"
-                      >
-                      </span>
-                    {/if}
-                  </button>
-                </div>
-              {/if}
+              <ActionDropdownMenu
+                {item}
+                {activeTab}
+                {isConfirmingDelete}
+                {deleteCandidateId}
+                onAssignTags={openAssignTagsModal}
+                onRename={openRenameDialog}
+                onDeleteClick={handleDeleteClick}
+              />
             </div>
           {:else}
             <div
@@ -439,74 +346,15 @@
             <div
               class="action-menu-container text-text-muted justify-center rounded-r-sm items-center bg-none top-0 bottom-0 pr-1 right-0 absolute flex"
             >
-              <button
-                onclick={() => toggleMenu(item.id)}
-                class="p-2 hover:text-text-primary relative"
-                title="Actions"
-              >
-                <Icon icon="tabler:dots-vertical" width="20" height="20" />
-              </button>
-
-              {#if openMenuItemId === item.id}
-                <div
-                  transition:slideScaleFade={{
-                    duration: 150,
-                    slideFrom: 'top',
-                    startScale: 0.9,
-                    slideDistance: '0.5rem',
-                  }}
-                  class="absolute top-full right-0 mt-1 bg-surface-1 dark:bg-surface-2 border border-border rounded-md shadow-lg z-50 min-w-40"
-                >
-                  {#if activeTab === 'archive'}
-                    <button
-                      onclick={() => {
-                        openAssignTagsModal(item)
-                        closeMenu()
-                      }}
-                      class="w-full px-4 py-2.5 text-left hover:bg-surface-2 dark:hover:bg-surface-3 flex items-center gap-2 text-sm"
-                    >
-                      <Icon icon="tabler:tag" width="18" height="18" />
-                      <span>Assign Tags</span>
-                    </button>
-                  {/if}
-                  <button
-                    onclick={() => {
-                      openRenameDialog(item)
-                      closeMenu()
-                    }}
-                    class="w-full px-4 py-2.5 text-left hover:bg-surface-2 dark:hover:bg-surface-3 flex items-center gap-2 text-sm"
-                  >
-                    <Icon icon="tabler:pencil" width="18" height="18" />
-                    <span>Rename</span>
-                  </button>
-                  <button
-                    onclick={() => {
-                      handleDeleteClick(item.id)
-                    }}
-                    class="w-full px-4 py-2.5 text-left hover:bg-error/10 hover:text-error flex items-center gap-2 text-sm relative"
-                  >
-                    <Icon
-                      icon="heroicons:trash"
-                      width="18"
-                      height="18"
-                      class="relative z-10"
-                    />
-                    <span class="relative z-10">Delete</span>
-                    {#if isConfirmingDelete && deleteCandidateId === item.id}
-                      <span
-                        transition:slideScaleFade={{
-                          duration: 150,
-                          slideFrom: 'bottom',
-                          startScale: 0.4,
-                          slideDistance: '0rem',
-                        }}
-                        class="rounded-sm block bg-error/20 absolute inset-0"
-                      >
-                      </span>
-                    {/if}
-                  </button>
-                </div>
-              {/if}
+              <ActionDropdownMenu
+                {item}
+                {activeTab}
+                {isConfirmingDelete}
+                {deleteCandidateId}
+                onAssignTags={openAssignTagsModal}
+                onRename={openRenameDialog}
+                onDeleteClick={handleDeleteClick}
+              />
             </div>
           {:else}
             <div

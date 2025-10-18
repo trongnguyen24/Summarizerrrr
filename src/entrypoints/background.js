@@ -655,10 +655,20 @@ export default defineBackground(() => {
     if (message.type === 'SAVE_TO_HISTORY') {
       ;(async () => {
         try {
+          // Validate payload
+          if (!message.payload || !message.payload.historyData) {
+            throw new Error('Invalid payload: missing historyData')
+          }
+
           const result = await addHistory(message.payload.historyData)
           sendResponse({ success: true, id: String(result) })
         } catch (error) {
-          sendResponse({ success: false, error: error.message })
+          const errorMessage =
+            error?.message ||
+            error?.toString() ||
+            'Unknown error occurred while saving to history'
+          console.error('[Background] SAVE_TO_HISTORY error:', error)
+          sendResponse({ success: false, error: errorMessage })
         }
       })()
       return true

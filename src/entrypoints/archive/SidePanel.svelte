@@ -16,12 +16,18 @@
   } from '@/lib/db/indexedDBService'
   import TabArchive from '@/components/navigation/TabArchive.svelte'
   import TagManagement from '@/components/displays/archive/TagManagement.svelte'
+  import HistoryTagFilter from '@/components/displays/history/HistoryTagFilter.svelte'
   import AssignTagsModal from '@/components/modals/AssignTagsModal.svelte' // Import the new modal
   import ActionDropdownMenu from '@/components/ui/ActionDropdownMenu.svelte' // Import the new dropdown menu
   import {
     archiveFilterStore,
     refreshTagCounts,
+    clearAllTagFilters,
   } from '@/stores/archiveFilterStore.svelte.js'
+  import {
+    historyFilterStore,
+    clearContentTypeFilter,
+  } from '@/stores/historyFilterStore.svelte.js'
   import { preloadTagsData } from '@/stores/tagsCacheStore.svelte.js'
 
   const {
@@ -49,10 +55,29 @@
   let filteredList = $state([]) // Keep for backward compatibility
 
   $effect(() => {
-    // For history tab, always return original list
-    if (activeTab !== 'archive') {
-      filteredList = list || []
-      categorizedList = { matchedItems: list || [], unmatchedItems: [] }
+    // For history tab with content type filter
+    if (activeTab === 'history') {
+      if (historyFilterStore.selectedContentType === null) {
+        // No filter, return original list
+        filteredList = list || []
+        categorizedList = { matchedItems: list || [], unmatchedItems: [] }
+        return
+      }
+
+      // Filter by content type
+      const matched = []
+      const unmatched = []
+
+      ;(list || []).forEach((item) => {
+        if (item.contentType === historyFilterStore.selectedContentType) {
+          matched.push(item)
+        } else {
+          unmatched.push(item)
+        }
+      })
+
+      categorizedList = { matchedItems: matched, unmatchedItems: unmatched }
+      filteredList = [...matched, ...unmatched] // Keep backward compatibility
       return
     }
 
@@ -106,6 +131,12 @@
   function closeAssignTagsModal() {
     isAssigningTags = false
     summaryToEditTags = null
+  }
+
+  function handleTabChange(tabName) {
+    selectTab(tabName)
+    clearAllTagFilters() // Reset archive filter when changing tabs
+    clearContentTypeFilter() // Reset history filter when changing tabs
   }
 
   function handleKeyDown(event) {
@@ -241,7 +272,7 @@
 >
   <h2 class="text-lg pl-12 pt-4.5 pb-2 font-bold">Summarizerrrr</h2>
 
-  <TabArchive {activeTab} onSelectTab={selectTab} />
+  <TabArchive {activeTab} onSelectTab={handleTabChange} />
 
   <div
     id="scroll-side"
@@ -258,6 +289,10 @@
     >
       {#if activeTab === 'archive'}
         <TagManagement />
+      {/if}
+
+      {#if activeTab === 'history'}
+        <HistoryTagFilter />
       {/if}
 
       <!-- Render matched items -->

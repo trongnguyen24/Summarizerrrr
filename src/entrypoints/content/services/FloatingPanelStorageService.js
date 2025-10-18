@@ -81,13 +81,19 @@ export async function saveToHistory(localState, pageInfo) {
     return null
   }
 
+  // Validate pageInfo
+  if (!pageInfo || typeof pageInfo !== 'object') {
+    throw new Error('Invalid pageInfo: must be an object')
+  }
+
   const historyEntry = {
     id: generateUUID(),
-    title: pageInfo.title,
-    url: pageInfo.url,
+    title: pageInfo.title || 'Unknown Title',
+    url: pageInfo.url || 'Unknown URL',
     date: new Date().toISOString(),
     summaries: summaries,
     isArchived: false, // Default to not archived
+    contentType: localState.contentType || 'website', // Add contentType
   }
 
   try {

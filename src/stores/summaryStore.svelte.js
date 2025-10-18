@@ -775,12 +775,18 @@ export async function logAllGeneratedSummariesToHistory() {
   }
 
   try {
+    // Import contentTypeDetector for auto-tagging
+    const { detectContentType } = await import(
+      '@/lib/utils/contentTypeDetector.js'
+    )
+
     const historyEntry = {
       id: generateUUID(), // Generate UUID for new entry
       title: summaryState.pageTitle || 'Tiêu đề không xác định',
       url: summaryState.pageUrl || 'URL không xác định',
       date: new Date().toISOString(),
       summaries: summariesToLog,
+      contentType: detectContentType(summaryState.pageUrl), // Auto-assign content type
     }
 
     await addHistory(historyEntry)

@@ -4,9 +4,9 @@ import { generateUUID } from '../utils/utils'
 const DB_NAME = 'summarizer_db'
 const STORE_NAME = 'summaries'
 const TAGS_STORE_NAME = 'tags'
-const DB_VERSION = 4 // Version increased to trigger upgrade
+const DB_VERSION = 7 // Version increased to trigger upgrade for contentType migration (fixed)
 const HISTORY_STORE_NAME = 'history'
-const HISTORY_LIMIT = 60
+const HISTORY_LIMIT = 100
 
 let db
 
@@ -35,6 +35,17 @@ function openDatabase() {
         historyStore.createIndex('url', 'url', { unique: false })
         historyStore.createIndex('date', 'date', { unique: false })
         historyStore.createIndex('isArchived', 'isArchived', { unique: false })
+        historyStore.createIndex('contentType', 'contentType', {
+          unique: false,
+        })
+      } else {
+        // Add contentType index if it doesn't exist (for existing databases)
+        const historyStore = transaction.objectStore(HISTORY_STORE_NAME)
+        if (!historyStore.indexNames.contains('contentType')) {
+          historyStore.createIndex('contentType', 'contentType', {
+            unique: false,
+          })
+        }
       }
 
       // Tags store (New)
@@ -64,6 +75,41 @@ function openDatabase() {
           }
         }
       }
+
+      // Migration: Add contentType to existing history items
+      if (transaction.objectStoreNames.contains(HISTORY_STORE_NAME)) {
+        const historyStore = transaction.objectStore(HISTORY_STORE_NAME)
+
+        // Define a simple content type detection function inline to avoid async issues
+        function detectContentTypeSync(url) {
+          if (!url || typeof url !== 'string') return 'website'
+          if (/youtube\.com\/watch/i.test(url)) return 'youtube'
+          if (
+            /udemy\.com\/course\/.*\/learn\/|coursera\.org\/learn\//i.test(url)
+          )
+            return 'course'
+          return 'website'
+        }
+
+        historyStore.openCursor().onsuccess = (e) => {
+          const cursor = e.target.result
+          if (cursor) {
+            const value = cursor.value
+            if (value.contentType === undefined) {
+              try {
+                const detectedType = detectContentTypeSync(value.url)
+                value.contentType = detectedType
+                cursor.update(value)
+              } catch (error) {
+                // Fallback to 'website' if detection fails
+                value.contentType = 'website'
+                cursor.update(value)
+              }
+            }
+            cursor.continue()
+          }
+        }
+      }
     }
 
     request.onsuccess = (event) => {
@@ -73,8 +119,12 @@ function openDatabase() {
     }
 
     request.onerror = (event) => {
-      console.error('IndexedDB error:', event.target.errorCode)
-      reject(event.target.errorCode)
+      const error =
+        event.target.error ||
+        event.target.errorCode ||
+        new Error('Unknown IndexedDB error')
+      console.error('IndexedDB error:', error)
+      reject(error)
     }
   })
 }
@@ -184,6 +234,29 @@ async function addHistory(historyData) {
   if (!db) {
     db = await openDatabase()
   }
+
+  // Validate input
+  if (!historyData || typeof historyData !== 'object') {
+    throw new Error('Invalid history data: must be an object')
+  }
+
+  // Ensure required fields
+  if (!historyData.id) {
+    historyData.id = generateUUID()
+  }
+
+  if (!historyData.date) {
+    historyData.date = new Date().toISOString()
+  }
+
+  // Detect content type BEFORE entering Promise
+  if (!historyData.contentType) {
+    const { detectContentType } = await import(
+      '../utils/contentTypeDetector.js'
+    )
+    historyData.contentType = detectContentType(historyData.url)
+  }
+
   return new Promise((resolve, reject) => {
     const transaction = db.transaction([HISTORY_STORE_NAME], 'readwrite')
     const objectStore = transaction.objectStore(HISTORY_STORE_NAME)
@@ -212,8 +285,12 @@ async function addHistory(historyData) {
     }
 
     request.onerror = (event) => {
-      console.error('Error adding history:', event.target.errorCode)
-      reject(event.target.errorCode)
+      const error =
+        event.target.error ||
+        event.target.errorCode ||
+        new Error('Failed to add history')
+      console.error('Error adding history:', error)
+      reject(error)
     }
   })
 }

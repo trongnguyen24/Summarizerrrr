@@ -239,10 +239,18 @@ export function useSummarization() {
   async function autoSaveToHistory() {
     try {
       console.log('[useSummarization] Auto-saving to history...')
+
+      // Validate state before saving
+      if (!localSummaryState.pageTitle || !localSummaryState.pageUrl) {
+        console.warn('[useSummarization] Missing page info, skipping auto-save')
+        return
+      }
+
       const pageInfo = {
         title: localSummaryState.pageTitle,
         url: localSummaryState.pageUrl,
       }
+
       const newHistoryId = await saveToHistory(localSummaryState, pageInfo)
       if (newHistoryId) {
         localSummaryState.isSavedToHistory = true
@@ -253,7 +261,10 @@ export function useSummarization() {
       }
     } catch (error) {
       console.error('[useSummarization] Auto-save to history failed:', error)
-      localSummaryState.saveError = error
+      localSummaryState.saveError = {
+        message: error.message || 'Failed to save to history',
+        timestamp: Date.now(),
+      }
     }
   }
 

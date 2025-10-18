@@ -1,17 +1,11 @@
 // @ts-nocheck
-import {
-  getAllTags,
-  getTagCounts,
-  getSummaryCount,
-} from '@/lib/db/indexedDBService'
+import { getAllTags } from '@/lib/db/indexedDBService'
 
 /**
  * Cache store cho tags data để tránh layout shift khi chuyển tab archive
  */
 export const tagsCache = $state({
   tags: [],
-  tagCounts: {},
-  totalCount: 0,
   isLoaded: false,
   isLoading: false,
   lastUpdated: null,
@@ -31,12 +25,8 @@ export async function preloadTagsData() {
   tagsCache.error = null
 
   try {
-    // Load tất cả data cần thiết song song
-    const [tagsResult, tagCountsResult, totalCountResult] = await Promise.all([
-      getAllTags().catch(() => []),
-      getTagCounts().catch(() => ({})),
-      getSummaryCount().catch(() => 0),
-    ])
+    // Load tags data
+    const tagsResult = await getAllTags().catch(() => [])
 
     // Sort tags theo tên (Vietnamese locale)
     tagsCache.tags =
@@ -47,8 +37,6 @@ export async function preloadTagsData() {
         })
       ) || []
 
-    tagsCache.tagCounts = tagCountsResult || {}
-    tagsCache.totalCount = totalCountResult || 0
     tagsCache.isLoaded = true
     tagsCache.lastUpdated = Date.now()
 
@@ -93,7 +81,6 @@ export function getCacheStatus() {
     isLoaded: tagsCache.isLoaded,
     isLoading: tagsCache.isLoading,
     tagsCount: tagsCache.tags.length,
-    totalCount: tagsCache.totalCount,
     lastUpdated: tagsCache.lastUpdated
       ? new Date(tagsCache.lastUpdated).toLocaleString()
       : null,

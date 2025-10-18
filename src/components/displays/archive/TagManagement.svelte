@@ -5,8 +5,6 @@
     addTag,
     deleteTag,
     updateTag,
-    getTagCounts,
-    getSummaryCount,
   } from '@/lib/db/indexedDBService'
   import Icon from '@iconify/svelte'
   import { slideScaleFade } from '@/lib/ui/slideScaleFade.js'
@@ -29,8 +27,6 @@
 
   // Core data states - Sử dụng cache để tránh layout shift
   let tags = $derived(tagsCache.tags)
-  let tagCounts = $derived(tagsCache.tagCounts)
-  let totalCount = $derived(tagsCache.totalCount)
   let isLoading = $derived(tagsCache.isLoading)
 
   // Consolidated dialog state
@@ -326,13 +322,6 @@
             {/if}
           </div>
           {!hasAnyTagsSelected() ? `All archive` : 'Clear All Filters'}
-          {#if !hasAnyTagsSelected()}
-            <span
-              class=" font-bold text-[0.675rem] font-mono p-0.5 px-1 rounded-3xl text-text-primary bg-blackwhite-10"
-            >
-              {totalCount}</span
-            >
-          {/if}
         </button>
       </div>
 
@@ -345,7 +334,7 @@
               ? ' text-white'
               : ' text-text-secondary'} {isTouchScreen ? 'pr-32' : 'pr-16'}"
             onclick={() => handleTagClick(tag.id)}
-            aria-label={`Filter by ${tag.name} tag (${tagCounts[tag.id] || 0} items)`}
+            aria-label={`Filter by ${tag.name} tag`}
             aria-pressed={isTagSelected(tag.id)}
           >
             <div class="size-5 relative">
@@ -369,11 +358,6 @@
               class="line-clamp-1 transition-colors w-full mask-r-from-85% mask-r-to-100%"
             >
               {tag.name}
-              <span
-                class=" font-bold text-[0.675rem] font-mono p-0.5 px-1 rounded-3xl text-text-primary bg-blackwhite-10"
-              >
-                {tagCounts[tag.id] || 0}</span
-              >
             </div>
           </button>
           <div

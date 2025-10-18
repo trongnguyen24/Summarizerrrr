@@ -1,8 +1,11 @@
 <script>
   // @ts-nocheck
   import { DropdownMenu } from 'bits-ui'
-  import Icon from '@iconify/svelte'
+  import Icon, { loadIcons } from '@iconify/svelte'
   import { slideScaleFade } from '@/lib/ui/slideScaleFade.js'
+
+  // Load icons for archive states
+  loadIcons(['heroicons:archive-box', 'heroicons:archive-box-solid'])
 
   // Props từ component cha
   let {
@@ -13,6 +16,7 @@
     onAssignTags, // Hàm xử lý khi chọn Assign Tags
     onRename, // Hàm xử lý khi chọn Rename
     onDeleteClick, // Hàm xử lý khi chọn Delete
+    onAddToArchive, // Hàm xử lý khi chọn Add to Archive
   } = $props()
 </script>
 
@@ -43,6 +47,26 @@
           <Icon icon="tabler:tag" width="18" height="18" />
           <span>Assign Tags</span>
         </DropdownMenu.Item>
+      {/if}
+
+      {#if activeTab === 'history'}
+        {#if item.isArchived}
+          <DropdownMenu.Item
+            class="px-4 py-2.5 text-left hover:bg-surface-2 dark:hover:bg-surface-3 flex items-center gap-2 text-sm opacity-50 cursor-not-allowed"
+            disabled
+          >
+            <Icon icon="heroicons:archive-box-solid" width="18" height="18" />
+            <span>Already Archived</span>
+          </DropdownMenu.Item>
+        {:else}
+          <DropdownMenu.Item
+            class="px-4 py-2.5 text-left hover:bg-surface-2 dark:hover:bg-surface-3 flex items-center gap-2 text-sm"
+            onSelect={() => onAddToArchive(item)}
+          >
+            <Icon icon="heroicons:archive-box" width="18" height="18" />
+            <span>Add to Archive</span>
+          </DropdownMenu.Item>
+        {/if}
       {/if}
 
       <DropdownMenu.Item

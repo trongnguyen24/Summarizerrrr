@@ -39,12 +39,12 @@
   })
 </script>
 
-<div class="pt-2 pb-4 mb-2 border-b border-border/50">
-  <h3
+<div class=" pb-4">
+  <!-- <h3
     class="mb-2 px-2 text-xs font-semibold tracking-wider uppercase text-text-muted"
   >
     Content Type
-  </h3>
+  </h3> -->
 
   <!-- Horizontal layout with 3 icons -->
   <div class="flex gap-2 px-2">

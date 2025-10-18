@@ -1,11 +1,14 @@
 <script>
   // @ts-nocheck
-  import Icon from '@iconify/svelte'
+  import Icon, { loadIcons } from '@iconify/svelte'
   import { t } from 'svelte-i18n'
   import 'overlayscrollbars/overlayscrollbars.css'
   import Dialog from './Dialog.svelte'
   import { useOverlayScrollbars } from 'overlayscrollbars-svelte'
   import { slideScaleFade } from '@/lib/ui/slideScaleFade.js'
+
+  // Load icons for archive states
+  loadIcons(['heroicons:archive-box', 'heroicons:archive-box-solid'])
   import {
     deleteSummary,
     deleteHistory,
@@ -213,6 +216,31 @@
     }
   }
 
+  async function handleAddToArchive(item) {
+    try {
+      // Import hàm từ indexedDBService
+      const { moveHistoryItemToArchive } = await import(
+        '@/lib/db/indexedDBService.js'
+      )
+
+      // Chuyển item từ history sang archive
+      await moveHistoryItemToArchive(item.id)
+
+      // Làm mới danh sách
+      await refreshSummaries()
+
+      // Invalidate tags cache
+      const { invalidateTagsCache } = await import(
+        '@/stores/tagsCacheStore.svelte.js'
+      )
+      invalidateTagsCache()
+
+      console.log('Item added to archive successfully')
+    } catch (error) {
+      console.error('Error adding item to archive:', error)
+    }
+  }
+
   function handleDeleteClick(id) {
     if (isConfirmingDelete && deleteCandidateId === id) {
       clearTimeout(deleteTimeoutId)
@@ -326,6 +354,7 @@
                 onAssignTags={openAssignTagsModal}
                 onRename={openRenameDialog}
                 onDeleteClick={handleDeleteClick}
+                onAddToArchive={handleAddToArchive}
               />
             </div>
           {:else}
@@ -340,6 +369,29 @@
                 >
                   <Icon icon="tabler:tag" width="20" height="20" />
                 </button>
+              {/if}
+              {#if activeTab === 'history'}
+                {#if item.isArchived}
+                  <button
+                    class="p-1 opacity-50 cursor-not-allowed"
+                    title="Already Archived"
+                    disabled
+                  >
+                    <Icon
+                      icon="heroicons:archive-box-solid"
+                      width="20"
+                      height="20"
+                    />
+                  </button>
+                {:else}
+                  <button
+                    onclick={() => handleAddToArchive(item)}
+                    class="p-1 hover:text-text-primary"
+                    title="Add to Archive"
+                  >
+                    <Icon icon="heroicons:archive-box" width="20" height="20" />
+                  </button>
+                {/if}
               {/if}
               <button
                 onclick={() => openRenameDialog(item)}
@@ -413,6 +465,7 @@
                 onAssignTags={openAssignTagsModal}
                 onRename={openRenameDialog}
                 onDeleteClick={handleDeleteClick}
+                onAddToArchive={handleAddToArchive}
               />
             </div>
           {:else}
@@ -427,6 +480,29 @@
                 >
                   <Icon icon="tabler:tag" width="20" height="20" />
                 </button>
+              {/if}
+              {#if activeTab === 'history'}
+                {#if item.isArchived}
+                  <button
+                    class="p-1 opacity-50 cursor-not-allowed"
+                    title="Already Archived"
+                    disabled
+                  >
+                    <Icon
+                      icon="heroicons:archive-box-solid"
+                      width="20"
+                      height="20"
+                    />
+                  </button>
+                {:else}
+                  <button
+                    onclick={() => handleAddToArchive(item)}
+                    class="p-1 hover:text-text-primary"
+                    title="Add to Archive"
+                  >
+                    <Icon icon="heroicons:archive-box" width="20" height="20" />
+                  </button>
+                {/if}
               {/if}
               <button
                 onclick={() => openRenameDialog(item)}

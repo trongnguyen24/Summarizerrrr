@@ -19,13 +19,19 @@
     getSelectedTagCount,
     tagRefreshStore,
   } from '@/stores/archiveFilterStore.svelte.js'
+  import {
+    tagsCache,
+    preloadTagsData,
+    invalidateTagsCache,
+    refreshTagsCache,
+  } from '@/stores/tagsCacheStore.svelte.js'
   import Dialog from '@/entrypoints/archive/Dialog.svelte'
 
-  // Core data states
-  let tags = $state([])
-  let tagCounts = $state({})
-  let totalCount = $state(0)
-  let isLoading = $state(false)
+  // Core data states - Sử dụng cache để tránh layout shift
+  let tags = $derived(tagsCache.tags)
+  let tagCounts = $derived(tagsCache.tagCounts)
+  let totalCount = $derived(tagsCache.totalCount)
+  let isLoading = $derived(tagsCache.isLoading)
 
   // Consolidated dialog state
   let dialogState = $state({
@@ -71,32 +77,9 @@
     }
   }
 
-  // Optimized loadTags function
+  // Load tags using cache to prevent layout shift
   async function loadTags() {
-    if (isLoading) return
-
-    isLoading = true
-    try {
-      // Load only what we need efficiently
-      const [tagsResult, tagCountsResult, totalCountResult] = await Promise.all(
-        [
-          getAllTags().catch(() => []),
-          getTagCounts().catch(() => ({})),
-          getSummaryCount().catch(() => 0),
-        ]
-      )
-
-      tags = tagsResult || []
-      tagCounts = tagCountsResult || {}
-      totalCount = totalCountResult || 0
-    } catch (error) {
-      console.error('Error loading tags:', error)
-      tags = []
-      tagCounts = {}
-      totalCount = 0
-    } finally {
-      isLoading = false
-    }
+    await preloadTagsData()
   }
 
   // Create tag functions
@@ -125,7 +108,8 @@
     try {
       await addTag(validation.name)
       closeCreateTagDialog()
-      await loadTags()
+      // Invalidate cache and reload
+      await refreshTagsCache()
     } catch (error) {
       console.error('Error creating tag:', error)
       alert('Failed to create tag')
@@ -182,7 +166,8 @@
       const updatedTag = { ...tag, name: validation.name }
       await updateTag(updatedTag)
       closeRenameDialog()
-      await loadTags()
+      // Invalidate cache and reload
+      await refreshTagsCache()
     } catch (error) {
       console.error('Error renaming tag:', error)
       alert('Failed to rename tag')
@@ -215,12 +200,14 @@
   async function performDelete(id) {
     try {
       await deleteTag(id)
-      await loadTags()
 
       // Remove from active filters if selected
       if (isTagSelected(id)) {
         toggleTagFilter(id)
       }
+
+      // Invalidate cache and reload
+      await refreshTagsCache()
 
       dialogState.delete.candidateId = null
       dialogState.delete.confirming = false
@@ -273,72 +260,56 @@
     }
   })
 
+  // Auto-reload tags khi cache bị invalidate (khi xóa/thêm items)
+  $effect(() => {
+    // Watch for cache changes và reload nếu cần
+    if (!tagsCache.isLoaded && !tagsCache.isLoading) {
+      loadTags()
+    }
+  })
+
   // Create keydown handlers (only Enter - Escape handled by Bits UI)
   const createTagKeydown = createEnterHandler(handleCreateTag)
   const renameTagKeydown = createEnterHandler(handleRenameTag)
 </script>
 
 <div class="pt-2 pb-4 mb-2 border-b border-border/50">
-  <h3
-    class="mb-2 flex relative justify-between items-center px-2 text-xs font-semibold tracking-wider uppercase text-text-muted"
-  >
-    Tags
-    <button
-      onclick={openCreateTagDialog}
-      class="px-4 absolute right-0 top-1/2 -translate-y-1/2 py-0.5 flex gap-1 items-center border border-border/40 hover:border-border rounded-2xl bg-blackwhite-5 hover:bg-blackwhite-10"
-      aria-label="Create new tag"
-      ><Icon icon="heroicons:plus-20-solid" width="20" height="20" /></button
-    >
-  </h3>
-  <div class="flex flex-col gap-px min-h-6">
-    <!-- Smart button: "All archive" when no filters, "Clear All Filters" when filters are active -->
-    <div class="relative flex hover:bg-blackwhite/5 rounded-md">
-      <button
-        onclick={hasAnyTagsSelected() ? handleClearAllTags : handleAllClick}
-        class="flex items-center gap-1 text-sm w-full relative p-2 text-left {!hasAnyTagsSelected()
-          ? ' text-white'
-          : ' text-text-secondary hover:text-text-primary'}"
-        aria-label={hasAnyTagsSelected()
-          ? 'Clear all tag filters'
-          : 'Show all archive items'}
-      >
-        <div class="size-5 relative">
-          {#if !hasAnyTagsSelected()}
-            <span
-              transition:fade={{ duration: 100 }}
-              class="text-text-primary absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2"
-            >
-              <Icon icon="tabler:tag-filled" width="20" height="20" />
-            </span>
-          {:else}
-            <span
-              transition:fade={{ duration: 100 }}
-              class="text-text-primary absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2"
-            >
-              <Icon icon="tabler:x" width="20" height="20" />
-            </span>
-          {/if}
-        </div>
-        {!hasAnyTagsSelected()
-          ? `All archive (${totalCount})`
-          : 'Clear All Filters'}
-      </button>
+  {#if isLoading && tags.length === 0}
+    <!-- Simple loading state để tránh layout shift -->
+    <div class="h-32 flex items-center justify-center">
+      <div class="flex items-center gap-2 text-text-muted">
+        <div
+          class="animate-spin rounded-full h-4 w-4 border-b-2 border-text-primary"
+        ></div>
+        <span class="text-sm">Loading tags...</span>
+      </div>
     </div>
-
-    {#each tags as tag (tag.id)}
-      <div class="relative group">
+  {:else}
+    <h3
+      class="mb-2 flex relative justify-between items-center px-2 text-xs font-semibold tracking-wider uppercase text-text-muted"
+    >
+      Tags
+      <button
+        onclick={openCreateTagDialog}
+        class="px-4 absolute right-0 top-1/2 -translate-y-1/2 py-0.5 flex gap-1 items-center border border-border/40 hover:border-border rounded-2xl bg-blackwhite-5 hover:bg-blackwhite-10"
+        aria-label="Create new tag"
+        ><Icon icon="heroicons:plus-20-solid" width="20" height="20" /></button
+      >
+    </h3>
+    <div class="flex flex-col gap-px min-h-6">
+      <!-- Smart button: "All archive" when no filters, "Clear All Filters" when filters are active -->
+      <div class="relative flex hover:bg-blackwhite/5 rounded-md">
         <button
-          class="flex items-center gap-1 text-sm w-full relative p-2 text-left hover:bg-blackwhite/5 rounded-md {isTagSelected(
-            tag.id
-          )
+          onclick={hasAnyTagsSelected() ? handleClearAllTags : handleAllClick}
+          class="flex items-center gap-1 text-sm w-full relative p-2 text-left {!hasAnyTagsSelected()
             ? ' text-white'
-            : ' text-text-secondary'} {isTouchScreen ? 'pr-32' : 'pr-16'}"
-          onclick={() => handleTagClick(tag.id)}
-          aria-label={`Filter by ${tag.name} tag (${tagCounts[tag.id] || 0} items)`}
-          aria-pressed={isTagSelected(tag.id)}
+            : ' text-text-secondary hover:text-text-primary'}"
+          aria-label={hasAnyTagsSelected()
+            ? 'Clear all tag filters'
+            : 'Show all archive items'}
         >
           <div class="size-5 relative">
-            {#if isTagSelected(tag.id)}
+            {#if !hasAnyTagsSelected()}
               <span
                 transition:fade={{ duration: 100 }}
                 class="text-text-primary absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2"
@@ -350,63 +321,111 @@
                 transition:fade={{ duration: 100 }}
                 class="text-text-primary absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2"
               >
-                <Icon icon="tabler:tag" width="20" height="20" />
+                <Icon icon="tabler:x" width="20" height="20" />
               </span>
             {/if}
           </div>
-          <div
-            class="line-clamp-1 transition-colors w-full mask-r-from-85% mask-r-to-100%"
-          >
-            {tag.name} ({tagCounts[tag.id] || 0})
-          </div>
+          {!hasAnyTagsSelected() ? `All archive` : 'Clear All Filters'}
+          {#if !hasAnyTagsSelected()}
+            <span
+              class=" font-bold text-[0.675rem] font-mono p-0.5 px-1 rounded-3xl text-text-primary bg-blackwhite-10"
+            >
+              {totalCount}</span
+            >
+          {/if}
         </button>
-        <div
-          class="text-text-muted justify-center rounded-r-sm items-center bg-linear-to-l from-surface-1 dark:from-surface-2 from-80% to-surface-1/0 dark:to-surface-2/0 top-0 bottom-0 pl-4 pr-1 right-0 absolute {isTouchScreen
-            ? 'flex bg-none'
-            : 'hidden group-hover:flex'}"
-        >
-          <button
-            onclick={() => openRenameDialog(tag)}
-            class="p-1 hover:text-text-primary {isTouchScreen ? 'p-2' : 'p-1'}"
-            title="Rename tag"
-            aria-label={`Rename tag ${tag.name}`}
-          >
-            <Icon icon="tabler:pencil" width="20" height="20" />
-          </button>
-          <button
-            onclick={() => handleDeleteClick(tag.id)}
-            class=" relative rounded-3xl transition-colors duration-150 {dialogState
-              .delete.confirming && dialogState.delete.candidateId === tag.id
-              ? 'text-red-50 '
-              : 'hover:text-text-primary'}  {isTouchScreen ? 'p-2' : 'p-1'}"
-            title="Delete tag"
-            aria-label={`Delete tag ${tag.name}`}
-          >
-            <Icon
-              icon="heroicons:trash"
-              width="20"
-              height="20"
-              class=" relative z-10"
-            />
-            {#if dialogState.delete.confirming && dialogState.delete.candidateId === tag.id}
-              <span
-                transition:slideScaleFade={{
-                  duration: 150,
-                  slideFrom: 'bottom',
-                  startScale: 0.4,
-                  slideDistance: '0rem',
-                }}
-                class="rounded-sm block bg-error absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 {isTouchScreen
-                  ? 'size-9'
-                  : 'size-7'}"
-              >
-              </span>
-            {/if}
-          </button>
-        </div>
       </div>
-    {/each}
-  </div>
+
+      {#each tags as tag (tag.id)}
+        <div class="relative group">
+          <button
+            class="flex items-center gap-1 text-sm w-full relative p-2 text-left hover:bg-blackwhite/5 rounded-md {isTagSelected(
+              tag.id
+            )
+              ? ' text-white'
+              : ' text-text-secondary'} {isTouchScreen ? 'pr-32' : 'pr-16'}"
+            onclick={() => handleTagClick(tag.id)}
+            aria-label={`Filter by ${tag.name} tag (${tagCounts[tag.id] || 0} items)`}
+            aria-pressed={isTagSelected(tag.id)}
+          >
+            <div class="size-5 relative">
+              {#if isTagSelected(tag.id)}
+                <span
+                  transition:fade={{ duration: 100 }}
+                  class="text-text-primary absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2"
+                >
+                  <Icon icon="tabler:tag-filled" width="20" height="20" />
+                </span>
+              {:else}
+                <span
+                  transition:fade={{ duration: 100 }}
+                  class="text-text-primary absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2"
+                >
+                  <Icon icon="tabler:tag" width="20" height="20" />
+                </span>
+              {/if}
+            </div>
+            <div
+              class="line-clamp-1 transition-colors w-full mask-r-from-85% mask-r-to-100%"
+            >
+              {tag.name}
+              <span
+                class=" font-bold text-[0.675rem] font-mono p-0.5 px-1 rounded-3xl text-text-primary bg-blackwhite-10"
+              >
+                {tagCounts[tag.id] || 0}</span
+              >
+            </div>
+          </button>
+          <div
+            class="text-text-muted justify-center rounded-r-sm items-center bg-linear-to-l from-surface-1 dark:from-surface-2 from-80% to-surface-1/0 dark:to-surface-2/0 top-0 bottom-0 pl-4 pr-1 right-0 absolute {isTouchScreen
+              ? 'flex bg-none'
+              : 'hidden group-hover:flex'}"
+          >
+            <button
+              onclick={() => openRenameDialog(tag)}
+              class="p-1 hover:text-text-primary {isTouchScreen
+                ? 'p-2'
+                : 'p-1'}"
+              title="Rename tag"
+              aria-label={`Rename tag ${tag.name}`}
+            >
+              <Icon icon="tabler:pencil" width="20" height="20" />
+            </button>
+            <button
+              onclick={() => handleDeleteClick(tag.id)}
+              class=" relative rounded-3xl transition-colors duration-150 {dialogState
+                .delete.confirming && dialogState.delete.candidateId === tag.id
+                ? 'text-red-50 '
+                : 'hover:text-text-primary'}  {isTouchScreen ? 'p-2' : 'p-1'}"
+              title="Delete tag"
+              aria-label={`Delete tag ${tag.name}`}
+            >
+              <Icon
+                icon="heroicons:trash"
+                width="20"
+                height="20"
+                class=" relative z-10"
+              />
+              {#if dialogState.delete.confirming && dialogState.delete.candidateId === tag.id}
+                <span
+                  transition:slideScaleFade={{
+                    duration: 150,
+                    slideFrom: 'bottom',
+                    startScale: 0.4,
+                    slideDistance: '0rem',
+                  }}
+                  class="rounded-sm block bg-error absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 {isTouchScreen
+                    ? 'size-9'
+                    : 'size-7'}"
+                >
+                </span>
+              {/if}
+            </button>
+          </div>
+        </div>
+      {/each}
+    </div>
+  {/if}
 </div>
 
 <!-- Create Tag Dialog -->
@@ -438,7 +457,7 @@
     </div>
 
     <div class="flex relative p-px gap-4 flex-col">
-      <div class="p-4 flex justify-end gap-2">
+      <div class="p-4 flex xs:flex-row flex-col justify-end gap-3 xs:gap-2">
         <div class="lang flex-1 overflow-hidden relative">
           <input
             type="text"
@@ -446,7 +465,7 @@
             bind:value={dialogState.create.name}
             onkeydown={createTagKeydown}
             placeholder="Enter tag name..."
-            maxlength="50"
+            maxlength="60"
             aria-label="Tag name"
             bind:this={createInputRef}
           />
@@ -500,7 +519,7 @@
     </div>
 
     <div class="flex relative p-px gap-4 flex-col">
-      <div class="p-4 flex justify-end gap-2">
+      <div class="p-4 flex xs:flex-row flex-col justify-end gap-3 xs:gap-2">
         <div class="lang flex-1 overflow-hidden relative">
           <input
             type="text"

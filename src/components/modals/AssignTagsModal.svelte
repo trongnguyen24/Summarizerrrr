@@ -10,7 +10,14 @@
   let selectedTagIds = $state(new Set(summary.tags || []))
 
   async function loadAllTags() {
-    allTags = await getAllTags()
+    const tagsResult = await getAllTags()
+    allTags =
+      tagsResult?.sort((a, b) =>
+        a.name.localeCompare(b.name, 'vi', {
+          numeric: true,
+          sensitivity: 'base',
+        })
+      ) || []
   }
 
   async function toggleTag(tagId) {

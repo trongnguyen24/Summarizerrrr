@@ -22,6 +22,7 @@
     archiveFilterStore,
     refreshTagCounts,
   } from '@/stores/archiveFilterStore.svelte.js'
+  import { preloadTagsData } from '@/stores/tagsCacheStore.svelte.js'
 
   const {
     list,
@@ -114,12 +115,23 @@
   // Event handlers
   async function refreshSummaries() {
     if (onRefresh) await onRefresh()
+
+    // Invalidate tags cache để refresh tag counts
+    const { invalidateTagsCache } = await import(
+      '@/stores/tagsCacheStore.svelte.js'
+    )
+    invalidateTagsCache()
   }
 
   // Create a wrapper function that calls both refreshSummaries and refreshTagCounts
   async function handleRefreshWithTags() {
     await refreshSummaries()
     refreshTagCounts()
+    // Also invalidate tags cache để refresh tags
+    const { invalidateTagsCache } = await import(
+      '@/stores/tagsCacheStore.svelte.js'
+    )
+    invalidateTagsCache()
   }
 
   function openRenameDialog(item) {
@@ -156,6 +168,13 @@
         ? await deleteSummary(id)
         : await deleteHistory(id)
       await refreshSummaries()
+
+      // Invalidate tags cache khi xóa item để cập nhật tag counts
+      const { invalidateTagsCache } = await import(
+        '@/stores/tagsCacheStore.svelte.js'
+      )
+      invalidateTagsCache()
+
       deleteCandidateId = null
       isConfirmingDelete = false
     } catch (error) {
@@ -203,6 +222,11 @@
     if (!isTouchDevice()) {
       initializeScrollbars(document.getElementById('scroll-side'))
     }
+  })
+
+  // Preload tags data ngay khi component mount để tránh layout shift
+  $effect(() => {
+    preloadTagsData()
   })
 </script>
 

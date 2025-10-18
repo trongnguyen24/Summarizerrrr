@@ -1,6 +1,7 @@
 // @ts-nocheck
 import { generateUUID } from '@/lib/utils/utils.js'
 import { appStateStorage } from '@/services/wxtStorageService'
+import { detectContentType } from '@/lib/utils/contentTypeDetector.js'
 
 /**
  * Helper function to send messages to the background script for storage operations.
@@ -93,7 +94,7 @@ export async function saveToHistory(localState, pageInfo) {
     date: new Date().toISOString(),
     summaries: summaries,
     isArchived: false, // Default to not archived
-    contentType: localState.contentType || 'website', // Add contentType
+    contentType: detectContentType(pageInfo.url), // Auto-detect based on URL
   }
 
   try {

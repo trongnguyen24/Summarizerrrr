@@ -54,8 +54,8 @@ Khi người dùng nhấn nút tóm tắt chỉ một lần, hệ thống lại 
 - Chỉ trích xuất transcript MỘT LẦN DUY NHẤT khi người dùng nhấn nút tóm tắt
 - Giảm thiểu số lượng console.log được hiển thị
 - Tăng hiệu suất bằng cách sử dụng cache hiệu quả
-- Ngăn việc gọi API nhiều lần khi người dùng nhấn nút liên tục
-- Cải thiện trải nghiệm người dùng
+- Ngăn việc gọi API nhiều lần thông qua cờ `isProcessing` trong useSummarization
+- Cải thiện trải nghiệm người dùng (không có debounce gây khó chịu)
 
 ## Sơ đồ luồng xử lý sau khi sửa
 

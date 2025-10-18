@@ -95,14 +95,8 @@ export default defineConfig({
       }
     } else if (browser === 'firefox') {
       return {
-        permissions: [
-          'storage',
-          'tabs',
-          'activeTab',
-          'contextMenus',
-          'scripting',
-          'declarativeNetRequest',
-        ],
+        default_locale: 'en',
+        permissions: ['storage', 'tabs', 'activeTab', 'contextMenus'],
         optional_permissions: ['https://*/*'],
         host_permissions: [
           'http://127.0.0.1:11434/*',

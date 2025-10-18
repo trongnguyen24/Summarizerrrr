@@ -22,6 +22,10 @@
   let snapedge
   let isFirefoxBrowser = $state(false)
 
+  // Debounce state for click handling
+  let isClickDebouncing = $state(false)
+  let clickDebounceTimeoutId = null
+
   // Kiểm tra Firefox khi component mount
   $effect(() => {
     isFirefoxBrowser = isFirefox()
@@ -340,6 +344,31 @@
       stateButton.animationFrameId = requestAnimationFrame(animationLoop)
     } else {
       // It was a click, not a drag (either no threshold met or low velocity)
+
+      // Apply debounce to prevent multiple rapid clicks
+      if (isClickDebouncing) {
+        // Snap back if it wasn't a real drag
+        stateButton.lastTimestamp = performance.now()
+        stateButton.velocityX = 0 // Ensure no sliding after a click
+        stateButton.velocityY = 0
+        stateButton.animationFrameId = requestAnimationFrame(animationLoop)
+        return
+      }
+
+      // Set debouncing state
+      isClickDebouncing = true
+
+      // Clear any existing timeout
+      if (clickDebounceTimeoutId) {
+        clearTimeout(clickDebounceTimeoutId)
+      }
+
+      // Set new timeout to reset debouncing state
+      clickDebounceTimeoutId = setTimeout(() => {
+        isClickDebouncing = false
+        clickDebounceTimeoutId = null
+      }, 1000) // 1 second debounce
+
       if (oneClickHandler) {
         // Handle one-click logic first
         try {
@@ -431,6 +460,9 @@
       }
       if (stateButton.debounceTimeoutId) {
         clearTimeout(stateButton.debounceTimeoutId)
+      }
+      if (clickDebounceTimeoutId) {
+        clearTimeout(clickDebounceTimeoutId)
       }
       if (stateButton.resizeObserver) {
         stateButton.resizeObserver.disconnect()

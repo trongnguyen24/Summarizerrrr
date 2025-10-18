@@ -15,8 +15,32 @@
   let animaeTextElements = []
   let animaeText2Elements = []
 
-  // Event dispatcher to notify when the button is clicked
+  // Debounce state
+  let isDebouncing = $state(false)
+  let debounceTimeoutId = null
+
+  // Event dispatcher to notify when the button is clicked with debounce
   const dispatch = () => {
+    // Prevent multiple rapid clicks
+    if (isDebouncing || isLoading || isChapterLoading || disabled) {
+      return
+    }
+
+    // Set debouncing state
+    isDebouncing = true
+
+    // Clear any existing timeout
+    if (debounceTimeoutId) {
+      clearTimeout(debounceTimeoutId)
+    }
+
+    // Set new timeout to reset debouncing state
+    debounceTimeoutId = setTimeout(() => {
+      isDebouncing = false
+      debounceTimeoutId = null
+    }, 1000) // 1 second debounce
+
+    // Dispatch the event
     const customEvent = new CustomEvent('summarizeClick')
     document.dispatchEvent(customEvent) // Dispatch to document or a specific element
   }
@@ -138,7 +162,7 @@
   bind:this={buttonElement}
   class="relative font-mono summarize p-[1em] pl-[1em] pr-[1.5em] overflow-hidden text-black flex outline-offset-2 !outline-primary items-center rounded-full gap-[0.5em] w-fit h-[3em]"
   onclick={dispatch}
-  disabled={isLoading || isChapterLoading || disabled}
+  disabled={isLoading || isChapterLoading || disabled || isDebouncing}
   title="Summarize"
 >
   <div class="text-primary relative z-10 size-[1.5em]">

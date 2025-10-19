@@ -312,7 +312,7 @@
 
     <div
       class="flex text-xs md:text-sm absolute inset-0 px-2 py-4 h-full flex-col {isTouchScreen
-        ? 'gap-2 !text-sm'
+        ? 'gap-1 !text-sm'
         : 'gap-0.5'}"
     >
       {#if activeTab === 'archive'}
@@ -327,7 +327,7 @@
       {#each categorizedList.matchedItems as item (item.id)}
         <div class="relative group">
           <button
-            class="list-button w-full relative p-2 text-left hover:bg-blackwhite/5 rounded-md {selectedSummaryId ==
+            class="list-button w-full relative p-2.5 text-left hover:bg-blackwhite/5 rounded-md {selectedSummaryId ==
             item.id
               ? 'text-text-primary bg-neutral-100 hover:bg-white/60 dark:hover:bg-white/10 dark:bg-surface-2 active '
               : 'hover:bg-surface-1 dark:hover:bg-surface-2'} {isTouchScreen
@@ -373,7 +373,7 @@
               {#if activeTab === 'history'}
                 {#if item.isArchived}
                   <button
-                    class="p-1 opacity-50 cursor-not-allowed"
+                    class="p-1 cursor-not-allowed"
                     title="Already Archived"
                     disabled
                   >

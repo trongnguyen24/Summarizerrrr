@@ -294,10 +294,12 @@
     </h3>
     <div class="flex flex-col gap-px min-h-6">
       <!-- Smart button: "All archive" when no filters, "Clear All Filters" when filters are active -->
-      <div class="relative flex hover:bg-blackwhite/5 rounded-md">
+      <div
+        class="relative flex hover:bg-surface-1 dark:hover:bg-surface-2 rounded-md"
+      >
         <button
           onclick={hasAnyTagsSelected() ? handleClearAllTags : handleAllClick}
-          class="flex items-center gap-1 text-sm w-full relative p-2 text-left {!hasAnyTagsSelected()
+          class="flex items-center gap-1.5 text-sm w-full relative p-2 text-left {!hasAnyTagsSelected()
             ? ' text-white'
             : ' text-text-secondary hover:text-text-primary'}"
           aria-label={hasAnyTagsSelected()
@@ -328,11 +330,13 @@
       {#each tags as tag (tag.id)}
         <div class="relative group">
           <button
-            class="flex items-center gap-1 text-sm w-full relative p-2 text-left hover:bg-blackwhite/5 rounded-md {isTagSelected(
+            class="flex items-center gap-1.5 text-sm w-full relative text-left hover:bg-surface-1 dark:hover:bg-surface-2 rounded-md {isTagSelected(
               tag.id
             )
               ? ' text-white'
-              : ' text-text-secondary'} {isTouchScreen ? 'pr-32' : 'pr-16'}"
+              : ' text-text-secondary'} {isTouchScreen
+              ? 'pr-32 p-2.5'
+              : 'pr-16 p-2'}"
             onclick={() => handleTagClick(tag.id)}
             aria-label={`Filter by ${tag.name} tag`}
             aria-pressed={isTagSelected(tag.id)}

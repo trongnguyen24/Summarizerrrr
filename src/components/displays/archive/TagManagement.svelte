@@ -24,6 +24,7 @@
     refreshTagsCache,
   } from '@/stores/tagsCacheStore.svelte.js'
   import Dialog from '@/entrypoints/archive/Dialog.svelte'
+  import TagActionDropdownMenu from '@/components/ui/TagActionDropdownMenu.svelte'
 
   // Core data states - Sử dụng cache để tránh layout shift
   let tags = $derived(tagsCache.tags)
@@ -299,7 +300,7 @@
       >
         <button
           onclick={hasAnyTagsSelected() ? handleClearAllTags : handleAllClick}
-          class="flex items-center gap-1.5 text-sm w-full relative p-2 text-left {!hasAnyTagsSelected()
+          class="flex items-center gap-2 text-sm w-full relative p-2 text-left {!hasAnyTagsSelected()
             ? ' text-white'
             : ' text-text-secondary hover:text-text-primary'}"
           aria-label={hasAnyTagsSelected()
@@ -335,7 +336,7 @@
             )
               ? ' text-white'
               : ' text-text-secondary'} {isTouchScreen
-              ? 'pr-32 p-2.5'
+              ? 'pr-16 p-2.5'
               : 'pr-16 p-2'}"
             onclick={() => handleTagClick(tag.id)}
             aria-label={`Filter by ${tag.name} tag`}
@@ -364,52 +365,61 @@
               {tag.name}
             </div>
           </button>
-          <div
-            class="text-text-muted justify-center rounded-r-sm items-center bg-linear-to-l from-surface-1 dark:from-surface-2 from-80% to-surface-1/0 dark:to-surface-2/0 top-0 bottom-0 pl-4 pr-1 right-0 absolute {isTouchScreen
-              ? 'flex bg-none'
-              : 'hidden group-hover:flex'}"
-          >
-            <button
-              onclick={() => openRenameDialog(tag)}
-              class="p-1 hover:text-text-primary {isTouchScreen
-                ? 'p-2'
-                : 'p-1'}"
-              title="Rename tag"
-              aria-label={`Rename tag ${tag.name}`}
+          {#if isTouchScreen}
+            <div
+              class="action-menu-container text-text-muted justify-center rounded-r-sm items-center bg-none top-0 bottom-0 pr-1 right-0 absolute flex"
             >
-              <Icon icon="tabler:pencil" width="20" height="20" />
-            </button>
-            <button
-              onclick={() => handleDeleteClick(tag.id)}
-              class=" relative rounded-3xl transition-colors duration-150 {dialogState
-                .delete.confirming && dialogState.delete.candidateId === tag.id
-                ? 'text-red-50 '
-                : 'hover:text-text-primary'}  {isTouchScreen ? 'p-2' : 'p-1'}"
-              title="Delete tag"
-              aria-label={`Delete tag ${tag.name}`}
-            >
-              <Icon
-                icon="heroicons:trash"
-                width="20"
-                height="20"
-                class=" relative z-10"
+              <TagActionDropdownMenu
+                {tag}
+                isConfirmingDelete={dialogState.delete.confirming}
+                deleteCandidateId={dialogState.delete.candidateId}
+                onRename={openRenameDialog}
+                onDeleteClick={handleDeleteClick}
               />
-              {#if dialogState.delete.confirming && dialogState.delete.candidateId === tag.id}
-                <span
-                  transition:slideScaleFade={{
-                    duration: 150,
-                    slideFrom: 'bottom',
-                    startScale: 0.4,
-                    slideDistance: '0rem',
-                  }}
-                  class="rounded-sm block bg-error absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 {isTouchScreen
-                    ? 'size-9'
-                    : 'size-7'}"
-                >
-                </span>
-              {/if}
-            </button>
-          </div>
+            </div>
+          {:else}
+            <div
+              class="text-text-muted justify-center rounded-r-sm items-center bg-linear-to-l from-surface-1 dark:from-surface-2 from-80% to-surface-1/0 dark:to-surface-2/0 top-0 bottom-0 pl-4 pr-1 right-0 absolute hidden group-hover:flex"
+            >
+              <button
+                onclick={() => openRenameDialog(tag)}
+                class="p-1 hover:text-text-primary"
+                title="Rename tag"
+                aria-label={`Rename tag ${tag.name}`}
+              >
+                <Icon icon="tabler:pencil" width="20" height="20" />
+              </button>
+              <button
+                onclick={() => handleDeleteClick(tag.id)}
+                class="relative rounded-3xl transition-colors duration-150 p-1 {dialogState
+                  .delete.confirming &&
+                dialogState.delete.candidateId === tag.id
+                  ? 'text-red-50'
+                  : 'hover:text-text-primary'}"
+                title="Delete tag"
+                aria-label={`Delete tag ${tag.name}`}
+              >
+                <Icon
+                  icon="heroicons:trash"
+                  width="20"
+                  height="20"
+                  class="relative z-10"
+                />
+                {#if dialogState.delete.confirming && dialogState.delete.candidateId === tag.id}
+                  <span
+                    transition:slideScaleFade={{
+                      duration: 150,
+                      slideFrom: 'bottom',
+                      startScale: 0.4,
+                      slideDistance: '0rem',
+                    }}
+                    class="rounded-sm block bg-error absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 size-7"
+                  >
+                  </span>
+                {/if}
+              </button>
+            </div>
+          {/if}
         </div>
       {/each}
     </div>

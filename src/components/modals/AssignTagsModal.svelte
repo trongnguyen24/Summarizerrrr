@@ -3,6 +3,7 @@
   import { getAllTags, updateSummaryTags } from '@/lib/db/indexedDBService'
   import Icon from '@iconify/svelte'
   import { slideScaleFade } from '@/lib/ui/slideScaleFade.js'
+  import { fade } from 'svelte/transition'
 
   let { summary, close, onUpdate } = $props()
 
@@ -26,6 +27,9 @@
     } else {
       selectedTagIds.add(tagId)
     }
+
+    // Trigger reactivity by reassigning
+    selectedTagIds = new Set(selectedTagIds)
 
     // Gọi trực tiếp API ngay lập tức
     try {
@@ -68,21 +72,34 @@
   <div class="p-2 flex flex-col gap-px max-h-60 overflow-y-auto">
     {#each allTags as tag (tag.id)}
       <label
-        class="flex w-full items-center gap-3 py-2 px-3 cursor-pointer hover:bg-blackwhite-5 rounded -sm transition-all duration-200"
+        class="flex w-full items-center gap-1.5 py-2 px-2 cursor-pointer hover:bg-blackwhite-5 rounded-sm transition-all duration-200"
       >
-        <div class="relative">
-          <input
-            type="checkbox"
-            checked={selectedTagIds.has(tag.id)}
-            onchange={() => toggleTag(tag.id)}
-            class="peer sr-only"
-          />
-          <div
-            class="size-2 rounded-full peer peer-focus:ring-1 peer-focus:ring-gray-500 peer-checked:bg-white peer-checked:!shadow-[0_0_8px_rgba(255,255,255,1),0_0_4px_rgba(255,255,255,0.647)] bg-blackwhite-10"
-          ></div>
+        <input
+          type="checkbox"
+          checked={selectedTagIds.has(tag.id)}
+          onchange={() => toggleTag(tag.id)}
+          class="peer sr-only"
+        />
+        <div class="size-5 relative">
+          {#if selectedTagIds.has(tag.id)}
+            <span
+              transition:fade={{ duration: 100 }}
+              class="text-text-primary absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2"
+            >
+              <Icon icon="tabler:tag-filled" width="20" height="20" />
+            </span>
+          {:else}
+            <span
+              transition:fade={{ duration: 100 }}
+              class="text-text-primary absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2"
+            >
+              <Icon icon="tabler:tag" width="20" height="20" />
+            </span>
+          {/if}
         </div>
+
         <span
-          class="text-sm text-text-primary peer-checked:!text-text-primary select-none"
+          class="text-sm text-text-secondary peer-checked:!text-text-primary select-none"
           >{tag.name}</span
         >
       </label>

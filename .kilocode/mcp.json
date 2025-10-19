@@ -36,7 +36,7 @@
         "resolve-library-id",
         "get-library-docs"
       ],
-      "disabled": false
+      "disabled": true
     },
     "svelte": {
       "command": "npx",

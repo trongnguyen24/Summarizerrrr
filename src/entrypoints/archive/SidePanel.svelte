@@ -331,7 +331,7 @@
             item.id
               ? 'text-text-primary bg-neutral-100 hover:bg-white/60 dark:hover:bg-white/10 dark:bg-surface-2 active '
               : 'hover:bg-surface-1 dark:hover:bg-surface-2'} {isTouchScreen
-              ? 'pr-24'
+              ? 'pr-6'
               : 'pr-8'}"
             onclick={() => selectSummary(item, activeTab)}
             title={item.title}
@@ -438,11 +438,11 @@
           class="relative group opacity-40 transition-opacity duration-300 ease-in-out"
         >
           <button
-            class="list-button w-full relative p-2 text-left hover:bg-blackwhite/5 rounded-md {selectedSummaryId ==
+            class="list-button w-full relative p-2.5 text-left hover:bg-blackwhite/5 rounded-md {selectedSummaryId ==
             item.id
               ? 'text-text-primary bg-neutral-100 hover:bg-white/60 dark:hover:bg-white/10 dark:bg-surface-2 active '
               : 'hover:bg-surface-1 dark:hover:bg-surface-2'} {isTouchScreen
-              ? 'pr-24'
+              ? 'pr-6'
               : 'pr-8'}"
             onclick={() => selectSummary(item, activeTab)}
             title={item.title}
@@ -617,7 +617,7 @@
 <Dialog
   closeOnOutsideClick={true}
   bind:open={isAssigningTags}
-  contentClass="outline-hidden fixed flex justify-center left-2 sm:left-8 top-36 w-[calc(100vw-32px)] max-w-xs z-[100] "
+  contentClass="outline-hidden fixed flex justify-center left-3 sm:left-8 top-37 w-[calc(100vw-32px)] max-w-xs z-[100] "
 >
   <AssignTagsModal
     summary={summaryToEditTags}

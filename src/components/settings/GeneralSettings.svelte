@@ -28,6 +28,7 @@
   } from '../../services/firefoxPermissionService.js'
   import { getBrowserCompatibility } from '../../lib/utils/browserDetection.js'
   import { browser } from 'wxt/browser'
+  import ExportImport from './ExportImport.svelte'
 
   const browserCompatibility = getBrowserCompatibility()
 
@@ -419,4 +420,6 @@
       </div>
     {/if}
   {/if}
+
+  <ExportImport />
 </div>

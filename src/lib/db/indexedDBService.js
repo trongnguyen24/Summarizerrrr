@@ -4,7 +4,7 @@ import { generateUUID } from '../utils/utils'
 const DB_NAME = 'summarizer_db'
 const STORE_NAME = 'summaries'
 const TAGS_STORE_NAME = 'tags'
-const DB_VERSION = 7 // Version increased to trigger upgrade for contentType migration (fixed)
+const DB_VERSION = 8 // Version increased for backup store
 const HISTORY_STORE_NAME = 'history'
 const HISTORY_LIMIT = 100
 
@@ -55,6 +55,16 @@ function openDatabase() {
         })
         tagStore.createIndex('name', 'name', { unique: true })
         tagStore.createIndex('createdAt', 'createdAt', { unique: false })
+      }
+
+      // Backups store (New)
+      const BACKUP_STORE_NAME = 'data_backups'
+      if (!db.objectStoreNames.contains(BACKUP_STORE_NAME)) {
+        const backupStore = db.createObjectStore(BACKUP_STORE_NAME, {
+          keyPath: 'id',
+        })
+        backupStore.createIndex('createdAt', 'createdAt', { unique: false })
+        backupStore.createIndex('type', 'type', { unique: false })
       }
 
       // Data migration: ensure all summaries have a 'tags' array
@@ -225,6 +235,33 @@ async function updateSummary(summary) {
     const request = objectStore.put(summary)
     request.onsuccess = () => resolve(request.result)
     request.onerror = (event) => reject(event.target.error)
+  })
+}
+
+async function addMultipleSummaries(summaries) {
+  if (!db) db = await openDatabase()
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction([STORE_NAME], 'readwrite')
+    const objectStore = transaction.objectStore(STORE_NAME)
+    let count = 0
+
+    summaries.forEach((summary) => {
+      const request = objectStore.put(summary)
+      request.onsuccess = () => {
+        count++
+        if (count === summaries.length) {
+          resolve(true)
+        }
+      }
+    })
+
+    transaction.oncomplete = () => {
+      resolve(true)
+    }
+
+    transaction.onerror = (event) => {
+      reject(event.target.error)
+    }
   })
 }
 
@@ -453,6 +490,17 @@ async function getAllTags() {
   })
 }
 
+async function getTagById(id) {
+  if (!db) db = await openDatabase()
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction([TAGS_STORE_NAME], 'readonly')
+    const objectStore = transaction.objectStore(TAGS_STORE_NAME)
+    const request = objectStore.get(id)
+    request.onsuccess = () => resolve(request.result)
+    request.onerror = (event) => reject(event.target.error)
+  })
+}
+
 async function updateTag(tag) {
   if (!db) db = await openDatabase()
   return new Promise((resolve, reject) => {
@@ -476,6 +524,33 @@ async function deleteTag(id) {
       request.onerror = (event) => reject(event.target.error)
     } catch (error) {
       reject(error)
+    }
+  })
+}
+
+async function addMultipleTags(tags) {
+  if (!db) db = await openDatabase()
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction([TAGS_STORE_NAME], 'readwrite')
+    const objectStore = transaction.objectStore(TAGS_STORE_NAME)
+    let count = 0
+
+    tags.forEach((tag) => {
+      const request = objectStore.put(tag)
+      request.onsuccess = () => {
+        count++
+        if (count === tags.length) {
+          resolve(true)
+        }
+      }
+    })
+
+    transaction.oncomplete = () => {
+      resolve(true)
+    }
+
+    transaction.onerror = (event) => {
+      reject(event.target.error)
     }
   })
 }
@@ -570,8 +645,11 @@ export {
   // New exports
   addTag,
   getAllTags,
+  getTagById,
   updateTag,
   deleteTag,
+  addMultipleSummaries,
+  addMultipleTags,
   updateSummaryTags,
   getTagCounts,
 }

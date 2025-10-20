@@ -30,6 +30,20 @@
   import ConflictResolution from './ConflictResolution.svelte'
   import ImportProgress from './ImportProgress.svelte'
 
+  // Import export services
+  import {
+    exportDataToZip,
+    generateExportFilename,
+    downloadBlob,
+  } from '../../lib/exportImport/exportService.js'
+
+  // Import ZIP and JSONL services for import handling
+  import {
+    isZipFile,
+    extractFilesFromZip,
+  } from '../../lib/exportImport/zipService.js'
+  import { importFromJsonl } from '../../lib/exportImport/jsonlService.js'
+
   // State management
   let showImportModal = false
   let showConflictModal = false
@@ -67,7 +81,7 @@
   // Available data types from imported file
   let availableDataTypes = []
 
-  // Enhanced export function with better error handling and progress tracking
+  // Enhanced export function using export service
   async function exportData() {
     try {
       showProgressModal = true
@@ -79,51 +93,35 @@
         errors: [],
       }
 
-      // Get all data with progress tracking
-      const data = {
-        metadata: generateExportMetadata(),
-        settings: settings,
-        theme: themeSettings,
-        archive: archiveStore.archiveList || [],
-        tags: tagsCache.tags || [],
-      }
+      // Use export service to create ZIP file with progress tracking
+      const zipBlob = await exportDataToZip(
+        settings,
+        themeSettings,
+        (progress) => {
+          // Update progress based on service stage
+          progressData.stage = progress.stage
+          progressData.progress = progress.percentage
+          progressData.message = progress.message
 
-      progressData.stage = 'validating'
-      progressData.progress = 25
-      progressData.message = 'Validating data integrity...'
+          if (progress.stage === 'loading_data') {
+            progressData.progress = 20
+          } else if (progress.stage === 'validating') {
+            progressData.progress = 40
+          } else if (progress.stage === 'creating_zip') {
+            progressData.progress = 60
+          } else if (progress.stage === 'finalizing') {
+            progressData.progress = 80
+          }
+        }
+      )
 
-      // Validate data before export
-      const validation = await dataIntegrityService.validateDataStructure({
-        summaries: data.archive,
-        history: [],
-        tags: data.tags,
-      })
+      progressData.stage = 'downloading'
+      progressData.progress = 90
+      progressData.message = 'Starting download...'
 
-      if (!validation.isValid) {
-        throw new Error(
-          `Data validation failed: ${validation.errors.join(', ')}`
-        )
-      }
-
-      progressData.stage = 'serializing'
-      progressData.progress = 50
-      progressData.message = 'Serializing data...'
-
-      // Create JSON with proper formatting
-      const json = JSON.stringify(data, null, 2)
-
-      progressData.stage = 'creating_file'
-      progressData.progress = 75
-      progressData.message = 'Creating export file...'
-
-      // Generate and download file
-      const blob = new Blob([json], { type: 'application/json' })
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = `summarizerrrr-backup-${new Date().toISOString().split('T')[0]}.json`
-      a.click()
-      URL.revokeObjectURL(url)
+      // Generate filename and download
+      const filename = generateExportFilename()
+      downloadBlob(zipBlob, filename)
 
       progressData.stage = 'completed'
       progressData.progress = 100
@@ -131,11 +129,11 @@
 
       setTimeout(() => {
         showProgressModal = false
-        successMessage = 'Data exported successfully!'
+        successMessage = 'Data exported successfully as ZIP file!'
         setTimeout(() => (successMessage = ''), 3000)
       }, 1500)
     } catch (error) {
-      console.error('Export error:', error)
+      console.error('[ExportImport] Export error:', error)
       progressData.errors.push(`Export failed: ${error.message}`)
       progressData.stage = 'error'
       progressData.message = 'Export failed'
@@ -173,19 +171,157 @@
     try {
       showProgressModal = true
       progressData = {
-        stage: 'validating',
+        stage: 'detecting',
         progress: 0,
         total: 100,
-        message: 'Validating file format...',
+        message: 'Detecting file format...',
         errors: [],
       }
+
+      // Detect if file is ZIP or JSON
+      const isZip = await isZipFile(file)
+
+      if (isZip) {
+        await handleZipImport(file)
+      } else {
+        await handleLegacyJsonImport(file)
+      }
+    } catch (error) {
+      console.error('[ExportImport] File selection error:', error)
+      progressData.errors.push(`File processing failed: ${error.message}`)
+      progressData.stage = 'error'
+      progressData.message = 'File processing failed'
+
+      setTimeout(() => {
+        showProgressModal = false
+        errorMessage = `File processing failed: ${error.message}`
+        setTimeout(() => (errorMessage = ''), 5000)
+      }, 2000)
+    }
+  }
+
+  // Handle ZIP file import
+  async function handleZipImport(file) {
+    try {
+      progressData.stage = 'extracting'
+      progressData.progress = 20
+      progressData.message = 'Extracting ZIP file...'
+
+      // Extract files from ZIP
+      const files = await extractFilesFromZip(file)
+      console.log('[ExportImport] Extracted files:', Object.keys(files))
+
+      progressData.stage = 'parsing'
+      progressData.progress = 40
+      progressData.message = 'Parsing extracted files...'
+
+      // Initialize import data object
+      const data = {}
+
+      // Parse settings.json
+      if (files['settings.json']) {
+        try {
+          data.settings = JSON.parse(files['settings.json'])
+          console.log('[ExportImport] Parsed settings')
+        } catch (error) {
+          console.warn('[ExportImport] Failed to parse settings.json:', error)
+          progressData.errors.push(`Failed to parse settings: ${error.message}`)
+        }
+      }
+
+      // Parse summaries.jsonl
+      if (files['summaries.jsonl']) {
+        try {
+          const result = importFromJsonl(files['summaries.jsonl'])
+          data.summaries = result.data
+          console.log(
+            '[ExportImport] Parsed summaries:',
+            data.summaries?.length || 0
+          )
+          if (result.errors) {
+            console.warn('[ExportImport] JSONL parse errors:', result.errors)
+            progressData.errors.push(
+              `Some summaries failed to parse: ${result.errorCount} errors`
+            )
+          }
+        } catch (error) {
+          console.warn('[ExportImport] Failed to parse summaries.jsonl:', error)
+          progressData.errors.push(
+            `Failed to parse summaries: ${error.message}`
+          )
+        }
+      }
+
+      // Parse tags.jsonl
+      if (files['tags.jsonl']) {
+        try {
+          const result = importFromJsonl(files['tags.jsonl'])
+          data.tags = result.data
+          console.log('[ExportImport] Parsed tags:', data.tags?.length || 0)
+          if (result.errors) {
+            console.warn('[ExportImport] JSONL parse errors:', result.errors)
+            progressData.errors.push(
+              `Some tags failed to parse: ${result.errorCount} errors`
+            )
+          }
+        } catch (error) {
+          console.warn('[ExportImport] Failed to parse tags.jsonl:', error)
+          progressData.errors.push(`Failed to parse tags: ${error.message}`)
+        }
+      }
+
+      // Check if we have any valid data
+      if (Object.keys(data).length === 0) {
+        throw new Error('No valid data found in ZIP file')
+      }
+
+      progressData.stage = 'validating'
+      progressData.progress = 60
+      progressData.message = 'Validating extracted data...'
+
+      // Store data and update available types
+      importData = data
+      availableDataTypes = Object.keys(data).filter((key) => key !== 'metadata')
+
+      // Reset import selections based on available data
+      importOptions.dataTypes = {
+        settings: availableDataTypes.includes('settings'),
+        theme:
+          availableDataTypes.includes('theme') ||
+          availableDataTypes.includes('themes'),
+        archive:
+          availableDataTypes.includes('archive') ||
+          availableDataTypes.includes('summaries'),
+        tags: availableDataTypes.includes('tags'),
+      }
+
+      progressData.stage = 'completed'
+      progressData.progress = 100
+      progressData.message = 'ZIP file processed successfully'
+
+      setTimeout(() => {
+        showProgressModal = false
+        showImportModal = true
+      }, 1000)
+    } catch (error) {
+      console.error('[ExportImport] ZIP import error:', error)
+      throw error
+    }
+  }
+
+  // Handle legacy JSON file import (backward compatibility)
+  async function handleLegacyJsonImport(file) {
+    try {
+      progressData.stage = 'validating'
+      progressData.progress = 10
+      progressData.message = 'Validating file format...'
 
       // Validate file using import validation service
       const validation = await validateImportFile(file)
 
       if (!validation.valid) {
         const formatted = formatValidationResult(validation)
-        console.error('Validation errors:', formatted.errors)
+        console.error('[ExportImport] Validation errors:', formatted.errors)
         const errorDetails =
           formatted.errors && formatted.errors.length > 0
             ? formatted.errors.map((e) => e.message).join('; ')
@@ -194,7 +330,7 @@
       }
 
       progressData.stage = 'reading'
-      progressData.progress = 25
+      progressData.progress = 30
       progressData.message = 'Reading file content...'
 
       // Read and parse file
@@ -204,7 +340,7 @@
           const data = JSON.parse(e.target.result)
 
           progressData.stage = 'processing'
-          progressData.progress = 50
+          progressData.progress = 60
           progressData.message = 'Processing imported data...'
 
           // Store data and update available types
@@ -245,16 +381,8 @@
 
       reader.readAsText(file)
     } catch (error) {
-      console.error('File selection error:', error)
-      progressData.errors.push(`File processing failed: ${error.message}`)
-      progressData.stage = 'error'
-      progressData.message = 'File processing failed'
-
-      setTimeout(() => {
-        showProgressModal = false
-        errorMessage = `File processing failed: ${error.message}`
-        setTimeout(() => (errorMessage = ''), 5000)
-      }, 2000)
+      console.error('[ExportImport] Legacy JSON import error:', error)
+      throw error
     }
   }
 
@@ -285,31 +413,27 @@
         )
       }
 
-      // Detect conflicts
-      progressData.stage = 'detecting_conflicts'
-      progressData.progress = 20
-      progressData.message = 'Detecting conflicts...'
-
+      // Skip conflict detection for simple merge modes
+      // TODO: Fix conflict resolution component structure mismatch
       const importedData = prepareImportData()
-      conflicts = await dataIntegrityService.detectConflicts(importedData)
 
-      if (conflicts.totalConflicts > 0) {
-        progressData.stage = 'conflicts_found'
-        progressData.progress = 30
-        progressData.message = `Found ${conflicts.totalConflicts} conflicts`
+      if (importOptions.mergeMode === 'smart_merge') {
+        // Smart merge mode requires conflict resolution (disabled for now)
+        console.warn(
+          '[ExportImport] Smart merge mode is currently disabled due to conflict resolution bug'
+        )
+        progressData.stage = 'warning'
+        progressData.message =
+          'Smart merge is disabled, using simple merge instead...'
 
-        // Initialize smart merge session
-        mergeSession = await smartMergeService.initializeMerge(importedData, {
-          description: `Import from ${new Date().toISOString()}`,
-          mergeMode: importOptions.mergeMode,
-        })
-
-        setTimeout(() => {
-          showProgressModal = false
-          showConflictModal = true
-        }, 1000)
+        // Fallback to simple merge
+        await executeImport(importedData)
       } else {
-        // No conflicts, proceed with import
+        // Simple merge or replace - no conflict detection needed
+        progressData.stage = 'importing'
+        progressData.progress = 30
+        progressData.message = 'Preparing to import data...'
+
         await executeImport(importedData)
       }
     } catch (error) {
@@ -591,7 +715,7 @@
       <input
         type="file"
         class="hidden"
-        accept=".json"
+        accept=".json,.zip"
         on:change={handleFileSelect}
       />
     </label>

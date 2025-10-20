@@ -9,6 +9,7 @@
   import Icon from '@iconify/svelte'
   import { slideScaleFade } from '@/lib/ui/slideScaleFade.js'
   import { fade } from 'svelte/transition'
+  import { t } from 'svelte-i18n'
   import {
     archiveFilterStore,
     toggleTagFilter,
@@ -46,18 +47,18 @@
   // Input validation
   function validateTagName(name) {
     if (!name || !name.trim()) {
-      return { valid: false, error: 'Tag name cannot be empty' }
+      return { valid: false, error: $t('tags.errors.empty') }
     }
 
     const trimmedName = name.trim()
     if (trimmedName.length > 50) {
-      return { valid: false, error: 'Tag name must be 50 characters or less' }
+      return { valid: false, error: $t('tags.errors.max_length') }
     }
 
     if (/[<>]/.test(trimmedName)) {
       return {
         valid: false,
-        error: 'Tag name cannot contain < or > characters',
+        error: $t('tags.errors.invalid_chars'),
       }
     }
 
@@ -109,7 +110,7 @@
       await refreshTagsCache()
     } catch (error) {
       console.error('Error creating tag:', error)
-      alert('Failed to create tag')
+      alert($t('tags.errors.create_failed'))
     }
   }
 
@@ -155,7 +156,7 @@
     )
 
     if (existingTag) {
-      alert('A tag with this name already exists!')
+      alert($t('tags.errors.exists'))
       return
     }
 
@@ -167,7 +168,7 @@
       await refreshTagsCache()
     } catch (error) {
       console.error('Error renaming tag:', error)
-      alert('Failed to rename tag')
+      alert($t('tags.errors.rename_failed'))
     }
   }
 
@@ -210,7 +211,7 @@
       dialogState.delete.confirming = false
     } catch (error) {
       console.error('Error deleting tag:', error)
-      alert('Failed to delete tag')
+      alert($t('tags.errors.delete_failed'))
     }
   }
 
@@ -278,14 +279,14 @@
         <div
           class="animate-spin rounded-full h-4 w-4 border-b-2 border-text-primary"
         ></div>
-        <span class="text-sm">Loading tags...</span>
+        <span class="text-sm">{$t('tags.loading')}</span>
       </div>
     </div>
   {:else}
     <h3
       class="mb-2 flex relative justify-between items-center px-2 text-xs font-semibold tracking-wider uppercase text-text-muted"
     >
-      Tags
+      {$t('tags.title')}
       <button
         onclick={openCreateTagDialog}
         class="px-4 absolute right-0 top-1/2 -translate-y-1/2 py-0.5 flex gap-1 items-center border border-border/40 hover:border-border rounded-2xl bg-blackwhite-5 hover:bg-blackwhite-10"
@@ -324,7 +325,7 @@
               </span>
             {/if}
           </div>
-          {!hasAnyTagsSelected() ? `All archive` : 'Clear All Filters'}
+          {!hasAnyTagsSelected() ? $t('tags.all') : $t('tags.clear_filters')}
         </button>
       </div>
 
@@ -384,7 +385,7 @@
               <button
                 onclick={() => openRenameDialog(tag)}
                 class="p-1 hover:text-text-primary"
-                title="Rename tag"
+                title={$t('tags.rename')}
                 aria-label={`Rename tag ${tag.name}`}
               >
                 <Icon icon="tabler:pencil" width="20" height="20" />
@@ -396,7 +397,7 @@
                 dialogState.delete.candidateId === tag.id
                   ? 'text-red-50'
                   : 'hover:text-text-primary'}"
-                title="Delete tag"
+                title={$t('tags.delete')}
                 aria-label={`Delete tag ${tag.name}`}
               >
                 <Icon
@@ -451,7 +452,7 @@
     <div
       class="px-4 bg-surface-1 dark:bg-surface-2 py-2 border-b-0 border-border"
     >
-      <p class="!text-center select-none">Create new tag</p>
+      <p class="!text-center select-none">{$t('tags.create')}</p>
     </div>
 
     <div class="flex relative p-px gap-4 flex-col">
@@ -477,7 +478,7 @@
           <div
             class="font-medium flex justify-center items-center h-10 px-4 border transition-colors duration-200 bg-surface-2 group-hover:bg-surface-2/95 dark:group-hover:surface-2/90 text-text-secondary border-border hover:border-gray-500/50 hover:text-blackwhite"
           >
-            Create
+            {$t('tags.create')}
           </div>
           <span
             class="size-4 absolute z-10 -left-2 -bottom-2 border bg-background dark:bg-surface-1 rotate-45 transition-colors duration-200 border-border group-hover:border-gray-500/50"
@@ -513,7 +514,7 @@
     <div
       class="px-4 bg-surface-1 dark:bg-surface-2 py-2 border-b-0 border-border"
     >
-      <p class="!text-center select-none">Rename tag</p>
+      <p class="!text-center select-none">{$t('tags.rename')}</p>
     </div>
 
     <div class="flex relative p-px gap-4 flex-col">
@@ -539,7 +540,7 @@
           <div
             class="font-medium flex justify-center items-center h-10 px-4 border transition-colors duration-200 bg-surface-2 group-hover:bg-surface-2/95 dark:group-hover:surface-2/90 text-text-secondary border-border hover:border-gray-500/50 hover:text-blackwhite"
           >
-            Save
+            {$t('tags.save')}
           </div>
           <span
             class="size-4 absolute z-10 -left-2 -bottom-2 border bg-background dark:bg-surface-1 rotate-45 transition-colors duration-200 border-border group-hover:border-gray-500/50"

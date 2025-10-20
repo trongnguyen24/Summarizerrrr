@@ -311,5 +311,31 @@
     "description": "기본적으로 YouTube, Udemy, Coursera에 접근합니다. 다른 사이트를 요약하려면 아래에서 권한을 부여해 주세요.",
     "requesting": "요청 중...",
     "grant_permissions": "권한 부여"
+  },
+  "tags": {
+    "title": "태그",
+    "assign": "태그 지정",
+    "create": "생성",
+    "rename": "이름 변경",
+    "save": "저장",
+    "delete": "삭제",
+    "loading": "로딩 중...",
+    "all": "전체",
+    "clear_filters": "필터 지우기",
+    "no_tags": "태그 없음. 사이드 패널에서 생성하세요.",
+    "no_archived": "보관된 항목 없음",
+    "no_history": "기록 항목 없음",
+    "actions": "작업",
+    "archived": "보관됨",
+    "add_to_archive": "보관함에 추가",
+    "errors": {
+      "empty": "이름 필요",
+      "max_length": "최대 50자",
+      "invalid_chars": "잘못된 문자",
+      "exists": "태그 존재",
+      "create_failed": "생성 실패",
+      "rename_failed": "이름 변경 실패",
+      "delete_failed": "삭제 실패"
+    }
   }
 }

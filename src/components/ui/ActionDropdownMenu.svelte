@@ -3,6 +3,7 @@
   import { DropdownMenu } from 'bits-ui'
   import Icon, { loadIcons } from '@iconify/svelte'
   import { slideScaleFade } from '@/lib/ui/slideScaleFade.js'
+  import { t } from 'svelte-i18n'
 
   // Load icons for archive states
   loadIcons(['heroicons:archive-box', 'heroicons:archive-box-solid'])
@@ -25,7 +26,7 @@
     {#snippet children({ builder })}
       <button
         class="p-2 hover:text-text-primary relative"
-        title="Actions"
+        title={$t('tags.actions')}
         {...builder}
       >
         <Icon icon="tabler:dots-vertical" width="20" height="20" />
@@ -45,7 +46,7 @@
           onSelect={() => onAssignTags(item)}
         >
           <Icon icon="tabler:tag" width="18" height="18" />
-          <span>Assign Tags</span>
+          <span>{$t('tags.assign')}</span>
         </DropdownMenu.Item>
       {/if}
 
@@ -56,7 +57,7 @@
             disabled
           >
             <Icon icon="heroicons:archive-box-solid" width="18" height="18" />
-            <span>Already Archived</span>
+            <span>{$t('tags.archived')}</span>
           </DropdownMenu.Item>
         {:else}
           <DropdownMenu.Item
@@ -64,7 +65,7 @@
             onSelect={() => onAddToArchive(item)}
           >
             <Icon icon="heroicons:archive-box" width="18" height="18" />
-            <span>Add to Archive</span>
+            <span>{$t('tags.add_to_archive')}</span>
           </DropdownMenu.Item>
         {/if}
       {/if}
@@ -74,7 +75,7 @@
         onSelect={() => onRename(item)}
       >
         <Icon icon="tabler:pencil" width="18" height="18" />
-        <span>Rename</span>
+        <span>{$t('tags.rename')}</span>
       </DropdownMenu.Item>
 
       <DropdownMenu.Item
@@ -88,7 +89,7 @@
           height="18"
           class="relative z-10"
         />
-        <span class="relative z-10">Delete</span>
+        <span class="relative z-10">{$t('tags.delete')}</span>
         {#if isConfirmingDelete && deleteCandidateId === item.id}
           <span
             transition:slideScaleFade={{

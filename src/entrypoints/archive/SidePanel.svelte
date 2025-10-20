@@ -365,7 +365,7 @@
                 <button
                   onclick={() => openAssignTagsModal(item)}
                   class="p-1 hover:text-text-primary"
-                  title="Assign Tags"
+                  title={$t('tags.assign')}
                 >
                   <Icon icon="tabler:tag" width="20" height="20" />
                 </button>
@@ -374,7 +374,7 @@
                 {#if item.isArchived}
                   <button
                     class="p-1 cursor-not-allowed"
-                    title="Already Archived"
+                    title={$t('tags.archived')}
                     disabled
                   >
                     <Icon
@@ -387,7 +387,7 @@
                   <button
                     onclick={() => handleAddToArchive(item)}
                     class="p-1 hover:text-text-primary"
-                    title="Add to Archive"
+                    title={$t('tags.add_to_archive')}
                   >
                     <Icon icon="heroicons:archive-box" width="20" height="20" />
                   </button>
@@ -396,7 +396,7 @@
               <button
                 onclick={() => openRenameDialog(item)}
                 class="p-1 hover:text-text-primary"
-                title="Rename"
+                title={$t('tags.rename')}
               >
                 <Icon icon="tabler:pencil" width="20" height="20" />
               </button>
@@ -406,7 +406,7 @@
                 deleteCandidateId === item.id
                   ? 'text-red-50'
                   : 'hover:text-text-primary'}"
-                title="Delete"
+                title={$t('tags.delete')}
               >
                 <Icon
                   icon="heroicons:trash"
@@ -476,7 +476,7 @@
                 <button
                   onclick={() => openAssignTagsModal(item)}
                   class="p-1 hover:text-text-primary"
-                  title="Assign Tags"
+                  title={$t('tags.assign')}
                 >
                   <Icon icon="tabler:tag" width="20" height="20" />
                 </button>
@@ -485,7 +485,7 @@
                 {#if item.isArchived}
                   <button
                     class="p-1 opacity-50 cursor-not-allowed"
-                    title="Already Archived"
+                    title={$t('tags.archived')}
                     disabled
                   >
                     <Icon
@@ -498,7 +498,7 @@
                   <button
                     onclick={() => handleAddToArchive(item)}
                     class="p-1 hover:text-text-primary"
-                    title="Add to Archive"
+                    title={$t('tags.add_to_archive')}
                   >
                     <Icon icon="heroicons:archive-box" width="20" height="20" />
                   </button>
@@ -507,7 +507,7 @@
               <button
                 onclick={() => openRenameDialog(item)}
                 class="p-1 hover:text-text-primary"
-                title="Rename"
+                title={$t('tags.rename')}
               >
                 <Icon icon="tabler:pencil" width="20" height="20" />
               </button>
@@ -517,7 +517,7 @@
                 deleteCandidateId === item.id
                   ? 'text-red-50'
                   : 'hover:text-text-primary'}"
-                title="Delete"
+                title={$t('tags.delete')}
               >
                 <Icon
                   icon="heroicons:trash"
@@ -546,8 +546,8 @@
       {#if (filteredList?.length || 0) === 0}
         <div class="px-2 py-4 text-text-muted text-xs">
           {activeTab === 'archive'
-            ? 'No archived items found'
-            : 'No history items found'}
+            ? $t('tags.no_archived')
+            : $t('tags.no_history')}
         </div>
       {/if}
 

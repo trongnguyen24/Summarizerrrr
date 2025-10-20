@@ -4,6 +4,7 @@
   import Icon from '@iconify/svelte'
   import { slideScaleFade } from '@/lib/ui/slideScaleFade.js'
   import { fade } from 'svelte/transition'
+  import { t } from 'svelte-i18n'
 
   let { summary, close, onUpdate } = $props()
 
@@ -66,7 +67,7 @@
   </div>
 
   <div class="px-4 bg-surface-2 py-2 border-b border-border">
-    <p class="select-none font-semibold">Assign Tags</p>
+    <p class="select-none font-semibold">{$t('tags.assign')}</p>
   </div>
 
   <div class="p-2 flex flex-col gap-px max-h-60 overflow-y-auto">
@@ -106,7 +107,7 @@
     {/each}
     {#if allTags.length === 0}
       <p class="text-text-muted text-center text-xs py-4">
-        No tags created yet. You can create tags in the main side panel.
+        {$t('tags.no_tags')}
       </p>
     {/if}
   </div>

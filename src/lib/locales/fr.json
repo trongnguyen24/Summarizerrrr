@@ -311,5 +311,31 @@
     "description": "Accès par défaut à YouTube, Udemy et Coursera. Pour résumer d'autres sites, veuillez accorder les autorisations ci-dessous.",
     "requesting": "Demande en cours...",
     "grant_permissions": "Accorder les autorisations"
+  },
+  "tags": {
+    "title": "Étiquettes",
+    "assign": "Attribuer des étiquettes",
+    "create": "Créer",
+    "rename": "Renommer",
+    "save": "Enregistrer",
+    "delete": "Supprimer",
+    "loading": "Chargement...",
+    "all": "Tous",
+    "clear_filters": "Effacer les filtres",
+    "no_tags": "Aucune étiquette. Créer dans le panneau latéral.",
+    "no_archived": "Aucun élément archivé",
+    "no_history": "Aucun élément d'historique",
+    "actions": "Actions",
+    "archived": "Archivé",
+    "add_to_archive": "Ajouter à l'archive",
+    "errors": {
+      "empty": "Nom requis",
+      "max_length": "Max 50 caractères",
+      "invalid_chars": "Caractères invalides",
+      "exists": "L'étiquette existe",
+      "create_failed": "Échec de la création",
+      "rename_failed": "Échec du renommage",
+      "delete_failed": "Échec de la suppression"
+    }
   }
 }

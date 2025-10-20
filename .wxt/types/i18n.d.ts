@@ -72,8 +72,38 @@ declare module "wxt/browser" {
       substitutions?: string | string[],
       options?: GetMessageOptions,
     ): string;
+    /**
+     * Name of the extension
+     *
+     * "Summarizerrrr"
+     */
     getMessage(
-      messageName: "@@extension_id" | "@@ui_locale" | "@@bidi_dir" | "@@bidi_reversed_dir" | "@@bidi_start_edge" | "@@bidi_end_edge",
+      messageName: "extensionName",
+      substitutions?: string | string[],
+      options?: GetMessageOptions,
+    ): string;
+    /**
+     * Description of the extension
+     *
+     * "Extension helps you summarize for YouTube, Udemy, Coursera, any websites. Crafted with superior UI/UX design."
+     */
+    getMessage(
+      messageName: "extensionDescription",
+      substitutions?: string | string[],
+      options?: GetMessageOptions,
+    ): string;
+    /**
+     * Tooltip text when hovering over the extension icon
+     *
+     * "Click to Open Summarizerrrr"
+     */
+    getMessage(
+      messageName: "actionTitle",
+      substitutions?: string | string[],
+      options?: GetMessageOptions,
+    ): string;
+    getMessage(
+      messageName: "@@extension_id" | "@@ui_locale" | "@@bidi_dir" | "@@bidi_reversed_dir" | "@@bidi_start_edge" | "@@bidi_end_edge" | "extensionName" | "extensionDescription" | "actionTitle",
       substitutions?: string | string[],
       options?: GetMessageOptions,
     ): string;

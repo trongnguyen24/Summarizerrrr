@@ -321,5 +321,31 @@
     "reply_description": "Generate thoughtful response",
     "processing": "Processing {action}...",
     "error": "Failed to {action} content"
+  },
+  "tags": {
+    "title": "Tags",
+    "assign": "Assign Tags",
+    "create": "Create",
+    "rename": "Rename",
+    "save": "Save",
+    "delete": "Delete",
+    "loading": "Loading...",
+    "all": "All",
+    "clear_filters": "Clear Filters",
+    "no_tags": "No tags. Create in side panel.",
+    "no_archived": "No archived items",
+    "no_history": "No history items",
+    "actions": "Actions",
+    "archived": "Archived",
+    "add_to_archive": "Add to Archive",
+    "errors": {
+      "empty": "Name required",
+      "max_length": "Max 50 characters",
+      "invalid_chars": "Invalid characters",
+      "exists": "Tag exists",
+      "create_failed": "Create failed",
+      "rename_failed": "Rename failed",
+      "delete_failed": "Delete failed"
+    }
   }
 }

@@ -37,6 +37,13 @@
         "get-library-docs"
       ],
       "disabled": true
+    },
+    "svelte": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@sveltejs/mcp"
+      ]
     }
   }
 }

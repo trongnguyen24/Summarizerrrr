@@ -17,6 +17,9 @@ export default defineConfig({
   manifest: ({ browser }) => {
     if (browser === 'chrome') {
       return {
+        name: '__MSG_extensionName__',
+        description: '__MSG_extensionDescription__',
+        default_locale: 'en',
         host_permissions: [
           'http://127.0.0.1:11434/*',
           'http://localhost:11434/*',
@@ -41,7 +44,7 @@ export default defineConfig({
           'declarativeNetRequest',
         ],
         action: {
-          default_title: 'Click to Open Summarizerrrr',
+          default_title: '__MSG_actionTitle__',
           default_popup: 'popop.html',
         },
         side_panel: {
@@ -92,14 +95,8 @@ export default defineConfig({
       }
     } else if (browser === 'firefox') {
       return {
-        permissions: [
-          'storage',
-          'tabs',
-          'activeTab',
-          'contextMenus',
-          'scripting',
-          'declarativeNetRequest',
-        ],
+        default_locale: 'en',
+        permissions: ['storage', 'tabs', 'activeTab', 'contextMenus'],
         optional_permissions: ['https://*/*'],
         host_permissions: [
           'http://127.0.0.1:11434/*',

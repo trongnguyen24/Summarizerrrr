@@ -1,0 +1,14 @@
+{
+  "extensionName": {
+    "message": "Summarizerrrr",
+    "description": "확장 프로그램 이름"
+  },
+  "extensionDescription": {
+    "message": "YouTube, Udemy, Coursera, 모든 웹사이트를 요약하는 데 도움을 주는 확장 프로그램. 뛰어난 UI/UX 디자인으로 제작되었습니다.",
+    "description": "확장 프로그램 설명"
+  },
+  "actionTitle": {
+    "message": "클릭하여 Summarizerrrr 열기",
+    "description": "확장 프로그램 아이콘을 마우스로 가리킬 때 표시되는 도구 설명 텍스트"
+  }
+}

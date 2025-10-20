@@ -122,7 +122,7 @@ export function useSummarization() {
       )
       const summarizationService = new SummarizationService(contentExtractor)
 
-      // 4. Detect content type trước hoặc sử dụng customContentType
+      // 4. Extract content MỘT LẦN DUY NHẤT
       let contentType, content
       if (customContentType) {
         // Nếu có customContentType, chỉ extract content không detect type
@@ -145,13 +145,15 @@ export function useSummarization() {
         localSummaryState.isLoading = true
         localSummaryState.isCourseConceptsLoading = true
 
-        // Course Summary - Independent API call
+        // Course Summary - Independent API call với content đã có
         const courseSummaryPromise = (async () => {
           try {
             console.log('[useSummarization] Starting course summary...')
-            const result = await summarizationService.summarizeCourseSummary(
-              settings
-            )
+            const result =
+              await summarizationService.summarizeCourseSummaryWithContent(
+                content,
+                settings
+              )
             localSummaryState.summary = result.summary
             console.log(
               '[useSummarization] Course summary completed and displayed'
@@ -164,13 +166,15 @@ export function useSummarization() {
           }
         })()
 
-        // Course Concepts - Independent API call
+        // Course Concepts - Independent API call với content đã có
         const courseConceptsPromise = (async () => {
           try {
             console.log('[useSummarization] Starting course concepts...')
-            const result = await summarizationService.extractCourseConcepts(
-              settings
-            )
+            const result =
+              await summarizationService.extractCourseConceptsWithContent(
+                content,
+                settings
+              )
             localSummaryState.courseConcepts = result.courseConcepts
             console.log(
               '[useSummarization] Course concepts completed and displayed'
@@ -205,8 +209,12 @@ export function useSummarization() {
             customContentType
           )
         } else {
-          // Logic gốc cho content thường
-          const result = await summarizationService.summarize(settings)
+          // Logic gốc cho content thường - TRUYỀN CONTENT ĐÃ CÓ
+          const result = await summarizationService.summarizeWithContent(
+            content,
+            contentType,
+            settings
+          )
           localSummaryState.summary = result.summary
           if (result.chapterSummary) {
             localSummaryState.chapterSummary = result.chapterSummary
@@ -239,10 +247,18 @@ export function useSummarization() {
   async function autoSaveToHistory() {
     try {
       console.log('[useSummarization] Auto-saving to history...')
+
+      // Validate state before saving
+      if (!localSummaryState.pageTitle || !localSummaryState.pageUrl) {
+        console.warn('[useSummarization] Missing page info, skipping auto-save')
+        return
+      }
+
       const pageInfo = {
         title: localSummaryState.pageTitle,
         url: localSummaryState.pageUrl,
       }
+
       const newHistoryId = await saveToHistory(localSummaryState, pageInfo)
       if (newHistoryId) {
         localSummaryState.isSavedToHistory = true
@@ -253,7 +269,10 @@ export function useSummarization() {
       }
     } catch (error) {
       console.error('[useSummarization] Auto-save to history failed:', error)
-      localSummaryState.saveError = error
+      localSummaryState.saveError = {
+        message: error.message || 'Failed to save to history',
+        timestamp: Date.now(),
+      }
     }
   }
 

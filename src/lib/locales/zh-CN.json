@@ -289,5 +289,31 @@
     "description": "默认访问 YouTube、Udemy 和 Coursera。要总结其他网站，请在下方授予权限。",
     "requesting": "请求中...",
     "grant_permissions": "授予权限"
+  },
+  "tags": {
+    "title": "标签",
+    "assign": "分配标签",
+    "create": "创建",
+    "rename": "重命名",
+    "save": "保存",
+    "delete": "删除",
+    "loading": "加载中...",
+    "all": "全部",
+    "clear_filters": "清除筛选",
+    "no_tags": "暂无标签，请在侧边栏创建。",
+    "no_archived": "无归档项目",
+    "no_history": "无历史记录",
+    "actions": "操作",
+    "archived": "已归档",
+    "add_to_archive": "添加到归档",
+    "errors": {
+      "empty": "名称不能为空",
+      "max_length": "最多50个字符",
+      "invalid_chars": "包含无效字符",
+      "exists": "标签已存在",
+      "create_failed": "创建失败",
+      "rename_failed": "重命名失败",
+      "delete_failed": "删除失败"
+    }
   }
 }

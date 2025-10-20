@@ -57,7 +57,7 @@
 
 .summarizerrrr-popover {
   position: absolute;
-  bottom: 6rem;
+  bottom: 5.2rem;
   display: none;
   right: 0;
 }
@@ -75,7 +75,7 @@
 }
 .summarizerrrr-wrap {
   background: hsl(0deg 0% 0% / 30%);
-  padding: 0;
+  padding: 4px;
   position: relative;
   border-radius: 4rem;
 }
@@ -84,8 +84,8 @@
   position: relative;
   align-items: center;
   justify-content: center;
-  width: 3.2rem;
-  height: 3.2rem;
+  width: var(--yt-delhi-pill-height, 32px);
+  height: var(--yt-delhi-pill-height, 32px);
   background: transparent; /* bg-transparent */
   color: white; /* text-white */
   border: none; /* border-none */
@@ -106,7 +106,7 @@
   border-radius: 0.4rem;
   color: white;
   background-color: #231b1c;
-  bottom: 5.8rem;
+  top: -4.6rem;
   left: 50%;
   width: fit-content;
   transform: translateX(-50%);
@@ -122,14 +122,14 @@
 
 @media screen and (min-width: 1300px) {
   .summarizerrrr-btn {
-    width: 4.2rem;
-    height: 4.2rem;
+    width: var(--yt-delhi-pill-height, 42px);
+    height: var(--yt-delhi-pill-height, 42px);
   }
   .summarizerrrr-popover {
     bottom: 7.8rem;
   }
   .summarizerrrr-tooltip {
-    bottom: 8.1rem;
-    font-size: 2rem;
+    bottom: 7.1rem;
+    font-size: 1.2rem;
   }
 }

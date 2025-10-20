@@ -311,5 +311,31 @@
     "description": "Standardzugriff auf YouTube, Udemy und Coursera. Um andere Websites zusammenzufassen, gewähren Sie bitte unten Berechtigungen.",
     "requesting": "Anfrage läuft...",
     "grant_permissions": "Berechtigungen erteilen"
+  },
+  "tags": {
+    "title": "Tags",
+    "assign": "Tags zuweisen",
+    "create": "Erstellen",
+    "rename": "Umbenennen",
+    "save": "Speichern",
+    "delete": "Löschen",
+    "loading": "Laden...",
+    "all": "Alle",
+    "clear_filters": "Filter löschen",
+    "no_tags": "Keine Tags. Erstellen Sie im Seitenbereich.",
+    "no_archived": "Keine archivierten Elemente",
+    "no_history": "Keine Verlaufselemente",
+    "actions": "Aktionen",
+    "archived": "Archiviert",
+    "add_to_archive": "Zum Archiv hinzufügen",
+    "errors": {
+      "empty": "Name erforderlich",
+      "max_length": "Max. 50 Zeichen",
+      "invalid_chars": "Ungültige Zeichen",
+      "exists": "Tag existiert",
+      "create_failed": "Erstellung fehlgeschlagen",
+      "rename_failed": "Umbenennung fehlgeschlagen",
+      "delete_failed": "Löschung fehlgeschlagen"
+    }
   }
 }

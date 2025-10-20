@@ -311,5 +311,31 @@
     "description": "デフォルトではYouTube、Udemy、Courseraにアクセスします。他のサイトを要約するには、以下で権限を付与してください。",
     "requesting": "リクエスト中...",
     "grant_permissions": "権限を付与"
+  },
+  "tags": {
+    "title": "タグ",
+    "assign": "タグを割り当て",
+    "create": "作成",
+    "rename": "名前変更",
+    "save": "保存",
+    "delete": "削除",
+    "loading": "読み込み中...",
+    "all": "すべて",
+    "clear_filters": "フィルターをクリア",
+    "no_tags": "タグがありません。サイドパネルで作成してください。",
+    "no_archived": "アーカイブされたアイテムがありません",
+    "no_history": "履歴アイテムがありません",
+    "actions": "アクション",
+    "archived": "アーカイブ済み",
+    "add_to_archive": "アーカイブに追加",
+    "errors": {
+      "empty": "名前が必要です",
+      "max_length": "最大50文字",
+      "invalid_chars": "無効な文字",
+      "exists": "タグが既に存在します",
+      "create_failed": "作成に失敗しました",
+      "rename_failed": "名前変更に失敗しました",
+      "delete_failed": "削除に失敗しました"
+    }
   }
 }

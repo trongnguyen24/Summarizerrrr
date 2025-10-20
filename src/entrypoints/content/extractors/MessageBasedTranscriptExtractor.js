@@ -50,6 +50,18 @@ export class MessageBasedTranscriptExtractor {
   }
 
   /**
+   * Kiểm tra xem transcript đã được cache chưa
+   * @param {string} videoId - Video ID
+   * @param {string} preferredLang - Ngôn ngữ ưa thích
+   * @param {boolean} includeTimestamps - Có bao gồm timestamp không
+   * @returns {boolean} - True nếu đã có trong cache
+   */
+  isTranscriptCached(videoId, preferredLang = 'en', includeTimestamps = false) {
+    const cacheKey = `${videoId}_${preferredLang}_${includeTimestamps}`
+    return this.transcriptCache.has(cacheKey)
+  }
+
+  /**
    * Lấy video ID từ URL hiện tại
    * @returns {string|null} Video ID hoặc null nếu không tìm thấy
    */
@@ -89,8 +101,8 @@ export class MessageBasedTranscriptExtractor {
       // Create cache key
       const cacheKey = `${videoId}_${preferredLang}_${includeTimestamps}`
 
-      // Only use cache if video hasn't changed
-      if (!videoChanged && this.transcriptCache.has(cacheKey)) {
+      // Check cache first - even if video changed, we might have cached this specific request
+      if (this.transcriptCache.has(cacheKey)) {
         console.log(
           `[MessageBasedTranscriptExtractor] Using cached transcript for ${cacheKey}`
         )

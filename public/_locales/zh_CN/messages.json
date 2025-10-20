@@ -1,0 +1,14 @@
+{
+  "extensionName": {
+    "message": "Summarizerrrr",
+    "description": "扩展名称"
+  },
+  "extensionDescription": {
+    "message": "帮助您总结YouTube、Udemy、Coursera和任何网站内容的扩展。采用卓越的UI/UX设计精心制作。",
+    "description": "扩展描述"
+  },
+  "actionTitle": {
+    "message": "点击打开Summarizerrrr",
+    "description": "悬停在扩展图标上时显示的工具提示文本"
+  }
+}

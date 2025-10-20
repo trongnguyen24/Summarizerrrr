@@ -27,6 +27,10 @@
   import { formatDate } from '@/lib/utils/utils.js'
   import { archiveStore } from '@/stores/archiveStore.svelte.js'
   import { animationService } from '@/services/animationService.js'
+  import {
+    archiveFilterStore,
+    clearAllTagFilters,
+  } from '@/stores/archiveFilterStore.svelte.js'
 
   // State management
   let isSidePanelVisible = $state(window.innerWidth >= 768) // Initialize based on current window size
@@ -96,7 +100,6 @@
     // Listen for archive updates
     const unsubscribe = appStateStorage.watch((newValue, oldValue) => {
       if (newValue && newValue.data_updated_at !== oldValue?.data_updated_at) {
-        console.log('Data updated, reloading data...')
         archiveStore.loadData()
       }
     })
@@ -198,6 +201,7 @@
         {activeTab}
         selectTab={(tabName) => {
           activeTab = tabName
+          clearAllTagFilters() // Reset filter when changing tabs
         }}
         onRefresh={archiveStore.loadData}
       />

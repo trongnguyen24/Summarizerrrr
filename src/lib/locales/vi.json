@@ -315,5 +315,31 @@
     "description": "Tạo phản hồi sâu sắc",
     "processing": "Đang xử lý {action}...",
     "error": "Không thể {action} nội dung"
+  },
+  "tags": {
+    "title": "Thẻ",
+    "assign": "Gán thẻ",
+    "create": "Tạo thẻ",
+    "rename": "Đổi tên",
+    "save": "Lưu",
+    "delete": "Xóa",
+    "loading": "Đang tải...",
+    "all": "Tất cả",
+    "clear_filters": "Xóa bộ lọc",
+    "no_tags": "Chưa có thẻ. Tạo trong thanh bên.",
+    "no_archived": "Không có mục lưu trữ",
+    "no_history": "Không có mục lịch sử",
+    "actions": "Hành động",
+    "archived": "Đã lưu trữ",
+    "add_to_archive": "Lưu trữ",
+    "errors": {
+      "empty": "Tên bắt buộc",
+      "max_length": "Tối đa 50 ký tự",
+      "invalid_chars": "Ký tự không hợp lệ",
+      "exists": "Thẻ đã tồn tại",
+      "create_failed": "Tạo thất bại",
+      "rename_failed": "Đổi tên thất bại",
+      "delete_failed": "Xóa thất bại"
+    }
   }
 }

@@ -311,5 +311,31 @@
     "description": "Acceso predeterminado a YouTube, Udemy y Coursera. Para resumir otros sitios, otorgue permisos a continuación.",
     "requesting": "Solicitando...",
     "grant_permissions": "Conceder permisos"
+  },
+  "tags": {
+    "title": "Etiquetas",
+    "assign": "Asignar Etiquetas",
+    "create": "Crear",
+    "rename": "Renombrar",
+    "save": "Guardar",
+    "delete": "Eliminar",
+    "loading": "Cargando...",
+    "all": "Todos",
+    "clear_filters": "Limpiar Filtros",
+    "no_tags": "Sin etiquetas. Crear en panel lateral.",
+    "no_archived": "Sin elementos archivados",
+    "no_history": "Sin elementos en historial",
+    "actions": "Acciones",
+    "archived": "Archivado",
+    "add_to_archive": "Agregar al Archivo",
+    "errors": {
+      "empty": "Nombre requerido",
+      "max_length": "Máx. 50 caracteres",
+      "invalid_chars": "Caracteres inválidos",
+      "exists": "Etiqueta existe",
+      "create_failed": "Creación fallida",
+      "rename_failed": "Renombrado fallido",
+      "delete_failed": "Eliminación fallida"
+    }
   }
 }

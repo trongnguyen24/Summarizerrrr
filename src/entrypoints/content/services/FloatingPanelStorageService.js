@@ -1,6 +1,7 @@
 // @ts-nocheck
 import { generateUUID } from '@/lib/utils/utils.js'
 import { appStateStorage } from '@/services/wxtStorageService'
+import { detectContentType } from '@/lib/utils/contentTypeDetector.js'
 
 /**
  * Helper function to send messages to the background script for storage operations.
@@ -81,13 +82,19 @@ export async function saveToHistory(localState, pageInfo) {
     return null
   }
 
+  // Validate pageInfo
+  if (!pageInfo || typeof pageInfo !== 'object') {
+    throw new Error('Invalid pageInfo: must be an object')
+  }
+
   const historyEntry = {
     id: generateUUID(),
-    title: pageInfo.title,
-    url: pageInfo.url,
+    title: pageInfo.title || 'Unknown Title',
+    url: pageInfo.url || 'Unknown URL',
     date: new Date().toISOString(),
     summaries: summaries,
     isArchived: false, // Default to not archived
+    contentType: detectContentType(pageInfo.url), // Auto-detect based on URL
   }
 
   try {

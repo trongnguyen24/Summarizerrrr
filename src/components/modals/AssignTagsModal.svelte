@@ -5,6 +5,7 @@
   import { slideScaleFade } from '@/lib/ui/slideScaleFade.js'
   import { fade } from 'svelte/transition'
   import { t } from 'svelte-i18n'
+  import { settings } from '@/stores/settingsStore.svelte.js'
 
   let { summary, close, onUpdate } = $props()
 
@@ -15,7 +16,7 @@
     const tagsResult = await getAllTags()
     allTags =
       tagsResult?.sort((a, b) =>
-        a.name.localeCompare(b.name, 'vi', {
+        a.name.localeCompare(b.name, settings.uiLang, {
           numeric: true,
           sensitivity: 'base',
         })

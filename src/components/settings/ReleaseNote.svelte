@@ -72,6 +72,17 @@
     <div class="p-6 prose prose-sm w-full max-w-full">
       <h2>Release note</h2>
 
+      <b class="font-mono">2.2.9</b>
+      <ul class="mt-0">
+        {@render note(
+          'Tag Management System:',
+          'Introduced a comprehensive tag management system, allowing users to organize and categorize summaries in the archive. This includes functionality to create, rename, delete, and assign tags to summaries.'
+        )}
+        {@render note(
+          'Enhanced Archive and History Filtering:',
+          'Implemented filtering capabilities for the archive by selected tags and for the history by content type (YouTube, Course, Website), improving content discoverability.'
+        )}
+      </ul>
       <b class="font-mono">2.2.6</b>
       <ul class="mt-0">
         {@render note(

@@ -1,5 +1,6 @@
 // @ts-nocheck
 import { getAllTags } from '@/lib/db/indexedDBService'
+import { settings } from './settingsStore.svelte.js'
 
 /**
  * Cache store cho tags data để tránh layout shift khi chuyển tab archive
@@ -28,10 +29,10 @@ export async function preloadTagsData() {
     // Load tags data
     const tagsResult = await getAllTags().catch(() => [])
 
-    // Sort tags theo tên (Vietnamese locale)
+    // Sort tags theo tên (sử dụng ngôn ngữ UI hiện tại)
     tagsCache.tags =
       tagsResult?.sort((a, b) =>
-        a.name.localeCompare(b.name, 'vi', {
+        a.name.localeCompare(b.name, settings.uiLang, {
           numeric: true,
           sensitivity: 'base',
         })

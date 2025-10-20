@@ -33,8 +33,8 @@
 
   // Consolidated dialog state
   let dialogState = $state({
-    create: { open: false, name: '' },
-    rename: { open: false, tag: null, name: '' },
+    create: { open: false, name: '', error: null },
+    rename: { open: false, tag: null, name: '', error: null },
     delete: { candidateId: null, timeoutId: null, confirming: false },
   })
 
@@ -84,6 +84,7 @@
   function openCreateTagDialog() {
     dialogState.create.open = true
     dialogState.create.name = ''
+    dialogState.create.error = null
 
     // Focus input after dialog opens
     setTimeout(() => {
@@ -94,12 +95,13 @@
   function closeCreateTagDialog() {
     dialogState.create.open = false
     dialogState.create.name = ''
+    dialogState.create.error = null
   }
 
   async function handleCreateTag() {
     const validation = validateTagName(dialogState.create.name)
     if (!validation.valid) {
-      alert(validation.error)
+      dialogState.create.error = validation.error
       return
     }
 
@@ -110,7 +112,7 @@
       await refreshTagsCache()
     } catch (error) {
       console.error('Error creating tag:', error)
-      alert($t('tags.errors.create_failed'))
+      dialogState.create.error = $t('tags.errors.create_failed')
     }
   }
 
@@ -119,6 +121,7 @@
     dialogState.rename.open = true
     dialogState.rename.tag = tag
     dialogState.rename.name = tag.name
+    dialogState.rename.error = null
 
     // Focus input after dialog opens
     setTimeout(() => {
@@ -131,12 +134,13 @@
     dialogState.rename.open = false
     dialogState.rename.tag = null
     dialogState.rename.name = ''
+    dialogState.rename.error = null
   }
 
   async function handleRenameTag() {
     const validation = validateTagName(dialogState.rename.name)
     if (!validation.valid) {
-      alert(validation.error)
+      dialogState.rename.error = validation.error
       return
     }
 
@@ -156,7 +160,7 @@
     )
 
     if (existingTag) {
-      alert($t('tags.errors.exists'))
+      dialogState.rename.error = $t('tags.errors.exists')
       return
     }
 
@@ -168,7 +172,7 @@
       await refreshTagsCache()
     } catch (error) {
       console.error('Error renaming tag:', error)
-      alert($t('tags.errors.rename_failed'))
+      dialogState.rename.error = $t('tags.errors.rename_failed')
     }
   }
 
@@ -463,11 +467,15 @@
             class="w-full px-3 h-10 bg-muted/5 dark:bg-muted/5 border border-border hover:border-blackwhite/15 focus:border-blackwhite/30 dark:border-blackwhite/10 dark:focus:border-blackwhite/20 focus:outline-none focus:ring-0 placeholder:text-muted transition-colors duration-150"
             bind:value={dialogState.create.name}
             onkeydown={createTagKeydown}
+            oninput={() => (dialogState.create.error = null)}
             placeholder="Enter tag name..."
             maxlength="60"
             aria-label="Tag name"
             bind:this={createInputRef}
           />
+          {#if dialogState.create.error}
+            <p class="text-red-500 text-xs mt-1">{dialogState.create.error}</p>
+          {/if}
         </div>
 
         <button
@@ -525,11 +533,15 @@
             class="w-full px-3 h-10 bg-muted/5 dark:bg-muted/5 border border-border hover:border-blackwhite/15 focus:border-blackwhite/30 dark:border-blackwhite/10 dark:focus:border-blackwhite/20 focus:outline-none focus:ring-0 placeholder:text-muted transition-colors duration-150"
             bind:value={dialogState.rename.name}
             onkeydown={renameTagKeydown}
+            oninput={() => (dialogState.rename.error = null)}
             placeholder="Enter new tag name..."
             maxlength="50"
             aria-label="New tag name"
             bind:this={renameInputRef}
           />
+          {#if dialogState.rename.error}
+            <p class="text-red-500 text-xs mt-1">{dialogState.rename.error}</p>
+          {/if}
         </div>
 
         <button

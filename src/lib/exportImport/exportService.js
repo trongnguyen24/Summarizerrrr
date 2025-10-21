@@ -33,11 +33,6 @@ export async function exportDataToZip(settings, theme, onProgress) {
     const summaries = await getAllSummaries()
     const tags = await getAllTags()
 
-    console.log('[ExportService] Loaded from IndexedDB:', {
-      summariesCount: summaries.length,
-      tagsCount: tags.length,
-    })
-
     // Step 2: Create settings.json
     if (onProgress) {
       onProgress({
@@ -78,12 +73,6 @@ export async function exportDataToZip(settings, theme, onProgress) {
     const summariesJsonl = exportToJsonl(summaries)
     const tagsJsonl = exportToJsonl(tags)
 
-    console.log('[ExportService] Created JSONL files:', {
-      summariesLines: summaries.length,
-      tagsLines: tags.length,
-      settingsSize: settingsJson.length,
-    })
-
     // Step 4: Create ZIP
     if (onProgress) {
       onProgress({
@@ -110,11 +99,6 @@ export async function exportDataToZip(settings, theme, onProgress) {
       }
     )
 
-    console.log('[ExportService] ZIP created:', {
-      size: zipBlob.size,
-      type: zipBlob.type,
-    })
-
     if (onProgress) {
       onProgress({
         stage: 'completed',
@@ -125,7 +109,6 @@ export async function exportDataToZip(settings, theme, onProgress) {
 
     return zipBlob
   } catch (error) {
-    console.error('[ExportService] Export failed:', error)
     throw new Error(`Export failed: ${error.message}`)
   }
 }
@@ -154,9 +137,4 @@ export function downloadBlob(blob, filename) {
   a.click()
   document.body.removeChild(a)
   URL.revokeObjectURL(url)
-
-  console.log('[ExportService] Download triggered:', {
-    filename,
-    size: blob.size,
-  })
 }

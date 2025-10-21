@@ -4,10 +4,12 @@
   import {
     settings,
     updateSettings,
+    forceReloadSettings,
   } from '../../stores/settingsStore.svelte.js'
   import {
     themeSettings,
     updateThemeSettings,
+    forceReloadThemeSettings,
   } from '../../stores/themeStore.svelte.js'
   import { archiveStore } from '../../stores/archiveStore.svelte.js'
   import {
@@ -26,8 +28,6 @@
     validateImportFile,
     formatValidationResult,
   } from '../../lib/utils/importValidation.js'
-  import { smartMergeService } from '../../services/smartMergeService.js'
-  import ConflictResolution from './ConflictResolution.svelte'
   import ImportProgress from './ImportProgress.svelte'
 
   // Import export services
@@ -46,13 +46,10 @@
 
   // State management
   let showImportModal = false
-  let showConflictModal = false
   let showProgressModal = false
   let importData = null
   let validationResults = null
-  let conflicts = null
   let currentBackupId = null
-  let mergeSession = null
   let errorMessage = ''
   let successMessage = ''
 
@@ -64,9 +61,8 @@
       archive: true,
       tags: true,
     },
-    mergeMode: 'merge', // merge, replace, smart_merge
+    mergeMode: 'merge', // merge, replace
     autoBackup: true,
-    conflictResolution: 'prompt', // prompt, auto_keep_existing, auto_use_imported, auto_merge
   }
 
   // Progress tracking
@@ -133,7 +129,6 @@
         setTimeout(() => (successMessage = ''), 3000)
       }, 1500)
     } catch (error) {
-      console.error('[ExportImport] Export error:', error)
       progressData.errors.push(`Export failed: ${error.message}`)
       progressData.stage = 'error'
       progressData.message = 'Export failed'
@@ -187,7 +182,6 @@
         await handleLegacyJsonImport(file)
       }
     } catch (error) {
-      console.error('[ExportImport] File selection error:', error)
       progressData.errors.push(`File processing failed: ${error.message}`)
       progressData.stage = 'error'
       progressData.message = 'File processing failed'
@@ -209,7 +203,6 @@
 
       // Extract files from ZIP
       const files = await extractFilesFromZip(file)
-      console.log('[ExportImport] Extracted files:', Object.keys(files))
 
       progressData.stage = 'parsing'
       progressData.progress = 40
@@ -221,10 +214,25 @@
       // Parse settings.json
       if (files['settings.json']) {
         try {
-          data.settings = JSON.parse(files['settings.json'])
-          console.log('[ExportImport] Parsed settings')
+          const parsedSettingsFile = JSON.parse(files['settings.json'])
+
+          // CRITICAL FIX: Extract actual settings and theme from the file structure
+          if (parsedSettingsFile.settings) {
+            // The issue is that parsedSettingsFile.settings still contains the whole file structure
+            // We need to check if it's nested or not
+            if (parsedSettingsFile.settings.settings) {
+              // Nested structure - extract the inner settings
+              data.settings = parsedSettingsFile.settings.settings
+            } else {
+              // Direct structure - use as is
+              data.settings = parsedSettingsFile.settings
+            }
+          }
+
+          if (parsedSettingsFile.theme) {
+            data.theme = parsedSettingsFile.theme
+          }
         } catch (error) {
-          console.warn('[ExportImport] Failed to parse settings.json:', error)
           progressData.errors.push(`Failed to parse settings: ${error.message}`)
         }
       }
@@ -234,18 +242,12 @@
         try {
           const result = importFromJsonl(files['summaries.jsonl'])
           data.summaries = result.data
-          console.log(
-            '[ExportImport] Parsed summaries:',
-            data.summaries?.length || 0
-          )
           if (result.errors) {
-            console.warn('[ExportImport] JSONL parse errors:', result.errors)
             progressData.errors.push(
               `Some summaries failed to parse: ${result.errorCount} errors`
             )
           }
         } catch (error) {
-          console.warn('[ExportImport] Failed to parse summaries.jsonl:', error)
           progressData.errors.push(
             `Failed to parse summaries: ${error.message}`
           )
@@ -257,15 +259,12 @@
         try {
           const result = importFromJsonl(files['tags.jsonl'])
           data.tags = result.data
-          console.log('[ExportImport] Parsed tags:', data.tags?.length || 0)
           if (result.errors) {
-            console.warn('[ExportImport] JSONL parse errors:', result.errors)
             progressData.errors.push(
               `Some tags failed to parse: ${result.errorCount} errors`
             )
           }
         } catch (error) {
-          console.warn('[ExportImport] Failed to parse tags.jsonl:', error)
           progressData.errors.push(`Failed to parse tags: ${error.message}`)
         }
       }
@@ -304,7 +303,6 @@
         showImportModal = true
       }, 1000)
     } catch (error) {
-      console.error('[ExportImport] ZIP import error:', error)
       throw error
     }
   }
@@ -321,7 +319,6 @@
 
       if (!validation.valid) {
         const formatted = formatValidationResult(validation)
-        console.error('[ExportImport] Validation errors:', formatted.errors)
         const errorDetails =
           formatted.errors && formatted.errors.length > 0
             ? formatted.errors.map((e) => e.message).join('; ')
@@ -381,7 +378,6 @@
 
       reader.readAsText(file)
     } catch (error) {
-      console.error('[ExportImport] Legacy JSON import error:', error)
       throw error
     }
   }
@@ -419,9 +415,6 @@
 
       if (importOptions.mergeMode === 'smart_merge') {
         // Smart merge mode requires conflict resolution (disabled for now)
-        console.warn(
-          '[ExportImport] Smart merge mode is currently disabled due to conflict resolution bug'
-        )
         progressData.stage = 'warning'
         progressData.message =
           'Smart merge is disabled, using simple merge instead...'
@@ -437,7 +430,6 @@
         await executeImport(importedData)
       }
     } catch (error) {
-      console.error('Import preparation error:', error)
       progressData.errors.push(`Import preparation failed: ${error.message}`)
       progressData.stage = 'error'
       progressData.message = 'Import preparation failed'
@@ -475,7 +467,6 @@
     if (importOptions.dataTypes.tags && importData.tags) {
       data.tags = importData.tags
     }
-
     return data
   }
 
@@ -484,27 +475,44 @@
     try {
       showProgressModal = true
 
-      if (importOptions.mergeMode === 'smart_merge' && mergeSession) {
-        // Use smart merge service
-        progressData.stage = 'smart_merge'
-        progressData.progress = 40
-        progressData.message = 'Executing smart merge...'
-
-        await smartMergeService.applyUserResolutions(resolutions)
-        const result = await smartMergeService.executeMergeEnhanced()
-
-        progressData.stage = 'completed'
-        progressData.progress = 100
-        progressData.message = 'Smart merge completed successfully!'
-      } else {
-        // Use simple import strategy
-        await performSimpleImport(importedData)
-      }
+      // Use simple import strategy
+      await performSimpleImport(importedData)
 
       // Refresh stores
       progressData.stage = 'refreshing'
       progressData.progress = 90
       progressData.message = 'Refreshing data...'
+
+      // Force reload settings and theme stores to apply imported changes
+      if (importOptions.dataTypes.settings) {
+        try {
+          // Add small delay to ensure storage operations complete
+          await new Promise((resolve) => setTimeout(resolve, 100))
+          await forceReloadSettings()
+
+          // Force a complete UI refresh by triggering a small state change
+          setTimeout(() => {
+            // This will trigger reactivity in components
+            Object.assign(settings, { ...settings })
+          }, 200)
+        } catch (error) {
+          progressData.errors.push(
+            `Failed to reload settings: ${error.message}`
+          )
+        }
+      }
+
+      if (importOptions.dataTypes.theme) {
+        try {
+          // Add small delay to ensure storage operations complete
+          await new Promise((resolve) => setTimeout(resolve, 100))
+          await forceReloadThemeSettings()
+        } catch (error) {
+          progressData.errors.push(
+            `Failed to reload theme settings: ${error.message}`
+          )
+        }
+      }
 
       if (importOptions.dataTypes.archive) {
         await archiveStore.loadData()
@@ -526,7 +534,6 @@
         resetImportState()
       }, 1500)
     } catch (error) {
-      console.error('Import execution error:', error)
       progressData.errors.push(`Import failed: ${error.message}`)
       progressData.stage = 'error'
       progressData.message = 'Import failed'
@@ -581,25 +588,6 @@
     }
   }
 
-  // Handle conflict resolution
-  async function handleConflictResolution(event) {
-    const { resolutions } = event.detail
-    showConflictModal = false
-
-    const importedData = prepareImportData()
-    await executeImport(importedData, resolutions)
-  }
-
-  // Handle conflict cancellation
-  function handleConflictCancel() {
-    showConflictModal = false
-    // Optional: rollback backup if it was created
-    if (currentBackupId && importOptions.autoBackup) {
-      // Keep backup for manual rollback
-    }
-    resetImportState()
-  }
-
   // Rollback to previous backup
   async function rollbackImport() {
     if (!currentBackupId) {
@@ -644,7 +632,6 @@
         throw new Error('Rollback operation failed')
       }
     } catch (error) {
-      console.error('Rollback error:', error)
       progressData.errors.push(`Rollback failed: ${error.message}`)
       progressData.stage = 'error'
       progressData.message = 'Rollback failed'
@@ -661,9 +648,7 @@
   function resetImportState() {
     importData = null
     validationResults = null
-    conflicts = null
     currentBackupId = null
-    mergeSession = null
     availableDataTypes = []
 
     // Reset file input
@@ -788,9 +773,6 @@
         >
           <option value="merge">Merge with existing data</option>
           <option value="replace">Replace existing data</option>
-          <option value="smart_merge"
-            >Smart merge (with conflict resolution)</option
-          >
         </select>
       </div>
 
@@ -838,14 +820,6 @@
     </div>
   </div>
 {/if}
-
-<!-- Conflict Resolution Modal -->
-<ConflictResolution
-  {conflicts}
-  isOpen={showConflictModal}
-  on:confirm={handleConflictResolution}
-  on:cancel={handleConflictCancel}
-/>
 
 <!-- Import Progress Modal -->
 <ImportProgress isOpen={showProgressModal} {progressData} />

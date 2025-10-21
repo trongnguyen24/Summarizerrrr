@@ -32,41 +32,6 @@ export class ValidationError extends Error {
   }
 }
 
-export class FileFormatError extends ValidationError {
-  constructor(message, expectedFormat, actualFormat) {
-    super(message, 'INVALID_FORMAT', { expectedFormat, actualFormat })
-    this.name = 'FileFormatError'
-  }
-}
-
-export class FileSizeError extends ValidationError {
-  constructor(message, maxSize, actualSize) {
-    super(message, 'FILE_TOO_LARGE', { maxSize, actualSize })
-    this.name = 'FileSizeError'
-  }
-}
-
-export class ContentValidationError extends ValidationError {
-  constructor(message, validationErrors) {
-    super(message, 'INVALID_CONTENT', { validationErrors })
-    this.name = 'ContentValidationError'
-  }
-}
-
-export class VersionCompatibilityError extends ValidationError {
-  constructor(message, fileVersion, currentVersion) {
-    super(message, 'VERSION_INCOMPATIBLE', { fileVersion, currentVersion })
-    this.name = 'VersionCompatibilityError'
-  }
-}
-
-export class CorruptedFileError extends ValidationError {
-  constructor(message) {
-    super(message, 'CORRUPTED_FILE')
-    this.name = 'CorruptedFileError'
-  }
-}
-
 /**
  * Main validation class that orchestrates all validation checks
  */
@@ -120,7 +85,10 @@ export class ImportValidator {
       return {
         valid: false,
         errors: [
-          new CorruptedFileError(`File validation failed: ${error.message}`),
+          new ValidationError(
+            `File validation failed: ${error.message}`,
+            'CORRUPTED_FILE'
+          ),
         ],
       }
     }
@@ -157,10 +125,13 @@ export class ImportValidator {
 
       return {
         valid: false,
-        error: new FileFormatError(
+        error: new ValidationError(
           `File format mismatch. Expected MIME type: ${this.supportedFormats[detectedFormat]}, got: ${mimeType}`,
-          this.supportedFormats[detectedFormat],
-          mimeType
+          'INVALID_FORMAT',
+          {
+            expectedFormat: this.supportedFormats[detectedFormat],
+            actualFormat: mimeType,
+          }
         ),
         fileType: detectedFormat,
       }
@@ -179,12 +150,15 @@ export class ImportValidator {
     if (!detectedFormat) {
       return {
         valid: false,
-        error: new FileFormatError(
+        error: new ValidationError(
           `Unsupported file format. Supported formats: ${Object.keys(
             this.supportedFormats
           ).join(', ')}`,
-          Object.keys(this.supportedFormats),
-          mimeType
+          'INVALID_FORMAT',
+          {
+            supportedFormats: Object.keys(this.supportedFormats),
+            actualFormat: mimeType,
+          }
         ),
         fileType: null,
       }
@@ -202,12 +176,12 @@ export class ImportValidator {
     if (file.size > this.maxFileSize) {
       return {
         valid: false,
-        error: new FileSizeError(
+        error: new ValidationError(
           `File size exceeds maximum limit. Maximum: ${this.formatFileSize(
             this.maxFileSize
           )}, Actual: ${this.formatFileSize(file.size)}`,
-          this.maxFileSize,
-          file.size
+          'FILE_TOO_LARGE',
+          { maxSize: this.maxFileSize, actualSize: file.size }
         ),
       }
     }
@@ -215,7 +189,10 @@ export class ImportValidator {
     if (file.size === 0) {
       return {
         valid: false,
-        error: new FileSizeError('File is empty', this.maxFileSize, file.size),
+        error: new ValidationError('File is empty', 'FILE_TOO_LARGE', {
+          maxSize: this.maxFileSize,
+          actualSize: file.size,
+        }),
       }
     }
 
@@ -246,7 +223,10 @@ export class ImportValidator {
       }
     } catch (error) {
       errors.push(
-        new CorruptedFileError(`Failed to read file content: ${error.message}`)
+        new ValidationError(
+          `Failed to read file content: ${error.message}`,
+          'CORRUPTED_FILE'
+        )
       )
     }
 
@@ -288,13 +268,18 @@ export class ImportValidator {
     } catch (error) {
       if (error instanceof SyntaxError) {
         errors.push(
-          new ContentValidationError(`Invalid JSON format: ${error.message}`, [
-            { line: error.line, column: error.column, message: error.message },
-          ])
+          new ValidationError(
+            `Invalid JSON format: ${error.message}`,
+            'INVALID_CONTENT',
+            [{ line: error.line, column: error.column, message: error.message }]
+          )
         )
       } else {
         errors.push(
-          new CorruptedFileError(`Failed to parse JSON: ${error.message}`)
+          new ValidationError(
+            `Failed to parse JSON: ${error.message}`,
+            'CORRUPTED_FILE'
+          )
         )
       }
     }
@@ -321,7 +306,10 @@ export class ImportValidator {
       // Check for ZIP file signature (first 4 bytes should be PK\x03\x04 or PK\x05\x06)
       if (uint8Array.length < 4) {
         errors.push(
-          new CorruptedFileError('File is too small to be a valid ZIP')
+          new ValidationError(
+            'File is too small to be a valid ZIP',
+            'CORRUPTED_FILE'
+          )
         )
         return { valid: false, errors }
       }
@@ -333,7 +321,9 @@ export class ImportValidator {
         uint8Array[3] === 0x04
 
       if (!isValidZip) {
-        errors.push(new CorruptedFileError('Invalid ZIP file signature'))
+        errors.push(
+          new ValidationError('Invalid ZIP file signature', 'CORRUPTED_FILE')
+        )
         return { valid: false, errors }
       }
 
@@ -341,8 +331,9 @@ export class ImportValidator {
       // This is a basic validation that checks the file signature
     } catch (error) {
       errors.push(
-        new CorruptedFileError(
-          `Failed to validate ZIP content: ${error.message}`
+        new ValidationError(
+          `Failed to validate ZIP content: ${error.message}`,
+          'CORRUPTED_FILE'
         )
       )
     }
@@ -363,8 +354,9 @@ export class ImportValidator {
 
     if (typeof data !== 'object' || data === null) {
       errors.push(
-        new ContentValidationError(
+        new ValidationError(
           'Invalid JSON structure: Expected object at root level',
+          'INVALID_CONTENT',
           [{ path: 'root', message: 'Root must be an object' }]
         )
       )
@@ -374,7 +366,7 @@ export class ImportValidator {
     // Check for metadata but don't require it
     if (data.metadata && typeof data.metadata !== 'object') {
       errors.push(
-        new ContentValidationError('Invalid metadata section', [
+        new ValidationError('Invalid metadata section', 'INVALID_CONTENT', [
           {
             path: 'metadata',
             message: 'Metadata must be an object if present',
@@ -397,14 +389,10 @@ export class ImportValidator {
   validateVersionCompatibility(data) {
     // Skip version validation if metadata is missing or incomplete
     if (!data.metadata) {
-      console.warn('Missing metadata section, skipping version validation')
       return { valid: true }
     }
 
     if (!data.metadata.version) {
-      console.warn(
-        'Missing version information in metadata, skipping version validation'
-      )
       return { valid: true }
     }
 
@@ -414,10 +402,10 @@ export class ImportValidator {
     if (!this.isVersionCompatible(fileVersion, this.minCompatibleVersion)) {
       return {
         valid: false,
-        error: new VersionCompatibilityError(
+        error: new ValidationError(
           `File version ${fileVersion} is not compatible with current version ${this.currentVersion}. Minimum compatible version: ${this.minCompatibleVersion}`,
-          fileVersion,
-          this.currentVersion
+          'VERSION_INCOMPATIBLE',
+          { fileVersion, currentVersion: this.currentVersion }
         ),
       }
     }
@@ -450,7 +438,7 @@ export class ImportValidator {
 
     if (!hasValidData) {
       errors.push(
-        new ContentValidationError('No valid data sections found', [
+        new ValidationError('No valid data sections found', 'INVALID_CONTENT', [
           {
             path: 'root',
             message: `At least one of these data types is required: ${expectedDataTypes.join(
@@ -494,8 +482,9 @@ export class ImportValidator {
       case 'tags':
         if (!Array.isArray(data)) {
           errors.push(
-            new ContentValidationError(
+            new ValidationError(
               `Invalid data type for ${type}: Expected array`,
+              'INVALID_CONTENT',
               [{ path: type, message: 'Must be an array' }]
             )
           )
@@ -507,8 +496,9 @@ export class ImportValidator {
       case 'theme':
         if (typeof data !== 'object' || data === null) {
           errors.push(
-            new ContentValidationError(
+            new ValidationError(
               `Invalid data type for ${type}: Expected object`,
+              'INVALID_CONTENT',
               [{ path: type, message: 'Must be an object' }]
             )
           )

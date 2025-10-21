@@ -11,36 +11,22 @@
     percentage: 0,
     stage: '',
     message: '',
-    stages: [],
-    startTime: null,
-    estimatedTimeRemaining: null,
     error: null,
     isCancellable: true,
     isCompleted: false,
-    details: {},
   }
 
   // Local state
   let timeElapsed = 0
   let timeInterval = null
-  let showDetails = false
 
   // Reactive calculations
   $: formattedTimeElapsed = formatTime(timeElapsed)
-  $: formattedTimeRemaining = progress.estimatedTimeRemaining
-    ? formatTime(progress.estimatedTimeRemaining)
-    : null
-  $: currentStageIndex = progress.stages.findIndex(
-    (stage) => stage.id === progress.stage
-  )
-  $: completedStages = progress.stages.filter(
-    (stage, index) => index < currentStageIndex
-  )
   $: isRunning = isOpen && !progress.isCompleted && !progress.error
 
   // Timer management
   onMount(() => {
-    if (isOpen && progress.startTime) {
+    if (isOpen) {
       startTimer()
     }
 
@@ -52,7 +38,7 @@
   })
 
   // Watch for modal open/close and progress changes
-  $: if (isOpen && progress.startTime && !timeInterval) {
+  $: if (isOpen && !timeInterval) {
     startTimer()
   } else if (!isOpen && timeInterval) {
     clearInterval(timeInterval)
@@ -68,9 +54,9 @@
 
   function startTimer() {
     timeInterval = setInterval(() => {
-      if (progress.startTime) {
-        timeElapsed = Math.floor((Date.now() - progress.startTime) / 1000)
-      }
+      timeElapsed = Math.floor(
+        (Date.now() - (Date.now() - timeElapsed * 1000)) / 1000
+      )
     }, 1000)
   }
 
@@ -116,14 +102,7 @@
       completing: '✅',
       error: '❌',
     }
-    return icons[stage.id] || '📋'
-  }
-
-  function getStageStatus(stage, index) {
-    if (stage.error) return 'error'
-    if (index < currentStageIndex) return 'completed'
-    if (index === currentStageIndex) return 'active'
-    return 'pending'
+    return icons[stage] || '📋'
   }
 </script>
 
@@ -263,15 +242,13 @@
               >
                 <div class="flex items-center space-x-3">
                   <div class="text-2xl">
-                    {getStageIcon(
-                      progress.stages[currentStageIndex] || { id: 'processing' }
-                    )}
+                    {getStageIcon(progress.stage)}
                   </div>
                   <div class="flex-1">
                     <h4
                       class="text-sm font-medium text-gray-900 dark:text-white"
                     >
-                      {progress.stages[currentStageIndex]?.name || 'Processing'}
+                      Processing
                     </h4>
                     <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">
                       {progress.message || 'Processing...'}
@@ -286,127 +263,14 @@
               </div>
 
               <!-- Time Information -->
-              <div class="grid grid-cols-2 gap-4">
-                <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
-                  <div class="text-xs text-gray-500 dark:text-gray-400">
-                    Time Elapsed
-                  </div>
-                  <div
-                    class="text-sm font-medium text-gray-900 dark:text-white"
-                  >
-                    {formattedTimeElapsed}
-                  </div>
+              <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
+                <div class="text-xs text-gray-500 dark:text-gray-400">
+                  Time Elapsed
                 </div>
-                {#if formattedTimeRemaining}
-                  <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
-                    <div class="text-xs text-gray-500 dark:text-gray-400">
-                      Estimated Remaining
-                    </div>
-                    <div
-                      class="text-sm font-medium text-gray-900 dark:text-white"
-                    >
-                      {formattedTimeRemaining}
-                    </div>
-                  </div>
-                {/if}
-              </div>
-
-              <!-- Stages Progress -->
-              <div>
-                <div class="flex justify-between items-center mb-2">
-                  <span
-                    class="text-sm font-medium text-gray-700 dark:text-gray-300"
-                    >Stages</span
-                  >
-                  <button
-                    on:click={() => (showDetails = !showDetails)}
-                    class="text-xs text-blue-600 dark:text-blue-400 hover:underline"
-                  >
-                    {showDetails ? 'Hide' : 'Show'} Details
-                  </button>
-                </div>
-
-                <div class="space-y-2">
-                  {#each progress.stages as stage, index}
-                    <div class="flex items-center space-x-2">
-                      <div
-                        class="flex-shrink-0 w-5 h-5 flex items-center justify-center"
-                      >
-                        {#if getStageStatus(stage, index) === 'completed'}
-                          <svg
-                            class="w-4 h-4 text-green-500"
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
-                          >
-                            <path
-                              fill-rule="evenodd"
-                              d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                              clip-rule="evenodd"
-                            ></path>
-                          </svg>
-                        {:else if getStageStatus(stage, index) === 'active'}
-                          <div
-                            class="w-4 h-4 border-2 border-blue-600 rounded-full animate-pulse"
-                          ></div>
-                        {:else if getStageStatus(stage, index) === 'error'}
-                          <svg
-                            class="w-4 h-4 text-red-500"
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
-                          >
-                            <path
-                              fill-rule="evenodd"
-                              d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                              clip-rule="evenodd"
-                            ></path>
-                          </svg>
-                        {:else}
-                          <div
-                            class="w-4 h-4 border-2 border-gray-300 dark:border-gray-600 rounded-full"
-                          ></div>
-                        {/if}
-                      </div>
-                      <div class="flex-1">
-                        <div class="text-sm text-gray-700 dark:text-gray-300">
-                          {stage.name}
-                        </div>
-                      </div>
-                      <div class="text-xs text-gray-500 dark:text-gray-400">
-                        {getStageStatus(stage, index) === 'completed'
-                          ? 'Done'
-                          : getStageStatus(stage, index) === 'active'
-                            ? 'Active'
-                            : getStageStatus(stage, index) === 'error'
-                              ? 'Error'
-                              : 'Pending'}
-                      </div>
-                    </div>
-                  {/each}
+                <div class="text-sm font-medium text-gray-900 dark:text-white">
+                  {formattedTimeElapsed}
                 </div>
               </div>
-
-              <!-- Detailed Progress Information -->
-              {#if showDetails && progress.details}
-                <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                  <h5
-                    class="text-sm font-medium text-gray-900 dark:text-white mb-2"
-                  >
-                    Details
-                  </h5>
-                  <div class="space-y-1">
-                    {#each Object.entries(progress.details) as [key, value]}
-                      <div class="flex justify-between text-xs">
-                        <span class="text-gray-600 dark:text-gray-400"
-                          >{key}:</span
-                        >
-                        <span class="text-gray-900 dark:text-white font-medium"
-                          >{value}</span
-                        >
-                      </div>
-                    {/each}
-                  </div>
-                </div>
-              {/if}
             </div>
           {/if}
         </div>

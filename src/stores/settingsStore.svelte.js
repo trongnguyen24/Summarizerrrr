@@ -42,7 +42,7 @@ const DEFAULT_SETTINGS = {
   widthIndex: 1, // Default to max-w-3xl
   sidePanelDefaultWidth: 25, // Default width for side panel in em units
   oneClickSummarize: false, // Enable 1-click summarization on FAB
-    iconClickAction: 'sidepanel', // 'sidepanel', 'popup', or 'floating'
+  iconClickAction: 'sidepanel', // 'sidepanel', 'popup', or 'floating'
   fabDomainControl: {
     mode: 'all', // 'all' | 'whitelist' | 'blacklist'
     whitelist: ['youtube.com', 'coursera.org', 'udemy.com'],
@@ -206,6 +206,14 @@ export async function loadSettings() {
   })()
 
   return _isInitializedPromise
+}
+
+/**
+ * Forces a reload of settings from storage, bypassing the cache
+ */
+export async function forceReloadSettings() {
+  _isInitializedPromise = null
+  return await loadSettings()
 }
 
 /**

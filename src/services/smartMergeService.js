@@ -86,7 +86,6 @@ class SmartMergeService {
         },
       }
 
-      console.log(`Merge session initialized: ${sessionId}`)
       return sessionId
     } catch (error) {
       console.error('Error initializing merge:', error)
@@ -108,68 +107,10 @@ class SmartMergeService {
       this.currentMergeSession.resolutions = resolutions
       this.currentMergeSession.status = 'resolutions_applied'
 
-      console.log('User resolutions applied successfully')
       return this.currentMergeSession
     } catch (error) {
       console.error('Error applying resolutions:', error)
       throw new Error(`Failed to apply resolutions: ${error.message}`)
-    }
-  }
-
-  /**
-   * Execute the merge process with applied resolutions
-   * @returns {Promise<Object>} Merge results
-   */
-  async executeMerge() {
-    if (!this.currentMergeSession) {
-      throw new Error('No active merge session')
-    }
-
-    try {
-      this.currentMergeSession.status = 'merging'
-      const { importedData, resolutions } = this.currentMergeSession
-
-      // Merge summaries with UUID-based logic
-      if (importedData.summaries) {
-        await this.mergeSummaries(importedData.summaries, resolutions)
-      }
-
-      // Merge history with UUID-based logic
-      if (importedData.history) {
-        await this.mergeHistory(importedData.history, resolutions)
-      }
-
-      // Merge tags with name-based matching
-      if (importedData.tags) {
-        await this.mergeTags(importedData.tags, resolutions)
-      }
-
-      // Merge settings with intelligent merge
-      if (importedData.settings) {
-        await this.mergeSettings(importedData.settings, resolutions)
-      }
-
-      // Merge themes with conflict resolution
-      if (importedData.themes) {
-        await this.mergeThemes(importedData.themes, resolutions)
-      }
-
-      this.currentMergeSession.status = 'completed'
-      this.currentMergeSession.endTime = new Date().toISOString()
-
-      // Generate merge report
-      const report = this.generateMergeReport()
-
-      // Save to merge history
-      this.mergeHistory.push({ ...this.currentMergeSession, report })
-
-      console.log('Merge completed successfully')
-      return { session: this.currentMergeSession, report }
-    } catch (error) {
-      this.currentMergeSession.status = 'failed'
-      this.currentMergeSession.error = error.message
-      console.error('Error during merge execution:', error)
-      throw new Error(`Merge failed: ${error.message}`)
     }
   }
 
@@ -792,7 +733,6 @@ class SmartMergeService {
       )
 
       if (success) {
-        console.log(`Successfully rolled back merge session: ${session.id}`)
         return true
       }
 
@@ -827,138 +767,6 @@ class SmartMergeService {
   }
 
   /**
-   * Process large datasets in batches for better performance
-   * @param {Array} items - Items to process
-   * @param {Function} processFn - Function to process each batch
-   * @param {number} batchSize - Size of each batch
-   * @returns {Promise<Array>} Results from all batches
-   */
-  async processBatches(items, processFn, batchSize = this.batchSize) {
-    const results = []
-
-    for (let i = 0; i < items.length; i += batchSize) {
-      const batch = items.slice(i, i + batchSize)
-      const batchResult = await processFn(batch)
-      results.push(batchResult)
-
-      // Allow UI to breathe between batches
-      if (i + batchSize < items.length) {
-        await new Promise((resolve) => setTimeout(resolve, 10))
-      }
-    }
-
-    return results.flat()
-  }
-
-  /**
-   * Validate merge session before execution
-   * @param {Object} session - Merge session to validate
-   * @returns {boolean} Validation result
-   */
-  validateMergeSession(session) {
-    if (!session) {
-      throw new Error('No merge session provided')
-    }
-
-    if (!session.importedData) {
-      throw new Error('No imported data in session')
-    }
-
-    if (session.status === 'completed') {
-      throw new Error('Merge session already completed')
-    }
-
-    if (session.status === 'failed') {
-      throw new Error('Cannot execute failed merge session')
-    }
-
-    return true
-  }
-
-  /**
-   * Get merge strategy for a specific conflict
-   * @param {string} conflictId - Conflict ID
-   * @param {Object} resolutions - User resolutions
-   * @param {string} defaultStrategy - Default strategy if no resolution found
-   * @returns {string} Merge strategy
-   */
-  getResolutionStrategy(
-    conflictId,
-    resolutions,
-    defaultStrategy = this.mergeStrategies.MERGE
-  ) {
-    return resolutions[conflictId] || defaultStrategy
-  }
-
-  /**
-   * Check if data is large dataset
-   * @param {Object} data - Data to check
-   * @returns {boolean} True if large dataset
-   */
-  isLargeDataset(data) {
-    const totalItems =
-      (data.summaries?.length || 0) +
-      (data.history?.length || 0) +
-      (data.tags?.length || 0)
-
-    return totalItems > this.batchSize * 2
-  }
-
-  /**
-   * Optimize merge process for large datasets
-   * @param {Object} importedData - Imported data
-   * @param {Object} resolutions - User resolutions
-   * @returns {Promise<Object>} Merge results
-   */
-  async optimizedMerge(importedData, resolutions) {
-    const isLarge = this.isLargeDataset(importedData)
-
-    if (!isLarge) {
-      // Use standard merge for small datasets
-      if (importedData.summaries)
-        await this.mergeSummaries(importedData.summaries, resolutions)
-      if (importedData.history)
-        await this.mergeHistory(importedData.history, resolutions)
-      if (importedData.tags)
-        await this.mergeTags(importedData.tags, resolutions)
-      if (importedData.settings)
-        await this.mergeSettings(importedData.settings, resolutions)
-      if (importedData.themes)
-        await this.mergeThemes(importedData.themes, resolutions)
-      return this.currentMergeSession.results
-    }
-
-    // Use batch processing for large datasets
-    console.log('Processing large dataset with batch optimization')
-
-    if (importedData.summaries) {
-      await this.processBatches(importedData.summaries, (batch) =>
-        this.mergeSummaries(batch, resolutions)
-      )
-    }
-
-    if (importedData.history) {
-      await this.processBatches(importedData.history, (batch) =>
-        this.mergeHistory(batch, resolutions)
-      )
-    }
-
-    if (importedData.tags) {
-      await this.processBatches(importedData.tags, (batch) =>
-        this.mergeTags(batch, resolutions)
-      )
-    }
-
-    // Settings and themes are usually small, process normally
-    if (importedData.settings)
-      await this.mergeSettings(importedData.settings, resolutions)
-    if (importedData.themes)
-      await this.mergeThemes(importedData.themes, resolutions)
-
-    return this.currentMergeSession.results
-  }
-
-  /**
    * Enhanced merge execution with retry logic and optimization
    * @returns {Promise<Object>} Merge results
    */
@@ -967,15 +775,22 @@ class SmartMergeService {
       throw new Error('No active merge session')
     }
 
-    this.validateMergeSession(this.currentMergeSession)
-
     const executeWithRetry = withRetry(
       async () => {
         this.currentMergeSession.status = 'merging'
         const { importedData, resolutions } = this.currentMergeSession
 
-        // Use optimized merge for better performance
-        await this.optimizedMerge(importedData, resolutions)
+        // Use standard merge for all data types
+        if (importedData.summaries)
+          await this.mergeSummaries(importedData.summaries, resolutions)
+        if (importedData.history)
+          await this.mergeHistory(importedData.history, resolutions)
+        if (importedData.tags)
+          await this.mergeTags(importedData.tags, resolutions)
+        if (importedData.settings)
+          await this.mergeSettings(importedData.settings, resolutions)
+        if (importedData.themes)
+          await this.mergeThemes(importedData.themes, resolutions)
 
         this.currentMergeSession.status = 'completed'
         this.currentMergeSession.endTime = new Date().toISOString()
@@ -986,7 +801,6 @@ class SmartMergeService {
         // Save to merge history
         this.mergeHistory.push({ ...this.currentMergeSession, report })
 
-        console.log('Merge completed successfully')
         return { session: this.currentMergeSession, report }
       },
       3,
@@ -994,56 +808,6 @@ class SmartMergeService {
     ) // 3 retries with 1s initial delay
 
     return executeWithRetry()
-  }
-
-  /**
-   * Get merge statistics for analytics
-   * @returns {Object} Merge statistics
-   */
-  getMergeStatistics() {
-    const stats = {
-      totalSessions: this.mergeHistory.length,
-      successfulSessions: this.mergeHistory.filter(
-        (s) => s.status === 'completed'
-      ).length,
-      failedSessions: this.mergeHistory.filter((s) => s.status === 'failed')
-        .length,
-      averageDuration: 0,
-      totalItemsMerged: 0,
-      mostCommonConflicts: {},
-    }
-
-    if (stats.totalSessions === 0) return stats
-
-    // Calculate average duration
-    const totalDuration = this.mergeHistory.reduce((sum, session) => {
-      if (session.startTime && session.endTime) {
-        return sum + (new Date(session.endTime) - new Date(session.startTime))
-      }
-      return sum
-    }, 0)
-
-    stats.averageDuration = totalDuration / stats.totalSessions
-
-    // Calculate total items merged
-    this.mergeHistory.forEach((session) => {
-      if (session.report && session.report.results) {
-        stats.totalItemsMerged +=
-          session.report.results.totals.added +
-          session.report.results.totals.updated
-      }
-    })
-
-    return stats
-  }
-
-  /**
-   * Clean up old merge history (keep last 10 sessions)
-   */
-  cleanupMergeHistory() {
-    if (this.mergeHistory.length > 10) {
-      this.mergeHistory = this.mergeHistory.slice(-10)
-    }
   }
 }
 

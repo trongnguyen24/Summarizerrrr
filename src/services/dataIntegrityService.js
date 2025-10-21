@@ -31,7 +31,6 @@ class DataIntegrityService {
     // Check if backup store exists
     if (!db.objectStoreNames.contains(BACKUP_STORE_NAME)) {
       // Need to upgrade the database to add the backup store
-      console.log('Backup store not found, creating database upgrade...')
 
       // Close current connection to allow upgrade
       db.close()
@@ -53,7 +52,6 @@ class DataIntegrityService {
             )
             backupStore.createIndex('createdAt', 'createdAt', { unique: false })
             backupStore.createIndex('type', 'type', { unique: false })
-            console.log('Backup store created successfully')
           }
         }
 
@@ -102,7 +100,6 @@ class DataIntegrityService {
       await this.storeBackup(backupData)
       this.currentBackupId = backupData.id
 
-      console.log(`Pre-import backup created with ID: ${backupData.id}`)
       return backupData.id
     } catch (error) {
       console.error('Error creating pre-import backup:', error)
@@ -470,9 +467,6 @@ class DataIntegrityService {
       if (backup.data.tags && backup.data.tags.length > 0) {
         await addMultipleTags(backup.data.tags)
       }
-
-      console.log(`Successfully rolled back to backup ${backupId}`)
-      return true
     } catch (error) {
       console.error('Error during rollback:', error)
       throw new Error(`Failed to rollback: ${error.message}`)

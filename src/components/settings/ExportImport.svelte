@@ -23,12 +23,10 @@
   } from '../../lib/db/indexedDBService.js'
 
   // Import new services and components
-  import { dataIntegrityService } from '../../services/dataIntegrityService.js'
   import {
     validateImportFile,
     formatValidationResult,
   } from '../../lib/utils/importValidation.js'
-  import ImportProgress from './ImportProgress.svelte'
 
   // Import export services
   import {
@@ -46,10 +44,8 @@
 
   // State management
   let showImportModal = false
-  let showProgressModal = false
   let importData = null
   let validationResults = null
-  let currentBackupId = null
   let errorMessage = ''
   let successMessage = ''
 
@@ -62,16 +58,6 @@
       tags: true,
     },
     mergeMode: 'merge', // merge, replace
-    autoBackup: true,
-  }
-
-  // Progress tracking
-  let progressData = {
-    stage: '',
-    progress: 0,
-    total: 0,
-    message: '',
-    errors: [],
   }
 
   // Available data types from imported file
@@ -80,64 +66,18 @@
   // Enhanced export function using export service
   async function exportData() {
     try {
-      showProgressModal = true
-      progressData = {
-        stage: 'preparing',
-        progress: 0,
-        total: 100,
-        message: 'Preparing export data...',
-        errors: [],
-      }
-
-      // Use export service to create ZIP file with progress tracking
-      const zipBlob = await exportDataToZip(
-        settings,
-        themeSettings,
-        (progress) => {
-          // Update progress based on service stage
-          progressData.stage = progress.stage
-          progressData.progress = progress.percentage
-          progressData.message = progress.message
-
-          if (progress.stage === 'loading_data') {
-            progressData.progress = 20
-          } else if (progress.stage === 'validating') {
-            progressData.progress = 40
-          } else if (progress.stage === 'creating_zip') {
-            progressData.progress = 60
-          } else if (progress.stage === 'finalizing') {
-            progressData.progress = 80
-          }
-        }
-      )
-
-      progressData.stage = 'downloading'
-      progressData.progress = 90
-      progressData.message = 'Starting download...'
+      // Use export service to create ZIP file
+      const zipBlob = await exportDataToZip(settings, themeSettings)
 
       // Generate filename and download
       const filename = generateExportFilename()
       downloadBlob(zipBlob, filename)
 
-      progressData.stage = 'completed'
-      progressData.progress = 100
-      progressData.message = 'Export completed successfully!'
-
-      setTimeout(() => {
-        showProgressModal = false
-        successMessage = 'Data exported successfully as ZIP file!'
-        setTimeout(() => (successMessage = ''), 3000)
-      }, 1500)
+      successMessage = 'Data exported successfully as ZIP file!'
+      setTimeout(() => (successMessage = ''), 3000)
     } catch (error) {
-      progressData.errors.push(`Export failed: ${error.message}`)
-      progressData.stage = 'error'
-      progressData.message = 'Export failed'
-
-      setTimeout(() => {
-        showProgressModal = false
-        errorMessage = `Export failed: ${error.message}`
-        setTimeout(() => (errorMessage = ''), 5000)
-      }, 2000)
+      errorMessage = `Export failed: ${error.message}`
+      setTimeout(() => (errorMessage = ''), 5000)
     }
   }
 
@@ -164,15 +104,6 @@
     if (!file) return
 
     try {
-      showProgressModal = true
-      progressData = {
-        stage: 'detecting',
-        progress: 0,
-        total: 100,
-        message: 'Detecting file format...',
-        errors: [],
-      }
-
       // Detect if file is ZIP or JSON
       const isZip = await isZipFile(file)
 
@@ -182,31 +113,16 @@
         await handleLegacyJsonImport(file)
       }
     } catch (error) {
-      progressData.errors.push(`File processing failed: ${error.message}`)
-      progressData.stage = 'error'
-      progressData.message = 'File processing failed'
-
-      setTimeout(() => {
-        showProgressModal = false
-        errorMessage = `File processing failed: ${error.message}`
-        setTimeout(() => (errorMessage = ''), 5000)
-      }, 2000)
+      errorMessage = `File processing failed: ${error.message}`
+      setTimeout(() => (errorMessage = ''), 5000)
     }
   }
 
   // Handle ZIP file import
   async function handleZipImport(file) {
     try {
-      progressData.stage = 'extracting'
-      progressData.progress = 20
-      progressData.message = 'Extracting ZIP file...'
-
       // Extract files from ZIP
       const files = await extractFilesFromZip(file)
-
-      progressData.stage = 'parsing'
-      progressData.progress = 40
-      progressData.message = 'Parsing extracted files...'
 
       // Initialize import data object
       const data = {}
@@ -215,6 +131,11 @@
       if (files['settings.json']) {
         try {
           const parsedSettingsFile = JSON.parse(files['settings.json'])
+
+          // CRITICAL FIX: Extract metadata first
+          if (parsedSettingsFile.metadata) {
+            data.metadata = parsedSettingsFile.metadata
+          }
 
           // CRITICAL FIX: Extract actual settings and theme from the file structure
           if (parsedSettingsFile.settings) {
@@ -233,7 +154,7 @@
             data.theme = parsedSettingsFile.theme
           }
         } catch (error) {
-          progressData.errors.push(`Failed to parse settings: ${error.message}`)
+          console.error(`Failed to parse settings: ${error.message}`)
         }
       }
 
@@ -243,14 +164,12 @@
           const result = importFromJsonl(files['summaries.jsonl'])
           data.summaries = result.data
           if (result.errors) {
-            progressData.errors.push(
+            console.warn(
               `Some summaries failed to parse: ${result.errorCount} errors`
             )
           }
         } catch (error) {
-          progressData.errors.push(
-            `Failed to parse summaries: ${error.message}`
-          )
+          console.error(`Failed to parse summaries: ${error.message}`)
         }
       }
 
@@ -260,12 +179,12 @@
           const result = importFromJsonl(files['tags.jsonl'])
           data.tags = result.data
           if (result.errors) {
-            progressData.errors.push(
+            console.warn(
               `Some tags failed to parse: ${result.errorCount} errors`
             )
           }
         } catch (error) {
-          progressData.errors.push(`Failed to parse tags: ${error.message}`)
+          console.error(`Failed to parse tags: ${error.message}`)
         }
       }
 
@@ -273,10 +192,6 @@
       if (Object.keys(data).length === 0) {
         throw new Error('No valid data found in ZIP file')
       }
-
-      progressData.stage = 'validating'
-      progressData.progress = 60
-      progressData.message = 'Validating extracted data...'
 
       // Store data and update available types
       importData = data
@@ -294,14 +209,7 @@
         tags: availableDataTypes.includes('tags'),
       }
 
-      progressData.stage = 'completed'
-      progressData.progress = 100
-      progressData.message = 'ZIP file processed successfully'
-
-      setTimeout(() => {
-        showProgressModal = false
-        showImportModal = true
-      }, 1000)
+      showImportModal = true
     } catch (error) {
       throw error
     }
@@ -310,10 +218,6 @@
   // Handle legacy JSON file import (backward compatibility)
   async function handleLegacyJsonImport(file) {
     try {
-      progressData.stage = 'validating'
-      progressData.progress = 10
-      progressData.message = 'Validating file format...'
-
       // Validate file using import validation service
       const validation = await validateImportFile(file)
 
@@ -326,19 +230,11 @@
         throw new Error(`File validation failed: ${errorDetails}`)
       }
 
-      progressData.stage = 'reading'
-      progressData.progress = 30
-      progressData.message = 'Reading file content...'
-
       // Read and parse file
       const reader = new FileReader()
       reader.onload = async (e) => {
         try {
           const data = JSON.parse(e.target.result)
-
-          progressData.stage = 'processing'
-          progressData.progress = 60
-          progressData.message = 'Processing imported data...'
 
           // Store data and update available types
           importData = data
@@ -359,14 +255,7 @@
             tags: availableDataTypes.includes('tags'),
           }
 
-          progressData.stage = 'completed'
-          progressData.progress = 100
-          progressData.message = 'File processed successfully'
-
-          setTimeout(() => {
-            showProgressModal = false
-            showImportModal = true
-          }, 1000)
+          showImportModal = true
         } catch (parseError) {
           throw new Error(`Failed to parse JSON: ${parseError.message}`)
         }
@@ -388,26 +277,6 @@
 
     try {
       showImportModal = false
-      showProgressModal = true
-
-      progressData = {
-        stage: 'preparing',
-        progress: 0,
-        total: 100,
-        message: 'Preparing import process...',
-        errors: [],
-      }
-
-      // Create backup if enabled
-      if (importOptions.autoBackup) {
-        progressData.stage = 'backup'
-        progressData.progress = 10
-        progressData.message = 'Creating backup...'
-
-        currentBackupId = await dataIntegrityService.createPreImportBackup(
-          `Pre-import backup: ${new Date().toISOString()}`
-        )
-      }
 
       // Skip conflict detection for simple merge modes
       // TODO: Fix conflict resolution component structure mismatch
@@ -415,30 +284,15 @@
 
       if (importOptions.mergeMode === 'smart_merge') {
         // Smart merge mode requires conflict resolution (disabled for now)
-        progressData.stage = 'warning'
-        progressData.message =
-          'Smart merge is disabled, using simple merge instead...'
-
         // Fallback to simple merge
         await executeImport(importedData)
       } else {
         // Simple merge or replace - no conflict detection needed
-        progressData.stage = 'importing'
-        progressData.progress = 30
-        progressData.message = 'Preparing to import data...'
-
         await executeImport(importedData)
       }
     } catch (error) {
-      progressData.errors.push(`Import preparation failed: ${error.message}`)
-      progressData.stage = 'error'
-      progressData.message = 'Import preparation failed'
-
-      setTimeout(() => {
-        showProgressModal = false
-        errorMessage = `Import preparation failed: ${error.message}`
-        setTimeout(() => (errorMessage = ''), 5000)
-      }, 2000)
+      errorMessage = `Import preparation failed: ${error.message}`
+      setTimeout(() => (errorMessage = ''), 5000)
     }
   }
 
@@ -473,16 +327,10 @@
   // Execute import with different strategies
   async function executeImport(importedData, resolutions = {}) {
     try {
-      showProgressModal = true
-
       // Use simple import strategy
       await performSimpleImport(importedData)
 
       // Refresh stores
-      progressData.stage = 'refreshing'
-      progressData.progress = 90
-      progressData.message = 'Refreshing data...'
-
       // Force reload settings and theme stores to apply imported changes
       if (importOptions.dataTypes.settings) {
         try {
@@ -496,9 +344,7 @@
             Object.assign(settings, { ...settings })
           }, 200)
         } catch (error) {
-          progressData.errors.push(
-            `Failed to reload settings: ${error.message}`
-          )
+          console.error(`Failed to reload settings: ${error.message}`)
         }
       }
 
@@ -508,9 +354,7 @@
           await new Promise((resolve) => setTimeout(resolve, 100))
           await forceReloadThemeSettings()
         } catch (error) {
-          progressData.errors.push(
-            `Failed to reload theme settings: ${error.message}`
-          )
+          console.error(`Failed to reload theme settings: ${error.message}`)
         }
       }
 
@@ -523,44 +367,17 @@
         await preloadTagsData()
       }
 
-      progressData.stage = 'completed'
-      progressData.progress = 100
-      progressData.message = 'Import completed successfully!'
-
-      setTimeout(() => {
-        showProgressModal = false
-        successMessage = 'Data imported successfully!'
-        setTimeout(() => (successMessage = ''), 3000)
-        resetImportState()
-      }, 1500)
+      successMessage = 'Data imported successfully!'
+      setTimeout(() => (successMessage = ''), 3000)
+      resetImportState()
     } catch (error) {
-      progressData.errors.push(`Import failed: ${error.message}`)
-      progressData.stage = 'error'
-      progressData.message = 'Import failed'
-
-      // Offer rollback if backup exists
-      if (currentBackupId) {
-        setTimeout(() => {
-          showProgressModal = false
-          errorMessage = `Import failed: ${error.message}. Backup created, you can rollback if needed.`
-          setTimeout(() => (errorMessage = ''), 8000)
-        }, 2000)
-      } else {
-        setTimeout(() => {
-          showProgressModal = false
-          errorMessage = `Import failed: ${error.message}`
-          setTimeout(() => (errorMessage = ''), 5000)
-        }, 2000)
-      }
+      errorMessage = `Import failed: ${error.message}`
+      setTimeout(() => (errorMessage = ''), 5000)
     }
   }
 
   // Simple import logic (backward compatibility)
   async function performSimpleImport(importedData) {
-    progressData.stage = 'importing'
-    progressData.progress = 50
-    progressData.message = 'Importing data...'
-
     if (importedData.settings) {
       if (importOptions.mergeMode === 'replace') {
         await updateSettings(importedData.settings)
@@ -588,67 +405,10 @@
     }
   }
 
-  // Rollback to previous backup
-  async function rollbackImport() {
-    if (!currentBackupId) {
-      errorMessage = 'No backup available for rollback'
-      setTimeout(() => (errorMessage = ''), 3000)
-      return
-    }
-
-    try {
-      showProgressModal = true
-      progressData = {
-        stage: 'rolling_back',
-        progress: 0,
-        total: 100,
-        message: 'Rolling back to previous backup...',
-        errors: [],
-      }
-
-      const success =
-        await dataIntegrityService.rollbackToBackup(currentBackupId)
-
-      if (success) {
-        progressData.stage = 'refreshing'
-        progressData.progress = 80
-        progressData.message = 'Refreshing data after rollback...'
-
-        // Refresh all stores
-        await archiveStore.loadData()
-        invalidateTagsCache()
-        await preloadTagsData()
-
-        progressData.stage = 'completed'
-        progressData.progress = 100
-        progressData.message = 'Rollback completed successfully!'
-
-        setTimeout(() => {
-          showProgressModal = false
-          successMessage = 'Rollback completed successfully!'
-          setTimeout(() => (successMessage = ''), 3000)
-        }, 1500)
-      } else {
-        throw new Error('Rollback operation failed')
-      }
-    } catch (error) {
-      progressData.errors.push(`Rollback failed: ${error.message}`)
-      progressData.stage = 'error'
-      progressData.message = 'Rollback failed'
-
-      setTimeout(() => {
-        showProgressModal = false
-        errorMessage = `Rollback failed: ${error.message}`
-        setTimeout(() => (errorMessage = ''), 5000)
-      }, 2000)
-    }
-  }
-
   // Reset import state
   function resetImportState() {
     importData = null
     validationResults = null
-    currentBackupId = null
     availableDataTypes = []
 
     // Reset file input
@@ -682,14 +442,6 @@
   {#if errorMessage}
     <div class="mt-2 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
       {errorMessage}
-      {#if currentBackupId}
-        <button
-          on:click={rollbackImport}
-          class="ml-2 px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700"
-        >
-          Rollback
-        </button>
-      {/if}
     </div>
   {/if}
 
@@ -776,35 +528,158 @@
         </select>
       </div>
 
-      <!-- Auto Backup Option -->
-      <div class="mb-6">
-        <label class="flex items-center">
-          <input
-            type="checkbox"
-            bind:checked={importOptions.autoBackup}
-            class="form-checkbox"
-          />
-          <span class="ml-2">Create backup before import</span>
-        </label>
+      <!-- Version Comparison -->
+      <div
+        class="mb-6 p-3 bg-gray-50 dark:bg-gray-700/30 border border-gray-200 dark:border-gray-600 rounded"
+      >
+        <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Version Compatibility
+        </h3>
+
+        <div class="space-y-1 text-sm">
+          <div class="flex justify-between">
+            <span class="text-gray-500 dark:text-gray-400">Current:</span>
+            <span class="text-gray-900 dark:text-white">
+              v{chrome.runtime.getManifest().version}
+            </span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-500 dark:text-gray-400">Import file:</span>
+            <span class="text-gray-900 dark:text-white">
+              {importData &&
+              importData.metadata &&
+              importData.metadata.exportedBy
+                ? importData.metadata.exportedBy.replace(
+                    'Summarizerrrr Extension v',
+                    'v'
+                  )
+                : 'Unknown'}
+            </span>
+          </div>
+        </div>
+
+        {#if importData && importData.metadata && importData.metadata.exportedBy}
+          {@const currentVersion = chrome.runtime.getManifest().version}
+          {@const importedVersion = importData.metadata.exportedBy.replace(
+            'Summarizerrrr Extension v',
+            ''
+          )}
+          <div class="mt-2 text-xs">
+            {#if currentVersion === importedVersion}
+              <span class="text-green-600 dark:text-green-400"
+                >✓ Compatible</span
+              >
+            {:else}
+              <span class="text-yellow-600 dark:text-yellow-400"
+                >⚠ Different versions</span
+              >
+            {/if}
+          </div>
+        {/if}
       </div>
 
       <!-- File Information -->
-      {#if importData && importData.metadata}
-        <div class="mb-6 p-3 bg-gray-100 dark:bg-gray-700 rounded">
-          <h3 class="text-sm font-medium mb-2">File Information</h3>
-          <div class="text-xs space-y-1">
-            <div>Version: {importData.metadata.version || 'Unknown'}</div>
-            <div>
-              Exported: {importData.metadata.exportedAt
-                ? new Date(importData.metadata.exportedAt).toLocaleString()
-                : 'Unknown'}
+      <div
+        class="mb-6 p-3 bg-gray-50 dark:bg-gray-700/30 border border-gray-200 dark:border-gray-600 rounded"
+      >
+        <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          File Information
+        </h3>
+
+        {#if importData && importData.metadata}
+          <div class="space-y-1 text-sm">
+            <div class="flex justify-between">
+              <span class="text-gray-500 dark:text-gray-400">Exported:</span>
+              <span class="text-gray-900 dark:text-white">
+                {importData.metadata.exportedAt
+                  ? new Date(
+                      importData.metadata.exportedAt
+                    ).toLocaleDateString()
+                  : 'Unknown'}
+              </span>
             </div>
-            {#if importData.metadata.description}
-              <div>Description: {importData.metadata.description}</div>
+            <div class="flex justify-between">
+              <span class="text-gray-500 dark:text-gray-400">Version:</span>
+              <span class="text-gray-900 dark:text-white">
+                {importData.metadata.exportedBy || 'Unknown'}
+              </span>
+            </div>
+            {#if importData.metadata.format}
+              <div class="flex justify-between">
+                <span class="text-gray-500 dark:text-gray-400">Format:</span>
+                <span class="text-gray-900 dark:text-white">
+                  {importData.metadata.format}
+                </span>
+              </div>
             {/if}
           </div>
+        {:else}
+          <div class="text-sm text-gray-500 dark:text-gray-400">
+            No file information available.
+          </div>
+        {/if}
+      </div>
+
+      <!-- Data Summary -->
+      <div
+        class="mb-6 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg"
+      >
+        <h3
+          class="text-sm font-semibold text-green-900 dark:text-green-100 mb-3 flex items-center"
+        >
+          <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"></path>
+            <path
+              fill-rule="evenodd"
+              d="M4 5a2 2 0 012-2 1 1 0 000 2H6a2 2 0 100 4h2a2 2 0 100-4h-.5a1 1 0 000-2H8a2 2 0 012-2h2a2 2 0 012 2v9a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z"
+              clip-rule="evenodd"
+            ></path>
+          </svg>
+          Data Summary
+        </h3>
+
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+          <div
+            class="text-center p-2 bg-white dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-600"
+          >
+            <div class="text-lg font-bold text-blue-600 dark:text-blue-400">
+              {importData.settings
+                ? Object.keys(importData.settings).length
+                : 0}
+            </div>
+            <div class="text-xs text-gray-500 dark:text-gray-400">Settings</div>
+          </div>
+
+          <div
+            class="text-center p-2 bg-white dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-600"
+          >
+            <div class="text-lg font-bold text-purple-600 dark:text-purple-400">
+              {importData.theme ? Object.keys(importData.theme).length : 0}
+            </div>
+            <div class="text-xs text-gray-500 dark:text-gray-400">Theme</div>
+          </div>
+
+          <div
+            class="text-center p-2 bg-white dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-600"
+          >
+            <div class="text-lg font-bold text-green-600 dark:text-green-400">
+              {(importData.summaries || importData.archive || []).length}
+            </div>
+            <div class="text-xs text-gray-500 dark:text-gray-400">
+              Summaries
+            </div>
+          </div>
+
+          <div
+            class="text-center p-2 bg-white dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-600"
+          >
+            <div class="text-lg font-bold text-orange-600 dark:text-orange-400">
+              {importData.tags ? importData.tags.length : 0}
+            </div>
+            <div class="text-xs text-gray-500 dark:text-gray-400">Tags</div>
+          </div>
         </div>
-      {/if}
+      </div>
 
       <!-- Actions -->
       <div class="flex justify-end gap-4">
@@ -820,6 +695,3 @@
     </div>
   </div>
 {/if}
-
-<!-- Import Progress Modal -->
-<ImportProgress isOpen={showProgressModal} {progressData} />

@@ -7,18 +7,119 @@
  * để tránh bug export rỗng
  */
 
-import { getAllSummaries, getAllTags } from '@/lib/db/indexedDBService'
+import {
+  getAllSummaries,
+  getAllTags,
+  getAllHistory,
+} from '@/lib/db/indexedDBService'
 import { exportToJsonl } from './jsonlService.js'
 import { createZipFromFiles } from './zipService.js'
 
 /**
  * Export all data to ZIP format
  * @param {Object} settings - Settings object
- * @param {Object} theme - Theme object
  * @param {Function} onProgress - Progress callback
  * @returns {Promise<Blob>} - ZIP blob
  */
-export async function exportDataToZip(settings, theme, onProgress) {
+/**
+ * Sanitizes settings object to only include valid fields from DEFAULT_SETTINGS
+ * This prevents nested/corrupted data from being exported
+ * @param {Object} rawSettings - Raw settings object
+ * @returns {Object} - Clean settings object
+ */
+function sanitizeSettingsForExport(rawSettings) {
+  // Define valid setting keys (from DEFAULT_SETTINGS in settingsStore)
+  const validSettingKeys = [
+    'selectedProvider',
+    'floatButton',
+    'floatButtonLeft',
+    'showFloatingButton',
+    'floatingPanelLeft',
+    'closePanelOnOutsideClick',
+    'geminiApiKey',
+    'selectedGeminiModel',
+    'geminiAdvancedApiKey',
+    'selectedGeminiAdvancedModel',
+    'openaiCompatibleApiKey',
+    'openaiCompatibleBaseUrl',
+    'selectedOpenAICompatibleModel',
+    'openrouterApiKey',
+    'selectedOpenrouterModel',
+    'deepseekApiKey',
+    'deepseekBaseUrl',
+    'selectedDeepseekModel',
+    'chatgptApiKey',
+    'chatgptBaseUrl',
+    'selectedChatgptModel',
+    'ollamaEndpoint',
+    'selectedOllamaModel',
+    'lmStudioEndpoint',
+    'selectedLmStudioModel',
+    'groqApiKey',
+    'selectedGroqModel',
+    'selectedFont',
+    'enableStreaming',
+    'uiLang',
+    'mobileSheetHeight',
+    'mobileSheetBackdropOpacity',
+    'fontSizeIndex',
+    'widthIndex',
+    'sidePanelDefaultWidth',
+    'oneClickSummarize',
+    'iconClickAction',
+    'fabDomainControl',
+    'firefoxPermissions',
+    'hasCompletedOnboarding',
+    'onboardingStep',
+    'summaryLength',
+    'summaryFormat',
+    'summaryLang',
+    'summaryTone',
+    'isSummaryAdvancedMode',
+    'youtubePromptSelection',
+    'youtubeCustomPromptContent',
+    'youtubeCustomSystemInstructionContent',
+    'chapterPromptSelection',
+    'chapterCustomPromptContent',
+    'chapterCustomSystemInstructionContent',
+    'webPromptSelection',
+    'webCustomPromptContent',
+    'webCustomSystemInstructionContent',
+    'courseSummaryPromptSelection',
+    'courseSummaryCustomPromptContent',
+    'courseSummaryCustomSystemInstructionContent',
+    'courseConceptsPromptSelection',
+    'courseConceptsCustomPromptContent',
+    'courseConceptsCustomSystemInstructionContent',
+    'selectedTextPromptSelection',
+    'selectedTextCustomPromptContent',
+    'selectedTextCustomSystemInstructionContent',
+    'isAdvancedMode',
+    'temperature',
+    'topP',
+  ]
+
+  const cleanSettings = {}
+
+  // Only include valid setting keys, skip any nested metadata/settings
+  validSettingKeys.forEach((key) => {
+    if (rawSettings[key] !== undefined) {
+      cleanSettings[key] = rawSettings[key]
+    }
+  })
+
+  console.log('[exportService] Sanitized settings:', {
+    originalKeys: Object.keys(rawSettings),
+    cleanKeys: Object.keys(cleanSettings),
+    removedKeys: Object.keys(rawSettings).filter(
+      (key) => !validSettingKeys.includes(key)
+    ),
+  })
+
+  return cleanSettings
+}
+
+export async function exportDataToZip(settings, onProgress) {
   try {
     // Step 1: Load data từ IndexedDB (CRITICAL FIX)
     if (onProgress) {
@@ -31,9 +132,10 @@ export async function exportDataToZip(settings, theme, onProgress) {
 
     // ✅ Load trực tiếp từ IndexedDB, KHÔNG dùng stores
     const summaries = await getAllSummaries()
+    const history = await getAllHistory()
     const tags = await getAllTags()
 
-    // Step 2: Create settings.json
+    // Step 2: Create settings.json with sanitized settings
     if (onProgress) {
       onProgress({
         stage: 'creating_settings',
@@ -41,6 +143,9 @@ export async function exportDataToZip(settings, theme, onProgress) {
         progress: 30,
       })
     }
+
+    // ✅ CRITICAL FIX: Sanitize settings trước khi export
+    const cleanSettings = sanitizeSettingsForExport(settings)
 
     const settingsData = {
       metadata: {
@@ -52,11 +157,11 @@ export async function exportDataToZip(settings, theme, onProgress) {
         }`,
         counts: {
           summaries: summaries.length,
+          history: history.length,
           tags: tags.length,
         },
       },
-      settings,
-      theme,
+      settings: cleanSettings, // ✅ Use sanitized settings
     }
 
     const settingsJson = JSON.stringify(settingsData, null, 2)
@@ -71,6 +176,7 @@ export async function exportDataToZip(settings, theme, onProgress) {
     }
 
     const summariesJsonl = exportToJsonl(summaries)
+    const historyJsonl = exportToJsonl(history)
     const tagsJsonl = exportToJsonl(tags)
 
     // Step 4: Create ZIP
@@ -86,6 +192,7 @@ export async function exportDataToZip(settings, theme, onProgress) {
       {
         'settings.json': settingsJson,
         'summaries.jsonl': summariesJsonl,
+        'history.jsonl': historyJsonl,
         'tags.jsonl': tagsJsonl,
       },
       (zipProgress) => {

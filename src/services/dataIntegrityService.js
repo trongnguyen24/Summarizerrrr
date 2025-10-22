@@ -5,6 +5,7 @@ import {
   getAllTags,
   addMultipleSummaries,
   addMultipleTags,
+  addMultipleHistory,
   openDatabase,
 } from '../lib/db/indexedDBService.js'
 import { generateUUID } from '../lib/utils/utils.js'
@@ -461,7 +462,7 @@ class DataIntegrityService {
       }
 
       if (backup.data.history && backup.data.history.length > 0) {
-        await this.restoreHistoryData(backup.data.history)
+        await addMultipleHistory(backup.data.history)
       }
 
       if (backup.data.tags && backup.data.tags.length > 0) {

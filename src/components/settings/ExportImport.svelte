@@ -6,11 +6,6 @@
     updateSettings,
     forceReloadSettings,
   } from '../../stores/settingsStore.svelte.js'
-  import {
-    themeSettings,
-    updateThemeSettings,
-    forceReloadThemeSettings,
-  } from '../../stores/themeStore.svelte.js'
   import { archiveStore } from '../../stores/archiveStore.svelte.js'
   import {
     tagsCache,
@@ -20,6 +15,7 @@
   import {
     addMultipleSummaries,
     addMultipleTags,
+    addMultipleHistory,
   } from '../../lib/db/indexedDBService.js'
 
   // Import new services and components
@@ -53,7 +49,7 @@
   let importOptions = {
     dataTypes: {
       settings: true,
-      theme: true,
+      history: true,
       archive: true,
       tags: true,
     },
@@ -63,11 +59,118 @@
   // Available data types from imported file
   let availableDataTypes = []
 
+  /**
+   * Sanitizes imported settings to remove nested/corrupted data
+   * @param {Object} importedSettings - Raw imported settings
+   * @returns {Object} - Clean settings object
+   */
+  function sanitizeImportedSettings(importedSettings) {
+    // Valid setting keys (should match DEFAULT_SETTINGS in settingsStore)
+    const validSettingKeys = [
+      'selectedProvider',
+      'floatButton',
+      'floatButtonLeft',
+      'showFloatingButton',
+      'floatingPanelLeft',
+      'closePanelOnOutsideClick',
+      'geminiApiKey',
+      'selectedGeminiModel',
+      'geminiAdvancedApiKey',
+      'selectedGeminiAdvancedModel',
+      'openaiCompatibleApiKey',
+      'openaiCompatibleBaseUrl',
+      'selectedOpenAICompatibleModel',
+      'openrouterApiKey',
+      'selectedOpenrouterModel',
+      'deepseekApiKey',
+      'deepseekBaseUrl',
+      'selectedDeepseekModel',
+      'chatgptApiKey',
+      'chatgptBaseUrl',
+      'selectedChatgptModel',
+      'ollamaEndpoint',
+      'selectedOllamaModel',
+      'lmStudioEndpoint',
+      'selectedLmStudioModel',
+      'groqApiKey',
+      'selectedGroqModel',
+      'selectedFont',
+      'enableStreaming',
+      'uiLang',
+      'mobileSheetHeight',
+      'mobileSheetBackdropOpacity',
+      'fontSizeIndex',
+      'widthIndex',
+      'sidePanelDefaultWidth',
+      'oneClickSummarize',
+      'iconClickAction',
+      'fabDomainControl',
+      'firefoxPermissions',
+      'hasCompletedOnboarding',
+      'onboardingStep',
+      'summaryLength',
+      'summaryFormat',
+      'summaryLang',
+      'summaryTone',
+      'isSummaryAdvancedMode',
+      'youtubePromptSelection',
+      'youtubeCustomPromptContent',
+      'youtubeCustomSystemInstructionContent',
+      'chapterPromptSelection',
+      'chapterCustomPromptContent',
+      'chapterCustomSystemInstructionContent',
+      'webPromptSelection',
+      'webCustomPromptContent',
+      'webCustomSystemInstructionContent',
+      'courseSummaryPromptSelection',
+      'courseSummaryCustomPromptContent',
+      'courseSummaryCustomSystemInstructionContent',
+      'courseConceptsPromptSelection',
+      'courseConceptsCustomPromptContent',
+      'courseConceptsCustomSystemInstructionContent',
+      'selectedTextPromptSelection',
+      'selectedTextCustomPromptContent',
+      'selectedTextCustomSystemInstructionContent',
+      'isAdvancedMode',
+      'temperature',
+      'topP',
+    ]
+
+    // Handle nested structure - extract the deepest valid settings
+    let rawSettings = importedSettings
+
+    // If there's nested settings.settings, extract it
+    while (rawSettings.settings && typeof rawSettings.settings === 'object') {
+      console.log(
+        '[ExportImport] Detected nested settings, extracting inner layer'
+      )
+      rawSettings = rawSettings.settings
+    }
+
+    // Remove any metadata or other invalid fields
+    const cleanSettings = {}
+    validSettingKeys.forEach((key) => {
+      if (rawSettings[key] !== undefined) {
+        cleanSettings[key] = rawSettings[key]
+      }
+    })
+
+    console.log('[ExportImport] Sanitized imported settings:', {
+      originalKeys: Object.keys(importedSettings),
+      finalKeys: Object.keys(cleanSettings),
+      removedKeys: Object.keys(rawSettings).filter(
+        (key) => !validSettingKeys.includes(key)
+      ),
+    })
+
+    return cleanSettings
+  }
+
   // Enhanced export function using export service
   async function exportData() {
     try {
       // Use export service to create ZIP file
-      const zipBlob = await exportDataToZip(settings, themeSettings)
+      const zipBlob = await exportDataToZip(settings)
 
       // Generate filename and download
       const filename = generateExportFilename()
@@ -91,7 +194,6 @@
       description: 'Complete data backup from Summarizerrrr extension',
       itemCount: {
         settings: Object.keys(settings).length,
-        themes: Object.keys(themeSettings).length,
         archive: (archiveStore.archiveList || []).length,
         tags: (tagsCache.tags || []).length,
       },
@@ -137,21 +239,11 @@
             data.metadata = parsedSettingsFile.metadata
           }
 
-          // CRITICAL FIX: Extract actual settings and theme from the file structure
+          // ✅ CRITICAL FIX: Robust settings extraction and sanitization
           if (parsedSettingsFile.settings) {
-            // The issue is that parsedSettingsFile.settings still contains the whole file structure
-            // We need to check if it's nested or not
-            if (parsedSettingsFile.settings.settings) {
-              // Nested structure - extract the inner settings
-              data.settings = parsedSettingsFile.settings.settings
-            } else {
-              // Direct structure - use as is
-              data.settings = parsedSettingsFile.settings
-            }
-          }
-
-          if (parsedSettingsFile.theme) {
-            data.theme = parsedSettingsFile.theme
+            data.settings = sanitizeImportedSettings(
+              parsedSettingsFile.settings
+            )
           }
         } catch (error) {
           console.error(`Failed to parse settings: ${error.message}`)
@@ -170,6 +262,21 @@
           }
         } catch (error) {
           console.error(`Failed to parse summaries: ${error.message}`)
+        }
+      }
+
+      // Parse history.jsonl
+      if (files['history.jsonl']) {
+        try {
+          const result = importFromJsonl(files['history.jsonl'])
+          data.history = result.data
+          if (result.errors) {
+            console.warn(
+              `Some history failed to parse: ${result.errorCount} errors`
+            )
+          }
+        } catch (error) {
+          console.error(`Failed to parse history: ${error.message}`)
         }
       }
 
@@ -200,9 +307,7 @@
       // Reset import selections based on available data
       importOptions.dataTypes = {
         settings: availableDataTypes.includes('settings'),
-        theme:
-          availableDataTypes.includes('theme') ||
-          availableDataTypes.includes('themes'),
+        history: availableDataTypes.includes('history'),
         archive:
           availableDataTypes.includes('archive') ||
           availableDataTypes.includes('summaries'),
@@ -246,9 +351,7 @@
           // Reset import selections based on available data
           importOptions.dataTypes = {
             settings: availableDataTypes.includes('settings'),
-            theme:
-              availableDataTypes.includes('theme') ||
-              availableDataTypes.includes('themes'),
+            history: availableDataTypes.includes('history'),
             archive:
               availableDataTypes.includes('archive') ||
               availableDataTypes.includes('summaries'),
@@ -304,11 +407,8 @@
       data.settings = importData.settings
     }
 
-    if (
-      importOptions.dataTypes.theme &&
-      (importData.theme || importData.themes)
-    ) {
-      data.theme = importData.theme || importData.themes
+    if (importOptions.dataTypes.history && importData.history) {
+      data.history = importData.history
     }
 
     if (
@@ -348,14 +448,9 @@
         }
       }
 
-      if (importOptions.dataTypes.theme) {
-        try {
-          // Add small delay to ensure storage operations complete
-          await new Promise((resolve) => setTimeout(resolve, 100))
-          await forceReloadThemeSettings()
-        } catch (error) {
-          console.error(`Failed to reload theme settings: ${error.message}`)
-        }
+      if (importOptions.dataTypes.history) {
+        // History data will be handled by the import service
+        console.log('History data imported successfully')
       }
 
       if (importOptions.dataTypes.archive) {
@@ -379,21 +474,22 @@
   // Simple import logic (backward compatibility)
   async function performSimpleImport(importedData) {
     if (importedData.settings) {
+      // ✅ CRITICAL FIX: Sanitize imported settings before merge/replace
+      const cleanImportedSettings = sanitizeImportedSettings(
+        importedData.settings
+      )
+
       if (importOptions.mergeMode === 'replace') {
-        await updateSettings(importedData.settings)
+        await updateSettings(cleanImportedSettings)
       } else {
-        const mergedSettings = { ...settings, ...importedData.settings }
+        // Only merge clean settings
+        const mergedSettings = { ...settings, ...cleanImportedSettings }
         await updateSettings(mergedSettings)
       }
     }
 
-    if (importedData.theme) {
-      if (importOptions.mergeMode === 'replace') {
-        await updateThemeSettings(importedData.theme)
-      } else {
-        const mergedTheme = { ...themeSettings, ...importedData.theme }
-        await updateThemeSettings(mergedTheme)
-      }
+    if (importedData.history) {
+      await addMultipleHistory(importedData.history)
     }
 
     if (importedData.summaries) {
@@ -483,14 +579,14 @@
               <span class="ml-2">Settings</span>
             </label>
           {/if}
-          {#if availableDataTypes.includes('theme') || availableDataTypes.includes('themes')}
+          {#if availableDataTypes.includes('history')}
             <label class="flex items-center">
               <input
                 type="checkbox"
-                bind:checked={importOptions.dataTypes.theme}
+                bind:checked={importOptions.dataTypes.history}
                 class="form-checkbox"
               />
-              <span class="ml-2">Theme Settings</span>
+              <span class="ml-2">History</span>
             </label>
           {/if}
           {#if availableDataTypes.includes('archive') || availableDataTypes.includes('summaries')}
@@ -654,9 +750,9 @@
             class="text-center p-2 bg-white dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-600"
           >
             <div class="text-lg font-bold text-purple-600 dark:text-purple-400">
-              {importData.theme ? Object.keys(importData.theme).length : 0}
+              {(importData.history || []).length}
             </div>
-            <div class="text-xs text-gray-500 dark:text-gray-400">Theme</div>
+            <div class="text-xs text-gray-500 dark:text-gray-400">History</div>
           </div>
 
           <div

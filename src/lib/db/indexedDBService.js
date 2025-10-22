@@ -627,6 +627,28 @@ async function getTagCounts() {
   })
 }
 
+async function addMultipleHistory(historyItems) {
+  if (!db) db = await openDatabase()
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction([HISTORY_STORE_NAME], 'readwrite')
+    const objectStore = transaction.objectStore(HISTORY_STORE_NAME)
+    let count = 0
+
+    historyItems.forEach((item) => {
+      const request = objectStore.put(item)
+      request.onsuccess = () => {
+        count++
+        if (count === historyItems.length) {
+          resolve(true)
+        }
+      }
+    })
+
+    transaction.oncomplete = () => resolve(true)
+    transaction.onerror = (event) => reject(event.target.error)
+  })
+}
+
 export {
   openDatabase,
   addSummary,
@@ -642,6 +664,7 @@ export {
   updateHistory,
   updateHistoryArchivedStatus,
   moveHistoryItemToArchive,
+  addMultipleHistory,
   // New exports
   addTag,
   getAllTags,

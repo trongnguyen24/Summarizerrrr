@@ -5,6 +5,7 @@ import {
   getAllTags,
   addMultipleSummaries,
   addMultipleTags,
+  addMultipleHistory,
   updateSummary,
   updateTag,
   getSummaryById,
@@ -36,7 +37,6 @@ class SmartMergeService {
       HISTORY: 'history',
       TAGS: 'tags',
       SETTINGS: 'settings',
-      THEMES: 'themes',
     }
 
     this.currentMergeSession = null
@@ -82,7 +82,6 @@ class SmartMergeService {
           history: { added: 0, updated: 0, skipped: 0, conflicts: 0 },
           tags: { added: 0, updated: 0, skipped: 0, conflicts: 0 },
           settings: { added: 0, updated: 0, skipped: 0, conflicts: 0 },
-          themes: { added: 0, updated: 0, skipped: 0, conflicts: 0 },
         },
       }
 
@@ -454,58 +453,6 @@ class SmartMergeService {
   }
 
   /**
-   * Merge themes with conflict resolution
-   * @param {Object} importedThemes - Themes to merge
-   * @param {Object} resolutions - User resolutions
-   */
-  async mergeThemes(importedThemes, resolutions) {
-    // Get current themes from settings
-    const currentThemes = settings.customThemes || {}
-
-    for (const [themeName, themeData] of Object.entries(importedThemes)) {
-      const conflictId = `theme_${themeName}`
-      const resolution = resolutions[conflictId] || this.mergeStrategies.MERGE
-
-      if (currentThemes.hasOwnProperty(themeName)) {
-        switch (resolution) {
-          case this.mergeStrategies.KEEP_EXISTING:
-            this.currentMergeSession.results.themes.skipped++
-            break
-
-          case this.mergeStrategies.USE_IMPORTED:
-            currentThemes[themeName] = themeData
-            this.currentMergeSession.results.themes.updated++
-            break
-
-          case this.mergeStrategies.KEEP_BOTH:
-            // Create new theme with modified name
-            const newThemeName = `${themeName} (Imported)`
-            currentThemes[newThemeName] = themeData
-            this.currentMergeSession.results.themes.added++
-            break
-
-          case this.mergeStrategies.MERGE:
-          default:
-            // Merge theme properties
-            currentThemes[themeName] = this.mergeThemeData(
-              currentThemes[themeName],
-              themeData
-            )
-            this.currentMergeSession.results.themes.updated++
-            break
-        }
-      } else {
-        // New theme - just add it
-        currentThemes[themeName] = themeData
-        this.currentMergeSession.results.themes.added++
-      }
-    }
-
-    // Update settings with merged themes
-    await updateSettings({ customThemes: currentThemes })
-  }
-
-  /**
    * Merge summary data intelligently
    * @param {Object} existing - Existing summary
    * @param {Object} imported - Imported summary
@@ -789,8 +736,6 @@ class SmartMergeService {
           await this.mergeTags(importedData.tags, resolutions)
         if (importedData.settings)
           await this.mergeSettings(importedData.settings, resolutions)
-        if (importedData.themes)
-          await this.mergeThemes(importedData.themes, resolutions)
 
         this.currentMergeSession.status = 'completed'
         this.currentMergeSession.endTime = new Date().toISOString()

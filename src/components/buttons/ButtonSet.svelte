@@ -5,12 +5,12 @@
 <button
   type="button"
   title={Description}
-  class={`w-full relative group ${className}`}
+  class={`w-full relative overflow-hidden group ${className}`}
   {onclick}
   {...rest}
 >
   <div
-    class="relative overflow-hidden flex flex-col gap-0 px-3 text-text-secondary text-left py-2 font-mono bg-muted/5 dark:bg-muted/5 border border-transparent hover:border-blackwhite/15 focus:border-blackwhite/30 dark:focus:border-blackwhite/10 focus:outline-none focus:ring-0 transition-colors duration-150"
+    class="relative overflow-hidden flex flex-col gap-0 px-3 text-text-secondary text-left py-2 font-mono bg-muted/5 dark:bg-muted/5 border border-transparent hover:border-blackwhite/15 focus:border-blackwhite/30 h-9 dark:focus:border-blackwhite/10 focus:outline-none focus:ring-0 transition-colors duration-150"
   >
     <div class="title">
       <span class="line-clamp-1 text-xs block">{title}</span>
@@ -25,7 +25,7 @@
 
 <style>
   button {
-    clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 10px 100%, 0% 24px);
+    clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 10px 100%, 0% 26px);
   }
   button.active div .title {
     color: var(--color-text-primary);

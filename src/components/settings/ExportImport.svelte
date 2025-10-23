@@ -37,6 +37,8 @@
     extractFilesFromZip,
   } from '../../lib/exportImport/zipService.js'
   import { importFromJsonl } from '../../lib/exportImport/jsonlService.js'
+  import SwitchPermission from '../inputs/SwitchPermission.svelte'
+  import ButtonSet from '../buttons/ButtonSet.svelte'
 
   // State management
   let showImportModal = false
@@ -558,56 +560,44 @@
 <!-- Import Options Modal -->
 {#if showImportModal}
   <div
-    class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+    class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[99999]"
   >
     <div
-      class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-2xl max-h-[80vh] overflow-y-auto"
+      class=" bg-surface-1 p-6 rounded-lg shadow-lg w-full max-w-2xl max-h-[80vh] overflow-y-auto"
     >
-      <h2 class="text-xl font-bold mb-4">Import Options</h2>
+      <h2 class="font-bold mb-4">Import Options</h2>
 
       <!-- Data Type Selection -->
       <div class="mb-6">
-        <h3 class="text-lg font-medium mb-3">Select Data Types to Import</h3>
-        <div class="space-y-2">
+        <h3 class="font-medium mb-3">Select Data Types to Import</h3>
+        <div class=" grid grid-cols-2 gap-2">
           {#if availableDataTypes.includes('settings')}
-            <label class="flex items-center">
-              <input
-                type="checkbox"
-                bind:checked={importOptions.dataTypes.settings}
-                class="form-checkbox"
-              />
-              <span class="ml-2">Settings</span>
-            </label>
+            <SwitchPermission
+              id="settings-switch"
+              name="Settings"
+              bind:checked={importOptions.dataTypes.settings}
+            />
           {/if}
           {#if availableDataTypes.includes('history')}
-            <label class="flex items-center">
-              <input
-                type="checkbox"
-                bind:checked={importOptions.dataTypes.history}
-                class="form-checkbox"
-              />
-              <span class="ml-2">History</span>
-            </label>
+            <SwitchPermission
+              id="history-switch"
+              name="History"
+              bind:checked={importOptions.dataTypes.history}
+            />
           {/if}
           {#if availableDataTypes.includes('archive') || availableDataTypes.includes('summaries')}
-            <label class="flex items-center">
-              <input
-                type="checkbox"
-                bind:checked={importOptions.dataTypes.archive}
-                class="form-checkbox"
-              />
-              <span class="ml-2">Archive/Summaries</span>
-            </label>
+            <SwitchPermission
+              id="archive-switch"
+              name="Archive"
+              bind:checked={importOptions.dataTypes.archive}
+            />
           {/if}
           {#if availableDataTypes.includes('tags')}
-            <label class="flex items-center">
-              <input
-                type="checkbox"
-                bind:checked={importOptions.dataTypes.tags}
-                class="form-checkbox"
-              />
-              <span class="ml-2">Tags</span>
-            </label>
+            <SwitchPermission
+              id="tags-switch"
+              name="Tags"
+              bind:checked={importOptions.dataTypes.tags}
+            />
           {/if}
         </div>
       </div>
@@ -615,63 +605,24 @@
       <!-- Merge Mode Selection -->
       <div class="mb-6">
         <h3 class="text-lg font-medium mb-3">Import Mode</h3>
-        <select
-          bind:value={importOptions.mergeMode}
-          class="w-full p-2 border border-gray-300 rounded-md dark:bg-gray-700 dark:border-gray-600"
-        >
-          <option value="merge">Merge with existing data</option>
-          <option value="replace">Replace existing data</option>
-        </select>
-      </div>
-
-      <!-- Version Comparison -->
-      <div
-        class="mb-6 p-3 bg-gray-50 dark:bg-gray-700/30 border border-gray-200 dark:border-gray-600 rounded"
-      >
-        <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Version Compatibility
-        </h3>
-
-        <div class="space-y-1 text-sm">
-          <div class="flex justify-between">
-            <span class="text-gray-500 dark:text-gray-400">Current:</span>
-            <span class="text-gray-900 dark:text-white">
-              v{chrome.runtime.getManifest().version}
-            </span>
-          </div>
-          <div class="flex justify-between">
-            <span class="text-gray-500 dark:text-gray-400">Import file:</span>
-            <span class="text-gray-900 dark:text-white">
-              {importData &&
-              importData.metadata &&
-              importData.metadata.exportedBy
-                ? importData.metadata.exportedBy.replace(
-                    'Summarizerrrr Extension v',
-                    'v'
-                  )
-                : 'Unknown'}
-            </span>
-          </div>
+        <div class="grid w-full grid-cols-2 gap-1">
+          <ButtonSet
+            title="Merge with existing data"
+            class="setting-btn {importOptions.mergeMode === 'merge'
+              ? 'active'
+              : ''}"
+            onclick={() => (importOptions.mergeMode = 'merge')}
+            Description="Combine imported data with existing data"
+          />
+          <ButtonSet
+            title="Replace existing data"
+            class="setting-btn {importOptions.mergeMode === 'replace'
+              ? 'active'
+              : ''}"
+            onclick={() => (importOptions.mergeMode = 'replace')}
+            Description="Replace all existing data with imported data"
+          />
         </div>
-
-        {#if importData && importData.metadata && importData.metadata.exportedBy}
-          {@const currentVersion = chrome.runtime.getManifest().version}
-          {@const importedVersion = importData.metadata.exportedBy.replace(
-            'Summarizerrrr Extension v',
-            ''
-          )}
-          <div class="mt-2 text-xs">
-            {#if currentVersion === importedVersion}
-              <span class="text-green-600 dark:text-green-400"
-                >✓ Compatible</span
-              >
-            {:else}
-              <span class="text-yellow-600 dark:text-yellow-400"
-                >⚠ Different versions</span
-              >
-            {/if}
-          </div>
-        {/if}
       </div>
 
       <!-- File Information -->

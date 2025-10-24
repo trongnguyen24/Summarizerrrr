@@ -659,73 +659,41 @@
                 </span>
               </div>
             {/if}
+            <div class="flex justify-between">
+              <span class="text-gray-500 dark:text-gray-400">Settings:</span>
+              <span class="text-gray-900 dark:text-white">
+                {importData.settings
+                  ? Object.keys(importData.settings).length
+                  : 0}
+              </span>
+            </div>
+
+            <div class="flex justify-between">
+              <span class="text-gray-500 dark:text-gray-400">History:</span>
+              <span class="text-gray-900 dark:text-white">
+                {(importData.history || []).length}
+              </span>
+            </div>
+
+            <div class="flex justify-between">
+              <span class="text-gray-500 dark:text-gray-400">Summaries:</span>
+              <span class="text-gray-900 dark:text-white">
+                {(importData.summaries || importData.archive || []).length}
+              </span>
+            </div>
+
+            <div class="flex justify-between">
+              <span class="text-gray-500 dark:text-gray-400">Tags:</span>
+              <span class="text-gray-900 dark:text-white">
+                {importData.tags ? importData.tags.length : 0}
+              </span>
+            </div>
           </div>
         {:else}
           <div class="text-sm text-gray-500 dark:text-gray-400">
             No file information available.
           </div>
         {/if}
-      </div>
-
-      <!-- Data Summary -->
-      <div
-        class="mb-6 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg"
-      >
-        <h3
-          class="text-sm font-semibold text-green-900 dark:text-green-100 mb-3 flex items-center"
-        >
-          <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-            <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"></path>
-            <path
-              fill-rule="evenodd"
-              d="M4 5a2 2 0 012-2 1 1 0 000 2H6a2 2 0 100 4h2a2 2 0 100-4h-.5a1 1 0 000-2H8a2 2 0 012-2h2a2 2 0 012 2v9a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z"
-              clip-rule="evenodd"
-            ></path>
-          </svg>
-          Data Summary
-        </h3>
-
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
-          <div
-            class="text-center p-2 bg-white dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-600"
-          >
-            <div class="text-lg font-bold text-blue-600 dark:text-blue-400">
-              {importData.settings
-                ? Object.keys(importData.settings).length
-                : 0}
-            </div>
-            <div class="text-xs text-gray-500 dark:text-gray-400">Settings</div>
-          </div>
-
-          <div
-            class="text-center p-2 bg-white dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-600"
-          >
-            <div class="text-lg font-bold text-purple-600 dark:text-purple-400">
-              {(importData.history || []).length}
-            </div>
-            <div class="text-xs text-gray-500 dark:text-gray-400">History</div>
-          </div>
-
-          <div
-            class="text-center p-2 bg-white dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-600"
-          >
-            <div class="text-lg font-bold text-green-600 dark:text-green-400">
-              {(importData.summaries || importData.archive || []).length}
-            </div>
-            <div class="text-xs text-gray-500 dark:text-gray-400">
-              Summaries
-            </div>
-          </div>
-
-          <div
-            class="text-center p-2 bg-white dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-600"
-          >
-            <div class="text-lg font-bold text-orange-600 dark:text-orange-400">
-              {importData.tags ? importData.tags.length : 0}
-            </div>
-            <div class="text-xs text-gray-500 dark:text-gray-400">Tags</div>
-          </div>
-        </div>
       </div>
 
       <!-- Actions -->

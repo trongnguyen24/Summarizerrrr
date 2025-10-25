@@ -40,6 +40,11 @@
   import SwitchPermission from '../inputs/SwitchPermission.svelte'
   import ButtonSet from '../buttons/ButtonSet.svelte'
 
+  // Import bit-ui Dialog and transitions
+  import { Dialog } from 'bits-ui'
+  import { fade } from 'svelte/transition'
+  import { slideScaleFade } from '@/lib/ui/slideScaleFade.js'
+
   // State management
   let showImportModal = false
   let importData = null
@@ -208,6 +213,9 @@
     if (!file) return
 
     try {
+      // Reset previous state before processing new file
+      resetImportState()
+
       // Detect if file is ZIP or JSON
       const isZip = await isZipFile(file)
 
@@ -219,6 +227,9 @@
     } catch (error) {
       errorMessage = `File processing failed: ${error.message}`
       setTimeout(() => (errorMessage = ''), 5000)
+
+      // Reset file input on error
+      event.target.value = ''
     }
   }
 
@@ -509,17 +520,28 @@
     validationResults = null
     availableDataTypes = []
 
-    // Reset file input
-    const fileInput = document.querySelector('input[type="file"]')
-    if (fileInput) {
-      fileInput.value = ''
+    // Reset import options to default
+    importOptions.dataTypes = {
+      settings: true,
+      history: true,
+      archive: true,
+      tags: true,
     }
+    importOptions.mergeMode = 'merge'
   }
 
   // Cancel import process
   function cancelImport() {
     showImportModal = false
     resetImportState()
+
+    // Reset file input after dialog closes
+    setTimeout(() => {
+      const fileInput = document.querySelector('input[type="file"]')
+      if (fileInput) {
+        fileInput.value = ''
+      }
+    }, 100)
   }
 </script>
 
@@ -558,155 +580,202 @@
 </div>
 
 <!-- Import Options Modal -->
-{#if showImportModal}
-  <div
-    class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[99999]"
-  >
-    <div
-      class=" bg-surface-1 p-6 rounded-lg shadow-lg w-full max-w-2xl max-h-[80vh] overflow-y-auto"
+<Dialog.Root bind:open={showImportModal}>
+  <Dialog.Portal>
+    <Dialog.Overlay class="fixed inset-0 z-[99] bg-black/80" forceMount>
+      {#snippet child({ props, open })}
+        {#if open}
+          <div {...props} transition:fade></div>
+        {/if}
+      {/snippet}
+    </Dialog.Overlay>
+    <Dialog.Content
+      forceMount
+      class="outline-hidden fixed left-[50%] top-1/2 w-[calc(100vw-32px)] max-w-2xl z-[150] -translate-y-1/2 translate-x-[-50%]"
+      onOpenAutoFocus={(e) => {
+        e.preventDefault()
+      }}
     >
-      <h2 class="font-bold mb-4">Import Options</h2>
+      {#snippet child({ props, open })}
+        {#if open}
+          <div
+            {...props}
+            transition:slideScaleFade={{
+              duration: 300,
+              slideFrom: 'bottom',
+              slideDistance: '0rem',
+              startScale: 0.95,
+            }}
+          >
+            <div
+              class="bg-surface-1 p-6 rounded-lg shadow-lg max-h-[80vh] overflow-y-auto"
+            >
+              <h2 class="font-bold mb-4">Import Options</h2>
 
-      <!-- Data Type Selection -->
-      <div class="mb-6">
-        <h3 class="font-medium mb-3">Select Data Types to Import</h3>
-        <div class=" grid grid-cols-2 gap-2">
-          {#if availableDataTypes.includes('settings')}
-            <SwitchPermission
-              id="settings-switch"
-              name="Settings"
-              bind:checked={importOptions.dataTypes.settings}
-            />
-          {/if}
-          {#if availableDataTypes.includes('history')}
-            <SwitchPermission
-              id="history-switch"
-              name="History"
-              bind:checked={importOptions.dataTypes.history}
-            />
-          {/if}
-          {#if availableDataTypes.includes('archive') || availableDataTypes.includes('summaries')}
-            <SwitchPermission
-              id="archive-switch"
-              name="Archive"
-              bind:checked={importOptions.dataTypes.archive}
-            />
-          {/if}
-          {#if availableDataTypes.includes('tags')}
-            <SwitchPermission
-              id="tags-switch"
-              name="Tags"
-              bind:checked={importOptions.dataTypes.tags}
-            />
-          {/if}
-        </div>
-      </div>
-
-      <!-- Merge Mode Selection -->
-      <div class="mb-6">
-        <h3 class="text-lg font-medium mb-3">Import Mode</h3>
-        <div class="grid w-full grid-cols-2 gap-1">
-          <ButtonSet
-            title="Merge with existing data"
-            class="setting-btn {importOptions.mergeMode === 'merge'
-              ? 'active'
-              : ''}"
-            onclick={() => (importOptions.mergeMode = 'merge')}
-            Description="Combine imported data with existing data"
-          />
-          <ButtonSet
-            title="Replace existing data"
-            class="setting-btn {importOptions.mergeMode === 'replace'
-              ? 'active'
-              : ''}"
-            onclick={() => (importOptions.mergeMode = 'replace')}
-            Description="Replace all existing data with imported data"
-          />
-        </div>
-      </div>
-
-      <!-- File Information -->
-      <div
-        class="mb-6 p-3 bg-gray-50 dark:bg-gray-700/30 border border-gray-200 dark:border-gray-600 rounded"
-      >
-        <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          File Information
-        </h3>
-
-        {#if importData && importData.metadata}
-          <div class="space-y-1 text-sm">
-            <div class="flex justify-between">
-              <span class="text-gray-500 dark:text-gray-400">Exported:</span>
-              <span class="text-gray-900 dark:text-white">
-                {importData.metadata.exportedAt
-                  ? new Date(
-                      importData.metadata.exportedAt
-                    ).toLocaleDateString()
-                  : 'Unknown'}
-              </span>
-            </div>
-            <div class="flex justify-between">
-              <span class="text-gray-500 dark:text-gray-400">Version:</span>
-              <span class="text-gray-900 dark:text-white">
-                {importData.metadata.exportedBy || 'Unknown'}
-              </span>
-            </div>
-            {#if importData.metadata.format}
-              <div class="flex justify-between">
-                <span class="text-gray-500 dark:text-gray-400">Format:</span>
-                <span class="text-gray-900 dark:text-white">
-                  {importData.metadata.format}
-                </span>
+              <!-- Data Type Selection -->
+              <div class="mb-6">
+                <h3 class="font-medium mb-3">Select Data Types to Import</h3>
+                <div class="grid grid-cols-2 gap-2">
+                  {#if availableDataTypes.includes('settings')}
+                    <SwitchPermission
+                      id="settings-switch"
+                      name="Settings"
+                      bind:checked={importOptions.dataTypes.settings}
+                    />
+                  {/if}
+                  {#if availableDataTypes.includes('history')}
+                    <SwitchPermission
+                      id="history-switch"
+                      name="History"
+                      bind:checked={importOptions.dataTypes.history}
+                    />
+                  {/if}
+                  {#if availableDataTypes.includes('archive') || availableDataTypes.includes('summaries')}
+                    <SwitchPermission
+                      id="archive-switch"
+                      name="Archive"
+                      bind:checked={importOptions.dataTypes.archive}
+                    />
+                  {/if}
+                  {#if availableDataTypes.includes('tags')}
+                    <SwitchPermission
+                      id="tags-switch"
+                      name="Tags"
+                      bind:checked={importOptions.dataTypes.tags}
+                    />
+                  {/if}
+                </div>
               </div>
-            {/if}
-            <div class="flex justify-between">
-              <span class="text-gray-500 dark:text-gray-400">Settings:</span>
-              <span class="text-gray-900 dark:text-white">
-                {importData.settings
-                  ? Object.keys(importData.settings).length
-                  : 0}
-              </span>
-            </div>
 
-            <div class="flex justify-between">
-              <span class="text-gray-500 dark:text-gray-400">History:</span>
-              <span class="text-gray-900 dark:text-white">
-                {(importData.history || []).length}
-              </span>
-            </div>
+              <!-- Merge Mode Selection -->
+              <div class="mb-6">
+                <h3 class="text-lg font-medium mb-3">Import Mode</h3>
+                <div class="grid w-full grid-cols-2 gap-1">
+                  <ButtonSet
+                    title="Merge with existing data"
+                    class="setting-btn {importOptions.mergeMode === 'merge'
+                      ? 'active'
+                      : ''}"
+                    onclick={() => (importOptions.mergeMode = 'merge')}
+                    Description="Combine imported data with existing data"
+                  />
+                  <ButtonSet
+                    title="Replace existing data"
+                    class="setting-btn {importOptions.mergeMode === 'replace'
+                      ? 'active'
+                      : ''}"
+                    onclick={() => (importOptions.mergeMode = 'replace')}
+                    Description="Replace all existing data with imported data"
+                  />
+                </div>
+              </div>
 
-            <div class="flex justify-between">
-              <span class="text-gray-500 dark:text-gray-400">Summaries:</span>
-              <span class="text-gray-900 dark:text-white">
-                {(importData.summaries || importData.archive || []).length}
-              </span>
-            </div>
+              <!-- File Information -->
+              <div
+                class="mb-6 p-3 bg-gray-50 dark:bg-gray-700/30 border border-gray-200 dark:border-gray-600 rounded"
+              >
+                <h3
+                  class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                >
+                  File Information
+                </h3>
 
-            <div class="flex justify-between">
-              <span class="text-gray-500 dark:text-gray-400">Tags:</span>
-              <span class="text-gray-900 dark:text-white">
-                {importData.tags ? importData.tags.length : 0}
-              </span>
+                {#if importData && importData.metadata}
+                  <div class="space-y-1 text-sm">
+                    <div class="flex justify-between">
+                      <span class="text-gray-500 dark:text-gray-400"
+                        >Exported:</span
+                      >
+                      <span class="text-gray-900 dark:text-white">
+                        {importData.metadata.exportedAt
+                          ? new Date(
+                              importData.metadata.exportedAt
+                            ).toLocaleDateString()
+                          : 'Unknown'}
+                      </span>
+                    </div>
+                    <div class="flex justify-between">
+                      <span class="text-gray-500 dark:text-gray-400"
+                        >Version:</span
+                      >
+                      <span class="text-gray-900 dark:text-white">
+                        {importData.metadata.exportedBy || 'Unknown'}
+                      </span>
+                    </div>
+                    {#if importData.metadata.format}
+                      <div class="flex justify-between">
+                        <span class="text-gray-500 dark:text-gray-400"
+                          >Format:</span
+                        >
+                        <span class="text-gray-900 dark:text-white">
+                          {importData.metadata.format}
+                        </span>
+                      </div>
+                    {/if}
+                    <div class="flex justify-between">
+                      <span class="text-gray-500 dark:text-gray-400"
+                        >Settings:</span
+                      >
+                      <span class="text-gray-900 dark:text-white">
+                        {importData.settings
+                          ? Object.keys(importData.settings).length
+                          : 0}
+                      </span>
+                    </div>
+
+                    <div class="flex justify-between">
+                      <span class="text-gray-500 dark:text-gray-400"
+                        >History:</span
+                      >
+                      <span class="text-gray-900 dark:text-white">
+                        {(importData.history || []).length}
+                      </span>
+                    </div>
+
+                    <div class="flex justify-between">
+                      <span class="text-gray-500 dark:text-gray-400"
+                        >Summaries:</span
+                      >
+                      <span class="text-gray-900 dark:text-white">
+                        {(importData.summaries || importData.archive || [])
+                          .length}
+                      </span>
+                    </div>
+
+                    <div class="flex justify-between">
+                      <span class="text-gray-500 dark:text-gray-400">Tags:</span
+                      >
+                      <span class="text-gray-900 dark:text-white">
+                        {importData.tags ? importData.tags.length : 0}
+                      </span>
+                    </div>
+                  </div>
+                {:else}
+                  <div class="text-sm text-gray-500 dark:text-gray-400">
+                    No file information available.
+                  </div>
+                {/if}
+              </div>
+
+              <!-- Actions -->
+              <div class="flex justify-end gap-4">
+                <button on:click={cancelImport} class="btn btn-ghost"
+                  >Cancel</button
+                >
+                <button
+                  on:click={startImport}
+                  class="btn btn-primary"
+                  disabled={!Object.values(importOptions.dataTypes).some(
+                    Boolean
+                  )}
+                >
+                  Start Import
+                </button>
+              </div>
             </div>
-          </div>
-        {:else}
-          <div class="text-sm text-gray-500 dark:text-gray-400">
-            No file information available.
           </div>
         {/if}
-      </div>
-
-      <!-- Actions -->
-      <div class="flex justify-end gap-4">
-        <button on:click={cancelImport} class="btn btn-ghost">Cancel</button>
-        <button
-          on:click={startImport}
-          class="btn btn-primary"
-          disabled={!Object.values(importOptions.dataTypes).some(Boolean)}
-        >
-          Start Import
-        </button>
-      </div>
-    </div>
-  </div>
-{/if}
+      {/snippet}
+    </Dialog.Content>
+  </Dialog.Portal>
+</Dialog.Root>

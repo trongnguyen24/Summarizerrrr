@@ -44,6 +44,8 @@
   import { Dialog } from 'bits-ui'
   import { fade } from 'svelte/transition'
   import { slideScaleFade } from '@/lib/ui/slideScaleFade.js'
+  import Icon from '@iconify/svelte'
+  import Preview from '../ui/Preview.svelte'
 
   // State management
   let showImportModal = false
@@ -546,9 +548,7 @@
 </script>
 
 <div class="p-4 border-t border-gray-200 dark:border-gray-700">
-  <h3 class="text-lg font-medium text-gray-900 dark:text-white">
-    Export/Import Data
-  </h3>
+  <h3 class=" font-medium text-text-secondary">Export/Import Data</h3>
 
   <!-- Success/Error Messages -->
   {#if successMessage}
@@ -566,14 +566,14 @@
   {/if}
 
   <div class="mt-4 flex gap-4">
-    <button on:click={exportData} class="btn btn-primary">Export Data</button>
+    <button onclick={exportData} class="btn btn-primary">Export Data</button>
     <label class="btn btn-secondary">
       Import Data
       <input
         type="file"
         class="hidden"
         accept=".json,.zip"
-        on:change={handleFileSelect}
+        onchange={handleFileSelect}
       />
     </label>
   </div>
@@ -591,7 +591,7 @@
     </Dialog.Overlay>
     <Dialog.Content
       forceMount
-      class="outline-hidden fixed left-[50%] top-1/2 w-[calc(100vw-32px)] max-w-2xl z-[150] -translate-y-1/2 translate-x-[-50%]"
+      class="outline-hidden font-mono fixed left-[50%] top-1/2 w-[calc(100vw-32px)] max-w-2xl z-[150] -translate-y-1/2 translate-x-[-50%]"
       onOpenAutoFocus={(e) => {
         e.preventDefault()
       }}
@@ -607,49 +607,119 @@
               startScale: 0.95,
             }}
           >
+            <div class="absolute z-10 right-3 top-2.5 group flex gap-2">
+              <span class="block size-3.5 bg-muted/15 rounded-full"></span>
+              <span class="block size-3.5 bg-muted/15 rounded-full"></span>
+              <!-- svelte-ignore a11y_consider_explicit_label -->
+              <button
+                class="block size-3.5 bg-error rounded-full"
+                onclick={cancelImport}
+              >
+                <Icon
+                  class="text-red-800 transition-opacity duration-150"
+                  width={14}
+                  icon="heroicons:x-mark-16-solid"
+                />
+              </button>
+            </div>
             <div
-              class="bg-surface-1 p-6 rounded-lg shadow-lg max-h-[80vh] overflow-y-auto"
+              class="bg-surface-1 flex flex-col gap-4 text-xs rounded-lg shadow-lg max-h-[80vh] overflow-y-auto"
             >
-              <h2 class="font-bold mb-4">Import Options</h2>
+              <div
+                class="px-4 bg-surface-1 dark:bg-surface-2 py-2 border-b-0 border-border"
+              >
+                <p class="!text-center select-none">Import Options</p>
+              </div>
+
+              <div class=" px-6">
+                <Preview
+                  title="File Information"
+                  class=" w-full p-6 pl-48  mx-auto"
+                >
+                  <div class=" grid grid-cols-2 gap-x-12 gap-y-2">
+                    <div class="flex justify-between">
+                      <span class=" text-text-primary">Exported:</span>
+                      <span class=" text-text-secondary">
+                        {importData.metadata.exportedAt
+                          ? new Date(
+                              importData.metadata.exportedAt
+                            ).toLocaleDateString()
+                          : 'Unknown'}
+                      </span>
+                    </div>
+                    <div class="flex justify-between">
+                      <span class=" text-text-primary">Version:</span>
+                      <span class=" text-text-zsecondary">
+                        {importData.metadata.exportedBy || 'Unknown'}
+                      </span>
+                    </div>
+                    <div class="flex justify-between">
+                      <span class=" text-text-primary">Settings:</span>
+                      <span class=" text-text-secondary">
+                        {importData.settings
+                          ? Object.keys(importData.settings).length
+                          : 0}
+                      </span>
+                    </div>
+
+                    <div class="flex justify-between">
+                      <span class=" text-text-primary">History:</span>
+                      <span class=" text-text-secondary">
+                        {(importData.history || []).length}
+                      </span>
+                    </div>
+
+                    <div class="flex justify-between">
+                      <span class=" text-text-primary">Summaries:</span>
+                      <span class=" text-text-secondary">
+                        {(importData.summaries || importData.archive || [])
+                          .length}
+                      </span>
+                    </div>
+
+                    <div class="flex justify-between">
+                      <span class=" text-text-primary">Tags:</span>
+                      <span class=" text-text-secondary">
+                        {importData.tags ? importData.tags.length : 0}
+                      </span>
+                    </div>
+                  </div>
+                </Preview>
+              </div>
 
               <!-- Data Type Selection -->
-              <div class="mb-6">
-                <h3 class="font-medium mb-3">Select Data Types to Import</h3>
+              <div class=" flex px-6 py-1 flex-col gap-2">
+                <h3 class="font-medium">Select Data Types to Import</h3>
                 <div class="grid grid-cols-2 gap-2">
-                  {#if availableDataTypes.includes('settings')}
-                    <SwitchPermission
-                      id="settings-switch"
-                      name="Settings"
-                      bind:checked={importOptions.dataTypes.settings}
-                    />
-                  {/if}
-                  {#if availableDataTypes.includes('history')}
-                    <SwitchPermission
-                      id="history-switch"
-                      name="History"
-                      bind:checked={importOptions.dataTypes.history}
-                    />
-                  {/if}
-                  {#if availableDataTypes.includes('archive') || availableDataTypes.includes('summaries')}
-                    <SwitchPermission
-                      id="archive-switch"
-                      name="Archive"
-                      bind:checked={importOptions.dataTypes.archive}
-                    />
-                  {/if}
-                  {#if availableDataTypes.includes('tags')}
-                    <SwitchPermission
-                      id="tags-switch"
-                      name="Tags"
-                      bind:checked={importOptions.dataTypes.tags}
-                    />
-                  {/if}
+                  <SwitchPermission
+                    id="settings-switch"
+                    name="Settings"
+                    bind:checked={importOptions.dataTypes.settings}
+                  />
+
+                  <SwitchPermission
+                    id="history-switch"
+                    name="History"
+                    bind:checked={importOptions.dataTypes.history}
+                  />
+
+                  <SwitchPermission
+                    id="archive-switch"
+                    name="Archive"
+                    bind:checked={importOptions.dataTypes.archive}
+                  />
+
+                  <SwitchPermission
+                    id="tags-switch"
+                    name="Tags"
+                    bind:checked={importOptions.dataTypes.tags}
+                  />
                 </div>
               </div>
 
               <!-- Merge Mode Selection -->
-              <div class="mb-6">
-                <h3 class="text-lg font-medium mb-3">Import Mode</h3>
+              <div class="flex px-6 py-1 flex-col gap-2">
+                <h3 class=" font-medium">Import Mode</h3>
                 <div class="grid w-full grid-cols-2 gap-1">
                   <ButtonSet
                     title="Merge with existing data"
@@ -670,100 +740,13 @@
                 </div>
               </div>
 
-              <!-- File Information -->
-              <div
-                class="mb-6 p-3 bg-gray-50 dark:bg-gray-700/30 border border-gray-200 dark:border-gray-600 rounded"
-              >
-                <h3
-                  class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                >
-                  File Information
-                </h3>
-
-                {#if importData && importData.metadata}
-                  <div class="space-y-1 text-sm">
-                    <div class="flex justify-between">
-                      <span class="text-gray-500 dark:text-gray-400"
-                        >Exported:</span
-                      >
-                      <span class="text-gray-900 dark:text-white">
-                        {importData.metadata.exportedAt
-                          ? new Date(
-                              importData.metadata.exportedAt
-                            ).toLocaleDateString()
-                          : 'Unknown'}
-                      </span>
-                    </div>
-                    <div class="flex justify-between">
-                      <span class="text-gray-500 dark:text-gray-400"
-                        >Version:</span
-                      >
-                      <span class="text-gray-900 dark:text-white">
-                        {importData.metadata.exportedBy || 'Unknown'}
-                      </span>
-                    </div>
-                    {#if importData.metadata.format}
-                      <div class="flex justify-between">
-                        <span class="text-gray-500 dark:text-gray-400"
-                          >Format:</span
-                        >
-                        <span class="text-gray-900 dark:text-white">
-                          {importData.metadata.format}
-                        </span>
-                      </div>
-                    {/if}
-                    <div class="flex justify-between">
-                      <span class="text-gray-500 dark:text-gray-400"
-                        >Settings:</span
-                      >
-                      <span class="text-gray-900 dark:text-white">
-                        {importData.settings
-                          ? Object.keys(importData.settings).length
-                          : 0}
-                      </span>
-                    </div>
-
-                    <div class="flex justify-between">
-                      <span class="text-gray-500 dark:text-gray-400"
-                        >History:</span
-                      >
-                      <span class="text-gray-900 dark:text-white">
-                        {(importData.history || []).length}
-                      </span>
-                    </div>
-
-                    <div class="flex justify-between">
-                      <span class="text-gray-500 dark:text-gray-400"
-                        >Summaries:</span
-                      >
-                      <span class="text-gray-900 dark:text-white">
-                        {(importData.summaries || importData.archive || [])
-                          .length}
-                      </span>
-                    </div>
-
-                    <div class="flex justify-between">
-                      <span class="text-gray-500 dark:text-gray-400">Tags:</span
-                      >
-                      <span class="text-gray-900 dark:text-white">
-                        {importData.tags ? importData.tags.length : 0}
-                      </span>
-                    </div>
-                  </div>
-                {:else}
-                  <div class="text-sm text-gray-500 dark:text-gray-400">
-                    No file information available.
-                  </div>
-                {/if}
-              </div>
-
               <!-- Actions -->
               <div class="flex justify-end gap-4">
-                <button on:click={cancelImport} class="btn btn-ghost"
+                <button onclick={cancelImport} class="btn btn-ghost"
                   >Cancel</button
                 >
                 <button
-                  on:click={startImport}
+                  onclick={startImport}
                   class="btn btn-primary"
                   disabled={!Object.values(importOptions.dataTypes).some(
                     Boolean

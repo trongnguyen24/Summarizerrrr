@@ -152,9 +152,7 @@ export async function exportDataToZip(settings, onProgress) {
         version: '2.0.0',
         format: 'zip-jsonl',
         exportedAt: new Date().toISOString(),
-        exportedBy: `Summarizerrrr Extension v${
-          chrome.runtime.getManifest().version
-        }`,
+        exportedBy: `v${chrome.runtime.getManifest().version}`,
         counts: {
           summaries: summaries.length,
           history: history.length,

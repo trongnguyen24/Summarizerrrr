@@ -14,6 +14,7 @@ import {
 } from '@/lib/db/indexedDBService'
 import { exportToJsonl } from './jsonlService.js'
 import { createZipFromFiles } from './zipService.js'
+import { sanitizeSettings } from '@/lib/config/settingsSchema.js'
 
 /**
  * Export all data to ZIP format
@@ -21,103 +22,6 @@ import { createZipFromFiles } from './zipService.js'
  * @param {Function} onProgress - Progress callback
  * @returns {Promise<Blob>} - ZIP blob
  */
-/**
- * Sanitizes settings object to only include valid fields from DEFAULT_SETTINGS
- * This prevents nested/corrupted data from being exported
- * @param {Object} rawSettings - Raw settings object
- * @returns {Object} - Clean settings object
- */
-function sanitizeSettingsForExport(rawSettings) {
-  // Define valid setting keys (from DEFAULT_SETTINGS in settingsStore)
-  const validSettingKeys = [
-    'selectedProvider',
-    'floatButton',
-    'floatButtonLeft',
-    'showFloatingButton',
-    'floatingPanelLeft',
-    'closePanelOnOutsideClick',
-    'geminiApiKey',
-    'selectedGeminiModel',
-    'geminiAdvancedApiKey',
-    'selectedGeminiAdvancedModel',
-    'openaiCompatibleApiKey',
-    'openaiCompatibleBaseUrl',
-    'selectedOpenAICompatibleModel',
-    'openrouterApiKey',
-    'selectedOpenrouterModel',
-    'deepseekApiKey',
-    'deepseekBaseUrl',
-    'selectedDeepseekModel',
-    'chatgptApiKey',
-    'chatgptBaseUrl',
-    'selectedChatgptModel',
-    'ollamaEndpoint',
-    'selectedOllamaModel',
-    'lmStudioEndpoint',
-    'selectedLmStudioModel',
-    'groqApiKey',
-    'selectedGroqModel',
-    'selectedFont',
-    'enableStreaming',
-    'uiLang',
-    'mobileSheetHeight',
-    'mobileSheetBackdropOpacity',
-    'fontSizeIndex',
-    'widthIndex',
-    'sidePanelDefaultWidth',
-    'oneClickSummarize',
-    'iconClickAction',
-    'fabDomainControl',
-    'firefoxPermissions',
-    'hasCompletedOnboarding',
-    'onboardingStep',
-    'summaryLength',
-    'summaryFormat',
-    'summaryLang',
-    'summaryTone',
-    'isSummaryAdvancedMode',
-    'youtubePromptSelection',
-    'youtubeCustomPromptContent',
-    'youtubeCustomSystemInstructionContent',
-    'chapterPromptSelection',
-    'chapterCustomPromptContent',
-    'chapterCustomSystemInstructionContent',
-    'webPromptSelection',
-    'webCustomPromptContent',
-    'webCustomSystemInstructionContent',
-    'courseSummaryPromptSelection',
-    'courseSummaryCustomPromptContent',
-    'courseSummaryCustomSystemInstructionContent',
-    'courseConceptsPromptSelection',
-    'courseConceptsCustomPromptContent',
-    'courseConceptsCustomSystemInstructionContent',
-    'selectedTextPromptSelection',
-    'selectedTextCustomPromptContent',
-    'selectedTextCustomSystemInstructionContent',
-    'isAdvancedMode',
-    'temperature',
-    'topP',
-  ]
-
-  const cleanSettings = {}
-
-  // Only include valid setting keys, skip any nested metadata/settings
-  validSettingKeys.forEach((key) => {
-    if (rawSettings[key] !== undefined) {
-      cleanSettings[key] = rawSettings[key]
-    }
-  })
-
-  console.log('[exportService] Sanitized settings:', {
-    originalKeys: Object.keys(rawSettings),
-    cleanKeys: Object.keys(cleanSettings),
-    removedKeys: Object.keys(rawSettings).filter(
-      (key) => !validSettingKeys.includes(key)
-    ),
-  })
-
-  return cleanSettings
-}
 
 export async function exportDataToZip(settings, onProgress) {
   try {
@@ -145,7 +49,7 @@ export async function exportDataToZip(settings, onProgress) {
     }
 
     // ✅ CRITICAL FIX: Sanitize settings trước khi export
-    const cleanSettings = sanitizeSettingsForExport(settings)
+    const cleanSettings = sanitizeSettings(settings)
 
     const settingsData = {
       metadata: {

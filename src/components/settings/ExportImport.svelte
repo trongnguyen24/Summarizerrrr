@@ -1,6 +1,5 @@
 <script>
   // @ts-nocheck
-  import { get } from 'svelte/store'
   import {
     settings,
     updateSettings,
@@ -18,12 +17,6 @@
     addMultipleHistory,
   } from '../../lib/db/indexedDBService.js'
 
-  // Import new services and components
-  import {
-    validateImportFile,
-    formatValidationResult,
-  } from '../../lib/utils/importValidation.js'
-
   // Import export services
   import {
     exportDataToZip,
@@ -37,6 +30,10 @@
     extractFilesFromZip,
   } from '../../lib/exportImport/zipService.js'
   import { importFromJsonl } from '../../lib/exportImport/jsonlService.js'
+
+  // Import shared settings schema
+  import { sanitizeSettings } from '../../lib/config/settingsSchema.js'
+
   import SwitchPermission from '../inputs/SwitchPermission.svelte'
   import ButtonSet from '../buttons/ButtonSet.svelte'
 
@@ -47,15 +44,22 @@
   import Icon from '@iconify/svelte'
   import Preview from '../ui/Preview.svelte'
 
-  // State management
-  let showImportModal = false
-  let importData = null
-  let validationResults = null
-  let errorMessage = ''
-  let successMessage = ''
+  // Constants for timeouts
+  const SUCCESS_MESSAGE_TIMEOUT = 3000
+  const ERROR_MESSAGE_TIMEOUT = 5000
+  const SETTINGS_RELOAD_DELAY = 100
+  const UI_REFRESH_DELAY = 200
+
+  // State management using Svelte 5 $state pattern
+  let state = $state({
+    showImportModal: false,
+    importData: null,
+    errorMessage: '',
+    successMessage: '',
+  })
 
   // Import options
-  let importOptions = {
+  let importOptions = $state({
     dataTypes: {
       settings: true,
       history: true,
@@ -63,116 +67,51 @@
       tags: true,
     },
     mergeMode: 'merge', // merge, replace
-  }
+  })
 
   // Available data types from imported file
-  let availableDataTypes = []
+  let availableDataTypes = $state([])
+
+  // File input reference (replacing DOM query)
+  let fileInputRef = $state(null)
+
+  // Timeout references for cleanup
+  let messageTimeouts = []
+
+  // Cleanup timeouts on component destroy
+  $effect(() => {
+    return () => {
+      messageTimeouts.forEach((timeout) => clearTimeout(timeout))
+      messageTimeouts = []
+    }
+  })
 
   /**
-   * Sanitizes imported settings to remove nested/corrupted data
-   * @param {Object} importedSettings - Raw imported settings
-   * @returns {Object} - Clean settings object
+   * Sets a message with auto-clear
+   * @param {string} type - 'success' or 'error'
+   * @param {string} message - Message text
    */
-  function sanitizeImportedSettings(importedSettings) {
-    // Valid setting keys (should match DEFAULT_SETTINGS in settingsStore)
-    const validSettingKeys = [
-      'selectedProvider',
-      'floatButton',
-      'floatButtonLeft',
-      'showFloatingButton',
-      'floatingPanelLeft',
-      'closePanelOnOutsideClick',
-      'geminiApiKey',
-      'selectedGeminiModel',
-      'geminiAdvancedApiKey',
-      'selectedGeminiAdvancedModel',
-      'openaiCompatibleApiKey',
-      'openaiCompatibleBaseUrl',
-      'selectedOpenAICompatibleModel',
-      'openrouterApiKey',
-      'selectedOpenrouterModel',
-      'deepseekApiKey',
-      'deepseekBaseUrl',
-      'selectedDeepseekModel',
-      'chatgptApiKey',
-      'chatgptBaseUrl',
-      'selectedChatgptModel',
-      'ollamaEndpoint',
-      'selectedOllamaModel',
-      'lmStudioEndpoint',
-      'selectedLmStudioModel',
-      'groqApiKey',
-      'selectedGroqModel',
-      'selectedFont',
-      'enableStreaming',
-      'uiLang',
-      'mobileSheetHeight',
-      'mobileSheetBackdropOpacity',
-      'fontSizeIndex',
-      'widthIndex',
-      'sidePanelDefaultWidth',
-      'oneClickSummarize',
-      'iconClickAction',
-      'fabDomainControl',
-      'firefoxPermissions',
-      'hasCompletedOnboarding',
-      'onboardingStep',
-      'summaryLength',
-      'summaryFormat',
-      'summaryLang',
-      'summaryTone',
-      'isSummaryAdvancedMode',
-      'youtubePromptSelection',
-      'youtubeCustomPromptContent',
-      'youtubeCustomSystemInstructionContent',
-      'chapterPromptSelection',
-      'chapterCustomPromptContent',
-      'chapterCustomSystemInstructionContent',
-      'webPromptSelection',
-      'webCustomPromptContent',
-      'webCustomSystemInstructionContent',
-      'courseSummaryPromptSelection',
-      'courseSummaryCustomPromptContent',
-      'courseSummaryCustomSystemInstructionContent',
-      'courseConceptsPromptSelection',
-      'courseConceptsCustomPromptContent',
-      'courseConceptsCustomSystemInstructionContent',
-      'selectedTextPromptSelection',
-      'selectedTextCustomPromptContent',
-      'selectedTextCustomSystemInstructionContent',
-      'isAdvancedMode',
-      'temperature',
-      'topP',
-    ]
+  function setMessage(type, message) {
+    const duration =
+      type === 'success' ? SUCCESS_MESSAGE_TIMEOUT : ERROR_MESSAGE_TIMEOUT
 
-    // Handle nested structure - extract the deepest valid settings
-    let rawSettings = importedSettings
-
-    // If there's nested settings.settings, extract it
-    while (rawSettings.settings && typeof rawSettings.settings === 'object') {
-      console.log(
-        '[ExportImport] Detected nested settings, extracting inner layer'
-      )
-      rawSettings = rawSettings.settings
+    if (type === 'success') {
+      state.successMessage = message
+      state.errorMessage = ''
+    } else {
+      state.errorMessage = message
+      state.successMessage = ''
     }
 
-    // Remove any metadata or other invalid fields
-    const cleanSettings = {}
-    validSettingKeys.forEach((key) => {
-      if (rawSettings[key] !== undefined) {
-        cleanSettings[key] = rawSettings[key]
+    const timeout = setTimeout(() => {
+      if (type === 'success') {
+        state.successMessage = ''
+      } else {
+        state.errorMessage = ''
       }
-    })
+    }, duration)
 
-    console.log('[ExportImport] Sanitized imported settings:', {
-      originalKeys: Object.keys(importedSettings),
-      finalKeys: Object.keys(cleanSettings),
-      removedKeys: Object.keys(rawSettings).filter(
-        (key) => !validSettingKeys.includes(key)
-      ),
-    })
-
-    return cleanSettings
+    messageTimeouts.push(timeout)
   }
 
   // Enhanced export function using export service
@@ -185,53 +124,38 @@
       const filename = generateExportFilename()
       downloadBlob(zipBlob, filename)
 
-      successMessage = 'Data exported successfully as ZIP file!'
-      setTimeout(() => (successMessage = ''), 3000)
+      setMessage('success', 'Data exported successfully as ZIP file!')
     } catch (error) {
-      errorMessage = `Export failed: ${error.message}`
-      setTimeout(() => (errorMessage = ''), 5000)
+      setMessage('error', `Export failed: ${error.message}`)
     }
   }
 
-  // Generate metadata for export
-  function generateExportMetadata() {
-    return {
-      version: '1.0.0',
-      exportedAt: new Date().toISOString(),
-      exportedBy: 'Summarizerrrr Extension',
-      dataType: 'backup',
-      description: 'Complete data backup from Summarizerrrr extension',
-      itemCount: {
-        settings: Object.keys(settings).length,
-        archive: (archiveStore.archiveList || []).length,
-        tags: (tagsCache.tags || []).length,
-      },
-    }
-  }
-
-  // Enhanced file handling with validation
+  // Enhanced file handling - Only ZIP format supported
   async function handleFileSelect(event) {
     const file = event.target.files[0]
     if (!file) return
 
     try {
       // Reset previous state before processing new file
-      resetImportState()
+      resetImportState(false) // Don't reset file input during processing
 
-      // Detect if file is ZIP or JSON
+      // Verify file is ZIP format
       const isZip = await isZipFile(file)
 
-      if (isZip) {
-        await handleZipImport(file)
-      } else {
-        await handleLegacyJsonImport(file)
+      if (!isZip) {
+        throw new Error(
+          'Only ZIP format is supported. Please export your data again.'
+        )
       }
+
+      await handleZipImport(file)
     } catch (error) {
-      errorMessage = `File processing failed: ${error.message}`
-      setTimeout(() => (errorMessage = ''), 5000)
+      setMessage('error', `File processing failed: ${error.message}`)
 
       // Reset file input on error
-      event.target.value = ''
+      if (fileInputRef) {
+        fileInputRef.value = ''
+      }
     }
   }
 
@@ -256,9 +180,7 @@
 
           // ✅ CRITICAL FIX: Robust settings extraction and sanitization
           if (parsedSettingsFile.settings) {
-            data.settings = sanitizeImportedSettings(
-              parsedSettingsFile.settings
-            )
+            data.settings = sanitizeSettings(parsedSettingsFile.settings)
           }
         } catch (error) {
           console.error(`Failed to parse settings: ${error.message}`)
@@ -316,7 +238,7 @@
       }
 
       // Store data and update available types
-      importData = data
+      state.importData = data
       availableDataTypes = Object.keys(data).filter((key) => key !== 'metadata')
 
       // Reset import selections based on available data
@@ -329,61 +251,7 @@
         tags: availableDataTypes.includes('tags'),
       }
 
-      showImportModal = true
-    } catch (error) {
-      throw error
-    }
-  }
-
-  // Handle legacy JSON file import (backward compatibility)
-  async function handleLegacyJsonImport(file) {
-    try {
-      // Validate file using import validation service
-      const validation = await validateImportFile(file)
-
-      if (!validation.valid) {
-        const formatted = formatValidationResult(validation)
-        const errorDetails =
-          formatted.errors && formatted.errors.length > 0
-            ? formatted.errors.map((e) => e.message).join('; ')
-            : formatted.message
-        throw new Error(`File validation failed: ${errorDetails}`)
-      }
-
-      // Read and parse file
-      const reader = new FileReader()
-      reader.onload = async (e) => {
-        try {
-          const data = JSON.parse(e.target.result)
-
-          // Store data and update available types
-          importData = data
-          validationResults = validation
-          availableDataTypes = Object.keys(data).filter(
-            (key) => key !== 'metadata'
-          )
-
-          // Reset import selections based on available data
-          importOptions.dataTypes = {
-            settings: availableDataTypes.includes('settings'),
-            history: availableDataTypes.includes('history'),
-            archive:
-              availableDataTypes.includes('archive') ||
-              availableDataTypes.includes('summaries'),
-            tags: availableDataTypes.includes('tags'),
-          }
-
-          showImportModal = true
-        } catch (parseError) {
-          throw new Error(`Failed to parse JSON: ${parseError.message}`)
-        }
-      }
-
-      reader.onerror = () => {
-        throw new Error('Failed to read file')
-      }
-
-      reader.readAsText(file)
+      state.showImportModal = true
     } catch (error) {
       throw error
     }
@@ -391,10 +259,10 @@
 
   // Enhanced import function with validation, backup, and conflict detection
   async function startImport() {
-    if (!importData) return
+    if (!state.importData) return
 
     try {
-      showImportModal = false
+      state.showImportModal = false
 
       // Skip conflict detection for simple merge modes
       // TODO: Fix conflict resolution component structure mismatch
@@ -409,8 +277,7 @@
         await executeImport(importedData)
       }
     } catch (error) {
-      errorMessage = `Import preparation failed: ${error.message}`
-      setTimeout(() => (errorMessage = ''), 5000)
+      setMessage('error', `Import preparation failed: ${error.message}`)
     }
   }
 
@@ -418,23 +285,23 @@
   function prepareImportData() {
     const data = {}
 
-    if (importOptions.dataTypes.settings && importData.settings) {
-      data.settings = importData.settings
+    if (importOptions.dataTypes.settings && state.importData.settings) {
+      data.settings = state.importData.settings
     }
 
-    if (importOptions.dataTypes.history && importData.history) {
-      data.history = importData.history
+    if (importOptions.dataTypes.history && state.importData.history) {
+      data.history = state.importData.history
     }
 
     if (
       importOptions.dataTypes.archive &&
-      (importData.archive || importData.summaries)
+      (state.importData.archive || state.importData.summaries)
     ) {
-      data.summaries = importData.archive || importData.summaries
+      data.summaries = state.importData.archive || state.importData.summaries
     }
 
-    if (importOptions.dataTypes.tags && importData.tags) {
-      data.tags = importData.tags
+    if (importOptions.dataTypes.tags && state.importData.tags) {
+      data.tags = state.importData.tags
     }
     return data
   }
@@ -450,14 +317,16 @@
       if (importOptions.dataTypes.settings) {
         try {
           // Add small delay to ensure storage operations complete
-          await new Promise((resolve) => setTimeout(resolve, 100))
+          await new Promise((resolve) =>
+            setTimeout(resolve, SETTINGS_RELOAD_DELAY)
+          )
           await forceReloadSettings()
 
           // Force a complete UI refresh by triggering a small state change
           setTimeout(() => {
             // This will trigger reactivity in components
             Object.assign(settings, { ...settings })
-          }, 200)
+          }, UI_REFRESH_DELAY)
         } catch (error) {
           console.error(`Failed to reload settings: ${error.message}`)
         }
@@ -477,12 +346,10 @@
         await preloadTagsData()
       }
 
-      successMessage = 'Data imported successfully!'
-      setTimeout(() => (successMessage = ''), 3000)
+      setMessage('success', 'Data imported successfully!')
       resetImportState()
     } catch (error) {
-      errorMessage = `Import failed: ${error.message}`
-      setTimeout(() => (errorMessage = ''), 5000)
+      setMessage('error', `Import failed: ${error.message}`)
     }
   }
 
@@ -490,9 +357,7 @@
   async function performSimpleImport(importedData) {
     if (importedData.settings) {
       // ✅ CRITICAL FIX: Sanitize imported settings before merge/replace
-      const cleanImportedSettings = sanitizeImportedSettings(
-        importedData.settings
-      )
+      const cleanImportedSettings = sanitizeSettings(importedData.settings)
 
       if (importOptions.mergeMode === 'replace') {
         await updateSettings(cleanImportedSettings)
@@ -503,23 +368,27 @@
       }
     }
 
+    // ✅ CRITICAL FIX: Deep clone data to remove any Svelte proxy/reactive wrappers
+    // This prevents "could not be cloned" errors in IndexedDB
     if (importedData.history) {
-      await addMultipleHistory(importedData.history)
+      const cleanHistory = JSON.parse(JSON.stringify(importedData.history))
+      await addMultipleHistory(cleanHistory)
     }
 
     if (importedData.summaries) {
-      await addMultipleSummaries(importedData.summaries)
+      const cleanSummaries = JSON.parse(JSON.stringify(importedData.summaries))
+      await addMultipleSummaries(cleanSummaries)
     }
 
     if (importedData.tags) {
-      await addMultipleTags(importedData.tags)
+      const cleanTags = JSON.parse(JSON.stringify(importedData.tags))
+      await addMultipleTags(cleanTags)
     }
   }
 
   // Reset import state
-  function resetImportState() {
-    importData = null
-    validationResults = null
+  function resetImportState(resetFileInput = true) {
+    state.importData = null
     availableDataTypes = []
 
     // Reset import options to default
@@ -530,20 +399,17 @@
       tags: true,
     }
     importOptions.mergeMode = 'merge'
+
+    // Reset file input if requested
+    if (resetFileInput && fileInputRef) {
+      fileInputRef.value = ''
+    }
   }
 
   // Cancel import process
   function cancelImport() {
-    showImportModal = false
-    resetImportState()
-
-    // Reset file input after dialog closes
-    setTimeout(() => {
-      const fileInput = document.querySelector('input[type="file"]')
-      if (fileInput) {
-        fileInput.value = ''
-      }
-    }, 100)
+    state.showImportModal = false
+    resetImportState(true)
   }
 </script>
 
@@ -551,17 +417,17 @@
   <h3 class=" font-medium text-text-secondary">Export/Import Data</h3>
 
   <!-- Success/Error Messages -->
-  {#if successMessage}
+  {#if state.successMessage}
     <div
       class="mt-2 p-3 bg-green-100 border border-green-400 text-green-700 rounded"
     >
-      {successMessage}
+      {state.successMessage}
     </div>
   {/if}
 
-  {#if errorMessage}
+  {#if state.errorMessage}
     <div class="mt-2 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
-      {errorMessage}
+      {state.errorMessage}
     </div>
   {/if}
 
@@ -570,9 +436,10 @@
     <label class="btn btn-secondary">
       Import Data
       <input
+        bind:this={fileInputRef}
         type="file"
         class="hidden"
-        accept=".json,.zip"
+        accept=".zip"
         onchange={handleFileSelect}
       />
     </label>
@@ -580,7 +447,7 @@
 </div>
 
 <!-- Import Options Modal -->
-<Dialog.Root bind:open={showImportModal}>
+<Dialog.Root bind:open={state.showImportModal}>
   <Dialog.Portal>
     <Dialog.Overlay class="fixed inset-0 z-[99] bg-black/80" forceMount>
       {#snippet child({ props, open })}
@@ -640,9 +507,9 @@
                     <div class="flex flex-col justify-between">
                       <span class=" text-text-secondary">Exported:</span>
                       <span class=" text-text-primary font-medium text-base">
-                        {importData.metadata.exportedAt
+                        {state.importData?.metadata?.exportedAt
                           ? new Date(
-                              importData.metadata.exportedAt
+                              state.importData.metadata.exportedAt
                             ).toLocaleDateString()
                           : 'Unknown'}
                       </span>
@@ -650,14 +517,14 @@
                     <div class="flex flex-col justify-between">
                       <span class=" text-text-secondary">Version:</span>
                       <span class=" text-text-primary font-medium text-base">
-                        {importData.metadata.exportedBy || 'Unknown'}
+                        {state.importData?.metadata?.exportedBy || 'Unknown'}
                       </span>
                     </div>
                     <div class="flex flex-col justify-between">
                       <span class=" text-text-secondary">Settings:</span>
                       <span class=" text-text-primary font-medium text-base">
-                        {importData.settings
-                          ? Object.keys(importData.settings).length
+                        {state.importData?.settings
+                          ? Object.keys(state.importData.settings).length
                           : 0}
                       </span>
                     </div>
@@ -665,22 +532,27 @@
                     <div class="flex flex-col justify-between">
                       <span class=" text-text-secondary">History:</span>
                       <span class=" text-text-primary font-medium text-base">
-                        {(importData.history || []).length}
+                        {(state.importData?.history || []).length}
                       </span>
                     </div>
 
                     <div class="flex flex-col justify-between">
                       <span class=" text-text-secondary">Summaries:</span>
                       <span class=" text-text-primary font-medium text-base">
-                        {(importData.summaries || importData.archive || [])
-                          .length}
+                        {(
+                          state.importData?.summaries ||
+                          state.importData?.archive ||
+                          []
+                        ).length}
                       </span>
                     </div>
 
                     <div class="flex flex-col justify-between">
                       <span class=" text-text-secondary">Tags:</span>
                       <span class=" text-text-primary font-medium text-base">
-                        {importData.tags ? importData.tags.length : 0}
+                        {state.importData?.tags
+                          ? state.importData.tags.length
+                          : 0}
                       </span>
                     </div>
                   </div>

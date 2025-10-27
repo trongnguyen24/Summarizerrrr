@@ -637,9 +637,9 @@
                   class=" w-full p-6 pl-48  mx-auto"
                 >
                   <div class=" grid grid-cols-2 gap-x-12 gap-y-2">
-                    <div class="flex justify-between">
-                      <span class=" text-text-primary">Exported:</span>
-                      <span class=" text-text-secondary">
+                    <div class="flex flex-col justify-between">
+                      <span class=" text-text-secondary">Exported:</span>
+                      <span class=" text-text-primary font-medium text-base">
                         {importData.metadata.exportedAt
                           ? new Date(
                               importData.metadata.exportedAt
@@ -647,39 +647,39 @@
                           : 'Unknown'}
                       </span>
                     </div>
-                    <div class="flex justify-between">
-                      <span class=" text-text-primary">Version:</span>
-                      <span class=" text-text-zsecondary">
+                    <div class="flex flex-col justify-between">
+                      <span class=" text-text-secondary">Version:</span>
+                      <span class=" text-text-primary font-medium text-base">
                         {importData.metadata.exportedBy || 'Unknown'}
                       </span>
                     </div>
-                    <div class="flex justify-between">
-                      <span class=" text-text-primary">Settings:</span>
-                      <span class=" text-text-secondary">
+                    <div class="flex flex-col justify-between">
+                      <span class=" text-text-secondary">Settings:</span>
+                      <span class=" text-text-primary font-medium text-base">
                         {importData.settings
                           ? Object.keys(importData.settings).length
                           : 0}
                       </span>
                     </div>
 
-                    <div class="flex justify-between">
-                      <span class=" text-text-primary">History:</span>
-                      <span class=" text-text-secondary">
+                    <div class="flex flex-col justify-between">
+                      <span class=" text-text-secondary">History:</span>
+                      <span class=" text-text-primary font-medium text-base">
                         {(importData.history || []).length}
                       </span>
                     </div>
 
-                    <div class="flex justify-between">
-                      <span class=" text-text-primary">Summaries:</span>
-                      <span class=" text-text-secondary">
+                    <div class="flex flex-col justify-between">
+                      <span class=" text-text-secondary">Summaries:</span>
+                      <span class=" text-text-primary font-medium text-base">
                         {(importData.summaries || importData.archive || [])
                           .length}
                       </span>
                     </div>
 
-                    <div class="flex justify-between">
-                      <span class=" text-text-primary">Tags:</span>
-                      <span class=" text-text-secondary">
+                    <div class="flex flex-col justify-between">
+                      <span class=" text-text-secondary">Tags:</span>
+                      <span class=" text-text-primary font-medium text-base">
                         {importData.tags ? importData.tags.length : 0}
                       </span>
                     </div>

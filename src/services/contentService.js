@@ -69,10 +69,8 @@ export async function getPageContent(
       isYouTubeVideo &&
       (contentType === 'transcript' || contentType === 'timestampedTranscript')
     ) {
-      const action =
-        contentType === 'timestampedTranscript'
-          ? 'fetchTranscriptWithTimestamp'
-          : 'fetchTranscript'
+      // Always use timestamped transcript for better AI understanding and accuracy
+      const action = 'fetchTranscriptWithTimestamp'
       const response = await browser.tabs.sendMessage(tab.id, {
         action,
         lang: preferredLang,

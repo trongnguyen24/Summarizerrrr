@@ -4,6 +4,11 @@ export const youTubePromptTemplate_short = `
 Provide a concise summary (50-100 words) of this YouTube video content, focusing only on the most essential information.
 </TASK>
 
+<INPUT_FORMAT>
+The input transcript includes timestamps in format [HH:MM:SS → HH:MM:SS] or [MM:SS → MM:SS].
+Use these timestamps to understand video structure, but don't include them in your summary.
+</INPUT_FORMAT>
+
 <PARAMETERS>
 - **Length:** __LENGTH_DESCRIPTION__
 - **Language:** __LANG__

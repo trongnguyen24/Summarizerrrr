@@ -225,7 +225,7 @@ export async function fetchAndSummarize() {
     let summaryType = 'general'
 
     if (summaryState.isYouTubeVideoActive) {
-      mainContentTypeToFetch = 'transcript'
+      mainContentTypeToFetch = 'timestampedTranscript' // Always use timestamped for better accuracy
       summaryType = 'youtube'
       summaryState.lastSummaryTypeDisplayed = 'youtube'
     } else if (summaryState.isCourseVideoActive) {
@@ -243,15 +243,12 @@ export async function fetchAndSummarize() {
     summaryState.currentContentSource = mainContentResult.content
 
     if (summaryState.isYouTubeVideoActive) {
+      // Reuse the same timestamped transcript for both video and chapter summaries
       const chapterPromise = (async () => {
         summaryState.chapterError = null
         try {
-          const chapterContentResult = await getPageContent(
-            'timestampedTranscript',
-            userSettings.summaryLang
-          )
           const chapterSummarizedText = await summarizeChapters(
-            chapterContentResult.content
+            summaryState.currentContentSource // Reuse fetched content
           )
           summaryState.chapterSummary =
             chapterSummarizedText ||
@@ -411,7 +408,7 @@ export async function fetchAndSummarizeStream() {
     let summaryType = 'general'
 
     if (summaryState.isYouTubeVideoActive) {
-      mainContentTypeToFetch = 'transcript'
+      mainContentTypeToFetch = 'timestampedTranscript' // Always use timestamped for better accuracy
       summaryType = 'youtube'
       summaryState.lastSummaryTypeDisplayed = 'youtube'
     } else if (summaryState.isCourseVideoActive) {
@@ -431,16 +428,13 @@ export async function fetchAndSummarizeStream() {
     const promises = []
 
     if (summaryState.isYouTubeVideoActive) {
+      // Reuse the same timestamped transcript for both video and chapter summaries
       summaryState.isChapterLoading = true
       const chapterStreamPromise = (async () => {
         summaryState.chapterError = null
         try {
-          const chapterContentResult = await getPageContent(
-            'timestampedTranscript',
-            userSettings.summaryLang
-          )
           const chapterStream = summarizeChaptersStream(
-            chapterContentResult.content
+            summaryState.currentContentSource // Reuse fetched content
           )
           for await (const chunk of chapterStream) {
             summaryState.chapterSummary += chunk

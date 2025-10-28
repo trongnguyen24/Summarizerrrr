@@ -35,7 +35,8 @@
   import { fade } from 'svelte/transition'
   import { slideScaleFade } from '@/lib/ui/slideScaleFade.js'
   import Icon from '@iconify/svelte'
-  import Preview from '../ui/Preview.svelte'
+  import TextScramble from '../../lib/ui/textScramble.js'
+  import PreviewData from '../ui/PreviewData.svelte'
 
   const MESSAGE_TIMEOUT = 3000
   const RELOAD_DELAY = 100
@@ -59,6 +60,29 @@
 
   let fileInputRef = $state(null)
   let messageTimeoutId = null
+
+  let animatedRefs = $state({
+    exportedLabel: null,
+    exportedValue: null,
+    historyLabel: null,
+    historyValue: null,
+    summariesLabel: null,
+    summariesValue: null,
+    tagsLabel: null,
+    tagsValue: null,
+  })
+
+  // State to control text visibility for animation
+  let displayTexts = $state({
+    exportedLabel: '',
+    exportedValue: '',
+    historyLabel: '',
+    historyValue: '',
+    summariesLabel: '',
+    summariesValue: '',
+    tagsLabel: '',
+    tagsValue: '',
+  })
 
   function setMessage(type, message) {
     if (messageTimeoutId) {
@@ -310,6 +334,117 @@
     state.showImportModal = false
     resetImportState(true)
   }
+
+  // Helper functions to get text values
+  function getExportedDate() {
+    return state.importData?.metadata?.exportedAt
+      ? new Date(state.importData.metadata.exportedAt).toLocaleDateString()
+      : 'Unknown'
+  }
+
+  function getHistoryCount() {
+    return String((state.importData?.history || []).length)
+  }
+
+  function getSummariesCount() {
+    return String(
+      (state.importData?.summaries || state.importData?.archive || []).length
+    )
+  }
+
+  function getTagsCount() {
+    return String(state.importData?.tags ? state.importData.tags.length : 0)
+  }
+
+  // Reset all display texts to empty
+  function resetDisplayTexts() {
+    displayTexts.exportedLabel = ''
+    displayTexts.exportedValue = ''
+    displayTexts.historyLabel = ''
+    displayTexts.historyValue = ''
+    displayTexts.summariesLabel = ''
+    displayTexts.summariesValue = ''
+    displayTexts.tagsLabel = ''
+    displayTexts.tagsValue = ''
+  }
+
+  // Calculate dynamic stagger delay based on text length
+  function calculateStaggerDelay(previousText, baseDelay = 50, charDelay = 10) {
+    return baseDelay + previousText.length * charDelay
+  }
+
+  // Animate import preview with dynamic stagger delay
+  function animateImportPreview() {
+    // First, reset all texts to empty
+    resetDisplayTexts()
+
+    const elements = [
+      {
+        el: animatedRefs.exportedLabel,
+        text: 'Exported:',
+        key: 'exportedLabel',
+      },
+      {
+        el: animatedRefs.exportedValue,
+        text: getExportedDate(),
+        key: 'exportedValue',
+      },
+      {
+        el: animatedRefs.historyLabel,
+        text: 'History:',
+        key: 'historyLabel',
+      },
+      {
+        el: animatedRefs.historyValue,
+        text: getHistoryCount(),
+        key: 'historyValue',
+      },
+      {
+        el: animatedRefs.summariesLabel,
+        text: 'Summaries:',
+        key: 'summariesLabel',
+      },
+      {
+        el: animatedRefs.summariesValue,
+        text: getSummariesCount(),
+        key: 'summariesValue',
+      },
+      {
+        el: animatedRefs.tagsLabel,
+        text: 'Tags:',
+        key: 'tagsLabel',
+      },
+      {
+        el: animatedRefs.tagsValue,
+        text: getTagsCount(),
+        key: 'tagsValue',
+      },
+    ]
+
+    // Calculate cumulative delay based on previous text lengths
+    let cumulativeDelay = 0
+
+    elements.forEach((item, index) => {
+      if (item.el) {
+        setTimeout(() => {
+          const fx = new TextScramble(item.el)
+          fx.setText(item.text, { speed: 2.5 })
+        }, cumulativeDelay)
+
+        // Calculate delay for next element based on current text length
+        cumulativeDelay += calculateStaggerDelay(item.text)
+      }
+    })
+  }
+
+  // Trigger animation when modal opens
+  $effect(() => {
+    if (state.showImportModal && state.importData) {
+      setTimeout(() => {
+        animateImportPreview()
+      }, 500)
+    }
+  })
 </script>
 
 <div class="p-4 border-t border-gray-200 dark:border-gray-700">
@@ -357,7 +492,7 @@
     </Dialog.Overlay>
     <Dialog.Content
       forceMount
-      class="outline-hidden font-mono fixed left-[50%] top-1/2 w-[calc(100vw-32px)] max-w-2xl z-[150] -translate-y-1/2 translate-x-[-50%]"
+      class="outline-hidden font-mono fixed left-[50%] top-1/2 w-[calc(100vw-32px)] max-w-lg z-[150] -translate-y-1/2 translate-x-[-50%]"
       onOpenAutoFocus={(e) => {
         e.preventDefault()
       }}
@@ -391,51 +526,97 @@
             <div
               class="bg-surface-1 flex flex-col gap-4 text-xs rounded-lg shadow-lg max-h-[80vh] overflow-y-auto"
             >
-              <div
-                class="px-4 bg-surface-1 dark:bg-surface-2 py-2 border-b-0 border-border"
-              >
+              <div class="px-4 bg-surface-2 py-2">
                 <p class="!text-center select-none">Import Options</p>
               </div>
 
-              <div class=" px-6">
-                <Preview title="File Information" class="w-full p-6 mx-auto">
-                  <div class="grid grid-cols-2 gap-x-8 gap-y-3">
-                    <div>
-                      <div class="text-text-secondary text-xs">Exported:</div>
-                      <div class="text-text-primary font-medium">
-                        {state.importData?.metadata?.exportedAt
-                          ? new Date(
-                              state.importData.metadata.exportedAt
-                            ).toLocaleDateString()
-                          : 'Unknown'}
+              <div class="px-6">
+                <PreviewData class="w-full p-4 mx-auto">
+                  <div class="flex items-center">
+                    <div class=" w-24">
+                      <div class="size-20 shrink-0 overflow-hidden relative">
+                        <div
+                          class="absolute z-[4] border border-border dark:border-surface-2 inset-0"
+                        ></div>
+                        <div class="absolute inset-1 bg-surface-2"></div>
+                        <span
+                          class="absolute z-[2] size-6 rotate-45 bg-surface-1 bottom-px left-px -translate-x-1/2 translate-y-1/2"
+                        ></span>
+                        <span
+                          class="absolute z-[2] size-6 rotate-45 bg-surface-1 top-px right-px translate-x-1/2 -translate-y-1/2"
+                        ></span>
+                        <span
+                          class="absolute z-[5] size-4 rotate-45 bg-surface-1 border border-border dark:border-surface-2 bottom-px left-px -translate-x-1/2 translate-y-1/2"
+                        ></span>
+                        <span
+                          class="absolute z-[5] size-4 rotate-45 border-surface-1 bg-border dark:bg-muted border dark:border-surface-2 top-px right-px translate-x-1/2 -translate-y-1/2"
+                        ></span>
+                        <Icon
+                          icon="heroicons:circle-stack"
+                          class="size-10 center-abs text-muted dark:text-text-primary  dark:drop-shadow-md dark:drop-shadow-primary shrink-0"
+                        />
                       </div>
                     </div>
-                    <div>
-                      <div class="text-text-secondary text-xs">History:</div>
-                      <div class="text-text-primary font-medium">
-                        {(state.importData?.history || []).length}
+                    <div class="flex flex-col flex-auto gap-1">
+                      <div class=" flex justify-between">
+                        <div
+                          bind:this={animatedRefs.exportedLabel}
+                          class="text-text-secondary text-xs"
+                        >
+                          {displayTexts.exportedLabel}
+                        </div>
+                        <div
+                          bind:this={animatedRefs.exportedValue}
+                          class="text-text-primary font-medium"
+                        >
+                          {displayTexts.exportedValue}
+                        </div>
                       </div>
-                    </div>
-                    <div>
-                      <div class="text-text-secondary text-xs">Summaries:</div>
-                      <div class="text-text-primary font-medium">
-                        {(
-                          state.importData?.summaries ||
-                          state.importData?.archive ||
-                          []
-                        ).length}
+                      <div class=" flex justify-between">
+                        <div
+                          bind:this={animatedRefs.historyLabel}
+                          class="text-text-secondary text-xs"
+                        >
+                          {displayTexts.historyLabel}
+                        </div>
+                        <div
+                          bind:this={animatedRefs.historyValue}
+                          class="text-text-primary font-medium"
+                        >
+                          {displayTexts.historyValue}
+                        </div>
                       </div>
-                    </div>
-                    <div>
-                      <div class="text-text-secondary text-xs">Tags:</div>
-                      <div class="text-text-primary font-medium">
-                        {state.importData?.tags
-                          ? state.importData.tags.length
-                          : 0}
+                      <div class=" flex justify-between">
+                        <div
+                          bind:this={animatedRefs.summariesLabel}
+                          class="text-text-secondary text-xs"
+                        >
+                          {displayTexts.summariesLabel}
+                        </div>
+                        <div
+                          bind:this={animatedRefs.summariesValue}
+                          class="text-text-primary font-medium"
+                        >
+                          {displayTexts.summariesValue}
+                        </div>
+                      </div>
+                      <div class=" flex justify-between">
+                        <div
+                          bind:this={animatedRefs.tagsLabel}
+                          class="text-text-secondary text-xs"
+                        >
+                          {displayTexts.tagsLabel}
+                        </div>
+                        <div
+                          bind:this={animatedRefs.tagsValue}
+                          class="text-text-primary font-medium"
+                        >
+                          {displayTexts.tagsValue}
+                        </div>
                       </div>
                     </div>
                   </div>
-                </Preview>
+                </PreviewData>
               </div>
 
               <div class="flex px-6 py-1 flex-col gap-2">
@@ -471,7 +652,7 @@
                 <h3 class=" font-medium">Import Mode</h3>
                 <div class="grid w-full grid-cols-2 gap-1">
                   <ButtonSet
-                    title="Merge with existing data"
+                    title="Merge data"
                     class="setting-btn {importOptions.mergeMode === 'merge'
                       ? 'active'
                       : ''}"
@@ -479,7 +660,7 @@
                     Description="Combine imported data with existing data"
                   />
                   <ButtonSet
-                    title="Replace existing data"
+                    title="Replace data"
                     class="setting-btn {importOptions.mergeMode === 'replace'
                       ? 'active'
                       : ''}"

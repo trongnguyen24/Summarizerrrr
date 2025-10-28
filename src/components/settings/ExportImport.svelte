@@ -601,7 +601,7 @@
               </div>
 
               <div class="px-4">
-                <PreviewData class="w-full p-4 mx-auto">
+                <PreviewData class="w-full px-6 py-4 mx-auto">
                   <div class="flex items-center">
                     <div class=" w-24">
                       <div class="size-20 shrink-0 overflow-hidden relative">
@@ -718,7 +718,7 @@
                 </div>
               </div>
 
-              <!-- Warning for Replace Mode -->
+              <!-- Warning for Replace Mode
               {#if importOptions.mergeMode === 'replace'}
                 <div class="px-4 pb-2">
                   <div
@@ -743,7 +743,7 @@
                     </div>
                   </div>
                 </div>
-              {/if}
+              {/if} -->
 
               <div class="flex px-4 py-1 flex-col gap-2">
                 <h3 class=" font-medium">Import Mode</h3>
@@ -775,11 +775,7 @@
                     data<br />
                     • Duplicates (same ID) will be <strong>updated</strong><br
                     />
-                    • Settings are merged (imported values override existing)<br
-                    />
-                    <em class="text-text-tertiary text-[10px]"
-                      >Example: 100 summaries + 50 imported = 150 total</em
-                    >
+                    • Settings are merged (imported values override existing)
                   {:else}
                     <strong>⚠️ Replace Mode:</strong><br />
                     • Selected data types are
@@ -787,10 +783,6 @@
                     first<br />
                     • Then replaced with imported data only<br />
                     • Unselected data types are not affected<br />
-                    <em class="text-orange-600 dark:text-orange-400 text-[10px]"
-                      >Example: 100 summaries → Import 50 → Result: 50 summaries
-                      (100 deleted)</em
-                    >
                   {/if}
                 </p>
               </div>

@@ -14,6 +14,9 @@
     addMultipleSummaries,
     addMultipleTags,
     addMultipleHistory,
+    clearAllSummaries,
+    clearAllHistory,
+    clearAllTags,
   } from '../../lib/db/indexedDBService.js'
 
   import {
@@ -123,7 +126,7 @@
     if (!file) return
 
     try {
-      resetImportState(false)
+      // Don't reset state here since openImportDialog() already did it
       const isZip = await isZipFile(file)
 
       if (!isZip) {
@@ -224,10 +227,34 @@
   async function startImport() {
     if (!state.importData) return
 
+    // Show warning for Replace mode
+    if (importOptions.mergeMode === 'replace') {
+      const selectedTypes = Object.entries(importOptions.dataTypes)
+        .filter(([_, checked]) => checked)
+        .map(([type, _]) => {
+          if (type === 'archive') return 'Archive (Summaries)'
+          return type.charAt(0).toUpperCase() + type.slice(1)
+        })
+        .join(', ')
+
+      const confirmed = confirm(
+        `⚠️ WARNING: Replace Mode\n\n` +
+          `This will DELETE all existing data for:\n${selectedTypes}\n\n` +
+          `Deleted data CANNOT be recovered!\n\n` +
+          `Are you sure you want to continue?`
+      )
+
+      if (!confirmed) return
+    }
+
     try {
       state.showImportModal = false
       const importedData = prepareImportData()
       await executeImport(importedData)
+      // Reset file input after successful import
+      if (fileInputRef) {
+        fileInputRef.value = ''
+      }
     } catch (error) {
       setMessage('error', `Import preparation failed: ${error.message}`)
     }
@@ -282,36 +309,60 @@
       }
 
       setMessage('success', 'Data imported successfully!')
-      resetImportState()
+      // Don't reset state here - it's handled in startImport()
     } catch (error) {
       setMessage('error', `Import failed: ${error.message}`)
     }
   }
 
   async function performSimpleImport(importedData) {
+    // Handle Settings
     if (importedData.settings) {
       const cleanImportedSettings = sanitizeSettings(importedData.settings)
 
       if (importOptions.mergeMode === 'replace') {
+        // Replace: Overwrite all settings
         await updateSettings(cleanImportedSettings)
       } else {
+        // Merge: Combine settings
         const mergedSettings = { ...settings, ...cleanImportedSettings }
         await updateSettings(mergedSettings)
       }
     }
 
+    // Handle History
     if (importedData.history) {
       const cleanHistory = JSON.parse(JSON.stringify(importedData.history))
+
+      if (importOptions.mergeMode === 'replace') {
+        // Replace: Clear all existing history first
+        await clearAllHistory()
+      }
+      // Then add imported history (both modes)
       await addMultipleHistory(cleanHistory)
     }
 
+    // Handle Summaries (Archive)
     if (importedData.summaries) {
       const cleanSummaries = JSON.parse(JSON.stringify(importedData.summaries))
+
+      if (importOptions.mergeMode === 'replace') {
+        // Replace: Clear all existing summaries first
+        await clearAllSummaries()
+      }
+      // Then add imported summaries (both modes)
       await addMultipleSummaries(cleanSummaries)
     }
 
+    // Handle Tags
     if (importedData.tags) {
       const cleanTags = JSON.parse(JSON.stringify(importedData.tags))
+
+      if (importOptions.mergeMode === 'replace') {
+        // Replace: Clear all existing tags first
+        await clearAllTags()
+      }
+      // Then add imported tags (both modes)
       await addMultipleTags(cleanTags)
     }
   }
@@ -333,6 +384,19 @@
   function cancelImport() {
     state.showImportModal = false
     resetImportState(true)
+  }
+
+  function openImportDialog() {
+    // Reset everything to initial state
+    resetImportState(true)
+    state.showImportModal = false
+    // Clear any existing messages
+    state.successMessage = ''
+    state.errorMessage = ''
+    // Trigger file input click
+    if (fileInputRef) {
+      fileInputRef.click()
+    }
   }
 
   // Helper functions to get text values
@@ -445,6 +509,11 @@
       }, 500)
     }
   })
+
+  // Check if any data type is selected for import
+  function isImportDataSelected() {
+    return Object.values(importOptions.dataTypes).some(Boolean)
+  }
 </script>
 
 <div class="p-4 border-t border-gray-200 dark:border-gray-700">
@@ -467,16 +536,17 @@
 
   <div class="mt-4 flex gap-4">
     <button onclick={exportData} class="btn btn-primary">Export Data</button>
-    <label class="btn btn-secondary">
-      Import Data
-      <input
-        bind:this={fileInputRef}
-        type="file"
-        class="hidden"
-        accept=".zip"
-        onchange={handleFileSelect}
-      />
-    </label>
+    <button onclick={openImportDialog} class="btn btn-secondary"
+      >Import Data</button
+    >
+    <!-- Hidden file input -->
+    <input
+      bind:this={fileInputRef}
+      type="file"
+      class="hidden"
+      accept=".zip"
+      onchange={handleFileSelect}
+    />
   </div>
 </div>
 
@@ -530,7 +600,7 @@
                 <p class="!text-center select-none">Import Options</p>
               </div>
 
-              <div class="px-6">
+              <div class="px-4">
                 <PreviewData class="w-full p-4 mx-auto">
                   <div class="flex items-center">
                     <div class=" w-24">
@@ -619,7 +689,7 @@
                 </PreviewData>
               </div>
 
-              <div class="flex px-6 py-1 flex-col gap-2">
+              <div class="flex px-4 py-1 flex-col gap-2">
                 <h3 class="font-medium">Select Data Types to Import</h3>
                 <div class="grid grid-cols-2 gap-2">
                   <SwitchPermission
@@ -648,7 +718,34 @@
                 </div>
               </div>
 
-              <div class="flex px-6 py-1 flex-col gap-2">
+              <!-- Warning for Replace Mode -->
+              {#if importOptions.mergeMode === 'replace'}
+                <div class="px-4 pb-2">
+                  <div
+                    class="bg-orange-50 dark:bg-orange-950/20 border-2 border-orange-300 dark:border-orange-700 rounded-lg p-3 flex items-start gap-2.5"
+                  >
+                    <Icon
+                      icon="heroicons:exclamation-triangle-solid"
+                      class="text-orange-600 dark:text-orange-400 shrink-0 mt-0.5"
+                      width={20}
+                    />
+                    <div class="flex-1">
+                      <p
+                        class="text-xs font-semibold text-orange-800 dark:text-orange-300 mb-1"
+                      >
+                        Destructive Action Warning
+                      </p>
+                      <p class="text-xs text-orange-700 dark:text-orange-400">
+                        All selected data types will be <strong
+                          >permanently deleted</strong
+                        > before importing. This action cannot be undone.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              {/if}
+
+              <div class="flex px-4 py-1 flex-col gap-2">
                 <h3 class=" font-medium">Import Mode</h3>
                 <div class="grid w-full grid-cols-2 gap-1">
                   <ButtonSet
@@ -670,18 +767,57 @@
                 </div>
               </div>
 
-              <div class="flex justify-end gap-4">
+              <div class="px-4 pb-2">
+                <p class="text-xs text-text-secondary leading-relaxed">
+                  {#if importOptions.mergeMode === 'merge'}
+                    <strong>Merge Mode:</strong><br />
+                    • Imported data is <strong>combined</strong> with existing
+                    data<br />
+                    • Duplicates (same ID) will be <strong>updated</strong><br
+                    />
+                    • Settings are merged (imported values override existing)<br
+                    />
+                    <em class="text-text-tertiary text-[10px]"
+                      >Example: 100 summaries + 50 imported = 150 total</em
+                    >
+                  {:else}
+                    <strong>⚠️ Replace Mode:</strong><br />
+                    • Selected data types are
+                    <strong>completely deleted</strong>
+                    first<br />
+                    • Then replaced with imported data only<br />
+                    • Unselected data types are not affected<br />
+                    <em class="text-orange-600 dark:text-orange-400 text-[10px]"
+                      >Example: 100 summaries → Import 50 → Result: 50 summaries
+                      (100 deleted)</em
+                    >
+                  {/if}
+                </p>
+              </div>
+
+              <div class="flex justify-end gap-4 px-4 pb-4">
                 <button onclick={cancelImport} class="btn btn-ghost"
                   >Cancel</button
                 >
                 <button
+                  class=" flex relative overflow-hidden group"
                   onclick={startImport}
-                  class="btn btn-primary"
                   disabled={!Object.values(importOptions.dataTypes).some(
                     Boolean
                   )}
                 >
-                  Start Import
+                  <div
+                    class=" font-medium py-2 px-4 border transition-colors duration-200 {isImportDataSelected()
+                      ? 'bg-primary group-hover:bg-primary/95 dark:group-hover:bg-orange-500 text-orange-50 dark:text-orange-100/90 border-orange-400 hover:border-orange-300/75 hover:text-white'
+                      : ' bg-white dark:bg-surface-1 text-text-secondary border-border/40'}"
+                  >
+                    Start Import
+                  </div>
+                  <span
+                    class="size-4 absolute z-10 -left-2 -bottom-2 border bg-white dark:bg-surface-1 rotate-45 transition-colors duration-200 {isImportDataSelected()
+                      ? ' border-orange-400 group-hover:border-orange-300/75'
+                      : ' border-border/40'}"
+                  ></span>
                 </button>
               </div>
             </div>

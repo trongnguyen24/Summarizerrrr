@@ -84,8 +84,8 @@
   position: relative;
   align-items: center;
   justify-content: center;
-  width: var(--yt-delhi-pill-height, 32px);
-  height: var(--yt-delhi-pill-height, 32px);
+  width: var(--yt-delhi-pill-height, 24px);
+  height: var(--yt-delhi-pill-height, 24px);
   background: transparent; /* bg-transparent */
   color: white; /* text-white */
   border: none; /* border-none */
@@ -122,8 +122,8 @@
 
 @media screen and (min-width: 1300px) {
   .summarizerrrr-btn {
-    width: var(--yt-delhi-pill-height, 42px);
-    height: var(--yt-delhi-pill-height, 42px);
+    width: var(--yt-delhi-pill-height, 36px);
+    height: var(--yt-delhi-pill-height, 36px);
   }
   .summarizerrrr-popover {
     bottom: 7.8rem;

@@ -72,6 +72,44 @@ export class MessageBasedTranscriptExtractor {
   }
 
   /**
+   * Lấy title của video từ DOM
+   * @returns {string|null} - Video title hoặc null nếu không tìm thấy
+   */
+  getVideoTitle() {
+    try {
+      // Try multiple selectors for YouTube title
+      const titleSelectors = [
+        'h1.ytd-watch-metadata yt-formatted-string',
+        'h1.title yt-formatted-string',
+        'h1 yt-formatted-string.ytd-watch-metadata',
+        'ytd-watch-metadata h1',
+      ]
+
+      for (const selector of titleSelectors) {
+        const titleElement = document.querySelector(selector)
+        if (titleElement && titleElement.textContent) {
+          return titleElement.textContent.trim()
+        }
+      }
+
+      // Fallback to document title
+      const docTitle = document.title
+      if (docTitle) {
+        // Remove " - YouTube" suffix if present
+        return docTitle.replace(/ - YouTube$/, '').trim()
+      }
+
+      return null
+    } catch (error) {
+      console.error(
+        '[MessageBasedTranscriptExtractor] Error getting video title:',
+        error
+      )
+      return null
+    }
+  }
+
+  /**
    * Kiểm tra xem getCaptions function có sẵn không
    * @returns {boolean} - True nếu getCaptions có sẵn
    */
@@ -154,7 +192,11 @@ export class MessageBasedTranscriptExtractor {
 
             let result
             if (includeTimestamps) {
-              result = transcriptData
+              // Get video title
+              const videoTitle = this.getVideoTitle()
+
+              // Format transcript with title
+              const transcriptContent = transcriptData
                 .map((segment) => {
                   const timeRange =
                     segment.startTime && segment.endTime
@@ -165,6 +207,13 @@ export class MessageBasedTranscriptExtractor {
                   return `${timeRange} ${segment.text}`.trim()
                 })
                 .join('\n')
+
+              // Add title at the beginning if available
+              if (videoTitle) {
+                result = `<title>${videoTitle}</title>\n\n${transcriptContent}`
+              } else {
+                result = transcriptContent
+              }
             } else {
               result = transcriptData.map((segment) => segment.text).join(' ')
             }

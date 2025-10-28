@@ -5,8 +5,11 @@ Provide a structured summary (100-200 words) of this YouTube video content, cove
 </TASK>
 
 <INPUT_FORMAT>
-The input transcript includes timestamps in format [HH:MM:SS → HH:MM:SS] or [MM:SS → MM:SS].
-Use these timestamps to understand video structure, but don't include them in your summary.
+The input transcript includes:
+1. **Video title** wrapped in <title></title> tags at the beginning
+2. **Timestamped transcript** in format [HH:MM:SS → HH:MM:SS] or [MM:SS → MM:SS]
+
+Use the title to understand the video topic and timestamps to understand structure, but don't include them in your summary.
 </INPUT_FORMAT>
 
 <PARAMETERS>

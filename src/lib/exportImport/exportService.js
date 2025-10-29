@@ -13,6 +13,12 @@ import {
   getAllHistory,
 } from '@/lib/db/indexedDBService'
 import { exportToJsonl } from './jsonlService.js'
+import {
+  convertTabToMarkdown,
+  generateOrganizedPath,
+  createReadmeContent,
+} from './markdownService.js'
+
 import { createZipFromFiles } from './zipService.js'
 import { sanitizeSettings } from '@/lib/config/settingsSchema.js'
 
@@ -146,4 +152,131 @@ export function downloadBlob(blob, filename) {
   a.click()
   document.body.removeChild(a)
   URL.revokeObjectURL(url)
+}
+
+/**
+ * Export all archives as markdown files in ZIP format
+ * @param {Function} onProgress - Progress callback (optional)
+ * @returns {Promise<Blob>} ZIP blob containing markdown files
+ */
+export async function exportMarkdownToZip(onProgress) {
+  try {
+    // Step 1: Load data from IndexedDB
+    if (onProgress) {
+      onProgress({
+        stage: 'loading_data',
+        message: 'Loading archives from database...',
+        progress: 10,
+      })
+    }
+
+    const summaries = await getAllSummaries()
+    const tags = await getAllTags()
+
+    if (summaries.length === 0) {
+      throw new Error('No archives found to export')
+    }
+
+    // Step 2: Create tag mapping (id -> name)
+    const tagMap = Object.fromEntries(tags.map((t) => [t.id, t.name]))
+
+    if (onProgress) {
+      onProgress({
+        stage: 'converting',
+        message: 'Converting to markdown files...',
+        progress: 30,
+      })
+    }
+
+    // Step 3: Convert each summary to markdown files
+    const markdownFiles = {}
+    let fileCount = 0
+
+    summaries.forEach((summary, index) => {
+      // Handle both multi-tab (array) and single content (string) formats
+      const tabs = Array.isArray(summary.summaries)
+        ? summary.summaries
+        : [
+            {
+              title: 'Summary',
+              content: summary.summary || summary.summaries || '',
+            },
+          ]
+
+      // Create a markdown file for each tab
+      tabs.forEach((tab) => {
+        // Skip empty tabs
+        if (!tab.content || tab.content.trim() === '') {
+          console.warn(
+            `[exportMarkdownToZip] Skipping empty tab "${tab.title}" in "${summary.title}"`
+          )
+          return
+        }
+
+        const filepath = generateOrganizedPath(summary, tab.title, index)
+        const markdown = convertTabToMarkdown(summary, tab, tagMap)
+        markdownFiles[filepath] = markdown
+        fileCount++
+      })
+
+      if (onProgress) {
+        const progressPercent = ((index + 1) / summaries.length) * 40
+        onProgress({
+          stage: 'converting',
+          message: `Converting ${index + 1}/${summaries.length}...`,
+          progress: 30 + progressPercent,
+        })
+      }
+    })
+
+    // Step 4: Create README.md
+    markdownFiles['README.md'] = createReadmeContent({
+      totalSummaries: summaries.length,
+      totalFiles: fileCount,
+      exportDate: new Date().toISOString(),
+      version: chrome.runtime.getManifest().version,
+    })
+
+    // Step 5: Create ZIP
+    if (onProgress) {
+      onProgress({
+        stage: 'creating_zip',
+        message: 'Creating ZIP archive...',
+        progress: 70,
+      })
+    }
+
+    const zipBlob = await createZipFromFiles(markdownFiles, (zipProgress) => {
+      if (onProgress) {
+        onProgress({
+          stage: 'creating_zip',
+          message: `Compressing files... ${zipProgress.percent || 0}%`,
+          progress: 70 + (zipProgress.percent || 0) * 0.3,
+        })
+      }
+    })
+
+    if (onProgress) {
+      onProgress({
+        stage: 'completed',
+        message: 'Export completed!',
+        progress: 100,
+      })
+    }
+
+    return zipBlob
+  } catch (error) {
+    console.error('[exportMarkdownToZip] Error:', error)
+    throw new Error(`Markdown export failed: ${error.message}`)
+  }
+}
+
+/**
+ * Generate filename for markdown export
+ * Format: summarizerrrr-markdown-backup-YYYY-MM-DD.zip
+ * @returns {string} Filename with timestamp
+ */
+export function generateMarkdownExportFilename() {
+  const date = new Date().toISOString().split('T')[0]
+  return `summarizerrrr-markdown-backup-${date}.zip`
 }

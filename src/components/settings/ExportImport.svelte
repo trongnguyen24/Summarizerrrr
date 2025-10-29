@@ -51,6 +51,7 @@
     importData: null,
     errorMessage: '',
     successMessage: '',
+    isExportingMarkdown: false,
   })
 
   let importOptions = $state({
@@ -121,6 +122,32 @@
       setMessage('success', 'Data exported successfully as ZIP file!')
     } catch (error) {
       setMessage('error', `Export failed: ${error.message}`)
+    }
+  }
+
+  async function exportMarkdown() {
+    try {
+      state.isExportingMarkdown = true
+
+      // Dynamic import to keep bundle size small
+      const { exportMarkdownToZip, generateMarkdownExportFilename } =
+        await import('../../lib/exportImport/exportService.js')
+
+      // Export with progress callback
+      const zipBlob = await exportMarkdownToZip((progress) => {
+        console.log(`[Export Markdown] ${progress.message}`)
+      })
+
+      // Download the ZIP file
+      const filename = generateMarkdownExportFilename()
+      downloadBlob(zipBlob, filename)
+
+      setMessage('success', 'Markdown files exported successfully!')
+    } catch (error) {
+      console.error('[Export Markdown] Error:', error)
+      setMessage('error', `Export failed: ${error.message}`)
+    } finally {
+      state.isExportingMarkdown = false
     }
   }
 
@@ -555,9 +582,12 @@
 
 <div class="px-5 pb-4">
   <h3 class="text-text-primary font-bold">Backup data</h3>
-  <p>Backup and import your data to another device</p>
+  <p>
+    Backup and import your data to another device or save all archives to
+    Markdown
+  </p>
 
-  <div class="mt-2 flex gap-1">
+  <div class="mt-2 grid grid-cols-3 gap-1">
     <button class=" relative overflow-hidden group" onclick={exportData}>
       <div
         class="font-medium py-2 px-4 border transition-colors duration-200 bg-blackwhite-5 text-text-secondary group-hover:border-border border-transparent hover:text-text-primary dark:hover:text-white"
@@ -569,6 +599,32 @@
         class="size-4 absolute z-10 -left-2 -bottom-2 border bg-surface-1 rotate-45 transition-colors duration-200 border-transparent group-hover:border-border"
       ></span>
     </button>
+
+    <!-- Export as Markdown button -->
+    <button
+      class=" relative overflow-hidden group"
+      onclick={exportMarkdown}
+      disabled={state.isExportingMarkdown}
+    >
+      <div
+        class="font-medium py-2 px-4 border transition-colors duration-200 {state.isExportingMarkdown
+          ? 'bg-blackwhite-5 text-text-tertiary cursor-not-allowed border-border/20'
+          : 'bg-blackwhite-5 text-text-secondary group-hover:border-border border-transparent hover:text-text-primary dark:hover:text-white'}"
+      >
+        {#if state.isExportingMarkdown}
+          Exporting...
+        {:else}
+          Markdown
+        {/if}
+      </div>
+
+      <span
+        class="size-4 absolute z-10 -left-2 -bottom-2 border bg-surface-1 rotate-45 transition-colors duration-200 {state.isExportingMarkdown
+          ? 'border-border/20'
+          : 'border-transparent group-hover:border-border'}"
+      ></span>
+    </button>
+
     <button class=" relative overflow-hidden group" onclick={openImportDialog}>
       <div
         class="font-medium py-2 px-4 border transition-colors duration-200 bg-blackwhite-5 text-text-secondary group-hover:border-border border-transparent hover:text-text-primary dark:hover:text-white"

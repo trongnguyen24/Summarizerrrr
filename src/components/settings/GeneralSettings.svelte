@@ -330,6 +330,8 @@
     </div>
   </div>
 
+  <ExportImport />
+
   {#if !browserCompatibility.isMobile}
     {#if !browserCompatibility.isMobile}
       <div class="flex flex-col gap-2 mt-2 px-5 pb-4">
@@ -420,6 +422,4 @@
       </div>
     {/if}
   {/if}
-
-  <ExportImport />
 </div>

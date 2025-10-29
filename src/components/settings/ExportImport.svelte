@@ -40,6 +40,8 @@
   import Icon from '@iconify/svelte'
   import TextScramble from '../../lib/ui/textScramble.js'
   import PreviewData from '../ui/PreviewData.svelte'
+  import 'overlayscrollbars/overlayscrollbars.css'
+  import { useOverlayScrollbars } from 'overlayscrollbars-svelte'
 
   const MESSAGE_TIMEOUT = 3000
   const RELOAD_DELAY = 100
@@ -63,6 +65,7 @@
 
   let fileInputRef = $state(null)
   let messageTimeoutId = null
+  let scrollContainerEl // Reference to the scroll container element
 
   let animatedRefs = $state({
     exportedLabel: null,
@@ -232,7 +235,7 @@
       const selectedTypes = Object.entries(importOptions.dataTypes)
         .filter(([_, checked]) => checked)
         .map(([type, _]) => {
-          if (type === 'archive') return 'Archive (Summaries)'
+          if (type === 'archive') return 'Archive'
           return type.charAt(0).toUpperCase() + type.slice(1)
         })
         .join(', ')
@@ -514,11 +517,78 @@
   function isImportDataSelected() {
     return Object.values(importOptions.dataTypes).some(Boolean)
   }
+
+  // Utility function to detect touch devices
+  function isTouchDevice() {
+    return (
+      'ontouchstart' in window ||
+      navigator.maxTouchPoints > 0 ||
+      navigator.msMaxTouchPoints > 0
+    )
+  }
+
+  const options = {
+    scrollbars: {
+      theme: 'os-theme-custom-app',
+    },
+  }
+  const [initialize, instance] = useOverlayScrollbars({ options, defer: true })
+
+  // Use $effect to initialize OverlayScrollbars (only on non-touch devices)
+  $effect(() => {
+    if (state.showImportModal && scrollContainerEl && !isTouchDevice()) {
+      // Use setTimeout to ensure DOM is fully rendered
+      const timer = setTimeout(() => {
+        initialize(scrollContainerEl)
+      }, 50)
+
+      return () => {
+        clearTimeout(timer)
+        // Cleanup when modal closes
+        if (instance()) {
+          instance().destroy()
+        }
+      }
+    }
+  })
 </script>
 
-<div class="p-4 border-t border-gray-200 dark:border-gray-700">
-  <h3 class=" font-medium text-text-secondary">Export/Import Data</h3>
+<div class="px-5 pb-4">
+  <h3 class="text-text-primary font-bold">Backup data</h3>
+  <p>Backup and import your data to another device</p>
 
+  <div class="mt-2 flex gap-1">
+    <button class=" relative overflow-hidden group" onclick={exportData}>
+      <div
+        class="font-medium py-2 px-4 border transition-colors duration-200 bg-blackwhite-5 text-text-secondary group-hover:border-border border-transparent hover:text-text-primary dark:hover:text-white"
+      >
+        Export
+      </div>
+
+      <span
+        class="size-4 absolute z-10 -left-2 -bottom-2 border bg-surface-1 rotate-45 transition-colors duration-200 border-transparent group-hover:border-border"
+      ></span>
+    </button>
+    <button class=" relative overflow-hidden group" onclick={openImportDialog}>
+      <div
+        class="font-medium py-2 px-4 border transition-colors duration-200 bg-blackwhite-5 text-text-secondary group-hover:border-border border-transparent hover:text-text-primary dark:hover:text-white"
+      >
+        Import
+      </div>
+
+      <span
+        class="size-4 absolute z-10 -left-2 -bottom-2 border bg-surface-1 rotate-45 transition-colors duration-200 border-transparent group-hover:border-border"
+      ></span>
+    </button>
+    <!-- Hidden file input -->
+    <input
+      bind:this={fileInputRef}
+      type="file"
+      class="hidden"
+      accept=".zip"
+      onchange={handleFileSelect}
+    />
+  </div>
   <!-- Success/Error Messages -->
   {#if state.successMessage}
     <div
@@ -533,21 +603,6 @@
       {state.errorMessage}
     </div>
   {/if}
-
-  <div class="mt-4 flex gap-4">
-    <button onclick={exportData} class="btn btn-primary">Export Data</button>
-    <button onclick={openImportDialog} class="btn btn-secondary"
-      >Import Data</button
-    >
-    <!-- Hidden file input -->
-    <input
-      bind:this={fileInputRef}
-      type="file"
-      class="hidden"
-      accept=".zip"
-      onchange={handleFileSelect}
-    />
-  </div>
 </div>
 
 <!-- Import Options Modal -->
@@ -562,7 +617,7 @@
     </Dialog.Overlay>
     <Dialog.Content
       forceMount
-      class="outline-hidden font-mono fixed left-[50%] top-1/2 w-[calc(100vw-32px)] max-w-lg z-[150] -translate-y-1/2 translate-x-[-50%]"
+      class="outline-hidden flex flex-col font-mono fixed left-[50%] top-1/2 w-[calc(100vw-32px)] max-w-lg z-[150] -translate-y-1/2  rounded-lg overflow-hidden shadow-lg max-h-[80vh] translate-x-[-50%]"
       onOpenAutoFocus={(e) => {
         e.preventDefault()
       }}
@@ -593,224 +648,203 @@
                 />
               </button>
             </div>
+            <div class="px-4 text-xs top-0 w-full bg-surface-2 py-2">
+              <p class="!text-center text-text-primary select-none">
+                Import Options
+              </p>
+            </div>
+
             <div
-              class="bg-surface-1 flex flex-col gap-4 text-xs rounded-lg shadow-lg max-h-[80vh] overflow-y-auto"
+              id="import-modal-scroll"
+              class="bg-surface-1 flex flex-col text-xs h-full {isTouchDevice()
+                ? 'overflow-y-auto'
+                : ''}"
+              bind:this={scrollContainerEl}
             >
-              <div class="px-4 bg-surface-2 py-2">
-                <p class="!text-center select-none">Import Options</p>
-              </div>
-
-              <div class="px-4">
-                <PreviewData class="w-full px-6 py-4 mx-auto">
-                  <div class="flex items-center">
-                    <div class=" w-24">
-                      <div class="size-20 shrink-0 overflow-hidden relative">
-                        <div
-                          class="absolute z-[4] border border-border dark:border-surface-2 inset-0"
-                        ></div>
-                        <div class="absolute inset-1 bg-surface-2"></div>
-                        <span
-                          class="absolute z-[2] size-6 rotate-45 bg-surface-1 bottom-px left-px -translate-x-1/2 translate-y-1/2"
-                        ></span>
-                        <span
-                          class="absolute z-[2] size-6 rotate-45 bg-surface-1 top-px right-px translate-x-1/2 -translate-y-1/2"
-                        ></span>
-                        <span
-                          class="absolute z-[5] size-4 rotate-45 bg-surface-1 border border-border dark:border-surface-2 bottom-px left-px -translate-x-1/2 translate-y-1/2"
-                        ></span>
-                        <span
-                          class="absolute z-[5] size-4 rotate-45 border-surface-1 bg-border dark:bg-muted border dark:border-surface-2 top-px right-px translate-x-1/2 -translate-y-1/2"
-                        ></span>
-                        <Icon
-                          icon="heroicons:circle-stack"
-                          class="size-10 center-abs text-muted dark:text-text-primary  dark:drop-shadow-md dark:drop-shadow-primary shrink-0"
-                        />
+              <div class="p-4 flex flex-col gap-4">
+                <div class="">
+                  <PreviewData class="w-full px-6 py-4 mx-auto">
+                    <div class="flex items-center">
+                      <div class=" w-26">
+                        <div class="size-20 shrink-0 overflow-hidden relative">
+                          <div
+                            class="absolute z-[4] border border-border dark:border-surface-2 inset-0"
+                          ></div>
+                          <div class="absolute inset-1 bg-surface-2"></div>
+                          <span
+                            class="absolute z-[2] size-6 rotate-45 bg-surface-1 bottom-px left-px -translate-x-1/2 translate-y-1/2"
+                          ></span>
+                          <span
+                            class="absolute z-[2] size-6 rotate-45 bg-surface-1 top-px right-px translate-x-1/2 -translate-y-1/2"
+                          ></span>
+                          <span
+                            class="absolute z-[5] size-4 rotate-45 bg-surface-1 border border-border dark:border-surface-2 bottom-px left-px -translate-x-1/2 translate-y-1/2"
+                          ></span>
+                          <span
+                            class="absolute z-[5] size-4 rotate-45 border-surface-1 bg-border dark:bg-muted border dark:border-surface-2 top-px right-px translate-x-1/2 -translate-y-1/2"
+                          ></span>
+                          <Icon
+                            icon="heroicons:circle-stack"
+                            class="size-10 center-abs text-muted dark:text-text-primary  dark:drop-shadow-md dark:drop-shadow-primary shrink-0"
+                          />
+                        </div>
+                      </div>
+                      <div class="flex flex-col flex-auto gap-1">
+                        <div class=" flex justify-between">
+                          <div
+                            bind:this={animatedRefs.exportedLabel}
+                            class="text-text-secondary text-xs"
+                          >
+                            {displayTexts.exportedLabel}
+                          </div>
+                          <div
+                            bind:this={animatedRefs.exportedValue}
+                            class="text-text-primary font-medium"
+                          >
+                            {displayTexts.exportedValue}
+                          </div>
+                        </div>
+                        <div class=" flex justify-between">
+                          <div
+                            bind:this={animatedRefs.historyLabel}
+                            class="text-text-secondary text-xs"
+                          >
+                            {displayTexts.historyLabel}
+                          </div>
+                          <div
+                            bind:this={animatedRefs.historyValue}
+                            class="text-text-primary font-medium"
+                          >
+                            {displayTexts.historyValue}
+                          </div>
+                        </div>
+                        <div class=" flex justify-between">
+                          <div
+                            bind:this={animatedRefs.summariesLabel}
+                            class="text-text-secondary text-xs"
+                          >
+                            {displayTexts.summariesLabel}
+                          </div>
+                          <div
+                            bind:this={animatedRefs.summariesValue}
+                            class="text-text-primary font-medium"
+                          >
+                            {displayTexts.summariesValue}
+                          </div>
+                        </div>
+                        <div class=" flex justify-between">
+                          <div
+                            bind:this={animatedRefs.tagsLabel}
+                            class="text-text-secondary text-xs"
+                          >
+                            {displayTexts.tagsLabel}
+                          </div>
+                          <div
+                            bind:this={animatedRefs.tagsValue}
+                            class="text-text-primary font-medium"
+                          >
+                            {displayTexts.tagsValue}
+                          </div>
+                        </div>
                       </div>
                     </div>
-                    <div class="flex flex-col flex-auto gap-1">
-                      <div class=" flex justify-between">
-                        <div
-                          bind:this={animatedRefs.exportedLabel}
-                          class="text-text-secondary text-xs"
-                        >
-                          {displayTexts.exportedLabel}
-                        </div>
-                        <div
-                          bind:this={animatedRefs.exportedValue}
-                          class="text-text-primary font-medium"
-                        >
-                          {displayTexts.exportedValue}
-                        </div>
-                      </div>
-                      <div class=" flex justify-between">
-                        <div
-                          bind:this={animatedRefs.historyLabel}
-                          class="text-text-secondary text-xs"
-                        >
-                          {displayTexts.historyLabel}
-                        </div>
-                        <div
-                          bind:this={animatedRefs.historyValue}
-                          class="text-text-primary font-medium"
-                        >
-                          {displayTexts.historyValue}
-                        </div>
-                      </div>
-                      <div class=" flex justify-between">
-                        <div
-                          bind:this={animatedRefs.summariesLabel}
-                          class="text-text-secondary text-xs"
-                        >
-                          {displayTexts.summariesLabel}
-                        </div>
-                        <div
-                          bind:this={animatedRefs.summariesValue}
-                          class="text-text-primary font-medium"
-                        >
-                          {displayTexts.summariesValue}
-                        </div>
-                      </div>
-                      <div class=" flex justify-between">
-                        <div
-                          bind:this={animatedRefs.tagsLabel}
-                          class="text-text-secondary text-xs"
-                        >
-                          {displayTexts.tagsLabel}
-                        </div>
-                        <div
-                          bind:this={animatedRefs.tagsValue}
-                          class="text-text-primary font-medium"
-                        >
-                          {displayTexts.tagsValue}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </PreviewData>
-              </div>
-
-              <div class="flex px-4 py-1 flex-col gap-2">
-                <h3 class="font-medium">Select Data Types to Import</h3>
-                <div class="grid grid-cols-2 gap-2">
-                  <SwitchPermission
-                    id="settings-switch"
-                    name="Settings"
-                    bind:checked={importOptions.dataTypes.settings}
-                  />
-
-                  <SwitchPermission
-                    id="history-switch"
-                    name="History"
-                    bind:checked={importOptions.dataTypes.history}
-                  />
-
-                  <SwitchPermission
-                    id="archive-switch"
-                    name="Archive"
-                    bind:checked={importOptions.dataTypes.archive}
-                  />
-
-                  <SwitchPermission
-                    id="tags-switch"
-                    name="Tags"
-                    bind:checked={importOptions.dataTypes.tags}
-                  />
+                  </PreviewData>
                 </div>
-              </div>
 
-              <!-- Warning for Replace Mode
-              {#if importOptions.mergeMode === 'replace'}
-                <div class="px-4 pb-2">
-                  <div
-                    class="bg-orange-50 dark:bg-orange-950/20 border-2 border-orange-300 dark:border-orange-700 rounded-lg p-3 flex items-start gap-2.5"
-                  >
-                    <Icon
-                      icon="heroicons:exclamation-triangle-solid"
-                      class="text-orange-600 dark:text-orange-400 shrink-0 mt-0.5"
-                      width={20}
+                <div class="flex py-1 flex-col gap-2">
+                  <h3 class="font-medium text-text-secondary">
+                    Select Data Types to Import
+                  </h3>
+                  <div class="grid grid-cols-2 gap-2">
+                    <SwitchPermission
+                      id="settings-switch"
+                      name="Settings"
+                      bind:checked={importOptions.dataTypes.settings}
                     />
-                    <div class="flex-1">
-                      <p
-                        class="text-xs font-semibold text-orange-800 dark:text-orange-300 mb-1"
-                      >
-                        Destructive Action Warning
-                      </p>
-                      <p class="text-xs text-orange-700 dark:text-orange-400">
-                        All selected data types will be <strong
-                          >permanently deleted</strong
-                        > before importing. This action cannot be undone.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              {/if} -->
 
-              <div class="flex px-4 py-1 flex-col gap-2">
-                <h3 class=" font-medium">Import Mode</h3>
-                <div class="grid w-full grid-cols-2 gap-1">
-                  <ButtonSet
-                    title="Merge data"
-                    class="setting-btn {importOptions.mergeMode === 'merge'
-                      ? 'active'
-                      : ''}"
-                    onclick={() => (importOptions.mergeMode = 'merge')}
-                    Description="Combine imported data with existing data"
-                  />
-                  <ButtonSet
-                    title="Replace data"
-                    class="setting-btn {importOptions.mergeMode === 'replace'
-                      ? 'active'
-                      : ''}"
-                    onclick={() => (importOptions.mergeMode = 'replace')}
-                    Description="Replace all existing data with imported data"
-                  />
-                </div>
-              </div>
-
-              <div class="px-4 pb-2">
-                <p class="text-xs text-text-secondary leading-relaxed">
-                  {#if importOptions.mergeMode === 'merge'}
-                    <strong>Merge Mode:</strong><br />
-                    • Imported data is <strong>combined</strong> with existing
-                    data<br />
-                    • Duplicates (same ID) will be <strong>updated</strong><br
+                    <SwitchPermission
+                      id="history-switch"
+                      name="History"
+                      bind:checked={importOptions.dataTypes.history}
                     />
-                    • Settings are merged (imported values override existing)
-                  {:else}
-                    <strong>⚠️ Replace Mode:</strong><br />
-                    • Selected data types are
-                    <strong>completely deleted</strong>
-                    first<br />
-                    • Then replaced with imported data only<br />
-                    • Unselected data types are not affected<br />
-                  {/if}
-                </p>
-              </div>
 
-              <div class="flex justify-end gap-4 px-4 pb-4">
-                <button onclick={cancelImport} class="btn btn-ghost"
-                  >Cancel</button
-                >
-                <button
-                  class=" flex relative overflow-hidden group"
-                  onclick={startImport}
-                  disabled={!Object.values(importOptions.dataTypes).some(
-                    Boolean
-                  )}
-                >
-                  <div
-                    class=" font-medium py-2 px-4 border transition-colors duration-200 {isImportDataSelected()
-                      ? 'bg-primary group-hover:bg-primary/95 dark:group-hover:bg-orange-500 text-orange-50 dark:text-orange-100/90 border-orange-400 hover:border-orange-300/75 hover:text-white'
-                      : ' bg-white dark:bg-surface-1 text-text-secondary border-border/40'}"
-                  >
-                    Start Import
+                    <SwitchPermission
+                      id="archive-switch"
+                      name="Archive"
+                      bind:checked={importOptions.dataTypes.archive}
+                    />
+
+                    <SwitchPermission
+                      id="tags-switch"
+                      name="Tags"
+                      bind:checked={importOptions.dataTypes.tags}
+                    />
                   </div>
-                  <span
-                    class="size-4 absolute z-10 -left-2 -bottom-2 border bg-white dark:bg-surface-1 rotate-45 transition-colors duration-200 {isImportDataSelected()
-                      ? ' border-orange-400 group-hover:border-orange-300/75'
-                      : ' border-border/40'}"
-                  ></span>
-                </button>
+                </div>
+
+                <div class="flex py-1 flex-col gap-2">
+                  <h3 class=" font-medium text-text-secondary">Import Mode</h3>
+                  <div class="grid w-full grid-cols-2 gap-1">
+                    <ButtonSet
+                      title="Merge data"
+                      class="setting-btn {importOptions.mergeMode === 'merge'
+                        ? 'active'
+                        : ''}"
+                      onclick={() => (importOptions.mergeMode = 'merge')}
+                      Description="Combine imported data with existing data"
+                    />
+                    <ButtonSet
+                      title="Replace data"
+                      class="setting-btn {importOptions.mergeMode === 'replace'
+                        ? 'active'
+                        : ''}"
+                      onclick={() => (importOptions.mergeMode = 'replace')}
+                      Description="Replace all existing data with imported data"
+                    />
+                  </div>
+                </div>
+
+                <div class="">
+                  <p class="text-xs text-text-secondary leading-relaxed">
+                    {#if importOptions.mergeMode === 'merge'}
+                      <strong>Merge Mode:</strong><br />
+                      • Imported data is combined with existing data<br />
+                      • Duplicates (same ID) will be updated<br />
+                      • Settings are merged (imported values override existing)
+                    {:else}
+                      <strong>⚠️ Replace Mode:</strong><br />
+                      • Selected data types are completely deleted first<br />
+                      • Then replaced with imported data only<br />
+                      • Unselected data types are not affected<br />
+                    {/if}
+                  </p>
+                </div>
+
+                <div class="flex justify-end gap-4">
+                  <button onclick={cancelImport} class="btn btn-ghost"
+                    >Cancel</button
+                  >
+                  <button
+                    class=" flex relative overflow-hidden group"
+                    onclick={startImport}
+                    disabled={!Object.values(importOptions.dataTypes).some(
+                      Boolean
+                    )}
+                  >
+                    <div
+                      class=" font-medium py-2 px-4 border transition-colors duration-200 {isImportDataSelected()
+                        ? 'bg-primary group-hover:bg-primary/95 dark:group-hover:bg-orange-500 text-orange-50 dark:text-orange-100/90 border-orange-400 hover:border-orange-300/75 hover:text-white'
+                        : ' bg-white dark:bg-surface-1 text-text-secondary border-border/40'}"
+                    >
+                      Start Import
+                    </div>
+                    <span
+                      class="size-4 absolute z-10 -left-2 -bottom-2 border bg-surface-1 rotate-45 transition-colors duration-200 {isImportDataSelected()
+                        ? ' border-orange-400 group-hover:border-orange-300/75'
+                        : ' border-border/40'}"
+                    ></span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>

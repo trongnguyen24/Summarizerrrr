@@ -1,9 +1,20 @@
 <script>
   // @ts-nocheck
   import Icon from '@iconify/svelte'
-  import { executeCustomAction } from '@/stores/summaryStore.svelte.js'
+  import {
+    executeCustomAction,
+    fetchChapterSummary,
+    summaryState,
+  } from '@/stores/summaryStore.svelte.js'
 
   const actions = [
+    {
+      key: 'chapters',
+      label: 'Chapters',
+      icon: 'heroicons:queue-list-16-solid',
+      description: 'Summarize by chapters',
+      showOnlyForYouTube: true,
+    },
     {
       key: 'analyze',
       label: 'Analyze',
@@ -25,12 +36,26 @@
   ]
 
   async function handleActionClick(actionType) {
-    await executeCustomAction(actionType)
+    if (actionType === 'chapters') {
+      await fetchChapterSummary()
+    } else {
+      await executeCustomAction(actionType)
+    }
   }
+
+  // Filter actions based on current page type
+  let visibleActions = $derived(
+    actions.filter((action) => {
+      if (action.showOnlyForYouTube) {
+        return summaryState.isYouTubeVideoActive
+      }
+      return true
+    })
+  )
 </script>
 
 <div class="flex absolute bottom-4 z-30 mx-auto gap-3 flex-wrap justify-center">
-  {#each actions as action}
+  {#each visibleActions as action}
     <button
       class="action-btn-mini font-mono opacity-0 relative p-2.5 text-xs rounded-full border border-border text-text-secondary hover:text-text-primary hover:bg-blackwhite-5 transition-colors duration-125 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
       onclick={() => handleActionClick(action.key)}
@@ -63,6 +88,10 @@
 
   .action-btn-mini:nth-child(3) {
     animation-delay: 1100ms;
+  }
+
+  .action-btn-mini:nth-child(4) {
+    animation-delay: 1250ms;
   }
 
   @keyframes fadeInScale {

@@ -194,37 +194,46 @@ export function useSummarization() {
       } else {
         // Non-course content: Use original logic hoặc custom actions
         localSummaryState.isLoading = true
-        if (contentType === 'youtube') {
-          localSummaryState.isChapterLoading = true
-        }
 
         // Nếu là custom action, gọi API trực tiếp
         if (
           customContentType &&
-          ['analyze', 'explain', 'debate'].includes(customContentType)
-        ) {
-          const { summarizeContent } = await import('@/lib/api/api.js')
-          localSummaryState.summary = await summarizeContent(
-            content,
+          ['analyze', 'explain', 'debate', 'chapters'].includes(
             customContentType
           )
+        ) {
+          const { summarizeContent, summarizeChapters } = await import(
+            '@/lib/api/api.js'
+          )
+
+          if (customContentType === 'chapters') {
+            // Tóm tắt chapters riêng
+            localSummaryState.isChapterLoading = true
+            try {
+              localSummaryState.chapterSummary = await summarizeChapters(
+                content
+              )
+            } finally {
+              localSummaryState.isChapterLoading = false
+            }
+          } else {
+            localSummaryState.summary = await summarizeContent(
+              content,
+              customContentType
+            )
+          }
         } else {
-          // Logic gốc cho content thường - TRUYỀN CONTENT ĐÃ CÓ
+          // Logic gốc cho content thường - CHỈ TÓM TẮT CHÍNH
           const result = await summarizationService.summarizeWithContent(
             content,
             contentType,
             settings
           )
           localSummaryState.summary = result.summary
-          if (result.chapterSummary) {
-            localSummaryState.chapterSummary = result.chapterSummary
-          }
+          // Không tự động tóm tắt chapters nữa
         }
 
         localSummaryState.isLoading = false
-        if (contentType === 'youtube') {
-          localSummaryState.isChapterLoading = false
-        }
       }
 
       const duration = Date.now() - localSummaryState.startTime
@@ -240,6 +249,54 @@ export function useSummarization() {
       localSummaryState.isCourseConceptsLoading = false
     } finally {
       // Reset processing flag
+      isProcessing = false
+    }
+  }
+
+  /**
+   * Summarize chapters specifically (for floating panel)
+   */
+  async function summarizeChapters() {
+    if (isProcessing) {
+      console.log(
+        '[useSummarization] Already processing, ignoring duplicate request'
+      )
+      return
+    }
+
+    localSummaryState.isChapterLoading = true
+    isProcessing = true
+
+    try {
+      console.log('[useSummarization] Starting chapter summarization...')
+
+      // Load settings
+      await loadSettings()
+
+      // Initialize services
+      const contentExtractor = new ContentExtractorService(
+        (settings?.uiLanguage || 'en').slice(0, 2)
+      )
+
+      // Extract content
+      const extractResult = await contentExtractor.extractPageContent()
+      const content = extractResult.content
+
+      // Call chapter summarization
+      const { summarizeChapters: apiSummarizeChapters } = await import(
+        '@/lib/api/api.js'
+      )
+      localSummaryState.chapterSummary = await apiSummarizeChapters(content)
+
+      console.log('[useSummarization] Chapter summarization completed')
+
+      // Auto-save to history
+      await autoSaveToHistory()
+    } catch (error) {
+      console.error('[useSummarization] Chapter summarization error:', error)
+      handleSummarizationError(error)
+    } finally {
+      localSummaryState.isChapterLoading = false
       isProcessing = false
     }
   }
@@ -315,6 +372,7 @@ export function useSummarization() {
 
     // Actions
     summarizePageContent,
+    summarizeChapters,
     resetLocalSummaryState,
     handleSummarizationError,
     manualSaveToArchive,

@@ -56,10 +56,20 @@
     summarization.summarizePageContent()
   }
 
-  function handleCustomAction(actionType) {
+  async function handleCustomAction(actionType) {
     console.log(`[FloatingPanel] Executing custom action: ${actionType}`)
-    summarization.summarizePageContent(actionType)
+    if (actionType === 'chapters') {
+      await summarization.summarizeChapters()
+    } else {
+      await summarization.summarizePageContent(actionType)
+    }
   }
+
+  // Detect if current page is YouTube
+  let isYouTubeActive = $derived(() => {
+    const url = window.location.href
+    return /youtube\.com\/watch/i.test(url)
+  })
   function togglePanelPosition() {
     updateSettings({ floatingPanelLeft: !settings.floatingPanelLeft })
   }
@@ -408,7 +418,10 @@
             />
           {/if}
           {#if summaryToDisplay || summarization.localSummaryState().error}
-            <ActionButtonsMiniFP onActionClick={handleCustomAction} />
+            <ActionButtonsMiniFP
+              onActionClick={handleCustomAction}
+              isYouTubeActive={isYouTubeActive()}
+            />
           {/if}
         </div>
         <div
@@ -441,7 +454,10 @@
       {/if}
 
       {#if !summaryToDisplay && !summarization.localSummaryState().isLoading && !needsApiKeySetup()()}
-        <ActionButtonsFP onActionClick={handleCustomAction} />
+        <ActionButtonsFP
+          onActionClick={handleCustomAction}
+          isYouTubeActive={isYouTubeActive()}
+        />
       {/if}
 
       {#if children?.settingsMini}

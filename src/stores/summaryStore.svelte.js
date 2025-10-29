@@ -243,46 +243,22 @@ export async function fetchAndSummarize() {
     summaryState.currentContentSource = mainContentResult.content
 
     if (summaryState.isYouTubeVideoActive) {
-      // Reuse the same timestamped transcript for both video and chapter summaries
-      const chapterPromise = (async () => {
-        summaryState.chapterError = null
-        try {
-          const chapterSummarizedText = await summarizeChapters(
-            summaryState.currentContentSource // Reuse fetched content
-          )
-          summaryState.chapterSummary =
-            chapterSummarizedText ||
-            '<p><i>Could not generate chapter summary.</i></p>'
-        } catch (e) {
-          const errorObject = handleError(e, {
-            source: 'chapterSummarization',
-          })
-          summaryState.chapterError = errorObject
-        } finally {
-          summaryState.isChapterLoading = false
-        }
-      })()
-
-      const videoSummaryPromise = (async () => {
-        summaryState.summaryError = null
-        try {
-          const videoSummarizedText = await summarizeContent(
-            summaryState.currentContentSource,
-            'youtube'
-          )
-          summaryState.summary =
-            videoSummarizedText ||
-            '<p><i>Could not generate video summary.</i></p>'
-        } catch (e) {
-          const errorObject = handleError(e, {
-            source: 'youtubeVideoSummarization',
-          })
-          summaryState.summaryError = errorObject
-        } finally {
-          summaryState.isLoading = false
-        }
-      })()
-      await Promise.all([chapterPromise, videoSummaryPromise])
+      // Only summarize video content, chapters will be separate
+      summaryState.summaryError = null
+      try {
+        const videoSummarizedText = await summarizeContent(
+          summaryState.currentContentSource,
+          'youtube'
+        )
+        summaryState.summary =
+          videoSummarizedText ||
+          '<p><i>Could not generate video summary.</i></p>'
+      } catch (e) {
+        const errorObject = handleError(e, {
+          source: 'youtubeVideoSummarization',
+        })
+        summaryState.summaryError = errorObject
+      }
     } else if (summaryState.isCourseVideoActive) {
       const courseSummaryPromise = (async () => {
         summaryState.courseSummaryError = null
@@ -348,11 +324,139 @@ export async function fetchAndSummarize() {
   } finally {
     // Ensure all loading states are set to false
     summaryState.isLoading = false
-    summaryState.isChapterLoading = false
     summaryState.isCourseSummaryLoading = false
     summaryState.isCourseConceptsLoading = false
 
     // Log all generated summaries to history after all loading is complete
+    await logAllGeneratedSummariesToHistory()
+  }
+}
+
+/**
+ * Fetches and generates chapter summary for YouTube videos.
+ * Can be called independently after main video summary.
+ */
+export async function fetchChapterSummary() {
+  // Wait for settings to be initialized
+  await loadSettings()
+
+  const userSettings = settings
+
+  // Determine the actual provider to use based on isAdvancedMode
+  let selectedProviderId = userSettings.selectedProvider || 'gemini'
+  if (!userSettings.isAdvancedMode) {
+    selectedProviderId = 'gemini' // Force Gemini in basic mode
+  }
+
+  // Check if we should use streaming mode
+  const shouldUseStreaming =
+    userSettings.enableStreaming &&
+    providerSupportsStreaming(selectedProviderId)
+
+  // Reset chapter state and update display type
+  summaryState.chapterSummary = ''
+  summaryState.chapterError = null
+  summaryState.isChapterLoading = true
+
+  // Set display type to 'custom' to hide action buttons (like other custom actions)
+  summaryState.lastSummaryTypeDisplayed = 'custom'
+  summaryState.currentActionType = 'chapters'
+  summaryState.customActionResult = '' // Reset custom action result
+
+  try {
+    // Get current tab info
+    const [tabInfo] = await browser.tabs.query({
+      active: true,
+      currentWindow: true,
+    })
+    if (!tabInfo || !tabInfo.url) {
+      throw new Error('Could not get current tab information or URL.')
+    }
+
+    // Verify this is a YouTube page
+    const YOUTUBE_MATCH_PATTERN = /youtube\.com\/watch/i
+    if (!YOUTUBE_MATCH_PATTERN.test(tabInfo.url)) {
+      throw new Error('Chapter summary is only available for YouTube videos.')
+    }
+
+    // Check Firefox permissions
+    if (import.meta.env.BROWSER === 'firefox') {
+      const hasPermission = await checkPermission(tabInfo.url)
+      if (!hasPermission) {
+        const permissionGranted = await requestPermission(tabInfo.url)
+        if (!permissionGranted) {
+          throw new Error(
+            'Permission denied for this website. Please enable permissions in Settings or grant access when prompted.'
+          )
+        }
+      }
+    }
+
+    // Fetch or reuse transcript
+    let transcript = summaryState.currentContentSource
+
+    // If transcript is not available, fetch it
+    if (!transcript || transcript.trim() === '') {
+      const contentResult = await getPageContent(
+        'timestampedTranscript',
+        userSettings.summaryLang
+      )
+      transcript = contentResult.content
+      summaryState.currentContentSource = transcript
+    }
+
+    // Generate chapter summary
+    if (shouldUseStreaming) {
+      // Use streaming mode - stream directly to customActionResult
+      try {
+        console.log('[summaryStore] Starting chapter streaming...')
+        const chapterStream = summarizeChaptersStream(transcript)
+        let chunkCount = 0
+        for await (const chunk of chapterStream) {
+          summaryState.customActionResult += chunk
+          summaryState.chapterSummary += chunk // Also keep in chapterSummary for compatibility
+          chunkCount++
+        }
+        console.log(
+          `[summaryStore] Chapter streaming completed, chunks: ${chunkCount}`
+        )
+      } catch (streamError) {
+        console.log(
+          '[summaryStore] Chapter streaming error, falling back to blocking mode:',
+          streamError
+        )
+        // Fallback to blocking mode
+        const chapterText = await summarizeChapters(transcript)
+        const result =
+          chapterText || '<p><i>Could not generate chapter summary.</i></p>'
+        summaryState.chapterSummary = result
+        summaryState.customActionResult = result
+      }
+    } else {
+      // Use non-streaming mode
+      const chapterText = await summarizeChapters(transcript)
+      const result =
+        chapterText || '<p><i>Could not generate chapter summary.</i></p>'
+      summaryState.chapterSummary = result
+      summaryState.customActionResult = result
+    }
+
+    // Set page info if not already set
+    if (!summaryState.pageTitle || !summaryState.pageUrl) {
+      summaryState.pageTitle = tabInfo.title || 'Unknown Title'
+      summaryState.pageUrl = tabInfo.url || 'Unknown URL'
+    }
+
+    // Keep display type as 'custom' for chapters
+    // (already set at the beginning)
+  } catch (e) {
+    const errorObject = handleError(e, {
+      source: 'chapterSummarization',
+    })
+    summaryState.chapterError = errorObject
+  } finally {
+    summaryState.isChapterLoading = false
+    // Log to history after chapter summary is complete
     await logAllGeneratedSummariesToHistory()
   }
 }
@@ -428,34 +532,7 @@ export async function fetchAndSummarizeStream() {
     const promises = []
 
     if (summaryState.isYouTubeVideoActive) {
-      // Reuse the same timestamped transcript for both video and chapter summaries
-      summaryState.isChapterLoading = true
-      const chapterStreamPromise = (async () => {
-        summaryState.chapterError = null
-        try {
-          const chapterStream = summarizeChaptersStream(
-            summaryState.currentContentSource // Reuse fetched content
-          )
-          for await (const chunk of chapterStream) {
-            summaryState.chapterSummary += chunk
-          }
-        } catch (e) {
-          if (e.message?.includes('transcript')) {
-            summaryState.chapterSummary =
-              '<p><i>Failed to get transcript for chapters.</i></p>'
-          } else {
-            summaryState.chapterError = handleError(e, {
-              source: 'chapterStreamSummarization',
-            })
-            // Re-throw to be caught by the main handler
-            throw e
-          }
-        } finally {
-          summaryState.isChapterLoading = false
-        }
-      })()
-      promises.push(chapterStreamPromise)
-
+      // Only stream video summary, chapters will be separate
       summaryState.summaryError = null
       try {
         console.log('[summaryStore] Starting YouTube video streaming...')

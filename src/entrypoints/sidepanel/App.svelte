@@ -24,7 +24,6 @@
     fetchAndSummarize,
     fetchAndSummarizeStream,
     updateActiveCourseTab,
-    updateActiveYouTubeTab,
   } from '@/stores/summaryStore.svelte.js'
   import { tabTitle } from '@/stores/tabTitleStore.svelte.js'
   import { setupMessageListener } from '@/services/messageHandler.js'
@@ -114,14 +113,22 @@
     // Check if we have content OR error based on the last summary type displayed
     switch (summaryState.lastSummaryTypeDisplayed) {
       case 'youtube':
-        // For YouTube, we need either content or error
-        const hasYouTubeContent =
-          (summaryState.summary && summaryState.summary.trim() !== '') ||
+        // For YouTube, only show action buttons if video summary is done
+        // Chapter summary alone doesn't count
+        const hasYouTubeVideoContent =
+          summaryState.summary && summaryState.summary.trim() !== ''
+        const hasYouTubeError = summaryState.summaryError
+
+        // Don't show action buttons when only chapter is loading/loaded
+        const isOnlyChapterAction =
+          summaryState.isChapterLoading ||
           (summaryState.chapterSummary &&
-            summaryState.chapterSummary.trim() !== '')
-        const hasYouTubeError =
-          summaryState.summaryError || summaryState.chapterError
-        return hasYouTubeContent || hasYouTubeError
+            summaryState.chapterSummary.trim() !== '' &&
+            !summaryState.summary)
+
+        if (isOnlyChapterAction) return false
+
+        return hasYouTubeVideoContent || hasYouTubeError
 
       case 'course':
         // For courses, we need either content or error
@@ -354,9 +361,7 @@
       {:else if anyError}
         <ErrorDisplay error={anyError} />
       {:else if summaryState.lastSummaryTypeDisplayed === 'youtube'}
-        <YouTubeSummaryDisplay
-          activeYouTubeTab={summaryState.activeYouTubeTab}
-        />
+        <YouTubeSummaryDisplay />
       {:else if summaryState.lastSummaryTypeDisplayed === 'course'}
         <CourseSummaryDisplay activeCourseTab={summaryState.activeCourseTab} />
       {:else if summaryState.lastSummaryTypeDisplayed === 'selectedText'}

@@ -239,7 +239,9 @@
     </div>
   </div>
 {/if}
-<div class="setting-block flex pb-6 pt-1 flex-col">
+
+<div class="setting-block flex pb-6 pt-6 flex-col">
+  <ExportImport />
   <div class="flex flex-col gap-2 p-5">
     <!-- svelte-ignore a11y_label_has_associated_control -->
     <label class="block text-text-primary font-bold"
@@ -329,8 +331,6 @@
       <UILanguageSelect />
     </div>
   </div>
-
-  <ExportImport />
 
   {#if !browserCompatibility.isMobile}
     {#if !browserCompatibility.isMobile}

@@ -113,7 +113,10 @@ export function sanitizeSettings(rawSettings) {
     return {}
   }
 
-  // Handle nested settings.settings structure
+  // Blacklist of keys that should never be in settings
+  const BLACKLIST_KEYS = ['metadata', 'theme', 'settings']
+
+  // Handle nested settings.settings structure - flatten it
   let settings = rawSettings
   while (settings.settings && typeof settings.settings === 'object') {
     console.log(
@@ -122,10 +125,10 @@ export function sanitizeSettings(rawSettings) {
     settings = settings.settings
   }
 
-  // Filter to only valid keys
+  // Filter to only valid keys and remove blacklisted keys
   const cleanSettings = {}
   VALID_SETTING_KEYS.forEach((key) => {
-    if (settings[key] !== undefined) {
+    if (settings[key] !== undefined && !BLACKLIST_KEYS.includes(key)) {
       cleanSettings[key] = settings[key]
     }
   })
@@ -133,7 +136,7 @@ export function sanitizeSettings(rawSettings) {
   // Log sanitization results in development
   if (process.env.NODE_ENV === 'development') {
     const removedKeys = Object.keys(settings).filter(
-      (key) => !VALID_SETTING_KEYS.includes(key)
+      (key) => !VALID_SETTING_KEYS.includes(key) || BLACKLIST_KEYS.includes(key)
     )
     if (removedKeys.length > 0) {
       console.log('[settingsSchema] Sanitized settings:', {

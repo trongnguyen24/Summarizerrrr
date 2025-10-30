@@ -112,8 +112,15 @@
 
   async function exportData() {
     try {
-      // Use export service to create ZIP file
-      const zipBlob = await exportDataToZip(settings)
+      // Load settings directly from storage to ensure we get the actual saved values
+      // (not the reactive proxy which might be stale)
+      const { settingsStorage } = await import(
+        '../../services/wxtStorageService.js'
+      )
+      const currentSettings = await settingsStorage.getValue()
+
+      // Use export service to create ZIP file with actual storage values
+      const zipBlob = await exportDataToZip(currentSettings || settings)
 
       // Generate filename and download
       const filename = generateExportFilename()
@@ -355,7 +362,12 @@
         await updateSettings(cleanImportedSettings)
       } else {
         // Merge: Combine settings
-        const mergedSettings = { ...settings, ...cleanImportedSettings }
+        // ✅ FIX: Sanitize current settings trước khi merge để loại bỏ invalid keys
+        const cleanCurrentSettings = sanitizeSettings(settings)
+        const mergedSettings = {
+          ...cleanCurrentSettings,
+          ...cleanImportedSettings,
+        }
         await updateSettings(mergedSettings)
       }
     }
@@ -590,7 +602,7 @@
   <div class="mt-2 grid grid-cols-3 gap-1">
     <button class=" relative overflow-hidden group" onclick={exportData}>
       <div
-        class="font-medium py-2 px-4 border transition-colors duration-200 bg-blackwhite-5 text-text-secondary group-hover:border-border border-transparent hover:text-text-primary dark:hover:text-white"
+        class="font-medium py-2 px-4 border transition-colors duration-200 bg-muted/5 text-text-secondary group-hover:border-border border-transparent hover:text-text-primary dark:hover:text-white"
       >
         Export
       </div>
@@ -601,7 +613,7 @@
     </button>
 
     <!-- Export as Markdown button -->
-    <button
+    <!-- <button
       class=" relative overflow-hidden group"
       onclick={exportMarkdown}
       disabled={state.isExportingMarkdown}
@@ -623,11 +635,11 @@
           ? 'border-border/20'
           : 'border-transparent group-hover:border-border'}"
       ></span>
-    </button>
+    </button> -->
 
     <button class=" relative overflow-hidden group" onclick={openImportDialog}>
       <div
-        class="font-medium py-2 px-4 border transition-colors duration-200 bg-blackwhite-5 text-text-secondary group-hover:border-border border-transparent hover:text-text-primary dark:hover:text-white"
+        class="font-medium py-2 px-4 border transition-colors duration-200 bg-muted/5 text-text-secondary group-hover:border-border border-transparent hover:text-text-primary dark:hover:text-white"
       >
         Import
       </div>

@@ -102,7 +102,6 @@
     // No loading states should be active
     const noLoadingStates =
       !summaryState.isLoading &&
-      !summaryState.isChapterLoading &&
       !summaryState.isCourseSummaryLoading &&
       !summaryState.isCourseConceptsLoading &&
       !summaryState.isSelectedTextLoading &&
@@ -118,15 +117,6 @@
         const hasYouTubeVideoContent =
           summaryState.summary && summaryState.summary.trim() !== ''
         const hasYouTubeError = summaryState.summaryError
-
-        // Don't show action buttons when only chapter is loading/loaded
-        const isOnlyChapterAction =
-          summaryState.isChapterLoading ||
-          (summaryState.chapterSummary &&
-            summaryState.chapterSummary.trim() !== '' &&
-            !summaryState.summary)
-
-        if (isOnlyChapterAction) return false
 
         return hasYouTubeVideoContent || hasYouTubeError
 
@@ -173,7 +163,6 @@
   // Derived state to find the first active error object
   const anyError = $derived(
     summaryState.summaryError ||
-      summaryState.chapterError ||
       summaryState.courseSummaryError ||
       summaryState.courseConceptsError ||
       summaryState.selectedTextError ||
@@ -319,7 +308,6 @@
               isLoading={summaryState.isLoading ||
                 isAnyCourseLoading ||
                 summaryState.isCustomActionLoading}
-              isChapterLoading={summaryState.isChapterLoading}
               disabled={!hasPermission && import.meta.env.BROWSER === 'firefox'}
             />
           </span>

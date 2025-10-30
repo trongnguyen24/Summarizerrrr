@@ -28,15 +28,12 @@ import {
 // --- State ---
 export const summaryState = $state({
   summary: '',
-  chapterSummary: '',
   courseSummary: '',
   courseConcepts: '',
   isLoading: false,
-  isChapterLoading: false,
   isCourseSummaryLoading: false,
   isCourseConceptsLoading: false,
   summaryError: null, // Will hold the structured error object
-  chapterError: null,
   courseSummaryError: null,
   courseConceptsError: null,
   isYouTubeVideoActive: false,
@@ -64,17 +61,14 @@ export const summaryState = $state({
  */
 export function resetState() {
   summaryState.summary = ''
-  summaryState.chapterSummary = ''
   summaryState.courseSummary = ''
   summaryState.courseConcepts = ''
   summaryState.selectedTextSummary = ''
   summaryState.isLoading = false
-  summaryState.isChapterLoading = false
   summaryState.isCourseSummaryLoading = false
   summaryState.isCourseConceptsLoading = false
   summaryState.isSelectedTextLoading = false
   summaryState.summaryError = null
-  summaryState.chapterError = null
   summaryState.courseSummaryError = null
   summaryState.courseConceptsError = null
   summaryState.selectedTextError = null
@@ -98,12 +92,10 @@ export function resetState() {
  */
 export function resetDisplayState() {
   summaryState.summary = ''
-  summaryState.chapterSummary = ''
   summaryState.courseSummary = ''
   summaryState.courseConcepts = ''
   summaryState.selectedTextSummary = ''
   summaryState.summaryError = null
-  summaryState.chapterError = null
   summaryState.courseSummaryError = null
   summaryState.courseConceptsError = null
   summaryState.selectedTextError = null
@@ -145,7 +137,7 @@ export function updateActiveCourseTab(tabName) {
  */
 export async function fetchAndSummarize() {
   // If a summarization process is already ongoing, reset state and start a new one
-  if (summaryState.isLoading || summaryState.isChapterLoading) {
+  if (summaryState.isLoading || summaryState.isCustomActionLoading) {
     resetState() // Reset state before starting a new summarization
   }
 
@@ -173,7 +165,6 @@ export async function fetchAndSummarize() {
     await fetchAndSummarizeStream()
     // Ensure all loading states are set to false after streaming completes
     summaryState.isLoading = false
-    summaryState.isChapterLoading = false
     summaryState.isCourseSummaryLoading = false
     summaryState.isCourseConceptsLoading = false
     // logAllGeneratedSummariesToHistory() is called within fetchAndSummarizeStream
@@ -184,7 +175,6 @@ export async function fetchAndSummarize() {
   try {
     // Immediately set loading states inside try block
     summaryState.isLoading = true
-    summaryState.isChapterLoading = true
     summaryState.isCourseSummaryLoading = true
     summaryState.isCourseConceptsLoading = true
 
@@ -353,15 +343,12 @@ export async function fetchChapterSummary() {
     userSettings.enableStreaming &&
     providerSupportsStreaming(selectedProviderId)
 
-  // Reset chapter state and update display type
-  summaryState.chapterSummary = ''
-  summaryState.chapterError = null
-  summaryState.isChapterLoading = true
-
-  // Set display type to 'custom' to hide action buttons (like other custom actions)
+  // Reset custom action state for chapters
+  summaryState.isCustomActionLoading = true
   summaryState.lastSummaryTypeDisplayed = 'custom'
   summaryState.currentActionType = 'chapters'
-  summaryState.customActionResult = '' // Reset custom action result
+  summaryState.customActionResult = ''
+  summaryState.customActionError = null
 
   try {
     // Get current tab info
@@ -414,7 +401,6 @@ export async function fetchChapterSummary() {
         let chunkCount = 0
         for await (const chunk of chapterStream) {
           summaryState.customActionResult += chunk
-          summaryState.chapterSummary += chunk // Also keep in chapterSummary for compatibility
           chunkCount++
         }
         console.log(
@@ -427,18 +413,14 @@ export async function fetchChapterSummary() {
         )
         // Fallback to blocking mode
         const chapterText = await summarizeChapters(transcript)
-        const result =
+        summaryState.customActionResult =
           chapterText || '<p><i>Could not generate chapter summary.</i></p>'
-        summaryState.chapterSummary = result
-        summaryState.customActionResult = result
       }
     } else {
       // Use non-streaming mode
       const chapterText = await summarizeChapters(transcript)
-      const result =
+      summaryState.customActionResult =
         chapterText || '<p><i>Could not generate chapter summary.</i></p>'
-      summaryState.chapterSummary = result
-      summaryState.customActionResult = result
     }
 
     // Set page info if not already set
@@ -453,9 +435,9 @@ export async function fetchChapterSummary() {
     const errorObject = handleError(e, {
       source: 'chapterSummarization',
     })
-    summaryState.chapterError = errorObject
+    summaryState.customActionError = errorObject
   } finally {
-    summaryState.isChapterLoading = false
+    summaryState.isCustomActionLoading = false
     // Log to history after chapter summary is complete
     await logAllGeneratedSummariesToHistory()
   }
@@ -463,7 +445,7 @@ export async function fetchChapterSummary() {
 export async function fetchAndSummarizeStream() {
   if (
     summaryState.isLoading ||
-    summaryState.isChapterLoading ||
+    summaryState.isCustomActionLoading ||
     summaryState.isCourseSummaryLoading ||
     summaryState.isCourseConceptsLoading
   ) {
@@ -661,7 +643,7 @@ export async function summarizeSelectedText(text) {
   if (
     summaryState.isSelectedTextLoading ||
     summaryState.isLoading ||
-    summaryState.isChapterLoading
+    summaryState.isCustomActionLoading
   ) {
     resetState()
   }
@@ -712,15 +694,6 @@ export async function saveAllGeneratedSummariesToArchive() {
           ? 'Summary'
           : 'Summary',
       content: summaryState.summary,
-    })
-  }
-  if (
-    summaryState.chapterSummary &&
-    summaryState.chapterSummary.trim() !== ''
-  ) {
-    summariesToSave.push({
-      title: 'Chapters',
-      content: summaryState.chapterSummary,
     })
   }
   if (summaryState.courseSummary && summaryState.courseSummary.trim() !== '') {
@@ -792,15 +765,6 @@ export async function logAllGeneratedSummariesToHistory() {
           ? 'Summary'
           : 'Summary',
       content: summaryState.summary,
-    })
-  }
-  if (
-    summaryState.chapterSummary &&
-    summaryState.chapterSummary.trim() !== ''
-  ) {
-    summariesToLog.push({
-      title: 'Chapters',
-      content: summaryState.chapterSummary,
     })
   }
   if (summaryState.courseSummary && summaryState.courseSummary.trim() !== '') {

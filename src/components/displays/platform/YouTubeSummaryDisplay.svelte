@@ -14,16 +14,3 @@
     showTOC={true}
   />
 {/if}
-
-<!-- Chapter Summary - Display separately when available -->
-{#if summaryState.chapterSummary || summaryState.isChapterLoading}
-  <div class="mt-8">
-    <GenericSummaryDisplay
-      summary={summaryState.chapterSummary}
-      isLoading={summaryState.isChapterLoading}
-      loadingText="Generating chapter summary..."
-      targetId="youtube-chapter-summary-display"
-      showTOC={true}
-    />
-  </div>
-{/if}

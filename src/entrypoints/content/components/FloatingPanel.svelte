@@ -413,8 +413,6 @@
           {#if !needsApiKeySetup()()}
             <SummarizeButton
               isLoading={summarization.localSummaryState().isLoading}
-              isChapterLoading={summarization.localSummaryState()
-                .isChapterLoading}
             />
           {/if}
           {#if summaryToDisplay || summarization.localSummaryState().error}
@@ -439,8 +437,6 @@
           summary={summaryToDisplay}
           error={summarization.localSummaryState().error}
           contentType={summarization.localSummaryState().contentType}
-          chapterSummary={summarization.localSummaryState().chapterSummary}
-          isChapterLoading={summarization.localSummaryState().isChapterLoading}
           courseConcepts={summarization.localSummaryState().courseConcepts}
           isCourseSummaryLoading={summarization.localSummaryState().isLoading}
           isCourseConceptsLoading={summarization.localSummaryState()

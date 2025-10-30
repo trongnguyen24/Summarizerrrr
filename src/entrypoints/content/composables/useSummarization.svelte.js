@@ -23,8 +23,6 @@ export function useSummarization() {
     startTime: null,
     streamingEnabled: false,
     // Extra fields cho FP displays
-    chapterSummary: '',
-    isChapterLoading: false,
     courseConcepts: '',
     isCourseConceptsLoading: false,
     // State cho việc lưu trữ
@@ -46,8 +44,6 @@ export function useSummarization() {
     localSummaryState.contentType = 'general'
     localSummaryState.startTime = null
     localSummaryState.streamingEnabled = false
-    localSummaryState.chapterSummary = ''
-    localSummaryState.isChapterLoading = false
     localSummaryState.courseConcepts = ''
     localSummaryState.isCourseConceptsLoading = false
     localSummaryState.isSavedToHistory = false
@@ -207,15 +203,8 @@ export function useSummarization() {
           )
 
           if (customContentType === 'chapters') {
-            // Tóm tắt chapters riêng
-            localSummaryState.isChapterLoading = true
-            try {
-              localSummaryState.chapterSummary = await summarizeChapters(
-                content
-              )
-            } finally {
-              localSummaryState.isChapterLoading = false
-            }
+            // Tóm tắt chapters và lưu vào summary field (như một entry riêng)
+            localSummaryState.summary = await summarizeChapters(content)
           } else {
             localSummaryState.summary = await summarizeContent(
               content,
@@ -245,7 +234,6 @@ export function useSummarization() {
       handleSummarizationError(error)
       // Reset loading states on error
       localSummaryState.isLoading = false
-      localSummaryState.isChapterLoading = false
       localSummaryState.isCourseConceptsLoading = false
     } finally {
       // Reset processing flag
@@ -255,6 +243,7 @@ export function useSummarization() {
 
   /**
    * Summarize chapters specifically (for floating panel)
+   * Chapters được lưu vào summary field để auto-save như một entry riêng
    */
   async function summarizeChapters() {
     if (isProcessing) {
@@ -264,11 +253,17 @@ export function useSummarization() {
       return
     }
 
-    localSummaryState.isChapterLoading = true
+    // Reset summary trước để chapters được lưu như một entry mới
+    localSummaryState.summary = ''
+    localSummaryState.isLoading = true
     isProcessing = true
 
     try {
       console.log('[useSummarization] Starting chapter summarization...')
+
+      // Set page info (QUAN TRỌNG: Cần có để autoSaveToHistory() không skip)
+      localSummaryState.pageTitle = document.title || 'Unknown Title'
+      localSummaryState.pageUrl = window.location.href
 
       // Load settings
       await loadSettings()
@@ -282,21 +277,21 @@ export function useSummarization() {
       const extractResult = await contentExtractor.extractPageContent()
       const content = extractResult.content
 
-      // Call chapter summarization
+      // Call chapter summarization và lưu vào summary field
       const { summarizeChapters: apiSummarizeChapters } = await import(
         '@/lib/api/api.js'
       )
-      localSummaryState.chapterSummary = await apiSummarizeChapters(content)
+      localSummaryState.summary = await apiSummarizeChapters(content)
 
       console.log('[useSummarization] Chapter summarization completed')
 
-      // Auto-save to history
+      // Auto-save to history - sẽ lưu summary (chứa chapters) như một entry mới
       await autoSaveToHistory()
     } catch (error) {
       console.error('[useSummarization] Chapter summarization error:', error)
       handleSummarizationError(error)
     } finally {
-      localSummaryState.isChapterLoading = false
+      localSummaryState.isLoading = false
       isProcessing = false
     }
   }

@@ -379,18 +379,13 @@ export async function fetchChapterSummary() {
       }
     }
 
-    // Fetch or reuse transcript
-    let transcript = summaryState.currentContentSource
-
-    // If transcript is not available, fetch it
-    if (!transcript || transcript.trim() === '') {
-      const contentResult = await getPageContent(
-        'timestampedTranscript',
-        userSettings.summaryLang
-      )
-      transcript = contentResult.content
-      summaryState.currentContentSource = transcript
-    }
+    // Always fetch fresh transcript - no caching to avoid stale data issues
+    console.log('[summaryStore] Fetching fresh transcript for chapters')
+    const contentResult = await getPageContent(
+      'timestampedTranscript',
+      userSettings.summaryLang
+    )
+    const transcript = contentResult.content
 
     // Generate chapter summary
     if (shouldUseStreaming) {
@@ -423,11 +418,9 @@ export async function fetchChapterSummary() {
         chapterText || '<p><i>Could not generate chapter summary.</i></p>'
     }
 
-    // Set page info if not already set
-    if (!summaryState.pageTitle || !summaryState.pageUrl) {
-      summaryState.pageTitle = tabInfo.title || 'Unknown Title'
-      summaryState.pageUrl = tabInfo.url || 'Unknown URL'
-    }
+    // Always update page info for current video
+    summaryState.pageTitle = tabInfo.title || 'Unknown Title'
+    summaryState.pageUrl = tabInfo.url || 'Unknown URL'
 
     // Keep display type as 'custom' for chapters
     // (already set at the beginning)

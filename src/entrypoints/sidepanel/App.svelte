@@ -286,7 +286,7 @@
     <div
       class="flex relative font-mono flex-col gap-1 justify-center items-center"
     >
-      <div class="size-6 absolute z-20 top-2 left-2 text-text-secondary">
+      <div class="size-6 absolute z-10 top-2 left-2 text-text-secondary">
         <button
           onclick={() => {
             browser.tabs.create({ url: 'archive.html' })
@@ -297,7 +297,7 @@
           <Icon icon="solar:history-linear" width="24" height="24" />
         </button>
       </div>
-      <div class="size-6 z-20 absolute top-2 right-4 text-text-secondary">
+      <div class="size-6 z-10 absolute top-2 right-4 text-text-secondary">
         <SettingButton />
       </div>
 

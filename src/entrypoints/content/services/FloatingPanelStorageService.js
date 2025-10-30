@@ -43,12 +43,7 @@ function prepareSummaries(localState, contentType) {
     if (localState.summary) {
       summaries.push({ title: 'Summary', content: localState.summary })
     }
-    if (localState.chapterSummary) {
-      summaries.push({
-        title: 'Chapters',
-        content: localState.chapterSummary,
-      })
-    }
+    // Xóa logic auto-save chapterSummary - chapters sẽ được lưu riêng khi user click "Chapters"
   } else if (contentType === 'course') {
     if (localState.summary) {
       summaries.push({ title: 'Summary', content: localState.summary })

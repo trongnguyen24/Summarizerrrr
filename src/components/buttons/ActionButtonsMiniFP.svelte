@@ -6,13 +6,6 @@
 
   const actions = [
     {
-      key: 'chapters',
-      label: 'Chapters',
-      icon: 'heroicons:queue-list-16-solid',
-      description: 'Summarize by chapters',
-      showOnlyForYouTube: true,
-    },
-    {
       key: 'analyze',
       label: 'Analyze',
       icon: 'heroicons:chart-bar-16-solid',
@@ -29,6 +22,13 @@
       label: 'Debate Mode',
       icon: 'heroicons:chat-bubble-oval-left-16-solid',
       description: 'Analyze from multiple perspectives',
+    },
+    {
+      key: 'chapters',
+      label: 'Chapters',
+      icon: 'heroicons:queue-list-16-solid',
+      description: 'Summarize by chapters',
+      showOnlyForYouTube: true,
     },
   ]
 

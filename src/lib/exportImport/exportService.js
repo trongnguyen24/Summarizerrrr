@@ -139,11 +139,45 @@ export function generateExportFilename() {
 }
 
 /**
- * Download blob as file
+ * Download blob as file with save dialog
  * @param {Blob} blob - Blob to download
  * @param {string} filename - Filename
+ * @param {string} acceptType - MIME type (default: 'application/zip')
+ * @param {string} extension - File extension (default: '.zip')
  */
-export function downloadBlob(blob, filename) {
+export async function downloadBlob(
+  blob,
+  filename,
+  acceptType = 'application/zip',
+  extension = '.zip'
+) {
+  // Use File System Access API if available (Chrome/Edge)
+  if (window.showSaveFilePicker) {
+    try {
+      const handle = await window.showSaveFilePicker({
+        suggestedName: filename,
+        types: [
+          {
+            description: 'Archive File',
+            accept: { [acceptType]: [extension] },
+          },
+        ],
+      })
+      const writable = await handle.createWritable()
+      await writable.write(blob)
+      await writable.close()
+      return
+    } catch (err) {
+      // User cancelled the save dialog
+      if (err.name === 'AbortError') {
+        console.log('[downloadBlob] Save cancelled by user')
+        return
+      }
+      throw err
+    }
+  }
+
+  // Fallback for browsers that don't support File System Access API
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url

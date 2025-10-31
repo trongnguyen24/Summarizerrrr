@@ -730,7 +730,11 @@
               ></div>
             </div>
           </button>
-          <button onclick={openImportDialog} class="relative group">
+          <button
+            onclick={openImportDialog}
+            class="relative group"
+            title="Import Backup"
+          >
             <div
               class=" relative flex items-center font-bold justify-center gap-1 px-3 py-2.25 font-mono text-xs text-red-500 inset-0 overflow-hidden"
             >

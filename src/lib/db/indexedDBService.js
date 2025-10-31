@@ -360,6 +360,17 @@ async function getAllHistory() {
   })
 }
 
+async function getHistoryCount() {
+  if (!db) db = await openDatabase()
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction([HISTORY_STORE_NAME], 'readonly')
+    const objectStore = transaction.objectStore(HISTORY_STORE_NAME)
+    const request = objectStore.count()
+    request.onsuccess = () => resolve(request.result)
+    request.onerror = (event) => reject(event.target.error)
+  })
+}
+
 async function getHistoryById(id) {
   if (!db) {
     db = await openDatabase()
@@ -486,6 +497,17 @@ async function getAllTags() {
         resolve(tags)
       }
     }
+    request.onerror = (event) => reject(event.target.error)
+  })
+}
+
+async function getTagsCount() {
+  if (!db) db = await openDatabase()
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction([TAGS_STORE_NAME], 'readonly')
+    const objectStore = transaction.objectStore(TAGS_STORE_NAME)
+    const request = objectStore.count()
+    request.onsuccess = () => resolve(request.result)
     request.onerror = (event) => reject(event.target.error)
   })
 }
@@ -649,6 +671,30 @@ async function addMultipleHistory(historyItems) {
   })
 }
 
+// --- Data Count Functions ---
+async function getDataCounts() {
+  try {
+    const [summariesCount, historyCount, tagsCount] = await Promise.all([
+      getSummaryCount(),
+      getHistoryCount(),
+      getTagsCount(),
+    ])
+
+    return {
+      summaries: summariesCount,
+      history: historyCount,
+      tags: tagsCount,
+    }
+  } catch (error) {
+    console.error('Error getting data counts:', error)
+    return {
+      summaries: 0,
+      history: 0,
+      tags: 0,
+    }
+  }
+}
+
 // --- Clear/Delete All Functions ---
 async function clearAllSummaries() {
   if (!db) db = await openDatabase()
@@ -719,6 +765,7 @@ export {
   updateSummary,
   addHistory,
   getAllHistory,
+  getHistoryCount,
   getHistoryById,
   deleteHistory,
   updateHistory,
@@ -728,6 +775,7 @@ export {
   // Tag exports
   addTag,
   getAllTags,
+  getTagsCount,
   getTagById,
   updateTag,
   deleteTag,
@@ -735,6 +783,7 @@ export {
   addMultipleTags,
   updateSummaryTags,
   getTagCounts,
+  getDataCounts,
   // Clear/Delete All exports
   clearAllSummaries,
   clearAllHistory,

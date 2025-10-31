@@ -17,8 +17,9 @@
     clearAllSummaries,
     clearAllHistory,
     clearAllTags,
+    getDataCounts,
   } from '../../lib/db/indexedDBService.js'
-
+  import { t } from 'svelte-i18n'
   import {
     exportDataToZip,
     generateExportFilename,
@@ -42,6 +43,7 @@
   import PreviewData from '../ui/PreviewData.svelte'
   import 'overlayscrollbars/overlayscrollbars.css'
   import { useOverlayScrollbars } from 'overlayscrollbars-svelte'
+  import Preview from '../ui/Preview.svelte'
 
   const MESSAGE_TIMEOUT = 3000
   const RELOAD_DELAY = 100
@@ -90,6 +92,14 @@
     tagsValue: '',
   })
 
+  // State for current data counts
+  let dataCounts = $state({
+    history: 0,
+    archives: 0,
+    tags: 0,
+    isLoading: true,
+  })
+
   function setMessage(type, message) {
     if (messageTimeoutId) {
       clearTimeout(messageTimeoutId)
@@ -109,6 +119,20 @@
     }, MESSAGE_TIMEOUT)
   }
 
+  async function loadDataCounts() {
+    dataCounts.isLoading = true
+    try {
+      const counts = await getDataCounts()
+      dataCounts.history = counts.history
+      dataCounts.archives = counts.summaries
+      dataCounts.tags = counts.tags
+    } catch (error) {
+      console.error('Error loading data counts:', error)
+    } finally {
+      dataCounts.isLoading = false
+    }
+  }
+
   async function exportData() {
     try {
       // Load settings directly from storage to ensure we get the actual saved values
@@ -126,6 +150,8 @@
       downloadBlob(zipBlob, filename)
 
       setMessage('success', 'Data exported successfully as ZIP file!')
+      // Refresh data counts after export
+      await loadDataCounts()
     } catch (error) {
       setMessage('error', `Export failed: ${error.message}`)
     }
@@ -319,6 +345,8 @@
       }
 
       setMessage('success', 'Data imported successfully!')
+      // Refresh data counts after import
+      await loadDataCounts()
       // Don't reset state here - it's handled in startImport()
     } catch (error) {
       setMessage('error', `Import failed: ${error.message}`)
@@ -525,6 +553,11 @@
     }
   })
 
+  // Load data counts when component mounts
+  $effect(() => {
+    loadDataCounts()
+  })
+
   // Check if any data type is selected for import
   function isImportDataSelected() {
     return Object.values(importOptions.dataTypes).some(Boolean)
@@ -565,48 +598,155 @@
   })
 </script>
 
-<div class="px-5 pb-4">
+<div class="px-5">
   <h3 class="text-text-primary font-bold">Backup data</h3>
-  <p>
-    Backup and import your data to another device or save all archives to
-    Markdown
-  </p>
+  <p>Backup and import your data to another device</p>
+  <div class="py-4 flex flex-col sm:flex-row gap-4">
+    <Preview title="Your data" class=" w-full sm:w-60 h-40 shrink-0 mx-auto">
+      <div class=" w-full flex gap-4 flex-col items-center justify-center">
+        <div
+          class="h-15 w-full justify-center items-end flex gap-4 shrink-0 relative"
+        >
+          <Icon
+            icon="heroicons:cog-6-tooth"
+            class="size-6 text-muted dark:text-text-primary  dark:drop-shadow-md dark:drop-shadow-primary shrink-0"
+          />
+          <Icon
+            icon="heroicons:clock"
+            class="size-6 text-muted dark:text-text-primary  dark:drop-shadow-md dark:drop-shadow-primary shrink-0"
+          />
+          <Icon
+            icon="heroicons:archive-box"
+            class="size-6 text-muted dark:text-text-primary  dark:drop-shadow-md dark:drop-shadow-primary shrink-0"
+          />
+          <Icon
+            icon="tabler:tag"
+            class="size-6 text-muted dark:text-text-primary  dark:drop-shadow-md dark:drop-shadow-primary shrink-0"
+          />
+        </div>
+        <div class=" px-8 gap-1 flex flex-col w-full">
+          <div class="flex justify-between">
+            <div class="text-text-secondary text-xs">History</div>
+            <div class="text-text-primary font-medium">
+              {dataCounts.isLoading ? '...' : dataCounts.history}
+            </div>
+          </div>
+          <div class="flex justify-between">
+            <div class="text-text-secondary text-xs">Archives</div>
+            <div class="text-text-primary font-medium">
+              {dataCounts.isLoading ? '...' : dataCounts.archives}
+            </div>
+          </div>
+          <div class="flex justify-between">
+            <div class="text-text-secondary text-xs">Tags</div>
+            <div class="text-text-primary font-medium">
+              {dataCounts.isLoading ? '...' : dataCounts.tags}
+            </div>
+          </div>
+        </div>
+      </div></Preview
+    >
+    <div class="flex-auto">
+      <div class="flex flex-col gap-2 pb-4">
+        <!-- svelte-ignore a11y_label_has_associated_control -->
+        <label class="block text-text-secondary">All data</label>
+        <div class="grid w-full grid-cols-2 gap-1">
+          <button onclick={exportData} class="relative group">
+            <div
+              class=" relative flex items-center font-bold justify-center gap-1 px-3 py-2.25 font-mono text-xs text-red-500 inset-0 overflow-hidden"
+            >
+              <div
+                class="relative z-20 flex text-text-primary justify-center items-center"
+              >
+                Export
+              </div>
+              <span
+                class="absolute z-50 size-4 border border-transparent group-hover:border-blackwhite/15 rotate-45 bg-surface-1 -bottom-px -left-px -translate-x-1/2 translate-y-1/2 duration-150"
+              ></span>
+              <div
+                class="absolute z-40 inset-0 text-text-secondary py-2 font-mono bg-blackwhite/5 dark:bg-blackwhite/5 border border-transparent hover:border-blackwhite/15 focus:border-blackwhite/30 dark:focus:border-blackwhite/10 focus:outline-none focus:ring-0 transition-colors duration-150"
+              ></div>
+            </div>
+          </button>
+          <button onclick={openImportDialog} class="relative group">
+            <div
+              class=" relative flex items-center font-bold justify-center gap-1 px-3 py-2.25 font-mono text-xs text-red-500 inset-0 overflow-hidden"
+            >
+              <div
+                class="relative z-20 flex text-text-primary justify-center items-center"
+              >
+                Import
+              </div>
+              <span
+                class="absolute z-50 size-4 border border-transparent group-hover:border-blackwhite/15 rotate-45 bg-surface-1 -bottom-px -left-px -translate-x-1/2 translate-y-1/2 duration-150"
+              ></span>
+              <div
+                class="absolute z-40 inset-0 text-text-secondary py-2 font-mono bg-blackwhite/5 dark:bg-blackwhite/5 border border-transparent hover:border-blackwhite/15 focus:border-blackwhite/30 dark:focus:border-blackwhite/10 focus:outline-none focus:ring-0 transition-colors duration-150"
+              ></div>
+            </div>
+          </button>
 
-  <div class="mt-2 grid grid-cols-2 gap-1">
-    <button class=" relative overflow-hidden group" onclick={exportData}>
-      <div
-        class="font-medium py-2 px-4 border transition-colors duration-200 bg-muted/5 text-text-secondary group-hover:border-border border-transparent hover:text-text-primary dark:hover:text-white"
-      >
-        Export
+          <input
+            bind:this={fileInputRef}
+            type="file"
+            class="hidden"
+            accept=".zip"
+            onchange={handleFileSelect}
+          />
+        </div>
       </div>
+      <div class="flex flex-col gap-2 pb-4">
+        <!-- svelte-ignore a11y_label_has_associated_control -->
+        <label class="block text-text-secondary">Export to markdown</label>
+        <div class="grid w-full grid-cols-2 gap-1">
+          <button class="relative group">
+            <div
+              class=" relative flex items-center font-bold justify-center gap-1 px-3 py-2.25 font-mono text-xs text-red-500 inset-0 overflow-hidden"
+            >
+              <div
+                class="relative z-20 flex text-text-primary justify-center items-center"
+              >
+                History
+              </div>
+              <span
+                class="absolute z-50 size-4 border border-transparent group-hover:border-blackwhite/15 rotate-45 bg-surface-1 -bottom-px -left-px -translate-x-1/2 translate-y-1/2 duration-150"
+              ></span>
+              <div
+                class="absolute z-40 inset-0 text-text-secondary py-2 font-mono bg-blackwhite/5 dark:bg-blackwhite/5 border border-transparent hover:border-blackwhite/15 focus:border-blackwhite/30 dark:focus:border-blackwhite/10 focus:outline-none focus:ring-0 transition-colors duration-150"
+              ></div>
+            </div>
+          </button>
+          <button class="relative group">
+            <div
+              class=" relative flex items-center font-bold justify-center gap-1 px-3 py-2.25 font-mono text-xs text-red-500 inset-0 overflow-hidden"
+            >
+              <div
+                class="relative z-20 flex text-text-primary justify-center items-center"
+              >
+                Archive
+              </div>
+              <span
+                class="absolute z-50 size-4 border border-transparent group-hover:border-blackwhite/15 rotate-45 bg-surface-1 -bottom-px -left-px -translate-x-1/2 translate-y-1/2 duration-150"
+              ></span>
+              <div
+                class="absolute z-40 inset-0 text-text-secondary py-2 font-mono bg-blackwhite/5 dark:bg-blackwhite/5 border border-transparent hover:border-blackwhite/15 focus:border-blackwhite/30 dark:focus:border-blackwhite/10 focus:outline-none focus:ring-0 transition-colors duration-150"
+              ></div>
+            </div>
+          </button>
 
-      <span
-        class="size-4 absolute z-10 -left-2 -bottom-2 border bg-surface-1 rotate-45 transition-colors duration-200 border-transparent group-hover:border-border"
-      ></span>
-    </button>
-
-    <button class=" relative overflow-hidden group" onclick={openImportDialog}>
-      <div
-        class="font-medium py-2 px-4 border transition-colors duration-200 bg-muted/5 text-text-secondary group-hover:border-border border-transparent hover:text-text-primary dark:hover:text-white"
-      >
-        Import
+          <input
+            bind:this={fileInputRef}
+            type="file"
+            class="hidden"
+            accept=".zip"
+            onchange={handleFileSelect}
+          />
+        </div>
       </div>
-
-      <span
-        class="size-4 absolute z-10 -left-2 -bottom-2 border bg-surface-1 rotate-45 transition-colors duration-200 border-transparent group-hover:border-border"
-      ></span>
-    </button>
-    <!-- Hidden file input -->
-    <input
-      bind:this={fileInputRef}
-      type="file"
-      class="hidden"
-      accept=".zip"
-      onchange={handleFileSelect}
-    />
+    </div>
   </div>
   <!-- Success/Error Messages -->
-  {#if state.successMessage}
+  <!-- {#if state.successMessage}
     <div
       class="mt-2 p-3 bg-green-100 border border-green-400 text-green-700 rounded"
     >
@@ -618,7 +758,7 @@
     <div class="mt-2 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
       {state.errorMessage}
     </div>
-  {/if}
+  {/if} -->
 </div>
 
 <!-- Import Options Modal -->

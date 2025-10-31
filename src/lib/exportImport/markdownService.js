@@ -217,8 +217,7 @@ This metadata can be used by tools like Obsidian for:
 ---
 
 *Exported by Summarizerrrr Browser Extension*
-*Learn more: https://github.com/your-repo*
-*Documentation: https://docs.summarizerrrr.com*
+Website: https://summarizerrrr.com
 `
 }
 

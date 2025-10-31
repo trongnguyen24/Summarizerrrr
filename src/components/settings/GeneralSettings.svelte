@@ -179,7 +179,6 @@
 <!-- General Section -->
 <!-- Optional Permissions Section - Chỉ hiển thị trên Firefox -->
 <div class=" flex flex-col gap-8 py-6">
-  <ExportImport />
   {#if import.meta.env.BROWSER === 'firefox'}
     <div class="flex flex-col gap-2 px-5">
       <!-- svelte-ignore a11y_label_has_associated_control -->
@@ -210,7 +209,7 @@
         >{$t('settings.general.icon_click_action.title')}</label
       >
 
-      <p class="text-xs text-text-secondary">
+      <p class="text-xs text-muted">
         {$t('settings.general.icon_click_action.description')}
       </p>
       <div class="flex w-full mt-1 gap-1">
@@ -288,6 +287,16 @@
   <div class="flex flex-col gap-2 px-5">
     <!-- svelte-ignore a11y_label_has_associated_control -->
     <label class="block text-text-primary font-bold"
+      >{$t('settings.general.lang_ui')}</label
+    >
+    <div class="flex w-full gap-1">
+      <UILanguageSelect />
+    </div>
+  </div>
+
+  <div class="flex flex-col gap-2 px-5">
+    <!-- svelte-ignore a11y_label_has_associated_control -->
+    <label class="block text-text-primary font-bold"
       >{$t('settings.general.theme')}</label
     >
     <div class="flex w-full gap-1">
@@ -322,16 +331,7 @@
     </div>
   </div>
 
-  <div class="flex flex-col gap-2 px-5">
-    <!-- svelte-ignore a11y_label_has_associated_control -->
-    <label class="block text-text-primary font-bold"
-      >{$t('settings.general.lang_ui')}</label
-    >
-    <div class="flex w-full gap-1">
-      <UILanguageSelect />
-    </div>
-  </div>
-
+  <ExportImport />
   {#if !browserCompatibility.isMobile}
     {#if !browserCompatibility.isMobile}
       <div class="flex flex-col gap-2 px-5">

@@ -544,9 +544,9 @@
         </div>
       {/each}
       <!-- Export Markdown FAB - Only show in Archive tab -->
-      {#if activeTab === 'archive' && filteredList?.length != 0}
+      <!-- {#if activeTab === 'archive' && filteredList?.length != 0}
         <ExportMarkdownFAB />
-      {/if}
+      {/if} -->
       {#if (filteredList?.length || 0) === 0}
         <div class="px-2 py-4 text-text-muted text-xs">
           {activeTab === 'archive'

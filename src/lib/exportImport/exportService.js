@@ -314,3 +314,256 @@ export function generateMarkdownExportFilename() {
   const date = new Date().toISOString().split('T')[0]
   return `summarizerrrr-markdown-backup-${date}.zip`
 }
+
+/**
+ * Export History items as markdown files in ZIP format
+ * @param {Function} onProgress - Progress callback (optional)
+ * @returns {Promise<Blob>} ZIP blob containing markdown files
+ */
+export async function exportHistoryMarkdownToZip(onProgress) {
+  try {
+    // Step 1: Load data from IndexedDB
+    if (onProgress) {
+      onProgress({
+        stage: 'loading_data',
+        message: 'Loading history from database...',
+        progress: 10,
+      })
+    }
+
+    const historyItems = await getAllHistory()
+
+    if (historyItems.length === 0) {
+      throw new Error('No history items found to export')
+    }
+
+    // History không có tags, dùng empty tagMap
+    const tagMap = {}
+
+    if (onProgress) {
+      onProgress({
+        stage: 'converting',
+        message: 'Converting to markdown files...',
+        progress: 30,
+      })
+    }
+
+    // Step 2: Convert each history item to markdown files
+    const markdownFiles = {}
+    let fileCount = 0
+
+    historyItems.forEach((item, index) => {
+      // Handle both multi-tab (array) and single content (string) formats
+      const tabs = Array.isArray(item.summaries)
+        ? item.summaries
+        : [
+            {
+              title: 'Summary',
+              content: item.summary || item.summaries || '',
+            },
+          ]
+
+      // Create a markdown file for each tab
+      tabs.forEach((tab) => {
+        // Skip empty tabs
+        if (!tab.content || tab.content.trim() === '') {
+          console.warn(
+            `[exportHistoryMarkdownToZip] Skipping empty tab "${tab.title}" in "${item.title}"`
+          )
+          return
+        }
+
+        const filepath = generateOrganizedPath(item, tab.title, index)
+        const markdown = convertTabToMarkdown(item, tab, tagMap)
+        markdownFiles[filepath] = markdown
+        fileCount++
+      })
+
+      if (onProgress) {
+        const progressPercent = ((index + 1) / historyItems.length) * 40
+        onProgress({
+          stage: 'converting',
+          message: `Converting ${index + 1}/${historyItems.length}...`,
+          progress: 30 + progressPercent,
+        })
+      }
+    })
+
+    // Step 3: Create README.md
+    markdownFiles['README.md'] = createReadmeContent({
+      totalSummaries: historyItems.length,
+      totalFiles: fileCount,
+      exportDate: new Date().toISOString(),
+      version: chrome.runtime.getManifest().version,
+    })
+
+    // Step 4: Create ZIP
+    if (onProgress) {
+      onProgress({
+        stage: 'creating_zip',
+        message: 'Creating ZIP archive...',
+        progress: 70,
+      })
+    }
+
+    const zipBlob = await createZipFromFiles(markdownFiles, (zipProgress) => {
+      if (onProgress) {
+        onProgress({
+          stage: 'creating_zip',
+          message: `Compressing files... ${zipProgress.percent || 0}%`,
+          progress: 70 + (zipProgress.percent || 0) * 0.3,
+        })
+      }
+    })
+
+    if (onProgress) {
+      onProgress({
+        stage: 'completed',
+        message: 'Export completed!',
+        progress: 100,
+      })
+    }
+
+    return zipBlob
+  } catch (error) {
+    console.error('[exportHistoryMarkdownToZip] Error:', error)
+    throw new Error(`History markdown export failed: ${error.message}`)
+  }
+}
+
+/**
+ * Export Archive summaries as markdown files in ZIP format
+ * @param {Function} onProgress - Progress callback (optional)
+ * @returns {Promise<Blob>} ZIP blob containing markdown files
+ */
+export async function exportArchiveMarkdownToZip(onProgress) {
+  try {
+    // Step 1: Load data from IndexedDB
+    if (onProgress) {
+      onProgress({
+        stage: 'loading_data',
+        message: 'Loading archives from database...',
+        progress: 10,
+      })
+    }
+
+    const summaries = await getAllSummaries()
+    const tags = await getAllTags()
+
+    if (summaries.length === 0) {
+      throw new Error('No archives found to export')
+    }
+
+    // Step 2: Create tag mapping (id -> name)
+    const tagMap = Object.fromEntries(tags.map((t) => [t.id, t.name]))
+
+    if (onProgress) {
+      onProgress({
+        stage: 'converting',
+        message: 'Converting to markdown files...',
+        progress: 30,
+      })
+    }
+
+    // Step 3: Convert each summary to markdown files
+    const markdownFiles = {}
+    let fileCount = 0
+
+    summaries.forEach((summary, index) => {
+      // Handle both multi-tab (array) and single content (string) formats
+      const tabs = Array.isArray(summary.summaries)
+        ? summary.summaries
+        : [
+            {
+              title: 'Summary',
+              content: summary.summary || summary.summaries || '',
+            },
+          ]
+
+      // Create a markdown file for each tab
+      tabs.forEach((tab) => {
+        // Skip empty tabs
+        if (!tab.content || tab.content.trim() === '') {
+          console.warn(
+            `[exportArchiveMarkdownToZip] Skipping empty tab "${tab.title}" in "${summary.title}"`
+          )
+          return
+        }
+
+        const filepath = generateOrganizedPath(summary, tab.title, index)
+        const markdown = convertTabToMarkdown(summary, tab, tagMap)
+        markdownFiles[filepath] = markdown
+        fileCount++
+      })
+
+      if (onProgress) {
+        const progressPercent = ((index + 1) / summaries.length) * 40
+        onProgress({
+          stage: 'converting',
+          message: `Converting ${index + 1}/${summaries.length}...`,
+          progress: 30 + progressPercent,
+        })
+      }
+    })
+
+    // Step 4: Create README.md
+    markdownFiles['README.md'] = createReadmeContent({
+      totalSummaries: summaries.length,
+      totalFiles: fileCount,
+      exportDate: new Date().toISOString(),
+      version: chrome.runtime.getManifest().version,
+    })
+
+    // Step 5: Create ZIP
+    if (onProgress) {
+      onProgress({
+        stage: 'creating_zip',
+        message: 'Creating ZIP archive...',
+        progress: 70,
+      })
+    }
+
+    const zipBlob = await createZipFromFiles(markdownFiles, (zipProgress) => {
+      if (onProgress) {
+        onProgress({
+          stage: 'creating_zip',
+          message: `Compressing files... ${zipProgress.percent || 0}%`,
+          progress: 70 + (zipProgress.percent || 0) * 0.3,
+        })
+      }
+    })
+
+    if (onProgress) {
+      onProgress({
+        stage: 'completed',
+        message: 'Export completed!',
+        progress: 100,
+      })
+    }
+
+    return zipBlob
+  } catch (error) {
+    console.error('[exportArchiveMarkdownToZip] Error:', error)
+    throw new Error(`Archive markdown export failed: ${error.message}`)
+  }
+}
+
+/**
+ * Generate filename for history markdown export
+ * Format: summarizerrrr-history-markdown-YYYY-MM-DD.zip
+ * @returns {string} Filename with timestamp
+ */
+export function generateHistoryMarkdownExportFilename() {
+  const date = new Date().toISOString().split('T')[0]
+  return `summarizerrrr-history-markdown-${date}.zip`
+}
+
+/**
+ * Generate filename for archive markdown export
+ * Format: summarizerrrr-archive-markdown-YYYY-MM-DD.zip
+ * @returns {string} Filename with timestamp
+ */
+export function generateArchiveMarkdownExportFilename() {
+  const date = new Date().toISOString().split('T')[0]
+  return `summarizerrrr-archive-markdown-${date}.zip`
+}

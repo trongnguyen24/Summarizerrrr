@@ -53,6 +53,8 @@
     importData: null,
     errorMessage: '',
     successMessage: '',
+    isExportingHistory: false,
+    isExportingArchive: false,
   })
 
   let importOptions = $state({
@@ -154,6 +156,62 @@
       await loadDataCounts()
     } catch (error) {
       setMessage('error', `Export failed: ${error.message}`)
+    }
+  }
+
+  async function exportHistoryMarkdown() {
+    try {
+      state.isExportingHistory = true
+
+      // Dynamic import to keep bundle size small
+      const {
+        exportHistoryMarkdownToZip,
+        generateHistoryMarkdownExportFilename,
+      } = await import('../../lib/exportImport/exportService.js')
+
+      // Export with progress callback
+      const zipBlob = await exportHistoryMarkdownToZip((progress) => {
+        console.log(`[Export History Markdown] ${progress.message}`)
+      })
+
+      const filename = generateHistoryMarkdownExportFilename()
+      await downloadBlob(zipBlob, filename)
+
+      setMessage('success', 'History exported as Markdown successfully!')
+      await loadDataCounts()
+    } catch (error) {
+      console.error('[ExportImport] History markdown export failed:', error)
+      setMessage('error', `Export failed: ${error.message}`)
+    } finally {
+      state.isExportingHistory = false
+    }
+  }
+
+  async function exportArchiveMarkdown() {
+    try {
+      state.isExportingArchive = true
+
+      // Dynamic import to keep bundle size small
+      const {
+        exportArchiveMarkdownToZip,
+        generateArchiveMarkdownExportFilename,
+      } = await import('../../lib/exportImport/exportService.js')
+
+      // Export with progress callback
+      const zipBlob = await exportArchiveMarkdownToZip((progress) => {
+        console.log(`[Export Archive Markdown] ${progress.message}`)
+      })
+
+      const filename = generateArchiveMarkdownExportFilename()
+      await downloadBlob(zipBlob, filename)
+
+      setMessage('success', 'Archive exported as Markdown successfully!')
+      await loadDataCounts()
+    } catch (error) {
+      console.error('[ExportImport] Archive markdown export failed:', error)
+      setMessage('error', `Export failed: ${error.message}`)
+    } finally {
+      state.isExportingArchive = false
     }
   }
 
@@ -600,8 +658,8 @@
 
 <div class="px-5">
   <h3 class="text-text-primary font-bold">Backup data</h3>
-  <p>Backup and import your data to another device</p>
-  <div class="py-4 flex flex-col sm:flex-row gap-4">
+  <p class="mt-1 text-muted">Backup and import your data to another device</p>
+  <div class="pt-4 flex flex-col sm:flex-row gap-4">
     <Preview title="Your data" class=" w-full sm:w-60 h-40 shrink-0 mx-auto">
       <div class=" w-full flex gap-4 flex-col items-center justify-center">
         <div
@@ -651,14 +709,18 @@
         <!-- svelte-ignore a11y_label_has_associated_control -->
         <label class="block text-text-secondary">All data</label>
         <div class="grid w-full grid-cols-2 gap-1">
-          <button onclick={exportData} class="relative group">
+          <button
+            onclick={exportData}
+            class="relative group"
+            title="Backup all data to zip"
+          >
             <div
               class=" relative flex items-center font-bold justify-center gap-1 px-3 py-2.25 font-mono text-xs text-red-500 inset-0 overflow-hidden"
             >
               <div
                 class="relative z-20 flex text-text-primary justify-center items-center"
               >
-                Export
+                Backup
               </div>
               <span
                 class="absolute z-50 size-4 border border-transparent group-hover:border-blackwhite/15 rotate-45 bg-surface-1 -bottom-px -left-px -translate-x-1/2 translate-y-1/2 duration-150"
@@ -699,14 +761,23 @@
         <!-- svelte-ignore a11y_label_has_associated_control -->
         <label class="block text-text-secondary">Export to markdown</label>
         <div class="grid w-full grid-cols-2 gap-1">
-          <button class="relative group">
+          <button
+            onclick={exportHistoryMarkdown}
+            disabled={state.isExportingHistory || dataCounts.history === 0}
+            class="relative group disabled:opacity-50 disabled:cursor-not-allowed"
+            title="Export all history items as markdown files"
+          >
             <div
               class=" relative flex items-center font-bold justify-center gap-1 px-3 py-2.25 font-mono text-xs text-red-500 inset-0 overflow-hidden"
             >
               <div
                 class="relative z-20 flex text-text-primary justify-center items-center"
               >
-                History
+                {#if state.isExportingHistory}
+                  Exporting...
+                {:else}
+                  History
+                {/if}
               </div>
               <span
                 class="absolute z-50 size-4 border border-transparent group-hover:border-blackwhite/15 rotate-45 bg-surface-1 -bottom-px -left-px -translate-x-1/2 translate-y-1/2 duration-150"
@@ -716,14 +787,23 @@
               ></div>
             </div>
           </button>
-          <button class="relative group">
+          <button
+            onclick={exportArchiveMarkdown}
+            disabled={state.isExportingArchive || dataCounts.archives === 0}
+            class="relative group disabled:opacity-50 disabled:cursor-not-allowed"
+            title="Export all archive summaries as markdown files"
+          >
             <div
               class=" relative flex items-center font-bold justify-center gap-1 px-3 py-2.25 font-mono text-xs text-red-500 inset-0 overflow-hidden"
             >
               <div
                 class="relative z-20 flex text-text-primary justify-center items-center"
               >
-                Archive
+                {#if state.isExportingArchive}
+                  Exporting...
+                {:else}
+                  Archive
+                {/if}
               </div>
               <span
                 class="absolute z-50 size-4 border border-transparent group-hover:border-blackwhite/15 rotate-45 bg-surface-1 -bottom-px -left-px -translate-x-1/2 translate-y-1/2 duration-150"
@@ -733,14 +813,6 @@
               ></div>
             </div>
           </button>
-
-          <input
-            bind:this={fileInputRef}
-            type="file"
-            class="hidden"
-            accept=".zip"
-            onchange={handleFileSelect}
-          />
         </div>
       </div>
     </div>
@@ -773,7 +845,7 @@
     </Dialog.Overlay>
     <Dialog.Content
       forceMount
-      class="outline-hidden flex flex-col font-mono fixed left-[50%] top-1/2 w-[calc(100vw-32px)] max-w-lg z-[150] -translate-y-1/2  rounded-lg overflow-hidden shadow-lg max-h-[80vh] translate-x-[-50%]"
+      class="outline-hidden flex flex-col font-mono fixed left-[50%] top-1/2 w-[calc(100vw-32px)] max-w-lg z-[150] -translate-y-1/2  rounded-lg overflow-hidden shadow-lg max-h-[90svh] translate-x-[-50%]"
       onOpenAutoFocus={(e) => {
         e.preventDefault()
       }}
@@ -820,8 +892,10 @@
               <div class="p-4 flex flex-col gap-4">
                 <div class="">
                   <PreviewData class="w-full px-6 py-4 mx-auto">
-                    <div class="flex items-center">
-                      <div class=" w-26">
+                    <div
+                      class="flex flex-col sm:flex-row gap-4 sm:gap-6 items-center"
+                    >
+                      <div class="w-20">
                         <div class="size-20 shrink-0 overflow-hidden relative">
                           <div
                             class="absolute z-[4] border border-border dark:border-surface-2 inset-0"
@@ -845,7 +919,7 @@
                           />
                         </div>
                       </div>
-                      <div class="flex flex-col flex-auto gap-1">
+                      <div class="flex flex-col flex-auto w-full gap-1">
                         <div class=" flex justify-between">
                           <div
                             bind:this={animatedRefs.exportedLabel}

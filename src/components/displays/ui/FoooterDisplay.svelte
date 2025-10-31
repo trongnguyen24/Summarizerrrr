@@ -3,9 +3,16 @@
   import SaveToArchiveButton from '@/components/buttons/SaveToArchiveButton.svelte'
   import CopyButton from '@/components/buttons/CopyButton.svelte'
   import DownloadButton from '@/components/buttons/DownloadButton.svelte'
+  import DeepDiveSection from '@/components/deepdive/DeepDiveSection.svelte'
   import { summaryState } from '@/stores/summaryStore.svelte'
 
-  let { summaryContent, summaryTitle, targetId } = $props()
+  let {
+    summaryContent,
+    summaryTitle,
+    targetId,
+    contentType = 'web',
+    originalContent = null,
+  } = $props()
 </script>
 
 <div
@@ -38,3 +45,8 @@
     >
   </div>
 </div>
+
+<!-- Deep Dive Section -->
+{#if summaryContent && summaryContent.trim() !== ''}
+  <DeepDiveSection summary={summaryContent} {contentType} {originalContent} />
+{/if}

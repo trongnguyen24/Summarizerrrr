@@ -745,6 +745,31 @@ export default defineBackground(() => {
       handleAISummarization('grok', message.transcript, sendResponse)
       return true
     }
+    // Deep Dive message handlers
+    if (message.type === 'DEEP_DIVE_ON_GEMINI') {
+      ;(async () => {
+        await handleDeepDiveChat('gemini', message.prompt, sendResponse)
+      })()
+      return true
+    }
+    if (message.type === 'DEEP_DIVE_ON_CHATGPT') {
+      ;(async () => {
+        await handleDeepDiveChat('chatgpt', message.prompt, sendResponse)
+      })()
+      return true
+    }
+    if (message.type === 'DEEP_DIVE_ON_PERPLEXITY') {
+      ;(async () => {
+        await handleDeepDiveChat('perplexity', message.prompt, sendResponse)
+      })()
+      return true
+    }
+    if (message.type === 'DEEP_DIVE_ON_GROK') {
+      ;(async () => {
+        await handleDeepDiveChat('grok', message.prompt, sendResponse)
+      })()
+      return true
+    }
 
     // Sync handlers
     if (message.type === 'OPEN_ARCHIVE') {
@@ -1063,6 +1088,34 @@ export default defineBackground(() => {
       }, 2000)
     } catch (error) {
       console.error(`[Background] Error processing ${service} request:`, error)
+      sendResponse({ success: false, error: error.message })
+    }
+  }
+
+  /**
+   * Handle deep dive chat requests
+   * @param {string} provider - Provider ID
+   * @param {string} prompt - The prompt to send
+   * @param {Function} sendResponse - Response callback
+   */
+  async function handleDeepDiveChat(provider, prompt, sendResponse) {
+    try {
+      const config = aiConfig[provider]
+      const tab = await createAITab(provider, config)
+
+      setTimeout(() => {
+        sendContentToTab(
+          tab.id,
+          config.messageType,
+          prompt,
+          0,
+          15,
+          provider,
+          sendResponse
+        )
+      }, 2000)
+    } catch (error) {
+      console.error(`[Background] Deep dive ${provider} error:`, error)
       sendResponse({ success: false, error: error.message })
     }
   }

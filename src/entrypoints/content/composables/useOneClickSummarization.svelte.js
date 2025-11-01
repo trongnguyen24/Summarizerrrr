@@ -32,29 +32,56 @@ export function useOneClickSummarization() {
   })
 
   /**
+   * Reset display state nhưng giữ cache
+   * Gọi khi URL thay đổi để clear panel
+   */
+  function resetDisplayStateOnly() {
+    // Reset local summary state (display)
+    resetLocalSummaryState()
+
+    // Reset one-click button state
+    oneClickState.buttonState = 'idle'
+    oneClickState.hasSummaryForCurrentUrl = false
+
+    // NOTE: Không clear cache, giữ summaryCache Map nguyên vẹn
+    console.log(
+      '[useOneClickSummarization] Display state reset, cache preserved'
+    )
+  }
+
+  /**
    * Initialize hoặc update one-click state khi URL thay đổi
+   * NOTE: Không auto-restore cached summary nữa, user phải click lại
    */
   function initializeForUrl(url, onPanelOpenCallback) {
     oneClickState.currentUrl = url
     oneClickState.onPanelOpen = onPanelOpenCallback
     oneClickState.isOneClickMode = settings.oneClickSummarize || false
 
-    // Check xem URL này đã có summary chưa
+    // Check xem URL này đã có summary chưa (chỉ để set button state)
     const cacheKey = getCacheKey(url)
     const cachedSummary = summaryCache.get(cacheKey)
-    oneClickState.hasSummaryForCurrentUrl = !!cachedSummary
 
     // Set button state dựa trên cache
     if (cachedSummary) {
       oneClickState.buttonState = 'has-summary'
-      // Restore cached summary to display
-      if (cachedSummary.summary) {
-        const currentState = localSummaryState()
-        Object.assign(currentState, cachedSummary)
-      }
+      oneClickState.hasSummaryForCurrentUrl = true
+      // REMOVED: Không restore cached summary vào localSummaryState nữa
+      // User phải click lại để load từ cache
     } else {
       oneClickState.buttonState = 'idle'
+      oneClickState.hasSummaryForCurrentUrl = false
     }
+
+    // Reset display state để panel hiển thị trống
+    resetLocalSummaryState()
+
+    console.log(
+      '[useOneClickSummarization] Initialized for URL:',
+      url,
+      'Has cache:',
+      !!cachedSummary
+    )
   }
 
   /**
@@ -184,6 +211,7 @@ export function useOneClickSummarization() {
     initializeForUrl,
     handleFloatingButtonClick,
     clearSummaryCache,
+    resetDisplayStateOnly, // NEW: Reset display state khi URL thay đổi
     updateOneClickMode,
     manualSaveToArchive,
 

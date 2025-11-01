@@ -72,7 +72,7 @@
     <div class="p-6 prose prose-sm w-full max-w-full">
       <h2>Release note</h2>
 
-      <b class="font-mono">3.0.0</b>
+      <b class="font-mono">2.3.0</b>
       <ul class="mt-0">
         {@render note(
           'Data Export/Import:',

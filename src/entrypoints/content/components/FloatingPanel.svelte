@@ -23,9 +23,7 @@
   let isResizing = $state(false)
   let currentWidthPx = $state(0) // Will be set in loadWidth()
   let showElement = $state(false) // Internal state để control DOM rendering
-  const navigationManager = useNavigationManager()
   const { needsApiKeySetup } = useApiKeyValidation()
-  let unsubscribeNavigation = null
 
   async function requestSummary() {
     console.log('Requesting page summary...')
@@ -258,26 +256,12 @@
     loadWidth()
     window.addEventListener('keydown', handleKeyDown)
     document.addEventListener('summarizeClick', handleSummarizeClick)
-
-    // Subscribe vào navigation changes
-    unsubscribeNavigation = navigationManager.subscribe(handleUrlChange)
   })
-
-  function handleUrlChange(newUrl) {
-    // Khi URL thay đổi, reset state của component
-    console.log('FloatingPanel: URL changed to', newUrl)
-    // Có thể thêm logic để reset state cụ thể ở đây nếu cần
-  }
 
   onDestroy(() => {
     window.removeEventListener('keydown', handleKeyDown)
     document.removeEventListener('summarizeClick', handleSummarizeClick)
     document.body.style.userSelect = ''
-
-    // Cleanup navigation subscription
-    if (unsubscribeNavigation) {
-      unsubscribeNavigation()
-    }
   })
 </script>
 

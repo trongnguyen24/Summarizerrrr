@@ -159,21 +159,21 @@
   })
 
   function handleUrlChange(newUrl) {
-    // Khi URL thay đổi, chúng ta cần reinitialize components
-    // Tạm thời đóng panel để tránh state conflict
+    console.log('[App] URL changed to:', newUrl)
+
+    // Đóng panel để tránh hiển thị nội dung cũ
     isPanelVisible = false
+
+    // Reset display state (clear panel) nhưng GIỮ cache
+    oneClickSummarization.resetDisplayStateOnly()
 
     // Update URL key để force re-render components
     currentUrlKey = newUrl
 
-    // Initialize one-click for new URL
+    // Initialize one-click cho URL mới (không auto-restore)
     oneClickSummarization.initializeForUrl(newUrl, () => {
       isPanelVisible = true
     })
-
-    // Force re-render components bằng cách thay đổi key
-    // Điều này sẽ khiến Svelte tạo lại components mới
-    console.log('URL changed to:', newUrl)
   }
 
   onDestroy(() => {

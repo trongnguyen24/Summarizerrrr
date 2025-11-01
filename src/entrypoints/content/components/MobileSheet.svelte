@@ -26,6 +26,12 @@
   const { needsApiKeySetup } = useApiKeyValidation()
   let unsubscribeNavigation = null
 
+  // Detect if current page is YouTube
+  let isYouTubeActive = $derived(() => {
+    const url = window.location.href
+    return /youtube\.com\/watch/i.test(url)
+  })
+
   let summaryToDisplay = $derived(summarization.summaryToDisplay())
   let statusToDisplay = $derived(summarization.statusToDisplay())
 
@@ -354,7 +360,10 @@
             />
           {/if}
           {#if summaryToDisplay || summarization.localSummaryState().error}
-            <ActionButtonsMiniFP onActionClick={handleCustomAction} />
+            <ActionButtonsMiniFP
+              onActionClick={handleCustomAction}
+              isYouTubeActive={isYouTubeActive()}
+            />
           {/if}
         </div>
         <div
@@ -386,7 +395,10 @@
           <div
             class="no-pull-to-refresh w-full flex justify-center items-center inset-0"
           >
-            <ActionButtonsFP onActionClick={handleCustomAction} />
+            <ActionButtonsFP
+              onActionClick={handleCustomAction}
+              isYouTubeActive={isYouTubeActive()}
+            />
           </div>
         {/if}
       </div>

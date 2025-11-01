@@ -2,7 +2,7 @@
   // @ts-nocheck
   import Icon from '@iconify/svelte'
 
-  let { onActionClick } = $props()
+  let { onActionClick, isYouTubeActive = false } = $props()
 
   const actions = [
     {
@@ -23,13 +23,30 @@
       icon: 'heroicons:chat-bubble-oval-left-16-solid',
       description: 'Analyze from multiple perspectives',
     },
+    {
+      key: 'chapters',
+      label: 'Chapters',
+      icon: 'heroicons:queue-list-16-solid',
+      description: 'Summarize by chapters',
+      showOnlyForYouTube: true,
+    },
   ]
+
+  // Filter actions based on current page type
+  let visibleActions = $derived(
+    actions.filter((action) => {
+      if (action.showOnlyForYouTube) {
+        return isYouTubeActive
+      }
+      return true
+    })
+  )
 </script>
 
 <div
   class="flex absolute bottom-6.5 z-30 mx-auto gap-4 flex-wrap justify-center"
 >
-  {#each actions as action}
+  {#each visibleActions as action}
     <button
       class="action-btn-mini-fb font-mono relative p-3.5 rounded-full border border-border text-text-secondary hover:text-text-primary hover:bg-blackwhite-5 transition-colors duration-125 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
       onclick={() => onActionClick(action.key)}
@@ -62,6 +79,10 @@
 
   .action-btn-mini-fb:nth-child(3) {
     animation-delay: 1100ms;
+  }
+
+  .action-btn-mini-fb:nth-child(4) {
+    animation-delay: 1250ms;
   }
 
   @keyframes fadeInScale {

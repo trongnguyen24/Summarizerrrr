@@ -10,8 +10,6 @@
     summary,
     error,
     contentType,
-    chapterSummary,
-    isChapterLoading,
     courseConcepts,
     isCourseSummaryLoading,
     isCourseConceptsLoading,
@@ -66,11 +64,7 @@
     {:else if contentType === 'youtube'}
       <DisplayComponent
         {summary}
-        {chapterSummary}
         isLoading={status === 'loading'}
-        {isChapterLoading}
-        {activeYouTubeTab}
-        onSelectTab={onSelectYouTubeTab}
         {summarization}
       />
     {:else if summary}

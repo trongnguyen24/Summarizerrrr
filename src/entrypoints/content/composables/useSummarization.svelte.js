@@ -23,8 +23,6 @@ export function useSummarization() {
     startTime: null,
     streamingEnabled: false,
     // Extra fields cho FP displays
-    chapterSummary: '',
-    isChapterLoading: false,
     courseConcepts: '',
     isCourseConceptsLoading: false,
     // State cho việc lưu trữ
@@ -46,8 +44,6 @@ export function useSummarization() {
     localSummaryState.contentType = 'general'
     localSummaryState.startTime = null
     localSummaryState.streamingEnabled = false
-    localSummaryState.chapterSummary = ''
-    localSummaryState.isChapterLoading = false
     localSummaryState.courseConcepts = ''
     localSummaryState.isCourseConceptsLoading = false
     localSummaryState.isSavedToHistory = false
@@ -194,37 +190,39 @@ export function useSummarization() {
       } else {
         // Non-course content: Use original logic hoặc custom actions
         localSummaryState.isLoading = true
-        if (contentType === 'youtube') {
-          localSummaryState.isChapterLoading = true
-        }
 
         // Nếu là custom action, gọi API trực tiếp
         if (
           customContentType &&
-          ['analyze', 'explain', 'debate'].includes(customContentType)
-        ) {
-          const { summarizeContent } = await import('@/lib/api/api.js')
-          localSummaryState.summary = await summarizeContent(
-            content,
+          ['analyze', 'explain', 'debate', 'chapters'].includes(
             customContentType
           )
+        ) {
+          const { summarizeContent, summarizeChapters } = await import(
+            '@/lib/api/api.js'
+          )
+
+          if (customContentType === 'chapters') {
+            // Tóm tắt chapters và lưu vào summary field (như một entry riêng)
+            localSummaryState.summary = await summarizeChapters(content)
+          } else {
+            localSummaryState.summary = await summarizeContent(
+              content,
+              customContentType
+            )
+          }
         } else {
-          // Logic gốc cho content thường - TRUYỀN CONTENT ĐÃ CÓ
+          // Logic gốc cho content thường - CHỈ TÓM TẮT CHÍNH
           const result = await summarizationService.summarizeWithContent(
             content,
             contentType,
             settings
           )
           localSummaryState.summary = result.summary
-          if (result.chapterSummary) {
-            localSummaryState.chapterSummary = result.chapterSummary
-          }
+          // Không tự động tóm tắt chapters nữa
         }
 
         localSummaryState.isLoading = false
-        if (contentType === 'youtube') {
-          localSummaryState.isChapterLoading = false
-        }
       }
 
       const duration = Date.now() - localSummaryState.startTime
@@ -236,10 +234,64 @@ export function useSummarization() {
       handleSummarizationError(error)
       // Reset loading states on error
       localSummaryState.isLoading = false
-      localSummaryState.isChapterLoading = false
       localSummaryState.isCourseConceptsLoading = false
     } finally {
       // Reset processing flag
+      isProcessing = false
+    }
+  }
+
+  /**
+   * Summarize chapters specifically (for floating panel)
+   * Chapters được lưu vào summary field để auto-save như một entry riêng
+   */
+  async function summarizeChapters() {
+    if (isProcessing) {
+      console.log(
+        '[useSummarization] Already processing, ignoring duplicate request'
+      )
+      return
+    }
+
+    // Reset summary trước để chapters được lưu như một entry mới
+    localSummaryState.summary = ''
+    localSummaryState.isLoading = true
+    isProcessing = true
+
+    try {
+      console.log('[useSummarization] Starting chapter summarization...')
+
+      // Set page info (QUAN TRỌNG: Cần có để autoSaveToHistory() không skip)
+      localSummaryState.pageTitle = document.title || 'Unknown Title'
+      localSummaryState.pageUrl = window.location.href
+
+      // Load settings
+      await loadSettings()
+
+      // Initialize services
+      const contentExtractor = new ContentExtractorService(
+        (settings?.uiLanguage || 'en').slice(0, 2)
+      )
+
+      // Extract content
+      const extractResult = await contentExtractor.extractPageContent()
+      const content = extractResult.content
+
+      // Call chapter summarization và lưu vào summary field
+      const { summarizeChapters: apiSummarizeChapters } = await import(
+        '@/lib/api/api.js'
+      )
+      localSummaryState.summary = await apiSummarizeChapters(content)
+
+      console.log('[useSummarization] Chapter summarization completed')
+
+      // Auto-save to history - sẽ lưu summary (chứa chapters) như một entry mới
+      await autoSaveToHistory()
+    } catch (error) {
+      console.error('[useSummarization] Chapter summarization error:', error)
+      handleSummarizationError(error)
+    } finally {
+      localSummaryState.isLoading = false
       isProcessing = false
     }
   }
@@ -315,6 +367,7 @@ export function useSummarization() {
 
     // Actions
     summarizePageContent,
+    summarizeChapters,
     resetLocalSummaryState,
     handleSummarizationError,
     manualSaveToArchive,

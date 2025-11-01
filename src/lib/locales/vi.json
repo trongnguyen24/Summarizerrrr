@@ -341,5 +341,48 @@
       "rename_failed": "Đổi tên thất bại",
       "delete_failed": "Xóa thất bại"
     }
+  },
+  "exportImport": {
+    "title": "Sao lưu dữ liệu",
+    "description": "Sao lưu và nhập dữ liệu của bạn sang thiết bị khác",
+    "your_data": "Dữ liệu của bạn",
+    "history": "Lịch sử",
+    "archives": "Lưu trữ",
+    "tags": "Thẻ",
+    "all_data": "Tất cả dữ liệu",
+    "export_to_markdown": "Xuất sang markdown",
+    "backup": "Sao lưu",
+    "import": "Nhập",
+    "exporting": "Đang xuất...",
+    "import_options": "Tùy chọn nhập",
+    "select_data_types": "Chọn loại dữ liệu để nhập",
+    "settings": "Cài đặt",
+    "settings_test": "Cài đặt Test",
+    "archive": "Lưu trữ",
+    "import_mode": "Chế độ nhập",
+    "merge_data": "Gộp dữ liệu",
+    "merge_description": "Kết hợp dữ liệu đã nhập với dữ liệu hiện có",
+    "replace_data": "Thay thế dữ liệu",
+    "replace_description": "Thay thế tất cả dữ liệu hiện có bằng dữ liệu đã nhập",
+    "cancel": "Hủy",
+    "start_import": "Bắt đầu nhập",
+    "exported": "Ngày xuất:",
+    "summaries": "Tóm tắt:",
+    "unknown": "Không rõ",
+    "messages": {
+      "export_success": "Xuất dữ liệu thành công ra file ZIP!",
+      "history_export_success": "Xuất lịch sử thành công ra file Markdown!",
+      "archive_export_success": "Xuất lưu trữ thành công ra file Markdown!",
+      "export_failed": "Xuất thất bại: {error}",
+      "import_failed": "Nhập thất bại: {error}",
+      "import_success": "Nhập dữ liệu thành công!",
+      "zip_only": "Chỉ hỗ trợ định dạng ZIP. Vui lòng xuất dữ liệu của bạn lại.",
+      "no_valid_data": "Không tìm thấy dữ liệu hợp lệ trong file ZIP",
+      "file_processing_failed": "Xử lý file thất bại: {error}",
+      "import_preparation_failed": "Chuẩn bị nhập thất bại: {error}"
+    },
+    "replace_warning": "⚠️ CẢNH BÁO: Chế độ thay thế\n\nĐiều này sẽ XÓA dữ liệu hiện có và THAY THẾ bằng dữ liệu đã nhập:",
+    "merge_mode_description": "• Dữ liệu đã nhập được kết hợp với dữ liệu hiện có<br />• Bản sao (cùng ID) sẽ được cập nhật<br />• Cài đặt đã nhập sẽ ghi đè cài đặt hiện có",
+    "replace_mode_description": "• Các loại dữ liệu đã chọn bị xóa hoàn toàn trước<br />• Sau đó thay thế bằng chỉ dữ liệu đã nhập<br />• Các loại dữ liệu không chọn không bị ảnh hưởng"
   }
 }

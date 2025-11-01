@@ -96,6 +96,39 @@ export function setupMessageListener() {
 
   port.onMessage.addListener(handleBackgroundMessage)
   browser.runtime.onMessage.addListener(handleBackgroundMessage)
+  // Request current tab info on sidepanel initialization
+  // Use timeout to ensure port is fully registered in background script
+  setTimeout(() => {
+    console.log('[messageHandler.js] Requesting current tab info...')
+    browser.runtime
+      .sendMessage({ action: 'requestCurrentTabInfo' })
+      .then(() => {
+        console.log('[messageHandler.js] Tab info request sent successfully')
+      })
+      .catch((error) => {
+        console.warn(
+          '[messageHandler.js] Failed to request tab info on first try, retrying...',
+          error
+        )
+        // Retry once after 500ms if first attempt fails
+        setTimeout(() => {
+          browser.runtime
+            .sendMessage({ action: 'requestCurrentTabInfo' })
+            .then(() => {
+              console.log(
+                '[messageHandler.js] Tab info request sent successfully on retry'
+              )
+            })
+            .catch((retryError) => {
+              console.error(
+                '[messageHandler.js] Failed to request tab info after retry:',
+                retryError
+              )
+            })
+        }, 500)
+      })
+  }, 100)
+
   console.log('[messageHandler.js] Added fallback runtime.onMessage listener.')
 
   return () => {

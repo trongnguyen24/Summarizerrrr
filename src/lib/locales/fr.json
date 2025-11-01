@@ -337,5 +337,48 @@
       "rename_failed": "Échec du renommage",
       "delete_failed": "Échec de la suppression"
     }
+  },
+  "exportImport": {
+    "title": "Sauvegarder les données",
+    "description": "Sauvegarder et importer vos données vers un autre appareil",
+    "your_data": "Vos données",
+    "history": "Historique",
+    "archives": "Archives",
+    "tags": "Étiquettes",
+    "all_data": "Toutes les données",
+    "export_to_markdown": "Exporter en markdown",
+    "backup": "Sauvegarder",
+    "import": "Importer",
+    "exporting": "Exportation...",
+    "import_options": "Options d'importation",
+    "select_data_types": "Sélectionner les types de données à importer",
+    "settings": "Paramètres",
+    "settings_test": "Test des paramètres",
+    "archive": "Archive",
+    "import_mode": "Mode d'importation",
+    "merge_data": "Fusionner les données",
+    "merge_description": "Combiner les données importées avec les données existantes",
+    "replace_data": "Remplacer les données",
+    "replace_description": "Remplacer toutes les données existantes par les données importées",
+    "cancel": "Annuler",
+    "start_import": "Commencer l'importation",
+    "exported": "Exporté:",
+    "summaries": "Résumés:",
+    "unknown": "Inconnu",
+    "messages": {
+      "export_success": "Données exportées avec succès en fichier ZIP!",
+      "history_export_success": "Historique exporté en Markdown avec succès!",
+      "archive_export_success": "Archive exportée en Markdown avec succès!",
+      "export_failed": "Échec de l'exportation: {error}",
+      "import_failed": "Échec de l'importation: {error}",
+      "import_success": "Données importées avec succès!",
+      "zip_only": "Seul le format ZIP est pris en charge. Veuillez exporter vos données à nouveau.",
+      "no_valid_data": "Aucune donnée valide trouvée dans le fichier ZIP",
+      "file_processing_failed": "Échec du traitement du fichier: {error}",
+      "import_preparation_failed": "Échec de la préparation de l'importation: {error}"
+    },
+    "replace_warning": "⚠️ ATTENTION : Mode de remplacement\n\nCela SUPPRIMERA les données existantes et LES REMPLACERA par les données importées :",
+    "merge_mode_description": "• Les données importées sont combinées avec les données existantes<br />• Les doublons (même ID) seront mis à jour<br />• Les paramètres importés remplacent les paramètres existants",
+    "replace_mode_description": "• Les types de données sélectionnés sont complètement supprimés d'abord<br />• Puis remplacés uniquement par les données importées<br />• Les types de données non sélectionnés ne sont pas affectés"
   }
 }

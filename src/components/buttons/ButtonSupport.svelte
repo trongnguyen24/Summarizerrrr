@@ -171,14 +171,15 @@
         {#snippet child({ props })}
           <a
             class=" select-none"
-            href="https://ko-fi.com/trongnguyen24"
+            href="https://buymeacoffee.com/trongnguyen24"
             {...props}
             target="_blank"
           >
             <div
               class=" p-3 flex gap-2 hover:bg-blackwhite-5 transition-colors duration-75 items-center"
             >
-              <Icon icon="hugeicons:ko-fi" class="size-5" />Ko-fi
+              <Icon icon="simple-icons:buymeacoffee" class="size-5" />Buy me a
+              coffee
             </div></a
           >
         {/snippet}

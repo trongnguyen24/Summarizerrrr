@@ -78,14 +78,15 @@
   padding: 4px;
   position: relative;
   border-radius: 4rem;
+  width: var(--yt-delhi-pill-height, 24px);
+  height: var(--yt-delhi-pill-height, 24px);
 }
 .summarizerrrr-btn {
   display: flex;
-  position: relative;
+  position: absolute;
   align-items: center;
+  inset: 4px;
   justify-content: center;
-  width: var(--yt-delhi-pill-height, 32px);
-  height: var(--yt-delhi-pill-height, 32px);
   background: transparent; /* bg-transparent */
   color: white; /* text-white */
   border: none; /* border-none */
@@ -93,7 +94,7 @@
   border-radius: 9999px; /* rounded-full */
   opacity: 0.9; /* opacity-90 */
   outline: none;
-  position: relative;
+
   &:hover {
     background-color: hsla(0, 0%, 100%, 0.1);
   }
@@ -106,10 +107,12 @@
   border-radius: 0.4rem;
   color: white;
   background-color: #231b1c;
-  top: -4.6rem;
-  left: 50%;
+  top: 50%;
+
+  left: 0%;
   width: fit-content;
-  transform: translateX(-50%);
+  height: fit-content;
+  transform: translateX(-105%) translateY(-50%);
   font-size: 1.2rem;
 }
 .summarizerrrr-btn:hover .summarizerrrr-tooltip {
@@ -121,9 +124,9 @@
 }
 
 @media screen and (min-width: 1300px) {
-  .summarizerrrr-btn {
-    width: var(--yt-delhi-pill-height, 42px);
-    height: var(--yt-delhi-pill-height, 42px);
+  .summarizerrrr-wrap {
+    width: var(--yt-delhi-pill-height, 36px);
+    height: var(--yt-delhi-pill-height, 36px);
   }
   .summarizerrrr-popover {
     bottom: 7.8rem;

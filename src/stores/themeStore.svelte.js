@@ -41,6 +41,14 @@ export async function loadThemeSettings() {
 }
 
 /**
+ * Forces a reload of theme settings from storage, bypassing the cache
+ */
+export async function forceReloadThemeSettings() {
+  _isThemeInitializedPromise = null
+  return await loadThemeSettings()
+}
+
+/**
  * Updates theme settings and saves to storage.
  * @param {Partial<typeof DEFAULT_THEME_SETTINGS>} newThemeSettings
  */

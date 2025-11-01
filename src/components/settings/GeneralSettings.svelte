@@ -28,6 +28,7 @@
   } from '../../services/firefoxPermissionService.js'
   import { getBrowserCompatibility } from '../../lib/utils/browserDetection.js'
   import { browser } from 'wxt/browser'
+  import ExportImport from './ExportImport.svelte'
 
   const browserCompatibility = getBrowserCompatibility()
 
@@ -177,69 +178,70 @@
 
 <!-- General Section -->
 <!-- Optional Permissions Section - Chỉ hiển thị trên Firefox -->
-{#if import.meta.env.BROWSER === 'firefox'}
-  <div class="flex flex-col gap-2 px-5 mt-6">
-    <!-- svelte-ignore a11y_label_has_associated_control -->
-    <label class="block font-bold text-primary">
-      {$t('permissionWarning.title')}</label
-    >
-    <p class="text-xs text-text-secondary">
-      {$t('permissionWarning.description')}
-    </p>
+<div class=" flex flex-col gap-8 py-6">
+  {#if import.meta.env.BROWSER === 'firefox'}
+    <div class="flex flex-col gap-2 px-5">
+      <!-- svelte-ignore a11y_label_has_associated_control -->
+      <label class="block font-bold text-primary">
+        {$t('permissionWarning.title')}</label
+      >
+      <p class="text-xs text-text-secondary">
+        {$t('permissionWarning.description')}
+      </p>
 
-    <!-- Chỉ còn 1 checkbox: General Website Access -->
-    <!-- YouTube, Udemy, Coursera, Reddit đã có host_permissions nên không cần settings -->
+      <!-- Chỉ còn 1 checkbox: General Website Access -->
+      <!-- YouTube, Udemy, Coursera, Reddit đã có host_permissions nên không cần settings -->
 
-    <SwitchPermission
-      id="https-permission-switch"
-      name=" {$t('permissionWarning.button')}"
-      bind:checked={httpsPermission}
-      onCheckedChange={handleHttpsPermission}
-    />
-  </div>
-{/if}
-
-<!-- Sidepanel Support Setting - Only show on Chrome -->
-{#if import.meta.env.BROWSER === 'chrome' && !browserCompatibility.isMobile}
-  <div class="flex flex-col gap-2 px-5 mt-6">
-    <!-- svelte-ignore a11y_label_has_associated_control -->
-    <label class="block text-text-primary font-bold"
-      >{$t('settings.general.icon_click_action.title')}</label
-    >
-
-    <p class="text-xs text-text-secondary">
-      {$t('settings.general.icon_click_action.description')}
-    </p>
-    <div class="flex w-full mt-1 gap-1">
-      <ButtonSet
-        title="Sidepanel"
-        class={`setting-btn ${
-          settings.iconClickAction === 'sidepanel' ? 'active' : ''
-        }`}
-        onclick={() => handleUpdateSetting('iconClickAction', 'sidepanel')}
-        Description={$t('settings.general.icon_click_action.open_sidepanel')}
-      />
-      <ButtonSet
-        title="Settings"
-        class={`setting-btn ${
-          settings.iconClickAction === 'popup' ? 'active' : ''
-        }`}
-        onclick={() => handleUpdateSetting('iconClickAction', 'popup')}
-        Description={$t('settings.general.icon_click_action.open_popup')}
-      />
-      <ButtonSet
-        title="FAB"
-        class={`setting-btn ${
-          settings.iconClickAction === 'floating' ? 'active' : ''
-        }`}
-        onclick={() => handleUpdateSetting('iconClickAction', 'floating')}
-        Description={$t('settings.general.icon_click_action.open_floating')}
+      <SwitchPermission
+        id="https-permission-switch"
+        name=" {$t('permissionWarning.button')}"
+        bind:checked={httpsPermission}
+        onCheckedChange={handleHttpsPermission}
       />
     </div>
-  </div>
-{/if}
-<div class="setting-block flex pb-6 pt-1 flex-col">
-  <div class="flex flex-col gap-2 p-5">
+  {/if}
+
+  <!-- Sidepanel Support Setting - Only show on Chrome -->
+  {#if import.meta.env.BROWSER === 'chrome' && !browserCompatibility.isMobile}
+    <div class="flex flex-col gap-2 px-5">
+      <!-- svelte-ignore a11y_label_has_associated_control -->
+      <label class="block text-text-primary font-bold"
+        >{$t('settings.general.icon_click_action.title')}</label
+      >
+
+      <p class="text-xs text-muted">
+        {$t('settings.general.icon_click_action.description')}
+      </p>
+      <div class="flex w-full mt-1 gap-1">
+        <ButtonSet
+          title="Sidepanel"
+          class={`setting-btn ${
+            settings.iconClickAction === 'sidepanel' ? 'active' : ''
+          }`}
+          onclick={() => handleUpdateSetting('iconClickAction', 'sidepanel')}
+          Description={$t('settings.general.icon_click_action.open_sidepanel')}
+        />
+        <ButtonSet
+          title="Settings"
+          class={`setting-btn ${
+            settings.iconClickAction === 'popup' ? 'active' : ''
+          }`}
+          onclick={() => handleUpdateSetting('iconClickAction', 'popup')}
+          Description={$t('settings.general.icon_click_action.open_popup')}
+        />
+        <ButtonSet
+          title="FAB"
+          class={`setting-btn ${
+            settings.iconClickAction === 'floating' ? 'active' : ''
+          }`}
+          onclick={() => handleUpdateSetting('iconClickAction', 'floating')}
+          Description={$t('settings.general.icon_click_action.open_floating')}
+        />
+      </div>
+    </div>
+  {/if}
+
+  <div class="flex flex-col gap-2 px-5">
     <!-- svelte-ignore a11y_label_has_associated_control -->
     <label class="block text-text-primary font-bold"
       >{$t('settings.general.fontFamily')}</label
@@ -282,7 +284,17 @@
     </div>
   </div>
 
-  <div class="flex flex-col gap-2 px-5 pb-4">
+  <div class="flex flex-col gap-2 px-5">
+    <!-- svelte-ignore a11y_label_has_associated_control -->
+    <label class="block text-text-primary font-bold"
+      >{$t('settings.general.lang_ui')}</label
+    >
+    <div class="flex w-full gap-1">
+      <UILanguageSelect />
+    </div>
+  </div>
+
+  <div class="flex flex-col gap-2 px-5">
     <!-- svelte-ignore a11y_label_has_associated_control -->
     <label class="block text-text-primary font-bold"
       >{$t('settings.general.theme')}</label
@@ -319,19 +331,10 @@
     </div>
   </div>
 
-  <div class="flex flex-col gap-2 px-5 pb-4">
-    <!-- svelte-ignore a11y_label_has_associated_control -->
-    <label class="block text-text-primary font-bold"
-      >{$t('settings.general.lang_ui')}</label
-    >
-    <div class="flex w-full gap-1">
-      <UILanguageSelect />
-    </div>
-  </div>
-
+  <ExportImport />
   {#if !browserCompatibility.isMobile}
     {#if !browserCompatibility.isMobile}
-      <div class="flex flex-col gap-2 mt-2 px-5 pb-4">
+      <div class="flex flex-col gap-2 px-5">
         <!-- svelte-ignore a11y_label_has_associated_control -->
         <div class="flex items-center text-text-primary gap-1 justify-between">
           <span class=" font-bold">{$t('settings.general.shortcuts')}</span>

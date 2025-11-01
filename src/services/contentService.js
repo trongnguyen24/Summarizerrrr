@@ -6,6 +6,69 @@ const YOUTUBE_MATCH_PATTERN = /youtube\.com\/watch/i
 const COURSE_MATCH_PATTERN =
   /(udemy\.com\/course\/.*\/learn\/|coursera\.org\/learn\/.*\/lecture\/|coursera\.org\/learn\/.*\/supplement\/)/i
 
+/**
+ * Send message with retry mechanism
+ * @param {number} tabId - Tab ID to send message to
+ * @param {object} message - Message object to send
+ * @param {number} maxRetries - Maximum number of retries
+ * @param {number} retryDelay - Delay between retries in ms
+ * @returns {Promise<any>} Response from content script
+ */
+async function sendMessageWithRetry(
+  tabId,
+  message,
+  maxRetries = 3,
+  retryDelay = 500
+) {
+  let lastError = null
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      console.log(
+        `[contentService] Sending message (attempt ${attempt}/${maxRetries}):`,
+        message.action
+      )
+
+      const response = await browser.tabs.sendMessage(tabId, message)
+
+      if (response?.success) {
+        console.log(
+          `[contentService] Message successful on attempt ${attempt}:`,
+          message.action
+        )
+        return response
+      } else if (response?.error) {
+        lastError = new Error(response.error)
+        console.log(
+          `[contentService] Message failed on attempt ${attempt}:`,
+          response.error
+        )
+      }
+    } catch (error) {
+      lastError = error
+      console.log(
+        `[contentService] Message error on attempt ${attempt}:`,
+        error.message
+      )
+
+      // If this is not the last attempt, wait before retrying
+      if (attempt < maxRetries) {
+        console.log(
+          `[contentService] Waiting ${retryDelay}ms before retry ${
+            attempt + 1
+          }...`
+        )
+        await new Promise((resolve) => setTimeout(resolve, retryDelay))
+        // Increase delay for next retry (exponential backoff)
+        retryDelay *= 1.5
+      }
+    }
+  }
+
+  // All retries failed
+  throw lastError || new Error('Failed to communicate with content script')
+}
+
 function getWebpageText() {
   const minLength = 50
   let content = document.body?.innerText?.trim()
@@ -69,38 +132,57 @@ export async function getPageContent(
       isYouTubeVideo &&
       (contentType === 'transcript' || contentType === 'timestampedTranscript')
     ) {
-      const action =
-        contentType === 'timestampedTranscript'
-          ? 'fetchTranscriptWithTimestamp'
-          : 'fetchTranscript'
-      const response = await browser.tabs.sendMessage(tab.id, {
-        action,
-        lang: preferredLang,
-      })
-      if (response?.success && response.transcript) {
-        return { type: 'youtube', content: response.transcript }
+      // Always use timestamped transcript for better AI understanding and accuracy
+      const action = 'fetchTranscriptWithTimestamp'
+
+      try {
+        const response = await sendMessageWithRetry(
+          tab.id,
+          { action, lang: preferredLang },
+          3,
+          500
+        )
+
+        if (response?.success && response.transcript) {
+          return { type: 'youtube', content: response.transcript }
+        }
+        throw new Error(
+          response?.error ||
+            `Failed to get ${contentType} from YouTube content script.`
+        )
+      } catch (error) {
+        console.error('[contentService] YouTube transcript error:', error)
+        throw new Error(
+          `Failed to get transcript from YouTube. Please try refreshing the page.`
+        )
       }
-      throw new Error(
-        response?.error ||
-          `Failed to get ${contentType} from YouTube content script.`
-      )
     }
 
     if (isCourseVideo && contentType === 'transcript') {
-      const response = await browser.tabs.sendMessage(tab.id, {
-        action: 'fetchCourseContent',
-        lang: preferredLang,
-      })
-      if (response?.success && (response.content || response.transcript)) {
-        return {
-          type: 'course',
-          content: response.content || response.transcript,
+      try {
+        const response = await sendMessageWithRetry(
+          tab.id,
+          { action: 'fetchCourseContent', lang: preferredLang },
+          3,
+          500
+        )
+
+        if (response?.success && (response.content || response.transcript)) {
+          return {
+            type: 'course',
+            content: response.content || response.transcript,
+          }
         }
+        throw new Error(
+          response?.error ||
+            `Failed to get ${contentType} from Course content script.`
+        )
+      } catch (error) {
+        console.error('[contentService] Course content error:', error)
+        throw new Error(
+          `Failed to get course content. Please try refreshing the page.`
+        )
       }
-      throw new Error(
-        response?.error ||
-          `Failed to get ${contentType} from Course content script.`
-      )
     }
 
     // Handle cases where transcript is requested on a non-video page

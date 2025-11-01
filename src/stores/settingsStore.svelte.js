@@ -2,6 +2,7 @@
 import { get } from 'svelte/store'
 import { locale } from 'svelte-i18n'
 import { settingsStorage } from '@/services/wxtStorageService.js'
+import { sanitizeSettings } from '@/lib/config/settingsSchema.js'
 
 // --- Default Settings (Merged) ---
 const DEFAULT_SETTINGS = {
@@ -42,7 +43,7 @@ const DEFAULT_SETTINGS = {
   widthIndex: 1, // Default to max-w-3xl
   sidePanelDefaultWidth: 25, // Default width for side panel in em units
   oneClickSummarize: false, // Enable 1-click summarization on FAB
-    iconClickAction: 'sidepanel', // 'sidepanel', 'popup', or 'floating'
+  iconClickAction: 'sidepanel', // 'sidepanel', 'popup', or 'floating'
   fabDomainControl: {
     mode: 'all', // 'all' | 'whitelist' | 'blacklist'
     whitelist: ['youtube.com', 'coursera.org', 'udemy.com'],
@@ -139,49 +140,65 @@ export async function loadSettings() {
     try {
       const storedSettings = await settingsStorage.getValue()
       if (storedSettings && Object.keys(storedSettings).length > 0) {
+        // ✅ MIGRATION: Clean nested structure and invalid keys
+        // Remove metadata, theme, and nested settings keys
+        const invalidKeys = ['metadata', 'theme', 'settings']
+        invalidKeys.forEach((key) => {
+          if (storedSettings[key] !== undefined) {
+            console.log(
+              `[settingsStore] Migration: Removing invalid key "${key}" from storage`
+            )
+            delete storedSettings[key]
+          }
+        })
+
+        // ✅ MIGRATION: Sanitize to ensure only valid keys remain
+        const cleanStoredSettings = sanitizeSettings(storedSettings)
+
         // Handle migration from old fabDomainPermissions to new fabDomainControl format
         if (
-          storedSettings.fabDomainPermissions &&
-          !storedSettings.fabDomainControl
+          cleanStoredSettings.fabDomainPermissions &&
+          !cleanStoredSettings.fabDomainControl
         ) {
-          const mode = storedSettings.fabDomainPermissions.enabled
+          const mode = cleanStoredSettings.fabDomainPermissions.enabled
             ? 'whitelist'
             : 'all'
           const whitelist = normalizeFabWhitelist(
-            storedSettings.fabDomainPermissions.whitelist
+            cleanStoredSettings.fabDomainPermissions.whitelist
           )
-          storedSettings.fabDomainControl = {
+          cleanStoredSettings.fabDomainControl = {
             mode,
             whitelist,
             blacklist: [],
           }
-          delete storedSettings.fabDomainPermissions // Remove old key
+          delete cleanStoredSettings.fabDomainPermissions // Remove old key
         }
 
         // Handle migration from fabDomainPermissionsEnabled + fabDomainWhitelist to fabDomainControl
         if (
-          (storedSettings.fabDomainPermissionsEnabled !== undefined ||
-            storedSettings.fabDomainWhitelist !== undefined) &&
-          !storedSettings.fabDomainControl
+          (cleanStoredSettings.fabDomainPermissionsEnabled !== undefined ||
+            cleanStoredSettings.fabDomainWhitelist !== undefined) &&
+          !cleanStoredSettings.fabDomainControl
         ) {
-          const mode = storedSettings.fabDomainPermissionsEnabled
+          const mode = cleanStoredSettings.fabDomainPermissionsEnabled
             ? 'whitelist'
             : 'all'
           const whitelist =
-            normalizeFabWhitelist(storedSettings.fabDomainWhitelist) || []
-          storedSettings.fabDomainControl = {
+            normalizeFabWhitelist(cleanStoredSettings.fabDomainWhitelist) || []
+          cleanStoredSettings.fabDomainControl = {
             mode,
             whitelist,
             blacklist: [],
           }
-          delete storedSettings.fabDomainPermissionsEnabled // Remove old key
-          delete storedSettings.fabDomainWhitelist // Remove old key
+          delete cleanStoredSettings.fabDomainPermissionsEnabled // Remove old key
+          delete cleanStoredSettings.fabDomainWhitelist // Remove old key
         }
 
         // Ensure fabDomainControl has proper structure
-        if (storedSettings.fabDomainControl) {
-          const { mode, whitelist, blacklist } = storedSettings.fabDomainControl
-          storedSettings.fabDomainControl = {
+        if (cleanStoredSettings.fabDomainControl) {
+          const { mode, whitelist, blacklist } =
+            cleanStoredSettings.fabDomainControl
+          cleanStoredSettings.fabDomainControl = {
             mode: mode || 'all',
             whitelist: normalizeFabWhitelist(whitelist) || [],
             blacklist: normalizeFabWhitelist(blacklist) || [],
@@ -191,9 +208,14 @@ export async function loadSettings() {
         // Merge settings with defaults
         const mergedSettings = {
           ...DEFAULT_SETTINGS,
-          ...storedSettings,
+          ...cleanStoredSettings,
         }
         Object.assign(settings, mergedSettings)
+
+        // ✅ MIGRATION: Save cleaned settings back to storage
+        await settingsStorage.setValue(
+          JSON.parse(JSON.stringify(mergedSettings))
+        )
       } else {
         // No settings in storage, so initialize it with defaults
         await settingsStorage.setValue(DEFAULT_SETTINGS)
@@ -209,6 +231,14 @@ export async function loadSettings() {
 }
 
 /**
+ * Forces a reload of settings from storage, bypassing the cache
+ */
+export async function forceReloadSettings() {
+  _isInitializedPromise = null
+  return await loadSettings()
+}
+
+/**
  * Updates one or more settings and saves the entire settings object to storage.
  * @param {Partial<typeof DEFAULT_SETTINGS>} newSettings
  */
@@ -218,15 +248,20 @@ export async function updateSettings(newSettings) {
   }
   await _isInitializedPromise
 
+  // ✅ FIX: Sanitize input để loại bỏ invalid keys (metadata, theme, nested settings)
+  const cleanNewSettings = sanitizeSettings(newSettings)
+
   // Create a new object with the updates applied
-  const updatedSettings = { ...settings, ...newSettings }
+  // ✅ FIX: Sanitize current settings để đảm bảo không có invalid keys
+  const cleanCurrentSettings = sanitizeSettings(settings)
+  const updatedSettings = { ...cleanCurrentSettings, ...cleanNewSettings }
 
   // Update the local state
   Object.assign(settings, updatedSettings)
 
   // If uiLang is updated, also update the i18n locale
-  if (newSettings.uiLang) {
-    locale.set(newSettings.uiLang)
+  if (cleanNewSettings.uiLang) {
+    locale.set(cleanNewSettings.uiLang)
   }
 
   try {

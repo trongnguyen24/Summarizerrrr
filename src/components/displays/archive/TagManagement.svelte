@@ -306,7 +306,7 @@
         <button
           onclick={hasAnyTagsSelected() ? handleClearAllTags : handleAllClick}
           class="flex items-center gap-2 text-sm w-full relative p-2 text-left {!hasAnyTagsSelected()
-            ? ' text-white'
+            ? ' text-blackwhite'
             : ' text-text-secondary hover:text-text-primary'}"
           aria-label={hasAnyTagsSelected()
             ? 'Clear all tag filters'
@@ -339,7 +339,7 @@
             class="flex items-center gap-1.5 text-sm w-full relative text-left hover:bg-surface-1 dark:hover:bg-surface-2 rounded-md {isTagSelected(
               tag.id
             )
-              ? ' text-white'
+              ? '  text-blackwhite'
               : ' text-text-secondary'} {isTouchScreen
               ? 'pr-16 p-2.5'
               : 'pr-16 p-2'}"

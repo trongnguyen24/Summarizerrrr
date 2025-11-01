@@ -23,7 +23,7 @@
       {title}
     </div>
     <div
-      class="text-demo line-clamp-1 text-xs"
+      class="text-demo text-muted line-clamp-1 text-xs"
       class:font-default={font === 'sans'}
       class:font-noto-serif={font === 'serif'}
       class:font-mali={font === 'mali'}

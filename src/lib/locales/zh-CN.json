@@ -315,5 +315,48 @@
       "rename_failed": "重命名失败",
       "delete_failed": "删除失败"
     }
+  },
+  "exportImport": {
+    "title": "备份数据",
+    "description": "备份数据并导入到其他设备",
+    "your_data": "您的数据",
+    "history": "历史记录",
+    "archives": "归档",
+    "tags": "标签",
+    "all_data": "全部数据",
+    "export_to_markdown": "导出为 Markdown",
+    "backup": "备份",
+    "import": "导入",
+    "exporting": "导出中...",
+    "import_options": "导入选项",
+    "select_data_types": "选择要导入的数据类型",
+    "settings": "设置",
+    "settings_test": "设置测试",
+    "archive": "归档",
+    "import_mode": "导入模式",
+    "merge_data": "合并数据",
+    "merge_description": "将导入的数据与现有数据合并",
+    "replace_data": "替换数据",
+    "replace_description": "用导入的数据替换所有现有数据",
+    "cancel": "取消",
+    "start_import": "开始导入",
+    "exported": "已导出：",
+    "summaries": "摘要：",
+    "unknown": "未知",
+    "messages": {
+      "export_success": "数据已成功导出为 ZIP 文件！",
+      "history_export_success": "历史记录已成功导出为 Markdown！",
+      "archive_export_success": "归档已成功导出为 Markdown！",
+      "export_failed": "导出失败：{error}",
+      "import_failed": "导入失败：{error}",
+      "import_success": "数据导入成功！",
+      "zip_only": "仅支持 ZIP 格式。请重新导出您的数据。",
+      "no_valid_data": "ZIP 文件中未找到有效数据",
+      "file_processing_failed": "文件处理失败：{error}",
+      "import_preparation_failed": "导入准备失败：{error}"
+    },
+    "replace_warning": "⚠️ 警告：替换模式\n\n这将删除现有数据并用导入的数据替换：",
+    "merge_mode_description": "• 导入的数据与现有数据合并<br />• 重复项（相同 ID）将被更新<br />• 导入的设置将覆盖现有设置",
+    "replace_mode_description": "• 首先完全删除选定的数据类型<br />• 然后仅用导入的数据替换<br />• 未选定的数据类型不受影响"
   }
 }

@@ -24,7 +24,6 @@
     fetchAndSummarize,
     fetchAndSummarizeStream,
     updateActiveCourseTab,
-    updateActiveYouTubeTab,
   } from '@/stores/summaryStore.svelte.js'
   import { tabTitle } from '@/stores/tabTitleStore.svelte.js'
   import { setupMessageListener } from '@/services/messageHandler.js'
@@ -103,7 +102,6 @@
     // No loading states should be active
     const noLoadingStates =
       !summaryState.isLoading &&
-      !summaryState.isChapterLoading &&
       !summaryState.isCourseSummaryLoading &&
       !summaryState.isCourseConceptsLoading &&
       !summaryState.isSelectedTextLoading &&
@@ -114,14 +112,13 @@
     // Check if we have content OR error based on the last summary type displayed
     switch (summaryState.lastSummaryTypeDisplayed) {
       case 'youtube':
-        // For YouTube, we need either content or error
-        const hasYouTubeContent =
-          (summaryState.summary && summaryState.summary.trim() !== '') ||
-          (summaryState.chapterSummary &&
-            summaryState.chapterSummary.trim() !== '')
-        const hasYouTubeError =
-          summaryState.summaryError || summaryState.chapterError
-        return hasYouTubeContent || hasYouTubeError
+        // For YouTube, only show action buttons if video summary is done
+        // Chapter summary alone doesn't count
+        const hasYouTubeVideoContent =
+          summaryState.summary && summaryState.summary.trim() !== ''
+        const hasYouTubeError = summaryState.summaryError
+
+        return hasYouTubeVideoContent || hasYouTubeError
 
       case 'course':
         // For courses, we need either content or error
@@ -166,7 +163,6 @@
   // Derived state to find the first active error object
   const anyError = $derived(
     summaryState.summaryError ||
-      summaryState.chapterError ||
       summaryState.courseSummaryError ||
       summaryState.courseConceptsError ||
       summaryState.selectedTextError ||
@@ -290,7 +286,7 @@
     <div
       class="flex relative font-mono flex-col gap-1 justify-center items-center"
     >
-      <div class="size-6 absolute z-20 top-2 left-2 text-text-secondary">
+      <div class="size-6 absolute z-10 top-2 left-2 text-text-secondary">
         <button
           onclick={() => {
             browser.tabs.create({ url: 'archive.html' })
@@ -301,7 +297,7 @@
           <Icon icon="solar:history-linear" width="24" height="24" />
         </button>
       </div>
-      <div class="size-6 z-20 absolute top-2 right-4 text-text-secondary">
+      <div class="size-6 z-10 absolute top-2 right-4 text-text-secondary">
         <SettingButton />
       </div>
 
@@ -312,7 +308,6 @@
               isLoading={summaryState.isLoading ||
                 isAnyCourseLoading ||
                 summaryState.isCustomActionLoading}
-              isChapterLoading={summaryState.isChapterLoading}
               disabled={!hasPermission && import.meta.env.BROWSER === 'firefox'}
             />
           </span>
@@ -354,9 +349,7 @@
       {:else if anyError}
         <ErrorDisplay error={anyError} />
       {:else if summaryState.lastSummaryTypeDisplayed === 'youtube'}
-        <YouTubeSummaryDisplay
-          activeYouTubeTab={summaryState.activeYouTubeTab}
-        />
+        <YouTubeSummaryDisplay />
       {:else if summaryState.lastSummaryTypeDisplayed === 'course'}
         <CourseSummaryDisplay activeCourseTab={summaryState.activeCourseTab} />
       {:else if summaryState.lastSummaryTypeDisplayed === 'selectedText'}

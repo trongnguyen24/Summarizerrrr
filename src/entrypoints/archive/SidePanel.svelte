@@ -6,6 +6,7 @@
   import Dialog from './Dialog.svelte'
   import { useOverlayScrollbars } from 'overlayscrollbars-svelte'
   import { slideScaleFade } from '@/lib/ui/slideScaleFade.js'
+  import ExportMarkdownFAB from '@/components/buttons/ExportMarkdownFAB.svelte'
 
   // Load icons for archive states
   loadIcons(['heroicons:archive-box', 'heroicons:archive-box-solid'])
@@ -542,7 +543,10 @@
           {/if}
         </div>
       {/each}
-
+      <!-- Export Markdown FAB - Only show in Archive tab -->
+      <!-- {#if activeTab === 'archive' && filteredList?.length != 0}
+        <ExportMarkdownFAB />
+      {/if} -->
       {#if (filteredList?.length || 0) === 0}
         <div class="px-2 py-4 text-text-muted text-xs">
           {activeTab === 'archive'

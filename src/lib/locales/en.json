@@ -347,5 +347,48 @@
       "rename_failed": "Rename failed",
       "delete_failed": "Delete failed"
     }
+  },
+  "exportImport": {
+    "title": "Backup data",
+    "description": "Backup and import your data to another device",
+    "your_data": "Your data",
+    "history": "History",
+    "archives": "Archives",
+    "tags": "Tags",
+    "all_data": "All data",
+    "export_to_markdown": "Export to markdown",
+    "backup": "Backup",
+    "import": "Import",
+    "exporting": "Exporting...",
+    "import_options": "Import Options",
+    "select_data_types": "Select Data Types to Import",
+    "settings": "Settings",
+    "settings_test": "Settings Test",
+    "archive": "Archive",
+    "import_mode": "Import Mode",
+    "merge_data": "Merge data",
+    "merge_description": "Combine imported data with existing data",
+    "replace_data": "Replace data",
+    "replace_description": "Replace all existing data with imported data",
+    "cancel": "Cancel",
+    "start_import": "Start Import",
+    "exported": "Exported:",
+    "summaries": "Summaries:",
+    "unknown": "Unknown",
+    "messages": {
+      "export_success": "Data exported successfully as ZIP file!",
+      "history_export_success": "History exported as Markdown successfully!",
+      "archive_export_success": "Archive exported as Markdown successfully!",
+      "export_failed": "Export failed: {error}",
+      "import_failed": "Import failed: {error}",
+      "import_success": "Data imported successfully!",
+      "zip_only": "Only ZIP format is supported. Please export your data again.",
+      "no_valid_data": "No valid data found in ZIP file",
+      "file_processing_failed": "File processing failed: {error}",
+      "import_preparation_failed": "Import preparation failed: {error}"
+    },
+    "replace_warning": "⚠️ WARNING: Replace Mode\n\nThis will DELETE existing data and REPLACE with imported data:",
+    "merge_mode_description": "• Imported data is combined with existing data<br />• Duplicates (same ID) will be updated<br />• Imported settings override existing settings",
+    "replace_mode_description": "• Selected data types are completely deleted first<br />• Then replaced with imported data only<br />• Unselected data types are not affected"
   }
 }

@@ -28,15 +28,12 @@ import {
 // --- State ---
 export const summaryState = $state({
   summary: '',
-  chapterSummary: '',
   courseSummary: '',
   courseConcepts: '',
   isLoading: false,
-  isChapterLoading: false,
   isCourseSummaryLoading: false,
   isCourseConceptsLoading: false,
   summaryError: null, // Will hold the structured error object
-  chapterError: null,
   courseSummaryError: null,
   courseConceptsError: null,
   isYouTubeVideoActive: false,
@@ -64,17 +61,14 @@ export const summaryState = $state({
  */
 export function resetState() {
   summaryState.summary = ''
-  summaryState.chapterSummary = ''
   summaryState.courseSummary = ''
   summaryState.courseConcepts = ''
   summaryState.selectedTextSummary = ''
   summaryState.isLoading = false
-  summaryState.isChapterLoading = false
   summaryState.isCourseSummaryLoading = false
   summaryState.isCourseConceptsLoading = false
   summaryState.isSelectedTextLoading = false
   summaryState.summaryError = null
-  summaryState.chapterError = null
   summaryState.courseSummaryError = null
   summaryState.courseConceptsError = null
   summaryState.selectedTextError = null
@@ -98,12 +92,10 @@ export function resetState() {
  */
 export function resetDisplayState() {
   summaryState.summary = ''
-  summaryState.chapterSummary = ''
   summaryState.courseSummary = ''
   summaryState.courseConcepts = ''
   summaryState.selectedTextSummary = ''
   summaryState.summaryError = null
-  summaryState.chapterError = null
   summaryState.courseSummaryError = null
   summaryState.courseConceptsError = null
   summaryState.selectedTextError = null
@@ -145,7 +137,7 @@ export function updateActiveCourseTab(tabName) {
  */
 export async function fetchAndSummarize() {
   // If a summarization process is already ongoing, reset state and start a new one
-  if (summaryState.isLoading || summaryState.isChapterLoading) {
+  if (summaryState.isLoading || summaryState.isCustomActionLoading) {
     resetState() // Reset state before starting a new summarization
   }
 
@@ -173,7 +165,6 @@ export async function fetchAndSummarize() {
     await fetchAndSummarizeStream()
     // Ensure all loading states are set to false after streaming completes
     summaryState.isLoading = false
-    summaryState.isChapterLoading = false
     summaryState.isCourseSummaryLoading = false
     summaryState.isCourseConceptsLoading = false
     // logAllGeneratedSummariesToHistory() is called within fetchAndSummarizeStream
@@ -184,7 +175,6 @@ export async function fetchAndSummarize() {
   try {
     // Immediately set loading states inside try block
     summaryState.isLoading = true
-    summaryState.isChapterLoading = true
     summaryState.isCourseSummaryLoading = true
     summaryState.isCourseConceptsLoading = true
 
@@ -225,7 +215,7 @@ export async function fetchAndSummarize() {
     let summaryType = 'general'
 
     if (summaryState.isYouTubeVideoActive) {
-      mainContentTypeToFetch = 'transcript'
+      mainContentTypeToFetch = 'timestampedTranscript' // Always use timestamped for better accuracy
       summaryType = 'youtube'
       summaryState.lastSummaryTypeDisplayed = 'youtube'
     } else if (summaryState.isCourseVideoActive) {
@@ -243,49 +233,22 @@ export async function fetchAndSummarize() {
     summaryState.currentContentSource = mainContentResult.content
 
     if (summaryState.isYouTubeVideoActive) {
-      const chapterPromise = (async () => {
-        summaryState.chapterError = null
-        try {
-          const chapterContentResult = await getPageContent(
-            'timestampedTranscript',
-            userSettings.summaryLang
-          )
-          const chapterSummarizedText = await summarizeChapters(
-            chapterContentResult.content
-          )
-          summaryState.chapterSummary =
-            chapterSummarizedText ||
-            '<p><i>Could not generate chapter summary.</i></p>'
-        } catch (e) {
-          const errorObject = handleError(e, {
-            source: 'chapterSummarization',
-          })
-          summaryState.chapterError = errorObject
-        } finally {
-          summaryState.isChapterLoading = false
-        }
-      })()
-
-      const videoSummaryPromise = (async () => {
-        summaryState.summaryError = null
-        try {
-          const videoSummarizedText = await summarizeContent(
-            summaryState.currentContentSource,
-            'youtube'
-          )
-          summaryState.summary =
-            videoSummarizedText ||
-            '<p><i>Could not generate video summary.</i></p>'
-        } catch (e) {
-          const errorObject = handleError(e, {
-            source: 'youtubeVideoSummarization',
-          })
-          summaryState.summaryError = errorObject
-        } finally {
-          summaryState.isLoading = false
-        }
-      })()
-      await Promise.all([chapterPromise, videoSummaryPromise])
+      // Only summarize video content, chapters will be separate
+      summaryState.summaryError = null
+      try {
+        const videoSummarizedText = await summarizeContent(
+          summaryState.currentContentSource,
+          'youtube'
+        )
+        summaryState.summary =
+          videoSummarizedText ||
+          '<p><i>Could not generate video summary.</i></p>'
+      } catch (e) {
+        const errorObject = handleError(e, {
+          source: 'youtubeVideoSummarization',
+        })
+        summaryState.summaryError = errorObject
+      }
     } else if (summaryState.isCourseVideoActive) {
       const courseSummaryPromise = (async () => {
         summaryState.courseSummaryError = null
@@ -351,7 +314,6 @@ export async function fetchAndSummarize() {
   } finally {
     // Ensure all loading states are set to false
     summaryState.isLoading = false
-    summaryState.isChapterLoading = false
     summaryState.isCourseSummaryLoading = false
     summaryState.isCourseConceptsLoading = false
 
@@ -359,10 +321,124 @@ export async function fetchAndSummarize() {
     await logAllGeneratedSummariesToHistory()
   }
 }
+
+/**
+ * Fetches and generates chapter summary for YouTube videos.
+ * Can be called independently after main video summary.
+ */
+export async function fetchChapterSummary() {
+  // Wait for settings to be initialized
+  await loadSettings()
+
+  const userSettings = settings
+
+  // Determine the actual provider to use based on isAdvancedMode
+  let selectedProviderId = userSettings.selectedProvider || 'gemini'
+  if (!userSettings.isAdvancedMode) {
+    selectedProviderId = 'gemini' // Force Gemini in basic mode
+  }
+
+  // Check if we should use streaming mode
+  const shouldUseStreaming =
+    userSettings.enableStreaming &&
+    providerSupportsStreaming(selectedProviderId)
+
+  // Reset custom action state for chapters
+  summaryState.isCustomActionLoading = true
+  summaryState.lastSummaryTypeDisplayed = 'custom'
+  summaryState.currentActionType = 'chapters'
+  summaryState.customActionResult = ''
+  summaryState.customActionError = null
+
+  try {
+    // Get current tab info
+    const [tabInfo] = await browser.tabs.query({
+      active: true,
+      currentWindow: true,
+    })
+    if (!tabInfo || !tabInfo.url) {
+      throw new Error('Could not get current tab information or URL.')
+    }
+
+    // Verify this is a YouTube page
+    const YOUTUBE_MATCH_PATTERN = /youtube\.com\/watch/i
+    if (!YOUTUBE_MATCH_PATTERN.test(tabInfo.url)) {
+      throw new Error('Chapter summary is only available for YouTube videos.')
+    }
+
+    // Check Firefox permissions
+    if (import.meta.env.BROWSER === 'firefox') {
+      const hasPermission = await checkPermission(tabInfo.url)
+      if (!hasPermission) {
+        const permissionGranted = await requestPermission(tabInfo.url)
+        if (!permissionGranted) {
+          throw new Error(
+            'Permission denied for this website. Please enable permissions in Settings or grant access when prompted.'
+          )
+        }
+      }
+    }
+
+    // Always fetch fresh transcript - no caching to avoid stale data issues
+    console.log('[summaryStore] Fetching fresh transcript for chapters')
+    const contentResult = await getPageContent(
+      'timestampedTranscript',
+      userSettings.summaryLang
+    )
+    const transcript = contentResult.content
+
+    // Generate chapter summary
+    if (shouldUseStreaming) {
+      // Use streaming mode - stream directly to customActionResult
+      try {
+        console.log('[summaryStore] Starting chapter streaming...')
+        const chapterStream = summarizeChaptersStream(transcript)
+        let chunkCount = 0
+        for await (const chunk of chapterStream) {
+          summaryState.customActionResult += chunk
+          chunkCount++
+        }
+        console.log(
+          `[summaryStore] Chapter streaming completed, chunks: ${chunkCount}`
+        )
+      } catch (streamError) {
+        console.log(
+          '[summaryStore] Chapter streaming error, falling back to blocking mode:',
+          streamError
+        )
+        // Fallback to blocking mode
+        const chapterText = await summarizeChapters(transcript)
+        summaryState.customActionResult =
+          chapterText || '<p><i>Could not generate chapter summary.</i></p>'
+      }
+    } else {
+      // Use non-streaming mode
+      const chapterText = await summarizeChapters(transcript)
+      summaryState.customActionResult =
+        chapterText || '<p><i>Could not generate chapter summary.</i></p>'
+    }
+
+    // Always update page info for current video
+    summaryState.pageTitle = tabInfo.title || 'Unknown Title'
+    summaryState.pageUrl = tabInfo.url || 'Unknown URL'
+
+    // Keep display type as 'custom' for chapters
+    // (already set at the beginning)
+  } catch (e) {
+    const errorObject = handleError(e, {
+      source: 'chapterSummarization',
+    })
+    summaryState.customActionError = errorObject
+  } finally {
+    summaryState.isCustomActionLoading = false
+    // Log to history after chapter summary is complete
+    await logAllGeneratedSummariesToHistory()
+  }
+}
 export async function fetchAndSummarizeStream() {
   if (
     summaryState.isLoading ||
-    summaryState.isChapterLoading ||
+    summaryState.isCustomActionLoading ||
     summaryState.isCourseSummaryLoading ||
     summaryState.isCourseConceptsLoading
   ) {
@@ -411,7 +487,7 @@ export async function fetchAndSummarizeStream() {
     let summaryType = 'general'
 
     if (summaryState.isYouTubeVideoActive) {
-      mainContentTypeToFetch = 'transcript'
+      mainContentTypeToFetch = 'timestampedTranscript' // Always use timestamped for better accuracy
       summaryType = 'youtube'
       summaryState.lastSummaryTypeDisplayed = 'youtube'
     } else if (summaryState.isCourseVideoActive) {
@@ -431,37 +507,7 @@ export async function fetchAndSummarizeStream() {
     const promises = []
 
     if (summaryState.isYouTubeVideoActive) {
-      summaryState.isChapterLoading = true
-      const chapterStreamPromise = (async () => {
-        summaryState.chapterError = null
-        try {
-          const chapterContentResult = await getPageContent(
-            'timestampedTranscript',
-            userSettings.summaryLang
-          )
-          const chapterStream = summarizeChaptersStream(
-            chapterContentResult.content
-          )
-          for await (const chunk of chapterStream) {
-            summaryState.chapterSummary += chunk
-          }
-        } catch (e) {
-          if (e.message?.includes('transcript')) {
-            summaryState.chapterSummary =
-              '<p><i>Failed to get transcript for chapters.</i></p>'
-          } else {
-            summaryState.chapterError = handleError(e, {
-              source: 'chapterStreamSummarization',
-            })
-            // Re-throw to be caught by the main handler
-            throw e
-          }
-        } finally {
-          summaryState.isChapterLoading = false
-        }
-      })()
-      promises.push(chapterStreamPromise)
-
+      // Only stream video summary, chapters will be separate
       summaryState.summaryError = null
       try {
         console.log('[summaryStore] Starting YouTube video streaming...')
@@ -590,7 +636,7 @@ export async function summarizeSelectedText(text) {
   if (
     summaryState.isSelectedTextLoading ||
     summaryState.isLoading ||
-    summaryState.isChapterLoading
+    summaryState.isCustomActionLoading
   ) {
     resetState()
   }
@@ -641,15 +687,6 @@ export async function saveAllGeneratedSummariesToArchive() {
           ? 'Summary'
           : 'Summary',
       content: summaryState.summary,
-    })
-  }
-  if (
-    summaryState.chapterSummary &&
-    summaryState.chapterSummary.trim() !== ''
-  ) {
-    summariesToSave.push({
-      title: 'Chapters',
-      content: summaryState.chapterSummary,
     })
   }
   if (summaryState.courseSummary && summaryState.courseSummary.trim() !== '') {
@@ -721,15 +758,6 @@ export async function logAllGeneratedSummariesToHistory() {
           ? 'Summary'
           : 'Summary',
       content: summaryState.summary,
-    })
-  }
-  if (
-    summaryState.chapterSummary &&
-    summaryState.chapterSummary.trim() !== ''
-  ) {
-    summariesToLog.push({
-      title: 'Chapters',
-      content: summaryState.chapterSummary,
     })
   }
   if (summaryState.courseSummary && summaryState.courseSummary.trim() !== '') {

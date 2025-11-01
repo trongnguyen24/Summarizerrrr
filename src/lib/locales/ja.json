@@ -337,5 +337,48 @@
       "rename_failed": "名前変更に失敗しました",
       "delete_failed": "削除に失敗しました"
     }
+  },
+  "exportImport": {
+    "title": "データバックアップ",
+    "description": "データをバックアップし、別のデバイスにインポート",
+    "your_data": "あなたのデータ",
+    "history": "履歴",
+    "archives": "アーカイブ",
+    "tags": "タグ",
+    "all_data": "すべてのデータ",
+    "export_to_markdown": "Markdownでエクスポート",
+    "backup": "バックアップ",
+    "import": "インポート",
+    "exporting": "エクスポート中...",
+    "import_options": "インポートオプション",
+    "select_data_types": "インポートするデータタイプを選択",
+    "settings": "設定",
+    "settings_test": "設定テスト",
+    "archive": "アーカイブ",
+    "import_mode": "インポートモード",
+    "merge_data": "データをマージ",
+    "merge_description": "インポートしたデータを既存のデータと結合",
+    "replace_data": "データを置換",
+    "replace_description": "既存のすべてのデータをインポートしたデータで置換",
+    "cancel": "キャンセル",
+    "start_import": "インポート開始",
+    "exported": "エクスポート済み:",
+    "summaries": "要約:",
+    "unknown": "不明",
+    "messages": {
+      "export_success": "データがZIPファイルとして正常にエクスポートされました！",
+      "history_export_success": "履歴がMarkdownとして正常にエクスポートされました！",
+      "archive_export_success": "アーカイブがMarkdownとして正常にエクスポートされました！",
+      "export_failed": "エクスポート失敗: {error}",
+      "import_failed": "インポート失敗: {error}",
+      "import_success": "データが正常にインポートされました！",
+      "zip_only": "ZIP形式のみサポートされています。データを再度エクスポートしてください。",
+      "no_valid_data": "ZIPファイルに有効なデータが見つかりません",
+      "file_processing_failed": "ファイル処理失敗: {error}",
+      "import_preparation_failed": "インポート準備失敗: {error}"
+    },
+    "replace_warning": "⚠️ 警告：置換モード\n\n既存のデータを削除し、インポートしたデータに置き換えます：",
+    "merge_mode_description": "• インポートしたデータが既存のデータと結合されます<br />• 重複（同じID）は更新されます<br />• インポートした設定が既存の設定を上書きします",
+    "replace_mode_description": "• 選択したデータタイプが最初に完全に削除されます<br />• その後、インポートしたデータのみに置換されます<br />• 選択されていないデータタイプは影響を受けません"
   }
 }

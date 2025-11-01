@@ -337,5 +337,48 @@
       "rename_failed": "Umbenennung fehlgeschlagen",
       "delete_failed": "Löschung fehlgeschlagen"
     }
+  },
+  "exportImport": {
+    "title": "Datensicherung",
+    "description": "Daten sichern und auf ein anderes Gerät importieren",
+    "your_data": "Ihre Daten",
+    "history": "Verlauf",
+    "archives": "Archive",
+    "tags": "Tags",
+    "all_data": "Alle Daten",
+    "export_to_markdown": "Als Markdown exportieren",
+    "backup": "Sichern",
+    "import": "Importieren",
+    "exporting": "Exportiere...",
+    "import_options": "Importoptionen",
+    "select_data_types": "Zu importierende Datentypen auswählen",
+    "settings": "Einstellungen",
+    "settings_test": "Einstellungstest",
+    "archive": "Archiv",
+    "import_mode": "Importmodus",
+    "merge_data": "Daten zusammenführen",
+    "merge_description": "Importierte Daten mit vorhandenen Daten kombinieren",
+    "replace_data": "Daten ersetzen",
+    "replace_description": "Alle vorhandenen Daten durch importierte Daten ersetzen",
+    "cancel": "Abbrechen",
+    "start_import": "Import starten",
+    "exported": "Exportiert:",
+    "summaries": "Zusammenfassungen:",
+    "unknown": "Unbekannt",
+    "messages": {
+      "export_success": "Daten erfolgreich als ZIP-Datei exportiert!",
+      "history_export_success": "Verlauf erfolgreich als Markdown exportiert!",
+      "archive_export_success": "Archiv erfolgreich als Markdown exportiert!",
+      "export_failed": "Export fehlgeschlagen: {error}",
+      "import_failed": "Import fehlgeschlagen: {error}",
+      "import_success": "Daten erfolgreich importiert!",
+      "zip_only": "Nur ZIP-Format wird unterstützt. Bitte exportieren Sie Ihre Daten erneut.",
+      "no_valid_data": "Keine gültigen Daten in ZIP-Datei gefunden",
+      "file_processing_failed": "Dateiverarbeitung fehlgeschlagen: {error}",
+      "import_preparation_failed": "Importvorbereitung fehlgeschlagen: {error}"
+    },
+    "replace_warning": "⚠️ WARNUNG: Ersetzen-Modus\n\nDies löscht vorhandene Daten und ersetzt sie durch importierte Daten:",
+    "merge_mode_description": "• Importierte Daten werden mit vorhandenen Daten kombiniert<br />• Duplikate (gleiche ID) werden aktualisiert<br />• Importierte Einstellungen überschreiben vorhandene Einstellungen",
+    "replace_mode_description": "• Ausgewählte Datentypen werden zuerst vollständig gelöscht<br />• Dann nur durch importierte Daten ersetzt<br />• Nicht ausgewählte Datentypen sind nicht betroffen"
   }
 }

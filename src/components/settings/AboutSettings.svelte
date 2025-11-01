@@ -31,7 +31,7 @@
 </script>
 
 <!-- About Section -->
-<div class=" text-pretty flex pb-12 pt-5 px-5 flex-col space-y-6">
+<div class=" text-pretty relative z-50 flex pb-12 pt-5 px-5 flex-col space-y-6">
   <!-- Logo và tên -->
   <div
     class="flex relative z-50 gap-2 sm:gap-6 flex-col sm:flex-row items-center"

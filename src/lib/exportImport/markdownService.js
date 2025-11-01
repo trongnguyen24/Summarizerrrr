@@ -107,86 +107,40 @@ export function createReadmeContent(metadata) {
 **Export Date**: ${formatDate(metadata.exportDate)}
 **Total Archives**: ${metadata.totalSummaries}
 **Total Files**: ${metadata.totalFiles || metadata.totalSummaries}
-**Format**: Markdown with YAML frontmatter
+**Format**: Markdown (flat structure)
 **Version**: ${metadata.version}
 
-## Structure
+---
 
-This archive contains your summaries exported as individual markdown files in a **flat structure** (all files at root level).
 
 ### File Naming Convention
 
-Files follow this pattern: \`{contentType}_{index}--{title}_{tab}.md\`
+Files follow this pattern: \`{type}_{index}--{title}_{tab}.md\`
 
-- **contentType**: youtube, course, or website
-- **index**: 3-digit number (001, 002, etc.) for ordering
-- **title**: Sanitized archive title
-- **tab**: Tab name (summary, chapters, concepts)
+* **{type}**: \`youtube\`, \`course\`, or \`website\`
+* **{index}**: 3-digit index (e.g., \`001\`)
+* **{title}**: Sanitized title
+* **{tab}**: Content tab (\`summary\`, \`chapters\`, \`concepts\`)
 
-### Examples
+### Files Per Content Type
 
-- \`youtube_001--how-to-build-ai-agents_summary.md\`
-- \`youtube_001--how-to-build-ai-agents_chapters.md\`
-- \`course_002--complete-web-development_summary.md\`
-- \`course_002--complete-web-development_chapters.md\`
-- \`course_002--complete-web-development_concepts.md\`
-- \`website_003--article-about-ai_summary.md\`
+* **YouTube**: 2 files (\`summary\`, \`chapters\`)
+* **Course**: 3 files (\`summary\`, \`chapters\`, \`concepts\`)
+* **Website**: 1 file (\`summary\`)
 
-### Content Types
+**Examples:**
+* \`course_001--complete-web-dev_summary.md\`
+* \`course_001--complete-web-dev_chapters.md\`
+* \`course_001--complete-web-dev_concepts.md\`
+* \`website_002--article-on-ai_summary.md\`
 
-- **YouTube Videos**: 2 files per video (summary + chapters)
-- **Courses**: 3 files per course (summary + chapters + concepts)
-- **Websites**: 1 file per page (summary only)
+---
 
-### File Format
+## File Content & Metadata (YAML)
 
-Each markdown file includes:
+Each \`.md\` file contains a YAML "frontmatter" (metadata) block at the top, followed by the content. This metadata can be used by apps like Obsidian, Logseq, etc.
 
-1. **YAML Frontmatter** - Metadata (title, URL, date, type, tags)
-2. **Header Section** - Quick reference information
-3. **Content** - The actual summary/chapter/concept content
-4. **Footer** - Export information
-
-## Usage
-
-These markdown files can be:
-
-- ✅ Opened in any text editor (VS Code, Sublime, Notepad++, etc.)
-- ✅ Imported into note-taking apps (Obsidian, Notion, Logseq, Roam Research)
-- ✅ Committed to version control (Git, GitHub, GitLab)
-- ✅ Searched with desktop search tools (Spotlight, Everything, etc.)
-- ✅ Converted to other formats (PDF, HTML, DOCX via Pandoc)
-- ✅ Read as-is (human-readable format)
-- ✅ Sorted/filtered by filename pattern
-
-## Example Archive Structure
-
-\`\`\`
-summarizerrrr-markdown-backup-2025-01-29.zip
-├── README.md
-├── youtube_001--how-to-build-ai-agents_summary.md
-├── youtube_001--how-to-build-ai-agents_chapters.md
-├── youtube_002--machine-learning-intro_summary.md
-├── youtube_002--machine-learning-intro_chapters.md
-├── course_003--complete-web-development_summary.md
-├── course_003--complete-web-development_chapters.md
-├── course_003--complete-web-development_concepts.md
-├── website_004--article-about-ai_summary.md
-└── ...
-\`\`\`
-
-## Sorting & Organization
-
-The flat structure allows easy sorting by:
-
-- **Content Type**: Group files by prefix (youtube_, course_, website_)
-- **Index**: Numerical order (001, 002, 003...)
-- **Title**: Alphabetical by archive title
-- **Tab**: Group by suffix (summary, chapters, concepts)
-
-## YAML Frontmatter Fields
-
-Each markdown file starts with YAML frontmatter:
+### Example YAML Frontmatter
 
 \`\`\`yaml
 ---
@@ -199,25 +153,33 @@ tags: ["AI", "Machine Learning", "Tutorial"]
 ---
 \`\`\`
 
-This metadata can be used by tools like Obsidian for:
-- Searching and filtering
-- Creating dynamic queries
-- Building knowledge graphs
-- Organizing your notes
+---
 
-## Notes
+## Example Archive (ZIP) Structure
 
-- All files are at root level (no subfolders) for easier access
-- Special characters in filenames have been sanitized for cross-platform compatibility
-- Empty or missing tabs are automatically skipped
-- Tags are preserved and included in both frontmatter and header
-- Dates are in ISO 8601 format for universal compatibility
-- Files can be easily filtered/sorted by naming pattern
+\`\`\`
+summarizerrrr-markdown-backup-2025-01-29.zip
+├── README.md
+├── course_001--web-dev_summary.md
+├── course_001--web-dev_chapters.md
+├── course_001--web-dev_concepts.md
+├── youtube_002--ai-agents_summary.md
+├── youtube_002--ai-agents_chapters.md
+├── website_003--ai-article_summary.md
+└── ...
+\`\`\`
 
 ---
 
-*Exported by Summarizerrrr Browser Extension*
-Website: https://summarizerrrr.com
+## Notes
+
+* Special characters in filenames are sanitized for cross-platform compatibility.
+* Missing or empty content tabs are automatically skipped during export.
+* Dates are in ISO 8601 format.
+
+---
+
+*Exported by Summarizerrrr Browser Extension (https://summarizerrrr.com)*
 `
 }
 

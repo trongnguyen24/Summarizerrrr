@@ -337,5 +337,48 @@
       "rename_failed": "이름 변경 실패",
       "delete_failed": "삭제 실패"
     }
+  },
+  "exportImport": {
+    "title": "데이터 백업",
+    "description": "데이터를 백업하고 다른 기기로 가져오기",
+    "your_data": "내 데이터",
+    "history": "기록",
+    "archives": "아카이브",
+    "tags": "태그",
+    "all_data": "모든 데이터",
+    "export_to_markdown": "Markdown으로 내보내기",
+    "backup": "백업",
+    "import": "가져오기",
+    "exporting": "내보내는 중...",
+    "import_options": "가져오기 옵션",
+    "select_data_types": "가져올 데이터 유형 선택",
+    "settings": "설정",
+    "settings_test": "설정 테스트",
+    "archive": "아카이브",
+    "import_mode": "가져오기 모드",
+    "merge_data": "데이터 병합",
+    "merge_description": "가져온 데이터를 기존 데이터와 결합",
+    "replace_data": "데이터 교체",
+    "replace_description": "기존 데이터를 가져온 데이터로 교체",
+    "cancel": "취소",
+    "start_import": "가져오기 시작",
+    "exported": "내보낸 항목:",
+    "summaries": "요약:",
+    "unknown": "알 수 없음",
+    "messages": {
+      "export_success": "데이터가 ZIP 파일로 성공적으로 내보내기되었습니다!",
+      "history_export_success": "기록이 Markdown으로 성공적으로 내보내기되었습니다!",
+      "archive_export_success": "아카이브가 Markdown으로 성공적으로 내보내기되었습니다!",
+      "export_failed": "내보내기 실패: {error}",
+      "import_failed": "가져오기 실패: {error}",
+      "import_success": "데이터가 성공적으로 가져와졌습니다!",
+      "zip_only": "ZIP 형식만 지원됩니다. 데이터를 다시 내보내주세요.",
+      "no_valid_data": "ZIP 파일에서 유효한 데이터를 찾을 수 없습니다",
+      "file_processing_failed": "파일 처리 실패: {error}",
+      "import_preparation_failed": "가져오기 준비 실패: {error}"
+    },
+    "replace_warning": "⚠️ 경고: 교체 모드\n\n기존 데이터를 삭제하고 가져온 데이터로 교체합니다:",
+    "merge_mode_description": "• 가져온 데이터가 기존 데이터와 결합됨<br />• 중복 항목(동일 ID)이 업데이트됨<br />• 가져온 설정이 기존 설정을 재정의함",
+    "replace_mode_description": "• 선택된 데이터 유형이 먼저 완전히 삭제됨<br />• 그런 다음 가져온 데이터로만 교체됨<br />• 선택되지 않은 데이터 유형은 영향을 받지 않음"
   }
 }

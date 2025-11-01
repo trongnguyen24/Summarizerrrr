@@ -151,11 +151,14 @@
       const filename = generateExportFilename()
       downloadBlob(zipBlob, filename)
 
-      setMessage('success', 'Data exported successfully as ZIP file!')
+      setMessage('success', $t('exportImport.messages.export_success'))
       // Refresh data counts after export
       await loadDataCounts()
     } catch (error) {
-      setMessage('error', `Export failed: ${error.message}`)
+      setMessage(
+        'error',
+        $t('exportImport.messages.export_failed', { error: error.message })
+      )
     }
   }
 
@@ -177,11 +180,14 @@
       const filename = generateHistoryMarkdownExportFilename()
       await downloadBlob(zipBlob, filename)
 
-      setMessage('success', 'History exported as Markdown successfully!')
+      setMessage('success', $t('exportImport.messages.history_export_success'))
       await loadDataCounts()
     } catch (error) {
       console.error('[ExportImport] History markdown export failed:', error)
-      setMessage('error', `Export failed: ${error.message}`)
+      setMessage(
+        'error',
+        $t('exportImport.messages.export_failed', { error: error.message })
+      )
     } finally {
       state.isExportingHistory = false
     }
@@ -205,11 +211,14 @@
       const filename = generateArchiveMarkdownExportFilename()
       await downloadBlob(zipBlob, filename)
 
-      setMessage('success', 'Archive exported as Markdown successfully!')
+      setMessage('success', $t('exportImport.messages.archive_export_success'))
       await loadDataCounts()
     } catch (error) {
       console.error('[ExportImport] Archive markdown export failed:', error)
-      setMessage('error', `Export failed: ${error.message}`)
+      setMessage(
+        'error',
+        $t('exportImport.messages.export_failed', { error: error.message })
+      )
     } finally {
       state.isExportingArchive = false
     }
@@ -224,14 +233,17 @@
       const isZip = await isZipFile(file)
 
       if (!isZip) {
-        throw new Error(
-          'Only ZIP format is supported. Please export your data again.'
-        )
+        throw new Error($t('exportImport.messages.zip_only'))
       }
 
       await handleZipImport(file)
     } catch (error) {
-      setMessage('error', `File processing failed: ${error.message}`)
+      setMessage(
+        'error',
+        $t('exportImport.messages.file_processing_failed', {
+          error: error.message,
+        })
+      )
       if (fileInputRef) {
         fileInputRef.value = ''
       }
@@ -301,7 +313,7 @@
       }
 
       if (Object.keys(data).length === 0) {
-        throw new Error('No valid data found in ZIP file')
+        throw new Error($t('exportImport.messages.no_valid_data'))
       }
 
       state.importData = data
@@ -326,17 +338,14 @@
       const selectedTypes = Object.entries(importOptions.dataTypes)
         .filter(([_, checked]) => checked)
         .map(([type, _]) => {
-          if (type === 'archive') return 'Archive'
-          return type.charAt(0).toUpperCase() + type.slice(1)
+          // Translate each data type
+          return $t(`exportImport.${type}`)
         })
         .join(', ')
 
-      const confirmed = confirm(
-        `⚠️ WARNING: Replace Mode\n\n` +
-          `This will DELETE all existing data for:\n${selectedTypes}\n\n` +
-          `Deleted data CANNOT be recovered!\n\n` +
-          `Are you sure you want to continue?`
-      )
+      const warningMessage =
+        $t('exportImport.replace_warning') + `\n\n${selectedTypes}`
+      const confirmed = confirm(warningMessage)
 
       if (!confirmed) return
     }
@@ -350,7 +359,12 @@
         fileInputRef.value = ''
       }
     } catch (error) {
-      setMessage('error', `Import preparation failed: ${error.message}`)
+      setMessage(
+        'error',
+        $t('exportImport.messages.import_preparation_failed', {
+          error: error.message,
+        })
+      )
     }
   }
 
@@ -402,12 +416,15 @@
         await preloadTagsData()
       }
 
-      setMessage('success', 'Data imported successfully!')
+      setMessage('success', $t('exportImport.messages.import_success'))
       // Refresh data counts after import
       await loadDataCounts()
       // Don't reset state here - it's handled in startImport()
     } catch (error) {
-      setMessage('error', `Import failed: ${error.message}`)
+      setMessage(
+        'error',
+        $t('exportImport.messages.import_failed', { error: error.message })
+      )
     }
   }
 
@@ -431,40 +448,61 @@
       }
     }
 
-    // Handle History
-    if (importedData.history) {
-      const cleanHistory = JSON.parse(JSON.stringify(importedData.history))
-
+    // ✅ FIX: Handle History - Xóa dựa trên user intent (checkbox), thêm dựa trên data availability
+    if (importOptions.dataTypes.history) {
       if (importOptions.mergeMode === 'replace') {
-        // Replace: Clear all existing history first
+        console.log('[Import Replace] Clearing all history...')
         await clearAllHistory()
       }
-      // Then add imported history (both modes)
-      await addMultipleHistory(cleanHistory)
+
+      // Chỉ add nếu có data
+      if (importedData.history && importedData.history.length > 0) {
+        console.log(
+          `[Import] Adding ${importedData.history.length} history items...`
+        )
+        const cleanHistory = JSON.parse(JSON.stringify(importedData.history))
+        await addMultipleHistory(cleanHistory)
+      } else {
+        console.log('[Import] No history data to import')
+      }
     }
 
-    // Handle Summaries (Archive)
-    if (importedData.summaries) {
-      const cleanSummaries = JSON.parse(JSON.stringify(importedData.summaries))
-
+    // ✅ FIX: Handle Summaries (Archive)
+    if (importOptions.dataTypes.archive) {
       if (importOptions.mergeMode === 'replace') {
-        // Replace: Clear all existing summaries first
+        console.log('[Import Replace] Clearing all summaries...')
         await clearAllSummaries()
       }
-      // Then add imported summaries (both modes)
-      await addMultipleSummaries(cleanSummaries)
+
+      // Chỉ add nếu có data
+      if (importedData.summaries && importedData.summaries.length > 0) {
+        console.log(
+          `[Import] Adding ${importedData.summaries.length} summaries...`
+        )
+        const cleanSummaries = JSON.parse(
+          JSON.stringify(importedData.summaries)
+        )
+        await addMultipleSummaries(cleanSummaries)
+      } else {
+        console.log('[Import] No summaries data to import')
+      }
     }
 
-    // Handle Tags
-    if (importedData.tags) {
-      const cleanTags = JSON.parse(JSON.stringify(importedData.tags))
-
+    // ✅ FIX: Handle Tags
+    if (importOptions.dataTypes.tags) {
       if (importOptions.mergeMode === 'replace') {
-        // Replace: Clear all existing tags first
+        console.log('[Import Replace] Clearing all tags...')
         await clearAllTags()
       }
-      // Then add imported tags (both modes)
-      await addMultipleTags(cleanTags)
+
+      // Chỉ add nếu có data
+      if (importedData.tags && importedData.tags.length > 0) {
+        console.log(`[Import] Adding ${importedData.tags.length} tags...`)
+        const cleanTags = JSON.parse(JSON.stringify(importedData.tags))
+        await addMultipleTags(cleanTags)
+      } else {
+        console.log('[Import] No tags data to import')
+      }
     }
   }
 
@@ -504,7 +542,7 @@
   function getExportedDate() {
     return state.importData?.metadata?.exportedAt
       ? new Date(state.importData.metadata.exportedAt).toLocaleDateString()
-      : 'Unknown'
+      : $t('exportImport.unknown')
   }
 
   function getHistoryCount() {
@@ -546,7 +584,7 @@
     const elements = [
       {
         el: animatedRefs.exportedLabel,
-        text: 'Exported:',
+        text: $t('exportImport.exported'),
         key: 'exportedLabel',
       },
       {
@@ -556,7 +594,7 @@
       },
       {
         el: animatedRefs.historyLabel,
-        text: 'History:',
+        text: $t('exportImport.history') + ':',
         key: 'historyLabel',
       },
       {
@@ -566,7 +604,7 @@
       },
       {
         el: animatedRefs.summariesLabel,
-        text: 'Summaries:',
+        text: $t('exportImport.summaries'),
         key: 'summariesLabel',
       },
       {
@@ -576,7 +614,7 @@
       },
       {
         el: animatedRefs.tagsLabel,
-        text: 'Tags:',
+        text: $t('exportImport.tags') + ':',
         key: 'tagsLabel',
       },
       {
@@ -657,10 +695,13 @@
 </script>
 
 <div class="px-5">
-  <h3 class="text-text-primary font-bold">Backup data</h3>
-  <p class="mt-1 text-muted">Backup and import your data to another device</p>
+  <h3 class="text-text-primary font-bold">{$t('exportImport.title')}</h3>
+  <p class="mt-1 text-muted">{$t('exportImport.description')}</p>
   <div class="pt-4 flex flex-col sm:flex-row gap-4">
-    <Preview title="Your data" class=" w-full sm:w-60 h-40 shrink-0 mx-auto">
+    <Preview
+      title={$t('exportImport.your_data')}
+      class=" w-full sm:w-60 h-40 shrink-0 mx-auto"
+    >
       <div class=" w-full flex gap-4 flex-col items-center justify-center">
         <div
           class="h-15 w-full justify-center items-end flex gap-4 shrink-0 relative"
@@ -684,19 +725,25 @@
         </div>
         <div class=" px-8 gap-1 flex flex-col w-full">
           <div class="flex justify-between">
-            <div class="text-text-secondary text-xs">History</div>
+            <div class="text-text-secondary text-xs">
+              {$t('exportImport.history')}
+            </div>
             <div class="text-text-primary font-medium">
               {dataCounts.isLoading ? '...' : dataCounts.history}
             </div>
           </div>
           <div class="flex justify-between">
-            <div class="text-text-secondary text-xs">Archives</div>
+            <div class="text-text-secondary text-xs">
+              {$t('exportImport.archives')}
+            </div>
             <div class="text-text-primary font-medium">
               {dataCounts.isLoading ? '...' : dataCounts.archives}
             </div>
           </div>
           <div class="flex justify-between">
-            <div class="text-text-secondary text-xs">Tags</div>
+            <div class="text-text-secondary text-xs">
+              {$t('exportImport.tags')}
+            </div>
             <div class="text-text-primary font-medium">
               {dataCounts.isLoading ? '...' : dataCounts.tags}
             </div>
@@ -707,12 +754,14 @@
     <div class="flex-auto">
       <div class="flex flex-col gap-2 pb-4">
         <!-- svelte-ignore a11y_label_has_associated_control -->
-        <label class="block text-text-secondary">All data</label>
+        <label class="block text-text-secondary"
+          >{$t('exportImport.all_data')}</label
+        >
         <div class="grid w-full grid-cols-2 gap-1">
           <button
             onclick={exportData}
             class="relative group"
-            title="Backup all data to zip"
+            title={$t('exportImport.backup')}
           >
             <div
               class=" relative flex items-center font-bold justify-center gap-1 px-3 py-2.25 font-mono text-xs text-red-500 inset-0 overflow-hidden"
@@ -720,7 +769,7 @@
               <div
                 class="relative z-20 flex text-text-primary justify-center items-center"
               >
-                Backup
+                {$t('exportImport.backup')}
               </div>
               <span
                 class="absolute z-50 size-4 border border-transparent group-hover:border-blackwhite/15 rotate-45 bg-surface-1 -bottom-px -left-px -translate-x-1/2 translate-y-1/2 duration-150"
@@ -733,7 +782,7 @@
           <button
             onclick={openImportDialog}
             class="relative group"
-            title="Import Backup"
+            title={$t('exportImport.import')}
           >
             <div
               class=" relative flex items-center font-bold justify-center gap-1 px-3 py-2.25 font-mono text-xs text-red-500 inset-0 overflow-hidden"
@@ -741,7 +790,7 @@
               <div
                 class="relative z-20 flex text-text-primary justify-center items-center"
               >
-                Import
+                {$t('exportImport.import')}
               </div>
               <span
                 class="absolute z-50 size-4 border border-transparent group-hover:border-blackwhite/15 rotate-45 bg-surface-1 -bottom-px -left-px -translate-x-1/2 translate-y-1/2 duration-150"
@@ -763,13 +812,15 @@
       </div>
       <div class="flex flex-col gap-2 pb-4">
         <!-- svelte-ignore a11y_label_has_associated_control -->
-        <label class="block text-text-secondary">Export to markdown</label>
+        <label class="block text-text-secondary"
+          >{$t('exportImport.export_to_markdown')}</label
+        >
         <div class="grid w-full grid-cols-2 gap-1">
           <button
             onclick={exportHistoryMarkdown}
             disabled={state.isExportingHistory || dataCounts.history === 0}
             class="relative group disabled:opacity-50 disabled:cursor-not-allowed"
-            title="Export all history items as markdown files"
+            title={$t('exportImport.history')}
           >
             <div
               class=" relative flex items-center font-bold justify-center gap-1 px-3 py-2.25 font-mono text-xs text-red-500 inset-0 overflow-hidden"
@@ -778,9 +829,9 @@
                 class="relative z-20 flex text-text-primary justify-center items-center"
               >
                 {#if state.isExportingHistory}
-                  Exporting...
+                  {$t('exportImport.exporting')}
                 {:else}
-                  History
+                  {$t('exportImport.history')}
                 {/if}
               </div>
               <span
@@ -795,7 +846,7 @@
             onclick={exportArchiveMarkdown}
             disabled={state.isExportingArchive || dataCounts.archives === 0}
             class="relative group disabled:opacity-50 disabled:cursor-not-allowed"
-            title="Export all archive summaries as markdown files"
+            title={$t('exportImport.archive')}
           >
             <div
               class=" relative flex items-center font-bold justify-center gap-1 px-3 py-2.25 font-mono text-xs text-red-500 inset-0 overflow-hidden"
@@ -804,9 +855,9 @@
                 class="relative z-20 flex text-text-primary justify-center items-center"
               >
                 {#if state.isExportingArchive}
-                  Exporting...
+                  {$t('exportImport.exporting')}
                 {:else}
-                  Archive
+                  {$t('exportImport.archive')}
                 {/if}
               </div>
               <span
@@ -882,7 +933,7 @@
             </div>
             <div class="px-4 text-xs top-0 w-full bg-surface-2 py-2">
               <p class="!text-center text-text-primary select-none">
-                Import Options
+                {$t('exportImport.import_options')}
               </p>
             </div>
 
@@ -987,53 +1038,55 @@
 
                 <div class="flex py-1 flex-col gap-2">
                   <h3 class="font-medium text-text-secondary">
-                    Select Data Types to Import
+                    {$t('exportImport.select_data_types')}
                   </h3>
                   <div class="grid grid-cols-2 gap-2">
                     <SwitchPermission
                       id="settings-switch"
-                      name="Settings"
+                      name={$t('exportImport.settings')}
                       bind:checked={importOptions.dataTypes.settings}
                     />
 
                     <SwitchPermission
                       id="history-switch"
-                      name="History"
+                      name={$t('exportImport.history')}
                       bind:checked={importOptions.dataTypes.history}
                     />
 
                     <SwitchPermission
                       id="archive-switch"
-                      name="Archive"
+                      name={$t('exportImport.archive')}
                       bind:checked={importOptions.dataTypes.archive}
                     />
 
                     <SwitchPermission
                       id="tags-switch"
-                      name="Tags"
+                      name={$t('exportImport.tags')}
                       bind:checked={importOptions.dataTypes.tags}
                     />
                   </div>
                 </div>
 
                 <div class="flex py-1 flex-col gap-2">
-                  <h3 class=" font-medium text-text-secondary">Import Mode</h3>
+                  <h3 class=" font-medium text-text-secondary">
+                    {$t('exportImport.import_mode')}
+                  </h3>
                   <div class="grid w-full grid-cols-2 gap-1">
                     <ButtonSet
-                      title="Merge data"
+                      title={$t('exportImport.merge_data')}
                       class="setting-btn {importOptions.mergeMode === 'merge'
                         ? 'active'
                         : ''}"
                       onclick={() => (importOptions.mergeMode = 'merge')}
-                      Description="Combine imported data with existing data"
+                      Description={$t('exportImport.merge_description')}
                     />
                     <ButtonSet
-                      title="Replace data"
+                      title={$t('exportImport.replace_data')}
                       class="setting-btn {importOptions.mergeMode === 'replace'
                         ? 'active'
                         : ''}"
                       onclick={() => (importOptions.mergeMode = 'replace')}
-                      Description="Replace all existing data with imported data"
+                      Description={$t('exportImport.replace_description')}
                     />
                   </div>
                 </div>
@@ -1042,21 +1095,17 @@
                   <p class="text-xs text-text-secondary leading-relaxed">
                     {#if importOptions.mergeMode === 'merge'}
                       <strong>Merge Mode:</strong><br />
-                      • Imported data is combined with existing data<br />
-                      • Duplicates (same ID) will be updated<br />
-                      • Settings are merged (imported values override existing)
+                      {@html $t('exportImport.merge_mode_description')}
                     {:else}
                       <strong>⚠️ Replace Mode:</strong><br />
-                      • Selected data types are completely deleted first<br />
-                      • Then replaced with imported data only<br />
-                      • Unselected data types are not affected<br />
+                      {@html $t('exportImport.replace_mode_description')}
                     {/if}
                   </p>
                 </div>
 
                 <div class="flex justify-end gap-4">
                   <button onclick={cancelImport} class="btn btn-ghost"
-                    >Cancel</button
+                    >{$t('exportImport.cancel')}</button
                   >
                   <button
                     class=" flex relative overflow-hidden group"
@@ -1070,7 +1119,7 @@
                         ? 'bg-primary group-hover:bg-primary/95 dark:group-hover:bg-orange-500 text-orange-50 dark:text-orange-100/90 border-orange-400 hover:border-orange-300/75 hover:text-white'
                         : ' bg-white dark:bg-surface-1 text-text-secondary border-border/40'}"
                     >
-                      Start Import
+                      {$t('exportImport.start_import')}
                     </div>
                     <span
                       class="size-4 absolute z-10 -left-2 -bottom-2 border bg-surface-1 rotate-45 transition-colors duration-200 {isImportDataSelected()

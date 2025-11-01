@@ -12,8 +12,11 @@
       state.isExporting = true
 
       // Dynamic import to keep bundle size small
-      const { exportMarkdownToZip, generateMarkdownExportFilename } =
-        await import('@/lib/exportImport/exportService.js')
+      const {
+        exportMarkdownToZip,
+        generateMarkdownExportFilename,
+        downloadBlob,
+      } = await import('@/lib/exportImport/exportService.js')
 
       // Export with progress callback
       const zipBlob = await exportMarkdownToZip((progress) => {
@@ -22,44 +25,8 @@
 
       const filename = generateMarkdownExportFilename()
 
-      // Use File System Access API if available (Chrome/Edge)
-      if (window.showSaveFilePicker) {
-        try {
-          const handle = await window.showSaveFilePicker({
-            suggestedName: filename,
-            types: [
-              {
-                description: 'ZIP Archive',
-                accept: { 'application/zip': ['.zip'] },
-              },
-            ],
-          })
-          const writable = await handle.createWritable()
-          await writable.write(zipBlob)
-          await writable.close()
-          console.log(
-            '[ExportMarkdownFAB] Markdown files exported successfully!'
-          )
-          return
-        } catch (err) {
-          // User cancelled the save dialog
-          if (err.name === 'AbortError') {
-            console.log('[ExportMarkdownFAB] Export cancelled by user')
-            return
-          }
-          throw err
-        }
-      }
-
-      // Fallback for browsers that don't support File System Access API
-      const url = URL.createObjectURL(zipBlob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = filename
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
-      URL.revokeObjectURL(url)
+      // Use the existing downloadBlob utility
+      await downloadBlob(zipBlob, filename)
 
       console.log('[ExportMarkdownFAB] Markdown files exported successfully!')
     } catch (error) {

@@ -2,6 +2,10 @@
 export default defineContentScript({
   matches: ['*://*.udemy.com/course/*/learn/*'],
   main() {
+    // Prevent multiple listener registrations on SPA navigation
+    if (window.udemyListenerAdded) return
+    window.udemyListenerAdded = true
+
     console.log('Udemy Transcript Content Script ready for use.')
     window.isUdemyContentScriptReady = true // Đặt cờ để background script biết script đã sẵn sàng
     class UdemyTranscriptExtractor {

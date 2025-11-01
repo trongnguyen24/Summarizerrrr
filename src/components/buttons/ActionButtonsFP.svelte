@@ -62,25 +62,25 @@
 
 <style>
   .action-btn {
-    animation: fadeInScale 400ms ease-out forwards;
+    animation: fadeInScale 300ms ease-out forwards;
     opacity: 0;
     transform: scale(0.7);
   }
 
   .action-btn:nth-child(1) {
-    animation-delay: 500ms;
+    animation-delay: 400ms;
   }
 
   .action-btn:nth-child(2) {
-    animation-delay: 600ms;
+    animation-delay: 500ms;
   }
 
   .action-btn:nth-child(3) {
-    animation-delay: 700ms;
+    animation-delay: 600ms;
   }
 
   .action-btn:nth-child(4) {
-    animation-delay: 800ms;
+    animation-delay: 700ms;
   }
 
   @keyframes fadeInScale {

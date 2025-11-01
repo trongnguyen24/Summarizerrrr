@@ -6,6 +6,10 @@ import { waitForElement } from '../lib/utils/domUtils.js'
 export default defineContentScript({
   matches: ['*://gemini.google.com/*'],
   main() {
+    // Prevent multiple listener registrations on SPA navigation
+    if (window.geminiListenerAdded) return
+    window.geminiListenerAdded = true
+
     const urlParams = new URLSearchParams(window.location.search)
     if (urlParams.get('ref') !== 'summarizerrrr') return
 

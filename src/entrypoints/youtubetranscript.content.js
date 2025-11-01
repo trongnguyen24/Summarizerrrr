@@ -4,6 +4,10 @@ import { MessageBasedTranscriptExtractor } from './content/extractors/MessageBas
 export default defineContentScript({
   matches: ['*://*.youtube.com/*'],
   async main() {
+    // Prevent multiple listener registrations on SPA navigation
+    if (window.youtubeTranscriptListenerAdded) return
+    window.youtubeTranscriptListenerAdded = true
+
     // Inject youtube_transcript.js if not already loaded
     if (typeof getCaptions === 'undefined') {
       const script = document.createElement('script')

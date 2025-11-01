@@ -720,37 +720,32 @@ async function clearAllHistory() {
 
 async function clearAllTags() {
   if (!db) db = await openDatabase()
-  return new Promise(async (resolve, reject) => {
-    try {
-      // First, remove all tags from summaries
-      const transaction1 = db.transaction([STORE_NAME], 'readwrite')
-      const summaryStore = transaction1.objectStore(STORE_NAME)
-      const cursorRequest = summaryStore.openCursor()
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(
+      [STORE_NAME, TAGS_STORE_NAME],
+      'readwrite'
+    )
+    const summaryStore = transaction.objectStore(STORE_NAME)
+    const tagStore = transaction.objectStore(TAGS_STORE_NAME)
 
-      cursorRequest.onsuccess = (event) => {
-        const cursor = event.target.result
-        if (cursor) {
-          const summary = cursor.value
-          if (summary.tags && summary.tags.length > 0) {
-            summary.tags = []
-            cursor.update(summary)
-          }
-          cursor.continue()
+    transaction.oncomplete = () => resolve(true)
+    transaction.onerror = (event) => reject(event.target.error)
+
+    // 1. Loop through and update summaries to remove tags
+    const cursorRequest = summaryStore.openCursor()
+    cursorRequest.onsuccess = (event) => {
+      const cursor = event.target.result
+      if (cursor) {
+        const summary = cursor.value
+        if (summary.tags && summary.tags.length > 0) {
+          summary.tags = []
+          cursor.update(summary)
         }
+        cursor.continue()
+      } else {
+        // 2. After iterating through all summaries, clear the tags store
+        tagStore.clear()
       }
-
-      transaction1.oncomplete = () => {
-        // Then clear tags store
-        const transaction2 = db.transaction([TAGS_STORE_NAME], 'readwrite')
-        const tagStore = transaction2.objectStore(TAGS_STORE_NAME)
-        const request = tagStore.clear()
-        request.onsuccess = () => resolve(true)
-        request.onerror = (event) => reject(event.target.error)
-      }
-
-      transaction1.onerror = (event) => reject(event.target.error)
-    } catch (error) {
-      reject(error)
     }
   })
 }

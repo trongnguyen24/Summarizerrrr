@@ -79,19 +79,19 @@
   }
 
   .action-btn-mini:nth-child(1) {
-    animation-delay: 800ms;
+    animation-delay: 600ms;
   }
 
   .action-btn-mini:nth-child(2) {
-    animation-delay: 950ms;
+    animation-delay: 750ms;
   }
 
   .action-btn-mini:nth-child(3) {
-    animation-delay: 1100ms;
+    animation-delay: 900ms;
   }
 
   .action-btn-mini:nth-child(4) {
-    animation-delay: 1250ms;
+    animation-delay: 1050ms;
   }
 
   @keyframes fadeInScale {

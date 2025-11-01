@@ -11,6 +11,10 @@ export default defineContentScript({
    * @returns {Promise<void>}
    */
   async main() {
+    // Prevent multiple listener registrations on SPA navigation
+    if (window.perplexityListenerAdded) return
+    window.perplexityListenerAdded = true
+
     console.log('[PerplexityContentScript] Content script loaded')
 
     /**

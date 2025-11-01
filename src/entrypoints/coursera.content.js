@@ -2,6 +2,10 @@
 export default defineContentScript({
   matches: ['*://*.coursera.org/learn/*'],
   main() {
+    // Prevent multiple listener registrations on SPA navigation
+    if (window.courseraListenerAdded) return
+    window.courseraListenerAdded = true
+
     console.log('Coursera Content Script ready for use.')
     window.isCourseraContentScriptReady = true // Đặt cờ để background script biết script đã sẵn sàng
     class CourseraContentExtractor {

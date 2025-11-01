@@ -6,6 +6,10 @@ import { waitForElement } from '../lib/utils/domUtils.js'
 export default defineContentScript({
   matches: ['*://chatgpt.com/*', '*://chat.openai.com/*'],
   main() {
+    // Prevent multiple listener registrations on SPA navigation
+    if (window.chatgptListenerAdded) return
+    window.chatgptListenerAdded = true
+
     const urlParams = new URLSearchParams(window.location.search)
     if (urlParams.get('ref') !== 'summarizerrrr') return
 

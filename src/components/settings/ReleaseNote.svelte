@@ -72,6 +72,22 @@
     <div class="p-6 prose prose-sm w-full max-w-full">
       <h2>Release note</h2>
 
+      <b class="font-mono">3.0.0</b>
+      <ul class="mt-0">
+        {@render note(
+          'Data Export/Import:',
+          'Comprehensive backup and restore functionality allowing users to export all application data (settings, history, archives, tags) to a single ZIP file and import it back with merge or replace options.'
+        )}
+        {@render note(
+          'Export to Markdown:',
+          'Export archived summaries and history items as individual Markdown files organized in a ZIP archive, supporting multi-tab summaries with YAML frontmatter metadata.'
+        )}
+        {@render note(
+          'Refactored YouTube Summarization:',
+          'Chapter summarization is no longer automatic with main video summary but can be triggered as a separate on-demand action for better control and flexibility.'
+        )}
+      </ul>
+
       <b class="font-mono">2.2.9</b>
       <ul class="mt-0">
         {@render note(

@@ -136,6 +136,7 @@
     'logos:firefox',
     'logos:microsoft-edge',
     'heroicons:arrow-up-right-16-solid',
+    'mdi:reddit',
   ])
 </script>
 
@@ -173,9 +174,9 @@
   class="relative settings font-mono text-text-primary dark:text-text-secondary text-xs bg-surface-1 overflow-hidden w-full flex-shrink-0 flex flex-col"
 >
   <div
-    class="px-4 sm:order-1 sm:bg-surface-1 bg-background dark:bg-surface-2 py-2 border-b-0 border-border"
+    class="flex justify-center relative items-center py-2 sm:order-1 sm:bg-surface-1 bg-background dark:bg-surface-2 border-b-0 border-border"
   >
-    <p class="!text-center">{$t('settings.title')}</p>
+    <p class=" !text-center">{$t('settings.title')}</p>
   </div>
 
   <div

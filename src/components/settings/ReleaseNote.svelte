@@ -75,6 +75,10 @@
       <b class="font-mono">2.3.0</b>
       <ul class="mt-0">
         {@render note(
+          'YouTube Transcript Copy & SRT Download:',
+          'Added new buttons directly in the YouTube player to copy transcripts with timestamps and download video subtitles as SRT files for offline use and easier reference.'
+        )}
+        {@render note(
           'Data Export/Import:',
           'Comprehensive backup and restore functionality allowing users to export all application data (settings, history, archives, tags) to a single ZIP file and import it back with merge or replace options.'
         )}

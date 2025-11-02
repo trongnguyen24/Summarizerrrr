@@ -1,6 +1,8 @@
 <script>
   // @ts-nocheck
   import { t } from 'svelte-i18n'
+  import Icon, { loadIcons } from '@iconify/svelte'
+
   import {
     settings,
     loadSettings,
@@ -36,7 +38,21 @@
 
 <div class="flex parent h-dvh bg-background">
   <span class=" bg-border/70 top"></span>
-  <span class=" bg-border/70 bottom"></span>
+  <span class=" bg-border/70 relative bottom">
+    <!-- Bug Reports & Feature Ideas Button -->
+    <div class="w-full absolute top-px z-10">
+      <a
+        href="https://reddit.com/r/summarizerrrr/"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="flex mx-auto text-muted hover:text-primary max-w-2xl justify-center py-1 px-3 items-center gap-1"
+      >
+        <Icon icon="mdi:reddit" width="16" height="16" />
+        <span class="text-xs">Bug reports & feature ideas</span>
+        <Icon icon="heroicons:arrow-up-right-16-solid" width="12" height="12" />
+      </a>
+    </div>
+  </span>
   <span class="bg-border/70 left"></span>
   <span class="bg-border/70 right"></span>
   <div class="settings max-w-2xl w-full relative">

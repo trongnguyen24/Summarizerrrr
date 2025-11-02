@@ -11,6 +11,8 @@
     chatgpt: false,
     perplexity: false,
     grok: false,
+    copyWithTimestamp: false,
+    downloadSRT: false,
   })
   let showPopover = $state(false)
   let wrapElement = $state()
@@ -86,6 +88,157 @@
     }
   }
 
+  const handleCopyTranscriptWithTimestamp = async () => {
+    if (loadingStates.copyWithTimestamp) return
+
+    loadingStates.copyWithTimestamp = true
+    try {
+      // Ensure we use fresh extractor instance
+      if (!currentTranscriptExtractor) {
+        currentTranscriptExtractor = new MessageBasedTranscriptExtractor('en')
+      }
+      const transcript =
+        await currentTranscriptExtractor.getTimestampedTranscript()
+
+      if (transcript && transcript.trim().length > 0) {
+        await navigator.clipboard.writeText(transcript.trim())
+        console.log('Transcript with timestamp copied to clipboard')
+      } else {
+        console.log('No transcript available to copy')
+      }
+    } catch (error) {
+      console.error('Error copying transcript with timestamp:', error)
+    } finally {
+      loadingStates.copyWithTimestamp = false
+    }
+  }
+
+  /**
+   * Convert timestamp string to SRT format (HH:MM:SS,mmm)
+   * Input: "00:00" or "00:00:05"
+   * Output: "00:00:00,000" or "00:00:05,000"
+   */
+  const convertTimestampToSRT = (timestamp) => {
+    if (!timestamp) return '00:00:00,000'
+
+    // Remove brackets if present
+    const cleanTime = timestamp.replace(/[\[\]]/g, '').trim()
+
+    // Split by colon
+    const parts = cleanTime.split(':')
+
+    let hours = '00'
+    let minutes = '00'
+    let seconds = '00'
+
+    if (parts.length === 2) {
+      // MM:SS format
+      minutes = parts[0].padStart(2, '0')
+      seconds = parts[1].padStart(2, '0')
+    } else if (parts.length === 3) {
+      // HH:MM:SS format
+      hours = parts[0].padStart(2, '0')
+      minutes = parts[1].padStart(2, '0')
+      seconds = parts[2].padStart(2, '0')
+    }
+
+    return `${hours}:${minutes}:${seconds},000`
+  }
+
+  /**
+   * Convert transcript data to SRT format
+   * SRT format:
+   * 1
+   * 00:00:00,000 --> 00:00:05,000
+   * First segment text
+   *
+   * 2
+   * 00:00:05,000 --> 00:00:10,000
+   * Second segment text
+   */
+  const convertToSRT = async () => {
+    try {
+      if (!currentTranscriptExtractor) {
+        currentTranscriptExtractor = new MessageBasedTranscriptExtractor('en')
+      }
+
+      // Get raw transcript data with timestamps
+      const videoUrl = window.location.href
+      const transcriptData = await getCaptions(videoUrl, 'en')
+
+      if (
+        !transcriptData ||
+        !Array.isArray(transcriptData) ||
+        transcriptData.length === 0
+      ) {
+        console.warn(
+          '[CopyTranscriptIcon] No transcript data for SRT conversion'
+        )
+        return null
+      }
+
+      // Convert to SRT format
+      let srtContent = ''
+      transcriptData.forEach((segment, index) => {
+        const sequenceNumber = index + 1
+        const startTime = convertTimestampToSRT(segment.startTime)
+        const endTime = convertTimestampToSRT(
+          segment.endTime || segment.startTime
+        )
+        const text = segment.text.trim()
+
+        srtContent += `${sequenceNumber}\n`
+        srtContent += `${startTime} --> ${endTime}\n`
+        srtContent += `${text}\n\n`
+      })
+
+      return srtContent.trim()
+    } catch (error) {
+      console.error('[CopyTranscriptIcon] Error converting to SRT:', error)
+      return null
+    }
+  }
+
+  /**
+   * Download transcript as SRT file
+   */
+  const handleDownloadSRT = async () => {
+    if (loadingStates.downloadSRT) return
+
+    loadingStates.downloadSRT = true
+    try {
+      const srtContent = await convertToSRT()
+
+      if (!srtContent) {
+        console.warn('[CopyTranscriptIcon] No SRT content to download')
+        return
+      }
+
+      // Create filename from video title
+      const sanitizedTitle = currentVideoTitle
+        .replace(/[^a-z0-9]/gi, '_')
+        .toLowerCase()
+      const filename = `${sanitizedTitle}.srt`
+
+      // Create blob and download
+      const blob = new Blob([srtContent], { type: 'text/plain;charset=utf-8' })
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = filename
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(url)
+
+      console.log('[CopyTranscriptIcon] SRT file downloaded:', filename)
+    } catch (error) {
+      console.error('[CopyTranscriptIcon] Error downloading SRT:', error)
+    } finally {
+      loadingStates.downloadSRT = false
+    }
+  }
+
   const handleSummarizeOnAI = async (provider) => {
     if (loadingStates[provider]) return
 
@@ -97,16 +250,20 @@
       if (!currentTranscriptExtractor) {
         currentTranscriptExtractor = new MessageBasedTranscriptExtractor('en')
       }
-      const transcript = await currentTranscriptExtractor.getPlainTranscript()
+
+      // Use timestamped transcript for better LLM accuracy
+      const transcript =
+        await currentTranscriptExtractor.getTimestampedTranscript()
 
       if (!transcript || transcript.trim().length === 0) {
         console.warn('[CopyTranscriptIcon] No transcript available')
         return
       }
 
-      const fullContent = `<title>${currentVideoTitle}</title>\n\n<transcript>${transcript.trim()}</transcript>`
+      // getTimestampedTranscript() already includes <title>, so wrap with <transcript>
+      const fullContent = `<transcript>${transcript.trim()}</transcript>`
       console.log(
-        `[CopyTranscriptIcon] Transcript extracted: ${fullContent.length} characters`
+        `[CopyTranscriptIcon] Timestamped transcript extracted: ${fullContent.length} characters`
       )
 
       // Send simple message to background script
@@ -212,6 +369,29 @@
     >
       <div class="summarizerrrr-background">
         <button
+          class="summarizerrrr-btn-item"
+          title="Download as SRT"
+          aria-label="Download as SRT"
+          onclick={handleDownloadSRT}
+          disabled={loadingStates.downloadSRT}
+        >
+          {#if loadingStates.downloadSRT}
+            {@render spinner()}
+          {:else}
+            <svg class="copy-transcript-icon" viewBox="0 0 24 24" fill="none">
+              <path
+                d="M19 12v7H5v-7H3v7c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-7h-2z"
+                fill="currentColor"
+              />
+              <path
+                d="M13 12.67l2.59-2.58L17 11.5l-5 5-5-5 1.41-1.41L11 12.67V3h2v9.67z"
+                fill="currentColor"
+              />
+            </svg>
+          {/if}
+          Download as SRT
+        </button>
+        <button
           class="copy-transcript-btn summarizerrrr-btn-item"
           title="Copy Transcript"
           aria-label="Copy Transcript"
@@ -229,6 +409,30 @@
             </svg>
           {/if}
           Copy transcript
+        </button>
+
+        <button
+          class="summarizerrrr-btn-item"
+          title="Copy Transcript with Timestamp"
+          aria-label="Copy Transcript with Timestamp"
+          onclick={handleCopyTranscriptWithTimestamp}
+          disabled={loadingStates.copyWithTimestamp}
+        >
+          {#if loadingStates.copyWithTimestamp}
+            {@render spinner()}
+          {:else}
+            <svg class="copy-transcript-icon" viewBox="0 0 24 24" fill="none">
+              <path
+                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"
+                fill="currentColor"
+              />
+              <path
+                d="M12.5 7H11v6l5.25 3.15.75-1.23-4.5-2.67z"
+                fill="currentColor"
+              />
+            </svg>
+          {/if}
+          Copy transcript with timestamp
         </button>
 
         <button

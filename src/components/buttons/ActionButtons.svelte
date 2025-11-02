@@ -52,12 +52,33 @@
       return true
     })
   )
+
+  // Animation control: reset animations when visibleActions changes
+  let animationKey = $derived(visibleActions.map((a) => a.key).join('-'))
+  let showAnimations = $state(false)
+
+  // Reset and trigger animations when visibleActions changes
+  $effect(() => {
+    // React to animationKey changes
+    animationKey
+
+    // Reset animations
+    showAnimations = false
+
+    // Trigger animations after a brief delay for browser to re-render
+    const timer = setTimeout(() => {
+      showAnimations = true
+    }, 50)
+
+    return () => clearTimeout(timer)
+  })
 </script>
 
 <div class="flex flex-col w-36 mx-auto gap-4 flex-wrap justify-center">
   {#each visibleActions as action}
     <button
-      class="action-btn font-mono opacity-0 relative py-2 px-4 text-sm rounded-full border border-border hover:bg-blackwhite-5 text-text-secondary hover:text-text-primary transition-colors duration-125 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+      class="action-btn font-mono relative py-2 px-4 text-sm rounded-full border border-border hover:bg-blackwhite-5 text-text-secondary hover:text-text-primary transition-colors duration-125 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+      class:animate={showAnimations}
       onclick={() => handleActionClick(action.key)}
       title={action.description}
     >
@@ -73,25 +94,30 @@
 
 <style>
   .action-btn {
-    animation: fadeInScale 300ms ease-out forwards;
     opacity: 0;
     transform: scale(0.7);
+    transition: none;
   }
 
-  .action-btn:nth-child(1) {
-    animation-delay: 400ms;
+  /* Only animate when class is applied */
+  .action-btn.animate {
+    animation: fadeInScale 300ms ease-out forwards;
   }
 
-  .action-btn:nth-child(2) {
+  .action-btn.animate:nth-child(1) {
+    animation-delay: 50ms;
+  }
+
+  .action-btn.animate:nth-child(2) {
+    animation-delay: 200ms;
+  }
+
+  .action-btn.animate:nth-child(3) {
+    animation-delay: 350ms;
+  }
+
+  .action-btn.animate:nth-child(4) {
     animation-delay: 500ms;
-  }
-
-  .action-btn:nth-child(3) {
-    animation-delay: 600ms;
-  }
-
-  .action-btn:nth-child(4) {
-    animation-delay: 700ms;
   }
 
   @keyframes fadeInScale {

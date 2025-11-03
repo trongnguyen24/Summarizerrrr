@@ -35,6 +35,7 @@ STYLE GUIDELINES:
 __CONTENT__
 </SUMMARY>
 
+
 <OUTPUT_FORMAT>
 Return ONLY the 3 questions, one per line, numbered:
 1. [Question about specific aspect from summary]
@@ -42,7 +43,7 @@ Return ONLY the 3 questions, one per line, numbered:
 3. [Question about implications or applications]
 </OUTPUT_FORMAT>
 
-IMPORTANT: 
+IMPORTANT:
 - Each question must be on its own line
 - No explanations, no preamble, just the questions
 - Questions should be in __LANG__
@@ -53,16 +54,34 @@ IMPORTANT:
  * Chat Prompt Builder
  * Builds the full prompt to send to chat providers
  */
-export function buildChatPrompt(question, summaryContent, pageTitle) {
-  return `I just read a summary about "${pageTitle}" and have a follow-up question:
+export function buildChatPrompt(question, summaryContent, pageTitle, pageUrl) {
+  return `<context>
+    <source_document>
+      <title>${pageTitle}</title>
+      <url>${pageUrl}</url>
+    </source_document>
+    <summary>
+      <![CDATA[
+      ${summaryContent}
+      ]]>
+    </summary>
+  </context>
+  
+  <task>
+    <user_question>
+      ${question}
+    </user_question>
+    
+    <instructions>
+      You are a subject-matter expert. Please answer the question (in <user_question>) based on the context (in <context>).
+      The objective is to help the user **deepen their knowledge**. Please:
 
-${question}
-
-Here's the summary for context:
-
-${summaryContent}
-
-Can you help me understand this better?`
+      1.  **Direct Answer:** Address the user's question directly.
+      2.  **In-depth Explanation:** Clarify core terms and concepts. Don't just state "what," but explain the "why" and "how."
+      3.  **Expand:** Provide related information, real-world examples, or historical/technical context (if appropriate) that the summary may have omitted.
+      4.  **Reference Source:** Refer to the <url> to ensure accuracy and gather more details if needed.
+    </instructions>
+  </task>`
 }
 
 /**

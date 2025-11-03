@@ -104,7 +104,8 @@
         activeQuestion,
         summaryContent,
         pageTitle,
-        chatProvider
+        pageUrl, // ✅ Pass pageUrl
+        chatProvider // ✅ chatProvider là parameter cuối
       )
     } catch (err) {
       console.error('[DeepDiveSection] Chat error:', err)

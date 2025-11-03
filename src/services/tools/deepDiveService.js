@@ -46,11 +46,12 @@ export async function generateFollowUpQuestions(
       `[deepDiveService] Using provider: ${providerConfig.provider}, model: ${providerConfig.model}`
     )
 
-    // Build prompt
+    // Build prompt với source URL
     const systemInstruction = deepDiveQuestionPrompt.systemInstruction
     const userPrompt = deepDiveQuestionPrompt.userPrompt
       .replace('__CONTENT__', summaryContent)
       .replace('__LANG__', summaryLang)
+      .replace('__URL__', pageUrl || 'N/A')
 
     // ✅ Build full settings object từ providerConfig
     // buildModelSettings() đã được gọi trong getToolAIModel(),
@@ -156,6 +157,7 @@ export async function openDeepDiveChat(
   question,
   summaryContent,
   pageTitle,
+  pageUrl,
   chatProvider = 'gemini'
 ) {
   console.log(
@@ -169,8 +171,13 @@ export async function openDeepDiveChat(
       throw new Error('Question is required')
     }
 
-    // Build full prompt
-    const fullPrompt = buildChatPrompt(question, summaryContent, pageTitle)
+    // Build full prompt với source URL
+    const fullPrompt = buildChatPrompt(
+      question,
+      summaryContent,
+      pageTitle,
+      pageUrl
+    )
 
     // Get provider URL
     const providerUrl = getChatProviderUrl(chatProvider)

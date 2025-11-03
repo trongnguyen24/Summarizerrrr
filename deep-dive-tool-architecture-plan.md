@@ -47,12 +47,10 @@ const DEFAULT_SETTINGS = {
   tools: {
     deepDive: {
       enabled: true,
-      provider: 'gemini-basic', // 'gemini-basic' | 'gemini' | 'openai' | etc.
-      model: 'gemini-2.5-flash-lite', // Model tương ứng provider
-      numQuestions: 3, // 1-5
+      useGeminiBasic: true, // true = Gemini Basic, false = custom provider
+      customProvider: 'gemini', // Chỉ dùng khi useGeminiBasic = false
+      customModel: 'gemini-2.5-flash-lite',
       autoGenerate: false, // Auto generate sau summary
-      temperature: 0.7, // Optional: override global temp
-      topP: 0.9, // Optional: override global topP
 
       // Chat provider settings (mở tab mới)
       defaultChatProvider: 'gemini', // 'gemini' | 'chatgpt' | 'perplexity' | 'grok'
@@ -70,34 +68,43 @@ const DEFAULT_SETTINGS = {
 /**
  * Resolves the effective provider and model for a tool
  * Priority:
- * 1. Tool's custom provider (if configured and has API key)
- * 2. Gemini Basic (if API key exists)
+ * 1. If useGeminiBasic = true: Use Gemini Basic with API key
+ * 2. If useGeminiBasic = false: Use custom provider (if has API key)
  * 3. Error: require configuration
  */
 function resolveToolProvider(toolName) {
   const toolConfig = settings.tools[toolName]
 
-  // Case 1: Tool has custom provider configured
-  if (toolConfig.provider !== 'gemini-basic') {
-    const providerKey = getProviderApiKey(toolConfig.provider)
-    if (providerKey && providerKey.trim() !== '') {
+  // Case 1: Use Gemini Basic
+  if (toolConfig.useGeminiBasic) {
+    if (settings.geminiApiKey && settings.geminiApiKey.trim() !== '') {
       return {
-        provider: toolConfig.provider,
-        model: toolConfig.model,
+        provider: 'gemini',
+        model: 'gemini-2.5-flash-lite',
+        temperature: 0.7,
+        topP: 0.9,
       }
     }
+    throw new Error(
+      'Gemini API key is required. Please configure it in Settings.'
+    )
   }
 
-  // Case 2: Fallback to Gemini Basic
-  if (settings.geminiApiKey && settings.geminiApiKey.trim() !== '') {
+  // Case 2: Use custom provider
+  const providerKey = getProviderApiKey(toolConfig.customProvider)
+  if (providerKey && providerKey.trim() !== '') {
     return {
-      provider: 'gemini',
-      model: 'gemini-2.5-flash-lite', // Fixed model for Basic
+      provider: toolConfig.customProvider,
+      model: toolConfig.customModel,
+      temperature: 0.7,
+      topP: 0.9,
     }
   }
 
   // Case 3: No valid provider
-  throw new Error('No valid provider configured for this tool')
+  throw new Error(
+    `Custom provider "${toolConfig.customProvider}" is not configured. Please add API key in Settings.`
+  )
 }
 ```
 
@@ -168,12 +175,10 @@ src/components/tools/
 tools: {
   deepDive: {
     enabled: true,
-    provider: 'gemini-basic', // 'gemini-basic' | specific provider
-    model: 'gemini-2.5-flash-lite',
-    numQuestions: 3,
+    useGeminiBasic: true,
+    customProvider: 'gemini',
+    customModel: 'gemini-2.5-flash-lite',
     autoGenerate: false,
-    temperature: 0.7,
-    topP: 0.9,
     defaultChatProvider: 'gemini',
   },
   // Future tools here
@@ -231,10 +236,25 @@ Update content area (around line 287-296):
   import DeepDiveToolSettings from './tools/DeepDiveToolSettings.svelte'
   import Icon from '@iconify/svelte'
 
-  let expandedTool = $state('deepDive') // Track which tool is expanded
+  // ✅ ĐÚNG - Persist expansion state với sessionStorage
+  let expandedTool = $state(
+    (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('tools-expanded-tool')) || null
+  )
 
+  /**
+   * ✅ Toggle tool expansion với persistence
+   */
   function toggleTool(toolName) {
     expandedTool = expandedTool === toolName ? null : toolName
+
+    // Persist state
+    if (typeof sessionStorage !== 'undefined') {
+      if (expandedTool) {
+        sessionStorage.setItem('tools-expanded-tool', expandedTool)
+      } else {
+        sessionStorage.removeItem('tools-expanded-tool')
+      }
+    }
   }
 </script>
 
@@ -298,28 +318,45 @@ Update content area (around line 287-296):
   import ChatGPTConfig from '@/components/providerConfigs/ChatGPTConfig.svelte'
   // ... other provider configs
 
-  let toolSettings = $derived(settings.tools.deepDive)
-  let useCustomProvider = $derived(toolSettings.provider !== 'gemini-basic')
+  // ✅ ĐÚNG - Sử dụng $derived.by() cho computed value
+  let toolSettings = $derived.by(() => settings.tools?.deepDive ?? {})
 
+  /**
+   * ✅ Helper function để update tool setting
+   */
   function updateToolSetting(key, value) {
     updateSettings({
       tools: {
         ...settings.tools,
         deepDive: {
-          ...toolSettings,
+          ...settings.tools.deepDive,
           [key]: value,
         },
       },
     })
   }
 
-  function toggleProviderMode(useCustom) {
-    if (useCustom) {
-      updateToolSetting('provider', settings.selectedProvider || 'gemini')
-    } else {
-      updateToolSetting('provider', 'gemini-basic')
-      updateToolSetting('model', 'gemini-2.5-flash-lite')
+  /**
+   * ✅ Toggle provider mode với proper initialization
+   */
+  function toggleProviderMode(useBasic) {
+    const updates = { useGeminiBasic: useBasic }
+
+    // Initialize custom provider if switching to custom mode
+    if (!useBasic && !settings.tools.deepDive.customProvider) {
+      updates.customProvider = settings.selectedProvider || 'gemini'
+      updates.customModel = 'gemini-2.0-flash'
     }
+
+    updateSettings({
+      tools: {
+        ...settings.tools,
+        deepDive: {
+          ...settings.tools.deepDive,
+          ...updates,
+        },
+      },
+    })
   }
 </script>
 
@@ -348,111 +385,63 @@ Update content area (around line 287-296):
       <div class="grid grid-cols-2 gap-2">
         <ButtonSet
           title="Use Gemini Basic"
-          class="setting-btn {!useCustomProvider ? 'active' : ''}"
-          onclick={() => toggleProviderMode(false)}
-          Description="Auto fallback to Gemini 2.5 Flash Lite"
+          class="setting-btn {toolSettings.useGeminiBasic ? 'active' : ''}"
+          onclick={() => toggleProviderMode(true)}
+          Description="Fast and efficient for question generation"
         >
           <Icon icon="heroicons:sparkles" width="16" height="16" />
         </ButtonSet>
         <ButtonSet
           title="Custom Provider"
-          class="setting-btn {useCustomProvider ? 'active' : ''}"
-          onclick={() => toggleProviderMode(true)}
-          Description="Configure your own provider"
+          class="setting-btn {!toolSettings.useGeminiBasic ? 'active' : ''}"
+          onclick={() => toggleProviderMode(false)}
+          Description="Use your configured AI provider"
         >
           <Icon icon="heroicons:cog-6-tooth" width="16" height="16" />
         </ButtonSet>
       </div>
     </div>
 
-    {#if useCustomProvider}
+    {#if !toolSettings.useGeminiBasic}
       <!-- Custom Provider Configuration -->
       <div class="flex flex-col gap-4 p-4 bg-surface-2 rounded-md">
         <!-- Provider Select -->
         <div class="flex flex-col gap-2">
           <label class="text-text-secondary">Select Provider</label>
+          <!-- ✅ ĐÚNG - Controlled component không dùng bind -->
           <ProvidersSelect
-            bind:value={toolSettings.provider}
-            onchange={(event) => updateToolSetting('provider', event.detail)}
+            value={settings.tools.deepDive.customProvider}
+            onchange={(event) => updateToolSetting('customProvider', event.detail)}
           />
         </div>
 
+        <!-- ⚠️ NOTE: Provider configs cần refactor để không dùng bind -->
+        <!-- Tạm thời giữ bind cho global settings, chỉ model là tool-specific -->
+
         <!-- Dynamic Provider Config (reuse existing components) -->
-        {#if toolSettings.provider === 'gemini'}
+        {#if toolSettings.customProvider === 'gemini'}
+          <!-- ✅ API key từ global settings, model từ tool settings -->
           <GeminiAdvancedConfig
             bind:geminiAdvancedApiKey={settings.geminiAdvancedApiKey}
-            bind:selectedGeminiAdvancedModel={toolSettings.model}
+            selectedGeminiAdvancedModel={toolSettings.customModel}
+            onModelChange={(model) => updateToolSetting('customModel', model)}
           />
-        {:else if toolSettings.provider === 'openrouter'}
+        {:else if toolSettings.customProvider === 'openrouter'}
           <OpenrouterConfig
             bind:openrouterApiKey={settings.openrouterApiKey}
-            bind:selectedOpenrouterModel={toolSettings.model}
+            selectedOpenrouterModel={toolSettings.customModel}
+            onModelChange={(model) => updateToolSetting('customModel', model)}
           />
-        {:else if toolSettings.provider === 'chatgpt'}
+        {:else if toolSettings.customProvider === 'chatgpt'}
           <ChatGPTConfig
             bind:chatgptApiKey={settings.chatgptApiKey}
             bind:chatgptBaseUrl={settings.chatgptBaseUrl}
-            bind:selectedChatgptModel={toolSettings.model}
+            selectedChatgptModel={toolSettings.customModel}
+            onModelChange={(model) => updateToolSetting('customModel', model)}
           />
         {/if}
-
-        <!-- Temperature & Top P -->
-        <div class="grid grid-cols-2 gap-4">
-          <div class="flex flex-col gap-2">
-            <label class="text-text-secondary flex justify-between">
-              <span>Temperature</span>
-              <span class="text-text-primary font-bold">{toolSettings.temperature.toFixed(2)}</span>
-            </label>
-            <input
-              type="range"
-              min="0"
-              max="1"
-              step="0.05"
-              bind:value={toolSettings.temperature}
-              onchange={() => updateToolSetting('temperature', toolSettings.temperature)}
-              class="range range-primary"
-            />
-          </div>
-          <div class="flex flex-col gap-2">
-            <label class="text-text-secondary flex justify-between">
-              <span>Top P</span>
-              <span class="text-text-primary font-bold">{toolSettings.topP.toFixed(2)}</span>
-            </label>
-            <input
-              type="range"
-              min="0"
-              max="1"
-              step="0.01"
-              bind:value={toolSettings.topP}
-              onchange={() => updateToolSetting('topP', toolSettings.topP)}
-              class="range range-primary"
-            />
-          </div>
-        </div>
       </div>
     {/if}
-
-    <!-- Number of Questions -->
-    <div class="flex flex-col gap-2">
-      <label class="text-text-secondary flex justify-between">
-        <span>Number of Questions</span>
-        <span class="text-text-primary font-bold">{toolSettings.numQuestions}</span>
-      </label>
-      <input
-        type="range"
-        min="1"
-        max="5"
-        step="1"
-        bind:value={toolSettings.numQuestions}
-        onchange={() => updateToolSetting('numQuestions', toolSettings.numQuestions)}
-        class="range range-primary"
-      />
-      <div class="flex justify-between text-xs text-text-secondary px-1">
-        {#each [1, 2, 3, 4, 5] as num}
-          <span>{num}</span>
-        {/each}
-      </div>
-    </div>
 
     <!-- Auto Generate Toggle -->
     <div class="flex items-center justify-between">
@@ -521,40 +510,71 @@ import { getAISDKModel, mapGenerationConfig } from '@/lib/api/aiSdkAdapter.js'
  * @returns {Object} Resolved provider config
  * @throws {Error} If no valid provider is configured
  */
+/**
+ * ✅ Improved with better validation and error messages
+ */
 export function resolveToolProvider(toolName) {
-  const toolConfig = settings.tools[toolName]
+  // Validate tool exists
+  const toolConfig = settings.tools?.[toolName]
 
   if (!toolConfig) {
     throw new Error(`Tool "${toolName}" not found in settings`)
   }
 
-  // Case 1: Custom provider configured
-  if (toolConfig.provider !== 'gemini-basic') {
-    const providerKey = getProviderApiKey(toolConfig.provider)
-    if (providerKey && providerKey.trim() !== '') {
-      return {
-        provider: toolConfig.provider,
-        model: toolConfig.model,
-        temperature: toolConfig.temperature,
-        topP: toolConfig.topP,
-      }
-    }
+  // Check if tool is enabled
+  if (!toolConfig.enabled) {
+    throw new Error(
+      `Tool "${toolName}" is disabled. Please enable it in Settings > Tools.`
+    )
   }
 
-  // Case 2: Fallback to Gemini Basic
-  if (settings.geminiApiKey && settings.geminiApiKey.trim() !== '') {
+  // Case 1: Use Gemini Basic
+  if (toolConfig.useGeminiBasic) {
+    const apiKey = settings.geminiApiKey?.trim()
+    if (!apiKey) {
+      throw new Error(
+        'Gemini API key is required. Please configure it in Settings > Summary > Gemini Basic.'
+      )
+    }
+
     return {
       provider: 'gemini',
-      model: 'gemini-2.5-flash-lite',
+      model: 'gemini-2.0-flash', // Use current default model
       temperature: 0.7,
       topP: 0.9,
     }
   }
 
-  // Case 3: No valid provider
-  throw new Error(
-    `No valid provider configured for tool "${toolName}". Please configure a provider in Tools settings.`
-  )
+  // Case 2: Use custom provider
+  const { customProvider, customModel } = toolConfig
+
+  // Validate provider
+  if (!customProvider || typeof customProvider !== 'string') {
+    throw new Error('Custom provider is not configured')
+  }
+
+  // Get and validate API key
+  const providerKey = getProviderApiKey(customProvider)
+  if (
+    !providerKey ||
+    (typeof providerKey === 'string' && !providerKey.trim())
+  ) {
+    throw new Error(
+      `API key for "${customProvider}" is missing. Please add it in Settings > Summary.`
+    )
+  }
+
+  // Validate model name
+  if (!customModel || typeof customModel !== 'string' || !customModel.trim()) {
+    throw new Error(`Model name for "${customProvider}" is invalid or missing`)
+  }
+
+  return {
+    provider: customProvider,
+    model: customModel.trim(),
+    temperature: 0.7,
+    topP: 0.9,
+  }
 }
 
 /**
@@ -581,33 +601,85 @@ function getProviderApiKey(providerId) {
  * @param {string} toolName - Name of the tool
  * @returns {Object} AI SDK model instance
  */
+/**
+ * ✅ Optimized - Không spread toàn bộ settings object
+ */
 export function getToolAIModel(toolName) {
   const providerConfig = resolveToolProvider(toolName)
 
-  // Create temporary settings object for aiSdkAdapter
-  const tempSettings = {
-    ...settings,
-    selectedProvider: providerConfig.provider,
-    temperature: providerConfig.temperature,
-    topP: providerConfig.topP,
+  // Build clean settings object chỉ với những gì cần thiết
+  const modelSettings = buildModelSettings(providerConfig, settings)
+
+  return getAISDKModel(providerConfig.provider, modelSettings)
+}
+
+/**
+ * ✅ Helper function để build model-specific settings
+ * Tránh spread toàn bộ settings object (performance issue với Svelte Proxy)
+ */
+function buildModelSettings(providerConfig, globalSettings) {
+  const { provider, model, temperature, topP } = providerConfig
+
+  // Base settings cho tất cả providers
+  const base = {
+    temperature,
+    topP,
+    selectedProvider: provider,
   }
 
-  // Set appropriate model key based on provider
-  switch (providerConfig.provider) {
+  // Provider-specific model key mapping
+  const modelKeyMap = {
+    gemini: 'selectedGeminiModel',
+    openrouter: 'selectedOpenrouterModel',
+    chatgpt: 'selectedChatgptModel',
+    openai: 'selectedChatgptModel',
+    groq: 'selectedGroqModel',
+    deepseek: 'selectedDeepseekModel',
+    ollama: 'selectedOllamaModel',
+    lmstudio: 'selectedLmStudioModel',
+    openaiCompatible: 'selectedOpenAICompatibleModel',
+  }
+
+  const modelKey = modelKeyMap[provider]
+  if (modelKey) {
+    base[modelKey] = model
+  }
+
+  // Add provider-specific API keys and endpoints
+  switch (provider) {
     case 'gemini':
-      tempSettings.selectedGeminiModel = providerConfig.model
+      base.geminiApiKey =
+        globalSettings.geminiAdvancedApiKey || globalSettings.geminiApiKey
+      base.isAdvancedMode = false
       break
     case 'openrouter':
-      tempSettings.selectedOpenrouterModel = providerConfig.model
+      base.openrouterApiKey = globalSettings.openrouterApiKey
       break
     case 'chatgpt':
     case 'openai':
-      tempSettings.selectedChatgptModel = providerConfig.model
+      base.chatgptApiKey = globalSettings.chatgptApiKey
+      base.chatgptBaseUrl = globalSettings.chatgptBaseUrl
       break
-    // Add other providers as needed
+    case 'groq':
+      base.groqApiKey = globalSettings.groqApiKey
+      break
+    case 'deepseek':
+      base.deepseekApiKey = globalSettings.deepseekApiKey
+      base.deepseekBaseUrl = globalSettings.deepseekBaseUrl
+      break
+    case 'ollama':
+      base.ollamaEndpoint = globalSettings.ollamaEndpoint
+      break
+    case 'lmstudio':
+      base.lmStudioEndpoint = globalSettings.lmStudioEndpoint
+      break
+    case 'openaiCompatible':
+      base.openaiCompatibleApiKey = globalSettings.openaiCompatibleApiKey
+      base.openaiCompatibleBaseUrl = globalSettings.openaiCompatibleBaseUrl
+      break
   }
 
-  return getAISDKModel(providerConfig.provider, tempSettings)
+  return base
 }
 
 /**
@@ -651,17 +723,17 @@ graph TD
 
 ```mermaid
 graph TD
-    A[Tool needs AI model] --> B{Tool has custom provider?}
-    B -->|Yes| C{Provider has API key?}
-    C -->|Yes| D[Use tool custom provider]
-    C -->|No| E{Gemini Basic key exists?}
+    A[Tool needs AI model] --> B{useGeminiBasic = true?}
+    B -->|Yes| C{Gemini key exists?}
+    C -->|Yes| D[Use Gemini 2.5 Flash Lite]
+    C -->|No| E[Error: Add Gemini key]
 
-    B -->|No| E
-    E -->|Yes| F[Use Gemini 2.5 Flash Lite]
-    E -->|No| G[Throw error: Configure provider]
+    B -->|No| F{Custom provider has key?}
+    F -->|Yes| G[Use custom provider]
+    F -->|No| H[Error: Add provider key]
 
-    D --> H[Return model instance]
-    F --> H
+    D --> I[Return model instance]
+    G --> I
 ```
 
 ---
@@ -674,13 +746,12 @@ graph TD
 - Tools không share settings với Summary (trừ fallback case)
 - Dễ dàng add/remove tools mà không ảnh hưởng nhau
 
-### 2. Provider Fallback Strategy
+### 2. Provider Configuration Strategy
 
-- Priority: Custom provider → Gemini Basic → Error
-- Gemini Basic (`gemini-2.5-flash-lite`) là fallback tốt vì:
-  - Nhanh, nhẹ, hiệu quả cho generate câu hỏi
-  - Đa số users đã có Gemini Basic key
-  - Không cần advanced settings
+- Simple boolean flag: `useGeminiBasic` (true/false)
+- When true: Sử dụng Gemini Basic với fixed settings
+- When false: Cho phép config custom provider và model
+- Rõ ràng, dễ hiểu, không có ambiguity
 
 ### 3. Chat Provider Separation
 
@@ -710,21 +781,21 @@ graph TD
 
 **Original Plan Changes:**
 
-1. ❌ **Old**: `autoGenerateDeepDiveQuestions` trong root settings
-   ✅ **New**: `settings.tools.deepDive.autoGenerate`
+1. ❌ **Old**: Phức tạp với `provider` có nhiều giá trị
+   ✅ **New**: Simple với `useGeminiBasic` boolean
 
-2. ❌ **Old**: `defaultDeepDiveProvider` cho cả generate và chat
-   ✅ **New**:
-
-   - `settings.tools.deepDive.provider` cho generate questions
-   - `settings.tools.deepDive.defaultChatProvider` cho chat
+2. ❌ **Old**: `provider`, `model`, `temperature`, `topP` trong tool settings
+   ✅ **New**: `useGeminiBasic`, `customProvider`, `customModel` (simplified)
+   ℹ️ **Note**: temperature/topP vẫn có nhưng hard-coded trong service (0.7/0.9)
 
 3. ❌ **Old**: Deep Dive settings trong Summary Settings hoặc General
    ✅ **New**: Riêng tab Tools với UI expandable
 
-4. ✅ **Keep**: Background script handlers, content scripts, prompt templates
-5. ✅ **Keep**: DeepDiveSection component structure
-6. ✅ **Keep**: Message types và flow
+4. ✅ **Keep**: `autoGenerate` và `defaultChatProvider` giữ nguyên
+
+5. ✅ **Keep**: Background script handlers, content scripts, prompt templates
+6. ✅ **Keep**: DeepDiveSection component structure
+7. ✅ **Keep**: Message types và flow
 
 ---
 
@@ -769,14 +840,15 @@ graph TD
 
 ### Phase 7: Testing & Polish
 
-- [ ] Test provider resolution logic
-- [ ] Test auto-generate flow
-- [ ] Test manual generate flow
-- [ ] Test all 4 chat providers
-- [ ] Test settings persistence
-- [ ] Test error handling
-- [ ] Add i18n translations
-- [ ] Documentation
+- [ ] Test provider resolution logic với different scenarios
+- [ ] Test auto-generate flow after summary completes
+- [ ] Test manual generate button
+- [ ] Test all 4 chat providers (Gemini, ChatGPT, Perplexity, Grok)
+- [ ] Test settings persistence across browser restart
+- [ ] Test error handling và user feedback
+- [ ] Test migration from old settings structure
+- [ ] Add i18n translations cho all UI text
+- [ ] Update documentation với examples
 
 ---
 

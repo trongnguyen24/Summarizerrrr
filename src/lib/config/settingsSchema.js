@@ -98,6 +98,9 @@ export const VALID_SETTING_KEYS = [
   'isAdvancedMode',
   'temperature',
   'topP',
+
+  // Tools Configuration
+  'tools',
 ]
 
 /**
@@ -189,4 +192,5 @@ export const SETTING_CATEGORIES = {
     (key) => key.startsWith('summary') || key === 'isSummaryAdvancedMode'
   ),
   advanced: ['isAdvancedMode', 'temperature', 'topP', 'enableStreaming'],
+  tools: ['tools'],
 }

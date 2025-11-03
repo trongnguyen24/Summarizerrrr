@@ -746,6 +746,55 @@ export default defineBackground(() => {
       return true
     }
 
+    // Deep Dive Tool message handler
+    if (message.type === 'OPEN_DEEP_DIVE_CHAT') {
+      ;(async () => {
+        try {
+          console.log('[Background] Opening Deep Dive chat:', message.provider)
+
+          // Validate message
+          if (!message.provider || !message.url || !message.prompt) {
+            throw new Error('Invalid message: missing provider, url, or prompt')
+          }
+
+          // Create new tab with chat provider
+          const tab = await browser.tabs.create({
+            url: message.url,
+            active: true,
+          })
+
+          console.log(
+            `[Background] Created tab ${tab.id} for ${message.provider}`
+          )
+
+          // Wait for tab to load, then send message to content script to fill form
+          setTimeout(async () => {
+            try {
+              const messageType = getProviderMessageType(message.provider)
+              await browser.tabs.sendMessage(tab.id, {
+                type: messageType,
+                content: message.prompt,
+              })
+              console.log(
+                `[Background] Sent prompt to ${message.provider} content script`
+              )
+              sendResponse({ success: true, tabId: tab.id })
+            } catch (error) {
+              console.error(
+                '[Background] Failed to send prompt to content script:',
+                error
+              )
+              sendResponse({ success: false, error: error.message })
+            }
+          }, 2000) // Wait 2 seconds for page to load
+        } catch (error) {
+          console.error('[Background] Error opening Deep Dive chat:', error)
+          sendResponse({ success: false, error: error.message })
+        }
+      })()
+      return true
+    }
+
     // Sync handlers
     if (message.type === 'OPEN_ARCHIVE') {
       browser.tabs.create({
@@ -1024,6 +1073,21 @@ export default defineBackground(() => {
         })
       }
     }
+  }
+
+  /**
+   * Gets the appropriate message type for each chat provider
+   * @param {string} provider - Provider ID
+   * @returns {string} Message type for content script
+   */
+  function getProviderMessageType(provider) {
+    const messageTypeMap = {
+      gemini: 'FILL_GEMINI_FORM',
+      chatgpt: 'FILL_CHATGPT_FORM',
+      perplexity: 'FILL_PERPLEXITY_FORM',
+      grok: 'FILL_GROK_FORM',
+    }
+    return messageTypeMap[provider] || 'FILL_GEMINI_FORM'
   }
 
   // --- AI Service Handler (Generalized) ---

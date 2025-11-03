@@ -31,16 +31,12 @@ const DEFAULT_SETTINGS = {
       enabled: true,
 
       // Provider Configuration
-      // 'gemini-basic' = fallback to Gemini 2.5 Flash Lite
-      // Or specific provider: 'gemini' | 'openrouter' | 'chatgpt' | 'groq' | 'deepseek' | 'ollama' | 'lmstudio' | 'openaiCompatible'
-      provider: 'gemini-basic',
+      // Use Gemini Basic (free tier) or custom provider
+      useGeminiBasic: true,
 
-      // Model for the selected provider
-      // Default to lite model for performance
-      model: 'gemini-2.5-flash-lite',
-
-      // Number of questions to generate (1-5)
-      numQuestions: 3,
+      // Custom provider settings (only used when useGeminiBasic = false)
+      customProvider: 'gemini',
+      customModel: 'gemini-2.5-flash-lite',
 
       // Auto-generate questions after summary completes
       autoGenerate: false,
@@ -176,12 +172,10 @@ export async function loadSettings() {
 export function validateDeepDiveSettings(toolSettings) {
   const defaults = {
     enabled: true,
-    provider: 'gemini-basic',
-    model: 'gemini-2.5-flash-lite',
-    numQuestions: 3,
+    useGeminiBasic: true,
+    customProvider: 'gemini',
+    customModel: 'gemini-2.5-flash-lite',
     autoGenerate: false,
-    temperature: 0.7,
-    topP: 0.9,
     defaultChatProvider: 'gemini',
   }
 
@@ -191,29 +185,26 @@ export function validateDeepDiveSettings(toolSettings) {
         ? toolSettings.enabled
         : defaults.enabled,
 
-    provider: validateProvider(toolSettings.provider, defaults.provider),
+    useGeminiBasic:
+      typeof toolSettings.useGeminiBasic === 'boolean'
+        ? toolSettings.useGeminiBasic
+        : defaults.useGeminiBasic,
 
-    model:
-      typeof toolSettings.model === 'string' && toolSettings.model.trim() !== ''
-        ? toolSettings.model
-        : defaults.model,
-
-    numQuestions: validateNumQuestions(
-      toolSettings.numQuestions,
-      defaults.numQuestions
+    customProvider: validateProvider(
+      toolSettings.customProvider,
+      defaults.customProvider
     ),
+
+    customModel:
+      typeof toolSettings.customModel === 'string' &&
+      toolSettings.customModel.trim() !== ''
+        ? toolSettings.customModel
+        : defaults.customModel,
 
     autoGenerate:
       typeof toolSettings.autoGenerate === 'boolean'
         ? toolSettings.autoGenerate
         : defaults.autoGenerate,
-
-    temperature: validateTemperature(
-      toolSettings.temperature,
-      defaults.temperature
-    ),
-
-    topP: validateTopP(toolSettings.topP, defaults.topP),
 
     defaultChatProvider: validateChatProvider(
       toolSettings.defaultChatProvider,
@@ -227,7 +218,6 @@ export function validateDeepDiveSettings(toolSettings) {
  */
 function validateProvider(provider, defaultValue) {
   const validProviders = [
-    'gemini-basic',
     'gemini',
     'openrouter',
     'chatgpt',
@@ -240,39 +230,6 @@ function validateProvider(provider, defaultValue) {
   ]
 
   return validProviders.includes(provider) ? provider : defaultValue
-}
-
-/**
- * Validates number of questions (1-5)
- */
-function validateNumQuestions(num, defaultValue) {
-  const parsed = parseInt(num, 10)
-  if (isNaN(parsed) || parsed < 1 || parsed > 5) {
-    return defaultValue
-  }
-  return parsed
-}
-
-/**
- * Validates temperature (0-1)
- */
-function validateTemperature(temp, defaultValue) {
-  const parsed = parseFloat(temp)
-  if (isNaN(parsed) || parsed < 0 || parsed > 1) {
-    return defaultValue
-  }
-  return parsed
-}
-
-/**
- * Validates topP (0-1)
- */
-function validateTopP(topP, defaultValue) {
-  const parsed = parseFloat(topP)
-  if (isNaN(parsed) || parsed < 0 || parsed > 1) {
-    return defaultValue
-  }
-  return parsed
 }
 
 /**
@@ -310,6 +267,10 @@ export function validateToolsSettings(toolsSettings) {
 // From a component
 import { settings, updateSettings } from '@/stores/settingsStore.svelte.js'
 
+/**
+ * ✅ ĐÚNG - Update single tool setting
+ * Tạo shallow copy để trigger reactivity
+ */
 function updateDeepDiveSetting(key, value) {
   updateSettings({
     tools: {
@@ -323,13 +284,17 @@ function updateDeepDiveSetting(key, value) {
 }
 
 // Usage
-updateDeepDiveSetting('numQuestions', 5)
 updateDeepDiveSetting('autoGenerate', true)
+updateDeepDiveSetting('customProvider', 'openrouter')
 ```
 
 ### Pattern 2: Update Multiple Tool Settings
 
 ```javascript
+/**
+ * ✅ ĐÚNG - Update multiple tool settings at once
+ * Hiệu quả hơn vì chỉ trigger một lần updateSettings
+ */
 function updateDeepDiveSettings(updates) {
   updateSettings({
     tools: {
@@ -344,9 +309,9 @@ function updateDeepDiveSettings(updates) {
 
 // Usage
 updateDeepDiveSettings({
-  provider: 'gemini',
-  model: 'gemini-2.5-flash',
-  temperature: 0.8,
+  useGeminiBasic: false,
+  customProvider: 'openrouter',
+  customModel: 'anthropic/claude-3-opus',
 })
 ```
 
@@ -401,14 +366,25 @@ resetToolToDefaults('deepDive')
 <script>
   import { settings } from '@/stores/settingsStore.svelte.js'
 
-  // Derived reactive values
-  let deepDiveSettings = $derived(settings.tools.deepDive)
-  let isEnabled = $derived(deepDiveSettings.enabled)
-  let numQuestions = $derived(deepDiveSettings.numQuestions)
+  // ✅ Direct reactive access - settings là $state nên tự động reactive
+  // Không cần tạo intermediate derived values
+</script>
+
+{#if settings.tools.deepDive.enabled}
+  <div>Deep Dive is enabled</div>
+{/if}
+
+<!-- Hoặc nếu cần derived value với safety check: -->
+<script>
+  import { settings } from '@/stores/settingsStore.svelte.js'
+
+  // ✅ Sử dụng $derived.by() cho complex computations
+  let toolSettings = $derived.by(() => settings.tools?.deepDive ?? {})
+  let isEnabled = $derived(toolSettings.enabled ?? false)
 </script>
 
 {#if isEnabled}
-  <div>Deep Dive is enabled with {numQuestions} questions</div>
+  <div>Deep Dive is enabled</div>
 {/if}
 ```
 
@@ -430,21 +406,41 @@ export function getNumQuestions() {
 }
 ```
 
-### Pattern 3: Conditional Access
+### Pattern 3: Safe Conditional Access
 
 ```javascript
+/**
+ * ✅ ĐÚNG - Safe access với proper validation
+ * Sử dụng optional chaining và nullish coalescing
+ */
 export function getToolConfig(toolName) {
-  const toolConfig = settings.tools[toolName]
+  const toolConfig = settings.tools?.[toolName]
 
   if (!toolConfig) {
     throw new Error(`Tool "${toolName}" not found in settings`)
   }
 
   if (!toolConfig.enabled) {
-    throw new Error(`Tool "${toolName}" is disabled`)
+    throw new Error(
+      `Tool "${toolName}" is disabled. Enable it in Settings > Tools.`
+    )
   }
 
   return toolConfig
+}
+
+/**
+ * ✅ Safe getter không throw error
+ */
+export function getToolConfigSafe(toolName) {
+  return settings.tools?.[toolName] ?? null
+}
+
+/**
+ * ✅ Check if tool is available và enabled
+ */
+export function isToolAvailable(toolName) {
+  return settings.tools?.[toolName]?.enabled ?? false
 }
 ```
 
@@ -460,12 +456,10 @@ export function getToolConfig(toolName) {
   tools: {
     deepDive: {
       enabled: true,
-      provider: 'gemini-basic',
-      model: 'gemini-2.5-flash-lite',
-      numQuestions: 3,
+      useGeminiBasic: true,
+      customProvider: 'gemini',
+      customModel: 'gemini-2.5-flash-lite',
       autoGenerate: false,
-      temperature: 0.7,
-      topP: 0.9,
       defaultChatProvider: 'gemini',
     }
   }
@@ -500,7 +494,7 @@ export function getToolConfig(toolName) {
   tools: {
     deepDive: {
       enabled: false,
-      numQuestions: 5,
+      autoGenerate: true,
       // Missing other fields
     }
   }
@@ -511,12 +505,10 @@ export function getToolConfig(toolName) {
   tools: {
     deepDive: {
       enabled: false,          // Preserved
-      numQuestions: 5,         // Preserved
-      provider: 'gemini-basic', // Added from defaults
-      model: 'gemini-2.5-flash-lite', // Added
-      autoGenerate: false,     // Added
-      temperature: 0.7,        // Added
-      topP: 0.9,              // Added
+      autoGenerate: true,      // Preserved
+      useGeminiBasic: true,    // Added from defaults
+      customProvider: 'gemini', // Added from defaults
+      customModel: 'gemini-2.5-flash-lite', // Added
       defaultChatProvider: 'gemini', // Added
     }
   }
@@ -530,9 +522,9 @@ export function getToolConfig(toolName) {
 {
   tools: {
     deepDive: {
-      numQuestions: 10,        // Out of range (1-5)
-      temperature: 2.5,        // Out of range (0-1)
-      provider: 'invalid-provider',
+      useGeminiBasic: 'invalid',  // Not boolean
+      customProvider: 'invalid-provider',
+      customModel: '',  // Empty string
     }
   }
 }
@@ -541,9 +533,9 @@ export function getToolConfig(toolName) {
 {
   tools: {
     deepDive: {
-      numQuestions: 3,         // Reset to default
-      temperature: 0.7,        // Reset to default
-      provider: 'gemini-basic', // Reset to default
+      useGeminiBasic: true,    // Reset to default
+      customProvider: 'gemini', // Reset to default
+      customModel: 'gemini-2.5-flash-lite', // Reset to default
     }
   }
 }
@@ -566,12 +558,10 @@ export function getToolConfig(toolName) {
 tools: {
   deepDive: {
     enabled: true,
-    provider: 'gemini-basic',
-    model: 'gemini-2.5-flash-lite',
-    numQuestions: 3,
+    useGeminiBasic: true,
+    customProvider: 'gemini',
+    customModel: 'gemini-2.5-flash-lite',
     autoGenerate: false,
-    temperature: 0.7,
-    topP: 0.9,
     defaultChatProvider: 'gemini',
   },
 },
@@ -687,12 +677,12 @@ graph TD
 - ✅ Tools can have similar field names without collision
 - ✅ Easy to loop through all tools programmatically
 
-### 2. Why `gemini-basic` as Default Provider?
+### 2. Why `useGeminiBasic` Boolean Flag?
 
 - ✅ Most users already have Gemini Basic key configured
-- ✅ Fast, efficient, cost-effective for question generation
-- ✅ Clear distinction from advanced usage
-- ✅ Easy fallback mechanism
+- ✅ Clear and explicit: true = basic, false = custom
+- ✅ Easy to understand and toggle in UI
+- ✅ No ambiguity about provider selection
 
 ### 3. Why Separate `defaultChatProvider`?
 
@@ -701,12 +691,13 @@ graph TD
 - ✅ Chat providers don't need API keys (use web UI)
 - ✅ More flexibility for user preferences
 
-### 4. Why Optional temperature/topP in Tool?
+### 4. Why Simplify Settings?
 
-- ✅ Most users won't need to override
-- ✅ Advanced users can fine-tune per tool
-- ✅ Falls back to global settings if not specified
-- ✅ Keeps basic config simple
+- ✅ Simplifies UI and reduces cognitive load
+- ✅ Most users don't need advanced settings (temperature/topP)
+- ✅ Use sensible defaults (temp 0.7, topP 0.9)
+- ✅ Advanced users can use custom providers if needed
+- ✅ Focus on provider selection, not fine-tuning parameters
 
 ### 5. Why Validation Functions?
 
@@ -727,10 +718,11 @@ graph TD
 - [x] Define access patterns
 - [x] Create test scenarios
 - [x] Document implementation steps
-- [ ] Implement in settingsStore.svelte.js
-- [ ] Test migrations with real data
-- [ ] Verify validation works
-- [ ] Test settings persistence
+- [ ] Implement in [`settingsStore.svelte.js`](src/stores/settingsStore.svelte.js)
+- [ ] Add tools validation logic in migration
+- [ ] Test migrations with various scenarios
+- [ ] Verify validation works correctly
+- [ ] Test settings persistence across updates
 
 ---
 

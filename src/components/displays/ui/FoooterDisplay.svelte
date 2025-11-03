@@ -4,8 +4,13 @@
   import CopyButton from '@/components/buttons/CopyButton.svelte'
   import DownloadButton from '@/components/buttons/DownloadButton.svelte'
   import { summaryState } from '@/stores/summaryStore.svelte'
+  import { settings } from '@/stores/settingsStore.svelte.js'
+  import DeepDiveSection from '@/components/tools/deepdive/DeepDiveSection.svelte'
 
   let { summaryContent, summaryTitle, targetId } = $props()
+
+  // Check if Deep Dive is enabled
+  let isDeepDiveEnabled = $derived(settings.tools?.deepDive?.enabled ?? false)
 </script>
 
 <div
@@ -38,3 +43,13 @@
     >
   </div>
 </div>
+
+<!-- Deep Dive Section -->
+{#if isDeepDiveEnabled && summaryContent}
+  <DeepDiveSection
+    {summaryContent}
+    pageTitle={summaryState.pageTitle}
+    pageUrl={summaryState.pageUrl}
+    summaryLang={settings.summaryLang || 'English'}
+  />
+{/if}

@@ -45,9 +45,9 @@ export default defineContentScript({
       },
       timing: {
         retryInterval: [50, 100, 200], // Faster retry
-        uiUpdateDelay: 100, // Reduced from 200ms
-        buttonEnableTimeout: 1000, // Reduced from 3000ms
-        layerTimeout: 1000, // Reduced from 2000ms
+        uiUpdateDelay: 200, // Reduced from 200ms
+        buttonEnableTimeout: 1500, // Reduced from 3000ms
+        layerTimeout: 1500, // Reduced from 2000ms
       },
       retry: {
         maxAttempts: 3,

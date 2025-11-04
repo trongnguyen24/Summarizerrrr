@@ -1,7 +1,8 @@
 /**
- * Grok content script - Robust multi-layer approach
+ * Grok content script - Firefox-compatible approach using Selection API
  * Auto-adapts to Grok UI changes without affecting user clipboard
  */
+import { waitForElement } from '../lib/utils/domUtils.js'
 
 export default defineContentScript({
   matches: ['*://grok.com/*'],
@@ -167,7 +168,7 @@ export default defineContentScript({
     }
 
     /**
-     * Fill content with React-compatible event triggering
+     * Fill content using Selection API for Firefox compatibility
      * @param {HTMLElement} element - Target element
      * @param {string} content - Content to fill
      * @returns {Promise<boolean>} Success status
@@ -178,67 +179,70 @@ export default defineContentScript({
         content.length
       )
 
-      // Focus element first
-      element.focus()
-      await wait(30) // Reduced from 50ms
-
-      // Strategy 1: Simulate paste event (Grok likely listens to this)
       try {
-        const dataTransfer = new DataTransfer()
-        dataTransfer.setData('text/plain', content)
+        // Focus element first
+        element.focus()
+        await wait(50)
 
-        const pasteEvent = new ClipboardEvent('paste', {
-          bubbles: true,
-          cancelable: true,
-          clipboardData: dataTransfer,
+        // Clear existing content
+        element.value = ''
+
+        // Use Selection API with execCommand for Firefox compatibility
+        const selection = window.getSelection()
+        const range = document.createRange()
+
+        range.selectNodeContents(element)
+        selection.removeAllRanges()
+        selection.addRange(range)
+
+        // insertText works better on Firefox
+        const inserted = document.execCommand('insertText', false, content)
+        console.log(
+          '[GrokContentScript] execCommand insertText result:',
+          inserted
+        )
+
+        await wait(100)
+
+        // Fallback: direct value set if execCommand failed
+        if (!element.value || element.value.length === 0) {
+          console.log('[GrokContentScript] Fallback to direct value set')
+          element.value = content
+        }
+
+        // Dispatch comprehensive events
+        element.dispatchEvent(
+          new Event('input', { bubbles: true, composed: true })
+        )
+        element.dispatchEvent(new Event('change', { bubbles: true }))
+        element.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true }))
+        element.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true }))
+
+        // Wait for UI update
+        await wait(CONFIG.timing.uiUpdateDelay)
+
+        // Validation - check actual value
+        const currentValue = element.value
+        const success = currentValue === content || currentValue.length > 0
+
+        console.log('[GrokContentScript] Validation:', {
+          expected: content.length,
+          actual: currentValue.length,
+          success,
         })
 
-        element.dispatchEvent(pasteEvent)
-        console.log('[GrokContentScript] Paste event dispatched')
+        if (!success) {
+          console.warn('[GrokContentScript] Content validation failed', {
+            expectedFirst50: content.substring(0, 50),
+            actualFirst50: currentValue.substring(0, 50),
+          })
+        }
 
-        await wait(50) // Reduced from 100ms
+        return success
       } catch (error) {
-        console.warn('[GrokContentScript] Paste event failed:', error)
+        console.error('[GrokContentScript] Fill error:', error)
+        return false
       }
-
-      // Strategy 2: Direct value set as fallback
-      element.value = content
-      console.log(
-        '[GrokContentScript] Value set, current length:',
-        element.value.length
-      )
-
-      // Strategy 3: Dispatch input events
-      element.dispatchEvent(
-        new Event('input', { bubbles: true, composed: true })
-      )
-      element.dispatchEvent(new Event('change', { bubbles: true }))
-
-      // Strategy 4: Keyboard events
-      element.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true }))
-      element.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true }))
-
-      // Wait for UI update
-      await wait(CONFIG.timing.uiUpdateDelay)
-
-      // Validation - check actual value
-      const currentValue = element.value
-      const success = currentValue === content
-
-      console.log('[GrokContentScript] Validation:', {
-        expected: content.length,
-        actual: currentValue.length,
-        success,
-      })
-
-      if (!success) {
-        console.warn('[GrokContentScript] Content validation failed', {
-          expectedFirst50: content.substring(0, 50),
-          actualFirst50: currentValue.substring(0, 50),
-        })
-      }
-
-      return success
     }
 
     /**

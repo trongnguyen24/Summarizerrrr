@@ -133,9 +133,11 @@
   /**
    * Handles question selection
    */
-  function handleQuestionSelect(question) {
-    selectedQuestion = selectedQuestion === question ? null : question
+  async function handleQuestionSelect(question) {
+    // Auto-start chat with the selected question
+    selectedQuestion = question
     customQuestion = '' // Clear custom input when selecting predefined question
+    await handleStartChat()
   }
 
   /**

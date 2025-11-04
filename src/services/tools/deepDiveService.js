@@ -100,7 +100,7 @@ export async function generateFollowUpQuestions(
 
 /**
  * Parses questions from AI response
- * Handles various formats: numbered lists, plain lines, etc.
+ * Supports JSON format with fallback to plain text parsing
  * @param {string} response - Raw AI response
  * @returns {Array<string>} Array of questions
  */
@@ -109,7 +109,60 @@ function parseQuestionsFromResponse(response) {
     return []
   }
 
-  // Split by newlines and clean up
+  console.log(
+    '[deepDiveService] Raw response:',
+    response.substring(0, 200) + '...'
+  )
+
+  // Try JSON parsing first
+  try {
+    // Remove markdown code blocks if present
+    let cleanedResponse = response.trim()
+    if (cleanedResponse.startsWith('```')) {
+      cleanedResponse = cleanedResponse
+        .replace(/^```(?:json)?\s*/i, '')
+        .replace(/```\s*$/, '')
+        .trim()
+    }
+
+    // Try to find JSON in response (may have extra text before/after)
+    const jsonMatch = cleanedResponse.match(
+      /\{[^}]*"questions"[^}]*\[[^\]]*\][^}]*\}/s
+    )
+    if (jsonMatch) {
+      cleanedResponse = jsonMatch[0]
+    }
+
+    const parsed = JSON.parse(cleanedResponse)
+
+    // Validate JSON structure
+    if (parsed.questions && Array.isArray(parsed.questions)) {
+      const validQuestions = parsed.questions
+        .filter((q) => typeof q === 'string' && q.trim().length > 0)
+        .slice(0, 3) // Ensure max 3 questions
+        .map((q) => {
+          let cleaned = q.trim()
+          // Add question mark if missing
+          if (!cleaned.endsWith('?') && !cleaned.endsWith('？')) {
+            cleaned += '?'
+          }
+          return cleaned
+        })
+
+      if (validQuestions.length > 0) {
+        console.log('[deepDiveService] ✅ Parsed JSON format:', validQuestions)
+        return validQuestions
+      }
+    }
+  } catch (jsonError) {
+    console.log(
+      '[deepDiveService] JSON parsing failed, falling back to plain text:',
+      jsonError.message
+    )
+  }
+
+  // Fallback to plain text parsing (backward compatibility)
+  console.log('[deepDiveService] Using plain text parser')
   const lines = response
     .split('\n')
     .map((line) => line.trim())
@@ -118,6 +171,17 @@ function parseQuestionsFromResponse(response) {
   const questions = []
 
   for (const line of lines) {
+    // Skip lines that look like JSON structure
+    if (
+      line.includes('{') ||
+      line.includes('}') ||
+      line.includes('"questions"') ||
+      line.includes('[') ||
+      line.includes(']')
+    ) {
+      continue
+    }
+
     // Remove numbering (1., 2., 3., etc.) and clean up
     let cleaned = line
       .replace(/^\d+\.\s*/, '') // Remove "1. ", "2. ", etc.
@@ -150,6 +214,8 @@ function parseQuestionsFromResponse(response) {
  * @param {string} question - The question to ask
  * @param {string} summaryContent - Summary content for context
  * @param {string} pageTitle - Page title
+ * @param {string} pageUrl - Page URL
+ * @param {string} summaryLang - Language for the answer
  * @param {string} chatProvider - Chat provider ID (gemini, chatgpt, perplexity, grok)
  * @returns {Promise<void>}
  */
@@ -158,6 +224,7 @@ export async function openDeepDiveChat(
   summaryContent,
   pageTitle,
   pageUrl,
+  summaryLang = 'English',
   chatProvider = 'gemini'
 ) {
   console.log(
@@ -171,12 +238,13 @@ export async function openDeepDiveChat(
       throw new Error('Question is required')
     }
 
-    // Build full prompt với source URL
+    // Build full prompt với source URL và summaryLang
     const fullPrompt = buildChatPrompt(
       question,
       summaryContent,
       pageTitle,
-      pageUrl
+      pageUrl,
+      summaryLang
     )
 
     // Get provider URL

@@ -7,27 +7,30 @@
 export const deepDiveQuestionPrompt = {
   systemInstruction: `You are an expert at generating insightful follow-up questions based on content summaries.
 
-Your task is to create exactly 3 concise, thought-provoking questions that:
-- Help readers explore the topic more deeply
-- Address interesting aspects mentioned in the summary
-- Are specific enough to guide meaningful discussion
-- Are clear and direct (1 line each, no sub-questions)
+  Generate exactly 3 follow-up questions that help readers explore deeper:
 
-QUESTION TYPES TO CONSIDER:
-1. Clarification: "What exactly does [concept] mean in this context?"
-2. Deep Dive: "How does [mechanism/process] actually work?"
-3. Practical: "What are the real-world implications of [finding]?"
-4. Comparative: "How does this compare to [alternative approach]?"
-5. Critical: "What are the potential limitations of [conclusion]?"
+  QUESTION STRUCTURE:
+  1. **Theoretical/Foundational** - Expand on core concepts, mechanisms, or principles
+    - Explore underlying theory, how/why things work
+    - Clarify fundamental concepts or relationships
 
-STYLE GUIDELINES:
-✅ Concise and direct (max 20 words per question)
-✅ Specific to the content (reference actual details)
-✅ Open-ended (encourage exploration)
-✅ Natural language (conversational tone)
-❌ No generic questions ("What do you think?")
-❌ No yes/no questions
-❌ No multiple questions in one line`,
+  2. **Practical/Applied** - Connect to real-world use cases or concrete examples
+    - Ask about specific applications or scenarios
+    - Explore practical implications or implementations
+
+  3. **Critical/Exploratory** - Challenge assumptions, explore alternatives, or new perspectives
+    - Question limitations, trade-offs, or edge cases
+    - Compare with alternatives or explore extensions
+    - Open new angles not covered in the summary
+
+  REQUIREMENTS:
+  ✅ Concise and clear (max 20 words per question)
+  ✅ Directly related to the summary content (reference specific details)
+  ✅ Thought-provoking (encourage deeper exploration)
+  ✅ Non-redundant (don't repeat what's already answered)
+  ✅ Open-ended (avoid yes/no questions)
+  ❌ No generic questions
+  ❌ No explanations, just the questions`,
 
   userPrompt: `Based on the following summary, generate exactly 3 follow-up questions.
 
@@ -35,26 +38,30 @@ STYLE GUIDELINES:
 __CONTENT__
 </SUMMARY>
 
-
 <OUTPUT_FORMAT>
-Return ONLY the 3 questions, one per line, numbered:
-1. [Question about specific aspect from summary]
-2. [Question exploring mechanism or process]
-3. [Question about implications or applications]
-</OUTPUT_FORMAT>
+Return ONLY valid JSON in this exact format (no markdown, no code blocks):
+{"questions": ["question 1 text here", "question 2 text here", "question 3 text here"]}
 
-IMPORTANT:
-- Each question must be on its own line
-- No explanations, no preamble, just the questions
+CRITICAL:
+- Must be valid JSON with double quotes
+- Each question should end with "?"
 - Questions should be in __LANG__
-- Reference specific details from the summary`,
+- No explanations, no numbering in the text
+- Follow the priority order: Deep Dive → Practical → Critical/Comparative/Clarification
+</OUTPUT_FORMAT>`,
 }
 
 /**
  * Chat Prompt Builder
  * Builds the full prompt to send to chat providers
  */
-export function buildChatPrompt(question, summaryContent, pageTitle, pageUrl) {
+export function buildChatPrompt(
+  question,
+  summaryContent,
+  pageTitle,
+  pageUrl,
+  summaryLang = 'English'
+) {
   return `<context>
     <source_document>
       <title>${pageTitle}</title>
@@ -73,7 +80,7 @@ export function buildChatPrompt(question, summaryContent, pageTitle, pageUrl) {
     </user_question>
     
     <instructions>
-      You are a subject-matter expert. Please answer the question (in <user_question>) based on the context (in <context>).
+      You are a subject-matter expert. Please answer the question (in <user_question>) based on the context (in <context>) in ${summaryLang}.
       The objective is to help the user **deepen their knowledge**. Please:
 
       1.  **Direct Answer:** Address the user's question directly.

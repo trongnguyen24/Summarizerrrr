@@ -32,7 +32,7 @@ These elements help you understand the video topic, structure, and context flow.
 ### Key Takeaways
 
 [Main message or actions to implement]
-[Summary content presented using ###, ####, bullet points, or paragraphs depending on content]
+[Summary content presented using ###, ####, bullet points,emoji or paragraphs depending on content]
 
 </OUTPUT_STRUCTURE>
 

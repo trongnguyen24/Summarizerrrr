@@ -24,6 +24,8 @@ import {
   checkPermission,
   requestPermission,
 } from '@/services/firefoxPermissionService.js'
+// Import Deep Dive store
+import { resetDeepDive } from './deepDiveStore.svelte.js'
 
 // --- State ---
 export const summaryState = $state({
@@ -104,6 +106,9 @@ export function resetDisplayState() {
   summaryState.activeCourseTab = 'courseSummary'
   summaryState.customActionResult = ''
   summaryState.customActionError = null
+
+  // Reset Deep Dive state
+  resetDeepDive()
 }
 
 /**

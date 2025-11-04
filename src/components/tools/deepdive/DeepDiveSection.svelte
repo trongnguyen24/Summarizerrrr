@@ -3,7 +3,13 @@
   import { t } from 'svelte-i18n'
   import Icon from '@iconify/svelte'
   import { settings } from '@/stores/settingsStore.svelte.js'
-  import { summaryState } from '@/stores/summaryStore.svelte.js'
+  import {
+    deepDiveState,
+    setQuestions,
+    setGenerating,
+    setError,
+    toggleDeepDive,
+  } from '@/stores/deepDiveStore.svelte.js'
   import {
     generateFollowUpQuestions,
     openDeepDiveChat,
@@ -13,16 +19,21 @@
   import QuestionChip from './QuestionChip.svelte'
   import ChatProviderSelect from './ChatProviderSelect.svelte'
   import CustomQuestionInput from './CustomQuestionInput.svelte'
+  import { slide } from 'svelte/transition'
+  import { cubicOut } from 'svelte/easing'
 
   // Props
   let { summaryContent, pageTitle, pageUrl, summaryLang = 'English' } = $props()
 
-  // State
-  let questions = $state([])
+  // State from store
+  let questions = $derived(deepDiveState.questions)
+  let isGenerating = $derived(deepDiveState.isGenerating)
+  let error = $derived(deepDiveState.error)
+  let hasGenerated = $derived(deepDiveState.hasGenerated)
+
+  // Local state
   let selectedQuestion = $state(null)
   let customQuestion = $state('')
-  let isGenerating = $state(false)
-  let error = $state(null)
   let chatProvider = $state(
     settings.tools?.deepDive?.defaultChatProvider || 'gemini'
   )
@@ -38,10 +49,56 @@
   let activeQuestion = $derived(selectedQuestion || customQuestion)
   let canStartChat = $derived(activeQuestion && activeQuestion.trim() !== '')
 
-  // Auto-generate on mount if enabled
+  /**
+   * Effect cho lazy generation
+   * Chỉ generate khi expanded lần đầu và auto-generate OFF
+   */
   $effect(() => {
-    if (toolConfig.autoGenerate && canGenerate && !hasQuestions) {
+    const shouldLazyGenerate =
+      deepDiveState.isExpanded &&
+      !hasGenerated &&
+      !toolConfig.autoGenerate &&
+      canGenerate
+
+    if (shouldLazyGenerate) {
+      console.log('[DeepDiveSection] Lazy generating questions...')
       handleGenerate()
+    }
+  })
+
+  /**
+   * Effect cho auto-generate
+   * Chỉ chạy khi auto-generate ON và chưa generate
+   */
+  $effect(() => {
+    const shouldAutoGenerate =
+      toolConfig?.enabled &&
+      toolConfig?.autoGenerate &&
+      !hasGenerated &&
+      summaryContent &&
+      summaryContent.trim() !== ''
+
+    if (shouldAutoGenerate) {
+      console.log('[DeepDiveSection] Auto-generating questions...')
+      handleGenerate()
+    }
+  })
+
+  /**
+   * Effect cho ESC key để đóng panel
+   */
+  $effect(() => {
+    function handleEscapeKey(event) {
+      if (event.key === 'Escape' && deepDiveState.isExpanded) {
+        toggleDeepDive()
+      }
+    }
+
+    if (deepDiveState.isExpanded) {
+      window.addEventListener('keydown', handleEscapeKey)
+      return () => {
+        window.removeEventListener('keydown', handleEscapeKey)
+      }
     }
   })
 
@@ -51,8 +108,8 @@
   async function handleGenerate() {
     if (!canGenerate) return
 
-    isGenerating = true
-    error = null
+    setGenerating(true)
+    setError(null)
 
     try {
       console.log('[DeepDiveSection] Generating questions...')
@@ -63,13 +120,13 @@
         summaryLang
       )
 
-      questions = generated
-      console.log('[DeepDiveSection] Generated questions:', questions)
+      setQuestions(generated)
+      console.log('[DeepDiveSection] Generated questions:', generated)
     } catch (err) {
       console.error('[DeepDiveSection] Generation error:', err)
-      error = err.message || 'Failed to generate questions'
+      setError(err.message || 'Failed to generate questions')
     } finally {
-      isGenerating = false
+      setGenerating(false)
     }
   }
 
@@ -123,18 +180,13 @@
 </script>
 
 {#if isToolEnabled}
-  <div class="deep-dive-section mt-8 px-5">
-    <!-- Header -->
-    <div class="flex items-center gap-2 mb-4">
-      <Icon
-        icon="heroicons:light-bulb"
-        width="20"
-        height="20"
-        class="text-primary"
-      />
-      <h3 class="text-sm font-bold text-text-primary">Deep Dive with AI</h3>
-    </div>
-
+  <div
+    class="deep-dive-section fixed bottom-0 -left-px -right-px
+           max-w-2xl mx-auto bg-surface-2 border border-border
+           rounded-lg shadow-xl p-4 z-40
+           max-h-[70vh] overflow-y-auto"
+    transition:slide={{ duration: 300, easing: cubicOut }}
+  >
     <!-- Error Display -->
     {#if error}
       <div
@@ -190,7 +242,7 @@
       <!-- Questions Display -->
       {#if hasQuestions}
         <div class="questions-section mb-4">
-          <div class="flex flex-col gap-2">
+          <div class="flex flex-col gap-4">
             {#each questions as question, i (question)}
               <QuestionChip
                 {question}
@@ -239,9 +291,17 @@
 {/if}
 
 <style>
-  .deep-dive-section {
-    border-top: 1px solid var(--color-border);
-    padding-top: 2rem;
+  .deep-dive-section::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .deep-dive-section::-webkit-scrollbar-thumb {
+    background-color: oklch(0.77 0.003 106.6 / 40%);
+    border-radius: 10px;
+  }
+
+  .deep-dive-section::-webkit-scrollbar-thumb:hover {
+    background-color: oklch(0.77 0.003 106.6 / 60%);
   }
 
   .generate-btn:disabled {

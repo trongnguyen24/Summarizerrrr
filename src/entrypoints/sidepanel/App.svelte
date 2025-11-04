@@ -42,6 +42,16 @@
   import { fade, slide } from 'svelte/transition'
   import ActionButtonsMini from '@/components/buttons/ActionButtonsMini.svelte'
 
+  // Deep Dive imports
+  import DeepDiveFAB from '@/components/tools/deepdive/DeepDiveFAB.svelte'
+  import DeepDiveSection from '@/components/tools/deepdive/DeepDiveSection.svelte'
+  import {
+    deepDiveState,
+    toggleDeepDive,
+    shouldShowDeepDive,
+    updateSummaryContext,
+  } from '@/stores/deepDiveStore.svelte.js'
+
   // Track if settings are loaded
   let settingsLoaded = $state(false)
 
@@ -233,6 +243,41 @@
   function handlePermissionChange(granted) {
     hasPermission = granted
   }
+
+  /**
+   * Helper để lấy summary content dựa trên type
+   */
+  function getSummaryContent() {
+    switch (summaryState.lastSummaryTypeDisplayed) {
+      case 'youtube':
+        return summaryState.summary || ''
+      case 'course':
+        return summaryState.courseSummary || summaryState.courseConcepts || ''
+      case 'web':
+        return summaryState.summary || ''
+      case 'selectedText':
+        return summaryState.selectedTextSummary || ''
+      case 'custom':
+        return summaryState.customActionResult || ''
+      default:
+        return ''
+    }
+  }
+
+  /**
+   * Effect: Update Deep Dive context khi summary thay đổi
+   */
+  $effect(() => {
+    const content = getSummaryContent()
+    if (content && content.trim() !== '') {
+      updateSummaryContext(
+        content,
+        summaryState.pageTitle,
+        summaryState.pageUrl,
+        settings.summaryLang || 'English'
+      )
+    }
+  })
 </script>
 
 {#if !settings.hasCompletedOnboarding}
@@ -386,3 +431,22 @@
     ></div>
   </div>
 </div>
+
+<!-- Deep Dive FAB & Section -->
+{#if shouldShowDeepDive()}
+  <DeepDiveFAB
+    isExpanded={deepDiveState.isExpanded}
+    onToggle={toggleDeepDive}
+    hasQuestions={deepDiveState.questions.length}
+    isGenerating={deepDiveState.isGenerating}
+  />
+
+  {#if deepDiveState.isExpanded}
+    <DeepDiveSection
+      summaryContent={deepDiveState.lastSummaryContent}
+      pageTitle={deepDiveState.lastPageTitle}
+      pageUrl={deepDiveState.lastPageUrl}
+      summaryLang={deepDiveState.lastSummaryLang}
+    />
+  {/if}
+{/if}

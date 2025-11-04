@@ -35,45 +35,21 @@
   <label for="custom-question" class="block text-xs text-text-secondary mb-2">
     Or ask your own question
   </label>
-  <div class="input-wrapper relative">
-    <Icon
-      icon="heroicons:pencil"
-      width="16"
-      height="16"
-      class="input-icon absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary"
-    />
-    <input
-      id="custom-question"
-      type="text"
-      bind:value={inputValue}
-      oninput={handleInput}
-      onfocus={handleFocus}
-      onblur={handleBlur}
-      placeholder="Type your question here..."
-      class="w-full py-2 pl-10 pr-10 bg-surface-2 border border-border rounded-md text-xs text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-primary transition-colors duration-200"
-    />
-    {#if inputValue}
-      <button
-        class="clear-btn absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary hover:text-text-primary transition-colors duration-150"
-        onclick={handleClear}
-        type="button"
-      >
-        <Icon icon="heroicons:x-mark" width="16" height="16" />
-      </button>
-    {/if}
-  </div>
+  <!-- svelte-ignore element_invalid_self_closing_tag -->
+  <textarea
+    id="custom-question"
+    bind:value={inputValue}
+    oninput={handleInput}
+    onfocus={handleFocus}
+    onblur={handleBlur}
+    placeholder="Type your question here..."
+    rows="3"
+    class="w-full py-2 pl-10 pr-10 bg-surface-2 border border-border rounded-md text-xs text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-primary transition-colors duration-200 resize-none"
+  />
 </div>
 
 <style>
-  .input-wrapper {
-    position: relative;
-  }
-
-  input:focus {
-    outline: none;
-  }
-
-  .clear-btn {
-    cursor: pointer;
+  textarea {
+    min-height: 76px; /* 3 rows * ~25px per row */
   }
 </style>

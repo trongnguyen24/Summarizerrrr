@@ -41,6 +41,7 @@
   import '@fontsource/mali'
   import { fade, slide } from 'svelte/transition'
   import ActionButtonsMini from '@/components/buttons/ActionButtonsMini.svelte'
+  import { debounce } from '@/lib/utils/utils.js'
 
   // Deep Dive imports
   import DeepDiveFAB from '@/components/tools/deepdive/DeepDiveFAB.svelte'
@@ -189,7 +190,7 @@
     document.addEventListener('summarizeClick', handleSummarizeClick)
 
     return () => {
-      document.removeListener('summarizeClick', handleSummarizeClick)
+      document.removeEventListener('summarizeClick', handleSummarizeClick)
     }
   })
 
@@ -246,6 +247,7 @@
 
   /**
    * Helper để lấy summary content dựa trên type
+   * @returns {string} Summary content hoặc empty string
    */
   function getSummaryContent() {
     switch (summaryState.lastSummaryTypeDisplayed) {
@@ -265,12 +267,30 @@
   }
 
   /**
-   * Effect: Update Deep Dive context khi summary thay đổi
+   * Debounced version of updateSummaryContext để tránh update quá nhiều
+   */
+  const debouncedUpdateContext = debounce((content, title, url, lang) => {
+    updateSummaryContext(content, title, url, lang)
+  }, 500)
+
+  /**
+   * Effect: Update Deep Dive context SAU KHI summary thay đổi
+   * CHỈ update khi TẤT CẢ loading states = false
+   * Sử dụng debounce để tránh update liên tục khi streaming
    */
   $effect(() => {
+    // Chỉ update context khi KHÔNG còn loading nào
+    const allLoadingComplete =
+      !summaryState.isLoading &&
+      !summaryState.isCourseSummaryLoading &&
+      !summaryState.isCourseConceptsLoading &&
+      !summaryState.isSelectedTextLoading &&
+      !summaryState.isCustomActionLoading
+
     const content = getSummaryContent()
-    if (content && content.trim() !== '') {
-      updateSummaryContext(
+
+    if (allLoadingComplete && content && content.trim() !== '') {
+      debouncedUpdateContext(
         content,
         summaryState.pageTitle,
         summaryState.pageUrl,
@@ -278,6 +298,9 @@
       )
     }
   })
+
+  // Deep Dive error state
+  let deepDiveError = $state(null)
 </script>
 
 {#if !settings.hasCompletedOnboarding}
@@ -432,21 +455,34 @@
   </div>
 </div>
 
-<!-- Deep Dive FAB & Section -->
+<!-- Deep Dive FAB & Section with Error Boundary -->
 {#if shouldShowDeepDive()}
-  <DeepDiveFAB
-    isExpanded={deepDiveState.isExpanded}
-    onToggle={toggleDeepDive}
-    hasQuestions={deepDiveState.questions.length}
-    isGenerating={deepDiveState.isGenerating}
-  />
-
-  {#if deepDiveState.isExpanded}
-    <DeepDiveSection
-      summaryContent={deepDiveState.lastSummaryContent}
-      pageTitle={deepDiveState.lastPageTitle}
-      pageUrl={deepDiveState.lastPageUrl}
-      summaryLang={deepDiveState.lastSummaryLang}
+  {#await Promise.resolve()}
+    <!-- Loading placeholder -->
+  {:then}
+    <DeepDiveFAB
+      isExpanded={deepDiveState.isExpanded}
+      onToggle={toggleDeepDive}
+      hasQuestions={deepDiveState.questions.length}
+      isGenerating={deepDiveState.isGenerating}
     />
-  {/if}
+
+    {#if deepDiveState.isExpanded}
+      <DeepDiveSection
+        summaryContent={deepDiveState.lastSummaryContent}
+        pageTitle={deepDiveState.lastPageTitle}
+        pageUrl={deepDiveState.lastPageUrl}
+        summaryLang={deepDiveState.lastSummaryLang}
+      />
+    {/if}
+  {:catch error}
+    <div
+      class="fixed bottom-6 left-4 z-40 p-3 bg-red-500/10 border border-red-500/30 rounded-lg max-w-xs"
+      transition:slide={{ duration: 300 }}
+    >
+      <p class="text-xs text-red-400">
+        DeepDive error: {error.message || 'Unknown error'}
+      </p>
+    </div>
+  {/await}
 {/if}

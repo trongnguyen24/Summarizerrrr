@@ -55,3 +55,17 @@ export function withRetry(fn, maxRetries = 3, initialDelay = 1000) {
     }
   }
 }
+
+/**
+ * Debounce function - delays execution until after wait milliseconds have elapsed
+ * @param {Function} fn - Function to debounce
+ * @param {number} wait - Wait time in milliseconds
+ * @returns {Function} Debounced function
+ */
+export function debounce(fn, wait = 300) {
+  let timeout
+  return function (...args) {
+    clearTimeout(timeout)
+    timeout = setTimeout(() => fn(...args), wait)
+  }
+}

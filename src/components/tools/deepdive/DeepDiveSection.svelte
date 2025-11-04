@@ -169,7 +169,7 @@
       )
     } catch (err) {
       console.error('[DeepDiveSection] Chat error:', err)
-      error = err.message || 'Failed to open chat'
+      setError(err.message || 'Failed to open chat')
     }
   }
 

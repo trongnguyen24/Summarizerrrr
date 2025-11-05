@@ -9,18 +9,17 @@
     setGenerating,
     setError,
     toggleDeepDive,
+    setCustomQuestion,
+    setSelectedQuestion,
   } from '@/stores/deepDiveStore.svelte.js'
   import {
     generateFollowUpQuestions,
     openDeepDiveChat,
     validateDeepDiveAvailability,
   } from '@/services/tools/deepDiveService.js'
-  import { getChatProviderName } from '@/lib/prompts/tools/deepDivePrompts.js'
   import QuestionChip from './QuestionChip.svelte'
-  import ChatProviderSelect from './ChatProviderSelect.svelte'
   import CustomQuestionInput from './CustomQuestionInput.svelte'
-  import { slide } from 'svelte/transition'
-  import { cubicOut } from 'svelte/easing'
+  import ChatProviderSelect from './ChatProviderSelect.svelte'
 
   // Props
   let { summaryContent, pageTitle, pageUrl, summaryLang = 'English' } = $props()
@@ -31,9 +30,11 @@
   let error = $derived(deepDiveState.error)
   let hasGenerated = $derived(deepDiveState.hasGenerated)
 
+  // UI state from store (persisted)
+  let selectedQuestion = $derived(deepDiveState.selectedQuestion)
+  let customQuestion = $derived(deepDiveState.customQuestion)
+
   // Local state
-  let selectedQuestion = $state(null)
-  let customQuestion = $state('')
   let chatProvider = $state(
     settings.tools?.deepDive?.defaultChatProvider || 'gemini'
   )
@@ -50,57 +51,10 @@
   let canStartChat = $derived(activeQuestion && activeQuestion.trim() !== '')
 
   /**
-   * Effect cho lazy generation
-   * Chỉ generate khi expanded lần đầu và auto-generate OFF
+   * ❌ REMOVED: Lazy generation logic
+   * Questions are now generated BEFORE dialog opens (in DeepDiveFAB)
+   * Dialog only opens when questions are ready
    */
-  $effect(() => {
-    const shouldLazyGenerate =
-      deepDiveState.isExpanded &&
-      !hasGenerated &&
-      !toolConfig.autoGenerate &&
-      canGenerate
-
-    if (shouldLazyGenerate) {
-      console.log('[DeepDiveSection] Lazy generating questions...')
-      handleGenerate()
-    }
-  })
-
-  /**
-   * Effect cho auto-generate
-   * Chỉ chạy khi auto-generate ON và chưa generate
-   */
-  $effect(() => {
-    const shouldAutoGenerate =
-      toolConfig?.enabled &&
-      toolConfig?.autoGenerate &&
-      !hasGenerated &&
-      summaryContent &&
-      summaryContent.trim() !== ''
-
-    if (shouldAutoGenerate) {
-      console.log('[DeepDiveSection] Auto-generating questions...')
-      handleGenerate()
-    }
-  })
-
-  /**
-   * Effect cho ESC key để đóng panel
-   */
-  $effect(() => {
-    function handleEscapeKey(event) {
-      if (event.key === 'Escape' && deepDiveState.isExpanded) {
-        toggleDeepDive()
-      }
-    }
-
-    if (deepDiveState.isExpanded) {
-      window.addEventListener('keydown', handleEscapeKey)
-      return () => {
-        window.removeEventListener('keydown', handleEscapeKey)
-      }
-    }
-  })
 
   /**
    * Handles question generation
@@ -112,7 +66,7 @@
     setError(null)
 
     try {
-      console.log('[DeepDiveSection] Generating questions...')
+      console.log('[DeepDiveContent] Generating questions...')
       const generated = await generateFollowUpQuestions(
         summaryContent,
         pageTitle,
@@ -121,9 +75,9 @@
       )
 
       setQuestions(generated)
-      console.log('[DeepDiveSection] Generated questions:', generated)
+      console.log('[DeepDiveContent] Generated questions:', generated)
     } catch (err) {
-      console.error('[DeepDiveSection] Generation error:', err)
+      console.error('[DeepDiveContent] Generation error:', err)
       setError(err.message || 'Failed to generate questions')
     } finally {
       setGenerating(false)
@@ -135,8 +89,8 @@
    */
   async function handleQuestionSelect(question) {
     // Auto-start chat with the selected question
-    selectedQuestion = question
-    customQuestion = '' // Clear custom input when selecting predefined question
+    setSelectedQuestion(question)
+    setCustomQuestion('') // Clear custom input when selecting predefined question
     await handleStartChat()
   }
 
@@ -144,8 +98,15 @@
    * Handles custom question input
    */
   function handleCustomQuestionChange(value) {
-    customQuestion = value
-    selectedQuestion = null // Clear selection when typing custom question
+    setCustomQuestion(value)
+    setSelectedQuestion(null) // Clear selection when typing custom question
+  }
+
+  /**
+   * Handles chat provider change
+   */
+  function handleProviderChange(newProvider) {
+    chatProvider = newProvider
   }
 
   /**
@@ -156,7 +117,7 @@
 
     try {
       console.log(
-        '[DeepDiveSection] Starting chat with question:',
+        '[DeepDiveContent] Starting chat with question:',
         activeQuestion
       )
       await openDeepDiveChat(
@@ -164,34 +125,48 @@
         summaryContent,
         pageTitle,
         pageUrl,
-        summaryLang, // ✅ Pass summaryLang
+        summaryLang,
         chatProvider
       )
     } catch (err) {
-      console.error('[DeepDiveSection] Chat error:', err)
+      console.error('[DeepDiveContent] Chat error:', err)
       setError(err.message || 'Failed to open chat')
     }
   }
-
-  /**
-   * Handles chat provider change
-   */
-  function handleProviderChange(newProvider) {
-    chatProvider = newProvider
-  }
 </script>
 
-{#if isToolEnabled}
+<div
+  class="deep-dive-content bg-surface-2 border border-border rounded-lg shadow-xl
+         max-h-[70vh] overflow-y-auto flex flex-col"
+>
+  <!-- Header -->
   <div
-    class="deep-dive-section fixed bottom-14 bg-surface-2/80 backdrop-blur-lg -left-px -right-px
-           max-w-2xl mx-auto z-40
-           max-h-[70vh] overflow-y-auto"
-    transition:slide={{ duration: 300, easing: cubicOut }}
+    class="header sticky top-0 z-10 bg-surface-2 border-b border-border px-6 py-4 flex items-center justify-between"
   >
+    <div class="flex items-center gap-2">
+      <Icon
+        icon="heroicons:sparkles"
+        width="20"
+        height="20"
+        class="text-primary"
+      />
+      <h3 class="text-sm font-semibold text-text-primary">Deep Dive</h3>
+    </div>
+    <button
+      onclick={toggleDeepDive}
+      class="close-btn p-1.5 hover:bg-surface-3 rounded-md transition-colors"
+      aria-label="Close"
+    >
+      <Icon icon="heroicons:x-mark" width="20" height="20" />
+    </button>
+  </div>
+
+  <!-- Content -->
+  <div class="content-body px-6 py-4 space-y-4">
     <!-- Error Display -->
     {#if error}
       <div
-        class="error-message mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-md"
+        class="error-message p-3 bg-red-500/10 border border-red-500/30 rounded-md"
       >
         <p class="text-xs text-red-400">{error}</p>
       </div>
@@ -200,16 +175,16 @@
     <!-- Availability Warning -->
     {#if !availability.available}
       <div
-        class="warning-message mb-4 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-md"
+        class="warning-message p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-md"
       >
         <p class="text-xs text-yellow-400">{availability.reason}</p>
       </div>
     {:else}
       <!-- Generate Questions Section -->
       {#if !hasQuestions}
-        <div class="generate-section mb-4">
+        <div class="generate-section">
           <button
-            class="generate-btn w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-surface-2 hover:bg-surface-3 border border-border rounded-md transition-colors duration-200 {isGenerating
+            class="generate-btn w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-surface-3 hover:bg-surface-1 border border-border rounded-md transition-colors duration-200 {isGenerating
               ? 'opacity-50 cursor-not-allowed'
               : ''}"
             onclick={handleGenerate}
@@ -243,7 +218,7 @@
       <!-- Questions Display -->
       {#if hasQuestions}
         <div class="questions-section">
-          <div class="flex flex-col gap-4">
+          <div class="flex flex-col gap-3">
             {#each questions as question, i (question)}
               <QuestionChip
                 {question}
@@ -264,7 +239,7 @@
         </div>
 
         <!-- Chat Provider & Start Chat -->
-        <!-- <div class="chat-actions flex gap-2">
+        <div class="chat-actions flex gap-2">
           <div class="flex-1">
             <ChatProviderSelect
               value={chatProvider}
@@ -285,23 +260,23 @@
             />
             <span class="text-xs font-medium">Start Chat</span>
           </button>
-        </div> -->
+        </div>
       {/if}
     {/if}
   </div>
-{/if}
+</div>
 
 <style>
-  .deep-dive-section::-webkit-scrollbar {
+  .deep-dive-content::-webkit-scrollbar {
     width: 6px;
   }
 
-  .deep-dive-section::-webkit-scrollbar-thumb {
+  .deep-dive-content::-webkit-scrollbar-thumb {
     background-color: oklch(0.77 0.003 106.6 / 40%);
     border-radius: 10px;
   }
 
-  .deep-dive-section::-webkit-scrollbar-thumb:hover {
+  .deep-dive-content::-webkit-scrollbar-thumb:hover {
     background-color: oklch(0.77 0.003 106.6 / 60%);
   }
 

@@ -8,6 +8,7 @@ import { settings } from './settingsStore.svelte.js'
 export const deepDiveState = $state({
   isExpanded: false,
   isGenerating: false,
+  isPreloading: false, // NEW: Loading before dialog opens
   questions: [],
   hasGenerated: false,
   error: null,
@@ -17,6 +18,10 @@ export const deepDiveState = $state({
   lastPageTitle: '',
   lastPageUrl: '',
   lastSummaryLang: 'English',
+
+  // UI state persistence
+  customQuestion: '', // Persist custom input
+  selectedQuestion: null, // Persist selected question
 })
 
 /**
@@ -65,6 +70,8 @@ export function resetDeepDive() {
   deepDiveState.lastPageTitle = ''
   deepDiveState.lastPageUrl = ''
   deepDiveState.lastSummaryLang = 'English'
+  deepDiveState.customQuestion = ''
+  deepDiveState.selectedQuestion = null
   console.log('[deepDiveStore] Reset')
 }
 
@@ -82,6 +89,51 @@ export function setGenerating(isGenerating) {
  */
 export function setError(error) {
   deepDiveState.error = error
+}
+
+/**
+ * Start pre-loading questions (before opening dialog)
+ */
+export function startPreloading() {
+  deepDiveState.isPreloading = true
+  deepDiveState.isGenerating = true
+  deepDiveState.error = null
+  console.log('[deepDiveStore] Start preloading')
+}
+
+/**
+ * Finish pre-loading and open dialog
+ */
+export function finishPreloadingAndOpen() {
+  deepDiveState.isPreloading = false
+  deepDiveState.isGenerating = false
+  deepDiveState.isExpanded = true
+  console.log('[deepDiveStore] Finish preloading, open dialog')
+}
+
+/**
+ * Cancel pre-loading
+ */
+export function cancelPreloading() {
+  deepDiveState.isPreloading = false
+  deepDiveState.isGenerating = false
+  console.log('[deepDiveStore] Cancel preloading')
+}
+
+/**
+ * Set custom question
+ * @param {string} value - Custom question text
+ */
+export function setCustomQuestion(value) {
+  deepDiveState.customQuestion = value
+}
+
+/**
+ * Set selected question
+ * @param {string|null} question - Selected question or null
+ */
+export function setSelectedQuestion(question) {
+  deepDiveState.selectedQuestion = question
 }
 
 /**

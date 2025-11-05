@@ -45,7 +45,8 @@
 
   // Deep Dive imports
   import DeepDiveFAB from '@/components/tools/deepdive/DeepDiveFAB.svelte'
-  import DeepDiveSection from '@/components/tools/deepdive/DeepDiveSection.svelte'
+  import DeepDiveDialog from '@/components/tools/deepdive/DeepDiveDialog.svelte'
+  import DeepDiveContent from '@/components/tools/deepdive/DeepDiveContent.svelte'
   import {
     deepDiveState,
     toggleDeepDive,
@@ -461,20 +462,20 @@
     <!-- Loading placeholder -->
   {:then}
     <DeepDiveFAB
-      isExpanded={deepDiveState.isExpanded}
-      onToggle={toggleDeepDive}
-      hasQuestions={deepDiveState.questions.length}
-      isGenerating={deepDiveState.isGenerating}
+      summaryContent={deepDiveState.lastSummaryContent}
+      pageTitle={deepDiveState.lastPageTitle}
+      pageUrl={deepDiveState.lastPageUrl}
+      summaryLang={deepDiveState.lastSummaryLang}
     />
 
-    {#if deepDiveState.isExpanded}
-      <DeepDiveSection
+    <DeepDiveDialog>
+      <DeepDiveContent
         summaryContent={deepDiveState.lastSummaryContent}
         pageTitle={deepDiveState.lastPageTitle}
         pageUrl={deepDiveState.lastPageUrl}
         summaryLang={deepDiveState.lastSummaryLang}
       />
-    {/if}
+    </DeepDiveDialog>
   {:catch error}
     <div
       class="fixed bottom-6 left-4 z-40 p-3 bg-red-500/10 border border-red-500/30 rounded-lg max-w-xs"

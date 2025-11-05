@@ -24,6 +24,8 @@ import {
   checkPermission,
   requestPermission,
 } from '@/services/firefoxPermissionService.js'
+// Import Deep Dive store
+import { resetDeepDive } from './deepDiveStore.svelte.js'
 
 // --- State ---
 export const summaryState = $state({
@@ -85,6 +87,9 @@ export function resetState() {
   summaryState.customActionResult = ''
   summaryState.isCustomActionLoading = false
   summaryState.customActionError = null
+
+  // Reset Deep Dive state
+  resetDeepDive()
 }
 
 /**
@@ -104,6 +109,9 @@ export function resetDisplayState() {
   summaryState.activeCourseTab = 'courseSummary'
   summaryState.customActionResult = ''
   summaryState.customActionError = null
+
+  // Reset Deep Dive state
+  resetDeepDive()
 }
 
 /**
@@ -342,6 +350,9 @@ export async function fetchChapterSummary() {
   const shouldUseStreaming =
     userSettings.enableStreaming &&
     providerSupportsStreaming(selectedProviderId)
+
+  // Reset Deep Dive when starting chapter summary
+  resetDeepDive()
 
   // Reset custom action state for chapters
   summaryState.isCustomActionLoading = true
@@ -847,6 +858,9 @@ export async function executeCustomAction(actionType) {
   // Wait for settings to be initialized
   await loadSettings()
   const userSettings = settings
+
+  // Reset Deep Dive when starting custom action
+  resetDeepDive()
 
   // Reset custom action state
   summaryState.isCustomActionLoading = true

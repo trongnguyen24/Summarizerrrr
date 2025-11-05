@@ -41,6 +41,17 @@
   import '@fontsource/mali'
   import { fade, slide } from 'svelte/transition'
   import ActionButtonsMini from '@/components/buttons/ActionButtonsMini.svelte'
+  import { debounce } from '@/lib/utils/utils.js'
+
+  // Deep Dive imports
+  import DeepDiveFAB from '@/components/tools/deepdive/DeepDiveFAB.svelte'
+  import DeepDiveSection from '@/components/tools/deepdive/DeepDiveSection.svelte'
+  import {
+    deepDiveState,
+    toggleDeepDive,
+    shouldShowDeepDive,
+    updateSummaryContext,
+  } from '@/stores/deepDiveStore.svelte.js'
 
   // Track if settings are loaded
   let settingsLoaded = $state(false)
@@ -179,7 +190,7 @@
     document.addEventListener('summarizeClick', handleSummarizeClick)
 
     return () => {
-      document.removeListener('summarizeClick', handleSummarizeClick)
+      document.removeEventListener('summarizeClick', handleSummarizeClick)
     }
   })
 
@@ -233,6 +244,63 @@
   function handlePermissionChange(granted) {
     hasPermission = granted
   }
+
+  /**
+   * Helper để lấy summary content dựa trên type
+   * @returns {string} Summary content hoặc empty string
+   */
+  function getSummaryContent() {
+    switch (summaryState.lastSummaryTypeDisplayed) {
+      case 'youtube':
+        return summaryState.summary || ''
+      case 'course':
+        return summaryState.courseSummary || summaryState.courseConcepts || ''
+      case 'web':
+        return summaryState.summary || ''
+      case 'selectedText':
+        return summaryState.selectedTextSummary || ''
+      case 'custom':
+        return summaryState.customActionResult || ''
+      default:
+        return ''
+    }
+  }
+
+  /**
+   * Debounced version of updateSummaryContext để tránh update quá nhiều
+   */
+  const debouncedUpdateContext = debounce((content, title, url, lang) => {
+    updateSummaryContext(content, title, url, lang)
+  }, 500)
+
+  /**
+   * Effect: Update Deep Dive context SAU KHI summary thay đổi
+   * CHỈ update khi TẤT CẢ loading states = false
+   * Sử dụng debounce để tránh update liên tục khi streaming
+   */
+  $effect(() => {
+    // Chỉ update context khi KHÔNG còn loading nào
+    const allLoadingComplete =
+      !summaryState.isLoading &&
+      !summaryState.isCourseSummaryLoading &&
+      !summaryState.isCourseConceptsLoading &&
+      !summaryState.isSelectedTextLoading &&
+      !summaryState.isCustomActionLoading
+
+    const content = getSummaryContent()
+
+    if (allLoadingComplete && content && content.trim() !== '') {
+      debouncedUpdateContext(
+        content,
+        summaryState.pageTitle,
+        summaryState.pageUrl,
+        settings.summaryLang || 'English'
+      )
+    }
+  })
+
+  // Deep Dive error state
+  let deepDiveError = $state(null)
 </script>
 
 {#if !settings.hasCompletedOnboarding}
@@ -386,3 +454,35 @@
     ></div>
   </div>
 </div>
+
+<!-- Deep Dive FAB & Section with Error Boundary -->
+{#if shouldShowDeepDive()}
+  {#await Promise.resolve()}
+    <!-- Loading placeholder -->
+  {:then}
+    <DeepDiveFAB
+      isExpanded={deepDiveState.isExpanded}
+      onToggle={toggleDeepDive}
+      hasQuestions={deepDiveState.questions.length}
+      isGenerating={deepDiveState.isGenerating}
+    />
+
+    {#if deepDiveState.isExpanded}
+      <DeepDiveSection
+        summaryContent={deepDiveState.lastSummaryContent}
+        pageTitle={deepDiveState.lastPageTitle}
+        pageUrl={deepDiveState.lastPageUrl}
+        summaryLang={deepDiveState.lastSummaryLang}
+      />
+    {/if}
+  {:catch error}
+    <div
+      class="fixed bottom-6 left-4 z-40 p-3 bg-red-500/10 border border-red-500/30 rounded-lg max-w-xs"
+      transition:slide={{ duration: 300 }}
+    >
+      <p class="text-xs text-red-400">
+        DeepDive error: {error.message || 'Unknown error'}
+      </p>
+    </div>
+  {/await}
+{/if}

@@ -137,22 +137,22 @@
 </button>
 
 <!-- Simple Tooltip (Custom) -->
-{#if isPreloading}
+{#if !isPreloading}
   <div
     class="tooltip-container fixed bottom-6 left-16 z-50"
     transition:fade={{ duration: 150 }}
   >
     <div class="tooltip">
       <div class="tooltip-header">
-        <Icon
+        <!-- <Icon
           icon="svg-spinners:ring-resize"
           width="14"
           height="14"
           class="text-primary"
-        />
+        /> -->
         <span class="tooltip-text">Generating questions...</span>
       </div>
-      <div class="tooltip-hint">Press ESC to cancel</div>
+      <!-- <div class="tooltip-hint">Press ESC to cancel</div> -->
     </div>
   </div>
 {/if}

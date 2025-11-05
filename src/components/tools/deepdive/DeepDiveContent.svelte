@@ -235,6 +235,7 @@
           <CustomQuestionInput
             value={customQuestion}
             onchange={handleCustomQuestionChange}
+            onSubmit={handleStartChat}
           />
         </div>
 

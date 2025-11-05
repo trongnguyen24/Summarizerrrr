@@ -767,26 +767,58 @@ export default defineBackground(() => {
             `[Background] Created tab ${tab.id} for ${message.provider}`
           )
 
-          // Wait for tab to load, then send message to content script to fill form
-          setTimeout(async () => {
-            try {
-              const messageType = getProviderMessageType(message.provider)
-              await browser.tabs.sendMessage(tab.id, {
-                type: messageType,
-                content: message.prompt,
-              })
-              console.log(
-                `[Background] Sent prompt to ${message.provider} content script`
-              )
-              sendResponse({ success: true, tabId: tab.id })
-            } catch (error) {
-              console.error(
-                '[Background] Failed to send prompt to content script:',
-                error
-              )
-              sendResponse({ success: false, error: error.message })
+          // Use tab onUpdated listener for more reliable content script injection
+          let timeoutId = null
+          let hasResponded = false
+
+          const onUpdatedListener = (tabId, changeInfo, updatedTab) => {
+            if (tabId !== tab.id) return
+
+            // Wait for page to be fully loaded
+            if (changeInfo.status === 'complete') {
+              browser.tabs.onUpdated.removeListener(onUpdatedListener)
+              clearTimeout(timeoutId)
+
+              if (hasResponded) return
+              hasResponded = true
+
+              // Small delay for content script injection
+              setTimeout(async () => {
+                try {
+                  const messageType = getProviderMessageType(message.provider)
+                  await browser.tabs.sendMessage(tab.id, {
+                    type: messageType,
+                    content: message.prompt,
+                  })
+                  console.log(
+                    `[Background] Sent prompt to ${message.provider} content script`
+                  )
+                  sendResponse({ success: true, tabId: tab.id })
+                } catch (error) {
+                  console.error(
+                    '[Background] Failed to send prompt to content script:',
+                    error
+                  )
+                  sendResponse({ success: false, error: error.message })
+                }
+              }, 500)
             }
-          }, 2000) // Wait 2 seconds for page to load
+          }
+
+          browser.tabs.onUpdated.addListener(onUpdatedListener)
+
+          // Timeout fallback (10 seconds)
+          timeoutId = setTimeout(() => {
+            browser.tabs.onUpdated.removeListener(onUpdatedListener)
+            if (hasResponded) return
+            hasResponded = true
+
+            console.error('[Background] Deep Dive chat timeout')
+            sendResponse({
+              success: false,
+              error: 'Timeout waiting for page to load',
+            })
+          }, 10000)
         } catch (error) {
           console.error('[Background] Error opening Deep Dive chat:', error)
           sendResponse({ success: false, error: error.message })

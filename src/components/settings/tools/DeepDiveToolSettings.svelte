@@ -19,30 +19,27 @@
   // ✅ Computed value cho tool settings
   let toolSettings = $derived.by(() => settings.tools?.deepDive ?? {})
 
-  // ✅ Proxy state để sync model changes với tool settings
-  // IMPORTANT: Phải update proxy khi provider hoặc model thay đổi
-  let customModelProxy = $state(toolSettings.customModel)
-  let lastProvider = $state(toolSettings.customProvider)
+  /**
+   * Local state for custom model to handle bind: directives
+   * Simplified from complex dual $effect pattern
+   */
+  let customModelProxy = $state(toolSettings.customModel || '')
 
-  // ✅ Sync khi toolSettings thay đổi (từ storage hoặc provider change)
+  /**
+   * Single effect to sync model changes in both directions
+   * Prevents infinite loops by checking if values actually changed
+   */
   $effect(() => {
-    // Reset proxy khi provider thay đổi
-    if (lastProvider !== toolSettings.customProvider) {
-      customModelProxy = toolSettings.customModel
-      lastProvider = toolSettings.customProvider
-      return
-    }
+    const settingsModel = toolSettings.customModel || ''
+    const proxyModel = customModelProxy || ''
 
-    // Sync từ storage
-    if (toolSettings.customModel !== customModelProxy) {
-      customModelProxy = toolSettings.customModel
+    // Sync FROM settings TO proxy (when settings change externally)
+    if (settingsModel !== proxyModel && settingsModel !== '') {
+      customModelProxy = settingsModel
     }
-  })
-
-  // ✅ Sync proxy changes về storage
-  $effect(() => {
-    if (customModelProxy && customModelProxy !== toolSettings.customModel) {
-      updateToolSetting('customModel', customModelProxy)
+    // Sync FROM proxy TO settings (when user changes model in UI)
+    else if (proxyModel !== settingsModel && proxyModel !== '') {
+      updateToolSetting('customModel', proxyModel)
     }
   })
 

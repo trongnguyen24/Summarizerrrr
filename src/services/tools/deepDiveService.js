@@ -1,6 +1,10 @@
 // @ts-nocheck
 import { browser } from 'wxt/browser'
-import { getToolAIModel, resolveToolProvider } from './toolProviderService.js'
+import {
+  getToolAIModel,
+  resolveToolProvider,
+  buildModelSettings,
+} from './toolProviderService.js'
 import { generateContent } from '@/lib/api/aiSdkAdapter.js'
 import {
   deepDiveQuestionPrompt,
@@ -56,7 +60,7 @@ export async function generateFollowUpQuestions(
     // ✅ Build full settings object từ providerConfig
     // buildModelSettings() đã được gọi trong getToolAIModel(),
     // nhưng generateContent() cần settings object, không phải model instance
-    const toolSettings = buildToolSettings(providerConfig)
+    const toolSettings = buildModelSettings(providerConfig, settings)
 
     const response = await generateContent(
       providerConfig.provider,
@@ -304,41 +308,5 @@ export function validateDeepDiveAvailability() {
       available: false,
       reason: error.message,
     }
-  }
-}
-
-/**
- * Helper để build settings object cho tool
- * @param {Object} providerConfig - Provider config từ resolveToolProvider
- * @returns {Object} Full settings object
- */
-function buildToolSettings(providerConfig) {
-  const { provider, model, temperature, topP } = providerConfig
-
-  // Convert settings proxy to plain object
-  const plainSettings = JSON.parse(JSON.stringify(settings))
-
-  // Model key mapping
-  const modelKeyMap = {
-    gemini: 'selectedGeminiModel',
-    openrouter: 'selectedOpenrouterModel',
-    chatgpt: 'selectedChatgptModel',
-    openai: 'selectedChatgptModel',
-    groq: 'selectedGroqModel',
-    deepseek: 'selectedDeepseekModel',
-    ollama: 'selectedOllamaModel',
-    lmstudio: 'selectedLmStudioModel',
-    openaiCompatible: 'selectedOpenAICompatibleModel',
-  }
-
-  const modelKey = modelKeyMap[provider] || 'selectedGeminiModel'
-
-  return {
-    ...plainSettings,
-    selectedProvider: provider,
-    [modelKey]: model,
-    temperature,
-    topP,
-    isAdvancedMode: false, // Critical: tools use basic mode
   }
 }

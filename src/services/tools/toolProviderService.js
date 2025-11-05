@@ -115,7 +115,7 @@ export function getToolAIModel(toolName) {
  * @param {Object} globalSettings - Global settings
  * @returns {Object} Model settings
  */
-function buildModelSettings(providerConfig, globalSettings) {
+export function buildModelSettings(providerConfig, globalSettings) {
   const { provider, model, temperature, topP } = providerConfig
 
   // ✅ Convert Svelte proxy to plain object để tránh performance issues

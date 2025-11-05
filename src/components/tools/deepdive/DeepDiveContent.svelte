@@ -217,19 +217,6 @@
 
       <!-- Questions Display -->
       {#if hasQuestions}
-        <div class="questions-section">
-          <div class="flex flex-col gap-3">
-            {#each questions as question, i (question)}
-              <QuestionChip
-                {question}
-                index={i + 1}
-                isSelected={selectedQuestion === question}
-                onclick={() => handleQuestionSelect(question)}
-              />
-            {/each}
-          </div>
-        </div>
-
         <!-- Custom Question Input -->
         <div class="custom-question-section">
           <CustomQuestionInput
@@ -261,6 +248,18 @@
             />
             <span class="text-xs font-medium">Start Chat</span>
           </button>
+        </div>
+        <div class="questions-section">
+          <div class="flex flex-col gap-3">
+            {#each questions as question, i (question)}
+              <QuestionChip
+                {question}
+                index={i + 1}
+                isSelected={selectedQuestion === question}
+                onclick={() => handleQuestionSelect(question)}
+              />
+            {/each}
+          </div>
         </div>
       {/if}
     {/if}

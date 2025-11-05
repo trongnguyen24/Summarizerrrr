@@ -33,10 +33,10 @@
 
     // Calculate new height based on content
     const scrollHeight = textareaElement.scrollHeight
-    const newHeight = Math.min(Math.max(scrollHeight, 40), 88) // 88px ≈ 3 lines + padding
+    const newHeight = Math.min(Math.max(scrollHeight, 40), 80) // 88px ≈ 3 lines + padding
 
     // Apply new height
-    textareaElement.style.height = newHeight + 'px'
+    textareaElement.style.height = newHeight + 2 + 'px'
   }
 
   function handleInput(event) {
@@ -63,15 +63,23 @@
   }
 
   function handleBlur() {
-    isFocused = false
+    // Small delay to allow click events on clear button to fire
+    setTimeout(() => {
+      isFocused = false
+    }, 150)
   }
 
   function handleClear() {
     inputValue = ''
     onchange('')
-    // Focus back to textarea after clearing
+
+    // Reset textarea height to minimum after clearing
     if (textareaElement) {
+      // Force height to min-height immediately
+      textareaElement.style.height = '40px'
       textareaElement.focus()
+      // Then run autoResize to ensure proper calculation
+      setTimeout(() => autoResize(), 0)
     }
   }
 
@@ -97,6 +105,7 @@
   <!-- Clear button (shows when focused with content) -->
   {#if showClearButton}
     <button
+      onmousedown={(e) => e.preventDefault()}
       onclick={handleClear}
       class="clear-btn absolute top-2 right-2 p-1 hover:bg-surface-3 rounded-md transition-colors"
       aria-label="Clear input"
@@ -115,7 +124,7 @@
     onblur={handleBlur}
     {placeholder}
     rows="1"
-    class="w-full py-2 pl-3 pr-10 bg-surface-2 border border-border text-xs text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-primary transition-colors duration-200 resize-none overflow-y-auto"
+    class="w-full py-2 pl-3 pr-10 bg-surface-2 border border-border text-sm text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-primary transition-colors duration-200 resize-none overflow-y-auto"
   />
 </div>
 

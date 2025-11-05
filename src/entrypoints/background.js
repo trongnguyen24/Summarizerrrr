@@ -265,6 +265,92 @@ class OllamaApiProxyService {
   }
 }
 
+/**
+ * Waits for chat provider tab to be fully loaded and content script ready
+ * Handles Cloudflare checks, slow networks, and SPA delays
+ * @param {number} tabId - Tab ID
+ * @param {string} provider - Provider ID (grok, gemini, chatgpt, perplexity)
+ * @param {number} maxWaitTime - Maximum wait time in ms
+ * @returns {Promise<boolean>} True if ready
+ */
+async function waitForChatTabReady(tabId, provider, maxWaitTime = 10000) {
+  const startTime = Date.now()
+  const checkInterval = 500
+
+  console.log(`[Background] Waiting for ${provider} tab to be ready...`)
+
+  while (Date.now() - startTime < maxWaitTime) {
+    try {
+      const tab = await browser.tabs.get(tabId)
+
+      // Check if tab is complete and not on challenge/error pages
+      const isNotBlocked =
+        !tab.url.includes('challenges.cloudflare.com') &&
+        !tab.url.includes('error') &&
+        !tab.url.includes('blocked')
+
+      if (tab.status === 'complete' && isNotBlocked) {
+        // Try to ping content script
+        try {
+          await browser.tabs.sendMessage(tabId, { type: 'PING' })
+          const elapsed = Date.now() - startTime
+          console.log(`[Background] ${provider} tab ready after ${elapsed}ms`)
+          return true
+        } catch (pingError) {
+          console.log(
+            `[Background] ${provider} content script not ready, retrying...`
+          )
+        }
+      }
+    } catch (error) {
+      console.warn(`[Background] Error checking ${provider} tab status:`, error)
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, checkInterval))
+  }
+
+  console.warn(
+    `[Background] ${provider} tab ready timeout after ${maxWaitTime}ms`
+  )
+  return false
+}
+
+/**
+ * Sends message to chat provider tab with retry mechanism
+ * @param {number} tabId - Tab ID
+ * @param {Object} message - Message object
+ * @param {string} provider - Provider ID (for logging)
+ * @param {number} maxRetries - Maximum retry attempts
+ * @param {number} retryDelay - Delay between retries in ms
+ * @returns {Promise<boolean>} True if sent successfully
+ */
+async function sendChatMessageWithRetry(
+  tabId,
+  message,
+  provider,
+  maxRetries = 3,
+  retryDelay = 1000
+) {
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      await browser.tabs.sendMessage(tabId, message)
+      console.log(
+        `[Background] Message sent to ${provider} on attempt ${i + 1}`
+      )
+      return true
+    } catch (error) {
+      console.warn(
+        `[Background] ${provider} message send attempt ${i + 1} failed:`,
+        error.message
+      )
+      if (i < maxRetries - 1) {
+        await new Promise((resolve) => setTimeout(resolve, retryDelay))
+      }
+    }
+  }
+  return false
+}
+
 // --- Main Background Logic ---
 
 export default defineBackground(() => {
@@ -767,58 +853,42 @@ export default defineBackground(() => {
             `[Background] Created tab ${tab.id} for ${message.provider}`
           )
 
-          // Use tab onUpdated listener for more reliable content script injection
-          let timeoutId = null
-          let hasResponded = false
+          // ✅ UNIFIED: Wait for tab to be fully ready (all providers)
+          const isReady = await waitForChatTabReady(
+            tab.id,
+            message.provider,
+            10000
+          )
 
-          const onUpdatedListener = (tabId, changeInfo, updatedTab) => {
-            if (tabId !== tab.id) return
-
-            // Wait for page to be fully loaded
-            if (changeInfo.status === 'complete') {
-              browser.tabs.onUpdated.removeListener(onUpdatedListener)
-              clearTimeout(timeoutId)
-
-              if (hasResponded) return
-              hasResponded = true
-
-              // Small delay for content script injection
-              setTimeout(async () => {
-                try {
-                  const messageType = getProviderMessageType(message.provider)
-                  await browser.tabs.sendMessage(tab.id, {
-                    type: messageType,
-                    content: message.prompt,
-                  })
-                  console.log(
-                    `[Background] Sent prompt to ${message.provider} content script`
-                  )
-                  sendResponse({ success: true, tabId: tab.id })
-                } catch (error) {
-                  console.error(
-                    '[Background] Failed to send prompt to content script:',
-                    error
-                  )
-                  sendResponse({ success: false, error: error.message })
-                }
-              }, 500)
-            }
+          if (!isReady) {
+            throw new Error(
+              `${message.provider} page failed to load. Please check your connection.`
+            )
           }
 
-          browser.tabs.onUpdated.addListener(onUpdatedListener)
+          // ✅ UNIFIED: Send message with retry (all providers)
+          const messageType = getProviderMessageType(message.provider)
+          const sent = await sendChatMessageWithRetry(
+            tab.id,
+            {
+              type: messageType,
+              content: message.prompt,
+            },
+            message.provider,
+            3,
+            1000
+          )
 
-          // Timeout fallback (10 seconds)
-          timeoutId = setTimeout(() => {
-            browser.tabs.onUpdated.removeListener(onUpdatedListener)
-            if (hasResponded) return
-            hasResponded = true
-
-            console.error('[Background] Deep Dive chat timeout')
-            sendResponse({
-              success: false,
-              error: 'Timeout waiting for page to load',
-            })
-          }, 10000)
+          if (sent) {
+            console.log(
+              `[Background] Sent prompt to ${message.provider} content script`
+            )
+            sendResponse({ success: true, tabId: tab.id })
+          } else {
+            throw new Error(
+              `Failed to send message to ${message.provider} after retries`
+            )
+          }
         } catch (error) {
           console.error('[Background] Error opening Deep Dive chat:', error)
           sendResponse({ success: false, error: error.message })

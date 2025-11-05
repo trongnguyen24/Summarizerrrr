@@ -183,9 +183,8 @@
 
 {#if isToolEnabled}
   <div
-    class="deep-dive-section fixed bottom-0 -left-px -right-px
-           max-w-2xl mx-auto bg-surface-2 border border-border
-           rounded-lg shadow-xl p-4 z-40
+    class="deep-dive-section fixed bottom-14 bg-surface-2/80 backdrop-blur-lg -left-px -right-px
+           max-w-2xl mx-auto z-40
            max-h-[70vh] overflow-y-auto"
     transition:slide={{ duration: 300, easing: cubicOut }}
   >
@@ -243,7 +242,7 @@
 
       <!-- Questions Display -->
       {#if hasQuestions}
-        <div class="questions-section mb-4">
+        <div class="questions-section">
           <div class="flex flex-col gap-4">
             {#each questions as question, i (question)}
               <QuestionChip
@@ -257,7 +256,7 @@
         </div>
 
         <!-- Custom Question Input -->
-        <div class="custom-question-section mb-4">
+        <div class="custom-question-section">
           <CustomQuestionInput
             value={customQuestion}
             onchange={handleCustomQuestionChange}
@@ -265,7 +264,7 @@
         </div>
 
         <!-- Chat Provider & Start Chat -->
-        <div class="chat-actions flex gap-2">
+        <!-- <div class="chat-actions flex gap-2">
           <div class="flex-1">
             <ChatProviderSelect
               value={chatProvider}
@@ -286,7 +285,7 @@
             />
             <span class="text-xs font-medium">Start Chat</span>
           </button>
-        </div>
+        </div> -->
       {/if}
     {/if}
   </div>

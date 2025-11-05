@@ -5,30 +5,22 @@
  * Generates 3 concise follow-up questions based on summary content
  */
 export const deepDiveQuestionPrompt = {
-  systemInstruction: `You are an expert at generating insightful follow-up questions based on content summaries.
+  systemInstruction: `You are an expert at generating **extremely concise** follow-up questions.
 
-  Generate exactly 3 follow-up questions that help readers explore deeper:
+  **PRIMARY GOAL: BREVITY. Questions must be very short and direct.**
 
-  QUESTION STRUCTURE:
-  1. **Theoretical/Foundational** - Expand on core concepts, mechanisms, or principles
-    - Explore underlying theory, how/why things work
-    - Clarify fundamental concepts or relationships
+  Generate exactly 3 follow-up questions using this structure:
 
-  2. **Practical/Applied** - Connect to real-world use cases or concrete examples
-    - Ask about specific applications or scenarios
-    - Explore practical implications or implementations
-
-  3. **Critical/Exploratory** - Challenge assumptions, explore alternatives, or new perspectives
-    - Question limitations, trade-offs, or edge cases
-    - Compare with alternatives or explore extensions
-    - Open new angles not covered in the summary
+  QUESTION STRUCTURE (Keep answers brief):
+  1. **Concept/Theory:** Ask "how" or "why" about a core principle.
+  2. **Practical/Application:** Ask about a real-world use case or implementation.
+  3. **Critical/Future:** Challenge an assumption, ask about limitations, or explore alternatives.
 
   REQUIREMENTS:
-  ✅ Concise and clear (max 20 words per question)
-  ✅ Directly related to the summary content (reference specific details)
-  ✅ Thought-provoking (encourage deeper exploration)
-  ✅ Non-redundant (don't repeat what's already answered)
-  ✅ Open-ended (avoid yes/no questions)
+  ✅ **EXTREMELY CONCISE (max 15 words per question)**
+  ✅ Directly related to the summary content
+  ✅ Thought-provoking and open-ended (avoid yes/no)
+  ✅ Non-redundant
   ❌ No generic questions
   ❌ No explanations, just the questions`,
 
@@ -63,32 +55,27 @@ export function buildChatPrompt(
   summaryLang = 'English'
 ) {
   return `<context>
-    <source_document>
-      <title>${pageTitle}</title>
-      <url>${pageUrl}</url>
-    </source_document>
-    <summary>
-      <![CDATA[
-      ${summaryContent}
-      ]]>
-    </summary>
-  </context>
-  
-  <task>
-    <user_question>
-      ${question}
-    </user_question>
-    
-    <instructions>
-      You are a subject-matter expert. Please answer the question (in <user_question>) based on the context (in <context>) in ${summaryLang}.
-      The objective is to help the user **deepen their knowledge**. Please:
+<source_document><title>${pageTitle}</title><url>${pageUrl}</url></source_document>
+<summary>
+<![CDATA[
+${summaryContent}
+]]>
+</summary>
+</context>
 
-      1.  **Direct Answer:** Address the user's question directly.
-      2.  **In-depth Explanation:** Clarify core terms and concepts. Don't just state "what," but explain the "why" and "how."
-      3.  **Expand:** Provide related information, real-world examples, or historical/technical context (if appropriate) that the summary may have omitted.
-      4.  **Reference Source:** Refer to the <url> to ensure accuracy and gather more details if needed.
-    </instructions>
-  </task>`
+<task>
+<user_question>
+${question}
+</user_question>
+<instructions>
+You are a subject-matter expert. Please answer the question (in <user_question>) based on the context (in <context>) in ${summaryLang}.
+The objective is to help the user **deepen their knowledge**. Please:
+1.  **Direct Answer:** Address the user's question directly.
+2.  **In-depth Explanation:** Clarify core terms and concepts. Don't just state "what," but explain the "why" and "how."
+3.  **Expand:** Provide related information, real-world examples, or historical/technical context (if appropriate) that the summary may have omitted.
+4.  **Reference Source:** Refer to the <url> to ensure accuracy and gather more details if needed.
+</instructions>
+</task>`
 }
 
 /**
@@ -99,7 +86,7 @@ export const chatProviderUrls = {
   gemini: 'https://gemini.google.com/app?ref=summarizerrrr',
   chatgpt: 'https://chatgpt.com/?ref=summarizerrrr',
   perplexity: 'https://www.perplexity.ai/?ref=summarizerrrr',
-  grok: 'https://grok.com/?ref=summarizerrrr',
+  grok: 'https://grok.com/c?ref=summarizerrrr',
 }
 
 /**

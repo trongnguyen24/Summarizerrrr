@@ -48,7 +48,10 @@
   )
   let hasQuestions = $derived(questions.length > 0)
   let activeQuestion = $derived(selectedQuestion || customQuestion)
-  let canStartChat = $derived(activeQuestion && activeQuestion.trim() !== '')
+  // NEW: Separate logic for custom input only
+  let canStartChatWithCustom = $derived(
+    customQuestion && customQuestion.trim() !== ''
+  )
 
   /**
    * ❌ REMOVED: Lazy generation logic
@@ -113,7 +116,9 @@
    * Handles starting chat with selected/custom question
    */
   async function handleStartChat() {
-    if (!canStartChat) return
+    // Check if we have any question (selected or custom)
+    const questionToUse = activeQuestion
+    if (!questionToUse || questionToUse.trim() === '') return
 
     try {
       console.log(
@@ -235,11 +240,11 @@
             />
           </div>
           <button
-            class="start-chat-btn flex items-center gap-2 py-2 px-4 bg-primary hover:bg-primary/90 text-white rounded-md transition-colors duration-200 {!canStartChat
+            class="start-chat-btn flex items-center gap-2 py-2 px-4 bg-primary hover:bg-primary/90 text-white rounded-md transition-colors duration-200 {!canStartChatWithCustom
               ? 'opacity-50 cursor-not-allowed'
               : ''}"
             onclick={handleStartChat}
-            disabled={!canStartChat}
+            disabled={!canStartChatWithCustom}
           >
             <Icon
               icon="heroicons:chat-bubble-left-right"

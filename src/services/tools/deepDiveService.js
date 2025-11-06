@@ -58,24 +58,59 @@ export async function generateFollowUpQuestions(
       .replace('__URL__', pageUrl || 'N/A')
 
     // ✅ Build full settings object từ providerConfig
-    // buildModelSettings() đã được gọi trong getToolAIModel(),
-    // nhưng generateContent() cần settings object, không phải model instance
     const toolSettings = buildModelSettings(providerConfig, settings)
 
-    const response = await generateContent(
+    // Attempt 1: Try with standard prompt
+    let response = await generateContent(
       providerConfig.provider,
       toolSettings,
       systemInstruction,
       userPrompt
     )
 
-    console.log('[deepDiveService] Raw AI response:', response)
+    console.log('[deepDiveService] Raw AI response (attempt 1):', response)
 
     // Parse questions from response
-    const questions = parseQuestionsFromResponse(response)
+    let questions = parseQuestionsFromResponse(response)
+
+    // Retry logic: If parsing failed, try once more with corrected prompt
+    if (questions.length === 0) {
+      console.log(
+        '[deepDiveService] First attempt failed, retrying with corrected prompt...'
+      )
+
+      // Add correction instructions to system prompt
+      const correctedSystemInstruction =
+        systemInstruction +
+        `\n\nIMPORTANT: The previous response had JSON formatting errors. Please ensure:
+1. Use SINGLE QUOTES (') for any quoted terms within question text, NOT double quotes (")
+2. Ensure the JSON is valid and can be parsed by JSON.parse()
+3. Double-check that all double quotes are properly used only for JSON keys and string delimiters`
+
+      // Retry with corrected prompt
+      try {
+        response = await generateContent(
+          providerConfig.provider,
+          toolSettings,
+          correctedSystemInstruction,
+          userPrompt
+        )
+
+        console.log(
+          '[deepDiveService] Raw AI response (attempt 2 - corrected):',
+          response
+        )
+        questions = parseQuestionsFromResponse(response)
+      } catch (retryError) {
+        console.error('[deepDiveService] Retry attempt failed:', retryError)
+        // Continue with empty questions array to trigger final error
+      }
+    }
 
     if (questions.length === 0) {
-      throw new Error('No questions generated. Please try again.')
+      throw new Error(
+        'No questions generated after multiple attempts. Please try again.'
+      )
     }
 
     console.log(
@@ -103,8 +138,110 @@ export async function generateFollowUpQuestions(
 }
 
 /**
- * Parses questions from AI response
- * Supports JSON format with fallback to plain text parsing
+ * Sanitizes JSON string by escaping unescaped quotes in values
+ * @param {string} str - Potentially broken JSON string
+ * @returns {string} Sanitized JSON string
+ */
+function sanitizeJsonString(str) {
+  // Strategy: Extract the questions array content and rebuild JSON
+  try {
+    // Find the questions array content between [ and ]
+    const arrayMatch = str.match(/"questions"\s*:\s*\[([\s\S]*?)\](?:\s*\})?/)
+    if (!arrayMatch) return str
+
+    const arrayContent = arrayMatch[1]
+
+    // Extract individual question strings with regex
+    // This handles both properly quoted and improperly quoted strings
+    const questions = []
+    const questionRegex = /"([^"]*(?:"[^"]*"[^"]*)*?)"\s*(?:,|\])/g
+
+    let match
+    while ((match = questionRegex.exec(arrayContent)) !== null) {
+      questions.push(match[1])
+    }
+
+    // If we found questions, rebuild the JSON
+    if (questions.length > 0) {
+      // Escape any remaining unescaped quotes in the questions
+      const sanitizedQuestions = questions.map(
+        (q) =>
+          q
+            .replace(/\\"/g, "'") // Replace escaped quotes with single quotes
+            .replace(/(?<!\\)"/g, "'") // Replace unescaped quotes with single quotes
+      )
+
+      return JSON.stringify({ questions: sanitizedQuestions })
+    }
+  } catch (e) {
+    console.log('[deepDiveService] Sanitization failed:', e.message)
+  }
+
+  return str
+}
+
+/**
+ * Extracts questions from broken JSON using regex
+ * @param {string} response - Raw response that might contain broken JSON
+ * @returns {Array<string>} Array of extracted questions
+ */
+function extractQuestionsFromBrokenJson(response) {
+  const questions = []
+
+  // Try to find quoted strings that look like questions
+  // Pattern: "text ending with ?" or text between quotes in questions array
+  const patterns = [
+    // Pattern 1: "text...?" with various quote styles
+    /"([^"]{10,}?\?+)"/g,
+    // Pattern 2: Text between quotes that looks like a question
+    /"([^"]{10,})/g,
+  ]
+
+  for (const pattern of patterns) {
+    const matches = [...response.matchAll(pattern)]
+    for (const match of matches) {
+      let question = match[1].trim()
+
+      // Skip if it's likely not a question
+      if (
+        question.includes('{') ||
+        question.includes('}') ||
+        question === 'questions' ||
+        question.length < 10
+      ) {
+        continue
+      }
+
+      // Clean up the question
+      question = question
+        .replace(/^\d+\.\s*/, '') // Remove numbering
+        .replace(/\\"/g, "'") // Replace escaped quotes
+        .trim()
+
+      // Add question mark if missing
+      if (!question.endsWith('?') && !question.endsWith('？')) {
+        question += '?'
+      }
+
+      // Avoid duplicates
+      if (!questions.includes(question)) {
+        questions.push(question)
+      }
+
+      if (questions.length >= 3) {
+        return questions.slice(0, 3)
+      }
+    }
+
+    if (questions.length > 0) break
+  }
+
+  return questions
+}
+
+/**
+ * Parses questions from AI response with robust error handling
+ * Supports JSON format with multiple fallback strategies
  * @param {string} response - Raw AI response
  * @returns {Array<string>} Array of questions
  */
@@ -118,35 +255,33 @@ function parseQuestionsFromResponse(response) {
     response.substring(0, 200) + '...'
   )
 
-  // Try JSON parsing first
+  // Step 1: Clean up markdown code blocks
+  let cleanedResponse = response.trim()
+  if (cleanedResponse.startsWith('```')) {
+    cleanedResponse = cleanedResponse
+      .replace(/^```(?:json)?\s*/i, '')
+      .replace(/```\s*$/, '')
+      .trim()
+  }
+
+  // Step 2: Try to find JSON object in response
+  const jsonMatch = cleanedResponse.match(
+    /\{[^}]*"questions"[^}]*\[[\s\S]*?\][\s\S]*?\}/
+  )
+  if (jsonMatch) {
+    cleanedResponse = jsonMatch[0]
+  }
+
+  // Step 3: Try standard JSON parsing
   try {
-    // Remove markdown code blocks if present
-    let cleanedResponse = response.trim()
-    if (cleanedResponse.startsWith('```')) {
-      cleanedResponse = cleanedResponse
-        .replace(/^```(?:json)?\s*/i, '')
-        .replace(/```\s*$/, '')
-        .trim()
-    }
-
-    // Try to find JSON in response (may have extra text before/after)
-    const jsonMatch = cleanedResponse.match(
-      /\{[^}]*"questions"[^}]*\[[^\]]*\][^}]*\}/s
-    )
-    if (jsonMatch) {
-      cleanedResponse = jsonMatch[0]
-    }
-
     const parsed = JSON.parse(cleanedResponse)
 
-    // Validate JSON structure
     if (parsed.questions && Array.isArray(parsed.questions)) {
       const validQuestions = parsed.questions
         .filter((q) => typeof q === 'string' && q.trim().length > 0)
-        .slice(0, 3) // Ensure max 3 questions
+        .slice(0, 3)
         .map((q) => {
           let cleaned = q.trim()
-          // Add question mark if missing
           if (!cleaned.endsWith('?') && !cleaned.endsWith('？')) {
             cleaned += '?'
           }
@@ -154,19 +289,67 @@ function parseQuestionsFromResponse(response) {
         })
 
       if (validQuestions.length > 0) {
-        console.log('[deepDiveService] ✅ Parsed JSON format:', validQuestions)
+        console.log(
+          '[deepDiveService] ✅ Parsed JSON successfully:',
+          validQuestions
+        )
         return validQuestions
       }
     }
   } catch (jsonError) {
     console.log(
-      '[deepDiveService] JSON parsing failed, falling back to plain text:',
+      '[deepDiveService] Standard JSON parsing failed:',
       jsonError.message
     )
+
+    // Step 4: Try sanitizing and re-parsing
+    try {
+      const sanitized = sanitizeJsonString(cleanedResponse)
+      const parsed = JSON.parse(sanitized)
+
+      if (parsed.questions && Array.isArray(parsed.questions)) {
+        const validQuestions = parsed.questions
+          .filter((q) => typeof q === 'string' && q.trim().length > 0)
+          .slice(0, 3)
+          .map((q) => {
+            let cleaned = q.trim()
+            if (!cleaned.endsWith('?') && !cleaned.endsWith('？')) {
+              cleaned += '?'
+            }
+            return cleaned
+          })
+
+        if (validQuestions.length > 0) {
+          console.log(
+            '[deepDiveService] ✅ Parsed sanitized JSON:',
+            validQuestions
+          )
+          return validQuestions
+        }
+      }
+    } catch (sanitizeError) {
+      console.log(
+        '[deepDiveService] Sanitized JSON parsing also failed:',
+        sanitizeError.message
+      )
+    }
+
+    // Step 5: Try extracting from broken JSON with regex
+    console.log(
+      '[deepDiveService] Attempting regex extraction from broken JSON'
+    )
+    const extractedQuestions = extractQuestionsFromBrokenJson(response)
+    if (extractedQuestions.length > 0) {
+      console.log(
+        '[deepDiveService] ✅ Extracted from broken JSON:',
+        extractedQuestions
+      )
+      return extractedQuestions
+    }
   }
 
-  // Fallback to plain text parsing (backward compatibility)
-  console.log('[deepDiveService] Using plain text parser')
+  // Step 6: Final fallback - plain text parsing
+  console.log('[deepDiveService] Using plain text parser as final fallback')
   const lines = response
     .split('\n')
     .map((line) => line.trim())
@@ -175,24 +358,28 @@ function parseQuestionsFromResponse(response) {
   const questions = []
 
   for (const line of lines) {
-    // Skip lines that look like JSON structure
+    // Skip obvious JSON structure lines
     if (
-      line.includes('{') ||
-      line.includes('}') ||
+      line === '{' ||
+      line === '}' ||
+      line === '[' ||
+      line === ']' ||
       line.includes('"questions"') ||
-      line.includes('[') ||
-      line.includes(']')
+      line.includes('```')
     ) {
       continue
     }
 
-    // Remove numbering (1., 2., 3., etc.) and clean up
+    // Remove JSON remnants and numbering
     let cleaned = line
+      .replace(/^"/, '') // Remove leading quote
+      .replace(/"[,\s]*$/, '') // Remove trailing quote and comma
       .replace(/^\d+\.\s*/, '') // Remove "1. ", "2. ", etc.
       .replace(/^[-*]\s*/, '') // Remove "- " or "* "
+      .replace(/\\"/g, "'") // Replace escaped quotes
       .trim()
 
-    // Skip if line is too short or doesn't look like a question
+    // Skip if line is too short
     if (cleaned.length < 10) {
       continue
     }
@@ -204,10 +391,13 @@ function parseQuestionsFromResponse(response) {
 
     questions.push(cleaned)
 
-    // Stop after 3 questions
     if (questions.length >= 3) {
       break
     }
+  }
+
+  if (questions.length > 0) {
+    console.log('[deepDiveService] ✅ Extracted from plain text:', questions)
   }
 
   return questions

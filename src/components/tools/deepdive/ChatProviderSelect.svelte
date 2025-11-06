@@ -13,7 +13,7 @@
   const providers = [
     {
       value: 'gemini',
-      label: 'Google Gemini',
+      label: 'Gemini',
       icon: 'simple-icons:googlebard',
     },
     { value: 'chatgpt', label: 'ChatGPT', icon: 'simple-icons:openai' },
@@ -43,19 +43,25 @@
   onValueChange={handleChange}
 >
   <Select.Trigger
-    class="w-full flex items-center justify-between gap-2 py-2 px-3 bg-surface-2 hover:bg-surface-3 border border-border rounded-md transition-colors duration-200 focus:outline-none focus:ring-0"
+    class="w-full flex items-center justify-between gap-1 py-2.5 px-2 hover:bg-blackwhite-5 rounded-full  transition-colors duration-200 focus:outline-none focus:ring-1"
     aria-label={ariaLabel}
   >
     <div class="flex items-center gap-2">
       <Icon icon={selectedProvider.icon} width="16" height="16" />
       <span class="text-xs text-text-primary">{selectedProvider.label}</span>
     </div>
-    <Icon
-      icon="heroicons:chevron-down"
-      width="16"
-      height="16"
-      class="text-text-secondary transition-transform duration-200 data-[state=open]:rotate-180"
-    />
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 20 20"
+      fill="currentColor"
+      class="size-3"
+    >
+      <path
+        fill-rule="evenodd"
+        d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z"
+        clip-rule="evenodd"
+      />
+    </svg>
   </Select.Trigger>
 
   <Select.Portal>

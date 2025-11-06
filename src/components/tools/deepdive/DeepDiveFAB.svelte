@@ -137,22 +137,13 @@
 </button>
 
 <!-- Simple Tooltip (Custom) -->
-{#if !isPreloading}
+{#if isPreloading}
   <div
-    class="tooltip-container fixed bottom-6 left-16 z-50"
+    class="tooltip-container fixed bottom-7.5 left-12 bg-surface-2/50 backdrop-blur-md px-3 rounded-sm py-1 font-mono text-xs z-30"
     transition:fade={{ duration: 150 }}
   >
     <div class="tooltip">
-      <div class="tooltip-header">
-        <!-- <Icon
-          icon="svg-spinners:ring-resize"
-          width="14"
-          height="14"
-          class="text-primary"
-        /> -->
-        <span class="tooltip-text">Generating questions...</span>
-      </div>
-      <!-- <div class="tooltip-hint">Press ESC to cancel</div> -->
+      <span class="tooltip-text">Generating questions...</span>
     </div>
   </div>
 {/if}
@@ -224,35 +215,5 @@
   /* Custom Tooltip Styles */
   .tooltip-container {
     pointer-events: none;
-  }
-
-  .tooltip {
-    background: var(--surface-2);
-    border: 1px solid var(--border);
-    border-radius: 0.5rem;
-    box-shadow:
-      0 4px 6px -1px rgba(0, 0, 0, 0.1),
-      0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    padding: 0.5rem 0.75rem;
-    min-width: 180px;
-  }
-
-  .tooltip-header {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-
-  .tooltip-text {
-    font-size: 0.75rem;
-    color: var(--text-primary);
-    font-weight: 500;
-  }
-
-  .tooltip-hint {
-    font-size: 0.625rem;
-    color: var(--text-secondary);
-    margin-top: 0.25rem;
-    margin-left: 1.375rem;
   }
 </style>

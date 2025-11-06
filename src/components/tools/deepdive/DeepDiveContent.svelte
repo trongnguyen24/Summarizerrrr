@@ -141,11 +141,11 @@
 </script>
 
 <div
-  class="deep-dive-content bg-surface-2 border border-border rounded-lg shadow-xl
+  class="deep-dive-content
          max-h-[70vh] overflow-y-auto flex flex-col"
 >
   <!-- Header -->
-  <div
+  <!-- <div
     class="header sticky top-0 z-10 bg-surface-2 border-b border-border px-6 py-4 flex items-center justify-between"
   >
     <div class="flex items-center gap-2">
@@ -164,10 +164,10 @@
     >
       <Icon icon="heroicons:x-mark" width="20" height="20" />
     </button>
-  </div>
+  </div> -->
 
   <!-- Content -->
-  <div class="content-body px-6 py-4 space-y-4">
+  <div class="content-body py-4 space-y-4">
     <!-- Error Display -->
     {#if error}
       <div
@@ -223,37 +223,46 @@
       <!-- Questions Display -->
       {#if hasQuestions}
         <!-- Custom Question Input -->
-        <div class="custom-question-section">
+        <div class="custom-question-section relative">
           <CustomQuestionInput
             value={customQuestion}
             onchange={handleCustomQuestionChange}
             onSubmit={handleStartChat}
           />
+          <!-- Chat Provider & Start Chat -->
+          <div
+            class="chat-actions flex gap-1 absolute items-center z-20 bottom-3.5 right-1.75"
+          >
+            <div class="flex-1">
+              <ChatProviderSelect
+                value={chatProvider}
+                onchange={handleProviderChange}
+              />
+            </div>
+            <!-- svelte-ignore a11y_consider_explicit_label -->
+            <button
+              class="start-chat-btn flex items-center justify-center gap-2 size-10 bg-white/85 text-black rounded-full transition-all scale-100 duration-300 {!canStartChatWithCustom
+                ? ' !bg-muted/30 !scale-75 text-muted cursor-not-allowed'
+                : 'hover:bg-white hover:ring-1 ring-white'}"
+              onclick={handleStartChat}
+              disabled={!canStartChatWithCustom}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                class="size-5"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M3 10a.75.75 0 0 1 .75-.75h10.638L10.23 5.29a.75.75 0 1 1 1.04-1.08l5.5 5.25a.75.75 0 0 1 0 1.08l-5.5 5.25a.75.75 0 1 1-1.04-1.08l4.158-3.96H3.75A.75.75 0 0 1 3 10Z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+            </button>
+          </div>
         </div>
 
-        <!-- Chat Provider & Start Chat -->
-        <div class="chat-actions flex gap-2">
-          <div class="flex-1">
-            <ChatProviderSelect
-              value={chatProvider}
-              onchange={handleProviderChange}
-            />
-          </div>
-          <button
-            class="start-chat-btn flex items-center gap-2 py-2 px-4 bg-primary hover:bg-primary/90 text-white rounded-md transition-colors duration-200 {!canStartChatWithCustom
-              ? 'opacity-50 cursor-not-allowed'
-              : ''}"
-            onclick={handleStartChat}
-            disabled={!canStartChatWithCustom}
-          >
-            <Icon
-              icon="heroicons:chat-bubble-left-right"
-              width="16"
-              height="16"
-            />
-            <span class="text-xs font-medium">Start Chat</span>
-          </button>
-        </div>
         <div class="questions-section">
           <div class="flex flex-col gap-3">
             {#each questions as question, i (question)}

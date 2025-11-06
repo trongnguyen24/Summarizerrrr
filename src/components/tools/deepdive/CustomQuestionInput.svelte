@@ -6,7 +6,7 @@
     value = '',
     onchange,
     onSubmit, // NEW: Submit handler for Enter key
-    placeholder = 'Type your question here...',
+    placeholder = 'Your question...',
   } = $props()
 
   let inputValue = $state(value)
@@ -124,7 +124,7 @@
     onblur={handleBlur}
     {placeholder}
     rows="1"
-    class="w-full py-2 pl-3 pr-10 bg-surface-2 border border-border text-sm text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-primary transition-colors duration-200 resize-none overflow-y-auto"
+    class="w-full py-4 rounded-[27px] pl-6 pr-10 bg-surface-2 border border-border text-sm text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-primary transition-colors duration-200 resize-none overflow-y-auto"
   />
 </div>
 

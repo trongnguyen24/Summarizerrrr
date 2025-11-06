@@ -30,16 +30,27 @@ export const deepDiveQuestionPrompt = {
 __CONTENT__
 </SUMMARY>
 
+<SOURCE_URL>
+__URL__
+</SOURCE_URL>
+
 <OUTPUT_FORMAT>
 Return ONLY valid JSON in this exact format (no markdown, no code blocks):
 {"questions": ["question 1 text here", "question 2 text here", "question 3 text here"]}
 
-CRITICAL:
-- Must be valid JSON with double quotes
+CRITICAL JSON FORMATTING RULES:
+- Must be valid JSON with double quotes for keys and values
 - Each question should end with "?"
 - Questions should be in __LANG__
+- **IMPORTANT**: If you need to use quotes in question text, use SINGLE QUOTES (') instead of double quotes (")
+  ✅ CORRECT: "How does 'vibe coding' change development?"
+  ❌ WRONG: "How does \"vibe coding\" change development?"
 - No explanations, no numbering in the text
+- No special characters that break JSON: avoid unescaped \, ", newlines in strings
 - Follow the priority order: Deep Dive → Practical → Critical/Comparative/Clarification
+
+EXAMPLE OUTPUT:
+{"questions": ["How does 'concept X' improve performance?", "What are practical uses of this approach?", "What limitations does this method have?"]}
 </OUTPUT_FORMAT>`,
 }
 

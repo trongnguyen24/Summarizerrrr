@@ -96,7 +96,13 @@ export default defineConfig({
     } else if (browser === 'firefox') {
       return {
         default_locale: 'en',
-        permissions: ['storage', 'tabs', 'activeTab', 'contextMenus'],
+        permissions: [
+          'storage',
+          'tabs',
+          'activeTab',
+          'scripting',
+          'contextMenus',
+        ],
         optional_permissions: ['https://*/*'],
         host_permissions: [
           'http://127.0.0.1:11434/*',

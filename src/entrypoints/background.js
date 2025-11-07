@@ -1077,9 +1077,22 @@ export default defineBackground(() => {
   browser.tabs.onActivated.addListener((activeInfo) =>
     handleTabChange(activeInfo.tabId)
   )
-  browser.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+  browser.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
     if (changeInfo.status === 'complete' || changeInfo.title) {
-      handleTabChange(tabId)
+      // Only handle tab change if this tab is currently active
+      // This prevents title updates from background tabs (e.g., Messenger notifications)
+      try {
+        const [activeTab] = await browser.tabs.query({
+          active: true,
+          currentWindow: true,
+        })
+
+        if (activeTab && activeTab.id === tabId) {
+          handleTabChange(tabId)
+        }
+      } catch (error) {
+        console.error('[Background] Error checking active tab:', error)
+      }
     }
   })
 

@@ -26,7 +26,7 @@
 
 <Dialog.Root {open} onOpenChange={handleOpenChange}>
   <Dialog.Portal>
-    <Dialog.Overlay class="fixed inset-0 z-40 bg-black/80" forceMount>
+    <Dialog.Overlay class="fixed inset-0 z-40 bg-surface-1" forceMount>
       {#snippet child({ props, open })}
         {#if open}
           <div {...props} transition:fade={{ duration: 200 }}></div>
@@ -37,7 +37,7 @@
     <Dialog.Content
       preventScroll={true}
       forceMount
-      class="fixed left-[50%] top-[50%] z-50 w-[calc(100vw-2rem)] max-w-2xl 
+      class="fixed left-[50%] top-[50%] z-50 w-[calc(100vw-1rem)] max-w-2xl 
              -translate-x-1/2 -translate-y-1/2 outline-hidden"
       onOpenAutoFocus={(e) => e.preventDefault()}
     >

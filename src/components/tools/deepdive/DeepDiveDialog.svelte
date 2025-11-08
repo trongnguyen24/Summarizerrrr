@@ -37,6 +37,7 @@
     <Dialog.Content
       preventScroll={true}
       forceMount
+      interactOutsideBehavior="ignore"
       class="fixed left-[50%] top-[50%] z-50 w-[calc(100vw-1rem)] max-w-2xl 
              -translate-x-1/2 -translate-y-1/2 outline-hidden"
       onOpenAutoFocus={(e) => e.preventDefault()}

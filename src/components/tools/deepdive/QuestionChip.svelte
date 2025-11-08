@@ -21,6 +21,6 @@
       />
     </svg>
 
-    <p class="question-text font-mono text-sm flex-1">{question}</p>
+    <p class="question-text text-sm flex-1">{question}</p>
   </div>
 </button>

@@ -52,6 +52,8 @@
   let canStartChatWithCustom = $derived(
     customQuestion && customQuestion.trim() !== ''
   )
+  // Compact mode for ChatProviderSelect when user types in CustomQuestionInput
+  let isCompact = $derived(customQuestion.length > 0)
 
   /**
    * ❌ REMOVED: Lazy generation logic
@@ -167,7 +169,19 @@
   </div> -->
 
   <!-- Content -->
-  <div class="content-body py-4 space-y-4">
+  <div class="content-body py-4 flex flex-col gap-4">
+    <div class="flex flex-col items-center gap-2">
+      <span
+        class=" font-mono text-xs px-4 text-text-secondary py-1 mx-auto rounded-4xl w-fit bg-blackwhite-5"
+        >Deep dive</span
+      >
+      <h3
+        class="text-sm font-mono !text-center uppercase text-balance text-text-primary"
+      >
+        {pageTitle}
+      </h3>
+    </div>
+
     <!-- Error Display -->
     {#if error}
       <div
@@ -237,11 +251,12 @@
               <ChatProviderSelect
                 value={chatProvider}
                 onchange={handleProviderChange}
+                {isCompact}
               />
             </div>
             <!-- svelte-ignore a11y_consider_explicit_label -->
             <button
-              class="start-chat-btn flex items-center justify-center gap-2 size-10 bg-white/85 text-black rounded-full transition-all scale-100 duration-300 {!canStartChatWithCustom
+              class="start-chat-btn flex items-center justify-center gap-2 size-10 bg-white text-black rounded-full transition-all scale-100 duration-300 {!canStartChatWithCustom
                 ? ' !bg-muted/30 !scale-75 text-muted cursor-not-allowed'
                 : 'hover:bg-white hover:ring-1 ring-white'}"
               onclick={handleStartChat}

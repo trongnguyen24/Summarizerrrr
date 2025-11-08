@@ -65,16 +65,7 @@ export function buildChatPrompt(
   pageUrl,
   summaryLang = 'English'
 ) {
-  return `<context>
-<source_document><title>${pageTitle}</title><url>${pageUrl}</url></source_document>
-<summary>
-<![CDATA[
-${summaryContent}
-]]>
-</summary>
-</context>
-
-<task>
+  return `<task>
 <user_question>
 ${question}
 </user_question>
@@ -86,7 +77,15 @@ The objective is to help the user **deepen their knowledge**. Please:
 3.  **Expand:** Provide related information, real-world examples, or historical/technical context (if appropriate) that the summary may have omitted.
 4.  **Reference Source:** Refer to the <url> to ensure accuracy and gather more details if needed.
 </instructions>
-</task>`
+</task>
+<context>
+<source_document><title>${pageTitle}</title><url>${pageUrl}</url></source_document>
+<summary>
+<![CDATA[
+${summaryContent}
+]]>
+</summary>
+</context>`
 }
 
 /**

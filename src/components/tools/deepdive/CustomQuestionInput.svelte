@@ -103,7 +103,7 @@
 
 <div class="custom-question-input">
   <!-- Clear button (shows when focused with content) -->
-  {#if showClearButton}
+  <!-- {#if showClearButton}
     <button
       onmousedown={(e) => e.preventDefault()}
       onclick={handleClear}
@@ -112,7 +112,7 @@
     >
       <Icon icon="heroicons:x-mark" width="14" height="14" />
     </button>
-  {/if}
+  {/if} -->
 
   <!-- svelte-ignore element_invalid_self_closing_tag -->
   <textarea
@@ -124,7 +124,7 @@
     onblur={handleBlur}
     {placeholder}
     rows="1"
-    class="w-full py-4 rounded-[27px] pl-6 pr-10 bg-surface-2 border border-border text-sm text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-primary transition-colors duration-200 resize-none overflow-y-auto"
+    class="w-full py-4 rounded-[27px] pl-6 pr-10 bg-surface-2 border border-muted/30 text-sm text-text-primary placeholder:text-muted focus:outline-none focus:ring-0 transition-colors duration-200 resize-none overflow-y-auto"
   />
 </div>
 
@@ -144,18 +144,6 @@
 
   .custom-question-input textarea:focus {
     box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1); /* Primary color shadow */
-  }
-
-  .clear-btn {
-    color: var(--text-secondary);
-    background: var(--surface-2);
-    border: 1px solid var(--border);
-    z-index: 10;
-  }
-
-  .clear-btn:hover {
-    color: var(--text-primary);
-    background: var(--surface-3);
   }
 
   /* Custom scrollbar styling */

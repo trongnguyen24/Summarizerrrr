@@ -1,7 +1,7 @@
 <script>
   // @ts-nocheck
   import { Select } from 'bits-ui'
-  import { fly } from 'svelte/transition'
+  import { slideScaleFade } from '@/lib/ui/slideScaleFade.js'
   import GeminiIcon from '@/components/icons/GeminiIcon.svelte'
   import ChatGPTIcon from '@/components/icons/ChatGPTIcon.svelte'
   import PerplexityIcon from '@/components/icons/PerplexityIcon.svelte'
@@ -128,7 +128,30 @@
       aria-label={ariaLabel}
     >
       <div class="flex items-center gap-1 min-w-0">
-        <selectedProvider.icon width={20} height={20} class="flex-shrink-0" />
+        <div class="size-5 relative flex-shrink-0">
+          {#key selectedProvider.value}
+            <div
+              in:slideScaleFade={{
+                delay: 160,
+                slideFrom: 'left',
+                duration: 300,
+                startBlur: 2,
+                slideDistance: '0px',
+                startScale: 1.25,
+              }}
+              out:slideScaleFade={{
+                slideFrom: 'left',
+                duration: 260,
+                startBlur: 2,
+                slideDistance: '0px',
+                startScale: 0.85,
+              }}
+              class="absolute inset-0 flex items-center justify-center"
+            >
+              <selectedProvider.icon width={20} height={20} />
+            </div>
+          {/key}
+        </div>
         <span
           class="label-text text-xs text-text-primary {isCompact
             ? 'compact'
@@ -163,7 +186,21 @@
         {#snippet child({ wrapperProps, props, open })}
           {#if open}
             <div {...wrapperProps}>
-              <div {...props} transition:fly={{ y: -4, duration: 350 }}>
+              <div
+                {...props}
+                in:slideScaleFade={{
+                  slideFrom: 'top',
+                  duration: 250,
+                  slideDistance: '8px',
+                  startScale: 0.85,
+                }}
+                out:slideScaleFade={{
+                  slideFrom: 'top',
+                  duration: 200,
+                  slideDistance: '8px',
+                  startScale: 0.95,
+                }}
+              >
                 <Select.Viewport>
                   {#each providers as provider (provider.value)}
                     <Select.Item

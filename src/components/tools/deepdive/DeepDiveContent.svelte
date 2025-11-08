@@ -158,7 +158,7 @@
 
 <div
   class="deep-dive-content
-         max-h-[70vh] overflow-y-auto flex flex-col"
+         max-h-[70vh] flex flex-col"
 >
   <!-- Header -->
   <!-- <div
@@ -270,9 +270,9 @@
             </div>
             <!-- svelte-ignore a11y_consider_explicit_label -->
             <button
-              class="start-chat-btn flex items-center justify-center gap-2 size-10 bg-white text-black rounded-full transition-all scale-100 duration-300 {!canStartChatWithCustom
+              class="start-chat-btn flex items-center justify-center gap-2 size-10 dark:bg-white text-black rounded-full transition-all scale-100 duration-300 {!canStartChatWithCustom
                 ? ' !bg-muted/30 !scale-75 text-muted cursor-not-allowed'
-                : 'hover:bg-white hover:ring-1 ring-white'}"
+                : 'dark:hover:bg-white ring-black !bg-black hover:ring-2 !text-white dark:ring-white'}"
               onclick={handleStartChat}
               disabled={!canStartChatWithCustom}
             >

@@ -90,6 +90,20 @@
   }
 
   /**
+   * Handles regenerate questions
+   */
+  async function handleRegenerate() {
+    if (!canGenerate) return
+
+    // Clear current selections
+    setSelectedQuestion(null)
+    setCustomQuestion('')
+
+    // Reuse existing generate logic
+    await handleGenerate()
+  }
+
+  /**
    * Handles question selection
    */
   async function handleQuestionSelect(question) {
@@ -285,9 +299,31 @@
                 {question}
                 index={i + 1}
                 isSelected={selectedQuestion === question}
+                disabled={isGenerating}
                 onclick={() => handleQuestionSelect(question)}
               />
             {/each}
+
+            <!-- Regenerate Button -->
+            <div class="flex justify-center pt-2">
+              <button
+                onclick={handleRegenerate}
+                disabled={isGenerating || !canGenerate}
+                class="regenerate-btn p-2 bg-surface-3 hover:bg-surface-1
+                       border border-border rounded-full
+                       text-text-secondary hover:text-primary
+                       transition-all duration-200
+                       {isGenerating ? 'opacity-50 cursor-wait' : ''}"
+                title={isGenerating ? 'Generating...' : 'Regenerate questions'}
+              >
+                <Icon
+                  icon="heroicons:arrow-path"
+                  width="16"
+                  height="16"
+                  class={isGenerating ? 'animate-spin' : ''}
+                />
+              </button>
+            </div>
           </div>
         </div>
       {/if}
@@ -317,5 +353,14 @@
   .start-chat-btn:disabled {
     cursor: not-allowed;
     opacity: 0.5;
+  }
+
+  .regenerate-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+
+  .regenerate-btn:not(:disabled):hover {
+    transform: scale(1.05);
   }
 </style>

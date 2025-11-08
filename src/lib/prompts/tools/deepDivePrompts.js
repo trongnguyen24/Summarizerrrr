@@ -22,7 +22,15 @@ export const deepDiveQuestionPrompt = {
   ✅ Thought-provoking and open-ended (avoid yes/no)
   ✅ Non-redundant
   ❌ No generic questions
-  ❌ No explanations, just the questions`,
+  ❌ No explanations, just the questions
+
+  **TERMINOLOGY ANNOTATION (non-English only):**
+  Format: "English Term (translation)" - annotate 1-3 CORE technical terms per question.
+  
+  ✅ Annotate: AI/ML techniques, novel algorithms, methodologies, acronyms (e.g., "RLHF (học tăng cường)")
+  ❌ Skip: Common tech words (API, model, network), generic terms (architecture, performance)
+  
+  Examples: "Distillation (chưng cất) cải thiện accuracy?" | "Transfer Learning (học chuyển giao) vs Fine-tuning (tinh chỉnh)?"`,
 
   userPrompt: `Based on the following summary, generate exactly 3 follow-up questions.
 
@@ -49,8 +57,14 @@ CRITICAL JSON FORMATTING RULES:
 - No special characters that break JSON: avoid unescaped \, ", newlines in strings
 - Follow the priority order: Deep Dive → Practical → Critical/Comparative/Clarification
 
-EXAMPLE OUTPUT:
-{"questions": ["How does 'concept X' improve performance?", "What are practical uses of this approach?", "What limitations does this method have?"]}
+**TERMINOLOGY ANNOTATION REMINDER:**
+If __LANG__ ≠ "English": Annotate 1-3 CORE terms using "English (translation)" format.
+
+EXAMPLE OUTPUT (English):
+{"questions": ["How does X improve performance?", "What are practical uses?", "What limitations exist?"]}
+
+EXAMPLE OUTPUT (Vietnamese):
+{"questions": ["Distillation (chưng cất) hoạt động ra sao?", "Fine-tuning (tinh chỉnh) khác Distillation (chưng cất) ở đâu?", "RLHF áp dụng khi nào?"]}
 </OUTPUT_FORMAT>`,
 }
 
@@ -65,6 +79,14 @@ export function buildChatPrompt(
   pageUrl,
   summaryLang = 'English'
 ) {
+  // Determine if terminology annotation is needed
+  const needsAnnotation = summaryLang.toLowerCase() !== 'english'
+
+  const annotationGuideline = needsAnnotation
+    ? `
+5. **TERMINOLOGY ANNOTATION:** Annotate CORE technical terms as "English Term (${summaryLang} translation)". Prioritize AI/ML techniques, algorithms, methodologies over common words. Example: "Constitutional AI (AI hiến pháp) uses RLHF (học tăng cường) for Training (huấn luyện)."`
+    : ''
+
   return `<task>
 <user_question>
 ${question}
@@ -76,6 +98,7 @@ The objective is to help the user **deepen their knowledge**. Please:
 2.  **In-depth Explanation:** Clarify core terms and concepts. Don't just state "what," but explain the "why" and "how."
 3.  **Expand:** Provide related information, real-world examples, or historical/technical context (if appropriate) that the summary may have omitted.
 4.  **Reference Source:** Refer to the <url> to ensure accuracy and gather more details if needed.
+${annotationGuideline}
 </instructions>
 </task>
 <context>

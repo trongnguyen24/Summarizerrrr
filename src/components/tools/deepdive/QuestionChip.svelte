@@ -1,11 +1,20 @@
 <script>
   // @ts-nocheck
-  let { question, index, isSelected = false, onclick } = $props()
+  let {
+    question,
+    index,
+    isSelected = false,
+    disabled = false,
+    onclick,
+  } = $props()
 </script>
 
 <button
-  class="question-chip w-full px-4 py-2 text-left text-text-secondary hover:text-text-primary transition-all duration-200"
+  class="question-chip select-all w-full px-4 py-2 text-left text-text-secondary hover:text-text-primary transition-all duration-200 {disabled
+    ? 'opacity-50 cursor-not-allowed pointer-events-none'
+    : ''}"
   {onclick}
+  {disabled}
 >
   <div class="flex items-start gap-1.5">
     <svg

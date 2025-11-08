@@ -7,14 +7,13 @@
   import ToolProvidersSelect from '@/components/inputs/ToolProvidersSelect.svelte'
   import ButtonSet from '@/components/buttons/ButtonSet.svelte'
 
-  // Provider configs (reuse existing components)
-  import GeminiAdvancedConfig from '@/components/providerConfigs/GeminiAdvancedConfig.svelte'
-  import OpenrouterConfig from '@/components/providerConfigs/OpenrouterConfig.svelte'
-  import ChatGPTConfig from '@/components/providerConfigs/ChatGPTConfig.svelte'
-  import DeepseekConfig from '@/components/providerConfigs/DeepseekConfig.svelte'
-  import GroqConfig from '@/components/providerConfigs/GroqConfig.svelte'
-  import OllamaConfig from '@/components/providerConfigs/OllamaConfig.svelte'
-  import LMStudioConfig from '@/components/providerConfigs/LMStudioConfig.svelte'
+  // Tool-specific provider configs
+  import ToolGeminiAdvancedConfig from '@/components/providerConfigs/tools/ToolGeminiAdvancedConfig.svelte'
+  import ToolChatGPTConfig from '@/components/providerConfigs/tools/ToolChatGPTConfig.svelte'
+  import ToolDeepseekConfig from '@/components/providerConfigs/tools/ToolDeepseekConfig.svelte'
+  import ToolGroqConfig from '@/components/providerConfigs/tools/ToolGroqConfig.svelte'
+  import ToolOllamaConfig from '@/components/providerConfigs/tools/ToolOllamaConfig.svelte'
+  import ToolLMStudioConfig from '@/components/providerConfigs/tools/ToolLMStudioConfig.svelte'
 
   // ✅ Computed value cho tool settings
   let toolSettings = $derived.by(() => settings.tools?.deepDive ?? {})
@@ -90,7 +89,6 @@
     // Reset model về default của provider mới
     const defaultModels = {
       gemini: 'gemini-2.5-flash',
-      openrouter: 'deepseek/deepseek-r1-0528:free',
       chatgpt: 'gpt-5-mini',
       deepseek: 'deepseek-chat',
       groq: 'moonshotai/kimi-k2-instruct',
@@ -108,6 +106,13 @@
         },
       },
     })
+  }
+
+  /**
+   * Handle model change - update tool settings only
+   */
+  function handleModelChange(newModel) {
+    updateToolSetting('customModel', newModel)
   }
 </script>
 
@@ -165,39 +170,52 @@
           />
         </div>
 
-        <!-- ✅ INFO: API keys được dùng từ global settings -->
+        <!-- ✅ INFO: API keys editable and update global settings -->
         <div class="text-xs text-text-secondary flex items-center gap-1 -mt-2">
           <Icon icon="heroicons:information-circle" width="16" height="16" />
-          <span>Using API key from Summary settings</span>
+          <span
+            >API keys are shared with Summary settings. Models are
+            tool-specific.</span
+          >
         </div>
 
-        <!-- Dynamic Provider Config (reuse existing components) -->
-        <!-- ✅ READONLY props cho API keys, chỉ bind model -->
+        <!-- Dynamic Provider Config (tool-specific components) -->
+        <!-- ✅ API keys editable → update global, Models → update tool settings -->
         {#key toolSettings.customProvider}
           {#if toolSettings.customProvider === 'gemini'}
-            <GeminiAdvancedConfig
-              geminiAdvancedApiKey={settings.geminiAdvancedApiKey}
-              bind:selectedGeminiAdvancedModel={customModelProxy}
-            />
-          {:else if toolSettings.customProvider === 'openrouter'}
-            <OpenrouterConfig
-              openrouterApiKey={settings.openrouterApiKey}
-              bind:selectedOpenrouterModel={customModelProxy}
+            <ToolGeminiAdvancedConfig
+              bind:apiKey={settings.geminiAdvancedApiKey}
+              bind:selectedModel={customModelProxy}
+              onModelChange={handleModelChange}
             />
           {:else if toolSettings.customProvider === 'chatgpt'}
-            <ChatGPTConfig bind:selectedChatgptModel={customModelProxy} />
+            <ToolChatGPTConfig
+              bind:apiKey={settings.chatgptApiKey}
+              bind:selectedModel={customModelProxy}
+              onModelChange={handleModelChange}
+            />
           {:else if toolSettings.customProvider === 'deepseek'}
-            <DeepseekConfig
-              deepseekApiKey={settings.deepseekApiKey}
-              deepseekBaseUrl={settings.deepseekBaseUrl}
-              bind:selectedDeepseekModel={customModelProxy}
+            <ToolDeepseekConfig
+              bind:apiKey={settings.deepseekApiKey}
+              bind:selectedModel={customModelProxy}
+              onModelChange={handleModelChange}
             />
           {:else if toolSettings.customProvider === 'groq'}
-            <GroqConfig />
+            <ToolGroqConfig
+              bind:apiKey={settings.groqApiKey}
+              bind:selectedModel={customModelProxy}
+              onModelChange={handleModelChange}
+            />
           {:else if toolSettings.customProvider === 'ollama'}
-            <OllamaConfig />
+            <ToolOllamaConfig
+              bind:selectedModel={customModelProxy}
+              onModelChange={handleModelChange}
+            />
           {:else if toolSettings.customProvider === 'lmstudio'}
-            <LMStudioConfig />
+            <ToolLMStudioConfig
+              bind:selectedModel={customModelProxy}
+              onModelChange={handleModelChange}
+            />
           {/if}
         {/key}
       </div>

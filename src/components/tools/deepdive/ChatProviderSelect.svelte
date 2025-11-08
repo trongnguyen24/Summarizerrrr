@@ -135,7 +135,7 @@
                 delay: 160,
                 slideFrom: 'left',
                 duration: 300,
-                startBlur: 2,
+                startBlur: 4,
                 slideDistance: '0px',
                 startScale: 1.25,
               }}

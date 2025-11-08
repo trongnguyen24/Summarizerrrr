@@ -158,42 +158,57 @@
 
 <div
   class="deep-dive-content
-         max-h-[70vh] flex flex-col"
+         max-h-[calc(100vh-2rem)] h-screen flex flex-col"
 >
   <!-- Header -->
-  <!-- <div
-    class="header sticky top-0 z-10 bg-surface-2 border-b border-border px-6 py-4 flex items-center justify-between"
-  >
-    <div class="flex items-center gap-2">
-      <Icon
-        icon="heroicons:sparkles"
-        width="20"
-        height="20"
-        class="text-primary"
-      />
-      <h3 class="text-sm font-semibold text-text-primary">Deep Dive</h3>
+  <div class="header sticky top-0 z-10 px-2 flex">
+    <div
+      class="w-fit mx-auto relative font-mono text-xs text-text-secondary flex justify-center items-center gap-2"
+    >
+      <div class="absolute left-0">
+        <svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" fill="none"
+          ><path d="M4 0h1v9H4z" fill="currentColor" /><path
+            d="M9 4v1H0V4z"
+            fill="currentColor"
+          /></svg
+        >
+      </div>
+      <span class="h-px w-20 bg-border/70"></span>
+      Deep dive
+      <span class="h-px w-20 bg-border/70"></span>
+      <div class="absolute right-0">
+        <svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" fill="none"
+          ><path d="M4 0h1v9H4z" fill="currentColor" /><path
+            d="M9 4v1H0V4z"
+            fill="currentColor"
+          /></svg
+        >
+      </div>
     </div>
-    <button
+    <!-- <button
       onclick={toggleDeepDive}
-      class="close-btn p-1.5 hover:bg-surface-3 rounded-md transition-colors"
+      class="close-btn p-1.5 hover:bg-surface-3 ml-auto rounded-md transition-colors"
       aria-label="Close"
     >
       <Icon icon="heroicons:x-mark" width="20" height="20" />
-    </button>
-  </div> -->
+    </button> -->
+  </div>
 
   <!-- Content -->
-  <div class="content-body py-4 flex flex-col gap-4">
-    <div class="flex flex-col items-center gap-2">
-      <span
-        class=" font-mono text-xs px-4 text-text-secondary py-1 mx-auto rounded-4xl w-fit bg-blackwhite-5"
-        >Deep dive</span
-      >
+  <div class=" flex flex-col flex-1 justify-center">
+    <div
+      class="flex flex-col justify-center items-center gap-6 -translate-y-10"
+    >
       <h3
         class="text-sm font-mono !text-center uppercase text-balance text-text-primary"
       >
         {pageTitle}
       </h3>
+
+      <!-- <span
+        class=" font-mono text-xs px-4 text-text-secondary py-1 mx-auto rounded-4xl w-fit"
+        >---  ---</span
+      > -->
     </div>
 
     <!-- Error Display -->

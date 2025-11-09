@@ -243,27 +243,6 @@
     </button>
 
     <button
-      data-tab="about"
-      class="flex flex-col w-16 items-center gap-1 justify-center cursor-pointer rounded-md transition-colors duration-200 {activeTab ===
-      'about'
-        ? ' text-blackwhite '
-        : 'text-text-secondary'}"
-      onclick={() => switchTab('about')}
-    >
-      <div class="size-5">
-        {#if activeTab === 'about'}
-          <Icon
-            icon="heroicons:information-circle-solid"
-            width="20"
-            height="20"
-          />
-        {:else}
-          <Icon icon="heroicons:information-circle" width="20" height="20" />
-        {/if}
-      </div>
-      <span>About</span>
-    </button>
-    <button
       data-tab="tools"
       class="flex flex-col w-16 items-center gap-1 justify-center cursor-pointer rounded-md transition-colors duration-200 {activeTab ===
       'tools'
@@ -283,6 +262,28 @@
         {/if}
       </div>
       <span>Tools</span>
+    </button>
+
+    <button
+      data-tab="about"
+      class="flex flex-col w-16 items-center gap-1 justify-center cursor-pointer rounded-md transition-colors duration-200 {activeTab ===
+      'about'
+        ? ' text-blackwhite '
+        : 'text-text-secondary'}"
+      onclick={() => switchTab('about')}
+    >
+      <div class="size-5">
+        {#if activeTab === 'about'}
+          <Icon
+            icon="heroicons:information-circle-solid"
+            width="20"
+            height="20"
+          />
+        {:else}
+          <Icon icon="heroicons:information-circle" width="20" height="20" />
+        {/if}
+      </div>
+      <span>About</span>
     </button>
   </div>
   <div

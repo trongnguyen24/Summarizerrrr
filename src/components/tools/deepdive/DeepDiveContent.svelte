@@ -11,6 +11,7 @@
     toggleDeepDive,
     setCustomQuestion,
     setSelectedQuestion,
+    addToQuestionHistory,
   } from '@/stores/deepDiveStore.svelte.js'
   import {
     generateFollowUpQuestions,
@@ -53,7 +54,7 @@
     customQuestion && customQuestion.trim() !== ''
   )
   // Compact mode for ChatProviderSelect when user types in CustomQuestionInput
-  let isCompact = $derived(customQuestion.length > 0)
+  let isCompact = $derived(customQuestion.length > 4)
 
   /**
    * ❌ REMOVED: Lazy generation logic
@@ -72,15 +73,28 @@
 
     try {
       console.log('[DeepDiveContent] Generating questions...')
+      console.log(
+        '[DeepDiveContent] Using history:',
+        deepDiveState.questionHistory.length,
+        'generations'
+      )
+
       const generated = await generateFollowUpQuestions(
         summaryContent,
         pageTitle,
         pageUrl,
-        summaryLang
+        summaryLang,
+        deepDiveState.questionHistory
       )
 
       setQuestions(generated)
+      addToQuestionHistory(generated)
+
       console.log('[DeepDiveContent] Generated questions:', generated)
+      console.log(
+        '[DeepDiveContent] Total history:',
+        deepDiveState.questionHistory.length
+      )
     } catch (err) {
       console.error('[DeepDiveContent] Generation error:', err)
       setError(err.message || 'Failed to generate questions')
@@ -158,10 +172,10 @@
 
 <div
   class="deep-dive-content
-         max-h-[calc(100vh-2rem)] h-screen flex flex-col"
+          h-screen flex flex-col"
 >
   <!-- Header -->
-  <div class="header sticky top-0 z-10 px-2 flex">
+  <div class="header sticky top-0 z-10 px-6 flex gap-4 pt-6 flex-col">
     <div
       class="w-fit mx-auto relative font-mono text-xs text-text-secondary flex justify-center items-center gap-2"
     >
@@ -174,7 +188,7 @@
         >
       </div>
       <span class="h-px w-20 bg-border/70"></span>
-      Deep dive
+      Tools: Deep dive
       <span class="h-px w-20 bg-border/70"></span>
       <div class="absolute right-0">
         <svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" fill="none"
@@ -185,32 +199,17 @@
         >
       </div>
     </div>
-    <!-- <button
-      onclick={toggleDeepDive}
-      class="close-btn p-1.5 hover:bg-surface-3 ml-auto rounded-md transition-colors"
-      aria-label="Close"
-    >
-      <Icon icon="heroicons:x-mark" width="20" height="20" />
-    </button> -->
-  </div>
-
-  <!-- Content -->
-  <div class=" flex flex-col flex-1 justify-center">
-    <div
-      class="flex flex-col justify-center items-center gap-6 -translate-y-10"
-    >
+    <div class="flex flex-col justify-center items-center gap-6">
       <h3
         class="text-sm font-mono !text-center uppercase text-balance text-text-primary"
       >
         {pageTitle}
       </h3>
-
-      <!-- <span
-        class=" font-mono text-xs px-4 text-text-secondary py-1 mx-auto rounded-4xl w-fit"
-        >---  ---</span
-      > -->
     </div>
+  </div>
 
+  <!-- Content -->
+  <div class=" flex flex-col px-4 flex-1 gap-4 justify-center">
     <!-- Error Display -->
     {#if error}
       <div
@@ -274,7 +273,7 @@
           />
           <!-- Chat Provider & Start Chat -->
           <div
-            class="chat-actions flex gap-1 absolute items-center z-20 bottom-3.5 right-1.75"
+            class="chat-actions flex gap-0.5 absolute items-center z-20 bottom-1.5 right-1.5"
           >
             <div class="flex-1">
               <ChatProviderSelect
@@ -308,7 +307,7 @@
         </div>
 
         <div class="questions-section">
-          <div class="flex flex-col gap-3">
+          <div class="flex flex-col gap-5">
             {#each questions as question, i (question)}
               <QuestionChip
                 {question}
@@ -343,6 +342,15 @@
         </div>
       {/if}
     {/if}
+  </div>
+  <div class="">
+    <button
+      onclick={toggleDeepDive}
+      class="close-btn p-2 flex w-full justify-center hover:bg-blackwhite-10 bg-blackwhite-5 border-t border-border transition-all"
+      aria-label="Close"
+    >
+      <Icon icon="heroicons:x-mark" width="20" height="20" />
+    </button>
   </div>
 </div>
 

@@ -411,7 +411,7 @@
     <div class="bg-border"></div>
 
     <div
-      class="relative prose wrap-anywhere main-sidepanel prose-h2:mt-4 p z-10 flex flex-col gap-8 px-6 pt-8 pb-[40vh] min-w-[22.5rem] max-w-[52rem] w-screen mx-auto"
+      class="relative prose wrap-anywhere main-sidepanel prose-h2:mt-4 p z-10 flex flex-col gap-8 px-6 pt-8 pb-[30vh] min-w-[22.5rem] max-w-[52rem] w-screen mx-auto"
     >
       {#if needsApiKeySetup()()}
         <ApiKeySetupPrompt />
@@ -449,13 +449,12 @@
         <ActionButtons />
       {/if}
     </div>
-
-    <div
-      class=" sticky bg-linear-to-t from-surface-1 to-surface-1/40 bottom-0 mask-t-from-50% h-16 backdrop-blur-[2px] w-full z-30 pointer-events-none"
-    ></div>
   </div>
 </div>
 
+<div
+  class=" fixed bg-linear-to-t from-surface-1 to-surface-1/40 bottom-0 mask-t-from-50% h-16 backdrop-blur-[2px] w-full z-30 pointer-events-none"
+></div>
 <!-- Deep Dive FAB & Section with Error Boundary -->
 {#if shouldShowDeepDive()}
   {#await Promise.resolve()}

@@ -135,14 +135,14 @@
                 delay: 160,
                 slideFrom: 'left',
                 duration: 300,
-                startBlur: 4,
+                startBlur: 2,
                 slideDistance: '0px',
                 startScale: 1.25,
               }}
               out:slideScaleFade={{
                 slideFrom: 'left',
                 duration: 260,
-                startBlur: 2,
+                startBlur: 1,
                 slideDistance: '0px',
                 startScale: 0.85,
               }}

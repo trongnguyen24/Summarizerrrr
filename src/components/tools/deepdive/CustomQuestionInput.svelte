@@ -33,7 +33,7 @@
 
     // Calculate new height based on content
     const scrollHeight = textareaElement.scrollHeight
-    const newHeight = Math.min(Math.max(scrollHeight, 40), 80) // 88px ≈ 3 lines + padding
+    const newHeight = Math.min(Math.max(scrollHeight, 24), 80) // 88px ≈ 3 lines + padding
 
     // Apply new height
     textareaElement.style.height = newHeight + 2 + 'px'
@@ -76,7 +76,7 @@
     // Reset textarea height to minimum after clearing
     if (textareaElement) {
       // Force height to min-height immediately
-      textareaElement.style.height = '40px'
+      textareaElement.style.height = '24px'
       textareaElement.focus()
       // Then run autoResize to ensure proper calculation
       setTimeout(() => autoResize(), 0)
@@ -101,7 +101,9 @@
   })
 </script>
 
-<div class="custom-question-input">
+<div
+  class="custom-question-input w-full py-1.5 rounded-[1.625rem] pl-2 pr-20 bg-surface-2 flex items-center border border-muted/30 overflow-y-auto"
+>
   <!-- Clear button (shows when focused with content) -->
   <!-- {#if showClearButton}
     <button
@@ -124,7 +126,7 @@
     onblur={handleBlur}
     {placeholder}
     rows="1"
-    class="w-full py-4 rounded-[27px] pl-6 pr-10 bg-surface-2 border border-muted/30 text-sm text-text-primary placeholder:text-muted focus:outline-none focus:ring-0 transition-colors duration-200 resize-none overflow-y-auto"
+    class="w-full text-sm text-text-primary placeholder:text-muted pl-3 py-2 focus:outline-0 focus-visible:outline-0 focus:ring-0 transition-colors shadow-none duration-200 resize-none overflow-y-auto"
   />
 </div>
 
@@ -135,15 +137,11 @@
 
   .custom-question-input textarea {
     /* Fixed height setup - CSS handles max-height */
-    min-height: 40px; /* Minimum height (1 line + padding) */
+    min-height: 24px; /* Minimum height (1 line + padding) */
     max-height: 5.5rem; /* Maximum height (3 lines + padding) */
     field-sizing: content-box; /* Ensure padding is included in height */
     overflow-y: auto; /* Show scrollbar when content exceeds max-height */
     transition: all 0.2s ease-in-out; /* Smooth transitions */
-  }
-
-  .custom-question-input textarea:focus {
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1); /* Primary color shadow */
   }
 
   /* Custom scrollbar styling */

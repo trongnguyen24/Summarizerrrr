@@ -22,6 +22,9 @@ export const deepDiveState = $state({
   // UI state persistence
   customQuestion: '', // Persist custom input
   selectedQuestion: null, // Persist selected question
+
+  // History tracking for avoiding duplicate questions
+  questionHistory: [], // Array of arrays: [[q1, q2, q3], [q4, q5, q6], ...]
 })
 
 /**
@@ -72,6 +75,7 @@ export function resetDeepDive() {
   deepDiveState.lastSummaryLang = 'English'
   deepDiveState.customQuestion = ''
   deepDiveState.selectedQuestion = null
+  deepDiveState.questionHistory = []
   console.log('[deepDiveStore] Reset')
 }
 
@@ -144,4 +148,24 @@ export function shouldShowDeepDive() {
   const toolEnabled = settings.tools?.deepDive?.enabled ?? false
   const hasContent = deepDiveState.lastSummaryContent.trim() !== ''
   return toolEnabled && hasContent
+}
+
+/**
+ * Add generated questions to history
+ * @param {Array<string>} questions - Questions to add
+ */
+export function addToQuestionHistory(questions) {
+  deepDiveState.questionHistory.push([...questions])
+  console.log(
+    '[deepDiveStore] Added to history, total generations:',
+    deepDiveState.questionHistory.length
+  )
+}
+
+/**
+ * Clear question history (when new summary or reset)
+ */
+export function clearQuestionHistory() {
+  deepDiveState.questionHistory = []
+  console.log('[deepDiveStore] Cleared history')
 }

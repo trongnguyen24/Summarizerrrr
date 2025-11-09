@@ -10,22 +10,22 @@
 </script>
 
 <button
-  class="question-chip select-all w-full px-4 py-2 text-left text-text-secondary hover:text-text-primary transition-all duration-200 {disabled
+  class="question-chip select-all w-full px-1 text-left text-text-secondary hover:text-text-primary transition-all duration-200 {disabled
     ? 'opacity-50 cursor-not-allowed pointer-events-none'
     : ''}"
   {onclick}
   {disabled}
 >
-  <div class="flex items-start gap-1.5">
+  <div class="flex group items-start gap-1.5">
     <svg
       xmlns="http://www.w3.org/2000/svg"
       viewBox="0 0 16 16"
       fill="currentColor"
-      class="size-4 text-muted/50 translate-y-0.75"
+      class="size-4 translate-y-0.5 group-hover:text-blackwhite transition-colors text-muted"
     >
       <path
         fill-rule="evenodd"
-        d="M15 8A7 7 0 1 1 1 8a7 7 0 0 1 14 0Zm-6 3.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0ZM7.293 5.293a1 1 0 1 1 .99 1.667c-.459.134-1.033.566-1.033 1.29v.25a.75.75 0 1 0 1.5 0v-.115a2.5 2.5 0 1 0-2.518-4.153.75.75 0 1 0 1.061 1.06Z"
+        d="M15 8A7 7 0 1 0 1 8a7 7 0 0 0 14 0ZM4.75 7.25a.75.75 0 0 0 0 1.5h4.69L8.22 9.97a.75.75 0 1 0 1.06 1.06l2.5-2.5a.75.75 0 0 0 0-1.06l-2.5-2.5a.75.75 0 0 0-1.06 1.06l1.22 1.22H4.75Z"
         clip-rule="evenodd"
       />
     </svg>

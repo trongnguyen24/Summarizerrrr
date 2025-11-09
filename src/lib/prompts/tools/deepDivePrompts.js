@@ -42,6 +42,8 @@ __CONTENT__
 __URL__
 </SOURCE_URL>
 
+__HISTORY_SECTION__
+
 <OUTPUT_FORMAT>
 Return ONLY valid JSON in this exact format (no markdown, no code blocks):
 {"questions": ["question 1 text here", "question 2 text here", "question 3 text here"]}
@@ -148,4 +150,37 @@ export function getChatProviderUrl(providerId) {
  */
 export function getChatProviderName(providerId) {
   return chatProviderNames[providerId] || 'AI Chat'
+}
+
+/**
+ * Builds history section for prompt to avoid duplicate questions
+ * @param {Array<Array<string>>} questionHistory - History of previous generations
+ * @returns {string} History section or empty string
+ */
+export function buildHistorySection(questionHistory) {
+  if (!questionHistory || questionHistory.length === 0) {
+    return ''
+  }
+
+  // Flatten all previous questions
+  const allPreviousQuestions = questionHistory.flat()
+
+  // Build numbered list
+  const historyList = allPreviousQuestions
+    .map((q, index) => `${index + 1}. ${q}`)
+    .join('\n')
+
+  return `
+<PREVIOUS_QUESTIONS>
+You have previously generated these questions for this content:
+
+${historyList}
+
+**CRITICAL REQUIREMENT:**
+- Do NOT generate questions similar to any of the above
+- The new questions MUST cover completely different aspects, angles, or topics
+- Use different terminology and phrasing
+- Ensure maximum diversity from previous generations
+</PREVIOUS_QUESTIONS>
+`
 }

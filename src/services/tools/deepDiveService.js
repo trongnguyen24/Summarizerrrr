@@ -10,6 +10,7 @@ import {
   deepDiveQuestionPrompt,
   buildChatPrompt,
   getChatProviderUrl,
+  buildHistorySection,
 } from '@/lib/prompts/tools/deepDivePrompts.js'
 import { settings } from '@/stores/settingsStore.svelte.js'
 
@@ -25,9 +26,11 @@ export async function generateFollowUpQuestions(
   summaryContent,
   pageTitle,
   pageUrl,
-  summaryLang = 'English'
+  summaryLang = 'English',
+  questionHistory = []
 ) {
   console.log('[deepDiveService] Generating follow-up questions...')
+  console.log('[deepDiveService] History size:', questionHistory.length)
 
   try {
     // Validate input
@@ -50,12 +53,16 @@ export async function generateFollowUpQuestions(
       `[deepDiveService] Using provider: ${providerConfig.provider}, model: ${providerConfig.model}`
     )
 
-    // Build prompt với source URL
+    // Build history section dynamically
+    const historySection = buildHistorySection(questionHistory)
+
+    // Build prompt với source URL and history
     const systemInstruction = deepDiveQuestionPrompt.systemInstruction
     const userPrompt = deepDiveQuestionPrompt.userPrompt
       .replace('__CONTENT__', summaryContent)
       .replace('__LANG__', summaryLang)
       .replace('__URL__', pageUrl || 'N/A')
+      .replace('__HISTORY_SECTION__', historySection)
 
     // ✅ Build full settings object từ providerConfig
     const toolSettings = buildModelSettings(providerConfig, settings)

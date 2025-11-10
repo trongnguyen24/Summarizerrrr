@@ -114,6 +114,72 @@ ${summaryContent}
 }
 
 /**
+ * Open-Ended Chat Prompt Builder
+ * For "Ask Your Own Question" flow - AI suggests questions then waits for user input
+ */
+export function buildOpenEndedChatPrompt(
+  summaryContent,
+  pageTitle,
+  pageUrl,
+  summaryLang = 'English'
+) {
+  // Determine if terminology annotation is needed
+  const needsAnnotation = summaryLang.toLowerCase() !== 'english'
+
+  const annotationGuideline = needsAnnotation
+    ? `
+5. **TERMINOLOGY ANNOTATION:** When providing answers, annotate CORE technical terms as "English Term (${summaryLang} translation)". Prioritize AI/ML techniques, algorithms, methodologies over common words.`
+    : ''
+
+  return `<task>
+<instructions>
+You are a subject-matter expert assistant helping users explore content in depth.
+
+**Your Task:**
+1. **First**, greet the user briefly and suggest 3-4 follow-up questions based on the summary below
+   - Use bullet points (• symbol) for the questions
+   - Questions should be concise and cover different aspects
+   - Format in ${summaryLang}
+2. **Then**, ask: "Which topic interests you? Or feel free to ask your own question."
+3. **Wait** for their response
+4. **Finally**, provide a detailed, in-depth answer based on their choice
+
+**When suggesting questions:**
+- Cover different angles: mechanism/theory, practical applications, comparisons, limitations
+- Keep questions concise (max 15 words each)
+- Use bullet points for easy scanning
+
+**When answering:**
+- Address their question directly with clear explanations
+- Explain the "why" and "how", not just the "what"
+- Provide real-world examples and practical applications
+- Reference the source document for accuracy
+${annotationGuideline}
+
+**Example format:**
+"Based on this summary about [topic], here are some areas you might want to explore:
+
+• [Question 1 about mechanism/theory]
+• [Question 2 about practical applications]
+• [Question 3 about comparisons or alternatives]
+• [Question 4 about limitations or challenges]
+
+Which topic interests you? Or feel free to ask your own question."
+</instructions>
+</task>
+<context>
+<source_document><title>${pageTitle}</title><url>${pageUrl}</url></source_document>
+<summary>
+<![CDATA[
+${summaryContent}
+]]>
+</summary>
+</context>
+
+Now, suggest questions and ask the user what they'd like to explore.`
+}
+
+/**
  * Chat Provider URLs
  * URLs for each supported chat provider with ref parameter
  */

@@ -9,6 +9,7 @@ import { generateContent } from '@/lib/api/aiSdkAdapter.js'
 import {
   deepDiveQuestionPrompt,
   buildChatPrompt,
+  buildOpenEndedChatPrompt,
   getChatProviderUrl,
   buildHistorySection,
 } from '@/lib/prompts/tools/deepDivePrompts.js'
@@ -412,7 +413,7 @@ function parseQuestionsFromResponse(response) {
 
 /**
  * Opens a new tab with chat provider and fills the form with question + context
- * @param {string} question - The question to ask
+ * @param {string} question - The question to ask (empty string for open-ended)
  * @param {string} summaryContent - Summary content for context
  * @param {string} pageTitle - Page title
  * @param {string} pageUrl - Page URL
@@ -430,23 +431,26 @@ export async function openDeepDiveChat(
 ) {
   console.log(
     `[deepDiveService] Opening ${chatProvider} chat with question:`,
-    question
+    question || '[open-ended]'
   )
 
   try {
-    // Validate input
-    if (!question || question.trim() === '') {
-      throw new Error('Question is required')
-    }
-
-    // Build full prompt với source URL và summaryLang
-    const fullPrompt = buildChatPrompt(
-      question,
-      summaryContent,
-      pageTitle,
-      pageUrl,
-      summaryLang
-    )
+    // Build full prompt - use open-ended if no question provided
+    const fullPrompt =
+      question && question.trim() !== ''
+        ? buildChatPrompt(
+            question,
+            summaryContent,
+            pageTitle,
+            pageUrl,
+            summaryLang
+          )
+        : buildOpenEndedChatPrompt(
+            summaryContent,
+            pageTitle,
+            pageUrl,
+            summaryLang
+          )
 
     // Get provider URL
     const providerUrl = getChatProviderUrl(chatProvider)

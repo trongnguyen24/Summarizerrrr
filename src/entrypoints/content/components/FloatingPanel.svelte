@@ -16,6 +16,13 @@
   import ActionButtonsFP from '@/components/buttons/ActionButtonsFP.svelte'
   import ActionButtonsMiniFP from '@/components/buttons/ActionButtonsMiniFP.svelte'
 
+  // Deep Dive imports
+  import DeepDivePanelFP from './DeepDivePanelFP.svelte'
+  import {
+    deepDiveState,
+    shouldShowDeepDive,
+  } from '@/stores/deepDiveStore.svelte.js'
+
   let panelPosition = $derived(settings.floatingPanelLeft ? 'left' : 'right')
   let { visible, summary, status, onclose, children, summarization } = $props()
 
@@ -111,6 +118,14 @@
       : summarization.localSummaryState().error
         ? 'error'
         : status
+  )
+
+  // Deep Dive visibility
+  let showDeepDive = $derived(
+    shouldShowDeepDive() &&
+      summaryToDisplay &&
+      summaryToDisplay.trim() !== '' &&
+      !summarization.localSummaryState().isLoading
   )
 
   // Load saved width
@@ -442,6 +457,18 @@
 
       {#if children?.settingsMini}
         {@render children.settingsMini()}
+      {/if}
+
+      <!-- Deep Dive Panel -->
+      {#if showDeepDive}
+        <DeepDivePanelFP
+          summaryContent={summaryToDisplay}
+          pageTitle={summarization.localSummaryState().pageTitle || 'Summary'}
+          pageUrl={summarization.localSummaryState().pageUrl ||
+            window.location.href}
+          summaryLang={settings.summaryLang || 'English'}
+          isVisible={true}
+        />
       {/if}
     </div>
   </div>

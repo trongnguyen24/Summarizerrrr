@@ -124,14 +124,19 @@
       height="20"
       class="animate-spin"
     />
+  {:else if hasQuestions}
+    <Icon
+      icon="heroicons:sparkles-20-solid"
+      width="20"
+      height="20"
+      class="group-hover:scale-110 ease-in-out transition-transform duration-300"
+    />
   {:else}
     <Icon
       icon="heroicons:sparkles-20-solid"
       width="20"
       height="20"
-      class="{isExpanded
-        ? ''
-        : ''} group-hover:scale-110 ease-in-out transition-transform duration-300"
+      class="group-hover:scale-110 ease-in-out transition-transform duration-300"
     />
   {/if}
 </button>

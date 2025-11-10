@@ -47,12 +47,18 @@
   import DeepDiveFAB from '@/components/tools/deepdive/DeepDiveFAB.svelte'
   import DeepDiveDialog from '@/components/tools/deepdive/DeepDiveDialog.svelte'
   import DeepDiveContent from '@/components/tools/deepdive/DeepDiveContent.svelte'
+  import InlineDeepDiveQuestions from '@/components/tools/deepdive/InlineDeepDiveQuestions.svelte'
   import {
     deepDiveState,
     toggleDeepDive,
     shouldShowDeepDive,
     updateSummaryContext,
+    setQuestions,
+    setGenerating,
+    setError,
+    addToQuestionHistory,
   } from '@/stores/deepDiveStore.svelte.js'
+  import { generateFollowUpQuestions } from '@/services/tools/deepDiveService.js'
 
   // Track if settings are loaded
   let settingsLoaded = $state(false)
@@ -300,6 +306,67 @@
     }
   })
 
+  /**
+   * Effect: Auto-generate Deep Dive questions sau khi summary hoàn thành
+   * Chỉ chạy khi autoGenerate setting = true
+   */
+  $effect(() => {
+    const allLoadingComplete =
+      !summaryState.isLoading &&
+      !summaryState.isCourseSummaryLoading &&
+      !summaryState.isCourseConceptsLoading &&
+      !summaryState.isSelectedTextLoading &&
+      !summaryState.isCustomActionLoading
+
+    const content = getSummaryContent()
+    const autoGenEnabled = settings.tools?.deepDive?.autoGenerate ?? false
+    const toolEnabled = settings.tools?.deepDive?.enabled ?? false
+
+    // Trigger auto-generate nếu:
+    // 1. All loading complete
+    // 2. Có content
+    // 3. Tool enabled
+    // 4. Auto-generate enabled
+    // 5. Chưa có questions (tránh regenerate không cần thiết)
+    if (
+      allLoadingComplete &&
+      content &&
+      content.trim() !== '' &&
+      toolEnabled &&
+      autoGenEnabled &&
+      deepDiveState.questions.length === 0
+    ) {
+      console.log('[App] Auto-generating Deep Dive questions...')
+
+      // Async function inside effect
+      ;(async () => {
+        try {
+          setGenerating(true)
+          setError(null) // Clear previous errors
+
+          const questions = await generateFollowUpQuestions(
+            content,
+            summaryState.pageTitle,
+            summaryState.pageUrl,
+            settings.summaryLang || 'English',
+            deepDiveState.questionHistory
+          )
+
+          setQuestions(questions)
+          addToQuestionHistory(questions)
+          console.log('[App] Auto-generated questions:', questions)
+        } catch (error) {
+          console.error('[App] Auto-generation failed:', error)
+          // Silent fail - Lưu error vào store
+          // Error sẽ hiển thị khi user mở dialog
+          setError(error.message || 'Failed to auto-generate questions')
+        } finally {
+          setGenerating(false)
+        }
+      })()
+    }
+  })
+
   // Deep Dive error state
   let deepDiveError = $state(null)
 </script>
@@ -419,6 +486,15 @@
         <ErrorDisplay error={anyError} />
       {:else if summaryState.lastSummaryTypeDisplayed === 'youtube'}
         <YouTubeSummaryDisplay />
+        <!-- Inline Deep Dive Questions for YouTube -->
+        {#if shouldShowDeepDive() && settings.tools?.deepDive?.autoGenerate}
+          <InlineDeepDiveQuestions
+            summaryContent={getSummaryContent()}
+            pageTitle={summaryState.pageTitle}
+            pageUrl={summaryState.pageUrl}
+            summaryLang={settings.summaryLang || 'English'}
+          />
+        {/if}
       {:else if summaryState.lastSummaryTypeDisplayed === 'course'}
         <CourseSummaryDisplay activeCourseTab={summaryState.activeCourseTab} />
       {:else if summaryState.lastSummaryTypeDisplayed === 'selectedText'}
@@ -437,6 +513,15 @@
           targetId="web-summary-display"
           showTOC={true}
         />
+        <!-- Inline Deep Dive Questions for Web -->
+        {#if shouldShowDeepDive() && settings.tools?.deepDive?.autoGenerate}
+          <InlineDeepDiveQuestions
+            summaryContent={getSummaryContent()}
+            pageTitle={summaryState.pageTitle}
+            pageUrl={summaryState.pageUrl}
+            summaryLang={settings.summaryLang || 'English'}
+          />
+        {/if}
       {:else if summaryState.lastSummaryTypeDisplayed === 'custom'}
         <GenericSummaryDisplay
           summary={summaryState.customActionResult}

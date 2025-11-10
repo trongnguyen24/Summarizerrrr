@@ -30,6 +30,6 @@
       />
     </svg>
 
-    <p class="question-text text-sm flex-1">{question}</p>
+    <p class="question-text !m-0 !p-0 !text-sm flex-1">{question}</p>
   </div>
 </button>

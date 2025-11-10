@@ -169,12 +169,21 @@ export async function fetchAndSummarize() {
     providerSupportsStreaming(selectedProviderId)
 
   if (shouldUseStreaming) {
-    // Use streaming mode
-    await fetchAndSummarizeStream()
-    // Ensure all loading states are set to false after streaming completes
-    summaryState.isLoading = false
-    summaryState.isCourseSummaryLoading = false
-    summaryState.isCourseConceptsLoading = false
+    try {
+      // Use streaming mode
+      await fetchAndSummarizeStream()
+    } catch (streamError) {
+      // Error đã được handle trong fetchAndSummarizeStream()
+      // Chỉ cần log để debug
+      console.error('[fetchAndSummarize] Streaming error caught:', streamError)
+      // Error state đã được set trong fetchAndSummarizeStream()
+      // Không cần set lại ở đây
+    } finally {
+      // Ensure all loading states are set to false after streaming completes
+      summaryState.isLoading = false
+      summaryState.isCourseSummaryLoading = false
+      summaryState.isCourseConceptsLoading = false
+    }
     // logAllGeneratedSummariesToHistory() is called within fetchAndSummarizeStream
     return // Exit the function after streaming
   }
@@ -534,6 +543,33 @@ export async function fetchAndSummarizeStream() {
         console.log(
           `[summaryStore] YouTube streaming completed, chunks: ${chunkCount}`
         )
+
+        // If streaming completed with 0 chunks, it might be a silent error
+        // Fallback to blocking mode to get proper error
+        if (chunkCount === 0 && summaryState.summary.trim() === '') {
+          console.log(
+            '[summaryStore] YouTube streaming failed silently (0 chunks), trying blocking mode...'
+          )
+          try {
+            const blockingResult = await summarizeContent(
+              summaryState.currentContentSource,
+              'youtube'
+            )
+            summaryState.summary =
+              blockingResult ||
+              '<p><i>Could not generate video summary.</i></p>'
+          } catch (blockingError) {
+            // This will properly display the error
+            const errorObject = handleError(blockingError, {
+              source: 'youtubeVideoStreaming',
+            })
+            summaryState.summaryError = errorObject
+            console.log(
+              '[summaryStore] Error set for UI:',
+              summaryState.summaryError
+            )
+          }
+        }
       } catch (e) {
         console.log('[summaryStore] YouTube streaming error caught:', e)
         if (e.message?.includes('transcript')) {
@@ -624,10 +660,29 @@ export async function fetchAndSummarizeStream() {
           }
         }
       } catch (e) {
-        const errorObject = handleError(e, {
-          source: 'webSummaryStreaming',
-        })
-        summaryState.summaryError = errorObject
+        console.error('[fetchAndSummarizeStream] Web streaming error:', e)
+        console.log(
+          '[fetchAndSummarizeStream] Falling back to blocking mode...'
+        )
+        // Fallback to blocking mode to get proper error display
+        try {
+          const blockingSummary = await summarizeContent(
+            summaryState.currentContentSource,
+            'general'
+          )
+          summaryState.summary =
+            blockingSummary || '<p><i>Could not generate summary.</i></p>'
+        } catch (blockingError) {
+          // This will properly display the error on UI
+          const errorObject = handleError(blockingError, {
+            source: 'webSummaryStreaming',
+          })
+          summaryState.summaryError = errorObject
+          console.log(
+            '[fetchAndSummarizeStream] Error set for UI:',
+            summaryState.summaryError
+          )
+        }
       }
     }
 

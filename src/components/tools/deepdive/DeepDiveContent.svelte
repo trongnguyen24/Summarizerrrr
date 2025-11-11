@@ -56,6 +56,9 @@
   // Compact mode for ChatProviderSelect when user types in CustomQuestionInput
   let isCompact = $derived(customQuestion.length > 4)
 
+  // Auto-focus input when dialog opens and has questions
+  let shouldAutoFocusInput = $derived(deepDiveState.isExpanded && hasQuestions)
+
   /**
    * ❌ REMOVED: Lazy generation logic
    * Questions are now generated BEFORE dialog opens (in DeepDiveFAB)
@@ -270,6 +273,7 @@
             value={customQuestion}
             onchange={handleCustomQuestionChange}
             onSubmit={handleStartChat}
+            shouldAutoFocus={shouldAutoFocusInput}
           />
           <!-- Chat Provider & Start Chat -->
           <div

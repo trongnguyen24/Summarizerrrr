@@ -7,6 +7,7 @@
     onchange,
     onSubmit, // NEW: Submit handler for Enter key
     placeholder = 'Your question...',
+    shouldAutoFocus = false, // NEW: Auto-focus when dialog opens
   } = $props()
 
   let inputValue = $state(value)
@@ -96,6 +97,26 @@
     return () => {
       if (textareaElement) {
         textareaElement.removeEventListener('input', autoResize)
+      }
+    }
+  })
+
+  // Auto-focus when dialog opens
+  $effect(() => {
+    if (shouldAutoFocus) {
+      if (textareaElement) {
+        // Small delay to ensure dialog animation completes
+        setTimeout(() => {
+          textareaElement?.focus()
+        }, 350) // Match dialog animation duration (300ms) + buffer
+      } else {
+        // If textarea not ready yet, wait a bit longer and try again
+        setTimeout(() => {
+          const element = document.getElementById('custom-question')
+          if (element) {
+            element.focus()
+          }
+        }, 400) // Slightly longer delay for fallback
       }
     }
   })

@@ -1,13 +1,18 @@
 <script>
   // @ts-nocheck
   import Icon from '@iconify/svelte'
-  import { settings } from '@/stores/settingsStore.svelte.js'
+  import {
+    settings,
+    updateToolSettings,
+  } from '@/stores/settingsStore.svelte.js'
   import {
     deepDiveState,
     setQuestions,
     setGenerating,
     setError,
     addToQuestionHistory,
+    setSelectedQuestion,
+    setCustomQuestion,
   } from '@/stores/deepDiveStore.svelte.js'
   import {
     generateFollowUpQuestions,
@@ -17,6 +22,12 @@
 
   // Import Shadow DOM compatible components
   import QuestionChip from '@/components/tools/deepdive/QuestionChip.svelte'
+
+  // Import provider icons
+  import GeminiIcon from '@/components/icons/GeminiIcon.svelte'
+  import ChatGPTIcon from '@/components/icons/ChatGPTIcon.svelte'
+  import PerplexityIcon from '@/components/icons/PerplexityIcon.svelte'
+  import GrokIcon from '@/components/icons/GrokIcon.svelte'
 
   // Props
   let {
@@ -52,19 +63,19 @@
     {
       value: 'gemini',
       label: 'Gemini',
-      iconPath: 'M12 2L2 7v10l10 5 10-5V7L12 2z',
+      icon: GeminiIcon,
     },
     {
       value: 'chatgpt',
       label: 'ChatGPT',
-      iconPath: 'M12 2a10 10 0 100 20 10 10 0 000-20z',
+      icon: ChatGPTIcon,
     },
     {
       value: 'perplexity',
       label: 'Perplexity',
-      iconPath: 'M12 2L2 7l10 5 10-5-10-5z',
+      icon: PerplexityIcon,
     },
-    { value: 'grok', label: 'Grok', iconPath: 'M12 2v20M2 12h20' },
+    { value: 'grok', label: 'Grok', icon: GrokIcon },
   ]
 
   const selectedProvider = $derived(
@@ -143,8 +154,10 @@
   /**
    * Handles chat provider change
    */
-  function handleProviderChange(newProvider) {
+  async function handleProviderChange(newProvider) {
     chatProvider = newProvider
+    // Save to settings store
+    await updateToolSettings('deepDive', { defaultChatProvider: newProvider })
   }
 
   /**
@@ -177,25 +190,7 @@
     <div
       class="w-fit mx-auto relative font-mono text-xs text-text-secondary flex justify-center items-center gap-2"
     >
-      <div class="absolute left-0">
-        <svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" fill="none"
-          ><path d="M4 0h1v9H4z" fill="currentColor" /><path
-            d="M9 4v1H0V4z"
-            fill="currentColor"
-          /></svg
-        >
-      </div>
-      <span class="h-px w-20 bg-border/70"></span>
-      Tools: Deep dive
-      <span class="h-px w-20 bg-border/70"></span>
-      <div class="absolute right-0">
-        <svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" fill="none"
-          ><path d="M4 0h1v9H4z" fill="currentColor" /><path
-            d="M9 4v1H0V4z"
-            fill="currentColor"
-          /></svg
-        >
-      </div>
+      Deep Dive Questions
     </div>
 
     <!-- Error Display -->
@@ -285,17 +280,21 @@
                 />
               </button>
 
-              <!-- Chat Provider Select (Compact) -->
-              <div class="provider-select-wrapper">
-                <select
-                  bind:value={chatProvider}
-                  onchange={(e) => handleProviderChange(e.target.value)}
-                  class="provider-select py-2 px-3 text-xs text-text-primary bg-surface-3 hover:bg-surface-1 border border-border rounded-full focus:outline-none focus:ring-0 cursor-pointer transition-all duration-200"
-                >
-                  {#each providers as provider (provider.value)}
-                    <option value={provider.value}>{provider.label}</option>
-                  {/each}
-                </select>
+              <!-- Chat Provider Buttons -->
+              <div class="provider-buttons flex gap-1">
+                {#each providers as provider (provider.value)}
+                  {@const IconComponent = provider.icon}
+                  <button
+                    onclick={() => handleProviderChange(provider.value)}
+                    class="provider-btn p-2 rounded-full transition-all duration-200
+                           {chatProvider === provider.value
+                      ? 'bg-primary/20 border border-primary/50 text-primary'
+                      : 'bg-surface-3 hover:bg-surface-1 border border-border text-text-secondary hover:text-primary'}"
+                    title={provider.label}
+                  >
+                    <IconComponent width="16" height="16" />
+                  </button>
+                {/each}
               </div>
 
               <!-- Ask Your Own Question Button -->
@@ -316,17 +315,6 @@
 {/if}
 
 <style>
-  .provider-select-wrapper select {
-    appearance: none;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='currentColor'%3E%3Cpath fill-rule='evenodd' d='M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z' clip-rule='evenodd'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 0.5rem center;
-    background-size: 0.75rem;
-    padding-right: 1.75rem;
-  }
-
   .generate-btn:disabled {
     cursor: not-allowed;
     opacity: 0.5;
@@ -343,5 +331,14 @@
 
   .ask-own-btn:hover {
     transform: scale(1.02);
+  }
+
+  .provider-btn:not(:disabled):hover {
+    transform: scale(1.05);
+  }
+
+  .provider-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
   }
 </style>

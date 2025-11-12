@@ -12,6 +12,9 @@
     setCustomQuestion,
     setSelectedQuestion,
     addToQuestionHistory,
+    nextPage,
+    previousPage,
+    getTotalPages,
   } from '@/stores/deepDiveStore.svelte.js'
   import {
     generateFollowUpQuestions,
@@ -49,6 +52,14 @@
   )
   let hasQuestions = $derived(questions.length > 0)
   let activeQuestion = $derived(selectedQuestion || customQuestion)
+
+  // Pagination state
+  let totalPages = $derived(getTotalPages())
+  let hasPagination = $derived(totalPages > 1)
+  let canGoBack = $derived(deepDiveState.currentPageIndex > 0 && !isGenerating)
+  let canGoForward = $derived(
+    deepDiveState.currentPageIndex < totalPages - 1 && !isGenerating
+  )
   // NEW: Separate logic for custom input only
   let canStartChatWithCustom = $derived(
     customQuestion && customQuestion.trim() !== ''
@@ -322,26 +333,71 @@
               />
             {/each}
 
-            <!-- Regenerate Button -->
-            <div class="flex justify-center pt-2">
-              <button
-                onclick={handleRegenerate}
-                disabled={isGenerating || !canGenerate}
-                class="regenerate-btn p-2 bg-surface-3 hover:bg-surface-1
-                       border border-border rounded-full
-                       text-text-secondary hover:text-primary
-                       transition-all duration-200
-                       {isGenerating ? 'opacity-50 cursor-wait' : ''}"
-                title={isGenerating ? 'Generating...' : 'Regenerate questions'}
+            <!-- Navigation Controls -->
+            {#if hasPagination}
+              <div
+                class="navigation-controls flex items-center justify-center gap-2 pt-4"
               >
-                <Icon
-                  icon="heroicons:arrow-path"
-                  width="16"
-                  height="16"
-                  class={isGenerating ? 'animate-spin' : ''}
-                />
-              </button>
-            </div>
+                <!-- Back Button -->
+                <button
+                  onclick={previousPage}
+                  disabled={!canGoBack}
+                  class="nav-btn"
+                  title="Previous questions"
+                  aria-label="Previous page"
+                >
+                  <Icon icon="heroicons:chevron-left" width="16" height="16" />
+                </button>
+
+                <!-- Reload Button -->
+                <button
+                  onclick={handleRegenerate}
+                  disabled={isGenerating || !canGenerate}
+                  class="nav-btn"
+                  title={isGenerating
+                    ? 'Generating...'
+                    : 'Generate new questions'}
+                  aria-label="Reload questions"
+                >
+                  <Icon
+                    icon="heroicons:arrow-path"
+                    width="16"
+                    height="16"
+                    class={isGenerating ? 'animate-spin' : ''}
+                  />
+                </button>
+
+                <!-- Forward Button -->
+                <button
+                  onclick={nextPage}
+                  disabled={!canGoForward}
+                  class="nav-btn"
+                  title="Next questions"
+                  aria-label="Next page"
+                >
+                  <Icon icon="heroicons:chevron-right" width="16" height="16" />
+                </button>
+              </div>
+            {:else if hasQuestions}
+              <!-- Single page - show reload only -->
+              <div class="flex justify-center pt-4">
+                <button
+                  onclick={handleRegenerate}
+                  disabled={isGenerating || !canGenerate}
+                  class="nav-btn"
+                  title={isGenerating
+                    ? 'Generating...'
+                    : 'Generate new questions'}
+                >
+                  <Icon
+                    icon="heroicons:arrow-path"
+                    width="16"
+                    height="16"
+                    class={isGenerating ? 'animate-spin' : ''}
+                  />
+                </button>
+              </div>
+            {/if}
           </div>
         </div>
       {/if}
@@ -382,12 +438,36 @@
     opacity: 0.5;
   }
 
-  .regenerate-btn:disabled {
-    cursor: not-allowed;
-    opacity: 0.5;
+  .nav-btn {
+    padding: 0.5rem;
+    background-color: var(--surface-3);
+    border: 1px solid var(--border);
+    border-radius: 0.375rem;
+    color: var(--text-secondary);
+    transition: all 200ms;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 36px;
   }
 
-  .regenerate-btn:not(:disabled):hover {
+  .nav-btn:hover {
+    background-color: var(--surface-1);
+    color: var(--primary);
+  }
+
+  .nav-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+
+  .nav-btn:not(:disabled):hover {
     transform: scale(1.05);
+    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  }
+
+  .nav-btn:not(:disabled):active {
+    transform: scale(0.95);
   }
 </style>

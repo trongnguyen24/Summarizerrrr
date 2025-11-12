@@ -25,6 +25,9 @@ export const deepDiveState = $state({
 
   // History tracking for avoiding duplicate questions
   questionHistory: [], // Array of arrays: [[q1, q2, q3], [q4, q5, q6], ...]
+
+  // Pagination state
+  currentPageIndex: 0, // Current page being viewed (0-based)
 })
 
 /**
@@ -76,6 +79,7 @@ export function resetDeepDive() {
   deepDiveState.customQuestion = ''
   deepDiveState.selectedQuestion = null
   deepDiveState.questionHistory = []
+  deepDiveState.currentPageIndex = 0
   console.log('[deepDiveStore] Reset')
 }
 
@@ -156,8 +160,10 @@ export function shouldShowDeepDive() {
  */
 export function addToQuestionHistory(questions) {
   deepDiveState.questionHistory.push([...questions])
+  const newPageIndex = deepDiveState.questionHistory.length - 1
+  setCurrentPage(newPageIndex)
   console.log(
-    '[deepDiveStore] Added to history, total generations:',
+    '[deepDiveStore] Added to history, total pages:',
     deepDiveState.questionHistory.length
   )
 }
@@ -167,5 +173,69 @@ export function addToQuestionHistory(questions) {
  */
 export function clearQuestionHistory() {
   deepDiveState.questionHistory = []
+  deepDiveState.currentPageIndex = 0
   console.log('[deepDiveStore] Cleared history')
+}
+
+/**
+ * Set current page and update visible questions
+ * @param {number} pageIndex - 0-based page index
+ */
+export function setCurrentPage(pageIndex) {
+  const maxIndex = deepDiveState.questionHistory.length - 1
+
+  // Validation
+  if (deepDiveState.questionHistory.length === 0) {
+    console.warn('[deepDiveStore] No pages in history')
+    return
+  }
+
+  if (pageIndex < 0) {
+    console.warn('[deepDiveStore] Page index below 0, clamping to 0')
+    pageIndex = 0
+  }
+
+  if (pageIndex > maxIndex) {
+    console.warn('[deepDiveStore] Page index too high, clamping to max')
+    pageIndex = maxIndex
+  }
+
+  // Update state
+  deepDiveState.currentPageIndex = pageIndex
+  deepDiveState.questions = deepDiveState.questionHistory[pageIndex]
+
+  // Clear selections when switching pages to avoid confusion
+  deepDiveState.selectedQuestion = null
+  deepDiveState.customQuestion = ''
+
+  console.log(
+    `[deepDiveStore] Switched to page ${pageIndex + 1}/${maxIndex + 1}`
+  )
+}
+
+/**
+ * Navigate to next page
+ */
+export function nextPage() {
+  const maxIndex = deepDiveState.questionHistory.length - 1
+  if (deepDiveState.currentPageIndex < maxIndex) {
+    setCurrentPage(deepDiveState.currentPageIndex + 1)
+  }
+}
+
+/**
+ * Navigate to previous page
+ */
+export function previousPage() {
+  if (deepDiveState.currentPageIndex > 0) {
+    setCurrentPage(deepDiveState.currentPageIndex - 1)
+  }
+}
+
+/**
+ * Get total number of pages
+ * @returns {number} Total pages
+ */
+export function getTotalPages() {
+  return deepDiveState.questionHistory.length
 }

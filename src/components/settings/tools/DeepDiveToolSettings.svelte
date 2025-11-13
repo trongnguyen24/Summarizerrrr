@@ -14,33 +14,11 @@
   import ToolGroqConfig from '@/components/providerConfigs/tools/ToolGroqConfig.svelte'
   import ToolOllamaConfig from '@/components/providerConfigs/tools/ToolOllamaConfig.svelte'
   import ToolLMStudioConfig from '@/components/providerConfigs/tools/ToolLMStudioConfig.svelte'
+  import ToolOpenrouterConfig from '@/components/providerConfigs/tools/ToolOpenrouterConfig.svelte'
+  import ToolOpenAICompatibleConfig from '@/components/providerConfigs/tools/ToolOpenAICompatibleConfig.svelte'
 
   // ✅ Computed value cho tool settings
   let toolSettings = $derived.by(() => settings.tools?.deepDive ?? {})
-
-  /**
-   * Local state for custom model to handle bind: directives
-   * Simplified from complex dual $effect pattern
-   */
-  let customModelProxy = $state(toolSettings.customModel || '')
-
-  /**
-   * Single effect to sync model changes in both directions
-   * Prevents infinite loops by checking if values actually changed
-   */
-  $effect(() => {
-    const settingsModel = toolSettings.customModel || ''
-    const proxyModel = customModelProxy || ''
-
-    // Sync FROM settings TO proxy (when settings change externally)
-    if (settingsModel !== proxyModel && settingsModel !== '') {
-      customModelProxy = settingsModel
-    }
-    // Sync FROM proxy TO settings (when user changes model in UI)
-    else if (proxyModel !== settingsModel && proxyModel !== '') {
-      updateToolSetting('customModel', proxyModel)
-    }
-  })
 
   /**
    * Helper function để update tool setting
@@ -66,7 +44,7 @@
     // Initialize custom provider if switching to custom mode
     if (!useBasic && !settings.tools.deepDive.customProvider) {
       updates.customProvider = settings.selectedProvider || 'gemini'
-      updates.customModel = 'gemini-2.5-flash'
+      updates.customModel = 'gemini-2.5-flash-lite'
     }
 
     updateSettings({
@@ -88,12 +66,14 @@
 
     // Reset model về default của provider mới
     const defaultModels = {
-      gemini: 'gemini-2.5-flash',
+      gemini: 'gemini-2.5-flash-lite-preview-06-17',
       chatgpt: 'gpt-5-mini',
       deepseek: 'deepseek-chat',
       groq: 'moonshotai/kimi-k2-instruct',
       ollama: 'deepseek-r1:8b',
-      lmstudio: 'lmstudio-community/gemma-2b-it-GGUF',
+      lmstudio: 'google/gemma-3-12b',
+      openrouter: 'google/gemma-3-27b-it:free',
+      openaiCompatible: '',
     }
 
     updateSettings({
@@ -102,7 +82,8 @@
         deepDive: {
           ...settings.tools.deepDive,
           customProvider: newProvider,
-          customModel: defaultModels[newProvider] || 'gemini-2.5-flash',
+          customModel:
+            defaultModels[newProvider] || 'gemini-2.5-flash-lite-preview-06-17',
         },
       },
     })
@@ -185,35 +166,47 @@
           {#if toolSettings.customProvider === 'gemini'}
             <ToolGeminiAdvancedConfig
               bind:apiKey={settings.geminiAdvancedApiKey}
-              bind:selectedModel={customModelProxy}
+              selectedModel={toolSettings.customModel || ''}
               onModelChange={handleModelChange}
             />
           {:else if toolSettings.customProvider === 'chatgpt'}
             <ToolChatGPTConfig
               bind:apiKey={settings.chatgptApiKey}
-              bind:selectedModel={customModelProxy}
+              selectedModel={toolSettings.customModel || ''}
               onModelChange={handleModelChange}
             />
           {:else if toolSettings.customProvider === 'deepseek'}
             <ToolDeepseekConfig
               bind:apiKey={settings.deepseekApiKey}
-              bind:selectedModel={customModelProxy}
+              selectedModel={toolSettings.customModel || ''}
               onModelChange={handleModelChange}
             />
           {:else if toolSettings.customProvider === 'groq'}
             <ToolGroqConfig
               bind:apiKey={settings.groqApiKey}
-              bind:selectedModel={customModelProxy}
+              selectedModel={toolSettings.customModel || ''}
               onModelChange={handleModelChange}
             />
           {:else if toolSettings.customProvider === 'ollama'}
             <ToolOllamaConfig
-              bind:selectedModel={customModelProxy}
+              selectedModel={toolSettings.customModel || ''}
               onModelChange={handleModelChange}
             />
           {:else if toolSettings.customProvider === 'lmstudio'}
             <ToolLMStudioConfig
-              bind:selectedModel={customModelProxy}
+              selectedModel={toolSettings.customModel || ''}
+              onModelChange={handleModelChange}
+            />
+          {:else if toolSettings.customProvider === 'openrouter'}
+            <ToolOpenrouterConfig
+              bind:apiKey={settings.openrouterApiKey}
+              selectedModel={toolSettings.customModel || ''}
+              onModelChange={handleModelChange}
+            />
+          {:else if toolSettings.customProvider === 'openaiCompatible'}
+            <ToolOpenAICompatibleConfig
+              bind:apiKey={settings.openaiCompatibleApiKey}
+              selectedModel={toolSettings.customModel || ''}
               onModelChange={handleModelChange}
             />
           {/if}

@@ -21,12 +21,15 @@
   }
 
   /**
-   * Handles model change - calls tool-specific callback
+   * Handles model change - calls tool-specific callback and saves to global settings
    * @param {string} value The model value from the input.
    */
   function handleModelChange(value) {
     console.log('ToolGroqConfig: Model changed to', value)
+    // Call the callback to notify parent component
     onModelChange(value)
+    // Also save to global settings
+    updateSettings({ selectedGroqModel: value })
   }
 </script>
 

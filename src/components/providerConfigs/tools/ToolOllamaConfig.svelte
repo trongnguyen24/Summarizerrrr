@@ -9,7 +9,7 @@
   import { t } from 'svelte-i18n'
   import Icon from '@iconify/svelte'
 
-  let { selectedModel = $bindable(), onModelChange = () => {} } = $props()
+  let { selectedModel = '', onModelChange = () => {} } = $props()
 
   let ollamaModels = $state([])
   let saveStatus = $state('')
@@ -36,6 +36,7 @@
   function scheduleModelSave(value) {
     clearTimeout(ollamaModelDebounceTimer)
     ollamaModelDebounceTimer = setTimeout(() => {
+      // Call callback to notify parent component (tool settings)
       onModelChange(value.trim())
       saveStatus = 'saved!'
       setTimeout(() => (saveStatus = ''), 2000)
@@ -99,7 +100,7 @@
       type="text"
       id="ollama-model-input"
       list="ollama-model-list"
-      bind:value={selectedModel}
+      value={selectedModel}
       class="select-none font-mono w-full relative text-xs overflow-hidden flex flex-col gap-0 px-3 text-text-primary text-left py-2 bg-muted/5 dark:bg-muted/5 border border-border hover:border-blackwhite/15 focus:border-blackwhite/30 dark:border-blackwhite/10 dark:focus:border-blackwhite/20 focus:outline-none focus:ring-0 transition-colors duration-150 ollama-model-input"
       placeholder={$t('settings.ollama_config.model_placeholder')}
       oninput={(e) => scheduleModelSave(e.target.value)}

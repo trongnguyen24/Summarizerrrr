@@ -27,8 +27,10 @@
 
   function handleGeminiAdvancedModelChange(newValue) {
     selectedModel = newValue
-    // Call tool-specific callback instead of updating global settings
+    // Call tool-specific callback to notify parent component
     onModelChange(newValue)
+    // Also save to global settings
+    updateSettings({ selectedGeminiAdvancedModel: newValue })
   }
 </script>
 

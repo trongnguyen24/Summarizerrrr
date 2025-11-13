@@ -19,12 +19,15 @@
   }
 
   /**
-   * Handles model change - calls tool-specific callback
+   * Handles model change - calls tool-specific callback and saves to global settings
    * @param {string} value The model value from the input.
    */
   function handleModelChange(value) {
     console.log('ToolLMStudioConfig: Model changed to', value)
+    // Call callback to notify parent component
     onModelChange(value)
+    // Also save to global settings
+    updateSettings({ selectedLmStudioModel: value })
   }
 </script>
 

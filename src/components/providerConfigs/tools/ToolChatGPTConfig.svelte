@@ -9,7 +9,7 @@
 
   let {
     apiKey = $bindable(),
-    selectedModel = $bindable(),
+    selectedModel = '',
     onModelChange = () => {},
   } = $props()
 
@@ -57,6 +57,7 @@
   function scheduleModelSave(value) {
     clearTimeout(chatgptModelDebounceTimer)
     chatgptModelDebounceTimer = setTimeout(() => {
+      // Call the callback to notify parent component (tool settings)
       onModelChange(value.trim())
       saveStatus = 'saved!'
       setTimeout(() => (saveStatus = ''), 2000)
@@ -98,7 +99,7 @@
       type="text"
       id="chatgpt-model-input"
       list="chatgpt-model-list"
-      bind:value={selectedModel}
+      value={selectedModel}
       class="select-none font-mono w-full relative text-xs overflow-hidden flex flex-col gap-0 px-3 text-text-primary text-left py-2 bg-muted/5 dark:bg-muted/5 border border-border hover:border-blackwhite/15 focus:border-blackwhite/30 dark:border-blackwhite/10 dark:focus:border-blackwhite/20 focus:outline-none focus:ring-0 transition-colors duration-150 chatgpt-model-input"
       placeholder={$t('settings.chatgpt_config.model_placeholder')}
       oninput={(e) => scheduleModelSave(e.target.value)}

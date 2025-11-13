@@ -38,8 +38,8 @@
   let selectedQuestion = $derived(deepDiveState.selectedQuestion)
   let customQuestion = $derived(deepDiveState.customQuestion)
 
-  // Local state
-  let chatProvider = $state(
+  // Local state - reactive to settings changes
+  let chatProvider = $derived(
     settings.tools?.deepDive?.defaultChatProvider || 'gemini'
   )
 
@@ -151,9 +151,12 @@
 
   /**
    * Handles chat provider change
+   * Note: The actual saving is handled in ChatProviderSelect component
    */
   function handleProviderChange(newProvider) {
-    chatProvider = newProvider
+    // No need to manually update chatProvider here since it's now a derived value
+    // It will automatically update when settings change
+    console.log('[DeepDiveContent] Provider changed to:', newProvider)
   }
 
   /**
@@ -186,10 +189,10 @@
 
 <div
   class="deep-dive-content
-          h-screen flex flex-col"
+          h-screen gap-10 pb-16 overflow-y-auto flex flex-col"
 >
   <!-- Header -->
-  <div class="header sticky top-0 z-10 px-6 flex gap-4 pt-6 flex-col">
+  <div class="header px-6 flex gap-4 pt-6 flex-col">
     <div
       class="w-fit mx-auto relative font-mono text-xs text-text-secondary flex justify-center items-center gap-2"
     >
@@ -403,13 +406,15 @@
       {/if}
     {/if}
   </div>
-  <div class="">
+  <div
+    class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full z-20 bg-surface-1"
+  >
     <button
       onclick={toggleDeepDive}
-      class="close-btn p-2 flex w-full justify-center hover:bg-blackwhite-10 bg-blackwhite-5 border-t border-border transition-all"
+      class="close-btn p-2 flex w-full justify-center hover:bg-blackwhite-10 rounded-t-lg bg-blackwhite-5 border-t border-border transition-all"
       aria-label="Close"
     >
-      <Icon icon="heroicons:x-mark" width="20" height="20" />
+      <Icon icon="heroicons:x-mark" width="24" height="24" />
     </button>
   </div>
 </div>
@@ -440,34 +445,25 @@
 
   .nav-btn {
     padding: 0.5rem;
-    background-color: var(--surface-3);
-    border: 1px solid var(--border);
-    border-radius: 0.375rem;
+    background-color: var(--color-surface-1);
+    border: 1px solid var(--color-border);
+    border-radius: 10rem;
     color: var(--text-secondary);
     transition: all 200ms;
     display: flex;
     align-items: center;
     justify-content: center;
-    min-width: 36px;
   }
 
   .nav-btn:hover {
-    background-color: var(--surface-1);
+    background-color: var(--color-surface-2);
     color: var(--primary);
   }
 
   .nav-btn:disabled {
     opacity: 0.3;
     cursor: not-allowed;
+    border: 1px solid transparent;
     pointer-events: none;
-  }
-
-  .nav-btn:not(:disabled):hover {
-    transform: scale(1.05);
-    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  }
-
-  .nav-btn:not(:disabled):active {
-    transform: scale(0.95);
   }
 </style>

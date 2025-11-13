@@ -13,6 +13,9 @@
     addToQuestionHistory,
     setSelectedQuestion,
     setCustomQuestion,
+    nextPage,
+    previousPage,
+    getTotalPages,
   } from '@/stores/deepDiveStore.svelte.js'
   import {
     generateFollowUpQuestions,
@@ -57,6 +60,14 @@
     isToolEnabled && availability.available && summaryContent && !isGenerating
   )
   let hasQuestions = $derived(questions.length > 0)
+
+  // Pagination state
+  let totalPages = $derived(getTotalPages())
+  let hasPagination = $derived(totalPages > 1)
+  let canGoBack = $derived(deepDiveState.currentPageIndex > 0 && !isGenerating)
+  let canGoForward = $derived(
+    deepDiveState.currentPageIndex < totalPages - 1 && !isGenerating
+  )
 
   // Chat provider configs
   const providers = [
@@ -185,10 +196,12 @@
 </script>
 
 {#if isVisible}
-  <div class="deep-dive-panel-fp flex flex-col gap-4 px-4 py-6">
+  <div
+    class="deep-dive-panel-fp flex flex-col mx-auto max-w-lg gap-4 px-4 py-6"
+  >
     <!-- Header -->
     <div
-      class="w-fit mx-auto relative font-mono text-xs text-text-secondary flex justify-center items-center gap-2"
+      class="w-fit mx-auto relative font-mono text-text-primary flex justify-center items-center gap-2"
     >
       Deep Dive Questions
     </div>
@@ -214,7 +227,7 @@
       {#if !hasQuestions}
         <div class="generate-section">
           <button
-            class="generate-btn w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-surface-3 hover:bg-surface-1 border border-border rounded-md transition-colors duration-200 {isGenerating
+            class="generate-btn w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-surface-1 hover:bg-surface-2 border border-border rounded-full transition-colors duration-200 {isGenerating
               ? 'opacity-50 cursor-not-allowed'
               : ''}"
             onclick={handleGenerate}
@@ -247,7 +260,92 @@
 
       <!-- Questions Display -->
       {#if hasQuestions}
-        <div class="questions-section">
+        <div class="questions-section flex flex-col gap-4">
+          <!-- Chat Provider Buttons -->
+          <div class="flex justify-between items-center w-full">
+            <!-- Navigation Controls -->
+            {#if hasPagination}
+              <div
+                class="navigation-controls flex items-center justify-center gap-2"
+              >
+                <!-- Reload Button -->
+                <button
+                  onclick={handleRegenerate}
+                  disabled={isGenerating || !canGenerate}
+                  class="nav-btn"
+                  title={isGenerating
+                    ? 'Generating...'
+                    : 'Generate new questions'}
+                  aria-label="Reload questions"
+                >
+                  <Icon
+                    icon="heroicons:arrow-path"
+                    width="16"
+                    height="16"
+                    class={isGenerating ? 'animate-spin' : ''}
+                  />
+                </button>
+                <!-- Back Button -->
+                <button
+                  onclick={previousPage}
+                  disabled={!canGoBack}
+                  class="nav-btn"
+                  title="Previous questions"
+                  aria-label="Previous page"
+                >
+                  <Icon icon="heroicons:chevron-left" width="16" height="16" />
+                </button>
+
+                <!-- Forward Button -->
+                <button
+                  onclick={nextPage}
+                  disabled={!canGoForward}
+                  class="nav-btn"
+                  title="Next questions"
+                  aria-label="Next page"
+                >
+                  <Icon icon="heroicons:chevron-right" width="16" height="16" />
+                </button>
+              </div>
+            {:else if hasQuestions}
+              <!-- Single page - show reload only -->
+              <div class="flex justify-center">
+                <button
+                  onclick={handleRegenerate}
+                  disabled={isGenerating || !canGenerate}
+                  class="nav-btn"
+                  title={isGenerating
+                    ? 'Generating...'
+                    : 'Generate new questions'}
+                >
+                  <Icon
+                    icon="heroicons:arrow-path"
+                    width="16"
+                    height="16"
+                    class={isGenerating ? 'animate-spin' : ''}
+                  />
+                </button>
+              </div>
+            {/if}
+            <!-- Provider Buttons -->
+            <div
+              class="provider-buttons flex w-fit overflow-hidden px-1.5 gap-1 border border-border rounded-full"
+            >
+              {#each providers as provider (provider.value)}
+                {@const IconComponent = provider.icon}
+                <button
+                  onclick={() => handleProviderChange(provider.value)}
+                  class="provider-btn px-2 py-1.5 transition-all duration-200
+                             {chatProvider === provider.value
+                    ? '  text-primary'
+                    : 'hover:text-text-primary  text-text-secondary '}"
+                  title={provider.label}
+                >
+                  <IconComponent width="20" height="20" />
+                </button>
+              {/each}
+            </div>
+          </div>
           <div class="flex flex-col gap-5">
             {#each questions as question, i (question)}
               <QuestionChip
@@ -262,49 +360,15 @@
             <!-- Action Buttons Row -->
             <div class="flex justify-center items-center gap-2 pt-2">
               <!-- Regenerate Button -->
-              <button
-                onclick={handleRegenerate}
-                disabled={isGenerating || !canGenerate}
-                class="regenerate-btn p-2 bg-surface-3 hover:bg-surface-1
-                       border border-border rounded-full
-                       text-text-secondary hover:text-primary
-                       transition-all duration-200
-                       {isGenerating ? 'opacity-50 cursor-wait' : ''}"
-                title={isGenerating ? 'Generating...' : 'Regenerate questions'}
-              >
-                <Icon
-                  icon="heroicons:arrow-path"
-                  width="16"
-                  height="16"
-                  class={isGenerating ? 'animate-spin' : ''}
-                />
-              </button>
-
-              <!-- Chat Provider Buttons -->
-              <div class="provider-buttons flex gap-1">
-                {#each providers as provider (provider.value)}
-                  {@const IconComponent = provider.icon}
-                  <button
-                    onclick={() => handleProviderChange(provider.value)}
-                    class="provider-btn p-2 rounded-full transition-all duration-200
-                           {chatProvider === provider.value
-                      ? 'bg-primary/20 border border-primary/50 text-primary'
-                      : 'bg-surface-3 hover:bg-surface-1 border border-border text-text-secondary hover:text-primary'}"
-                    title={provider.label}
-                  >
-                    <IconComponent width="16" height="16" />
-                  </button>
-                {/each}
-              </div>
 
               <!-- Ask Your Own Question Button -->
               <button
                 onclick={handleAskYourOwn}
-                class="ask-own-btn flex items-center gap-2 py-2 px-4 bg-primary/10 hover:bg-primary/20 border border-primary/30 rounded-full text-xs text-primary transition-all duration-200"
+                class="ask-own-btn flex items-center gap-2 py-2 px-4 underline text-xs text-text-secondary hover:text-text-primary transition-all duration-200"
                 title="Ask your own question in chat"
               >
-                <Icon icon="heroicons:sparkles" width="14" height="14" />
-                <span>Ask Your Own</span>
+                <Icon icon="heroicons:sparkles" width="16" height="16" />
+                <span>Ask your own question</span>
               </button>
             </div>
           </div>
@@ -320,21 +384,36 @@
     opacity: 0.5;
   }
 
-  .regenerate-btn:disabled {
-    cursor: not-allowed;
-    opacity: 0.5;
+  .nav-btn {
+    padding: 0.5rem;
+    background-color: var(--color-surface-1);
+    border: 1px solid var(--color-border);
+    border-radius: 10rem;
+    color: var(--text-secondary);
+    transition: all 200ms;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
-  .regenerate-btn:not(:disabled):hover {
-    transform: scale(1.05);
+  .nav-btn:hover {
+    background-color: var(--color-surface-2);
+    color: var(--primary);
+  }
+
+  .nav-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+    border: 1px solid transparent;
+    pointer-events: none;
   }
 
   .ask-own-btn:hover {
-    transform: scale(1.02);
+    transform: scale(1);
   }
 
   .provider-btn:not(:disabled):hover {
-    transform: scale(1.05);
+    transform: scale(1);
   }
 
   .provider-btn:disabled {

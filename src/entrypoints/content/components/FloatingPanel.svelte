@@ -390,7 +390,7 @@
         height="24"
       /></button
     >
-    <div id="shadow-scroll" class="w-full h-full overflow-y-auto">
+    <div id="shadow-scroll" class="w-full h-full overflow-y-auto pb-32">
       <div class="grid grid-rows-[10px_200px_10px_1fr] relative">
         <div
           class="top-stripes border-b border-border flex justify-center items-center w-full h-full"

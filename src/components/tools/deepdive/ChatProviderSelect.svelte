@@ -6,6 +6,7 @@
   import ChatGPTIcon from '@/components/icons/ChatGPTIcon.svelte'
   import PerplexityIcon from '@/components/icons/PerplexityIcon.svelte'
   import GrokIcon from '@/components/icons/GrokIcon.svelte'
+  import { updateToolSettings } from '@/stores/settingsStore.svelte.js'
 
   let {
     value = $bindable('gemini'),
@@ -109,6 +110,17 @@
   })
 
   function handleChange(newValue) {
+    // Save the selected provider to settings for future sessions
+    updateToolSettings('deepDive', { defaultChatProvider: newValue }).catch(
+      (error) => {
+        console.error(
+          '[ChatProviderSelect] Failed to save provider setting:',
+          error
+        )
+      }
+    )
+
+    // Still call the original onchange callback if provided
     if (onchange) {
       onchange(newValue)
     }

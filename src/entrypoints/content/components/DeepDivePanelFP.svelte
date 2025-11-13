@@ -47,8 +47,8 @@
   let error = $derived(deepDiveState.error)
   let hasGenerated = $derived(deepDiveState.hasGenerated)
 
-  // Local state
-  let chatProvider = $state(
+  // Derived state for provider (sync with global settings)
+  let chatProvider = $derived(
     settings.tools?.deepDive?.defaultChatProvider || 'gemini'
   )
 
@@ -166,9 +166,9 @@
    * Handles chat provider change
    */
   async function handleProviderChange(newProvider) {
-    chatProvider = newProvider
-    // Save to settings store
+    // Save to settings store (global) - chatProvider will auto-update via $derived
     await updateToolSettings('deepDive', { defaultChatProvider: newProvider })
+    console.log('[DeepDivePanelFP] Provider changed to:', newProvider)
   }
 
   /**
@@ -385,7 +385,7 @@
   }
 
   .nav-btn {
-    padding: 0.5rem;
+    padding: 0.5em;
     background-color: var(--color-surface-1);
     border: 1px solid var(--color-border);
     border-radius: 10rem;

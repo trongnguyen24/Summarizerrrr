@@ -2,13 +2,11 @@
   // @ts-nocheck
   import { t } from 'svelte-i18n'
   import { settings, updateSettings } from '@/stores/settingsStore.svelte.js'
-  import { Switch, Label } from 'bits-ui'
   import Icon from '@iconify/svelte'
   import ToolProvidersSelect from '@/components/inputs/ToolProvidersSelect.svelte'
   import ButtonSet from '@/components/buttons/ButtonSet.svelte'
-  import TextScramble from '@/lib/ui/textScramble.js'
-  import ToolIcon64 from '@/components/ui/ToolIcon64.svelte'
   import ToolIcon96 from '@/components/ui/ToolIcon96.svelte'
+  import ToolEnableToggle from '@/components/inputs/ToolEnableToggle.svelte'
 
   // Tool-specific provider configs
   import ToolGeminiAdvancedConfig from '@/components/providerConfigs/tools/ToolGeminiAdvancedConfig.svelte'
@@ -22,17 +20,6 @@
 
   // ✅ Computed value cho tool settings
   let toolSettings = $derived.by(() => settings.tools?.deepDive ?? {})
-
-  // Text scramble effect for Enable toggle
-  let textElement
-  let textScramble
-
-  $effect(() => {
-    if (textElement) {
-      textScramble = new TextScramble(textElement)
-      textScramble.setText(toolSettings.enabled ? 'Enabled' : 'Disabled')
-    }
-  })
 
   /**
    * Helper function để update tool setting
@@ -135,34 +122,14 @@
         Generate follow-up questions and chat with AI
       </div>
       <!-- Enable Tool Toggle -->
-      <div class="flex items-center">
-        <Switch.Root
-          id="deepdive-enabled"
-          checked={toolSettings.enabled}
-          onCheckedChange={(value) => updateToolSetting('enabled', value)}
-          class="focus-visible:ring-primary border border-blackwhite/5 text-text-secondary flex justify-center items-center focus-visible:ring-offset-background bg-blackwhite/5 hover:bg-blackwhite/10 transition-colors rounded-full focus-visible:outline-hidden size-7.5 shrink-0 cursor-pointer focus-visible:ring-1 focus-visible:ring-offset-1 disabled:cursor-not-allowed data-[state=checked]:text-white disabled:opacity-50"
-        >
-          <Switch.Thumb
-            class="bg-primary rounded-full pointer-events-none block shrink-0 size-7.5 transition-all duration-300 data-[state=checked]:scale-100 data-[state=unchecked]:scale-60 data-[state=checked]:opacity-100 data-[state=unchecked]:opacity-0"
-          />
-          <Icon
-            icon="heroicons:cpu-chip-20-solid"
-            width="20"
-            height="20"
-            class="origin-center  absolute z-10"
-          />
-        </Switch.Root>
-        <Label.Root
-          for="deepdive-enabled"
-          class="cursor-pointer px-2 py-2 w-24  font-bold select-none transition-colors duration-1000 {toolSettings.enabled
-            ? 'text-primary'
-            : 'text-text-primary'}"
-        >
-          <span bind:this={textElement}>
-            {toolSettings.enabled ? 'Enabled' : 'Disabled'}
-          </span>
-        </Label.Root>
-      </div>
+      <ToolEnableToggle
+        id="deepdive-enabled"
+        bind:checked={toolSettings.enabled}
+        onCheckedChange={(value) => updateToolSetting('enabled', value)}
+        icon="heroicons:cpu-chip-20-solid"
+        enabledText="Enabled"
+        disabledText="Disabled"
+      />
     </div>
   </div>
 

@@ -136,23 +136,24 @@
   }
 </script>
 
-{#if isGenerating}
-  <div class="inline-questions-loading">
-    <p class="text-xs text-text-secondary animate-pulse">
-      Generating follow-up questions...
-    </p>
-  </div>
-{:else if hasQuestions}
-  <div class="inline-questions flex flex-col gap-4">
+{#if hasQuestions}
+  <div
+    class="inline-questions w-screen relative -left-6 flex flex-col mt-10 gap-6 transition-opacity duration-300 {isGenerating
+      ? 'opacity-50 pointer-events-none'
+      : 'opacity-100'}"
+  >
     <!-- Header -->
+    <div
+      class="h-2 absolute w-full -translate-y-2 top-stripes border-t border-border"
+    ></div>
     <p
-      class="text-xs w-full !m-0 justify-center !text-center font-mono text-text-primary tracking-wider flex items-center gap-2"
+      class="!text-xs border-t border-b py-3 border-border w-full !m-0 justify-center !text-center font-mono text-text-primary uppercase tracking-wider flex items-center gap-2"
     >
       Deep Dive Questions
     </p>
 
     <!-- Navigation & Provider Controls -->
-    <div class="flex justify-between items-center w-full">
+    <div class="flex justify-between items-center w-full px-6">
       <!-- Navigation Controls -->
       {#if hasPagination}
         <div class="navigation-controls flex items-center justify-center gap-2">
@@ -215,7 +216,7 @@
 
       <!-- Provider Buttons -->
       <div
-        class="provider-buttons flex w-fit overflow-hidden px-1.5 gap-1 border border-border rounded-full"
+        class="provider-buttons flex w-fit overflow-hidden px-1 gap-1 border border-border rounded-full"
       >
         {#each providers as provider (provider.value)}
           {@const IconComponent = provider.icon}
@@ -234,13 +235,13 @@
     </div>
 
     <!-- Questions List -->
-    <div class="flex flex-col gap-6">
+    <div class="flex flex-col gap-6 px-6">
       {#each questions as question, i (question)}
         <QuestionChip
           {question}
           index={i + 1}
           isSelected={false}
-          disabled={false}
+          disabled={isGenerating}
           onclick={() => handleQuestionClick(question)}
         />
       {/each}

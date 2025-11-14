@@ -196,14 +196,15 @@
 </script>
 
 {#if isVisible}
-  <div
-    class="deep-dive-panel-fp flex flex-col mx-auto max-w-lg gap-4 px-4 py-6"
-  >
+  <div class="deep-dive-panel-fp flex flex-col mx-auto gap-6 py-6">
     <!-- Header -->
     <div
-      class="w-fit mx-auto relative font-mono text-text-primary flex justify-center items-center gap-2"
+      class="w-full border-t border-b py-3 border-border relative font-mono text-text-primary flex justify-center items-center gap-2"
     >
-      Deep Dive Questions
+      <div
+        class="h-2 absolute w-full top-0 -translate-y-2 top-stripes border-t border-border"
+      ></div>
+      <span class="uppercase text-xs"> Deep Dive Questions</span>
     </div>
 
     <!-- Error Display -->
@@ -260,7 +261,9 @@
 
       <!-- Questions Display -->
       {#if hasQuestions}
-        <div class="questions-section flex flex-col gap-4">
+        <div
+          class="questions-section flex flex-col px-6 max-w-[32em] mx-auto gap-6"
+        >
           <!-- Chat Provider Buttons -->
           <div class="flex justify-between items-center w-full">
             <!-- Navigation Controls -->
@@ -329,7 +332,7 @@
             {/if}
             <!-- Provider Buttons -->
             <div
-              class="provider-buttons flex w-fit overflow-hidden px-1.5 gap-1 border border-border rounded-full"
+              class="provider-buttons flex w-fit overflow-hidden px-1 gap-1 border border-border rounded-full"
             >
               {#each providers as provider (provider.value)}
                 {@const IconComponent = provider.icon}
@@ -364,10 +367,10 @@
               <!-- Ask Your Own Question Button -->
               <button
                 onclick={handleAskYourOwn}
-                class="ask-own-btn flex items-center gap-2 py-2 px-4 underline text-xs text-text-secondary hover:text-text-primary transition-all duration-200"
+                class="ask-own-btn flex items-center gap-2 py-2 px-4 underline text-sm text-text-secondary hover:text-text-primary transition-all duration-200"
                 title="Ask your own question in chat"
               >
-                <Icon icon="heroicons:sparkles" width="16" height="16" />
+                <Icon icon="heroicons:sparkles" width="20" height="20" />
                 <span>Ask your own question</span>
               </button>
             </div>

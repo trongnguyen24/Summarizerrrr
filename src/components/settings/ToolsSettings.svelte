@@ -4,6 +4,7 @@
   import { settings, updateSettings } from '@/stores/settingsStore.svelte.js'
   import Icon from '@iconify/svelte'
   import DeepDiveToolSettings from './tools/DeepDiveToolSettings.svelte'
+  import ToolIcon from '../ui/ToolIcon.svelte'
 
   // Persist expansion state với sessionStorage
   let expandedTool = $state(
@@ -29,51 +30,42 @@
   }
 </script>
 
-<div class="setting-block flex gap-5 pb-6 pt-5 flex-col">
-  <div class="flex items-center h-6 justify-between px-5">
-    <label class="block font-bold text-text-primary">Tools</label>
-  </div>
-
-  <div class="setting-secsion flex flex-col gap-4 px-5">
-    <!-- Deep Dive Tool -->
-    <div class="border border-border rounded-md overflow-hidden">
-      <button
-        class="w-full flex items-center justify-between p-4 hover:bg-surface-2 transition-colors"
-        onclick={() => toggleTool('deepDive')}
-      >
-        <div class="flex items-center gap-3">
+<div class="setting-block flex gap-5 pb-6 flex-col">
+  <!-- Deep Dive Tool -->
+  <div class="overflow-hidden">
+    <button
+      class="w-full flex items-center justify-between p-4 hover:bg-surface-2 transition-colors"
+      onclick={() => toggleTool('deepDive')}
+    >
+      <div class="flex items-center gap-3">
+        <div class="size-16 shrink-0 overflow-hidden relative">
+          <ToolIcon />
           <Icon
-            icon="heroicons:light-bulb"
-            width="24"
-            height="24"
-            class="text-primary"
+            icon="heroicons:sparkles-solid"
+            class="size-6 center-abs text-muted dark:text-text-primary  dark:drop-shadow-md dark:drop-shadow-primary shrink-0"
           />
-          <div class="text-left">
-            <div class="font-bold text-text-primary">Deep Dive with AI</div>
-            <div class="text-xs text-text-secondary">
-              Generate follow-up questions and chat with AI
-            </div>
+        </div>
+
+        <div class="text-left">
+          <div class="font-bold text-text-primary">Deep Dive Questions</div>
+          <div class="text-xs text-text-secondary">
+            Generate follow-up questions and chat with AI
           </div>
         </div>
-        <Icon
-          icon={expandedTool === 'deepDive'
-            ? 'heroicons:chevron-up'
-            : 'heroicons:chevron-down'}
-          width="20"
-          height="20"
-        />
-      </button>
+      </div>
+      <Icon
+        icon={expandedTool === 'deepDive'
+          ? 'heroicons:chevron-up'
+          : 'heroicons:chevron-down'}
+        width="20"
+        height="20"
+      />
+    </button>
 
-      {#if expandedTool === 'deepDive'}
-        <div class="border-t border-border p-4 bg-surface-1">
-          <DeepDiveToolSettings />
-        </div>
-      {/if}
-    </div>
-
-    <!-- Future tools will be added here -->
-    <div class="text-center text-text-secondary text-xs py-4">
-      More tools coming soon...
-    </div>
+    {#if expandedTool === 'deepDive'}
+      <div class="border-t border-border p-4 bg-surface-1">
+        <DeepDiveToolSettings />
+      </div>
+    {/if}
   </div>
 </div>

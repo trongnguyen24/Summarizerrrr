@@ -95,6 +95,13 @@
   function handleModelChange(newModel) {
     updateToolSetting('customModel', newModel)
   }
+
+  /**
+   * Toggle auto generate mode
+   */
+  function toggleAutoGenerate(value) {
+    updateToolSetting('autoGenerate', value)
+  }
 </script>
 
 <div class="flex flex-col gap-4">
@@ -110,7 +117,7 @@
       class="focus-visible:ring-primary border border-blackwhite/5 text-text-secondary flex justify-center items-center bg-blackwhite/5 hover:bg-blackwhite/10 transition-colors rounded-full size-7.5"
     >
       <Switch.Thumb
-        class="bg-primary rounded-full block size-7.5 transition-all duration-300 data-[state=checked]:scale-100 data-[state=unchecked]:scale-60"
+        class="bg-primary rounded-full block size-7.5 transition-all duration-300 data-[state=checked]:scale-100 data-[state=unchecked]:scale-0"
       />
     </Switch.Root>
   </div>
@@ -214,30 +221,31 @@
       </div>
     {/if}
 
-    <!-- Auto Generate Toggle -->
-    <div class="flex items-center justify-between">
-      <div class="flex flex-col">
-        <Label.Root for="auto-generate" class="text-text-secondary">
-          Auto Generate Questions
-        </Label.Root>
-        <span class="text-xs text-text-secondary/70">
-          Automatically generate after summary completes
-        </span>
+    <!-- Auto Generate Mode -->
+    <div class="flex flex-col gap-2">
+      <label class="text-text-secondary">Question Generation Mode</label>
+      <div class="grid grid-cols-2 gap-2">
+        <ButtonSet
+          title="Manual"
+          class="setting-btn {!toolSettings.autoGenerate ? 'active' : ''}"
+          onclick={() => toggleAutoGenerate(false)}
+          Description="Generate questions manually when needed"
+        >
+          <Icon icon="heroicons:hand-raised" width="16" height="16" />
+        </ButtonSet>
+        <ButtonSet
+          title="Auto"
+          class="setting-btn {toolSettings.autoGenerate ? 'active' : ''}"
+          onclick={() => toggleAutoGenerate(true)}
+          Description="Automatically generate after summary completes"
+        >
+          <Icon icon="heroicons:bolt" width="16" height="16" />
+        </ButtonSet>
       </div>
-      <Switch.Root
-        id="auto-generate"
-        checked={toolSettings.autoGenerate}
-        onCheckedChange={(value) => updateToolSetting('autoGenerate', value)}
-        class="focus-visible:ring-primary border border-blackwhite/5 text-text-secondary flex justify-center items-center bg-blackwhite/5 hover:bg-blackwhite/10 transition-colors rounded-full size-7.5"
-      >
-        <Switch.Thumb
-          class="bg-primary rounded-full block size-7.5 transition-all duration-300 data-[state=checked]:scale-100 data-[state=unchecked]:scale-60"
-        />
-      </Switch.Root>
     </div>
 
     <!-- Default Chat Provider -->
-    <div class="flex flex-col gap-2">
+    <!-- <div class="flex flex-col gap-2">
       <label class="text-text-secondary">Default Chat Provider</label>
       <div class="grid grid-cols-2 gap-2">
         <ButtonSet
@@ -269,7 +277,7 @@
           onclick={() => updateToolSetting('defaultChatProvider', 'grok')}
         />
       </div>
-    </div>
+    </div> -->
   {/if}
 </div>
 

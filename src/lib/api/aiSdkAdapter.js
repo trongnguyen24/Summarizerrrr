@@ -186,6 +186,11 @@ export async function generateContent(
         ? { ...settings, selectedGeminiModel: currentModel }
         : settings
 
+      // LOG: Model being used for this API call
+      const modelName = autoFallbackEnabled ? currentModel :
+        (providerId === 'gemini' ? getCurrentGeminiModel(settings) : 'N/A')
+      console.log(`[aiSdkAdapter] 📡 API Call - Provider: ${providerId}, Model: ${modelName}`)
+
       const baseModel = getAISDKModel(providerId, currentSettings)
 
       // Check if this is a proxy model
@@ -203,6 +208,7 @@ export async function generateContent(
           ...generationConfig,
         })
         console.log('[DEBUG] Proxy raw result:', result.text) // Add debug log
+        console.log(`[aiSdkAdapter] ✅ API Success - Model: ${modelName}`)
         return result.text
       } else {
         // Use the standard AI SDK generateText for direct calls - no middleware
@@ -212,10 +218,13 @@ export async function generateContent(
           prompt: userPrompt,
           ...generationConfig,
         })
+        console.log(`[aiSdkAdapter] ✅ API Success - Model: ${modelName}`)
         return text
       }
     } catch (error) {
-      console.error('[aiSdkAdapter] AI SDK Error:', error)
+      const failedModel = autoFallbackEnabled ? currentModel :
+        (providerId === 'gemini' ? getCurrentGeminiModel(settings) : 'N/A')
+      console.error(`[aiSdkAdapter] ❌ API Failed - Model: ${failedModel}`, error)
       lastError = error
 
       // Check if we should try fallback
@@ -276,6 +285,11 @@ export async function* generateContentStream(
         ? { ...settings, selectedGeminiModel: currentModel }
         : settings
 
+      // LOG: Model being used for this API call (streaming)
+      const modelName = autoFallbackEnabled ? currentModel :
+        (providerId === 'gemini' ? getCurrentGeminiModel(settings) : 'N/A')
+      console.log(`[aiSdkAdapter] 📡 API Stream Call - Provider: ${providerId}, Model: ${modelName}`)
+
       const baseModel = getAISDKModel(providerId, currentSettings)
 
       // Check if this is a proxy model (doesn't need reasoning extraction wrapper)
@@ -296,6 +310,7 @@ export async function* generateContentStream(
         for await (const chunk of result.textStream) {
           yield chunk
         }
+        console.log(`[aiSdkAdapter] ✅ Stream Success - Model: ${modelName}`)
       } else {
         // Use standard AI SDK streaming with smoothing options - no middleware
         const defaultSmoothingOptions = {
@@ -330,12 +345,15 @@ export async function* generateContentStream(
         for await (const chunk of streamToUse) {
           yield chunk
         }
+        console.log(`[aiSdkAdapter] ✅ Stream Success - Model: ${modelName}`)
       }
 
       // If we successfully streamed, return
       return
     } catch (error) {
-      console.error('[aiSdkAdapter] AI SDK Stream Error:', error)
+      const failedModel = autoFallbackEnabled ? currentModel :
+        (providerId === 'gemini' ? getCurrentGeminiModel(settings) : 'N/A')
+      console.error(`[aiSdkAdapter] ❌ Stream Failed - Model: ${failedModel}`, error)
       lastError = error
 
       // Check if this is a Firefox mobile specific error

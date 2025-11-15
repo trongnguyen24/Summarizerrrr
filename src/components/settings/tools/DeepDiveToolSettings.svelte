@@ -105,11 +105,11 @@
   }
 </script>
 
-<div class="flex flex-col gap-6 p-6">
+<div class="flex flex-col gap-8 p-6">
   <!-- Tool Header/Introduction -->
-  <div class="flex items-center gap-3 pb-4">
-    <div class="size-24 shrink-0 overflow-hidden relative">
-      <ToolIcon96 />
+  <div class="flex gap-4">
+    <div class="size-24 bg-background shrink-0 overflow-hidden relative">
+      <ToolIcon96 animated={toolSettings.enabled} />
       <Icon
         icon="heroicons:sparkles-solid"
         class="size-8 center-abs text-muted dark:text-text-primary dark:drop-shadow-md dark:drop-shadow-primary shrink-0"
@@ -117,9 +117,9 @@
     </div>
 
     <div class="text-left">
-      <div class="font-bold text-text-primary text-sm">Deep Dive Questions</div>
-      <div class="text-xs mt-1 text-text-secondary">
-        Generate follow-up questions and chat with AI
+      <div class="font-bold text-text-primary text-xs">Deep Dive Questions</div>
+      <div class="text-xs mt-2 pb-3 text-text-secondary text-pretty">
+        Generate 3 follow-up questions and chat in new tab.
       </div>
       <!-- Enable Tool Toggle -->
       <ToolEnableToggle
@@ -135,11 +135,14 @@
 
   {#if toolSettings.enabled}
     <!-- Provider Mode Selection -->
-    <div class="flex flex-col gap-2">
-      <label class="text-text-secondary">Provider Mode</label>
-      <div class="grid grid-cols-2 gap-2">
+    <div>
+      <label class="text-text-primary">Provider for generation</label>
+      <p class="mt-2 text-muted">
+        Recommended select a fast, lightweight model for generating questions.
+      </p>
+      <div class="grid mt-3 grid-cols-2 gap-2">
         <ButtonSet
-          title="Use Gemini Basic"
+          title="Gemini Basic"
           class="setting-btn {toolSettings.useGeminiBasic ? 'active' : ''}"
           onclick={() => toggleProviderMode(true)}
           Description="Fast and efficient for question generation"
@@ -159,7 +162,7 @@
 
     {#if !toolSettings.useGeminiBasic}
       <!-- Custom Provider Configuration -->
-      <div class="flex flex-col gap-4 p-4 bg-surface-2 rounded-md">
+      <div class="flex flex-col gap-4">
         <!-- Provider Select -->
         <div class="flex flex-col gap-2">
           <label class="text-text-secondary">Select Provider</label>
@@ -233,9 +236,13 @@
     {/if}
 
     <!-- Auto Generate Mode -->
-    <div class="flex flex-col gap-2">
-      <label class="text-text-secondary">Question Generation Mode</label>
-      <div class="grid grid-cols-2 gap-2">
+    <div>
+      <label class=" text-text-primary">Question Generation Mode</label>
+      <p class="mt-2 text-muted">
+        Auto mode will automatically generate questions when the summary is
+        complete.
+      </p>
+      <div class="grid mt-3 grid-cols-2 gap-2">
         <ButtonSet
           title="Manual"
           class="setting-btn {!toolSettings.autoGenerate ? 'active' : ''}"

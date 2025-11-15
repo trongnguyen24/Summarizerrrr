@@ -1,6 +1,12 @@
+<script>
+  // @ts-nocheck
+  let { animated = true } = $props()
+</script>
+
 <svg
   xmlns="http://www.w3.org/2000/svg"
   class=" text-border-2"
+  class:no-animation={!animated}
   width="96"
   height="96"
   fill="none"
@@ -68,6 +74,10 @@
   .stroke-line {
     animation: stroke-flow linear infinite;
     color: var(--color-blackwhite-10);
+  }
+
+  .no-animation .stroke-line {
+    animation: none;
   }
 
   .line-1 {

@@ -45,7 +45,7 @@
     // Initialize custom provider if switching to custom mode
     if (!useBasic && !settings.tools.deepDive.customProvider) {
       updates.customProvider = settings.selectedProvider || 'gemini'
-      updates.customModel = 'gemini-2.5-flash-lite'
+      updates.customModel = 'gemini-2.5-flash-lite-preview-06-17'
     }
 
     updateSettings({
@@ -117,9 +117,11 @@
     </div>
 
     <div class="text-left">
-      <div class="font-bold text-text-primary text-xs">Deep Dive Questions</div>
+      <div class="font-bold text-text-primary text-xs">
+        {$t('settings.tools.deepdive.title')}
+      </div>
       <div class="text-xs mt-2 pb-3 text-text-secondary text-pretty">
-        Generate 3 follow-up questions and chat in new tab.
+        {$t('settings.tools.deepdive.description')}
       </div>
       <!-- Enable Tool Toggle -->
       <ToolEnableToggle
@@ -127,8 +129,8 @@
         bind:checked={toolSettings.enabled}
         onCheckedChange={(value) => updateToolSetting('enabled', value)}
         icon="heroicons:cpu-chip-20-solid"
-        enabledText="Enabled"
-        disabledText="Disabled"
+        enabledText={$t('settings.tools.deepdive.enabled')}
+        disabledText={$t('settings.tools.deepdive.disabled')}
       />
     </div>
   </div>
@@ -136,24 +138,28 @@
   {#if toolSettings.enabled}
     <!-- Provider Mode Selection -->
     <div>
-      <label class="text-text-primary">Provider for generation</label>
+      <label class="text-text-primary"
+        >{$t('settings.tools.deepdive.provider_label')}</label
+      >
       <p class="mt-2 text-muted">
-        Recommended select a fast, lightweight model for generating questions.
+        {$t('settings.tools.deepdive.provider_description')}
       </p>
       <div class="grid mt-3 grid-cols-2 gap-2">
         <ButtonSet
-          title="Gemini Basic"
+          title={$t('settings.tools.deepdive.gemini_basic')}
           class="setting-btn {toolSettings.useGeminiBasic ? 'active' : ''}"
           onclick={() => toggleProviderMode(true)}
-          Description="Fast and efficient for question generation"
+          Description={$t('settings.tools.deepdive.gemini_basic_description')}
         >
           <Icon icon="heroicons:sparkles" width="16" height="16" />
         </ButtonSet>
         <ButtonSet
-          title="Custom Provider"
+          title={$t('settings.tools.deepdive.custom_provider')}
           class="setting-btn {!toolSettings.useGeminiBasic ? 'active' : ''}"
           onclick={() => toggleProviderMode(false)}
-          Description="Use your configured AI provider"
+          Description={$t(
+            'settings.tools.deepdive.custom_provider_description'
+          )}
         >
           <Icon icon="heroicons:cog-6-tooth" width="16" height="16" />
         </ButtonSet>
@@ -165,7 +171,9 @@
       <div class="flex flex-col gap-4">
         <!-- Provider Select -->
         <div class="flex flex-col gap-2">
-          <label class="text-text-secondary">Select Provider</label>
+          <label class="text-text-secondary"
+            >{$t('settings.tools.deepdive.select_provider_label')}</label
+          >
           <ToolProvidersSelect
             bind:value={toolSettings.customProvider}
             onchange={handleProviderChange}
@@ -173,12 +181,14 @@
         </div>
 
         <!-- ✅ INFO: API keys editable and update global settings -->
-        <div class="text-xs text-text-secondary flex items-center gap-1 -mt-2">
-          <Icon icon="heroicons:information-circle" width="16" height="16" />
-          <span
-            >API keys are shared with Summary settings. Models are
-            tool-specific.</span
-          >
+        <div class="text-xs text-muted flex gap-1 -mt-2">
+          <Icon
+            class=" shrink-0"
+            icon="heroicons:information-circle"
+            width="16"
+            height="16"
+          />
+          <span>{$t('settings.tools.deepdive.api_keys_info')}</span>
         </div>
 
         <!-- Dynamic Provider Config (tool-specific components) -->
@@ -237,25 +247,26 @@
 
     <!-- Auto Generate Mode -->
     <div>
-      <label class=" text-text-primary">Question Generation Mode</label>
+      <label class=" text-text-primary"
+        >{$t('settings.tools.deepdive.generation_mode_label')}</label
+      >
       <p class="mt-2 text-muted">
-        Auto mode will automatically generate questions when the summary is
-        complete.
+        {$t('settings.tools.deepdive.generation_mode_description')}
       </p>
       <div class="grid mt-3 grid-cols-2 gap-2">
         <ButtonSet
-          title="Manual"
+          title={$t('settings.tools.deepdive.manual_mode')}
           class="setting-btn {!toolSettings.autoGenerate ? 'active' : ''}"
           onclick={() => toggleAutoGenerate(false)}
-          Description="Generate questions manually when needed"
+          Description={$t('settings.tools.deepdive.manual_mode_description')}
         >
           <Icon icon="heroicons:hand-raised" width="16" height="16" />
         </ButtonSet>
         <ButtonSet
-          title="Auto"
+          title={$t('settings.tools.deepdive.auto_mode')}
           class="setting-btn {toolSettings.autoGenerate ? 'active' : ''}"
           onclick={() => toggleAutoGenerate(true)}
-          Description="Automatically generate after summary completes"
+          Description={$t('settings.tools.deepdive.auto_mode_description')}
         >
           <Icon icon="heroicons:bolt" width="16" height="16" />
         </ButtonSet>

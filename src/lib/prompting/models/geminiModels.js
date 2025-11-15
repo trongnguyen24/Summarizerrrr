@@ -44,14 +44,4 @@ export const geminiAdvancedModels = [
     label: '2.0 Flash Lite',
     description: 'A lighter version of 2.0 Flash.',
   },
-  {
-    value: 'gemini-1.5-pro',
-    label: '1.5 Pro',
-    description: 'Previous generation pro model.',
-  },
-  {
-    value: 'gemini-1.5-flash',
-    label: '1.5 Flash',
-    description: 'Previous generation flash model.',
-  },
 ]

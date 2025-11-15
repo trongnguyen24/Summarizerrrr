@@ -223,6 +223,28 @@
       "model_label": "Modèle OpenRouter",
       "saved_status": "Sauvegardé !",
       "view_models": "Voir les modèles"
+    },
+    "tools": {
+      "deepdive": {
+        "title": "Questions Approfondies",
+        "description": "Générer 3 questions de suivi et chatter dans un nouvel onglet.",
+        "enabled": "Activé",
+        "disabled": "Désactivé",
+        "provider_label": "Fournisseur pour la génération de questions",
+        "provider_description": "Il est recommandé de sélectionner un modèle rapide et léger, ex. 2.5 Flash Lite.",
+        "gemini_basic": "Gemini Basic",
+        "gemini_basic_description": "Rapide et efficace pour la génération de questions",
+        "custom_provider": "Personnalisé",
+        "custom_provider_description": "Utiliser votre fournisseur IA configuré",
+        "select_provider_label": "Sélectionner un Fournisseur",
+        "api_keys_info": "Les clés API sont partagées avec les paramètres de Résumé. Les modèles sont spécifiques à l'outil.",
+        "generation_mode_label": "Mode de Génération de Questions",
+        "generation_mode_description": "Le mode automatique générera automatiquement des questions lorsque le résumé sera terminé.",
+        "manual_mode": "Manuel",
+        "manual_mode_description": "Générer des questions manuellement lorsque nécessaire",
+        "auto_mode": "Automatique",
+        "auto_mode_description": "Générer automatiquement après l'achèvement du résumé"
+      }
     }
   },
   "prompts": {

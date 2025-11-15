@@ -223,6 +223,28 @@
       "model_label": "OpenRouterモデル",
       "saved_status": "保存完了！",
       "view_models": "モデル一覧"
+    },
+    "tools": {
+      "deepdive": {
+        "title": "ディープダイブ質問",
+        "description": "3つのフォローアップ質問を生成し、新しいタブでチャットします。",
+        "enabled": "有効",
+        "disabled": "無効",
+        "provider_label": "質問生成用プロバイダー",
+        "provider_description": "高速で軽量なモデルを選択することをお勧めします。例：2.5 Flash Lite。",
+        "gemini_basic": "Gemini Basic",
+        "gemini_basic_description": "質問生成に高速で効率的",
+        "custom_provider": "カスタム",
+        "custom_provider_description": "設定済みのAIプロバイダーを使用",
+        "select_provider_label": "プロバイダーを選択",
+        "api_keys_info": "APIキーは要約設定と共有されます。モデルはツール固有です。",
+        "generation_mode_label": "質問生成モード",
+        "generation_mode_description": "自動モードは要約完了時に自動的に質問を生成します。",
+        "manual_mode": "手動",
+        "manual_mode_description": "必要に応じて手動で質問を生成",
+        "auto_mode": "自動",
+        "auto_mode_description": "要約完了後に自動生成"
+      }
     }
   },
   "prompts": {

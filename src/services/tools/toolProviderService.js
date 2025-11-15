@@ -32,7 +32,7 @@ export function resolveToolProvider(toolName) {
       console.log('[toolProviderService] Using Gemini Basic')
       return {
         provider: 'gemini',
-        model: settings.selectedGeminiModel || 'gemini-2.5-flash',
+        model: 'gemini-2.5-flash-lite-preview-06-17',
         temperature: 0.7,
         topP: 0.9,
       }

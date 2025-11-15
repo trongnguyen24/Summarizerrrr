@@ -217,6 +217,28 @@
       "model_label": "Mô hình OpenRouter",
       "saved_status": "Đã lưu!",
       "view_models": "Xem mô hình"
+    },
+    "tools": {
+      "deepdive": {
+        "title": "Deep Dive Questions",
+        "description": "Tạo 3 câu hỏi chuyên sâu và trò chuyện trong tab mới.",
+        "enabled": "Đang bật",
+        "disabled": "Đang tắt",
+        "provider_label": "Nhà cung cấp tạo câu hỏi",
+        "provider_description": "Khuyến nghị chọn một mô hình nhanh, nhẹ, vd. Gemini 2.5 flash lite.",
+        "gemini_basic": "Gemini Basic",
+        "gemini_basic_description": "Nhanh và hiệu quả để tạo câu hỏi",
+        "custom_provider": "Tùy chỉnh",
+        "custom_provider_description": "Sử dụng nhà cung cấp AI đã cấu hình của bạn",
+        "select_provider_label": "Chọn nhà cung cấp",
+        "api_keys_info": "Khóa API được chia sẻ chung toàn bộ extensions. Mô hình dùng riêng.",
+        "generation_mode_label": "Chế độ tạo câu hỏi",
+        "generation_mode_description": "Chế độ tự động sẽ tự tạo câu hỏi khi tóm tắt hoàn tất.",
+        "manual_mode": "Thủ công",
+        "manual_mode_description": "Tạo câu hỏi thủ công khi cần",
+        "auto_mode": "Tự động",
+        "auto_mode_description": "Tự động tạo sau khi tóm tắt hoàn tất"
+      }
     }
   },
   "prompts": {

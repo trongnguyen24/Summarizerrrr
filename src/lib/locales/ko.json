@@ -223,6 +223,28 @@
       "model_label": "OpenRouter 모델",
       "saved_status": "저장됨!",
       "view_models": "모델 보기"
+    },
+    "tools": {
+      "deepdive": {
+        "title": "심층 질문",
+        "description": "3개의 후속 질문을 생성하고 새 탭에서 채팅합니다.",
+        "enabled": "활성화",
+        "disabled": "비활성화",
+        "provider_label": "질문 생성용 제공업체",
+        "provider_description": "빠르고 가벼운 모델을 선택하는 것이 좋습니다. 예: 2.5 Flash Lite.",
+        "gemini_basic": "Gemini Basic",
+        "gemini_basic_description": "질문 생성에 빠르고 효율적",
+        "custom_provider": "사용자 정의",
+        "custom_provider_description": "구성된 AI 제공업체 사용",
+        "select_provider_label": "제공업체 선택",
+        "api_keys_info": "API 키는 요약 설정과 공유됩니다. 모델은 도구별로 다릅니다.",
+        "generation_mode_label": "질문 생성 모드",
+        "generation_mode_description": "자동 모드는 요약이 완료되면 자동으로 질문을 생성합니다.",
+        "manual_mode": "수동",
+        "manual_mode_description": "필요할 때 수동으로 질문 생성",
+        "auto_mode": "자동",
+        "auto_mode_description": "요약 완료 후 자동 생성"
+      }
     }
   },
   "prompts": {

@@ -17,6 +17,7 @@
   import GeneralSettings from '@/components/settings/GeneralSettings.svelte'
   import FABSettings from '@/components/settings/FABSettings.svelte'
   import AboutSettings from './AboutSettings.svelte'
+  import ToolsSettings from './ToolsSettings.svelte'
   import ReleaseNote from './ReleaseNote.svelte'
   // import {
   //   getTabFromURL,
@@ -127,6 +128,8 @@
     'heroicons:swatch',
     'heroicons:information-circle-solid',
     'heroicons:information-circle',
+    'heroicons:wrench-screwdriver-solid',
+    'heroicons:wrench-screwdriver',
     // Icons from AboutSettings.svelte
     'heroicons:circle-stack',
     'heroicons:adjustments-horizontal',
@@ -240,6 +243,28 @@
     </button>
 
     <button
+      data-tab="tools"
+      class="flex flex-col w-16 items-center gap-1 justify-center cursor-pointer rounded-md transition-colors duration-200 {activeTab ===
+      'tools'
+        ? ' text-blackwhite '
+        : 'text-text-secondary'}"
+      onclick={() => switchTab('tools')}
+    >
+      <div class="size-5">
+        {#if activeTab === 'tools'}
+          <Icon
+            icon="heroicons:wrench-screwdriver-solid"
+            width="20"
+            height="20"
+          />
+        {:else}
+          <Icon icon="heroicons:wrench-screwdriver" width="20" height="20" />
+        {/if}
+      </div>
+      <span>Tools</span>
+    </button>
+
+    <button
       data-tab="about"
       class="flex flex-col w-16 items-center gap-1 justify-center cursor-pointer rounded-md transition-colors duration-200 {activeTab ===
       'about'
@@ -292,6 +317,8 @@
         <FABSettings />
       {:else if activeTab === 'about'}
         <AboutSettings />
+      {:else if activeTab === 'tools'}
+        <ToolsSettings />
       {/if}
     </div>
   </div>

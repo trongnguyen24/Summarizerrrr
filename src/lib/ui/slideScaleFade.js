@@ -10,6 +10,7 @@ import { cubicOut } from 'svelte/easing'
  * @property {string} [slideDistance='30px'] - Khoảng cách trượt (ví dụ: '50px', '100%')
  * @property {number} [startScale=0.95] - Tỷ lệ scale ban đầu (ví dụ: 0.8 cho nhỏ hơn, 1.2 cho lớn hơn)
  * @property {number} [startOpacity=0] - Độ mờ ban đầu (thường là 0 cho 'in')
+ * @property {number} [startBlur=0] - Độ blur ban đầu (px), mặc định = 0
  */
 
 /**
@@ -28,6 +29,7 @@ export function slideScaleFade(node, params = {}) {
     slideDistance = '2rem',
     startScale = 0.9,
     startOpacity = 0,
+    startBlur = 0,
   } = params
 
   // Tách giá trị số và đơn vị từ slideDistance
@@ -44,6 +46,7 @@ export function slideScaleFade(node, params = {}) {
 
       const opacity = startOpacity + (1 - startOpacity) * progress // Đi từ startOpacity đến 1
       const scale = startScale + (1 - startScale) * progress // Đi từ startScale đến 1
+      const blur = startBlur * (1 - progress) // Đi từ startBlur về 0
 
       let transform = ''
       const currentDistance = distanceValue * u // Khoảng cách hiện tại, giảm dần về 0 khi progress tăng
@@ -68,10 +71,11 @@ export function slideScaleFade(node, params = {}) {
 
       // Trả về chuỗi CSS
       return `
-				opacity: ${opacity};
-				transform: ${finalTransform};
-				transform-origin: center center; // Đảm bảo scale từ tâm
-			`
+    opacity: ${opacity};
+    transform: ${finalTransform};
+    filter: blur(${blur}px);
+    transform-origin: center center; // Đảm bảo scale từ tâm
+   `
     },
   }
 }
@@ -108,9 +112,10 @@ export function slideScaleFade(node, params = {}) {
  *        slideFrom: 'left',
  *        slideDistance: '100px',
  *        startScale: 0.5,
+ *        startBlur: 4,
  *        easing: quintOut
  *      }}">
- *        Phần tử với hiệu ứng đã được tùy chỉnh.
+ *        Phần tử với hiệu ứng đã được tùy chỉnh (bao gồm blur).
  *      </div>
  *    {/if}
  */

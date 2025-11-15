@@ -7,7 +7,7 @@ import { shouldShowFab } from '@/services/fabPermissionService.js'
 import '@/lib/i18n/i18n.js' // Ensure locales are registered
 
 import './content/styles/floating-ui.css'
-import App from './content/app.svelte'
+import App from './content/App.svelte'
 import { mount, unmount } from 'svelte'
 
 export default defineContentScript({

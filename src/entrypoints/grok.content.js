@@ -64,6 +64,11 @@ export default defineContentScript({
      * @returns {boolean} - Returns true to keep the message channel open
      */
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+      if (message.type === 'PING') {
+        sendResponse({ ready: true })
+        return true
+      }
+
       if (message.type === 'FILL_GROK_FORM') {
         handleFillForm(message.content, sendResponse)
         return true

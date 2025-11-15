@@ -41,6 +41,24 @@
   import '@fontsource/mali'
   import { fade, slide } from 'svelte/transition'
   import ActionButtonsMini from '@/components/buttons/ActionButtonsMini.svelte'
+  import { debounce } from '@/lib/utils/utils.js'
+
+  // Deep Dive imports
+  import DeepDiveFAB from '@/components/tools/deepdive/DeepDiveFAB.svelte'
+  import DeepDiveDialog from '@/components/tools/deepdive/DeepDiveDialog.svelte'
+  import DeepDiveContent from '@/components/tools/deepdive/DeepDiveContent.svelte'
+  import InlineDeepDiveQuestions from '@/components/tools/deepdive/InlineDeepDiveQuestions.svelte'
+  import {
+    deepDiveState,
+    toggleDeepDive,
+    shouldShowDeepDive,
+    updateSummaryContext,
+    setQuestions,
+    setGenerating,
+    setError,
+    addToQuestionHistory,
+  } from '@/stores/deepDiveStore.svelte.js'
+  import { generateFollowUpQuestions } from '@/services/tools/deepDiveService.js'
 
   // Track if settings are loaded
   let settingsLoaded = $state(false)
@@ -179,7 +197,7 @@
     document.addEventListener('summarizeClick', handleSummarizeClick)
 
     return () => {
-      document.removeListener('summarizeClick', handleSummarizeClick)
+      document.removeEventListener('summarizeClick', handleSummarizeClick)
     }
   })
 
@@ -233,6 +251,124 @@
   function handlePermissionChange(granted) {
     hasPermission = granted
   }
+
+  /**
+   * Helper để lấy summary content dựa trên type
+   * @returns {string} Summary content hoặc empty string
+   */
+  function getSummaryContent() {
+    switch (summaryState.lastSummaryTypeDisplayed) {
+      case 'youtube':
+        return summaryState.summary || ''
+      case 'course':
+        return summaryState.courseSummary || summaryState.courseConcepts || ''
+      case 'web':
+        return summaryState.summary || ''
+      case 'selectedText':
+        return summaryState.selectedTextSummary || ''
+      case 'custom':
+        return summaryState.customActionResult || ''
+      default:
+        return ''
+    }
+  }
+
+  /**
+   * Debounced version of updateSummaryContext để tránh update quá nhiều
+   */
+  const debouncedUpdateContext = debounce((content, title, url, lang) => {
+    updateSummaryContext(content, title, url, lang)
+  }, 500)
+
+  /**
+   * Effect: Update Deep Dive context SAU KHI summary thay đổi
+   * CHỈ update khi TẤT CẢ loading states = false
+   * Sử dụng debounce để tránh update liên tục khi streaming
+   */
+  $effect(() => {
+    // Chỉ update context khi KHÔNG còn loading nào
+    const allLoadingComplete =
+      !summaryState.isLoading &&
+      !summaryState.isCourseSummaryLoading &&
+      !summaryState.isCourseConceptsLoading &&
+      !summaryState.isSelectedTextLoading &&
+      !summaryState.isCustomActionLoading
+
+    const content = getSummaryContent()
+
+    if (allLoadingComplete && content && content.trim() !== '') {
+      debouncedUpdateContext(
+        content,
+        summaryState.pageTitle,
+        summaryState.pageUrl,
+        settings.summaryLang || 'English'
+      )
+    }
+  })
+
+  /**
+   * Effect: Auto-generate Deep Dive questions sau khi summary hoàn thành
+   * Chỉ chạy khi autoGenerate setting = true
+   */
+  $effect(() => {
+    const allLoadingComplete =
+      !summaryState.isLoading &&
+      !summaryState.isCourseSummaryLoading &&
+      !summaryState.isCourseConceptsLoading &&
+      !summaryState.isSelectedTextLoading &&
+      !summaryState.isCustomActionLoading
+
+    const content = getSummaryContent()
+    const autoGenEnabled = settings.tools?.deepDive?.autoGenerate ?? false
+    const toolEnabled = settings.tools?.deepDive?.enabled ?? false
+
+    // Trigger auto-generate nếu:
+    // 1. All loading complete
+    // 2. Có content
+    // 3. Tool enabled
+    // 4. Auto-generate enabled
+    // 5. Chưa có questions (tránh regenerate không cần thiết)
+    if (
+      allLoadingComplete &&
+      content &&
+      content.trim() !== '' &&
+      toolEnabled &&
+      autoGenEnabled &&
+      deepDiveState.questions.length === 0
+    ) {
+      console.log('[App] Auto-generating Deep Dive questions...')
+
+      // Async function inside effect
+      ;(async () => {
+        try {
+          setGenerating(true)
+          setError(null) // Clear previous errors
+
+          const questions = await generateFollowUpQuestions(
+            content,
+            summaryState.pageTitle,
+            summaryState.pageUrl,
+            settings.summaryLang || 'English',
+            deepDiveState.questionHistory
+          )
+
+          setQuestions(questions)
+          addToQuestionHistory(questions)
+          console.log('[App] Auto-generated questions:', questions)
+        } catch (error) {
+          console.error('[App] Auto-generation failed:', error)
+          // Silent fail - Lưu error vào store
+          // Error sẽ hiển thị khi user mở dialog
+          setError(error.message || 'Failed to auto-generate questions')
+        } finally {
+          setGenerating(false)
+        }
+      })()
+    }
+  })
+
+  // Deep Dive error state
+  let deepDiveError = $state(null)
 </script>
 
 {#if !settings.hasCompletedOnboarding}
@@ -342,7 +478,7 @@
     <div class="bg-border"></div>
 
     <div
-      class="relative prose wrap-anywhere main-sidepanel prose-h2:mt-4 p z-10 flex flex-col gap-8 px-6 pt-8 pb-[40vh] min-w-[22.5rem] max-w-[52rem] w-screen mx-auto"
+      class="relative prose wrap-anywhere main-sidepanel prose-h2:mt-4 p z-10 flex flex-col gap-8 px-6 pt-8 pb-[30vh] min-w-[22.5rem] max-w-[52rem] w-screen mx-auto"
     >
       {#if needsApiKeySetup()()}
         <ApiKeySetupPrompt />
@@ -350,6 +486,15 @@
         <ErrorDisplay error={anyError} />
       {:else if summaryState.lastSummaryTypeDisplayed === 'youtube'}
         <YouTubeSummaryDisplay />
+        <!-- Inline Deep Dive Questions for YouTube -->
+        {#if shouldShowDeepDive() && settings.tools?.deepDive?.autoGenerate}
+          <InlineDeepDiveQuestions
+            summaryContent={getSummaryContent()}
+            pageTitle={summaryState.pageTitle}
+            pageUrl={summaryState.pageUrl}
+            summaryLang={settings.summaryLang || 'English'}
+          />
+        {/if}
       {:else if summaryState.lastSummaryTypeDisplayed === 'course'}
         <CourseSummaryDisplay activeCourseTab={summaryState.activeCourseTab} />
       {:else if summaryState.lastSummaryTypeDisplayed === 'selectedText'}
@@ -368,6 +513,15 @@
           targetId="web-summary-display"
           showTOC={true}
         />
+        <!-- Inline Deep Dive Questions for Web -->
+        {#if shouldShowDeepDive() && settings.tools?.deepDive?.autoGenerate}
+          <InlineDeepDiveQuestions
+            summaryContent={getSummaryContent()}
+            pageTitle={summaryState.pageTitle}
+            pageUrl={summaryState.pageUrl}
+            summaryLang={settings.summaryLang || 'English'}
+          />
+        {/if}
       {:else if summaryState.lastSummaryTypeDisplayed === 'custom'}
         <GenericSummaryDisplay
           summary={summaryState.customActionResult}
@@ -380,9 +534,40 @@
         <ActionButtons />
       {/if}
     </div>
-
-    <div
-      class=" sticky bg-linear-to-t from-surface-1 to-surface-1/40 bottom-0 mask-t-from-50% h-16 backdrop-blur-[2px] w-full z-30 pointer-events-none"
-    ></div>
   </div>
 </div>
+
+<div
+  class=" fixed bg-linear-to-t from-surface-1 to-surface-1/40 bottom-0 mask-t-from-50% h-16 backdrop-blur-[2px] w-full z-30 pointer-events-none"
+></div>
+<!-- Deep Dive FAB & Section with Error Boundary -->
+{#if shouldShowDeepDive()}
+  {#await Promise.resolve()}
+    <!-- Loading placeholder -->
+  {:then}
+    <DeepDiveFAB
+      summaryContent={deepDiveState.lastSummaryContent}
+      pageTitle={deepDiveState.lastPageTitle}
+      pageUrl={deepDiveState.lastPageUrl}
+      summaryLang={deepDiveState.lastSummaryLang}
+    />
+
+    <DeepDiveDialog>
+      <DeepDiveContent
+        summaryContent={deepDiveState.lastSummaryContent}
+        pageTitle={deepDiveState.lastPageTitle}
+        pageUrl={deepDiveState.lastPageUrl}
+        summaryLang={deepDiveState.lastSummaryLang}
+      />
+    </DeepDiveDialog>
+  {:catch error}
+    <div
+      class="fixed bottom-6 left-4 z-40 p-3 bg-red-500/10 border border-red-500/30 rounded-lg max-w-xs"
+      transition:slide={{ duration: 300 }}
+    >
+      <p class="text-xs text-red-400">
+        DeepDive error: {error.message || 'Unknown error'}
+      </p>
+    </div>
+  {/await}
+{/if}

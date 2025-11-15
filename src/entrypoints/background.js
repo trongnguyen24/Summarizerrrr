@@ -265,6 +265,92 @@ class OllamaApiProxyService {
   }
 }
 
+/**
+ * Waits for chat provider tab to be fully loaded and content script ready
+ * Handles Cloudflare checks, slow networks, and SPA delays
+ * @param {number} tabId - Tab ID
+ * @param {string} provider - Provider ID (grok, gemini, chatgpt, perplexity)
+ * @param {number} maxWaitTime - Maximum wait time in ms
+ * @returns {Promise<boolean>} True if ready
+ */
+async function waitForChatTabReady(tabId, provider, maxWaitTime = 10000) {
+  const startTime = Date.now()
+  const checkInterval = 500
+
+  console.log(`[Background] Waiting for ${provider} tab to be ready...`)
+
+  while (Date.now() - startTime < maxWaitTime) {
+    try {
+      const tab = await browser.tabs.get(tabId)
+
+      // Check if tab is complete and not on challenge/error pages
+      const isNotBlocked =
+        !tab.url.includes('challenges.cloudflare.com') &&
+        !tab.url.includes('error') &&
+        !tab.url.includes('blocked')
+
+      if (tab.status === 'complete' && isNotBlocked) {
+        // Try to ping content script
+        try {
+          await browser.tabs.sendMessage(tabId, { type: 'PING' })
+          const elapsed = Date.now() - startTime
+          console.log(`[Background] ${provider} tab ready after ${elapsed}ms`)
+          return true
+        } catch (pingError) {
+          console.log(
+            `[Background] ${provider} content script not ready, retrying...`
+          )
+        }
+      }
+    } catch (error) {
+      console.warn(`[Background] Error checking ${provider} tab status:`, error)
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, checkInterval))
+  }
+
+  console.warn(
+    `[Background] ${provider} tab ready timeout after ${maxWaitTime}ms`
+  )
+  return false
+}
+
+/**
+ * Sends message to chat provider tab with retry mechanism
+ * @param {number} tabId - Tab ID
+ * @param {Object} message - Message object
+ * @param {string} provider - Provider ID (for logging)
+ * @param {number} maxRetries - Maximum retry attempts
+ * @param {number} retryDelay - Delay between retries in ms
+ * @returns {Promise<boolean>} True if sent successfully
+ */
+async function sendChatMessageWithRetry(
+  tabId,
+  message,
+  provider,
+  maxRetries = 3,
+  retryDelay = 1000
+) {
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      await browser.tabs.sendMessage(tabId, message)
+      console.log(
+        `[Background] Message sent to ${provider} on attempt ${i + 1}`
+      )
+      return true
+    } catch (error) {
+      console.warn(
+        `[Background] ${provider} message send attempt ${i + 1} failed:`,
+        error.message
+      )
+      if (i < maxRetries - 1) {
+        await new Promise((resolve) => setTimeout(resolve, retryDelay))
+      }
+    }
+  }
+  return false
+}
+
 // --- Main Background Logic ---
 
 export default defineBackground(() => {
@@ -746,6 +832,71 @@ export default defineBackground(() => {
       return true
     }
 
+    // Deep Dive Tool message handler
+    if (message.type === 'OPEN_DEEP_DIVE_CHAT') {
+      ;(async () => {
+        try {
+          console.log('[Background] Opening Deep Dive chat:', message.provider)
+
+          // Validate message
+          if (!message.provider || !message.url || !message.prompt) {
+            throw new Error('Invalid message: missing provider, url, or prompt')
+          }
+
+          // Create new tab with chat provider
+          const tab = await browser.tabs.create({
+            url: message.url,
+            active: true,
+          })
+
+          console.log(
+            `[Background] Created tab ${tab.id} for ${message.provider}`
+          )
+
+          // ✅ UNIFIED: Wait for tab to be fully ready (all providers)
+          const isReady = await waitForChatTabReady(
+            tab.id,
+            message.provider,
+            10000
+          )
+
+          if (!isReady) {
+            throw new Error(
+              `${message.provider} page failed to load. Please check your connection.`
+            )
+          }
+
+          // ✅ UNIFIED: Send message with retry (all providers)
+          const messageType = getProviderMessageType(message.provider)
+          const sent = await sendChatMessageWithRetry(
+            tab.id,
+            {
+              type: messageType,
+              content: message.prompt,
+            },
+            message.provider,
+            3,
+            1000
+          )
+
+          if (sent) {
+            console.log(
+              `[Background] Sent prompt to ${message.provider} content script`
+            )
+            sendResponse({ success: true, tabId: tab.id })
+          } else {
+            throw new Error(
+              `Failed to send message to ${message.provider} after retries`
+            )
+          }
+        } catch (error) {
+          console.error('[Background] Error opening Deep Dive chat:', error)
+          sendResponse({ success: false, error: error.message })
+        }
+      })()
+      return true
+    }
+
     // Sync handlers
     if (message.type === 'OPEN_ARCHIVE') {
       browser.tabs.create({
@@ -926,9 +1077,22 @@ export default defineBackground(() => {
   browser.tabs.onActivated.addListener((activeInfo) =>
     handleTabChange(activeInfo.tabId)
   )
-  browser.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+  browser.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
     if (changeInfo.status === 'complete' || changeInfo.title) {
-      handleTabChange(tabId)
+      // Only handle tab change if this tab is currently active
+      // This prevents title updates from background tabs (e.g., Messenger notifications)
+      try {
+        const [activeTab] = await browser.tabs.query({
+          active: true,
+          currentWindow: true,
+        })
+
+        if (activeTab && activeTab.id === tabId) {
+          handleTabChange(tabId)
+        }
+      } catch (error) {
+        console.error('[Background] Error checking active tab:', error)
+      }
     }
   })
 
@@ -1024,6 +1188,21 @@ export default defineBackground(() => {
         })
       }
     }
+  }
+
+  /**
+   * Gets the appropriate message type for each chat provider
+   * @param {string} provider - Provider ID
+   * @returns {string} Message type for content script
+   */
+  function getProviderMessageType(provider) {
+    const messageTypeMap = {
+      gemini: 'FILL_GEMINI_FORM',
+      chatgpt: 'FILL_CHATGPT_FORM',
+      perplexity: 'FILL_PERPLEXITY_FORM',
+      grok: 'FILL_GROK_FORM',
+    }
+    return messageTypeMap[provider] || 'FILL_GEMINI_FORM'
   }
 
   // --- AI Service Handler (Generalized) ---

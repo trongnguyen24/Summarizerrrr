@@ -53,6 +53,7 @@
   --color-background: oklch(0.93 0.001 286);
   --color-surface-1: oklch(0.95 0.0005 286);
   --color-surface-2: oklch(1 0 0);
+  --color-border-2: oklch(0.8 0.0005 286);
   --color-border: oklch(0.85 0 0);
   --color-text-primary: oklch(0.17 0 0);
   --color-text-secondary: oklch(0.34 0 0);
@@ -95,6 +96,7 @@
   --color-background: oklch(0.15 0.02 286);
   --color-surface-1: oklch(0.2 0.015 268);
   --color-surface-2: oklch(0.25 0.015 264);
+  --color-border-2: oklch(0.36 0.015 260);
   --color-border: oklch(0.3 0.015 268);
 
   /* Text colors */

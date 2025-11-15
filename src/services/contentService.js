@@ -8,6 +8,8 @@ const COURSE_MATCH_PATTERN =
 
 /**
  * Send message with retry mechanism
+ * REDUCED RETRIES: Now only 1 retry (down from 3) to avoid long waits
+ * With auto-fallback for Gemini, we don't need many retries
  * @param {number} tabId - Tab ID to send message to
  * @param {object} message - Message object to send
  * @param {number} maxRetries - Maximum number of retries
@@ -17,7 +19,7 @@ const COURSE_MATCH_PATTERN =
 async function sendMessageWithRetry(
   tabId,
   message,
-  maxRetries = 3,
+  maxRetries = 1,
   retryDelay = 500
 ) {
   let lastError = null

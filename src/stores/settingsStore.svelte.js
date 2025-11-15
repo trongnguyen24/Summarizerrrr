@@ -96,6 +96,18 @@ const DEFAULT_SETTINGS = {
   isAdvancedMode: false,
   temperature: 0.7,
   topP: 0.9,
+
+  // Tools Configuration
+  tools: {
+    deepDive: {
+      enabled: true,
+      useGeminiBasic: true,
+      customProvider: 'gemini',
+      customModel: 'gemini-2.5-flash',
+      autoGenerate: false,
+      defaultChatProvider: 'gemini',
+    },
+  },
 }
 
 // --- State ---
@@ -203,6 +215,39 @@ export async function loadSettings() {
             whitelist: normalizeFabWhitelist(whitelist) || [],
             blacklist: normalizeFabWhitelist(blacklist) || [],
           }
+        }
+
+        // ============================================
+        // TOOLS MIGRATION (NEW)
+        // ============================================
+
+        // If tools object doesn't exist, initialize it
+        if (!cleanStoredSettings.tools) {
+          console.log('[settingsStore] Migration: Adding tools configuration')
+          cleanStoredSettings.tools = DEFAULT_SETTINGS.tools
+        } else {
+          // If tools exists but is missing some tools, merge with defaults
+          cleanStoredSettings.tools = {
+            ...DEFAULT_SETTINGS.tools,
+            ...cleanStoredSettings.tools,
+          }
+
+          // Ensure each tool has all required fields
+          Object.keys(DEFAULT_SETTINGS.tools).forEach((toolName) => {
+            if (!cleanStoredSettings.tools[toolName]) {
+              console.log(
+                `[settingsStore] Migration: Adding ${toolName} tool config`
+              )
+              cleanStoredSettings.tools[toolName] =
+                DEFAULT_SETTINGS.tools[toolName]
+            } else {
+              // Merge tool settings with defaults to ensure all fields exist
+              cleanStoredSettings.tools[toolName] = {
+                ...DEFAULT_SETTINGS.tools[toolName],
+                ...cleanStoredSettings.tools[toolName],
+              }
+            }
+          })
         }
 
         // Merge settings with defaults
@@ -401,4 +446,51 @@ export function clearPermissionCache(permissionKey = null) {
   } else {
     permissionCheckCache.clear()
   }
+}
+
+// --- Tool Settings Helper Functions ---
+
+/**
+ * Updates a specific tool's settings
+ * @param {string} toolName - Name of the tool
+ * @param {Object} updates - Settings to update
+ */
+export async function updateToolSettings(toolName, updates) {
+  if (!_isInitializedPromise) {
+    await loadSettings()
+  }
+  await _isInitializedPromise
+
+  if (!settings.tools[toolName]) {
+    console.error(`[settingsStore] Tool "${toolName}" not found`)
+    return
+  }
+
+  const updatedTools = {
+    ...settings.tools,
+    [toolName]: {
+      ...settings.tools[toolName],
+      ...updates,
+    },
+  }
+
+  await updateSettings({ tools: updatedTools })
+}
+
+/**
+ * Gets a specific tool's settings
+ * @param {string} toolName - Name of the tool
+ * @returns {Object|null} Tool settings or null if not found
+ */
+export function getToolSettings(toolName) {
+  return settings.tools?.[toolName] || null
+}
+
+/**
+ * Checks if a tool is enabled
+ * @param {string} toolName - Name of the tool
+ * @returns {boolean} True if tool is enabled
+ */
+export function isToolEnabled(toolName) {
+  return settings.tools?.[toolName]?.enabled || false
 }

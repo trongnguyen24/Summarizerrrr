@@ -223,6 +223,36 @@
       "model_label": "OpenRouter Model",
       "saved_status": "Saved!",
       "view_models": "View Models"
+    },
+    "tools": {
+      "deepdive": {
+        "title": "Deep Dive Questions",
+        "description": "Generate 3 follow-up questions and chat in new tab.",
+        "enabled": "Enabled",
+        "disabled": "Disabled",
+        "provider_label": "Provider for generation questions",
+        "provider_description": "Recommended select a fast, lightweight model, ex. 2.5 flash lite.",
+        "gemini_basic": "Gemini Basic",
+        "gemini_basic_description": "Fast and efficient for question generation",
+        "custom_provider": "Custom",
+        "custom_provider_description": "Use your configured AI provider",
+        "select_provider_label": "Select Provider",
+        "api_keys_info": "API keys are shared with Summary settings. Models are tool-specific.",
+        "generation_mode_label": "Question Generation Mode",
+        "generation_mode_description": "Auto mode will automatically generate questions when the summary is complete.",
+        "manual_mode": "Manual",
+        "manual_mode_description": "Generate questions manually when needed",
+        "auto_mode": "Auto",
+        "auto_mode_description": "Automatically generate after summary completes",
+        "generating_questions": "Generating questions...",
+        "generate_questions": "Generate Questions",
+        "ask_own_question": "Ask your own question",
+        "generating": "Generating...",
+        "generate_new_questions": "Generate new questions",
+        "previous_questions": "Previous questions",
+        "next_questions": "Next questions",
+        "ask_own_question_in_chat": "Ask your own question"
+      }
     }
   },
   "prompts": {

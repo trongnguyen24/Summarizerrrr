@@ -7,6 +7,17 @@ import {
   saveToArchive,
 } from '../services/FloatingPanelStorageService.js'
 
+// Deep Dive imports
+import {
+  updateSummaryContext,
+  setQuestions,
+  setGenerating,
+  setError as setDeepDiveError,
+  addToQuestionHistory,
+  deepDiveState,
+} from '@/stores/deepDiveStore.svelte.js'
+import { generateFollowUpQuestions } from '@/services/tools/deepDiveService.js'
+
 // Flag để prevent concurrent requests
 let isProcessing = false
 
@@ -230,6 +241,9 @@ export function useSummarization() {
 
       // 6. Auto-save to history
       await autoSaveToHistory()
+
+      // 7. Update Deep Dive context and auto-generate if enabled
+      await handleDeepDiveAfterSummary()
     } catch (error) {
       handleSummarizationError(error)
       // Reset loading states on error
@@ -287,6 +301,9 @@ export function useSummarization() {
 
       // Auto-save to history - sẽ lưu summary (chứa chapters) như một entry mới
       await autoSaveToHistory()
+
+      // Update Deep Dive context
+      await handleDeepDiveAfterSummary()
     } catch (error) {
       console.error('[useSummarization] Chapter summarization error:', error)
       handleSummarizationError(error)
@@ -346,6 +363,67 @@ export function useSummarization() {
       console.error('[useSummarization] Manual save to archive failed:', error)
       localSummaryState.saveError = error
       throw error // Re-throw để UI có thể xử lý
+    }
+  }
+
+  /**
+   * Handle Deep Dive context update and auto-generation after summarization
+   */
+  async function handleDeepDiveAfterSummary() {
+    // Only proceed if summary is available
+    const content = localSummaryState.summary || ''
+    if (!content || content.trim() === '') {
+      console.log('[useSummarization] No summary content for Deep Dive')
+      return
+    }
+
+    // Update Deep Dive context
+    updateSummaryContext(
+      content,
+      localSummaryState.pageTitle,
+      localSummaryState.pageUrl,
+      settings.summaryLang || 'English'
+    )
+    console.log('[useSummarization] Deep Dive context updated')
+
+    // Check if auto-generate is enabled
+    const toolEnabled = settings.tools?.deepDive?.enabled ?? false
+    const autoGenEnabled = settings.tools?.deepDive?.autoGenerate ?? false
+
+    if (!toolEnabled || !autoGenEnabled) {
+      console.log('[useSummarization] Deep Dive auto-generate disabled')
+      return
+    }
+
+    // Don't auto-generate if questions already exist
+    if (deepDiveState.questions.length > 0) {
+      console.log('[useSummarization] Deep Dive questions already exist')
+      return
+    }
+
+    // Auto-generate questions in background
+    console.log('[useSummarization] Auto-generating Deep Dive questions...')
+    try {
+      setGenerating(true)
+      setDeepDiveError(null)
+
+      const questions = await generateFollowUpQuestions(
+        content,
+        localSummaryState.pageTitle,
+        localSummaryState.pageUrl,
+        settings.summaryLang || 'English',
+        deepDiveState.questionHistory
+      )
+
+      setQuestions(questions)
+      addToQuestionHistory(questions)
+      console.log('[useSummarization] Auto-generated questions:', questions)
+    } catch (error) {
+      console.error('[useSummarization] Auto-generation failed:', error)
+      // Silent fail - error will be shown when user opens deep dive
+      setDeepDiveError(error.message || 'Failed to auto-generate questions')
+    } finally {
+      setGenerating(false)
     }
   }
 

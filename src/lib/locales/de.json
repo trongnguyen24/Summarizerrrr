@@ -223,6 +223,36 @@
       "model_label": "OpenRouter-Modell",
       "saved_status": "Gespeichert!",
       "view_models": "Modelle anzeigen"
+    },
+    "tools": {
+      "deepdive": {
+        "title": "Tiefergehende Fragen",
+        "description": "Generieren Sie 3 Folgefragen und chatten Sie in einem neuen Tab.",
+        "enabled": "Aktiviert",
+        "disabled": "Deaktiviert",
+        "provider_label": "Anbieter für Fragengenerierung",
+        "provider_description": "Empfohlen wird ein schnelles, leichtgewichtiges Modell, z.B. 2.5 Flash Lite.",
+        "gemini_basic": "Gemini Basic",
+        "gemini_basic_description": "Schnell und effizient für Fragengenerierung",
+        "custom_provider": "Benutzerdefiniert",
+        "custom_provider_description": "Verwenden Sie Ihren konfigurierten KI-Anbieter",
+        "select_provider_label": "Anbieter auswählen",
+        "api_keys_info": "API-Schlüssel werden mit den Zusammenfassungseinstellungen geteilt. Modelle sind toolspezifisch.",
+        "generation_mode_label": "Fragengenerierungsmodus",
+        "generation_mode_description": "Der Automatikmodus generiert automatisch Fragen, wenn die Zusammenfassung abgeschlossen ist.",
+        "manual_mode": "Manuell",
+        "manual_mode_description": "Fragen bei Bedarf manuell generieren",
+        "auto_mode": "Automatisch",
+        "auto_mode_description": "Automatisch nach Abschluss der Zusammenfassung generieren",
+        "generating_questions": "Fragen generieren...",
+        "generate_questions": "Fragen generieren",
+        "ask_own_question": "Stellen Sie Ihre eigene Frage",
+        "generating": "Generieren...",
+        "generate_new_questions": "Neue Fragen generieren",
+        "previous_questions": "Vorherige Fragen",
+        "next_questions": "Nächste Fragen",
+        "ask_own_question_in_chat": "Stellen Sie Ihre eigene Frage im Chat"
+      }
     }
   },
   "prompts": {

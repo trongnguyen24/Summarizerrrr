@@ -223,6 +223,36 @@
       "model_label": "Modelo OpenRouter",
       "saved_status": "¡Guardado!",
       "view_models": "Ver modelos"
+    },
+    "tools": {
+      "deepdive": {
+        "title": "Preguntas Profundas",
+        "description": "Generar 3 preguntas de seguimiento y chatear en nueva pestaña.",
+        "enabled": "Activado",
+        "disabled": "Desactivado",
+        "provider_label": "Proveedor para generar preguntas",
+        "provider_description": "Se recomienda seleccionar un modelo rápido y ligero, ej. 2.5 Flash Lite.",
+        "gemini_basic": "Gemini Basic",
+        "gemini_basic_description": "Rápido y eficiente para generación de preguntas",
+        "custom_provider": "Personalizado",
+        "custom_provider_description": "Usar su proveedor de IA configurado",
+        "select_provider_label": "Seleccionar Proveedor",
+        "api_keys_info": "Las claves API se comparten con la configuración de Resumen. Los modelos son específicos de la herramienta.",
+        "generation_mode_label": "Modo de Generación de Preguntas",
+        "generation_mode_description": "El modo automático generará preguntas automáticamente cuando el resumen esté completo.",
+        "manual_mode": "Manual",
+        "manual_mode_description": "Generar preguntas manualmente cuando sea necesario",
+        "auto_mode": "Automático",
+        "auto_mode_description": "Generar automáticamente después de completar el resumen",
+        "generating_questions": "Generando preguntas...",
+        "generate_questions": "Generar preguntas",
+        "ask_own_question": "Haz tu propia pregunta",
+        "generating": "Generando...",
+        "generate_new_questions": "Generar nuevas preguntas",
+        "previous_questions": "Preguntas anteriores",
+        "next_questions": "Siguientes preguntas",
+        "ask_own_question_in_chat": "Haz tu propia pregunta en el chat"
+      }
     }
   },
   "prompts": {

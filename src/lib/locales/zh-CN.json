@@ -201,6 +201,36 @@
       "domain_whitelist_helper": "仅在允许的域名上显示 FAB。",
       "domain_blacklist_helper": "在阻止的域名上隐藏 FAB，在其他地方显示。",
       "domain_all_helper": "FAB 将在所有网站上显示"
+    },
+    "tools": {
+      "deepdive": {
+        "title": "深度问题",
+        "description": "生成3个后续问题并在新标签页中聊天。",
+        "enabled": "已启用",
+        "disabled": "已禁用",
+        "provider_label": "问题生成提供商",
+        "provider_description": "建议选择快速、轻量级的模型，例如：2.5 Flash Lite。",
+        "gemini_basic": "Gemini Basic",
+        "gemini_basic_description": "快速高效的问题生成",
+        "custom_provider": "自定义",
+        "custom_provider_description": "使用您配置的AI提供商",
+        "select_provider_label": "选择提供商",
+        "api_keys_info": "API密钥与摘要设置共享。模型是工具特定的。",
+        "generation_mode_label": "问题生成模式",
+        "generation_mode_description": "自动模式将在摘要完成后自动生成问题。",
+        "manual_mode": "手动",
+        "manual_mode_description": "需要时手动生成问题",
+        "auto_mode": "自动",
+        "auto_mode_description": "摘要完成后自动生成",
+        "generating_questions": "正在生成问题...",
+        "generate_questions": "生成问题",
+        "ask_own_question": "提出自己的问题",
+        "generating": "生成中...",
+        "generate_new_questions": "生成新问题",
+        "previous_questions": "上一个问题",
+        "next_questions": "下一个问题",
+        "ask_own_question_in_chat": "在聊天中提出自己的问题"
+      }
     }
   },
   "prompts": {

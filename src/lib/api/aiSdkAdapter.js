@@ -14,6 +14,12 @@ import { createOllama } from 'ai-sdk-ollama'
 import { getBrowserCompatibility } from '@/lib/utils/browserDetection.js'
 import { requiresApiProxy } from '@/lib/utils/contextDetection.js'
 import { createOllamaProxyModel } from './ollamaProxyModel.js'
+import {
+  isOverloadError,
+  getNextFallbackModel,
+  shouldEnableAutoFallback,
+  getCurrentGeminiModel,
+} from '@/lib/utils/geminiAutoFallback.js'
 
 /**
  * Maps provider ID and settings to AI SDK model instance
@@ -152,6 +158,7 @@ export function wrapModelWithReasoningExtraction(model) {
 
 /**
  * Unified content generation function using AI SDK
+ * WITH AUTO-FALLBACK for Gemini Basic when overloaded
  * @param {string} providerId - Provider identifier
  * @param {object} settings - User settings
  * @param {object} advancedModeSettings - Advanced mode settings
@@ -166,43 +173,77 @@ export async function generateContent(
   systemInstruction,
   userPrompt
 ) {
-  const baseModel = getAISDKModel(providerId, settings)
+  // Check if auto-fallback is enabled (Gemini Basic only)
+  const autoFallbackEnabled = shouldEnableAutoFallback(providerId, settings)
+  let currentModel = autoFallbackEnabled ? getCurrentGeminiModel(settings) : null
+  let lastError = null
 
-  // Check if this is a proxy model
-  const isProxyModel = requiresApiProxy(providerId)
-  // DISABLE REASONING EXTRACTION MIDDLEWARE FOR TESTING - KEEP FULL OUTPUT WITH <think> TAGS
-  const model = baseModel // Use raw baseModel without wrapping to preserve <think> tags
-  const generationConfig = mapGenerationConfig(settings)
+  // Retry with fallback models if enabled
+  while (true) {
+    try {
+      // Create settings with current model
+      const currentSettings = autoFallbackEnabled
+        ? { ...settings, selectedGeminiModel: currentModel }
+        : settings
 
-  try {
-    if (isProxyModel) {
-      // Use the proxy model's custom generateText method
-      console.log('[aiSdkAdapter] Using proxy model for generateContent')
-      const result = await model.generateText({
-        system: systemInstruction,
-        prompt: userPrompt,
-        ...generationConfig,
-      })
-      console.log('[DEBUG] Proxy raw result:', result.text) // Add debug log
-      return result.text
-    } else {
-      // Use the standard AI SDK generateText for direct calls - no middleware
-      const { text } = await generateText({
-        model,
-        system: systemInstruction,
-        prompt: userPrompt,
-        ...generationConfig,
-      })
-      return text
+      const baseModel = getAISDKModel(providerId, currentSettings)
+
+      // Check if this is a proxy model
+      const isProxyModel = requiresApiProxy(providerId)
+      // DISABLE REASONING EXTRACTION MIDDLEWARE FOR TESTING - KEEP FULL OUTPUT WITH <think> TAGS
+      const model = baseModel // Use raw baseModel without wrapping to preserve <think> tags
+      const generationConfig = mapGenerationConfig(currentSettings)
+
+      if (isProxyModel) {
+        // Use the proxy model's custom generateText method
+        console.log('[aiSdkAdapter] Using proxy model for generateContent')
+        const result = await model.generateText({
+          system: systemInstruction,
+          prompt: userPrompt,
+          ...generationConfig,
+        })
+        console.log('[DEBUG] Proxy raw result:', result.text) // Add debug log
+        return result.text
+      } else {
+        // Use the standard AI SDK generateText for direct calls - no middleware
+        const { text } = await generateText({
+          model,
+          system: systemInstruction,
+          prompt: userPrompt,
+          ...generationConfig,
+        })
+        return text
+      }
+    } catch (error) {
+      console.error('[aiSdkAdapter] AI SDK Error:', error)
+      lastError = error
+
+      // Check if we should try fallback
+      if (autoFallbackEnabled && isOverloadError(error)) {
+        const nextModel = getNextFallbackModel(currentModel)
+
+        if (nextModel) {
+          console.log(
+            `[aiSdkAdapter] 🔄 Gemini overloaded, auto-fallback: ${currentModel} → ${nextModel}`
+          )
+          currentModel = nextModel
+          continue // Retry with next model
+        } else {
+          console.log(
+            '[aiSdkAdapter] ❌ No more fallback models available, throwing error'
+          )
+        }
+      }
+
+      // No fallback available or not an overload error, throw
+      throw error
     }
-  } catch (error) {
-    console.error('AI SDK Error:', error)
-    throw error
   }
 }
 
 /**
  * Unified streaming content generation function using AI SDK
+ * WITH AUTO-FALLBACK for Gemini Basic when overloaded
  * @param {string} providerId - Provider identifier
  * @param {object} settings - User settings
  * @param {object} advancedModeSettings - Advanced mode settings
@@ -219,78 +260,113 @@ export async function* generateContentStream(
   userPrompt,
   streamOptions = {}
 ) {
-  const baseModel = getAISDKModel(providerId, settings)
-
-  // Check if this is a proxy model (doesn't need reasoning extraction wrapper)
-  const isProxyModel = requiresApiProxy(providerId)
-  // DISABLE REASONING EXTRACTION MIDDLEWARE FOR TESTING - KEEP FULL OUTPUT WITH <think> TAGS
-  const model = baseModel // Use raw baseModel without wrapping to preserve <think> tags
-  const generationConfig = mapGenerationConfig(settings)
+  // Check if auto-fallback is enabled (Gemini Basic only)
+  const autoFallbackEnabled = shouldEnableAutoFallback(providerId, settings)
+  let currentModel = autoFallbackEnabled ? getCurrentGeminiModel(settings) : null
+  let lastError = null
 
   // Get browser compatibility info
   const browserCompatibility = getBrowserCompatibility()
 
-  try {
-    if (isProxyModel) {
-      // Use proxy model's streamText method directly
-      const result = await model.streamText({
-        system: systemInstruction,
-        prompt: userPrompt,
-        ...generationConfig,
-      })
+  // Retry with fallback models if enabled
+  while (true) {
+    try {
+      // Create settings with current model
+      const currentSettings = autoFallbackEnabled
+        ? { ...settings, selectedGeminiModel: currentModel }
+        : settings
 
-      // Yield chunks from proxy stream - now with full <think> content
-      for await (const chunk of result.textStream) {
-        yield chunk
+      const baseModel = getAISDKModel(providerId, currentSettings)
+
+      // Check if this is a proxy model (doesn't need reasoning extraction wrapper)
+      const isProxyModel = requiresApiProxy(providerId)
+      // DISABLE REASONING EXTRACTION MIDDLEWARE FOR TESTING - KEEP FULL OUTPUT WITH <think> TAGS
+      const model = baseModel // Use raw baseModel without wrapping to preserve <think> tags
+      const generationConfig = mapGenerationConfig(currentSettings)
+
+      if (isProxyModel) {
+        // Use proxy model's streamText method directly
+        const result = await model.streamText({
+          system: systemInstruction,
+          prompt: userPrompt,
+          ...generationConfig,
+        })
+
+        // Yield chunks from proxy stream - now with full <think> content
+        for await (const chunk of result.textStream) {
+          yield chunk
+        }
+      } else {
+        // Use standard AI SDK streaming with smoothing options - no middleware
+        const defaultSmoothingOptions = {
+          smoothing: {
+            minDelayMs: 15,
+            maxDelayMs: 80,
+          },
+        }
+
+        const shouldUseSmoothing =
+          browserCompatibility.streamingOptions.useSmoothing &&
+          streamOptions.useSmoothing !== false
+
+        const streamConfig = {
+          model,
+          system: systemInstruction,
+          prompt: userPrompt,
+          ...generationConfig,
+          ...(shouldUseSmoothing ? defaultSmoothingOptions : {}),
+          ...streamOptions,
+        }
+
+        const result = await streamText(streamConfig)
+
+        // Use smoothTextStream if available and supported by browser
+        const streamToUse =
+          shouldUseSmoothing && result.smoothTextStream
+            ? result.smoothTextStream
+            : result.textStream
+
+        // Yield full chunks including <think> tags (no extraction)
+        for await (const chunk of streamToUse) {
+          yield chunk
+        }
       }
-    } else {
-      // Use standard AI SDK streaming with smoothing options - no middleware
-      const defaultSmoothingOptions = {
-        smoothing: {
-          minDelayMs: 15,
-          maxDelayMs: 80,
-        },
+
+      // If we successfully streamed, return
+      return
+    } catch (error) {
+      console.error('[aiSdkAdapter] AI SDK Stream Error:', error)
+      lastError = error
+
+      // Check if this is a Firefox mobile specific error
+      if (
+        browserCompatibility.isFirefoxMobile &&
+        error.message.includes('flush')
+      ) {
+        // Re-throw with additional context for fallback handling
+        error.isFirefoxMobileStreamingError = true
       }
 
-      const shouldUseSmoothing =
-        browserCompatibility.streamingOptions.useSmoothing &&
-        streamOptions.useSmoothing !== false
+      // Check if we should try fallback
+      if (autoFallbackEnabled && isOverloadError(error)) {
+        const nextModel = getNextFallbackModel(currentModel)
 
-      const streamConfig = {
-        model,
-        system: systemInstruction,
-        prompt: userPrompt,
-        ...generationConfig,
-        ...(shouldUseSmoothing ? defaultSmoothingOptions : {}),
-        ...streamOptions,
+        if (nextModel) {
+          console.log(
+            `[aiSdkAdapter] 🔄 Gemini overloaded (stream), auto-fallback: ${currentModel} → ${nextModel}`
+          )
+          currentModel = nextModel
+          continue // Retry with next model
+        } else {
+          console.log(
+            '[aiSdkAdapter] ❌ No more fallback models available (stream), throwing error'
+          )
+        }
       }
 
-      const result = await streamText(streamConfig)
-
-      // Use smoothTextStream if available and supported by browser
-      const streamToUse =
-        shouldUseSmoothing && result.smoothTextStream
-          ? result.smoothTextStream
-          : result.textStream
-
-      // Yield full chunks including <think> tags (no extraction)
-      for await (const chunk of streamToUse) {
-        yield chunk
-      }
+      // No fallback available or not an overload error, throw
+      throw error
     }
-  } catch (error) {
-    console.error('AI SDK Stream Error:', error)
-
-    // Check if this is a Firefox mobile specific error
-    if (
-      browserCompatibility.isFirefoxMobile &&
-      error.message.includes('flush')
-    ) {
-      // Re-throw with additional context for fallback handling
-      error.isFirefoxMobileStreamingError = true
-    }
-
-    throw error
   }
 }
 

@@ -31,12 +31,14 @@ function sleep(ms) {
 
 /**
  * A higher-order function that adds retry logic with exponential backoff to an async function.
+ * REDUCED RETRIES: Now default 1 retry (down from 3) to avoid long waits
+ * With auto-fallback for Gemini, we don't need many retries
  * @param {Function} fn The async function to retry.
  * @param {number} maxRetries Maximum number of retries.
  * @param {number} initialDelay Initial delay in ms.
  * @returns {Function} A new function with retry logic.
  */
-export function withRetry(fn, maxRetries = 3, initialDelay = 1000) {
+export function withRetry(fn, maxRetries = 1, initialDelay = 1000) {
   return async function (...args) {
     for (let i = 0; i < maxRetries; i++) {
       try {

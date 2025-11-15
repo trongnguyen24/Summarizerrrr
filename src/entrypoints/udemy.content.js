@@ -139,7 +139,7 @@ export default defineContentScript({
             try {
               const lang = request.lang || transcriptExtractor.defaultLang
               let content = null
-              const maxRetries = 3
+              const maxRetries = 1 // Reduced from 3 to 1 to avoid long waits
               let retries = 0
               let lastError = null
 

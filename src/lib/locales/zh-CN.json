@@ -221,7 +221,15 @@
         "manual_mode": "手动",
         "manual_mode_description": "需要时手动生成问题",
         "auto_mode": "自动",
-        "auto_mode_description": "摘要完成后自动生成"
+        "auto_mode_description": "摘要完成后自动生成",
+        "generating_questions": "正在生成问题...",
+        "generate_questions": "生成问题",
+        "ask_own_question": "提出自己的问题",
+        "generating": "生成中...",
+        "generate_new_questions": "生成新问题",
+        "previous_questions": "上一个问题",
+        "next_questions": "下一个问题",
+        "ask_own_question_in_chat": "在聊天中提出自己的问题"
       }
     }
   },

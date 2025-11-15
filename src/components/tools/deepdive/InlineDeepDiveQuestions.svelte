@@ -1,6 +1,7 @@
 <script>
   // @ts-nocheck
   import Icon from '@iconify/svelte'
+  import { t } from 'svelte-i18n'
   import QuestionChip from './QuestionChip.svelte'
   import { deepDiveState } from '@/stores/deepDiveStore.svelte.js'
   import { openDeepDiveChat } from '@/services/tools/deepDiveService.js'
@@ -149,7 +150,7 @@
     <p
       class="!text-xs border-t border-b py-3 border-border w-full !m-0 justify-center !text-center font-mono text-text-primary uppercase tracking-wider flex items-center gap-2"
     >
-      Deep Dive Questions
+      {$t('settings.tools.deepdive.title')}
     </p>
 
     <!-- Navigation & Provider Controls -->
@@ -162,7 +163,9 @@
             onclick={handleRegenerate}
             disabled={isGenerating}
             class="nav-btn"
-            title={isGenerating ? 'Generating...' : 'Generate new questions'}
+            title={isGenerating
+              ? $t('settings.tools.deepdive.generating')
+              : $t('settings.tools.deepdive.generate_new_questions')}
             aria-label="Reload questions"
           >
             <Icon
@@ -178,7 +181,7 @@
             onclick={previousPage}
             disabled={!canGoBack}
             class="nav-btn"
-            title="Previous questions"
+            title={$t('settings.tools.deepdive.previous_questions')}
             aria-label="Previous page"
           >
             <Icon icon="heroicons:chevron-left" width="16" height="16" />
@@ -189,7 +192,7 @@
             onclick={nextPage}
             disabled={!canGoForward}
             class="nav-btn"
-            title="Next questions"
+            title={$t('settings.tools.deepdive.next_questions')}
             aria-label="Next page"
           >
             <Icon icon="heroicons:chevron-right" width="16" height="16" />
@@ -202,7 +205,9 @@
             onclick={handleRegenerate}
             disabled={isGenerating}
             class="nav-btn"
-            title={isGenerating ? 'Generating...' : 'Generate new questions'}
+            title={isGenerating
+              ? $t('settings.tools.deepdive.generating')
+              : $t('settings.tools.deepdive.generate_new_questions')}
           >
             <Icon
               icon="heroicons:arrow-path"

@@ -204,9 +204,9 @@
           /></svg
         >
       </div>
-      <span class="h-px w-20 bg-border/70"></span>
-      Tools: Deep dive
-      <span class="h-px w-20 bg-border/70"></span>
+      <span class="h-px w-16 bg-border/70"></span>
+      Deep Dive Questions
+      <span class="h-px w-16 bg-border/70"></span>
       <div class="absolute right-0">
         <svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" fill="none"
           ><path d="M4 0h1v9H4z" fill="currentColor" /><path
@@ -262,7 +262,7 @@
                 class="animate-spin"
               />
               <span class="text-xs text-text-secondary"
-                >Generating questions...</span
+                >{$t('settings.tools.deepdive.generating_questions')}</span
               >
             {:else}
               <Icon
@@ -272,7 +272,8 @@
                 class="text-primary"
               />
               <span class="text-xs text-text-primary"
-                >Generate Follow-up Questions</span
+                >{$t('settings.tools.deepdive.generate_questions')}</span
+              >
               >
             {/if}
           </button>
@@ -346,7 +347,7 @@
                   onclick={previousPage}
                   disabled={!canGoBack}
                   class="nav-btn"
-                  title="Previous questions"
+                  title={$t('settings.tools.deepdive.previous_questions')}
                   aria-label="Previous page"
                 >
                   <Icon icon="heroicons:chevron-left" width="16" height="16" />
@@ -358,8 +359,8 @@
                   disabled={isGenerating || !canGenerate}
                   class="nav-btn"
                   title={isGenerating
-                    ? 'Generating...'
-                    : 'Generate new questions'}
+                    ? $t('settings.tools.deepdive.generating')
+                    : $t('settings.tools.deepdive.generate_new_questions')}
                   aria-label="Reload questions"
                 >
                   <Icon
@@ -375,7 +376,7 @@
                   onclick={nextPage}
                   disabled={!canGoForward}
                   class="nav-btn"
-                  title="Next questions"
+                  title={$t('settings.tools.deepdive.next_questions')}
                   aria-label="Next page"
                 >
                   <Icon icon="heroicons:chevron-right" width="16" height="16" />
@@ -389,8 +390,8 @@
                   disabled={isGenerating || !canGenerate}
                   class="nav-btn"
                   title={isGenerating
-                    ? 'Generating...'
-                    : 'Generate new questions'}
+                    ? $t('settings.tools.deepdive.generating')
+                    : $t('settings.tools.deepdive.generate_new_questions')}
                 >
                   <Icon
                     icon="heroicons:arrow-path"

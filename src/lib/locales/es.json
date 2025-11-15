@@ -243,7 +243,15 @@
         "manual_mode": "Manual",
         "manual_mode_description": "Generar preguntas manualmente cuando sea necesario",
         "auto_mode": "Automático",
-        "auto_mode_description": "Generar automáticamente después de completar el resumen"
+        "auto_mode_description": "Generar automáticamente después de completar el resumen",
+        "generating_questions": "Generando preguntas...",
+        "generate_questions": "Generar preguntas",
+        "ask_own_question": "Haz tu propia pregunta",
+        "generating": "Generando...",
+        "generate_new_questions": "Generar nuevas preguntas",
+        "previous_questions": "Preguntas anteriores",
+        "next_questions": "Siguientes preguntas",
+        "ask_own_question_in_chat": "Haz tu propia pregunta en el chat"
       }
     }
   },

@@ -3,6 +3,7 @@
   import Icon from '@iconify/svelte'
   import { slideScaleFade } from '@/lib/ui/slideScaleFade.js'
   import { fade } from 'svelte/transition'
+  import { t } from 'svelte-i18n'
   import {
     deepDiveState,
     toggleDeepDive,
@@ -106,7 +107,9 @@
          to-orange-50 dark:to-surface-2
          rounded-full group
          {isPreloading ? 'cursor-wait opacity-90' : ''}"
-  title={isPreloading ? 'Generating questions...' : 'Deep Dive with AI'}
+  title={isPreloading
+    ? $t('settings.tools.deepdive.generating_questions')
+    : 'Deep Dive Questions'}
   transition:slideScaleFade={{
     duration: 400,
     delay: 200,
@@ -148,7 +151,9 @@
     transition:fade={{ duration: 150 }}
   >
     <div class="tooltip">
-      <span class="tooltip-text">Generating questions...</span>
+      <span class="tooltip-text"
+        >{$t('settings.tools.deepdive.generating_questions')}</span
+      >
     </div>
   </div>
 {/if}

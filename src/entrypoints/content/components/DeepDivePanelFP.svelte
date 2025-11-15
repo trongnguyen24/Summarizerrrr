@@ -1,6 +1,7 @@
 <script>
   // @ts-nocheck
   import Icon from '@iconify/svelte'
+  import { t } from 'svelte-i18n'
   import {
     settings,
     updateToolSettings,
@@ -204,7 +205,7 @@
       <div
         class="h-2 absolute w-full top-0 -translate-y-2 top-stripes border-t border-border"
       ></div>
-      <span class="uppercase text-xs"> Deep Dive Questions</span>
+      <span class="uppercase text-xs">Deep Dive Questions</span>
     </div>
 
     <!-- Error Display -->
@@ -228,7 +229,7 @@
       {#if !hasQuestions}
         <div class="generate-section">
           <button
-            class="generate-btn w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-surface-1 hover:bg-surface-2 border border-border rounded-full transition-colors duration-200 {isGenerating
+            class="generate-btn w-fit flex items-center justify-center gap-2 py-2.5 px-4 bg-surface-1 hover:bg-surface-2 border border-border rounded-full transition-colors duration-200 {isGenerating
               ? 'opacity-50 cursor-not-allowed'
               : ''}"
             onclick={handleGenerate}
@@ -237,22 +238,22 @@
             {#if isGenerating}
               <Icon
                 icon="heroicons:arrow-path"
-                width="16"
-                height="16"
+                width="24"
+                height="24"
                 class="animate-spin"
               />
               <span class="text-xs text-text-secondary"
-                >Generating questions...</span
+                >{$t('settings.tools.deepdive.generating_questions')}</span
               >
             {:else}
               <Icon
                 icon="heroicons:sparkles"
-                width="16"
-                height="16"
+                width="24"
+                height="24"
                 class="text-primary"
               />
-              <span class="text-xs text-text-primary"
-                >Generate Follow-up Questions</span
+              <span class="text-sm text-text-primary"
+                >{$t('settings.tools.deepdive.generate_questions')}</span
               >
             {/if}
           </button>
@@ -277,8 +278,8 @@
                   disabled={isGenerating || !canGenerate}
                   class="nav-btn"
                   title={isGenerating
-                    ? 'Generating...'
-                    : 'Generate new questions'}
+                    ? $t('settings.tools.deepdive.generating')
+                    : $t('settings.tools.deepdive.generate_new_questions')}
                   aria-label="Reload questions"
                 >
                   <Icon
@@ -293,7 +294,7 @@
                   onclick={previousPage}
                   disabled={!canGoBack}
                   class="nav-btn"
-                  title="Previous questions"
+                  title={$t('settings.tools.deepdive.previous_questions')}
                   aria-label="Previous page"
                 >
                   <Icon icon="heroicons:chevron-left" width="16" height="16" />
@@ -304,7 +305,7 @@
                   onclick={nextPage}
                   disabled={!canGoForward}
                   class="nav-btn"
-                  title="Next questions"
+                  title={$t('settings.tools.deepdive.next_questions')}
                   aria-label="Next page"
                 >
                   <Icon icon="heroicons:chevron-right" width="16" height="16" />
@@ -318,8 +319,8 @@
                   disabled={isGenerating || !canGenerate}
                   class="nav-btn"
                   title={isGenerating
-                    ? 'Generating...'
-                    : 'Generate new questions'}
+                    ? $t('settings.tools.deepdive.generating')
+                    : $t('settings.tools.deepdive.generate_new_questions')}
                 >
                   <Icon
                     icon="heroicons:arrow-path"
@@ -368,10 +369,10 @@
               <button
                 onclick={handleAskYourOwn}
                 class="ask-own-btn flex items-center gap-2 py-2 px-4 underline text-sm text-text-secondary hover:text-text-primary transition-all duration-200"
-                title="Ask your own question in chat"
+                title={$t('settings.tools.deepdive.ask_own_question_in_chat')}
               >
                 <Icon icon="heroicons:sparkles" width="20" height="20" />
-                <span>Ask your own question</span>
+                <span>{$t('settings.tools.deepdive.ask_own_question')}</span>
               </button>
             </div>
           </div>

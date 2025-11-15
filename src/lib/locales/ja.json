@@ -243,7 +243,15 @@
         "manual_mode": "手動",
         "manual_mode_description": "必要に応じて手動で質問を生成",
         "auto_mode": "自動",
-        "auto_mode_description": "要約完了後に自動生成"
+        "auto_mode_description": "要約完了後に自動生成",
+        "generating_questions": "質問を生成中...",
+        "generate_questions": "質問を生成",
+        "ask_own_question": "独自の質問をする",
+        "generating": "生成中...",
+        "generate_new_questions": "新しい質問を生成",
+        "previous_questions": "前の質問",
+        "next_questions": "次の質問",
+        "ask_own_question_in_chat": "チャットで独自の質問をする"
       }
     }
   },

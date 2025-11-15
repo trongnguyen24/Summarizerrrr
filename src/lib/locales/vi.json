@@ -237,7 +237,15 @@
         "manual_mode": "Thủ công",
         "manual_mode_description": "Tạo câu hỏi thủ công khi cần",
         "auto_mode": "Tự động",
-        "auto_mode_description": "Tự động tạo sau khi tóm tắt hoàn tất"
+        "auto_mode_description": "Tự động tạo sau khi tóm tắt hoàn tất",
+        "generating_questions": "Đang tạo câu hỏi...",
+        "generate_questions": "Tạo câu hỏi",
+        "ask_own_question": "Đặt câu hỏi của bạn",
+        "generating": "Đang tạo...",
+        "generate_new_questions": "Tạo câu hỏi mới",
+        "previous_questions": "Câu hỏi trước đó",
+        "next_questions": "Câu hỏi tiếp theo",
+        "ask_own_question_in_chat": "Đặt câu hỏi của bạn"
       }
     }
   },

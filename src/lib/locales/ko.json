@@ -243,7 +243,15 @@
         "manual_mode": "수동",
         "manual_mode_description": "필요할 때 수동으로 질문 생성",
         "auto_mode": "자동",
-        "auto_mode_description": "요약 완료 후 자동 생성"
+        "auto_mode_description": "요약 완료 후 자동 생성",
+        "generating_questions": "질문 생성 중...",
+        "generate_questions": "질문 생성",
+        "ask_own_question": "자신만의 질문하기",
+        "generating": "생성 중...",
+        "generate_new_questions": "새 질문 생성",
+        "previous_questions": "이전 질문",
+        "next_questions": "다음 질문",
+        "ask_own_question_in_chat": "채팅에서 자신만의 질문하기"
       }
     }
   },

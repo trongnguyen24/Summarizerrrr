@@ -139,22 +139,22 @@
 
 {#if hasQuestions}
   <div
-    class="inline-questions w-screen relative -left-6 flex flex-col mt-10 gap-6 transition-opacity duration-300 {isGenerating
+    class="inline-questions w-full relative max-w-xl mx-auto flex flex-col mt-10 gap-6 transition-opacity duration-300 {isGenerating
       ? 'opacity-50 pointer-events-none'
       : 'opacity-100'}"
   >
     <!-- Header -->
-    <div
-      class="h-2 absolute w-full -translate-y-2 top-stripes border-t border-border"
-    ></div>
-    <p
-      class="!text-xs border-t border-b py-3 border-border w-full !m-0 justify-center !text-center font-mono text-text-primary uppercase tracking-wider flex items-center gap-2"
-    >
-      {$t('settings.tools.deepdive.title')}
-    </p>
+    <div class="border overflow-hidden rounded-t-lg border-border">
+      <div class="h-2 w-full top-stripes"></div>
+      <p
+        class="!text-xs border-t py-3 border-border w-full !m-0 justify-center !text-center font-mono text-text-primary uppercase tracking-wider flex items-center gap-2"
+      >
+        {$t('settings.tools.deepdive.title')}
+      </p>
+    </div>
 
     <!-- Navigation & Provider Controls -->
-    <div class="flex justify-between items-center w-full px-6">
+    <div class="flex justify-between items-center w-full">
       <!-- Navigation Controls -->
       {#if hasPagination}
         <div class="navigation-controls flex items-center justify-center gap-2">
@@ -240,7 +240,7 @@
     </div>
 
     <!-- Questions List -->
-    <div class="flex flex-col gap-6 px-6">
+    <div class="flex flex-col gap-6">
       {#each questions as question, i (question)}
         <QuestionChip
           {question}

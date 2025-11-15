@@ -431,3 +431,8 @@ textarea::-webkit-scrollbar-thumb:hover {
 .slide-in-left {
   animation: slideInFromLeft 0.3s ease-out forwards;
 }
+
+/* CSS for div with data-bits-floating-content-wrapper attribute */
+div[data-bits-floating-content-wrapper=''] {
+  z-index: 999999 !important;
+}

@@ -72,6 +72,22 @@
     <div class="p-6 prose prose-sm w-full max-w-full">
       <h2>Release note</h2>
 
+      <b class="font-mono">2.4.0</b>
+      <ul class="mt-0">
+        {@render note(
+          'Deep Dive Tool:',
+          'Introduces a powerful Deep Dive feature that generates contextual follow-up questions from summaries and enables conversations with multiple AI providers (Gemini, ChatGPT, Perplexity, Grok) for deeper content exploration.'
+        )}
+        {@render note(
+          'Extensible Tool System Architecture:',
+          'Built on a new modular tool system architecture designed for scalability and easy future expansion, with dedicated settings and independent AI provider configuration per tool.'
+        )}
+        {@render note(
+          'Gemini Auto-Fallback for Reliability:',
+          'Intelligent auto-fallback mechanism for Gemini Basic models that automatically switches to lighter models (flash-lite, 2.0-flash) when API overload or resource exhaustion is detected, significantly improving service reliability.'
+        )}
+      </ul>
+
       <b class="font-mono">2.3.0</b>
       <ul class="mt-0">
         {@render note(

@@ -240,23 +240,21 @@ __CONTENT__
   },
 
   commentAnalysis: {
-    systemPrompt: `You are an expert in social media sentiment analysis and community engagement patterns. Your primary function is to analyze YouTube video comments and provide actionable insights about audience sentiment, key discussion topics, and community dynamics.
+    systemPrompt: `You are an expert in social media sentiment analysis. Analyze YouTube comments and provide clear, concise insights about audience sentiment and discussion patterns.
 
-CORE ABILITIES:
-- Analyze sentiment distribution across comments and identify emotional tone patterns.
-- Extract and categorize main themes, topics, and recurring discussion points.
-- Identify notable comments, questions, concerns, and feedback from the audience.
-- Evaluate the quality and constructiveness of replies and discussions.
-- Recognize patterns in community engagement (praise, criticism, suggestions, questions).
+CORE OBJECTIVES:
+- Identify overall sentiment tone (positive/neutral/negative)
+- Extract main themes and recurring viewer reactions
+- Highlight notable insights from top comments
+- Distinguish constructive feedback from low-quality or spam content
 
-QUALITY STANDARDS:
-- Maintain objectivity and avoid bias in sentiment classification.
-- Provide quantitative metrics (percentages, counts) where applicable.
-- Distinguish between constructive feedback and spam/noise.
-- Identify trends and patterns rather than individual outliers (unless particularly significant).
-- Present insights in a structured, actionable format for content creators.`,
+QUALITY PRINCIPLES:
+- Be objective, avoid exaggeration
+- Focus on repeated patterns, not isolated opinions
+- Provide insights that are practical and scannable
+- Scope applies only to the top comments provided`,
     userPrompt: `<TASK>
-Analyze the YouTube video comments below and provide a comprehensive sentiment and thematic analysis.
+Analyze the YouTube video comments below and provide a concise summary of audience sentiment and key discussion topics.
 </TASK>
 
 <INPUT_PARAMETERS>
@@ -265,65 +263,34 @@ Analyze the YouTube video comments below and provide a comprehensive sentiment a
 </INPUT_PARAMETERS>
 
 <RESPONSE_STRUCTURE>
-## 📊 Sentiment Distribution
-- **Positive:** [percentage]% - [brief description]
-- **Neutral:** [percentage]% - [brief description]
-- **Negative:** [percentage]% - [brief description]
 
-## 🎯 Key Themes
-List 5-7 main topics or themes that emerge from the comments:
-1. **[Theme Name]** - [Brief explanation with examples]
-2. **[Theme Name]** - [Brief explanation with examples]
+## 📝 Overall Summary
+[2–5 sentence overview of main reactions and themes]
+
+*Based on the top 80 comments*
+
+
+## 🎯 Main Topics Discussed
+### [Topic 1] – [Detailed analysis]
+### [Topic 2] – [Detailed analysis]
+### [Topic 3] – [Detailed analysis]
 ...
 
-## 💡 Notable Insights
-### Top Comments
-- [Most liked/engaging comments with key messages]
 
-### Common Questions
-- [Frequently asked questions from the audience]
+## 🔝 Notable Top Comments
+- [Short summaries of the most liked, replied-to, or influential comments]
 
-### Viewer Concerns
-- [Issues, criticisms, or concerns raised by viewers]
-
-### Suggestions & Requests
-- [Feature requests, content suggestions, or improvement ideas]
-
-## 💬 Reply Quality Analysis
-- **Constructive Discussions:** [percentage or count] - [description]
-- **Spam/Low Quality:** [percentage or count] - [description]
-- **Engagement Patterns:** [observations about how viewers interact in replies]
-
-## 📈 Overall Summary
-[2-3 sentence summary of the overall community response, sentiment trend, and key takeaways for the content creator]
 </RESPONSE_STRUCTURE>
 
-<ANALYSIS_GUIDELINES>
-✅ **Quantitative**: Provide percentages and counts where possible
-✅ **Representative**: Focus on patterns and trends, not isolated comments
-✅ **Balanced**: Present both positive and negative feedback objectively
-✅ **Actionable**: Highlight insights that content creators can act upon
-✅ **Context-aware**: Consider comment likes and replies as indicators of importance
-❌ **Do not** fabricate data or percentages if insufficient information
-❌ **Do not** ignore spam detection - filter out obvious spam patterns
-❌ **Do not** include personal opinions or external context
-</ANALYSIS_GUIDELINES>
-
-<SPECIAL_NOTES>
-- **Channel Owner Comments**: Pay attention to creator responses in replies
-- **Pinned/Top Comments**: These often represent important community consensus
-- **Time-based Patterns**: Note if older vs. newer comments show sentiment shifts
-- **Language & Tone**: Identify use of humor, sarcasm, or emotional language
-- **Duplicate/Spam**: Ignore repetitive spam comments in analysis
-</SPECIAL_NOTES>
 
 <STYLE_GUIDELINES>
-- **Headers**: Use ## and ### to organize sections
-- **Emphasis**: Use **bold** for important concepts and metrics
-- **Bullets**: Use - for lists, keep lists concise
-- **Language**: Native-level __LANG__
-- **Tone**: __TONE_DESCRIPTION__, analytical but readable
-- **No meta notes or system explanations**
+- Write in Native-level __LANG__ following Tone
+- Analytical and concise
+- [Structured summary using ##, ### and bullets, emoji for clear presentation]
+- Keep the output scannable and compact
+- Only reflect patterns present across multiple comments
+- Do not fabricate opinions or sentiment
+- Ignore spam or irrelevant messages
 </STYLE_GUIDELINES>
 
 <COMMENT_DATA>

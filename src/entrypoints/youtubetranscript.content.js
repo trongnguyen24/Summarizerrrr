@@ -82,10 +82,7 @@ export default defineContentScript({
             break
 
           default:
-            sendResponse({
-              success: false,
-              error: `Unknown action: ${request.action}`,
-            })
+            return false // Let other listeners handle unknown actions
         }
       }
 

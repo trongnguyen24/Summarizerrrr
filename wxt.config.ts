@@ -63,7 +63,11 @@ export default defineConfig({
         ],
         web_accessible_resources: [
           {
-            resources: ['libs/protobuf.min.js', 'youtube_transcript.js'],
+            resources: [
+              'libs/protobuf.min.js',
+              'youtube_transcript.js',
+              'youtube_comments.js',
+            ],
             matches: ['*://m.youtube.com/*', '*://www.youtube.com/*'],
           },
         ],
@@ -149,7 +153,11 @@ export default defineConfig({
         ],
         web_accessible_resources: [
           {
-            resources: ['libs/protobuf.min.js', 'youtube_transcript.js'],
+            resources: [
+              'libs/protobuf.min.js',
+              'youtube_transcript.js',
+              'youtube_comments.js',
+            ],
             matches: ['*://m.youtube.com/*', '*://www.youtube.com/*'],
           },
         ],

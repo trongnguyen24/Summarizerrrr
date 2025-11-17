@@ -26,6 +26,7 @@ declare module "wxt/browser" {
     | "/content-scripts/grok.js"
     | "/content-scripts/perplexity.js"
     | "/content-scripts/udemy.js"
+    | "/content-scripts/youtube-comments-bridge.js"
     | "/content-scripts/youtube-copy-transcript.js"
     | "/content-scripts/youtubetranscript.js"
     | "/icon/128.png"
@@ -43,6 +44,7 @@ declare module "wxt/browser" {
     | "/settings.html"
     | "/sidepanel.html"
     | "/wxt.svg"
+    | "/youtube_comments.js"
     | "/youtube_transcript.js"
   type HtmlPublicPath = Extract<PublicPath, `${string}.html`>
   export interface WxtRuntime {

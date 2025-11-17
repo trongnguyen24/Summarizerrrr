@@ -1122,7 +1122,7 @@ function formatCommentsForAI(comments, metadata) {
  * @param {number} maxRepliesPerComment - Max replies per comment (default: 10)
  */
 export async function fetchCommentSummary(
-  maxComments = 50,
+  maxComments = 80,
   maxRepliesPerComment = 10
 ) {
   // Prevent multiple simultaneous actions
@@ -1206,12 +1206,25 @@ export async function fetchCommentSummary(
     console.log(
       `[fetchCommentSummary] Formatting ${response.comments.length} comments...`
     )
+    console.log(
+      '[DEBUG] Raw comments sample:',
+      JSON.stringify(response.comments.slice(0, 2), null, 2)
+    )
+    console.log('[DEBUG] Metadata:', response.metadata)
+
     const formattedData = formatCommentsForAI(
       response.comments,
       response.metadata
     )
 
-    console.log('[fetchCommentSummary] Formatted data length:', formattedData.length)
+    console.log(
+      '[fetchCommentSummary] Formatted data length:',
+      formattedData.length
+    )
+    console.log(
+      '[DEBUG] Formatted data preview (first 1000 chars):',
+      formattedData.substring(0, 1000)
+    )
 
     // Determine the actual provider to use based on isAdvancedMode
     let selectedProviderId = userSettings.selectedProvider || 'gemini'
@@ -1225,11 +1238,21 @@ export async function fetchCommentSummary(
       providerSupportsStreaming(selectedProviderId)
 
     console.log('[fetchCommentSummary] Streaming mode:', shouldUseStreaming)
+    console.log('[DEBUG] Formatted data length:', formattedData.length)
+    console.log(
+      '[DEBUG] Formatted data preview (first 500 chars):',
+      formattedData.substring(0, 500)
+    )
 
     if (shouldUseStreaming) {
       // Use streaming mode
       try {
-        console.log('[fetchCommentSummary] Starting comment analysis streaming...')
+        console.log(
+          '[fetchCommentSummary] Starting comment analysis streaming...'
+        )
+        console.log(
+          '[DEBUG] Calling summarizeContentStream with contentType: commentAnalysis'
+        )
         const actionStream = summarizeContentStream(
           formattedData,
           'commentAnalysis'
@@ -1242,20 +1265,85 @@ export async function fetchCommentSummary(
         console.log(
           `[fetchCommentSummary] Streaming completed, chunks: ${chunkCount}`
         )
+        console.log(
+          '[DEBUG] Final streaming result length:',
+          summaryState.customActionResult.length
+        )
+        console.log(
+          '[DEBUG] Final streaming result preview (first 500 chars):',
+          summaryState.customActionResult.substring(0, 500)
+        )
+
+        // If streaming completed with 0 chunks, it might be a silent error
+        // Fallback to blocking mode to get proper error
+        if (chunkCount === 0 && summaryState.customActionResult.trim() === '') {
+          console.log(
+            '[fetchCommentSummary] Streaming failed silently (0 chunks), trying blocking mode...'
+          )
+          try {
+            const blockingResult = await summarizeContent(
+              formattedData,
+              'commentAnalysis'
+            )
+            console.log(
+              '[DEBUG] Fallback result length:',
+              blockingResult ? blockingResult.length : 0
+            )
+            console.log(
+              '[DEBUG] Fallback result preview (first 500 chars):',
+              blockingResult ? blockingResult.substring(0, 500) : 'No result'
+            )
+            summaryState.customActionResult =
+              blockingResult ||
+              '<p><i>Could not generate comment analysis.</i></p>'
+          } catch (blockingError) {
+            // This will properly display the error with correct error code
+            const errorObject = handleError(blockingError, {
+              source: 'commentAnalysisStreaming',
+            })
+            summaryState.customActionError = errorObject
+            console.log(
+              '[fetchCommentSummary] Error set for UI:',
+              summaryState.customActionError
+            )
+          }
+        }
       } catch (streamError) {
         console.log(
           '[fetchCommentSummary] Streaming error, falling back to blocking mode:',
           streamError
         )
         // Fallback to blocking mode on streaming error
+        console.log(
+          '[DEBUG] Calling summarizeContent with contentType: commentAnalysis (fallback)'
+        )
         const result = await summarizeContent(formattedData, 'commentAnalysis')
+        console.log(
+          '[DEBUG] Fallback result length:',
+          result ? result.length : 0
+        )
+        console.log(
+          '[DEBUG] Fallback result preview (first 500 chars):',
+          result ? result.substring(0, 500) : 'No result'
+        )
         summaryState.customActionResult =
           result || '<p><i>Could not generate comment analysis.</i></p>'
       }
     } else {
       // Use non-streaming mode
       console.log('[fetchCommentSummary] Using non-streaming mode...')
+      console.log(
+        '[DEBUG] Calling summarizeContent with contentType: commentAnalysis (non-streaming)'
+      )
       const result = await summarizeContent(formattedData, 'commentAnalysis')
+      console.log(
+        '[DEBUG] Non-streaming result length:',
+        result ? result.length : 0
+      )
+      console.log(
+        '[DEBUG] Non-streaming result preview (first 500 chars):',
+        result ? result.substring(0, 500) : 'No result'
+      )
       summaryState.customActionResult =
         result || '<p><i>Could not generate comment analysis.</i></p>'
     }

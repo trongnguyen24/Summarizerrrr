@@ -20,6 +20,7 @@ import {
   shouldEnableAutoFallback,
   getCurrentGeminiModel,
 } from '@/lib/utils/geminiAutoFallback.js'
+import { startFallback, clearFallback } from '@/stores/fallbackStore.svelte.js'
 
 /**
  * Maps provider ID and settings to AI SDK model instance
@@ -209,6 +210,7 @@ export async function generateContent(
         })
         console.log('[DEBUG] Proxy raw result:', result.text) // Add debug log
         console.log(`[aiSdkAdapter] ✅ API Success - Model: ${modelName}`)
+        clearFallback() // Clear fallback state on success
         return result.text
       } else {
         // Use the standard AI SDK generateText for direct calls - no middleware
@@ -219,6 +221,7 @@ export async function generateContent(
           ...generationConfig,
         })
         console.log(`[aiSdkAdapter] ✅ API Success - Model: ${modelName}`)
+        clearFallback() // Clear fallback state on success
         return text
       }
     } catch (error) {
@@ -235,16 +238,20 @@ export async function generateContent(
           console.log(
             `[aiSdkAdapter] 🔄 Gemini overloaded, auto-fallback: ${currentModel} → ${nextModel}`
           )
+          // Notify UI about fallback
+          startFallback(currentModel, nextModel, 'overload')
           currentModel = nextModel
           continue // Retry with next model
         } else {
           console.log(
             '[aiSdkAdapter] ❌ No more fallback models available, throwing error'
           )
+          clearFallback() // Clear fallback state before throwing
         }
       }
 
       // No fallback available or not an overload error, throw
+      clearFallback() // Clear fallback state before throwing
       throw error
     }
   }
@@ -348,7 +355,8 @@ export async function* generateContentStream(
         console.log(`[aiSdkAdapter] ✅ Stream Success - Model: ${modelName}`)
       }
 
-      // If we successfully streamed, return
+      // If we successfully streamed, log success and return
+      clearFallback() // Clear fallback state on success
       return
     } catch (error) {
       const failedModel = autoFallbackEnabled ? currentModel :
@@ -373,16 +381,20 @@ export async function* generateContentStream(
           console.log(
             `[aiSdkAdapter] 🔄 Gemini overloaded (stream), auto-fallback: ${currentModel} → ${nextModel}`
           )
+          // Notify UI about fallback
+          startFallback(currentModel, nextModel, 'overload')
           currentModel = nextModel
           continue // Retry with next model
         } else {
           console.log(
             '[aiSdkAdapter] ❌ No more fallback models available (stream), throwing error'
           )
+          clearFallback() // Clear fallback state before throwing
         }
       }
 
       // No fallback available or not an overload error, throw
+      clearFallback() // Clear fallback state before throwing
       throw error
     }
   }

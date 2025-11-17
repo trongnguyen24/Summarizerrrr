@@ -42,6 +42,7 @@
   import { fade, slide } from 'svelte/transition'
   import ActionButtonsMini from '@/components/buttons/ActionButtonsMini.svelte'
   import { debounce } from '@/lib/utils/utils.js'
+  import FallbackNotification from '@/components/ui/FallbackNotification.svelte'
 
   // Deep Dive imports
   import DeepDiveFAB from '@/components/tools/deepdive/DeepDiveFAB.svelte'
@@ -447,6 +448,8 @@
               disabled={!hasPermission && import.meta.env.BROWSER === 'firefox'}
             />
           </span>
+          <!-- Fallback Notification -->
+          <FallbackNotification />
           <!-- Custom Action Buttons - Only show when all summaries are completed -->
           {#if areAllSummariesCompleted()}
             <ActionButtonsMini />

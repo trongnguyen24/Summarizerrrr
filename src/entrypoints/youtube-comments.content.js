@@ -4,6 +4,8 @@
  * Fetches YouTube comments and replies using YouTube's internal API
  */
 
+import { browser } from 'wxt/browser'
+
 export default defineContentScript({
   matches: ['*://*.youtube.com/*'],
   world: 'MAIN', // Access to window.ytInitialData

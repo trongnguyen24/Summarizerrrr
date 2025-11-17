@@ -1,6 +1,8 @@
 <script>
   // @ts-nocheck
   import PlusIcon from '@/components/icon/PlusIcon.svelte'
+  import ModelStatusDisplay from '@/components/displays/ui/ModelStatusDisplay.svelte'
+  import { summaryState } from '@/stores/summaryStore.svelte.js'
 
   let {
     isLoading,
@@ -11,14 +13,18 @@
     children,
     'no-data': noDataSlot,
   } = $props()
-</script>
+
 
 <div class="flex flex-col gap-4">
   {#if isLoading && !data}
-    <div
-      class="text-center p-4 mx-auto text-text-secondary w-fit animate-pulse"
-    >
-      {loadingText || 'Loading...'}
+    <div class="flex flex-col gap-3 items-center">
+      <div
+        class="text-center p-4 mx-auto text-text-secondary w-fit animate-pulse"
+      >
+        {loadingText || 'Loading...'}
+      </div>
+      <!-- Model status display (shown during loading if fallback is active) -->
+      <ModelStatusDisplay modelStatus={summaryState.modelStatus} />
     </div>
   {:else if error}
     <div
@@ -32,7 +38,13 @@
       <PlusIcon color="red" position="bottom-right" />
     </div>
   {:else if data}
-    {@render children()}
+    <div class="flex flex-col gap-3">
+      <!-- Show model status after completion only if fallback occurred -->
+      {#if summaryState.modelStatus?.isFallback}
+        <ModelStatusDisplay modelStatus={summaryState.modelStatus} />
+      {/if}
+      {@render children()}
+    </div>
   {:else if noDataSlot}
     {@render noDataSlot()}
   {/if}

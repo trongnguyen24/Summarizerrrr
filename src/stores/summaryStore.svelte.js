@@ -54,6 +54,12 @@ export const summaryState = $state({
   customActionResult: '',
   isCustomActionLoading: false,
   customActionError: null,
+  // Model status tracking for fallback visibility
+  modelStatus: {
+    currentModel: null, // Current model being used
+    fallbackFrom: null, // Original model that failed (if fallback occurred)
+    isFallback: false, // Whether we're currently in fallback mode
+  },
 })
 
 // --- Actions ---
@@ -87,6 +93,11 @@ export function resetState() {
   summaryState.customActionResult = ''
   summaryState.isCustomActionLoading = false
   summaryState.customActionError = null
+  summaryState.modelStatus = {
+    currentModel: null,
+    fallbackFrom: null,
+    isFallback: false,
+  }
 
   // Reset Deep Dive state
   resetDeepDive()
@@ -109,6 +120,11 @@ export function resetDisplayState() {
   summaryState.activeCourseTab = 'courseSummary'
   summaryState.customActionResult = ''
   summaryState.customActionError = null
+  summaryState.modelStatus = {
+    currentModel: null,
+    fallbackFrom: null,
+    isFallback: false,
+  }
 
   // Reset Deep Dive state
   resetDeepDive()
@@ -138,6 +154,24 @@ export function updateActiveYouTubeTab(tabName) {
  */
 export function updateActiveCourseTab(tabName) {
   summaryState.activeCourseTab = tabName
+}
+
+/**
+ * Updates the model status for fallback tracking.
+ * @param {string|null} currentModel - Current model being used
+ * @param {string|null} fallbackFrom - Original model that failed (if fallback occurred)
+ * @param {boolean} isFallback - Whether we're currently in fallback mode
+ */
+export function updateModelStatus(
+  currentModel = null,
+  fallbackFrom = null,
+  isFallback = false
+) {
+  summaryState.modelStatus = {
+    currentModel,
+    fallbackFrom,
+    isFallback,
+  }
 }
 
 /**

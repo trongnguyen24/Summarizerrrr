@@ -20,6 +20,7 @@ import {
   shouldEnableAutoFallback,
   getCurrentGeminiModel,
 } from '@/lib/utils/geminiAutoFallback.js'
+import { updateModelStatus } from '@/stores/summaryStore.svelte.js'
 
 /**
  * Maps provider ID and settings to AI SDK model instance
@@ -175,7 +176,10 @@ export async function generateContent(
 ) {
   // Check if auto-fallback is enabled (Gemini Basic only)
   const autoFallbackEnabled = shouldEnableAutoFallback(providerId, settings)
-  let currentModel = autoFallbackEnabled ? getCurrentGeminiModel(settings) : null
+  let currentModel = autoFallbackEnabled
+    ? getCurrentGeminiModel(settings)
+    : null
+  let originalModel = currentModel // Track original model for fallback display
   let lastError = null
 
   // Retry with fallback models if enabled
@@ -190,6 +194,16 @@ export async function generateContent(
       const modelName = autoFallbackEnabled ? currentModel :
         (providerId === 'gemini' ? getCurrentGeminiModel(settings) : 'N/A')
       console.log(`[aiSdkAdapter] 📡 API Call - Provider: ${providerId}, Model: ${modelName}`)
+
+      // Update UI with current model status
+      if (autoFallbackEnabled) {
+        const isFallback = currentModel !== originalModel
+        updateModelStatus(
+          currentModel,
+          isFallback ? originalModel : null,
+          isFallback
+        )
+      }
 
       const baseModel = getAISDKModel(providerId, currentSettings)
 
@@ -271,7 +285,10 @@ export async function* generateContentStream(
 ) {
   // Check if auto-fallback is enabled (Gemini Basic only)
   const autoFallbackEnabled = shouldEnableAutoFallback(providerId, settings)
-  let currentModel = autoFallbackEnabled ? getCurrentGeminiModel(settings) : null
+  let currentModel = autoFallbackEnabled
+    ? getCurrentGeminiModel(settings)
+    : null
+  let originalModel = currentModel // Track original model for fallback display
   let lastError = null
 
   // Get browser compatibility info
@@ -289,6 +306,16 @@ export async function* generateContentStream(
       const modelName = autoFallbackEnabled ? currentModel :
         (providerId === 'gemini' ? getCurrentGeminiModel(settings) : 'N/A')
       console.log(`[aiSdkAdapter] 📡 API Stream Call - Provider: ${providerId}, Model: ${modelName}`)
+
+      // Update UI with current model status
+      if (autoFallbackEnabled) {
+        const isFallback = currentModel !== originalModel
+        updateModelStatus(
+          currentModel,
+          isFallback ? originalModel : null,
+          isFallback
+        )
+      }
 
       const baseModel = getAISDKModel(providerId, currentSettings)
 

@@ -110,7 +110,7 @@ export async function summarizeContent(text, contentType) {
 
   let systemInstruction, userPrompt
 
-  const customActionTypes = ['analyze', 'explain', 'debate']
+  const customActionTypes = ['analyze', 'explain', 'debate', 'commentAnalysis']
 
   if (customActionTypes.includes(contentType)) {
     systemInstruction = customActionTemplates[contentType].systemPrompt

@@ -1019,3 +1019,257 @@ export async function executeCustomAction(actionType) {
     await logAllGeneratedSummariesToHistory()
   }
 }
+
+/**
+ * Format comments data for AI analysis
+ * Cleans and structures comment data to optimize for AI processing
+ * @param {Array} comments - Raw comment array from content script
+ * @param {Object} metadata - Metadata object with video info
+ * @returns {string} Formatted markdown string ready for AI
+ */
+function formatCommentsForAI(comments, metadata) {
+  if (!comments || comments.length === 0) {
+    return 'No comments available for analysis.'
+  }
+
+  let formatted = `## Comment Analysis Request\n\n`
+  formatted += `**Video ID**: ${metadata.videoId}\n`
+  formatted += `**Total Comments**: ${metadata.totalComments}\n`
+  formatted += `**Total Replies**: ${metadata.totalReplies}\n`
+  formatted += `**Fetched At**: ${metadata.fetchedAt}\n\n`
+  formatted += `---\n\n`
+
+  // Track seen texts to avoid duplicates
+  const seenTexts = new Set()
+
+  for (const comment of comments) {
+    // Skip if duplicate
+    const normalizedText = comment.text.trim().toLowerCase()
+    if (seenTexts.has(normalizedText)) {
+      continue
+    }
+    seenTexts.add(normalizedText)
+
+    // Skip spam (very short or repetitive)
+    if (comment.text.trim().length < 3) {
+      continue
+    }
+
+    // Clean text: remove excessive emojis (>5 consecutive emoji-like chars)
+    let cleanText = comment.text.trim()
+    cleanText = cleanText.replace(/[\u{1F300}-\u{1F9FF}]{6,}/gu, '[emoji]')
+
+    // Truncate long comments (max 500 chars)
+    if (cleanText.length > 500) {
+      cleanText = cleanText.substring(0, 497) + '...'
+    }
+
+    // Format comment header
+    formatted += `### Comment ${comment.index}\n`
+    formatted += `**Author**: ${comment.author.name}`
+
+    // Add channel owner badge
+    if (comment.author.isChannelOwner) {
+      formatted += ` 👤 (Channel Owner)`
+    }
+    formatted += `\n`
+
+    formatted += `**Published**: ${comment.publishedTime} | **Likes**: ${comment.likeCount}`
+
+    if (comment.replyCount > 0) {
+      formatted += ` | **Replies**: ${comment.replyCount}`
+    }
+    formatted += `\n\n`
+
+    formatted += `**Text**: "${cleanText}"\n`
+
+    // Format replies if present
+    if (comment.replies && comment.replies.length > 0) {
+      formatted += `\n**Replies** (${comment.replies.length}):\n`
+
+      for (const reply of comment.replies) {
+        // Clean reply text
+        let cleanReplyText = reply.text.trim()
+        cleanReplyText = cleanReplyText.replace(
+          /[\u{1F300}-\u{1F9FF}]{6,}/gu,
+          '[emoji]'
+        )
+
+        // Truncate long replies (max 200 chars)
+        if (cleanReplyText.length > 200) {
+          cleanReplyText = cleanReplyText.substring(0, 197) + '...'
+        }
+
+        // Skip very short replies
+        if (cleanReplyText.length < 3) {
+          continue
+        }
+
+        formatted += `${reply.index}. **${reply.author.name}**: "${cleanReplyText}"\n`
+      }
+    }
+
+    formatted += `\n---\n\n`
+  }
+
+  return formatted
+}
+
+/**
+ * Fetch and analyze YouTube comments
+ * Fetches comments from YouTube and analyzes them with AI
+ * @param {number} maxComments - Max comments to fetch (default: 50)
+ * @param {number} maxRepliesPerComment - Max replies per comment (default: 10)
+ */
+export async function fetchCommentSummary(
+  maxComments = 50,
+  maxRepliesPerComment = 10
+) {
+  // Prevent multiple simultaneous actions
+  if (summaryState.isCustomActionLoading || summaryState.isLoading) {
+    console.log('[fetchCommentSummary] Already loading, skipping...')
+    return
+  }
+
+  // Wait for settings to be initialized
+  await loadSettings()
+  const userSettings = settings
+
+  // Reset Deep Dive when starting custom action
+  resetDeepDive()
+
+  // Reset custom action state
+  summaryState.isCustomActionLoading = true
+  summaryState.currentActionType = 'comments'
+  summaryState.customActionResult = ''
+  summaryState.customActionError = null
+  summaryState.lastSummaryTypeDisplayed = 'custom'
+
+  try {
+    console.log('[fetchCommentSummary] Starting comment fetch...')
+
+    // Get current tab info
+    const [tabInfo] = await browser.tabs.query({
+      active: true,
+      currentWindow: true,
+    })
+
+    if (!tabInfo || !tabInfo.url) {
+      throw new Error('Could not get current tab information or URL.')
+    }
+
+    // Verify this is a YouTube watch page
+    const YOUTUBE_WATCH_PATTERN = /youtube\.com\/watch/i
+    if (!YOUTUBE_WATCH_PATTERN.test(tabInfo.url)) {
+      throw new Error('This feature only works on YouTube video pages.')
+    }
+
+    // Check Firefox permissions
+    if (import.meta.env.BROWSER === 'firefox') {
+      const hasPermission = await checkPermission(tabInfo.url)
+      if (!hasPermission) {
+        const permissionGranted = await requestPermission(tabInfo.url)
+        if (!permissionGranted) {
+          throw new Error('Permission denied for this website.')
+        }
+      }
+    }
+
+    // Set page info
+    summaryState.pageTitle = tabInfo.title || 'YouTube Comment Analysis'
+    summaryState.pageUrl = tabInfo.url
+
+    console.log('[fetchCommentSummary] Sending message to content script...')
+
+    // Send message to content script to fetch comments
+    const response = await browser.tabs.sendMessage(tabInfo.id, {
+      action: 'fetchYouTubeComments',
+      maxComments: maxComments,
+      maxRepliesPerComment: maxRepliesPerComment,
+    })
+
+    console.log('[fetchCommentSummary] Received response:', response)
+
+    if (!response || !response.success) {
+      throw new Error(
+        response?.error || 'Failed to fetch comments from YouTube.'
+      )
+    }
+
+    if (!response.comments || response.comments.length === 0) {
+      throw new Error(
+        'No comments found. This video may have comments disabled or no comments yet.'
+      )
+    }
+
+    // Format comments for AI
+    console.log(
+      `[fetchCommentSummary] Formatting ${response.comments.length} comments...`
+    )
+    const formattedData = formatCommentsForAI(
+      response.comments,
+      response.metadata
+    )
+
+    console.log('[fetchCommentSummary] Formatted data length:', formattedData.length)
+
+    // Determine the actual provider to use based on isAdvancedMode
+    let selectedProviderId = userSettings.selectedProvider || 'gemini'
+    if (!userSettings.isAdvancedMode) {
+      selectedProviderId = 'gemini' // Force Gemini in basic mode
+    }
+
+    // Check if we should use streaming mode
+    const shouldUseStreaming =
+      userSettings.enableStreaming &&
+      providerSupportsStreaming(selectedProviderId)
+
+    console.log('[fetchCommentSummary] Streaming mode:', shouldUseStreaming)
+
+    if (shouldUseStreaming) {
+      // Use streaming mode
+      try {
+        console.log('[fetchCommentSummary] Starting comment analysis streaming...')
+        const actionStream = summarizeContentStream(
+          formattedData,
+          'commentAnalysis'
+        )
+        let chunkCount = 0
+        for await (const chunk of actionStream) {
+          summaryState.customActionResult += chunk
+          chunkCount++
+        }
+        console.log(
+          `[fetchCommentSummary] Streaming completed, chunks: ${chunkCount}`
+        )
+      } catch (streamError) {
+        console.log(
+          '[fetchCommentSummary] Streaming error, falling back to blocking mode:',
+          streamError
+        )
+        // Fallback to blocking mode on streaming error
+        const result = await summarizeContent(formattedData, 'commentAnalysis')
+        summaryState.customActionResult =
+          result || '<p><i>Could not generate comment analysis.</i></p>'
+      }
+    } else {
+      // Use non-streaming mode
+      console.log('[fetchCommentSummary] Using non-streaming mode...')
+      const result = await summarizeContent(formattedData, 'commentAnalysis')
+      summaryState.customActionResult =
+        result || '<p><i>Could not generate comment analysis.</i></p>'
+    }
+
+    console.log('[fetchCommentSummary] Analysis completed successfully')
+  } catch (e) {
+    console.error('[fetchCommentSummary] Error:', e)
+    const errorObject = handleError(e, {
+      source: 'commentAnalysis',
+    })
+    summaryState.customActionError = errorObject
+  } finally {
+    summaryState.isCustomActionLoading = false
+    // Log to history
+    await logAllGeneratedSummariesToHistory()
+  }
+}

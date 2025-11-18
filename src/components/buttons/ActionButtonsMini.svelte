@@ -4,6 +4,7 @@
   import {
     executeCustomAction,
     fetchChapterSummary,
+    fetchCommentSummary,
     summaryState,
   } from '@/stores/summaryStore.svelte.js'
 
@@ -23,7 +24,7 @@
     {
       key: 'debate',
       label: 'Debate Mode',
-      icon: 'heroicons:chat-bubble-oval-left-16-solid',
+      icon: 'heroicons:scale-16-solid',
       description: 'Analyze from multiple perspectives',
     },
     {
@@ -33,11 +34,20 @@
       description: 'Summarize by chapters',
       showOnlyForYouTube: true,
     },
+    {
+      key: 'comments',
+      label: 'Comments',
+      icon: 'heroicons:chat-bubble-bottom-center-text-16-solid',
+      description: 'Analyze YouTube comments sentiment',
+      showOnlyForYouTube: true,
+    },
   ]
 
   async function handleActionClick(actionType) {
     if (actionType === 'chapters') {
       await fetchChapterSummary()
+    } else if (actionType === 'comments') {
+      await fetchCommentSummary()
     } else {
       await executeCustomAction(actionType)
     }
@@ -118,6 +128,10 @@
 
   .action-btn-mini.animate:nth-child(4) {
     animation-delay: 500ms;
+  }
+
+  .action-btn-mini.animate:nth-child(5) {
+    animation-delay: 650ms;
   }
 
   @keyframes fadeInScale {

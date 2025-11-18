@@ -1062,87 +1062,66 @@ export async function executeCustomAction(actionType) {
  */
 function formatCommentsForAI(comments, metadata) {
   if (!comments || comments.length === 0) {
-    return 'No comments available for analysis.'
+    return 'No comments available.'
   }
 
-  let formatted = `## Comment Analysis Request\n\n`
-  formatted += `**Video ID**: ${metadata.videoId}\n`
-  formatted += `**Total Comments**: ${metadata.totalComments}\n`
-  formatted += `**Total Replies**: ${metadata.totalReplies}\n`
-  formatted += `**Fetched At**: ${metadata.fetchedAt}\n\n`
-  formatted += `---\n\n`
-
-  // Track seen texts to avoid duplicates
+  // Ultra-compact format - no metadata header
+  let formatted = ''
   const seenTexts = new Set()
 
   for (const comment of comments) {
-    // Skip if duplicate
+    // Skip duplicates and spam
     const normalizedText = comment.text.trim().toLowerCase()
-    if (seenTexts.has(normalizedText)) {
+    if (seenTexts.has(normalizedText) || comment.text.trim().length < 3) {
       continue
     }
     seenTexts.add(normalizedText)
 
-    // Skip spam (very short or repetitive)
-    if (comment.text.trim().length < 3) {
-      continue
+    // Clean text: remove excessive emojis
+    let cleanText = comment.text
+      .trim()
+      .replace(/[\u{1F300}-\u{1F9FF}]{6,}/gu, '[emoji]')
+
+    // Truncate long comments (max 400 chars for better token efficiency)
+    if (cleanText.length > 400) {
+      cleanText = cleanText.substring(0, 397) + '...'
     }
 
-    // Clean text: remove excessive emojis (>5 consecutive emoji-like chars)
-    let cleanText = comment.text.trim()
-    cleanText = cleanText.replace(/[\u{1F300}-\u{1F9FF}]{6,}/gu, '[emoji]')
-
-    // Truncate long comments (max 500 chars)
-    if (cleanText.length > 500) {
-      cleanText = cleanText.substring(0, 497) + '...'
-    }
-
-    // Format comment header
-    formatted += `### Comment ${comment.index}\n`
-    formatted += `**Author**: ${comment.author.name}`
-
-    // Add channel owner badge
+    // Ultra compact format: @author|time|likes↑|replies💬|text
+    formatted += `@${comment.author.name}`
     if (comment.author.isChannelOwner) {
-      formatted += ` 👤 (Channel Owner)`
+      formatted += '👤'
     }
-    formatted += `\n`
-
-    formatted += `**Published**: ${comment.publishedTime} | **Likes**: ${comment.likeCount}`
-
+    formatted += `|${comment.publishedTime}|${comment.likeCount}↑`
     if (comment.replyCount > 0) {
-      formatted += ` | **Replies**: ${comment.replyCount}`
+      formatted += `|${comment.replyCount}💬`
     }
-    formatted += `\n\n`
+    formatted += `|${cleanText}\n`
 
-    formatted += `**Text**: "${cleanText}"\n`
-
-    // Format replies if present
+    // Compact replies format
     if (comment.replies && comment.replies.length > 0) {
-      formatted += `\n**Replies** (${comment.replies.length}):\n`
-
       for (const reply of comment.replies) {
         // Clean reply text
-        let cleanReplyText = reply.text.trim()
-        cleanReplyText = cleanReplyText.replace(
-          /[\u{1F300}-\u{1F9FF}]{6,}/gu,
-          '[emoji]'
-        )
+        let cleanReply = reply.text
+          .trim()
+          .replace(/[\u{1F300}-\u{1F9FF}]{6,}/gu, '[emoji]')
 
         // Truncate long replies (max 200 chars)
-        if (cleanReplyText.length > 200) {
-          cleanReplyText = cleanReplyText.substring(0, 197) + '...'
+        if (cleanReply.length > 200) {
+          cleanReply = cleanReply.substring(0, 197) + '...'
         }
 
         // Skip very short replies
-        if (cleanReplyText.length < 3) {
+        if (cleanReply.length < 3) {
           continue
         }
 
-        formatted += `${reply.index}. **${reply.author.name}**: "${cleanReplyText}"\n`
+        // Compact reply: indent + number.@author|text
+        formatted += `  ${reply.index}.@${reply.author.name}|${cleanReply}\n`
       }
     }
 
-    formatted += `\n---\n\n`
+    formatted += '\n'
   }
 
   return formatted

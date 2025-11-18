@@ -8,6 +8,7 @@ import {
 import { generateContent } from '@/lib/api/aiSdkAdapter.js'
 import {
   deepDiveQuestionPrompt,
+  deepDiveRegeneratePrompt,
   buildChatPrompt,
   buildOpenEndedChatPrompt,
   getChatProviderUrl,
@@ -21,6 +22,8 @@ import { settings } from '@/stores/settingsStore.svelte.js'
  * @param {string} pageTitle - The page title
  * @param {string} pageUrl - The page URL
  * @param {string} summaryLang - Summary language for questions
+ * @param {Array<Array<string>>} questionHistory - Previous question generations
+ * @param {boolean} isRegenerate - Whether this is a regeneration request
  * @returns {Promise<Array<string>>} Array of 3 questions
  */
 export async function generateFollowUpQuestions(
@@ -28,10 +31,12 @@ export async function generateFollowUpQuestions(
   pageTitle,
   pageUrl,
   summaryLang = 'English',
-  questionHistory = []
+  questionHistory = [],
+  isRegenerate = false
 ) {
   console.log('[deepDiveService] Generating follow-up questions...')
   console.log('[deepDiveService] History size:', questionHistory.length)
+  console.log('[deepDiveService] Is regenerate:', isRegenerate)
 
   try {
     // Validate input
@@ -57,9 +62,22 @@ export async function generateFollowUpQuestions(
     // Build history section dynamically
     const historySection = buildHistorySection(questionHistory)
 
+    // Choose appropriate prompt based on context
+    // Use regenerate prompt when regenerating and has history
+    const promptTemplate =
+      isRegenerate && questionHistory.length > 0
+        ? deepDiveRegeneratePrompt
+        : deepDiveQuestionPrompt
+
+    console.log(
+      `[deepDiveService] Using prompt: ${
+        isRegenerate ? 'regenerate (flexible)' : 'initial (structured)'
+      }`
+    )
+
     // Build prompt với source URL and history
-    const systemInstruction = deepDiveQuestionPrompt.systemInstruction
-    const userPrompt = deepDiveQuestionPrompt.userPrompt
+    const systemInstruction = promptTemplate.systemInstruction
+    const userPrompt = promptTemplate.userPrompt
       .replace('__CONTENT__', summaryContent)
       .replace('__LANG__', summaryLang)
       .replace('__URL__', pageUrl || 'N/A')

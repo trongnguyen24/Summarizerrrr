@@ -71,6 +71,82 @@ EXAMPLE OUTPUT (Vietnamese):
 }
 
 /**
+ * Regenerate Question Prompt - More flexible, no strict structure
+ * Used when regenerating questions to ensure diversity
+ */
+export const deepDiveRegeneratePrompt = {
+  systemInstruction: `You are an expert at generating **diverse and creative** follow-up questions.
+
+  **PRIMARY GOAL: VARIETY & DEPTH. Explore different angles and perspectives.**
+
+  Generate exactly 3 follow-up questions that explore diverse dimensions:
+  
+  **EXPLORE DIFFERENT DIMENSIONS:**
+  - Historical context or evolution
+  - Comparative analysis (vs alternatives/competitors)
+  - Edge cases, limitations, or failure scenarios
+  - Future trends or potential developments
+  - Technical deep-dives (architecture, implementation)
+  - Business/practical implications
+  - Ethical, social, or philosophical aspects
+  - User experience or human factors
+  
+  REQUIREMENTS:
+  ✅ **EXTREMELY CONCISE (max 15 words per question)**
+  ✅ Highly diverse - cover COMPLETELY different aspects from previous questions
+  ✅ Thought-provoking and open-ended (avoid yes/no)
+  ✅ Creative angles - think beyond obvious questions
+  ✅ Non-redundant
+  ❌ No generic questions
+  ❌ No explanations, just the questions
+  
+  **TERMINOLOGY ANNOTATION (non-English only):**
+  Format: "English Term (translation)" - annotate 1-3 CORE technical terms per question.
+  
+  ✅ Annotate: AI/ML techniques, novel algorithms, methodologies, acronyms (e.g., "RLHF (học tăng cường)")
+  ❌ Skip: Common tech words (API, model, network), generic terms (architecture, performance)`,
+
+  userPrompt: `Based on the following summary, generate exactly 3 NEW follow-up questions that explore DIFFERENT dimensions.
+
+<SUMMARY>
+__CONTENT__
+</SUMMARY>
+
+<SOURCE_URL>
+__URL__
+</SOURCE_URL>
+
+__HISTORY_SECTION__
+
+<OUTPUT_FORMAT>
+Return ONLY valid JSON in this exact format (no markdown, no code blocks):
+{"questions": ["question 1 text here", "question 2 text here", "question 3 text here"]}
+
+CRITICAL JSON FORMATTING RULES:
+- Must be valid JSON with double quotes for keys and values
+- Each question should end with "?"
+- Questions should be in __LANG__
+- **IMPORTANT**: If you need to use quotes in question text, use SINGLE QUOTES (') instead of double quotes (")
+  ✅ CORRECT: "How does 'vibe coding' change development?"
+  ❌ WRONG: "How does \"vibe coding\" change development?"
+- No explanations, no numbering in the text
+- No special characters that break JSON: avoid unescaped \, ", newlines in strings
+
+**DIVERSITY REMINDER:**
+Look at the previous questions above and ensure your new questions explore COMPLETELY DIFFERENT angles (historical, comparative, technical, business, ethical, future, etc.)
+
+**TERMINOLOGY ANNOTATION REMINDER:**
+If __LANG__ ≠ "English": Annotate 1-3 CORE terms using "English (translation)" format.
+
+EXAMPLE OUTPUT (English):
+{"questions": ["How did X evolve historically?", "What are X's main competitors?", "What ethical concerns exist?"]}
+
+EXAMPLE OUTPUT (Vietnamese):
+{"questions": ["Constitutional AI (AI hiến pháp) khác RLHF (học tăng cường) thế nào?", "Scaling Laws (quy luật mở rộng) ảnh hưởng gì?", "Privacy (riêng tư) được đảm bảo như thế nào?"]}
+</OUTPUT_FORMAT>`,
+}
+
+/**
  * Chat Prompt Builder
  * Builds the full prompt to send to chat providers
  */
@@ -86,7 +162,7 @@ export function buildChatPrompt(
 
   const annotationGuideline = needsAnnotation
     ? `
-5. **TERMINOLOGY ANNOTATION:** Annotate CORE technical terms as "English Term (${summaryLang} translation)". Prioritize AI/ML techniques, algorithms, methodologies over common words. Example: "Constitutional AI (AI hiến pháp) uses RLHF (học tăng cường) for Training (huấn luyện)."`
+6. **TERMINOLOGY ANNOTATION:** Annotate CORE technical terms as "English Term (${summaryLang} translation)". Prioritize AI/ML techniques, algorithms, methodologies over common words. Example: "Constitutional AI (AI hiến pháp) uses RLHF (học tăng cường) for Training (huấn luyện)."`
     : ''
 
   return `<task>
@@ -100,6 +176,11 @@ The objective is to help the user **deepen their knowledge**. Please:
 2.  **In-depth Explanation:** Clarify core terms and concepts. Don't just state "what," but explain the "why" and "how."
 3.  **Expand:** Provide related information, real-world examples, or historical/technical context (if appropriate) that the summary may have omitted.
 4.  **Reference Source:** Refer to the <url> to ensure accuracy and gather more details if needed.
+5. **Web Search (if available):** If your platform supports web search tools (Google Search, web browsing, etc.), use them to:
+   - Find the LATEST information and recent developments related to the topic
+   - Verify facts with current authoritative sources
+   - Provide real-world examples and up-to-date case studies
+   - Cite sources when using information from web searches
 ${annotationGuideline}
 </instructions>
 </task>

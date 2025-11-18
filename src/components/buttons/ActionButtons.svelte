@@ -24,7 +24,7 @@
     {
       key: 'debate',
       label: 'Debate',
-      icon: 'heroicons:chat-bubble-oval-left-16-solid',
+      icon: 'heroicons:scale-16-solid',
       description: 'Analyze from multiple perspectives',
     },
     {

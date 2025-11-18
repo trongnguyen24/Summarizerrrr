@@ -17,6 +17,7 @@ export function useOneClickSummarization() {
     statusToDisplay,
     summarizePageContent,
     summarizeChapters,
+    summarizeComments,
     resetLocalSummaryState,
     handleSummarizationError,
     manualSaveToArchive,
@@ -218,6 +219,7 @@ export function useOneClickSummarization() {
     // Direct access to base summarization if needed
     summarizePageContent,
     summarizeChapters,
+    summarizeComments,
     resetLocalSummaryState,
     handleSummarizationError,
   }

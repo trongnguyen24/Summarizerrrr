@@ -30,6 +30,13 @@
       description: 'Summarize by chapters',
       showOnlyForYouTube: true,
     },
+    {
+      key: 'comments',
+      label: 'Comments',
+      icon: 'heroicons:chat-bubble-bottom-center-text-16-solid',
+      description: 'Analyze YouTube comments',
+      showOnlyForYouTube: true,
+    },
   ]
 
   // Filter actions based on current page type

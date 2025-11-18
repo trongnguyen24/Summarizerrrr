@@ -629,6 +629,46 @@ export default defineBackground(() => {
   // --- Consolidated Message Listener ---
   browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
     // Async handlers that need `return true`
+
+    // YouTube Comments Fetch - Forward to content script in same tab
+    if (message.action === 'fetchYouTubeComments') {
+      ;(async () => {
+        try {
+          console.log(
+            '[Background] Forwarding fetchYouTubeComments to tab:',
+            sender.tab?.id
+          )
+
+          if (!sender.tab?.id) {
+            throw new Error('No tab ID available from sender')
+          }
+
+          // Forward message to content script in the same tab
+          const response = await browser.tabs.sendMessage(sender.tab.id, {
+            action: 'fetchYouTubeComments',
+            videoId: message.videoId,
+            maxComments: message.maxComments,
+          })
+
+          console.log(
+            '[Background] Received comments response:',
+            response?.success
+          )
+          sendResponse(response)
+        } catch (error) {
+          console.error(
+            '[Background] Error forwarding fetchYouTubeComments:',
+            error
+          )
+          sendResponse({
+            success: false,
+            error: error.message || 'Failed to fetch comments',
+          })
+        }
+      })()
+      return true
+    }
+
     if (message.type === 'PERMISSION_CHANGED') {
       // Broadcast permission change to all tabs and sidepanel
       ;(async () => {

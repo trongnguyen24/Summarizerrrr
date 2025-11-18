@@ -65,6 +65,8 @@
     console.log(`[FloatingPanel] Executing custom action: ${actionType}`)
     if (actionType === 'chapters') {
       await summarization.summarizeChapters()
+    } else if (actionType === 'comments') {
+      await summarization.summarizeComments()
     } else {
       await summarization.summarizePageContent(actionType)
     }

@@ -30,6 +30,13 @@
       description: 'Summarize by chapters',
       showOnlyForYouTube: true,
     },
+    {
+      key: 'comments',
+      label: 'Comments',
+      icon: 'heroicons:chat-bubble-bottom-center-text-16-solid',
+      description: 'Analyze YouTube comments',
+      showOnlyForYouTube: true,
+    },
   ]
 
   // Filter actions based on current page type
@@ -39,7 +46,7 @@
         return isYouTubeActive
       }
       return true
-    })
+    }),
   )
 </script>
 
@@ -83,6 +90,10 @@
 
   .action-btn-mini-fb:nth-child(4) {
     animation-delay: 1050ms;
+  }
+
+  .action-btn-mini-fb:nth-child(5) {
+    animation-delay: 1200ms;
   }
 
   @keyframes fadeInScale {

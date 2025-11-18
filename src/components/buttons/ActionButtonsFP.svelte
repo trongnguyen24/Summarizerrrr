@@ -46,7 +46,7 @@
         return isYouTubeActive
       }
       return true
-    })
+    }),
   )
 </script>
 
@@ -88,6 +88,9 @@
 
   .action-btn:nth-child(4) {
     animation-delay: 700ms;
+  }
+  .action-btn:nth-child(5) {
+    animation-delay: 800ms;
   }
 
   @keyframes fadeInScale {

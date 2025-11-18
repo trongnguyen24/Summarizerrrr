@@ -59,20 +59,10 @@ export function useOneClickSummarization() {
     oneClickState.onPanelOpen = onPanelOpenCallback
     oneClickState.isOneClickMode = settings.oneClickSummarize || false
 
-    // Check xem URL này đã có summary chưa (chỉ để set button state)
-    const cacheKey = getCacheKey(url)
-    const cachedSummary = summaryCache.get(cacheKey)
-
-    // Set button state dựa trên cache
-    if (cachedSummary) {
-      oneClickState.buttonState = 'has-summary'
-      oneClickState.hasSummaryForCurrentUrl = true
-      // REMOVED: Không restore cached summary vào localSummaryState nữa
-      // User phải click lại để load từ cache
-    } else {
-      oneClickState.buttonState = 'idle'
-      oneClickState.hasSummaryForCurrentUrl = false
-    }
+    // THAY ĐỔI: Luôn reset state cho URL mới, không check cache
+    // Cache chỉ được sử dụng khi user click lại vào URL đã summarize
+    oneClickState.buttonState = 'idle'
+    oneClickState.hasSummaryForCurrentUrl = false
 
     // Reset display state để panel hiển thị trống
     resetLocalSummaryState()
@@ -80,8 +70,7 @@ export function useOneClickSummarization() {
     console.log(
       '[useOneClickSummarization] Initialized for URL:',
       url,
-      'Has cache:',
-      !!cachedSummary
+      'Ready for one-click'
     )
   }
 

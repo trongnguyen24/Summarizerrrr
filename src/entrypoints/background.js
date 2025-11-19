@@ -21,7 +21,7 @@ import {
 import { getAISDKModel, mapGenerationConfig } from '@/lib/api/aiSdkAdapter.js'
 import { generateText } from 'ai'
 import { aiConfig } from '../lib/config/aiConfig.js'
-import { generateAISummaryPrompt } from '../lib/prompts/aiSummaryPrompt.js'
+import { generateAISummaryPrompt } from '../lib/prompts/templates/aiSummary.js'
 
 // --- Helper Functions ---
 

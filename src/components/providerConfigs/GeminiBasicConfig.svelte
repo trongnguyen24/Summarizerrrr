@@ -1,6 +1,6 @@
 <script>
   // @ts-nocheck
-  import { geminiBasicModels } from '../../lib/prompting/models/geminiModels.js'
+  import { geminiBasicModels } from '@/lib/prompts/models/geminiModels.js'
   import { updateSettings } from '../../stores/settingsStore.svelte.js'
   import ButtonSet from '../buttons/ButtonSet.svelte'
   import ApiKeyInput from '../inputs/ApiKeyInput.svelte'

@@ -13,7 +13,7 @@ import {
   buildOpenEndedChatPrompt,
   getChatProviderUrl,
   buildHistorySection,
-} from '@/lib/prompts/tools/deepDivePrompts.js'
+} from '@/lib/prompts/tools/deepDive.js'
 import { settings } from '@/stores/settingsStore.svelte.js'
 
 /**

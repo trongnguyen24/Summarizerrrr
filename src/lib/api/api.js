@@ -1,8 +1,8 @@
 // @ts-nocheck
 import { settings, loadSettings } from '@/stores/settingsStore.svelte.js'
-import { promptBuilders } from '@/lib/prompting/promptBuilders.js'
-import { customActionTemplates } from '@/lib/prompting/promptTemplates.js'
-import { replacePlaceholders } from '@/lib/prompting/promptUtils.js'
+import { promptBuilders } from '@/lib/prompts/builders/index.js'
+import { customActionTemplates } from '@/lib/prompts/index.js'
+import { replacePlaceholders } from '@/lib/prompts/utils.js'
 import {
   generateContent as aiSdkGenerateContent,
   generateContentStream as aiSdkGenerateContentStream,
@@ -120,7 +120,6 @@ export async function summarizeContent(text, contentType) {
       customActionTemplates[contentType].userPrompt,
       userSettings.summaryLang,
       userSettings.summaryLength,
-      userSettings.summaryFormat,
       userSettings.summaryTone
     )
 
@@ -200,7 +199,6 @@ export async function* summarizeContentStream(text, contentType) {
       customActionTemplates[contentType].userPrompt,
       userSettings.summaryLang,
       userSettings.summaryLength,
-      userSettings.summaryFormat,
       userSettings.summaryTone
     )
     console.log(
@@ -228,7 +226,6 @@ export async function* summarizeContentStream(text, contentType) {
       text,
       userSettings.summaryLang,
       userSettings.summaryLength,
-      userSettings.summaryFormat,
       userSettings.summaryTone
     ))
   }
@@ -454,7 +451,6 @@ export async function* summarizeContentStreamEnhanced(text, contentType) {
       customActionTemplates[contentType].userPrompt,
       userSettings.summaryLang,
       userSettings.summaryLength,
-      userSettings.summaryFormat,
       userSettings.summaryTone
     )
     console.log(
@@ -482,7 +478,6 @@ export async function* summarizeContentStreamEnhanced(text, contentType) {
       text,
       userSettings.summaryLang,
       userSettings.summaryLength,
-      userSettings.summaryFormat,
       userSettings.summaryTone
     )
   }

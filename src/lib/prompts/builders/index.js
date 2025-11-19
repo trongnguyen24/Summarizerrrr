@@ -1,22 +1,25 @@
 import { settings } from '@/stores/settingsStore.svelte.js'
-import { youTubePromptTemplate } from '@/lib/prompts/youTubePromptTemplate.js'
-import { youTubePromptTemplate_short } from '@/lib/prompts/youTubePromptTemplate_short.js'
-import { youTubePromptTemplate_medium } from '@/lib/prompts/youTubePromptTemplate_medium.js'
-import { generalPromptTemplate } from '@/lib/prompts/generalPromptTemplate.js'
-import { generalPromptTemplate_short } from '@/lib/prompts/generalPromptTemplate_short.js'
-import { generalPromptTemplate_medium } from '@/lib/prompts/generalPromptTemplate_medium.js'
-import { chapterPromptTemplate } from '@/lib/prompts/chapterPromptTemplate.js'
-import { selectedTextPromptTemplate } from '@/lib/prompts/selectedTextPromptTemplate.js'
-import { courseSummaryPromptTemplate } from '@/lib/prompts/courseSummaryPromptTemplate.js'
-import { courseConceptsPromptTemplate } from '@/lib/prompts/courseConceptsPromptTemplate.js'
-import { systemInstructions } from './systemInstructions.js'
-import { replacePlaceholders } from './promptUtils.js'
+import {
+  youtubeSummary,
+  youtubeSummaryShort,
+  youtubeSummaryMedium,
+  youtubeChapter,
+} from '../templates/youtube.js'
+import {
+  generalSummary,
+  generalSummaryShort,
+  generalSummaryMedium,
+} from '../templates/general.js'
+import { selectedText } from '../templates/selectedText.js'
+import { courseSummary, courseConcepts } from '../templates/course.js'
+import { systemInstructions } from '../systemInstructions.js'
+import { replacePlaceholders } from '../utils.js'
 
 export const promptBuilders = {
   youtube: {
-    buildPrompt: (text, lang, length, format, tone) => {
+    buildPrompt: (text, lang, length, tone) => {
       let systemInstruction = systemInstructions.youtube
-      let userPrompt = youTubePromptTemplate
+      let userPrompt = youtubeSummary.userPrompt
 
       if (settings.isSummaryAdvancedMode && settings.youtubePromptSelection) {
         systemInstruction = settings.youtubeCustomSystemInstructionContent || ''
@@ -24,13 +27,13 @@ export const promptBuilders = {
       } else {
         // Select template based on length
         if (length === 'short') {
-          userPrompt = youTubePromptTemplate_short
+          userPrompt = youtubeSummaryShort
         } else if (length === 'medium') {
-          userPrompt = youTubePromptTemplate_medium
+          userPrompt = youtubeSummaryMedium
         } else {
-          userPrompt = youTubePromptTemplate // long version
+          userPrompt = youtubeSummary.userPrompt // long version
         }
-        userPrompt = replacePlaceholders(userPrompt, lang, length, format, tone)
+        userPrompt = replacePlaceholders(userPrompt, lang, length, tone)
       }
 
       userPrompt = userPrompt
@@ -40,9 +43,9 @@ export const promptBuilders = {
     },
   },
   general: {
-    buildPrompt: (text, lang, length, format, tone) => {
+    buildPrompt: (text, lang, length, tone) => {
       let systemInstruction = systemInstructions.general
-      let userPrompt = generalPromptTemplate
+      let userPrompt = generalSummary.userPrompt
 
       if (settings.isSummaryAdvancedMode && settings.webPromptSelection) {
         systemInstruction = settings.webCustomSystemInstructionContent || ''
@@ -50,13 +53,13 @@ export const promptBuilders = {
       } else {
         // Select template based on length
         if (length === 'short') {
-          userPrompt = generalPromptTemplate_short
+          userPrompt = generalSummaryShort
         } else if (length === 'medium') {
-          userPrompt = generalPromptTemplate_medium
+          userPrompt = generalSummaryMedium
         } else {
-          userPrompt = generalPromptTemplate // long version
+          userPrompt = generalSummary.userPrompt // long version
         }
-        userPrompt = replacePlaceholders(userPrompt, lang, length, format, tone)
+        userPrompt = replacePlaceholders(userPrompt, lang, length, tone)
       }
 
       userPrompt = userPrompt
@@ -68,13 +71,13 @@ export const promptBuilders = {
   chapter: {
     buildPrompt: (timestampedTranscript, lang, length, tone) => {
       let systemInstruction = systemInstructions.chapter
-      let userPrompt = chapterPromptTemplate
+      let userPrompt = youtubeChapter.userPrompt
 
       if (settings.isSummaryAdvancedMode && settings.chapterPromptSelection) {
         systemInstruction = settings.chapterCustomSystemInstructionContent || ''
         userPrompt = settings.chapterCustomPromptContent || ''
       } else {
-        userPrompt = replacePlaceholders(userPrompt, lang, length, null, tone)
+        userPrompt = replacePlaceholders(userPrompt, lang, length, tone)
       }
 
       userPrompt = userPrompt
@@ -84,9 +87,9 @@ export const promptBuilders = {
     },
   },
   selectedText: {
-    buildPrompt: (text, lang, length, format, tone) => {
+    buildPrompt: (text, lang, length, tone) => {
       let systemInstruction = systemInstructions.selectedText
-      let userPrompt = selectedTextPromptTemplate
+      let userPrompt = selectedText.userPrompt
 
       if (
         settings.isSummaryAdvancedMode &&
@@ -96,7 +99,7 @@ export const promptBuilders = {
           settings.selectedTextCustomSystemInstructionContent || ''
         userPrompt = settings.selectedTextCustomPromptContent || ''
       } else {
-        userPrompt = replacePlaceholders(userPrompt, lang, length, format, tone)
+        userPrompt = replacePlaceholders(userPrompt, lang, length, tone)
       }
 
       userPrompt = userPrompt
@@ -106,9 +109,9 @@ export const promptBuilders = {
     },
   },
   courseSummary: {
-    buildPrompt: (text, lang, length, format, tone) => {
+    buildPrompt: (text, lang, length, tone) => {
       let systemInstruction = systemInstructions.courseSummary
-      let userPrompt = courseSummaryPromptTemplate
+      let userPrompt = courseSummary.userPrompt
 
       if (
         settings.isSummaryAdvancedMode &&
@@ -118,7 +121,7 @@ export const promptBuilders = {
           settings.courseSummaryCustomSystemInstructionContent || ''
         userPrompt = settings.courseSummaryCustomPromptContent || ''
       } else {
-        userPrompt = replacePlaceholders(userPrompt, lang, length, format, tone)
+        userPrompt = replacePlaceholders(userPrompt, lang, length, tone)
       }
 
       userPrompt = userPrompt
@@ -128,9 +131,9 @@ export const promptBuilders = {
     },
   },
   courseConcepts: {
-    buildPrompt: (text, lang, format, tone) => {
+    buildPrompt: (text, lang, tone) => {
       let systemInstruction = systemInstructions.courseConcepts
-      let userPrompt = courseConceptsPromptTemplate
+      let userPrompt = courseConcepts.userPrompt
 
       if (
         settings.isSummaryAdvancedMode &&
@@ -140,7 +143,7 @@ export const promptBuilders = {
           settings.courseConceptsCustomSystemInstructionContent || ''
         userPrompt = settings.courseConceptsCustomPromptContent || ''
       } else {
-        userPrompt = replacePlaceholders(userPrompt, lang, null, format, tone)
+        userPrompt = replacePlaceholders(userPrompt, lang, null, tone)
       }
 
       userPrompt = userPrompt

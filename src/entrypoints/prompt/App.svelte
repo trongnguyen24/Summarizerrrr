@@ -1,7 +1,7 @@
 <script>
   // @ts-nocheck
   import { t } from 'svelte-i18n'
-  import { promptTemplates } from '@/lib/prompting/promptTemplates.js'
+  import { promptTemplates } from '@/lib/prompts/index.js'
   import 'overlayscrollbars/overlayscrollbars.css'
   import { useOverlayScrollbars } from 'overlayscrollbars-svelte'
   import Icon from '@iconify/svelte'
@@ -27,7 +27,7 @@
   import { fade } from 'svelte/transition'
   import { slideScaleFade } from '@/lib/ui/slideScaleFade.js'
   import { enhancePrompt } from '@/lib/api/api.js'
-  import aiPrompt from '@/lib/prompts/aiPrompt.js'
+  import aiPrompt from '@/lib/prompts/templates/promptEnhance.js'
 
   let isOpen = $state(false) // State for the dialog
   let enhancedUserPrompt = $state('')

@@ -103,7 +103,7 @@ const DEFAULT_SETTINGS = {
       enabled: true,
       useGeminiBasic: true,
       customProvider: 'gemini',
-      customModel: 'gemini-2.5-flash-lite-preview-06-17',
+      customModel: 'gemini-2.5-flash-lite',
       autoGenerate: true,
       defaultChatProvider: 'gemini',
     },
@@ -115,6 +115,37 @@ export let settings = $state({ ...DEFAULT_SETTINGS })
 let _isInitializedPromise = null
 
 // --- Helper Functions ---
+
+/**
+ * Migrates deprecated Gemini model names to their current equivalents
+ * @param {Object} settings - Settings object to migrate
+ * @returns {boolean} - True if any migration was performed
+ */
+function migrateDeprecatedGeminiModels(settings) {
+  const OLD_MODEL = 'gemini-2.5-flash-lite-preview-06-17'
+  const NEW_MODEL = 'gemini-2.5-flash-lite'
+  let migrated = false
+
+  // Migrate selectedGeminiModel
+  if (settings.selectedGeminiModel === OLD_MODEL) {
+    settings.selectedGeminiModel = NEW_MODEL
+    migrated = true
+  }
+
+  // Migrate selectedGeminiAdvancedModel
+  if (settings.selectedGeminiAdvancedModel === OLD_MODEL) {
+    settings.selectedGeminiAdvancedModel = NEW_MODEL
+    migrated = true
+  }
+
+  // Migrate tools.deepDive.customModel
+  if (settings.tools?.deepDive?.customModel === OLD_MODEL) {
+    settings.tools.deepDive.customModel = NEW_MODEL
+    migrated = true
+  }
+
+  return migrated
+}
 
 /**
  * Converts fabDomainWhitelist from object format to array format
@@ -166,6 +197,9 @@ export async function loadSettings() {
 
         // ✅ MIGRATION: Sanitize to ensure only valid keys remain
         const cleanStoredSettings = sanitizeSettings(storedSettings)
+
+        // ✅ MIGRATION: Migrate deprecated Gemini model names
+        migrateDeprecatedGeminiModels(cleanStoredSettings)
 
         // Handle migration from old fabDomainPermissions to new fabDomainControl format
         if (

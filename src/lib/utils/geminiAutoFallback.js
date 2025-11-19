@@ -11,7 +11,7 @@
  */
 export const GEMINI_FALLBACK_CHAIN = [
   'gemini-2.5-flash',
-  'gemini-2.5-flash-lite-preview-06-17',
+  'gemini-2.5-flash-lite',
   'gemini-2.0-flash',
 ]
 
@@ -46,7 +46,8 @@ export function isOverloadError(error) {
 
   // Check HTTP status codes
   const status = error?.status || error?.statusCode || error?.code
-  const isOverloadStatus = status === 429 || status === 503 || status === 'RESOURCE_EXHAUSTED'
+  const isOverloadStatus =
+    status === 429 || status === 503 || status === 'RESOURCE_EXHAUSTED'
 
   return hasOverloadKeyword || isOverloadStatus
 }
@@ -60,7 +61,10 @@ export function getNextFallbackModel(currentModel) {
   const currentIndex = GEMINI_FALLBACK_CHAIN.indexOf(currentModel)
 
   // If model not in chain or is last model, no fallback available
-  if (currentIndex === -1 || currentIndex === GEMINI_FALLBACK_CHAIN.length - 1) {
+  if (
+    currentIndex === -1 ||
+    currentIndex === GEMINI_FALLBACK_CHAIN.length - 1
+  ) {
     return null
   }
 

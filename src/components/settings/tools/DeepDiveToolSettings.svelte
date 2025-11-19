@@ -45,7 +45,7 @@
     // Initialize custom provider if switching to custom mode
     if (!useBasic && !settings.tools.deepDive.customProvider) {
       updates.customProvider = settings.selectedProvider || 'gemini'
-      updates.customModel = 'gemini-2.5-flash-lite-preview-06-17'
+      updates.customModel = 'gemini-2.5-flash-lite'
     }
 
     updateSettings({
@@ -67,7 +67,7 @@
 
     // Reset model về default của provider mới
     const defaultModels = {
-      gemini: 'gemini-2.5-flash-lite-preview-06-17',
+      gemini: 'gemini-2.5-flash-lite',
       chatgpt: 'gpt-5-mini',
       deepseek: 'deepseek-chat',
       groq: 'moonshotai/kimi-k2-instruct',
@@ -83,8 +83,7 @@
         deepDive: {
           ...settings.tools.deepDive,
           customProvider: newProvider,
-          customModel:
-            defaultModels[newProvider] || 'gemini-2.5-flash-lite-preview-06-17',
+          customModel: defaultModels[newProvider] || 'gemini-2.5-flash-lite',
         },
       },
     })

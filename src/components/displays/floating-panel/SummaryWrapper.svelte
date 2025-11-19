@@ -1,6 +1,6 @@
 <script>
   // @ts-nocheck
-  import PlusIcon from '@/components/icon/PlusIcon.svelte'
+  import PlusIcon from '@/components/icons/PlusIcon.svelte'
 
   let {
     isLoading,

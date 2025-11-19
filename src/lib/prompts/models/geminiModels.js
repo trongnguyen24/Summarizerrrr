@@ -11,7 +11,7 @@ export const geminiBasicModels = [
     },
   },
   {
-    value: 'gemini-2.5-flash-lite-preview-06-17',
+    value: 'gemini-2.5-flash-lite',
     label: '2.5 Lite',
     description: 'A lighter version of 2.5 Flash.',
     generationConfig: {
@@ -54,8 +54,8 @@ export const geminiAdvancedModels = [
     },
   },
   {
-    value: 'gemini-2.5-flash-lite-preview-06-17',
-    label: '2.5 Flash-Lite Preview',
+    value: 'gemini-2.5-flash-lite',
+    label: '2.5 Flash-Lite',
     description: 'A lighter version of 2.5 Flash.',
     generationConfig: {
       maxOutputTokens: 65536,

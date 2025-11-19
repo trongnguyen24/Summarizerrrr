@@ -1,6 +1,6 @@
 <script>
   // @ts-nocheck
-  import PlusIcon from '@/components/icon/PlusIcon.svelte'
+  import PlusIcon from '@/components/icons/PlusIcon.svelte'
   import ModelStatusDisplay from '@/components/displays/ui/ModelStatusDisplay.svelte'
   import { summaryState } from '@/stores/summaryStore.svelte.js'
 

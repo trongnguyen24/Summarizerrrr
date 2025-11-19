@@ -26,6 +26,7 @@ import {
 } from '@/services/firefoxPermissionService.js'
 // Import Deep Dive store
 import { resetDeepDive } from './deepDiveStore.svelte.js'
+import { showBlockingModeToast } from '@/lib/utils/toastUtils.js'
 
 // --- State ---
 export const summaryState = $state({
@@ -459,6 +460,7 @@ export async function fetchChapterSummary() {
           '[summaryStore] Chapter streaming error, falling back to blocking mode:',
           streamError
         )
+        showBlockingModeToast()
         // Fallback to blocking mode
         const chapterText = await summarizeChapters(transcript)
         summaryState.customActionResult =
@@ -583,6 +585,7 @@ export async function fetchAndSummarizeStream() {
           console.log(
             '[summaryStore] YouTube streaming failed silently (0 chunks), trying blocking mode...'
           )
+          showBlockingModeToast()
           try {
             const blockingResult = await summarizeContent(
               summaryState.currentContentSource,
@@ -680,6 +683,7 @@ export async function fetchAndSummarizeStream() {
             console.log(
               '[summaryStore] Stream failed silently, trying blocking mode...'
             )
+            showBlockingModeToast()
             // Fallback to blocking mode to get proper error
             const blockingSummary = await summarizeContent(
               summaryState.currentContentSource,
@@ -697,6 +701,7 @@ export async function fetchAndSummarizeStream() {
         console.log(
           '[fetchAndSummarizeStream] Falling back to blocking mode...'
         )
+        showBlockingModeToast()
         // Fallback to blocking mode to get proper error display
         try {
           const blockingSummary = await summarizeContent(

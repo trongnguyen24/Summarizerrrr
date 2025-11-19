@@ -21,6 +21,7 @@ import {
   getCurrentGeminiModel,
 } from '@/lib/utils/geminiAutoFallback.js'
 import { updateModelStatus } from '@/stores/summaryStore.svelte.js'
+import { showModelFallbackToast } from '@/lib/utils/toastUtils.js'
 
 /**
  * Maps provider ID and settings to AI SDK model instance
@@ -274,6 +275,7 @@ export async function generateContent(
           console.log(
             `[aiSdkAdapter] 🔄 Auto-fallback triggered: ${currentModel} → ${nextModel}`
           )
+          showModelFallbackToast(currentModel, nextModel)
           currentModel = nextModel
           continue // Retry with next model
         } else {
@@ -456,6 +458,7 @@ export async function* generateContentStream(
           console.log(
             `[aiSdkAdapter] 🔄 Auto-fallback triggered: ${currentModel} → ${nextModel}`
           )
+          showModelFallbackToast(currentModel, nextModel)
           currentModel = nextModel
           continue // Retry with next model
         } else {

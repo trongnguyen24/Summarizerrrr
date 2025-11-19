@@ -240,7 +240,18 @@ export function useSummarization() {
       console.log(`[useSummarization] Summarization completed in ${duration}ms`)
 
       // 6. Auto-save to history
-      await autoSaveToHistory()
+      let typeLabel = 'Summary'
+      if (customContentType) {
+        typeLabel =
+          customContentType.charAt(0).toUpperCase() + customContentType.slice(1)
+      } else if (contentType === 'course') {
+        typeLabel = 'Course Summary'
+      } else if (contentType === 'youtube') {
+        typeLabel = 'Video Summary'
+      } else {
+        typeLabel = 'Web Summary'
+      }
+      await autoSaveToHistory(typeLabel)
 
       // 7. Update Deep Dive context and auto-generate if enabled
       await handleDeepDiveAfterSummary()
@@ -299,8 +310,8 @@ export function useSummarization() {
 
       console.log('[useSummarization] Chapter summarization completed')
 
-      // Auto-save to history - sẽ lưu summary (chứa chapters) như một entry mới
-      await autoSaveToHistory()
+      // Auto-save to history - sẽ lưu summary (chứa chapters) như một entry riêng
+      await autoSaveToHistory('Chapters')
 
       // Update Deep Dive context
       await handleDeepDiveAfterSummary()
@@ -472,7 +483,7 @@ export function useSummarization() {
       console.log('[useSummarization] Comment analysis completed')
 
       // Auto-save to history
-      await autoSaveToHistory()
+      await autoSaveToHistory('Comments')
 
       // Update Deep Dive context
       await handleDeepDiveAfterSummary()
@@ -485,7 +496,7 @@ export function useSummarization() {
     }
   }
 
-  async function autoSaveToHistory() {
+  async function autoSaveToHistory(typeLabel) {
     try {
       console.log('[useSummarization] Auto-saving to history...')
 
@@ -500,7 +511,11 @@ export function useSummarization() {
         url: localSummaryState.pageUrl,
       }
 
-      const newHistoryId = await saveToHistory(localSummaryState, pageInfo)
+      const newHistoryId = await saveToHistory(
+        localSummaryState,
+        pageInfo,
+        typeLabel
+      )
       if (newHistoryId) {
         localSummaryState.isSavedToHistory = true
         localSummaryState.historyId = newHistoryId

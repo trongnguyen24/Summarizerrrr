@@ -369,7 +369,37 @@ export async function fetchAndSummarize() {
     summaryState.isCourseConceptsLoading = false
 
     // Log all generated summaries to history after all loading is complete
-    await logAllGeneratedSummariesToHistory()
+    // Log generated summaries to history as separate entries
+    if (summaryState.isYouTubeVideoActive && summaryState.summary) {
+      await logSingleSummaryToHistory(
+        summaryState.summary,
+        summaryState.pageTitle,
+        summaryState.pageUrl,
+        'Video Summary'
+      )
+    } else if (summaryState.isCourseVideoActive) {
+      if (summaryState.courseSummary)
+        await logSingleSummaryToHistory(
+          summaryState.courseSummary,
+          summaryState.pageTitle,
+          summaryState.pageUrl,
+          'Course Summary'
+        )
+      if (summaryState.courseConcepts)
+        await logSingleSummaryToHistory(
+          summaryState.courseConcepts,
+          summaryState.pageTitle,
+          summaryState.pageUrl,
+          'Course Concepts'
+        )
+    } else if (summaryState.summary) {
+      await logSingleSummaryToHistory(
+        summaryState.summary,
+        summaryState.pageTitle,
+        summaryState.pageUrl,
+        'Web Summary'
+      )
+    }
   }
 }
 
@@ -487,7 +517,12 @@ export async function fetchChapterSummary() {
   } finally {
     summaryState.isCustomActionLoading = false
     // Log to history after chapter summary is complete
-    await logAllGeneratedSummariesToHistory()
+    await logSingleSummaryToHistory(
+      summaryState.customActionResult,
+      summaryState.pageTitle,
+      summaryState.pageUrl,
+      'Chapters'
+    )
   }
 }
 export async function fetchAndSummarizeStream() {
@@ -733,7 +768,37 @@ export async function fetchAndSummarizeStream() {
     summaryState.lastSummaryTypeDisplayed = 'web'
   } finally {
     summaryState.isLoading = false
-    await logAllGeneratedSummariesToHistory()
+    // Log generated summaries to history as separate entries
+    if (summaryState.isYouTubeVideoActive && summaryState.summary) {
+      await logSingleSummaryToHistory(
+        summaryState.summary,
+        summaryState.pageTitle,
+        summaryState.pageUrl,
+        'Video Summary'
+      )
+    } else if (summaryState.isCourseVideoActive) {
+      if (summaryState.courseSummary)
+        await logSingleSummaryToHistory(
+          summaryState.courseSummary,
+          summaryState.pageTitle,
+          summaryState.pageUrl,
+          'Course Summary'
+        )
+      if (summaryState.courseConcepts)
+        await logSingleSummaryToHistory(
+          summaryState.courseConcepts,
+          summaryState.pageTitle,
+          summaryState.pageUrl,
+          'Course Concepts'
+        )
+    } else if (summaryState.summary) {
+      await logSingleSummaryToHistory(
+        summaryState.summary,
+        summaryState.pageTitle,
+        summaryState.pageUrl,
+        'Web Summary'
+      )
+    }
   }
 }
 export async function summarizeSelectedText(text) {
@@ -777,7 +842,12 @@ export async function summarizeSelectedText(text) {
     summaryState.lastSummaryTypeDisplayed = 'selectedText'
   } finally {
     summaryState.isSelectedTextLoading = false
-    await logAllGeneratedSummariesToHistory()
+    await logSingleSummaryToHistory(
+      summaryState.selectedTextSummary,
+      summaryState.pageTitle,
+      summaryState.pageUrl,
+      'Selected Text'
+    )
   }
 }
 
@@ -852,57 +922,15 @@ export async function saveAllGeneratedSummariesToArchive() {
   } catch (error) {}
 }
 
-export async function logAllGeneratedSummariesToHistory() {
-  const summariesToLog = []
-
-  if (summaryState.summary && summaryState.summary.trim() !== '') {
-    summariesToLog.push({
-      title:
-        summaryState.lastSummaryTypeDisplayed === 'youtube'
-          ? 'Summary'
-          : 'Summary',
-      content: summaryState.summary,
-    })
-  }
-  if (summaryState.courseSummary && summaryState.courseSummary.trim() !== '') {
-    summariesToLog.push({
-      title: 'Summary',
-      content: summaryState.courseSummary,
-    })
-  }
-  if (
-    summaryState.courseConcepts &&
-    summaryState.courseConcepts.trim() !== ''
-  ) {
-    summariesToLog.push({
-      title: 'Concepts',
-      content: summaryState.courseConcepts,
-    })
-  }
-  if (
-    summaryState.selectedTextSummary &&
-    summaryState.selectedTextSummary.trim() !== ''
-  ) {
-    summariesToLog.push({
-      title: 'Selected Text',
-      content: summaryState.selectedTextSummary,
-    })
-  }
-
-  // Add custom action result
-  if (
-    summaryState.customActionResult &&
-    summaryState.customActionResult.trim() !== ''
-  ) {
-    summariesToLog.push({
-      title:
-        summaryState.currentActionType.charAt(0).toUpperCase() +
-        summaryState.currentActionType.slice(1),
-      content: summaryState.customActionResult,
-    })
-  }
-
-  if (summariesToLog.length === 0) {
+/**
+ * Log a single summary action to history as a separate entry
+ * @param {string} content - The summary content
+ * @param {string} title - The page title
+ * @param {string} url - The page URL
+ * @param {string} typeLabel - The label to append to the title (e.g., "Summary", "Comments")
+ */
+export async function logSingleSummaryToHistory(content, title, url, typeLabel) {
+  if (!content || content.trim() === '') {
     return
   }
 
@@ -914,22 +942,28 @@ export async function logAllGeneratedSummariesToHistory() {
 
     const historyEntry = {
       id: generateUUID(), // Generate UUID for new entry
-      title: summaryState.pageTitle || 'Tiêu đề không xác định',
-      url: summaryState.pageUrl || 'URL không xác định',
+      title: `${title} - ${typeLabel}`, // Append type to title
+      url: url || 'URL không xác định',
       date: new Date().toISOString(),
-      summaries: summariesToLog,
-      contentType: detectContentType(summaryState.pageUrl), // Auto-assign content type
+      summaries: [
+        {
+          title: typeLabel,
+          content: content,
+        },
+      ],
+      contentType: detectContentType(url), // Auto-assign content type
     }
 
     await addHistory(historyEntry)
     document.dispatchEvent(
       new CustomEvent('saveSummarySuccess', {
-        detail: { message: 'Logged to History successfully!' },
+        detail: { message: `Logged ${typeLabel} to History successfully!` },
       })
     )
     // Notify other components that the data has been updated
     await appStateStorage.setValue({ data_updated_at: new Date().getTime() })
   } catch (error) {
+    console.error('Error logging to history:', error)
     document.dispatchEvent(
       new CustomEvent('saveSummaryError', {
         detail: { message: `Error logging to History: ${error}` },
@@ -937,6 +971,12 @@ export async function logAllGeneratedSummariesToHistory() {
     )
   }
 }
+
+export async function logAllGeneratedSummariesToHistory() {
+  // Deprecated: This function is no longer used for new logic but kept for reference or potential cleanup
+  // We are now using logSingleSummaryToHistory for granular history tracking
+}
+
 
 /**
  * Execute custom action (analyze, explain, debate) on current page content
@@ -1054,7 +1094,16 @@ export async function executeCustomAction(actionType) {
   } finally {
     summaryState.isCustomActionLoading = false
     // Log to history
-    await logAllGeneratedSummariesToHistory()
+    // Log to history
+    const actionLabel =
+      summaryState.currentActionType.charAt(0).toUpperCase() +
+      summaryState.currentActionType.slice(1)
+    await logSingleSummaryToHistory(
+      summaryState.customActionResult,
+      summaryState.pageTitle,
+      summaryState.pageUrl,
+      actionLabel
+    )
   }
 }
 
@@ -1375,6 +1424,12 @@ export async function fetchCommentSummary(
   } finally {
     summaryState.isCustomActionLoading = false
     // Log to history
-    await logAllGeneratedSummariesToHistory()
+    // Log to history
+    await logSingleSummaryToHistory(
+      summaryState.customActionResult,
+      summaryState.pageTitle,
+      summaryState.pageUrl,
+      'Comments'
+    )
   }
 }

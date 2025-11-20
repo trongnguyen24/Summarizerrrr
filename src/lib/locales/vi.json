@@ -329,23 +329,6 @@
     "help_project": "Hỗ trợ dự án bằng cách quyên góp hoặc để lại đánh giá!",
     "edge_addons": "Tiện ích Edge"
   },
-  "permissionWarning": {
-    "title": "Quyền truy cập",
-    "button": "Truy cập dữ liệu tất cả trang web",
-    "description": "Mặc định truy cập YouTube, Udemy và Coursera. Để tóm tắt các trang web khác, vui lòng cấp quyền bên dưới.",
-    "requesting": "Đang yêu cầu...",
-    "grant_permissions": "Cấp quyền"
-  },
-  "custom_actions": {
-    "analyze": "Phân tích",
-    "explain": "Giải thích",
-    "debate": "Tranh luận",
-    "analyze_description": "Phân tích cấu trúc và lập luận nội dung",
-    "explain_description": "Giải thích bằng ngôn ngữ đơn giản",
-    "description": "Tạo phản hồi sâu sắc",
-    "processing": "Đang xử lý {action}...",
-    "error": "Không thể {action} nội dung"
-  },
   "tags": {
     "title": "Thẻ",
     "assign": "Gán thẻ",

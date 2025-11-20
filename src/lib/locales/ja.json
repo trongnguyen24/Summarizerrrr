@@ -336,9 +336,9 @@
     "edge_addons": "Edgeアドオン"
   },
   "permissionWarning": {
-    "title": "権限",
-    "button": "すべてのウェブサイトのデータにアクセス",
-    "description": "デフォルトではYouTube、Udemy、Courseraにアクセスします。他のサイトを要約するには、以下で権限を付与してください。",
+    "title": "権限が必要です",
+    "button": "すべてのサイトへのアクセスを許可",
+    "description": "Summarizerrrrは、YouTube、Udemy、Coursera、Reddit、Wikipediaでデフォルトで動作します。他のウェブサイトのコンテンツを要約するには、以下で許可を与えてください。",
     "requesting": "リクエスト中...",
     "grant_permissions": "権限を付与"
   },

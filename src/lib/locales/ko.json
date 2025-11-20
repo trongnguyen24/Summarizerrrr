@@ -336,9 +336,9 @@
     "edge_addons": "Edge 애드온"
   },
   "permissionWarning": {
-    "title": "권한",
-    "button": "모든 웹사이트의 데이터 접근",
-    "description": "기본적으로 YouTube, Udemy, Coursera에 접근합니다. 다른 사이트를 요약하려면 아래에서 권한을 부여해 주세요.",
+    "title": "권한 필요",
+    "button": "모든 사이트 접근 허용",
+    "description": "Summarizerrrr는 기본적으로 YouTube, Udemy, Coursera, Reddit 및 Wikipedia에서 작동합니다. 다른 웹사이트의 콘텐츠를 요약하려면 아래에서 권한을 허용해 주세요.",
     "requesting": "요청 중...",
     "grant_permissions": "권한 부여"
   },

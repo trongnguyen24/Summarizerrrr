@@ -314,9 +314,9 @@
     "edge_addons": "Edge 附加组件"
   },
   "permissionWarning": {
-    "title": "权限",
-    "button": "访问您在所有网站上的数据",
-    "description": "默认访问 YouTube、Udemy 和 Coursera。要总结其他网站，请在下方授予权限。",
+    "title": "需要权限",
+    "button": "允许访问所有网站",
+    "description": "Summarizerrrr 默认在 YouTube、Udemy、Coursera、Reddit 和 Wikipedia 上工作。要总结其他网站的内容，请在下方授予权限。",
     "requesting": "请求中...",
     "grant_permissions": "授予权限"
   },

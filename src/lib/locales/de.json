@@ -336,9 +336,9 @@
     "edge_addons": "Edge Add-ons"
   },
   "permissionWarning": {
-    "title": "Berechtigungen",
-    "button": "Zugriff auf Daten für alle Websites",
-    "description": "Standardzugriff auf YouTube, Udemy und Coursera. Um andere Websites zusammenzufassen, gewähren Sie bitte unten Berechtigungen.",
+    "title": "Berechtigungen erforderlich",
+    "button": "Zugriff auf alle Websites erlauben",
+    "description": "Summarizerrrr funktioniert standardmäßig auf YouTube, Udemy, Coursera, Reddit und Wikipedia. Um Inhalte auf anderen Websites zusammenzufassen, erteilen Sie bitte unten die Erlaubnis.",
     "requesting": "Anfrage läuft...",
     "grant_permissions": "Berechtigungen erteilen"
   },

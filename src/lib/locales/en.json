@@ -336,11 +336,11 @@
     "edge_addons": "Edge Add-ons"
   },
   "permissionWarning": {
-    "title": "Permissions",
-    "button": "Access your data for all websites",
-    "description": "Default access YouTube, Udemy and Coursera. For summarize other sites, please grant permissions below.",
+    "title": "Permissions Required",
+    "button": "Allow Access to All Sites",
+    "description": "Summarizerrrr works by default on YouTube, Udemy, Coursera, Reddit, and Wikipedia. To summarize content on other websites, please grant permission below.",
     "requesting": "Requesting...",
-    "grant_permissions": "Grant permissions"
+    "grant_permissions": "Grant Permission"
   },
   "custom_actions": {
     "analyze": "Analyze",

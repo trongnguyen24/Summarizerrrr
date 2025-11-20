@@ -12,6 +12,23 @@ export default defineConfig({
     //   drop: ['console', 'debugger'],
     // },
   }),
+  hooks: {
+    'entrypoints:resolved': (wxt, entrypoints) => {
+      if (wxt.config.browser === 'firefox') {
+        // Remove global content script for Firefox
+        const index = entrypoints.findIndex((e) => e.name === 'global')
+        if (index !== -1) {
+          entrypoints.splice(index, 1)
+        }
+      } else {
+        // Remove firefox content script for other browsers (Chrome, etc.)
+        const index = entrypoints.findIndex((e) => e.name === 'firefox')
+        if (index !== -1) {
+          entrypoints.splice(index, 1)
+        }
+      }
+    },
+  },
   srcDir: 'src',
   modules: ['@wxt-dev/module-svelte'],
   manifest: ({ browser }) => {
@@ -107,7 +124,7 @@ export default defineConfig({
           'scripting',
           'contextMenus',
         ],
-        optional_permissions: ['https://*/*'],
+        optional_permissions: ['<all_urls>'],
         host_permissions: [
           'http://127.0.0.1:11434/*',
           'http://localhost:11434/*',

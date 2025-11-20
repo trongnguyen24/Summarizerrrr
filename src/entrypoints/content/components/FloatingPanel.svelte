@@ -15,6 +15,7 @@
   import FloatingPanelContent from '@/components/displays/floating-panel/FloatingPanelContent.svelte'
   import ActionButtonsFP from '@/components/buttons/ActionButtonsFP.svelte'
   import ActionButtonsMiniFP from '@/components/buttons/ActionButtonsMiniFP.svelte'
+  import ShadowToast from '@/components/feedback/ShadowToast.svelte'
 
   // Deep Dive imports
   import DeepDivePanelFP from './DeepDivePanelFP.svelte'
@@ -31,6 +32,34 @@
   let currentWidthPx = $state(0) // Will be set in loadWidth()
   let showElement = $state(false) // Internal state để control DOM rendering
   const { needsApiKeySetup } = useApiKeyValidation()
+
+  // Toast state
+  let toastVisible = $state(false)
+  let toastProps = $state({
+    title: '',
+    message: '',
+    icon: '',
+  })
+  let toastTimeout
+
+  function handleToastEvent(event) {
+    const { title, message, icon } = event.detail
+    toastProps = { title, message, icon }
+    toastVisible = true
+
+    // Clear existing timeout
+    if (toastTimeout) clearTimeout(toastTimeout)
+
+    // Auto hide after 3 seconds
+    toastTimeout = setTimeout(() => {
+      toastVisible = false
+    }, 3000)
+  }
+
+  function closeToast() {
+    toastVisible = false
+    if (toastTimeout) clearTimeout(toastTimeout)
+  }
 
   async function requestSummary() {
     console.log('Requesting page summary...')
@@ -273,12 +302,15 @@
     loadWidth()
     window.addEventListener('keydown', handleKeyDown)
     document.addEventListener('summarizeClick', handleSummarizeClick)
+    window.addEventListener('gemini-toast', handleToastEvent)
   })
 
   onDestroy(() => {
     window.removeEventListener('keydown', handleKeyDown)
     document.removeEventListener('summarizeClick', handleSummarizeClick)
+    window.removeEventListener('gemini-toast', handleToastEvent)
     document.body.style.userSelect = ''
+    if (toastTimeout) clearTimeout(toastTimeout)
   })
 </script>
 
@@ -475,6 +507,15 @@
           isVisible={true}
         />
       {/if}
+
+      <!-- Toast Notification -->
+      <ShadowToast
+        visible={toastVisible}
+        title={toastProps.title}
+        message={toastProps.message}
+        icon={toastProps.icon}
+        onClose={closeToast}
+      />
     </div>
   </div>
 {/if}

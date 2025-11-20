@@ -17,9 +17,9 @@
 
 <div class="flex flex-col gap-4">
   {#if isLoading && !data}
-    <div class="flex flex-col gap-3 items-center">
+    <div class="flex flex-col gap-3 py-4 items-center">
       <div
-        class="text-center p-4 mx-auto text-text-secondary w-fit animate-pulse"
+        class="text-center px-2 mx-auto text-text-secondary w-fit animate-pulse"
       >
         {loadingText || 'Loading...'}
       </div>
@@ -38,9 +38,6 @@
     </div>
   {:else if data}
     <div class="flex flex-col gap-3">
-      {#if summaryState.modelStatus?.isFallback}
-        <ModelStatusDisplay modelStatus={summaryState.modelStatus} />
-      {/if}
       {@render children()}
     </div>
   {:else if noDataSlot}

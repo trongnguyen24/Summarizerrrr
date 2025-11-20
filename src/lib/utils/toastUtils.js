@@ -17,7 +17,7 @@ function dispatchToastEvent(props) {
  */
 export function showBlockingModeToast() {
   dispatchToastEvent({
-    title: 'Server overload',
+    title: 'Steaming failed',
     message: 'Trying blocking mode...',
     icon: 'heroicons-outline:arrow-path',
   })

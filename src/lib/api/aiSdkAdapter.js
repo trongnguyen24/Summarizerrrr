@@ -191,25 +191,22 @@ export async function generateContent(
         ? { ...settings, selectedGeminiModel: currentModel }
         : settings
 
-      // LOG: Model being used for this API call
+      // Determine model name for display and logging
       const modelName = autoFallbackEnabled
         ? currentModel
-        : providerId === 'gemini'
-        ? getCurrentGeminiModel(settings)
-        : 'N/A'
+        : getDisplayModelName(providerId, settings)
+
       console.log(
         `[aiSdkAdapter] 📡 API Call - Provider: ${providerId}, Model: ${modelName}`
       )
 
       // Update UI with current model status
-      if (autoFallbackEnabled) {
-        const isFallback = currentModel !== originalModel
-        updateModelStatus(
-          currentModel,
-          isFallback ? originalModel : null,
-          isFallback
-        )
-      }
+      const isFallback = autoFallbackEnabled && currentModel !== originalModel
+      updateModelStatus(
+        modelName,
+        isFallback ? originalModel : null,
+        isFallback
+      )
 
       const baseModel = getAISDKModel(providerId, currentSettings)
 
@@ -336,25 +333,22 @@ export async function* generateContentStream(
         ? { ...settings, selectedGeminiModel: currentModel }
         : settings
 
-      // LOG: Model being used for this API call (streaming)
+      // Determine model name for display and logging
       const modelName = autoFallbackEnabled
         ? currentModel
-        : providerId === 'gemini'
-        ? getCurrentGeminiModel(settings)
-        : 'N/A'
+        : getDisplayModelName(providerId, settings)
+
       console.log(
         `[aiSdkAdapter] 📡 API Stream Call - Provider: ${providerId}, Model: ${modelName}`
       )
 
       // Update UI with current model status
-      if (autoFallbackEnabled) {
-        const isFallback = currentModel !== originalModel
-        updateModelStatus(
-          currentModel,
-          isFallback ? originalModel : null,
-          isFallback
-        )
-      }
+      const isFallback = autoFallbackEnabled && currentModel !== originalModel
+      updateModelStatus(
+        modelName,
+        isFallback ? originalModel : null,
+        isFallback
+      )
 
       const baseModel = getAISDKModel(providerId, currentSettings)
 
@@ -542,3 +536,34 @@ export async function* generateContentStreamEnhanced(
     throw error
   }
 }
+
+/**
+ * Helper to get the display name of the model based on provider and settings
+ * @param {string} providerId
+ * @param {object} settings
+ * @returns {string}
+ */
+function getDisplayModelName(providerId, settings) {
+  switch (providerId) {
+    case 'gemini':
+      return getCurrentGeminiModel(settings)
+    case 'openai':
+    case 'chatgpt':
+      return settings.selectedChatgptModel || 'gpt-3.5-turbo'
+    case 'groq':
+      return settings.selectedGroqModel || 'mixtral-8x7b-32768'
+    case 'openrouter':
+      return settings.selectedOpenrouterModel || 'openrouter/auto'
+    case 'deepseek':
+      return settings.selectedDeepseekModel || 'deepseek-chat'
+    case 'ollama':
+      return settings.selectedOllamaModel || 'llama2'
+    case 'openaiCompatible':
+      return settings.selectedOpenAICompatibleModel || 'gpt-3.5-turbo'
+    case 'lmstudio':
+      return settings.selectedLmStudioModel || 'lmstudio-community/gemma-2b-it-GGUF'
+    default:
+      return providerId
+  }
+}
+

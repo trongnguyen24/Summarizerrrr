@@ -1,6 +1,8 @@
 <script>
   // @ts-nocheck
   import PlusIcon from '@/components/icons/PlusIcon.svelte'
+  import ModelStatusDisplay from '@/components/displays/ui/ModelStatusDisplay.svelte'
+  import { summaryState } from '@/stores/summaryStore.svelte.js'
 
   let {
     isLoading,
@@ -15,10 +17,13 @@
 
 <div class="flex flex-col gap-4">
   {#if isLoading && !data}
-    <div
-      class="text-center p-4 mx-auto text-text-secondary w-fit animate-pulse"
-    >
-      {loadingText || 'Loading...'}
+    <div class="flex flex-col gap-3 py-4 items-center">
+      <div
+        class="text-center px-2 mx-auto text-text-secondary w-fit animate-pulse"
+      >
+        {loadingText || 'Loading...'}
+      </div>
+      <ModelStatusDisplay modelStatus={summaryState.modelStatus} />
     </div>
   {:else if error}
     <div

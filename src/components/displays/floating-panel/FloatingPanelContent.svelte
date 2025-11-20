@@ -27,18 +27,18 @@
     const t = (type || '').toLowerCase()
     if (t === 'youtube') {
       console.log(
-        '[FloatingPanelContent] Display selected: YouTubeSummaryDisplayFP'
+        '[FloatingPanelContent] Display selected: YouTubeSummaryDisplayFP',
       )
       return YouTubeSummaryDisplayFP
     }
     if (t === 'course') {
       console.log(
-        '[FloatingPanelContent] Display selected: CourseSummaryDisplayFP'
+        '[FloatingPanelContent] Display selected: CourseSummaryDisplayFP',
       )
       return CourseSummaryDisplayFP
     }
     console.log(
-      '[FloatingPanelContent] Display selected: GenericSummaryDisplayFP (fallback)'
+      '[FloatingPanelContent] Display selected: GenericSummaryDisplayFP (fallback)',
     )
     return GenericSummaryDisplayFP
   }
@@ -67,7 +67,7 @@
         isLoading={status === 'loading'}
         {summarization}
       />
-    {:else if summary}
+    {:else if summary || status === 'loading'}
       <DisplayComponent
         {summary}
         isLoading={status === 'loading'}
@@ -75,10 +75,6 @@
         targetId="fp-generic-summary"
         {summarization}
       />
-    {:else if status === 'loading'}
-      <p class="text-center text-text-secondary animate-pulse">
-        Processing summary...
-      </p>
     {:else}
       <!-- <p>No summary available.</p> -->
     {/if}

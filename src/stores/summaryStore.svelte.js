@@ -433,6 +433,12 @@ export async function fetchChapterSummary() {
   summaryState.currentActionType = 'chapters'
   summaryState.customActionResult = ''
   summaryState.customActionError = null
+  // Reset model status for custom actions
+  summaryState.modelStatus = {
+    currentModel: null,
+    fallbackFrom: null,
+    isFallback: false,
+  }
 
   try {
     // Get current tab info
@@ -1000,6 +1006,12 @@ export async function executeCustomAction(actionType) {
   summaryState.currentActionType = actionType
   summaryState.customActionResult = ''
   summaryState.customActionError = null
+  // Reset model status for custom actions
+  summaryState.modelStatus = {
+    currentModel: null,
+    fallbackFrom: null,
+    isFallback: false,
+  }
   summaryState.lastSummaryTypeDisplayed = 'custom'
 
   try {
@@ -1209,6 +1221,12 @@ export async function fetchCommentSummary(
   summaryState.currentActionType = 'comments'
   summaryState.customActionResult = ''
   summaryState.customActionError = null
+  // Reset model status for custom actions
+  summaryState.modelStatus = {
+    currentModel: null,
+    fallbackFrom: null,
+    isFallback: false,
+  }
   summaryState.lastSummaryTypeDisplayed = 'custom'
 
   try {

@@ -410,7 +410,7 @@ Analyze the YouTube video comments below and provide a concise summary of audien
 
 
 <STYLE_GUIDELINES>
-- Write in Native-level __LANG__ following Tone
+- Reply in Native-level __LANG__ following Tone
 - Analytical and concise
 - [Structured summary using ##, ### and bullets, emoji for clear presentation]
 - Keep the output scannable and compact

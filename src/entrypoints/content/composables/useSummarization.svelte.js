@@ -1,5 +1,6 @@
 // @ts-nocheck
 import { loadSettings, settings } from '@/stores/settingsStore.svelte.js'
+import { updateModelStatus } from '@/stores/summaryStore.svelte.js'
 import { ContentExtractorService } from '../services/ContentExtractorService.js'
 import { SummarizationService } from '../services/SummarizationService.js'
 import {
@@ -113,6 +114,8 @@ export function useSummarization() {
       // 1. Reset state (giữ lại isLoading = true)
       const wasLoading = localSummaryState.isLoading
       resetLocalSummaryState()
+      // Reset global model status
+      updateModelStatus(null, null, false)
       localSummaryState.isLoading = wasLoading
       localSummaryState.startTime = Date.now()
 
@@ -280,6 +283,8 @@ export function useSummarization() {
 
     // Reset summary trước để chapters được lưu như một entry mới
     localSummaryState.summary = ''
+    // Reset global model status
+    updateModelStatus(null, null, false)
     localSummaryState.isLoading = true
     isProcessing = true
 
@@ -338,6 +343,8 @@ export function useSummarization() {
 
     // Reset summary trước
     localSummaryState.summary = ''
+    // Reset global model status
+    updateModelStatus(null, null, false)
     localSummaryState.isLoading = true
     isProcessing = true
 

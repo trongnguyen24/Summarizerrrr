@@ -118,9 +118,26 @@ export async function getPageContent(
     )
 
     if (contentType === 'webpageText') {
+      // Try to get content via message first (if content script is loaded)
+      try {
+        const response = await browser.tabs.sendMessage(tab.id, {
+          action: 'GET_PAGE_CONTENT',
+        })
+        if (response && response.success && response.content) {
+          return { type: actualPageType, content: response.content }
+        }
+      } catch (e) {
+        console.log(
+          '[contentService] Message failed, falling back to executeScript:',
+          e
+        )
+      }
+
+      // Fallback to executeScript using static file to avoid CSP eval issues
       const pageText = await browser.scripting.executeScript({
         target: { tabId: tab.id },
-        func: getWebpageText,
+        files: ['extractor.js'],
+        world: 'ISOLATED',
       })
       if (pageText && pageText[0] && pageText[0].result)
         return { type: actualPageType, content: pageText[0].result }

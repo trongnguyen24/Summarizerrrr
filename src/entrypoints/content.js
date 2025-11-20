@@ -11,8 +11,11 @@ import App from './content/App.svelte'
 import { mount, unmount } from 'svelte'
 
 export default defineContentScript({
-  matches: ['*://*/*'],
-  cssInjectionMode: 'ui',
+  matches:
+    import.meta.env.BROWSER === 'firefox'
+      ? ['*://example.com/summarizerrrr-placeholder'] // Dummy match to avoid required permissions
+      : ['*://*/*'],
+  cssInjectionMode: 'ui', 
   async main(ctx) {
     // Initialize i18n before mounting Shadow DOM
     await loadSettings()
@@ -42,6 +45,15 @@ export default defineContentScript({
         return // Lỗi thì không mount UI
       }
     }
+
+    // Listen for messages from background/sidepanel
+    browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
+      if (message.action === 'GET_PAGE_CONTENT') {
+        const text = document.body.innerText || document.body.textContent
+        sendResponse({ success: true, content: text })
+        return true
+      }
+    })
 
     if (!shouldShowFab(window.location.href, settings.fabDomainControl)) {
       return // Do not mount the UI

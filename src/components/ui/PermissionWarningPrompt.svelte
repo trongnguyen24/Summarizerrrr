@@ -4,255 +4,172 @@
   import { t } from 'svelte-i18n'
   import { fade, slide } from 'svelte/transition'
   import {
-    checkPermission,
-    requestPermission,
+    checkSpecificPermission,
+    requestSpecificPermission,
   } from '@/services/firefoxPermissionService.js'
-  import {
-    updateFirefoxPermission,
-    getFirefoxPermission,
-    getCachedPermission,
-  } from '@/stores/settingsStore.svelte.js'
   import { browser } from 'wxt/browser'
 
   let { currentUrl = '', onPermissionGranted = () => {} } = $props()
 
-  // Use settings store instead of local state for permission persistence
-  let hasPermission = $state(getFirefoxPermission('httpsPermission'))
+  let hasPermission = $state(true) // Default to true to avoid flash
   let isCheckingPermission = $state(true)
   let isRequestingPermission = $state(false)
   let showWarning = $state(false)
   let permissionCheckError = $state(null)
+  let isRestrictedPage = $state(false)
 
-  // Track if permission check has been completed to avoid infinite loops
-  let hasInitialized = $state(false)
+  // Check if page is restricted (browser pages, extensions, etc)
+  function checkRestricted(url) {
+    if (!url) return false
+    return (
+      url.startsWith('about:') ||
+      url.startsWith('moz-extension:') ||
+      url.startsWith('chrome:') ||
+      url.startsWith('view-source:') ||
+      url.startsWith('file:')
+    )
+  }
 
   // Listen for permission changes via runtime messages
   $effect(() => {
     const messageListener = (message) => {
-      if (
-        message.type === 'PERMISSION_CHANGED' &&
-        message.permissionKey === 'httpsPermission'
-      ) {
-        console.log(
-          '[PermissionWarningPrompt] Received permission change message:',
-          message
-        )
-
-        // Update local state immediately
-        hasPermission = message.value
-        showWarning = !message.value && !isCheckingPermission
-
-        // Sync with store for consistency
-        updateFirefoxPermission('httpsPermission', message.value)
-
-        // Notify parent component if permission was granted
-        if (message.value && onPermissionGranted) {
-          onPermissionGranted(true)
+      if (message.type === 'PERMISSION_CHANGED') {
+        // If global permission changed
+        if (message.pattern === '*://*/*') {
+          if (message.value) {
+            hasPermission = true
+            showWarning = false
+            onPermissionGranted(true)
+          } else {
+            checkPermissionStatus()
+          }
         }
       }
     }
 
-    // Add message listener
     browser.runtime.onMessage.addListener(messageListener)
-
-    // Cleanup function
     return () => {
       browser.runtime.onMessage.removeListener(messageListener)
     }
   })
 
-  // Reactive update when settings store changes - but only after initialization
-  $effect(() => {
-    if (hasInitialized) {
-      const storePermission = getFirefoxPermission('httpsPermission')
-      if (storePermission !== hasPermission) {
-        hasPermission = storePermission
-        showWarning = !storePermission && !isCheckingPermission
-      }
-    }
-  })
+  async function checkPermissionStatus() {
+    if (!currentUrl || import.meta.env.BROWSER !== 'firefox') return
 
-  // Check permission with store integration and caching - run only once per URL change
-  $effect(async () => {
-    if (currentUrl && import.meta.env.BROWSER === 'firefox') {
-      isCheckingPermission = true
-      permissionCheckError = null
+    isCheckingPermission = true
+    permissionCheckError = null
 
-      try {
-        // Kiểm tra ngay nếu là educational sites (có host permissions)
-        const isEducationalSite =
-          currentUrl.includes('youtube.com') ||
-          currentUrl.includes('udemy.com') ||
-          currentUrl.includes('coursera.org')
-
-        if (isEducationalSite) {
-          // Educational sites có host permissions - ngay lập tức set true
-          await updateFirefoxPermission('httpsPermission', true)
-          showWarning = false
-          if (onPermissionGranted) {
-            onPermissionGranted(true)
-          }
-        } else {
-          // Check cache first
-          const permissionKey = 'httpsPermission'
-          const cached = getCachedPermission(permissionKey)
-
-          if (cached) {
-            console.log(
-              '[PermissionWarningPrompt] Using cached permission:',
-              cached.value
-            )
-            await updateFirefoxPermission(permissionKey, cached.value)
-            showWarning = !cached.value
-
-            if (cached.value && onPermissionGranted) {
-              onPermissionGranted(true)
-            }
-          } else {
-            // Check actual permission for general sites
-            console.log(
-              '[PermissionWarningPrompt] Checking Firefox permission for:',
-              currentUrl
-            )
-            const permission = await checkPermission(currentUrl)
-            console.log(
-              '[PermissionWarningPrompt] Permission result:',
-              permission
-            )
-
-            // Update store with result
-            await updateFirefoxPermission(permissionKey, permission)
-            showWarning = !permission
-
-            // Notify parent component về permission status
-            if (permission && onPermissionGranted) {
-              onPermissionGranted(true)
-            }
-          }
-        }
-      } catch (error) {
-        console.error(
-          '[PermissionWarningPrompt] Permission check failed:',
-          error
-        )
-        permissionCheckError = error.message
-        showWarning = true
-        await updateFirefoxPermission('httpsPermission', false)
-      } finally {
-        isCheckingPermission = false
-      }
-    } else {
-      // Non-Firefox browsers hoặc không có URL
-      await updateFirefoxPermission('httpsPermission', true)
-      showWarning = false
+    isRestrictedPage = checkRestricted(currentUrl)
+    if (isRestrictedPage) {
+      hasPermission = false
+      showWarning = true
       isCheckingPermission = false
-      if (onPermissionGranted) {
-        onPermissionGranted(true)
-      }
+      return
     }
-  })
-
-  async function handleGrantPermission() {
-    if (isRequestingPermission) return
-
-    isRequestingPermission = true
 
     try {
-      console.log(
-        '[PermissionWarningPrompt] Requesting permission for:',
-        currentUrl
-      )
-      const granted = await requestPermission(currentUrl)
-      console.log(
-        '[PermissionWarningPrompt] Permission request result:',
-        granted
-      )
+      // Check global permission ONLY
+      const global = await checkSpecificPermission('*://*/*')
+      hasPermission = global
+      showWarning = !global
 
-      if (granted) {
-        // Update store instead of local state
-        await updateFirefoxPermission('httpsPermission', true)
-        showWarning = false
-
-        // Broadcast permission change via runtime message
-        try {
-          await browser.runtime.sendMessage({
-            type: 'PERMISSION_CHANGED',
-            permissionKey: 'httpsPermission',
-            value: true,
-            source: 'PermissionWarningPrompt',
-            timestamp: Date.now(),
-          })
-          console.log(
-            '[PermissionWarningPrompt] Permission change broadcasted successfully'
-          )
-        } catch (error) {
-          console.warn(
-            '[PermissionWarningPrompt] Failed to broadcast permission change:',
-            error
-          )
-        }
-
-        // Notify parent component
-        if (onPermissionGranted) {
-          onPermissionGranted(true)
-        }
-
-        // Show success feedback briefly
-        setTimeout(() => {
-          console.log(
-            '[PermissionWarningPrompt] Permission granted successfully'
-          )
-        }, 500)
-      } else {
-        // User denied permission
-        console.log('[PermissionWarningPrompt] Permission denied by user')
-        await updateFirefoxPermission('httpsPermission', false)
+      if (global) {
+        onPermissionGranted(true)
       }
     } catch (error) {
       console.error(
-        '[PermissionWarningPrompt] Permission request failed:',
-        error
+        '[PermissionWarningPrompt] Error checking permission:',
+        error,
       )
       permissionCheckError = error.message
-      await updateFirefoxPermission('httpsPermission', false)
+    } finally {
+      isCheckingPermission = false
+    }
+  }
+
+  // Watch currentUrl changes
+  $effect(() => {
+    checkPermissionStatus()
+  })
+
+  async function handleGrantPermission() {
+    isRequestingPermission = true
+    try {
+      // Request GLOBAL permission
+      const granted = await requestSpecificPermission('*://*/*')
+      if (granted) {
+        hasPermission = true
+        showWarning = false
+        onPermissionGranted(true)
+
+        // Broadcast change
+        await browser.runtime.sendMessage({
+          type: 'PERMISSION_CHANGED',
+          pattern: '*://*/*',
+          value: true,
+          source: 'PermissionWarningPrompt',
+          timestamp: Date.now(),
+        })
+      }
+    } catch (error) {
+      console.error('[PermissionWarningPrompt] Request failed:', error)
     } finally {
       isRequestingPermission = false
     }
   }
-
-  // triggerSidepanelUpdate function removed - now using browser.runtime.sendMessage instead
-
-  // Expose permission status to parent
-  let permissionStatus = $derived({
-    hasPermission,
-    isChecking: isCheckingPermission,
-    showWarning,
-    error: permissionCheckError,
-  })
 </script>
 
-<!-- Warning banner khi cần permission - chỉ cho Reddit và general websites -->
-<!-- YouTube, Udemy, Coursera đã có host_permissions nên không bao giờ hiển thị warning -->
-{#if showWarning && !isCheckingPermission}
-  <div class="p-4 min-w-90 absolute abs-center bg-surface-1 z-10">
-    <div class="flex gap-1 justify-center flex-col space-y-3">
-      <p class="text-xs text-balance !text-center text-text-secondary mt-4">
-        {$t('permissionWarning.description')}
-      </p>
+{#if showWarning}
+  <div
+    transition:slide={{ duration: 300 }}
+    class="w-full px-4 py-3 bg-orange-50 dark:bg-orange-900/20 border-b border-orange-200 dark:border-orange-800/50"
+  >
+    <div class="flex flex-col gap-3">
+      <div class="flex items-start gap-3">
+        <div class="mt-0.5 text-orange-500 shrink-0">
+          <Icon icon="solar:shield-warning-bold" width="20" height="20" />
+        </div>
+        <div class="flex-1 min-w-0">
+          <h3
+            class="text-sm font-semibold text-orange-800 dark:text-orange-200"
+          >
+            {#if isRestrictedPage}
+              {$t('permissionWarning.restricted_title') || 'Access Restricted'}
+            {:else}
+              {$t('permissionWarning.title')}
+            {/if}
+          </h3>
+          <p
+            class="mt-1 text-xs text-orange-700 dark:text-orange-300/80 leading-relaxed"
+          >
+            {#if isRestrictedPage}
+              {$t('permissionWarning.restricted_description') ||
+                'Summarizerrrr cannot run on this page (browser settings or internal page).'}
+            {:else}
+              {$t('permissionWarning.description') ||
+                'Summarizerrrr needs access to this website to generate summaries.'}
+            {/if}
+          </p>
+        </div>
+      </div>
 
-      <button
-        onclick={handleGrantPermission}
-        disabled={isRequestingPermission}
-        class="flex w-fit mx-auto items-center gap-2 px-3 py-1.5 bg-blackwhite/5 text-text-primary rounded-2xl text-xs font-medium hover:bg-blackwhite/15 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-      >
-        {#if isRequestingPermission}
-          <Icon icon="solar:loader-2-bold" class="w-3 h-3 animate-spin" />
-          <span>{$t('permissionWarning.requesting')}</span>
-        {:else}
-          <Icon icon="solar:shield-check-bold" class="w-3 h-3" />
-          <span>{$t('permissionWarning.grant_permissions')}</span>
-        {/if}
-      </button>
+      {#if !isRestrictedPage}
+        <div class="flex justify-end pl-8">
+          <button
+            onclick={handleGrantPermission}
+            disabled={isRequestingPermission}
+            class="flex items-center gap-2 px-4 py-1.5 text-xs font-medium text-white transition-colors bg-orange-500 rounded-full hover:bg-orange-600 active:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {#if isRequestingPermission}
+              <Icon icon="svg-spinners:ring-resize" width="14" height="14" />
+              <span>{$t('common.processing') || 'Processing...'}</span>
+            {:else}
+              <span>{$t('permissionWarning.button') || 'Grant Permission'}</span
+              >
+            {/if}
+          </button>
+        </div>
+      {/if}
     </div>
   </div>
 {/if}

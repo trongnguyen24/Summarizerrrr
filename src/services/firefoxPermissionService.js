@@ -23,7 +23,7 @@ export function getRequiredPermission(url) {
   }
 
   // Default cho tất cả các site khác (trừ sites có host permissions)
-  return 'https://*/*'
+  return '*://*/*'
 }
 
 /**
@@ -367,3 +367,107 @@ export const PERMISSION_ERROR_TYPES = {
     suggestion: 'Extension needs to be reloaded.',
   },
 }
+
+/**
+ * Map to store registered content scripts by pattern
+ * @type {Map<string, any>}
+ */
+const registeredScripts = new Map()
+
+/**
+ * Register content script for a specific pattern (Firefox only)
+ * @param {string} pattern - The match pattern (e.g., "*://*.youtube.com/*")
+ * @returns {Promise<boolean>} - True if successful
+ */
+export async function registerContentScript(pattern) {
+  if (import.meta.env.BROWSER !== 'firefox') return false
+
+  try {
+    // Prevent duplicate registration
+    if (registeredScripts.has(pattern)) {
+      console.log(
+        `[FirefoxPermissionService] Content script already registered for ${pattern}`
+      )
+      return true
+    }
+
+    // Check if we have the permission
+    const hasPermission = await browser.permissions.contains({
+      origins: [pattern],
+    })
+
+    if (!hasPermission) {
+      console.log(
+        `[FirefoxPermissionService] Cannot register script for ${pattern}: Missing permission`
+      )
+      return false
+    }
+
+    // Register the script
+    const script = await browser.contentScripts.register({
+      matches: [pattern],
+      js: [{ file: 'content-scripts/content.js' }],
+      runAt: 'document_end',
+    })
+
+    registeredScripts.set(pattern, script)
+
+    console.log(
+      `[FirefoxPermissionService] Content script registered successfully for ${pattern}`
+    )
+    return true
+  } catch (error) {
+    console.error(
+      `[FirefoxPermissionService] Error registering content script for ${pattern}:`,
+      error
+    )
+    return false
+  }
+}
+
+/**
+ * Unregister content script for a specific pattern
+ * @param {string} pattern - The match pattern
+ * @returns {Promise<boolean>} - True if successful
+ */
+export async function unregisterContentScript(pattern) {
+  if (import.meta.env.BROWSER !== 'firefox') return false
+
+  try {
+    const script = registeredScripts.get(pattern)
+    if (script) {
+      await script.unregister()
+      registeredScripts.delete(pattern)
+      console.log(
+        `[FirefoxPermissionService] Content script unregistered for ${pattern}`
+      )
+    }
+    return true
+  } catch (error) {
+    console.error(
+      `[FirefoxPermissionService] Error unregistering content script for ${pattern}:`,
+      error
+    )
+    return false
+  }
+}
+
+/**
+ * Initialize all content scripts based on current permissions
+ */
+export async function initializeContentScripts() {
+  if (import.meta.env.BROWSER !== 'firefox') return
+
+  const patterns = [
+    '*://*.youtube.com/*',
+    '*://*.udemy.com/*',
+    '*://*.coursera.org/*',
+    '*://*.reddit.com/*',
+    '*://*/*', // Global permission
+  ]
+
+  for (const pattern of patterns) {
+    await registerContentScript(pattern)
+  }
+}
+

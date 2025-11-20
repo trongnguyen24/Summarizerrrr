@@ -242,12 +242,10 @@ export async function fetchAndSummarize() {
       const hasPermission = await checkPermission(tabInfo.url)
 
       if (!hasPermission) {
-        const permissionGranted = await requestPermission(tabInfo.url)
-        if (!permissionGranted) {
-          throw new Error(
-            'Permission denied for this website. Please enable permissions in Settings or grant access when prompted.'
-          )
-        }
+        // KHÔNG tự động request permission - yêu cầu user bật trong Settings
+        throw new Error(
+          'Permission required. Please enable "Access your data for all websites" in extension Settings (General tab) to summarize this website.'
+        )
       }
     }
 
@@ -460,12 +458,10 @@ export async function fetchChapterSummary() {
     if (import.meta.env.BROWSER === 'firefox') {
       const hasPermission = await checkPermission(tabInfo.url)
       if (!hasPermission) {
-        const permissionGranted = await requestPermission(tabInfo.url)
-        if (!permissionGranted) {
-          throw new Error(
-            'Permission denied for this website. Please enable permissions in Settings or grant access when prompted.'
-          )
-        }
+        // KHÔNG tự động request permission - yêu cầu user bật trong Settings
+        throw new Error(
+          'Permission required. Please enable "Access your data for all websites" in extension Settings (General tab) to summarize this website.'
+        )
       }
     }
 
@@ -560,12 +556,10 @@ export async function fetchAndSummarizeStream() {
       const hasPermission = await checkPermission(tabInfo.url)
 
       if (!hasPermission) {
-        const permissionGranted = await requestPermission(tabInfo.url)
-        if (!permissionGranted) {
-          throw new Error(
-            'Permission denied for this website. Please enable permissions in Settings or grant access when prompted.'
-          )
-        }
+        // KHÔNG tự động request permission - yêu cầu user bật trong Settings
+        throw new Error(
+          'Permission required. Please enable "Access your data for all websites" in extension Settings (General tab) to summarize this website.'
+        )
       }
     }
 
@@ -1029,10 +1023,10 @@ export async function executeCustomAction(actionType) {
     if (import.meta.env.BROWSER === 'firefox') {
       const hasPermission = await checkPermission(tabInfo.url)
       if (!hasPermission) {
-        const permissionGranted = await requestPermission(tabInfo.url)
-        if (!permissionGranted) {
-          throw new Error('Permission denied for this website.')
-        }
+        // KHÔNG tự động request permission - yêu cầu user bật trong Settings
+        throw new Error(
+          'Permission required. Please enable "Access your data for all websites" in extension Settings (General tab) to use this feature.'
+        )
       }
     }
 
@@ -1252,10 +1246,10 @@ export async function fetchCommentSummary(
     if (import.meta.env.BROWSER === 'firefox') {
       const hasPermission = await checkPermission(tabInfo.url)
       if (!hasPermission) {
-        const permissionGranted = await requestPermission(tabInfo.url)
-        if (!permissionGranted) {
-          throw new Error('Permission denied for this website.')
-        }
+        // KHÔNG tự động request permission - yêu cầu user bật trong Settings
+        throw new Error(
+          'Permission required. Please enable "Access your data for all websites" in extension Settings (General tab) to analyze comments.'
+        )
       }
     }
 

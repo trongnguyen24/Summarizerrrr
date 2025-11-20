@@ -2,4 +2,4 @@
 trigger: always_on
 ---
 
-Trả lời bằng tiếng việt
+Trả lời và viết plan bằng tiếng việt

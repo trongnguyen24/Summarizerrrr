@@ -29,6 +29,7 @@ declare module "wxt/browser" {
     | "/content-scripts/youtube-comments-bridge.js"
     | "/content-scripts/youtube-copy-transcript.js"
     | "/content-scripts/youtubetranscript.js"
+    | "/extractor.js"
     | "/icon/128.png"
     | "/icon/16.png"
     | "/icon/256.png"

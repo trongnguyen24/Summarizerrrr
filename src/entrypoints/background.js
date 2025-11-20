@@ -617,8 +617,41 @@ export default defineBackground(() => {
         } else {
           await browser.browserAction.setPopup({ popup: '' })
         }
+
+        // Initialize dynamic content scripts if permissions are already granted
+        const {
+          initializeContentScripts,
+          registerContentScript,
+          unregisterContentScript,
+        } = await import('../services/firefoxPermissionService.js')
+        await initializeContentScripts()
+
+        // Listen for permission changes to dynamically register/unregister scripts
+        browser.permissions.onAdded.addListener(async (permissions) => {
+          if (permissions.origins && permissions.origins.length > 0) {
+            console.log(
+              '[Background] Permissions added:',
+              permissions.origins
+            )
+            for (const origin of permissions.origins) {
+              await registerContentScript(origin)
+            }
+          }
+        })
+
+        browser.permissions.onRemoved.addListener(async (permissions) => {
+          if (permissions.origins && permissions.origins.length > 0) {
+            console.log(
+              '[Background] Permissions removed:',
+              permissions.origins
+            )
+            for (const origin of permissions.origins) {
+              await unregisterContentScript(origin)
+            }
+          }
+        })
       } catch (e) {
-        console.warn('setPopup failed:', e)
+        console.warn('Firefox initialization failed:', e)
       }
     })()
     browser.browserAction.onClicked.addListener(() => {
@@ -674,6 +707,8 @@ export default defineBackground(() => {
       ;(async () => {
         try {
           console.log('[Background] Broadcasting permission change:', message)
+
+          // Note: Content script registration is now handled by browser.permissions.onAdded/onRemoved listeners
 
           // Send to sidepanel if connected
           if (sidePanelPort) {

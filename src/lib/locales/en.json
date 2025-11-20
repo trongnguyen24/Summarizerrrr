@@ -47,7 +47,12 @@
         "open_sidepanel": "Open the sidepanel",
         "open_popup": "Open a popup settings",
         "open_floating": "Open a floating panel on the page"
-      }
+      },
+      "required_permissions": "Required Permissions",
+      "required_permissions_note": "These sites are always accessible (built-in support).",
+      "specific_sites": "Specific Sites (Recommended)",
+      "optional_permissions": "All Websites Access",
+      "optional_permissions_note": "Enable to summarize any website."
     },
     "fab": {
       "title": "Floating Action Button",
@@ -336,11 +341,15 @@
     "edge_addons": "Edge Add-ons"
   },
   "permissionWarning": {
-    "title": "Permissions",
-    "button": "Access your data for all websites",
-    "description": "Default access YouTube, Udemy and Coursera. For summarize other sites, please grant permissions below.",
+    "title": "Permission Required",
+    "description": "Summarizerrrr needs access to this website to generate summaries.",
+    "description_specific": "Enable access to {domain} to use Summarizerrrr.",
+    "button": "Grant Permission",
+    "button_specific": "Allow Access",
     "requesting": "Requesting...",
-    "grant_permissions": "Grant permissions"
+    "grant_permissions": "Grant Permissions",
+    "restricted_title": "Access Restricted",
+    "restricted_description": "Summarizerrrr cannot run on this page (browser settings or internal page)."
   },
   "custom_actions": {
     "analyze": "Analyze",

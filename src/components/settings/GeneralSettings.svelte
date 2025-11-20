@@ -51,114 +51,136 @@
     }
   })
 
-  // Load permission states từ Firefox API với caching
+  // State for permission list
+  let grantedOrigins = $state([])
+  let newPermissionDomain = $state('')
+
+  // Load permission states từ Firefox API
   async function loadPermissionStates() {
     if (import.meta.env.BROWSER === 'firefox') {
       try {
-        const permissionKey = 'httpsPermission'
+        // Check global permission
+        const globalPermission = await checkSpecificPermission('*://*/*')
+        await updateFirefoxPermission('httpsPermission', globalPermission)
 
-        // Check cache trước
-        const cached = getCachedPermission(permissionKey)
-        if (cached) {
-          console.log(
-            '[GeneralSettings] Using cached permission state:',
-            cached.value
+        // Get all granted permissions
+        const permissions = await browser.permissions.getAll()
+        if (permissions.origins) {
+          // Filter out global permission and internal/API domains if needed
+          grantedOrigins = permissions.origins.filter(
+            (origin) =>
+              origin !== '*://*/*' &&
+              origin !== '<all_urls>' &&
+              !origin.startsWith('moz-extension://'),
           )
-          await updateFirefoxPermission(permissionKey, cached.value)
-          return
         }
-
-        // Nếu không có cache, check actual permission
-        console.log('[GeneralSettings] Checking actual Firefox permission...')
-        const hasPermission = await checkSpecificPermission('https://*/*')
-        console.log(
-          '[GeneralSettings] Firefox permission result:',
-          hasPermission
-        )
-
-        // Update store với kết quả
-        await updateFirefoxPermission(permissionKey, hasPermission)
       } catch (error) {
         console.error(
           '[GeneralSettings] Error loading permission states:',
-          error
+          error,
         )
       }
     }
   }
 
-  // Event handlers cho checkbox - persist state qua settings store
-  async function handleHttpsPermission(checked) {
-    const permissionKey = 'httpsPermission'
+  // Add new permission
+  async function addPermission() {
+    if (!newPermissionDomain) return
+
+    let domain = newPermissionDomain.trim()
+    // Basic cleanup/formatting
+    if (!domain.includes('://')) {
+      domain = `*://*.${domain}/*`
+    }
 
     try {
-      if (checked) {
-        console.log('[GeneralSettings] Requesting Firefox permission...')
-        const granted = await requestSpecificPermission('https://*/*')
-        console.log('[GeneralSettings] Permission granted:', granted)
+      console.log(`[GeneralSettings] Requesting permission for ${domain}...`)
+      const granted = await requestSpecificPermission(domain)
 
-        // Update store thay vì local state
-        await updateFirefoxPermission(permissionKey, granted)
+      if (granted) {
+        console.log(`[GeneralSettings] Permission granted for ${domain}`)
+        newPermissionDomain = ''
+        await loadPermissionStates() // Reload list
 
-        // Broadcast permission change via runtime message
-        try {
-          await browser.runtime.sendMessage({
-            type: 'PERMISSION_CHANGED',
-            permissionKey,
-            value: granted,
-            source: 'GeneralSettings',
-            timestamp: Date.now(),
-          })
-          console.log(
-            '[GeneralSettings] Permission change broadcasted successfully'
-          )
-        } catch (error) {
-          console.warn(
-            '[GeneralSettings] Failed to broadcast permission change:',
-            error
-          )
-          // Store updates will still work as fallback
-        }
-      } else {
-        console.log('[GeneralSettings] Removing Firefox permission...')
-        const removed = await removeSpecificPermission('https://*/*')
-        console.log('[GeneralSettings] Permission removed:', removed)
-
-        // Update store - nếu removed thành công thì permission = false
-        const newPermissionState = !removed
-        await updateFirefoxPermission(permissionKey, newPermissionState)
-
-        // Broadcast permission change via runtime message
-        try {
-          await browser.runtime.sendMessage({
-            type: 'PERMISSION_CHANGED',
-            permissionKey,
-            value: newPermissionState,
-            source: 'GeneralSettings',
-            timestamp: Date.now(),
-          })
-          console.log(
-            '[GeneralSettings] Permission removal broadcasted successfully'
-          )
-        } catch (error) {
-          console.warn(
-            '[GeneralSettings] Failed to broadcast permission change:',
-            error
-          )
-          // Store updates will still work as fallback
-        }
+        // Broadcast change
+        await browser.runtime.sendMessage({
+          type: 'PERMISSION_CHANGED',
+          pattern: domain,
+          value: true,
+          source: 'GeneralSettings',
+          timestamp: Date.now(),
+        })
       }
     } catch (error) {
       console.error(
-        '[GeneralSettings] Error handling permission change:',
-        error
+        `[GeneralSettings] Error adding permission for ${domain}:`,
+        error,
       )
-      // Reset về trạng thái trước đó nếu có lỗi
-      await updateFirefoxPermission(permissionKey, !checked)
     }
   }
 
-  // triggerSidepanelUpdate function removed - now using browser.runtime.sendMessage instead
+  // Remove permission
+  async function removePermission(origin) {
+    try {
+      console.log(`[GeneralSettings] Removing permission for ${origin}...`)
+      const removed = await removeSpecificPermission(origin)
+
+      if (removed) {
+        console.log(`[GeneralSettings] Permission removed for ${origin}`)
+        await loadPermissionStates() // Reload list
+
+        // Broadcast change
+        await browser.runtime.sendMessage({
+          type: 'PERMISSION_CHANGED',
+          pattern: origin,
+          value: false,
+          source: 'GeneralSettings',
+          timestamp: Date.now(),
+        })
+      }
+    } catch (error) {
+      console.error(
+        `[GeneralSettings] Error removing permission for ${origin}:`,
+        error,
+      )
+    }
+  }
+
+  // Legacy handler for "All Sites"
+  async function handleHttpsPermission(checked) {
+    await handlePermissionChange('*://*/*', checked, async (val) => {
+      await updateFirefoxPermission('httpsPermission', val)
+    })
+  }
+
+  // Generic handler for permission changes (used by legacy handler)
+  async function handlePermissionChange(pattern, checked, stateUpdater) {
+    try {
+      if (checked) {
+        const granted = await requestSpecificPermission(pattern)
+        stateUpdater(granted)
+        await browser.runtime.sendMessage({
+          type: 'PERMISSION_CHANGED',
+          pattern,
+          value: granted,
+          source: 'GeneralSettings',
+          timestamp: Date.now(),
+        })
+      } else {
+        const removed = await removeSpecificPermission(pattern)
+        stateUpdater(!removed)
+        await browser.runtime.sendMessage({
+          type: 'PERMISSION_CHANGED',
+          pattern,
+          value: !removed,
+          source: 'GeneralSettings',
+          timestamp: Date.now(),
+        })
+      }
+    } catch (error) {
+      stateUpdater(!checked)
+    }
+  }
 
   // Load permissions khi component mount
   if (import.meta.env.BROWSER === 'firefox') {
@@ -166,14 +188,6 @@
       loadPermissionStates()
     })
   }
-
-  // effect on load update settings.hasCompletedOnboarding = false
-  // $effect(() => {
-  //   // This effect runs once when the component is mounted
-  //   // and sets hasCompletedOnboarding to false for development purposes.
-  //   // In a production environment, this might be removed or conditionally applied.
-  //   updateSettings({ hasCompletedOnboarding: false })
-  // })
 </script>
 
 <!-- General Section -->
@@ -189,15 +203,95 @@
         {$t('permissionWarning.description')}
       </p>
 
-      <!-- Chỉ còn 1 checkbox: General Website Access -->
-      <!-- YouTube, Udemy, Coursera, Reddit đã có host_permissions nên không cần settings -->
+      <!-- Specific Sites Permissions (Dynamic List) -->
+      <div class="flex flex-col gap-2 mt-4">
+        <p class="text-xs text-text-secondary">
+          <strong>{$t('settings.general.specific_sites')}</strong>
+        </p>
 
-      <SwitchPermission
-        id="https-permission-switch"
-        name=" {$t('permissionWarning.button')}"
-        bind:checked={httpsPermission}
-        onCheckedChange={handleHttpsPermission}
-      />
+        <!-- Input Area -->
+        <div class="flex relative gap-1">
+          <input
+            type="text"
+            placeholder="example.com"
+            bind:value={newPermissionDomain}
+            onkeydown={(e) => e.key === 'Enter' && addPermission()}
+            autocomplete="off"
+            autocorrect="off"
+            autocapitalize="none"
+            spellcheck="false"
+            inputmode="url"
+            class="w-full pl-3 text-text-primary text-xs pr-9 h-8.5 bg-muted/5 dark:bg-muted/5 border border-border hover:border-blackwhite/15 focus:border-blackwhite/30 dark:border-blackwhite/10 dark:focus:border-blackwhite/20 focus:outline-none focus:ring-0 placeholder:text-muted transition-colors duration-150"
+          />
+          <button
+            onclick={addPermission}
+            class=" absolute top-0 right-0 w-8.5 h-8.5 flex justify-center items-center hover:text-text-primary transition-colors duration-150"
+          >
+            <Icon
+              icon="heroicons:plus-circle-16-solid"
+              width="16"
+              height="16"
+            />
+          </button>
+        </div>
+
+        <!-- Domain List -->
+        <div
+          class="xs:grid flex flex-col relative overflow-hidden min-h-32 bg-background grid-cols-2 p-2 gap-2"
+        >
+          <span
+            class="absolute z-40 size-4 rotate-45 bg-surface-1 border border-border bottom-px left-px -translate-x-1/2 translate-y-1/2"
+          ></span>
+          <div
+            class="absolute pointer-events-none bg-dot z-20 border border-border inset-0"
+          ></div>
+
+          {#each grantedOrigins as origin}
+            <div
+              class="flex gap-2 z-30 h-8 overflow-hidden relative justify-between items-center bg-surface-2 text-text-secondary pl-3 text-xs"
+            >
+              <span
+                class="absolute z-20 size-3 rotate-45 border border-border bg-background bottom-px left-px -translate-x-1/2 translate-y-1/2"
+              ></span>
+              <div
+                class="absolute pointer-events-none z-10 border border-border inset-0"
+              ></div>
+              <p class="flex-auto line-clamp-1">{origin}</p>
+              <button
+                onclick={() => removePermission(origin)}
+                class="p-2 border-l border-blackwhite/5 transition-colors duration-150 bg-transparent hover:bg-blackwhite/5"
+              >
+                <Icon icon="heroicons:minus-16-solid" width="16" height="16" />
+              </button>
+            </div>
+          {/each}
+
+          {#if grantedOrigins.length === 0}
+            <div
+              class="flex items-center text-center col-span-2 justify-center font-medium text-text-secondary text-xs opacity-50"
+            >
+              No specific permissions granted
+            </div>
+          {/if}
+        </div>
+      </div>
+
+      <!-- Optional Permission: Other Websites -->
+      <div class="flex flex-col gap-2 mt-4">
+        <p class="text-xs text-text-secondary">
+          <strong>{$t('settings.general.optional_permissions')}</strong>
+        </p>
+        <SwitchPermission
+          id="https-permission-switch"
+          name={$t('permissionWarning.button')}
+          bind:checked={httpsPermission}
+          onCheckedChange={handleHttpsPermission}
+        />
+
+        <p class="text-xs text-text-tertiary italic">
+          {$t('settings.general.optional_permissions_note')}
+        </p>
+      </div>
     </div>
   {/if}
 

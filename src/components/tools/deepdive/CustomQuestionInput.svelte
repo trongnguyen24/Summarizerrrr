@@ -34,7 +34,7 @@
 
     // Calculate new height based on content
     const scrollHeight = textareaElement.scrollHeight
-    const newHeight = Math.min(Math.max(scrollHeight, 24), 80) // 88px ≈ 3 lines + padding
+    const newHeight = Math.min(Math.max(scrollHeight, 24), 220) // 220px ≈ 8 lines + padding
 
     // Apply new height
     textareaElement.style.height = newHeight + 2 + 'px'
@@ -159,7 +159,7 @@
   .custom-question-input textarea {
     /* Fixed height setup - CSS handles max-height */
     min-height: 24px; /* Minimum height (1 line + padding) */
-    max-height: 5.5rem; /* Maximum height (3 lines + padding) */
+    max-height: 15rem; /* Maximum height (8 lines + padding) */
     field-sizing: content-box; /* Ensure padding is included in height */
     overflow-y: auto; /* Show scrollbar when content exceeds max-height */
     transition: all 0.2s ease-in-out; /* Smooth transitions */

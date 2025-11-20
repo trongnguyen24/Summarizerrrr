@@ -88,7 +88,7 @@
   function emToPx(em) {
     try {
       const rootFontSize = parseFloat(
-        getComputedStyle(document.documentElement).fontSize
+        getComputedStyle(document.documentElement).fontSize,
       )
       // Fallback to 16px if root font size cannot be determined
       const fontSize = isNaN(rootFontSize) ? 16 : rootFontSize
@@ -96,7 +96,7 @@
     } catch (error) {
       console.warn(
         'Failed to get root font size, using 16px as fallback:',
-        error
+        error,
       )
       return em * 16 // Fallback to 16px
     }
@@ -104,7 +104,7 @@
 
   function pxToEm(px) {
     const rootFontSize = parseFloat(
-      getComputedStyle(document.documentElement).fontSize
+      getComputedStyle(document.documentElement).fontSize,
     )
     return px / rootFontSize
   }
@@ -119,7 +119,7 @@
       ? 'loading'
       : summarization.localSummaryState().error
         ? 'error'
-        : status
+        : status,
   )
 
   // Deep Dive visibility
@@ -127,7 +127,7 @@
     shouldShowDeepDive() &&
       summaryToDisplay &&
       summaryToDisplay.trim() !== '' &&
-      !summarization.localSummaryState().isLoading
+      !summarization.localSummaryState().isLoading,
   )
 
   // Load saved width
@@ -148,7 +148,7 @@
         // Set default width if no saved width or invalid saved width
         currentWidthPx = Math.max(
           MIN_WIDTH_PX,
-          Math.min(emToPx(settings.sidePanelDefaultWidth), MAX_WIDTH_PX)
+          Math.min(emToPx(settings.sidePanelDefaultWidth), MAX_WIDTH_PX),
         )
         if (panelElement) {
           panelElement.style.width = `${currentWidthPx}px`
@@ -159,7 +159,7 @@
       // Fallback to default width on error
       currentWidthPx = Math.max(
         MIN_WIDTH_PX,
-        Math.min(emToPx(settings.sidePanelDefaultWidth), MAX_WIDTH_PX)
+        Math.min(emToPx(settings.sidePanelDefaultWidth), MAX_WIDTH_PX),
       )
       if (panelElement) {
         panelElement.style.width = `${currentWidthPx}px`
@@ -301,7 +301,6 @@
     bind:this={panelElement}
     role="dialog"
     aria-modal="true"
-    tabindex="-1"
     style="width: {currentWidthPx}px"
   >
     {#if !settings.hasCompletedOnboarding}
@@ -392,7 +391,11 @@
         height="24"
       /></button
     >
-    <div id="shadow-scroll" class="w-full h-full overflow-y-auto pb-32">
+    <div
+      id="shadow-scroll"
+      class="w-full h-full overflow-y-auto pb-32 outline-none"
+      tabindex="-1"
+    >
       <div class="grid grid-rows-[10px_200px_10px_1fr] relative">
         <div
           class="top-stripes border-b border-border flex justify-center items-center w-full h-full"

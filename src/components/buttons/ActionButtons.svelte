@@ -9,6 +9,7 @@
   } from '@/stores/summaryStore.svelte.js'
   import Tooltip from '@/components/ui/Tooltip.svelte'
   import { Tooltip as BitsTooltip } from 'bits-ui'
+  import { t } from 'svelte-i18n'
 
   const actions = [
     {
@@ -95,7 +96,10 @@
   ></div>
   <BitsTooltip.Provider>
     {#each visibleActions as action}
-      <Tooltip {customAnchor} content={action.description}>
+      <Tooltip
+        {customAnchor}
+        content={$t(`custom_actions.${action.key}_description`)}
+      >
         {#snippet children({ builder })}
           <button
             class="action-btn font-mono w-full relative py-2 px-4 text-sm rounded-full border border-border hover:bg-blackwhite-5 text-text-secondary hover:text-text-primary transition-colors duration-125 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"

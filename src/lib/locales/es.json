@@ -342,6 +342,19 @@
     "requesting": "Solicitando...",
     "grant_permissions": "Conceder permisos"
   },
+  "custom_actions": {
+    "analyze": "Analizar",
+    "explain": "Explicar",
+    "debate": "Debatir",
+    "analyze_description": "Analizar estructura y argumentos",
+    "explain_description": "Explicar en términos simples",
+    "reply_description": "Generar respuesta reflexiva",
+    "processing": "Procesando {action}...",
+    "error": "Error al {action} contenido",
+    "debate_description": "Analizar desde múltiples perspectivas",
+    "chapters_description": "Resumir por capítulos",
+    "comments_description": "Resumir comentarios de YouTube"
+  },
   "tags": {
     "title": "Etiquetas",
     "assign": "Asignar Etiquetas",

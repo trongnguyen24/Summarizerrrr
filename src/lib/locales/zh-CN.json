@@ -320,6 +320,19 @@
     "requesting": "请求中...",
     "grant_permissions": "授予权限"
   },
+  "custom_actions": {
+    "analyze": "分析",
+    "explain": "解释",
+    "debate": "辩论",
+    "analyze_description": "分析内容结构和论点",
+    "explain_description": "用简单的术语解释",
+    "reply_description": "生成深思熟虑的回复",
+    "processing": "正在处理 {action}...",
+    "error": "无法 {action} 内容",
+    "debate_description": "从多个角度分析",
+    "chapters_description": "按章节总结",
+    "comments_description": "总结 YouTube 评论"
+  },
   "tags": {
     "title": "标签",
     "assign": "分配标签",

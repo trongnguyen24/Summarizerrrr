@@ -342,6 +342,19 @@
     "requesting": "Demande en cours...",
     "grant_permissions": "Accorder les autorisations"
   },
+  "custom_actions": {
+    "analyze": "Analyser",
+    "explain": "Expliquer",
+    "debate": "Débattre",
+    "analyze_description": "Analyser la structure et les arguments",
+    "explain_description": "Expliquer en termes simples",
+    "reply_description": "Générer une réponse réfléchie",
+    "processing": "Traitement de {action}...",
+    "error": "Échec de {action} du contenu",
+    "debate_description": "Analyser sous plusieurs angles",
+    "chapters_description": "Résumer par chapitres",
+    "comments_description": "Résumer les commentaires YouTube"
+  },
   "tags": {
     "title": "Étiquettes",
     "assign": "Attribuer des étiquettes",

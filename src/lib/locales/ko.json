@@ -342,6 +342,19 @@
     "requesting": "요청 중...",
     "grant_permissions": "권한 부여"
   },
+  "custom_actions": {
+    "analyze": "분석",
+    "explain": "설명",
+    "debate": "토론",
+    "analyze_description": "콘텐츠 구조 및 논점 분석",
+    "explain_description": "쉬운 용어로 설명",
+    "reply_description": "사려 깊은 답변 생성",
+    "processing": "{action} 처리 중...",
+    "error": "콘텐츠 {action} 실패",
+    "debate_description": "다각도에서 분석",
+    "chapters_description": "챕터별 요약",
+    "comments_description": "YouTube 댓글 요약"
+  },
   "tags": {
     "title": "태그",
     "assign": "태그 지정",

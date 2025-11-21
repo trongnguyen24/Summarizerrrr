@@ -329,6 +329,19 @@
     "help_project": "Hỗ trợ dự án bằng cách quyên góp hoặc để lại đánh giá!",
     "edge_addons": "Tiện ích Edge"
   },
+  "custom_actions": {
+    "analyze": "Phân tích",
+    "explain": "Giải thích",
+    "debate": "Tranh luận",
+    "analyze_description": "Phân tích cấu trúc nội dung và lập luận",
+    "explain_description": "Giải thích bằng ngôn ngữ đơn giản",
+    "reply_description": "Tạo phản hồi chu đáo",
+    "processing": "Đang xử lý {action}...",
+    "error": "Thất bại khi {action} nội dung",
+    "debate_description": "Phân tích từ nhiều góc độ",
+    "chapters_description": "Tóm tắt theo chương",
+    "comments_description": "Tóm tắt bình luận YouTube"
+  },
   "tags": {
     "title": "Thẻ",
     "assign": "Gán thẻ",

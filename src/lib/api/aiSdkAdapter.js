@@ -305,6 +305,7 @@ export async function generateContent(
  * @param {string} systemInstruction - System instruction/prompt
  * @param {string} userPrompt - User prompt
  * @param {object} [streamOptions] - Additional streaming options
+ * @param {AbortSignal} [streamOptions.abortSignal] - Optional abort signal for cancellation
  * @returns {AsyncIterable<string>} Stream of generated content chunks
  */
 export async function* generateContentStream(
@@ -364,6 +365,9 @@ export async function* generateContentStream(
           system: systemInstruction,
           prompt: userPrompt,
           ...generationConfig,
+          ...(streamOptions.abortSignal && {
+            abortSignal: streamOptions.abortSignal,
+          }),
         })
 
         // Yield chunks from proxy stream - now with full <think> content
@@ -391,6 +395,9 @@ export async function* generateContentStream(
           maxRetries: 0, // Disable AI SDK built-in retry to allow custom fallback to work faster
           ...(shouldUseSmoothing ? defaultSmoothingOptions : {}),
           ...streamOptions,
+          ...(streamOptions.abortSignal && {
+            abortSignal: streamOptions.abortSignal,
+          }),
         }
 
         const result = await streamText(streamConfig)
@@ -434,6 +441,12 @@ export async function* generateContentStream(
       })
 
       lastError = error
+
+      // Check if this is an abort error - if so, just return (don't throw)
+      if (error.name === 'AbortError' || error.message?.includes('aborted')) {
+        console.log('[aiSdkAdapter] Stream aborted by user')
+        return // Exit gracefully without throwing
+      }
 
       // Check if this is a Firefox mobile specific error
       if (

@@ -158,7 +158,7 @@ export async function summarizeContent(text, contentType) {
   }
 }
 
-export async function* summarizeContentStream(text, contentType) {
+export async function* summarizeContentStream(text, contentType, abortSignal = null) {
   // Ensure settings are initialized
   await loadSettings()
 
@@ -237,7 +237,10 @@ export async function* summarizeContentStream(text, contentType) {
       userSettings,
       systemInstruction,
       userPrompt,
-      { useSmoothing: browserCompatibility.streamingOptions.useSmoothing }
+      {
+        useSmoothing: browserCompatibility.streamingOptions.useSmoothing,
+        abortSignal
+      }
     )
 
     for await (const chunk of streamGenerator) {
@@ -245,6 +248,12 @@ export async function* summarizeContentStream(text, contentType) {
     }
   } catch (e) {
     console.error(`AI SDK Stream Error for ${selectedProviderId}:`, e)
+
+    // Check if this is an abort error - if so, just return (don't throw)
+    if (e.name === 'AbortError' || e.message?.includes('aborted')) {
+      console.log('[api] Stream aborted by user')
+      return // Exit gracefully without throwing
+    }
 
     // Add Firefox mobile specific error handling
     if (browserCompatibility.isFirefoxMobile && e.message.includes('flush')) {
@@ -345,7 +354,7 @@ export async function summarizeChapters(timestampedTranscript) {
   }
 }
 
-export async function* summarizeChaptersStream(timestampedTranscript) {
+export async function* summarizeChaptersStream(timestampedTranscript, abortSignal = null) {
   // Ensure settings are initialized
   await loadSettings()
 
@@ -387,7 +396,10 @@ export async function* summarizeChaptersStream(timestampedTranscript) {
       userSettings,
       systemInstruction,
       userPrompt,
-      { useSmoothing: browserCompatibility.streamingOptions.useSmoothing }
+      {
+        useSmoothing: browserCompatibility.streamingOptions.useSmoothing,
+        abortSignal
+      }
     )
 
     for await (const chunk of streamGenerator) {
@@ -398,6 +410,12 @@ export async function* summarizeChaptersStream(timestampedTranscript) {
       `AI SDK Stream Error for ${selectedProviderId} (Chapters):`,
       e
     )
+
+    // Check if this is an abort error - if so, just return (don't throw)
+    if (e.name === 'AbortError' || e.message?.includes('aborted')) {
+      console.log('[api] Chapter stream aborted by user')
+      return // Exit gracefully without throwing
+    }
 
     // Add Firefox mobile specific error handling
     if (browserCompatibility.isFirefoxMobile && e.message.includes('flush')) {

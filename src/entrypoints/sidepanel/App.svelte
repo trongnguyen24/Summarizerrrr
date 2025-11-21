@@ -5,6 +5,7 @@
   import 'overlayscrollbars/overlayscrollbars.css'
   import SettingButton from '@/components/buttons/SettingButton.svelte'
   import SummarizeButton from '@/components/buttons/SummarizeButton.svelte'
+  import StopStreamingButton from '@/components/buttons/StopStreamingButton.svelte'
   import ActionButtons from '@/components/buttons/ActionButtons.svelte'
   import TabNavigation from '@/components/navigation/TabNavigation.svelte'
   import GenericSummaryDisplay from '@/components/displays/core/GenericSummaryDisplay.svelte'
@@ -476,14 +477,22 @@
 
       <div class="flex flex-col gap-4 items-center justify-center">
         {#if !needsApiKeySetup()()}
-          <span class=" ">
-            <SummarizeButton
-              isLoading={summaryState.isLoading ||
+          <div class="flex flex-row gap-3 items-center">
+            <span class=" ">
+              <SummarizeButton
+                isLoading={summaryState.isLoading ||
+                  isAnyCourseLoading ||
+                  summaryState.isCustomActionLoading}
+                disabled={!hasPermission && import.meta.env.BROWSER === 'firefox'}
+              />
+            </span>
+            <!-- Stop Streaming Button - Only show when streaming is active -->
+            <StopStreamingButton
+              show={summaryState.isLoading ||
                 isAnyCourseLoading ||
                 summaryState.isCustomActionLoading}
-              disabled={!hasPermission && import.meta.env.BROWSER === 'firefox'}
             />
-          </span>
+          </div>
           <!-- Custom Action Buttons - Only show when all summaries are completed -->
           {#if areAllSummariesCompleted()}
             <ActionButtonsMini />

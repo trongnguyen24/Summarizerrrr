@@ -60,6 +60,7 @@ export const summaryState = $state({
     fallbackFrom: null,
     isFallback: false,
   },
+  abortController: null, // AbortController for cancelling streaming operations
 })
 
 // --- Actions ---
@@ -83,9 +84,26 @@ export function updateModelStatus(
 }
 
 /**
+ * Stop the current streaming operation
+ */
+export function stopStreaming() {
+  if (summaryState.abortController) {
+    console.log('[summaryStore] Stopping streaming...')
+    summaryState.abortController.abort()
+    summaryState.abortController = null
+  }
+}
+
+/**
  * Reset all summary-related states.
  */
 export function resetState() {
+  // Abort any ongoing streaming operation
+  if (summaryState.abortController) {
+    summaryState.abortController.abort()
+    summaryState.abortController = null
+  }
+
   summaryState.summary = ''
   summaryState.courseSummary = ''
   summaryState.courseConcepts = ''
@@ -440,6 +458,10 @@ export async function fetchChapterSummary() {
     isFallback: false,
   }
 
+  // Create new AbortController for this streaming operation
+  summaryState.abortController = new AbortController()
+  const abortSignal = summaryState.abortController.signal
+
   try {
     // Get current tab info
     const [tabInfo] = await browser.tabs.query({
@@ -482,7 +504,7 @@ export async function fetchChapterSummary() {
       // Use streaming mode - stream directly to customActionResult
       try {
         console.log('[summaryStore] Starting chapter streaming...')
-        const chapterStream = summarizeChaptersStream(transcript)
+        const chapterStream = summarizeChaptersStream(transcript, abortSignal)
         let chunkCount = 0
         for await (const chunk of chapterStream) {
           summaryState.customActionResult += chunk
@@ -522,6 +544,9 @@ export async function fetchChapterSummary() {
     summaryState.customActionError = errorObject
   } finally {
     summaryState.isCustomActionLoading = false
+    // Clear abort controller after streaming completes
+    summaryState.abortController = null
+
     // Log to history after chapter summary is complete
     await logSingleSummaryToHistory(
       summaryState.customActionResult,
@@ -544,6 +569,10 @@ export async function fetchAndSummarizeStream() {
   await loadSettings()
   const userSettings = settings
   resetState()
+
+  // Create new AbortController for this streaming operation
+  summaryState.abortController = new AbortController()
+  const abortSignal = summaryState.abortController.signal
 
   try {
     summaryState.isLoading = true
@@ -609,7 +638,8 @@ export async function fetchAndSummarizeStream() {
         console.log('[summaryStore] Starting YouTube video streaming...')
         const videoSummaryStream = summarizeContentStream(
           summaryState.currentContentSource,
-          'youtube'
+          'youtube',
+          abortSignal
         )
         let chunkCount = 0
         for await (const chunk of videoSummaryStream) {
@@ -670,7 +700,8 @@ export async function fetchAndSummarizeStream() {
         try {
           const courseSummaryStream = summarizeContentStream(
             summaryState.currentContentSource,
-            'courseSummary'
+            'courseSummary',
+            abortSignal
           )
           for await (const chunk of courseSummaryStream) {
             summaryState.courseSummary += chunk
@@ -690,7 +721,8 @@ export async function fetchAndSummarizeStream() {
         try {
           const courseConceptsStream = summarizeContentStream(
             summaryState.currentContentSource,
-            'courseConcepts'
+            'courseConcepts',
+            abortSignal
           )
           for await (const chunk of courseConceptsStream) {
             summaryState.courseConcepts += chunk
@@ -709,7 +741,8 @@ export async function fetchAndSummarizeStream() {
       try {
         const webSummaryStream = summarizeContentStream(
           summaryState.currentContentSource,
-          'general'
+          'general',
+          abortSignal
         )
         let hasContent = false
         for await (const chunk of webSummaryStream) {
@@ -774,6 +807,9 @@ export async function fetchAndSummarizeStream() {
     summaryState.lastSummaryTypeDisplayed = 'web'
   } finally {
     summaryState.isLoading = false
+    // Clear abort controller after streaming completes
+    summaryState.abortController = null
+
     // Log generated summaries to history as separate entries
     if (summaryState.isYouTubeVideoActive && summaryState.summary) {
       await logSingleSummaryToHistory(
@@ -1014,6 +1050,10 @@ export async function executeCustomAction(actionType) {
   }
   summaryState.lastSummaryTypeDisplayed = 'custom'
 
+  // Create new AbortController for this streaming operation
+  summaryState.abortController = new AbortController()
+  const abortSignal = summaryState.abortController.signal
+
   try {
     // Get current tab info
     const [tabInfo] = await browser.tabs.query({
@@ -1072,7 +1112,8 @@ export async function executeCustomAction(actionType) {
         console.log(`[summaryStore] Starting ${actionType} streaming...`)
         const actionStream = summarizeContentStream(
           contentResult.content,
-          actionType
+          actionType,
+          abortSignal
         )
         let chunkCount = 0
         for await (const chunk of actionStream) {
@@ -1105,6 +1146,9 @@ export async function executeCustomAction(actionType) {
     summaryState.customActionError = errorObject
   } finally {
     summaryState.isCustomActionLoading = false
+    // Clear abort controller after streaming completes
+    summaryState.abortController = null
+
     // Log to history
     // Log to history
     const actionLabel =
@@ -1229,6 +1273,10 @@ export async function fetchCommentSummary(
   }
   summaryState.lastSummaryTypeDisplayed = 'custom'
 
+  // Create new AbortController for this streaming operation
+  summaryState.abortController = new AbortController()
+  const abortSignal = summaryState.abortController.signal
+
   try {
     console.log('[fetchCommentSummary] Starting comment fetch...')
 
@@ -1339,7 +1387,8 @@ export async function fetchCommentSummary(
         )
         const actionStream = summarizeContentStream(
           formattedData,
-          'commentAnalysis'
+          'commentAnalysis',
+          abortSignal
         )
         let chunkCount = 0
         for await (const chunk of actionStream) {
@@ -1441,6 +1490,9 @@ export async function fetchCommentSummary(
     summaryState.customActionError = errorObject
   } finally {
     summaryState.isCustomActionLoading = false
+    // Clear abort controller after streaming completes
+    summaryState.abortController = null
+
     // Log to history
     // Log to history
     await logSingleSummaryToHistory(

@@ -215,7 +215,7 @@
     </span>
   </div>
   <nav
-    class="fixed bottom-18 pt-4 px-3 right-0 hidden group-hover:block opacity-0 group-hover:opacity-100"
+    class="fixed bottom-14 py-4 px-3 right-0 hidden group-hover:block opacity-0 group-hover:opacity-100"
   >
     <div class="relative">
       <div
@@ -247,13 +247,13 @@
       >
         <a
           href="#footer"
-          class="px-3 border-border border-r flex justify-end items-center gap-1 py-3 font-mono text-xs/4 no-underline transition-colors"
+          class="px-3 border-border border-r flex justify-center w-full items-center gap-1 py-4 font-mono text-xs/4 no-underline transition-colors"
           ><Icon class=" rotate-180" width="16" icon="carbon:up-to-top" /></a
         >
         <a
           href="#top"
-          class="px-3 w-full flex justify-end items-center gap-1 py-3 font-mono text-xs/4 no-underline transition-colors"
-          ><Icon width="16" icon="carbon:up-to-top" />Go to top</a
+          class="px-3 flex justify-center w-full items-center gap-1 py-4 font-mono text-xs/4 no-underline transition-colors"
+          ><Icon width="16" icon="carbon:up-to-top" /></a
         >
       </div>
     </div>

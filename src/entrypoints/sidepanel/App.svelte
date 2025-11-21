@@ -43,6 +43,8 @@
   import { fade, slide } from 'svelte/transition'
   import ActionButtonsMini from '@/components/buttons/ActionButtonsMini.svelte'
   import { debounce } from '@/lib/utils/utils.js'
+  import Tooltip from '@/components/ui/Tooltip.svelte'
+  import { Tooltip as BitsTooltip } from 'bits-ui'
 
   // Deep Dive imports
   import DeepDiveFAB from '@/components/tools/deepdive/DeepDiveFAB.svelte'
@@ -448,15 +450,25 @@
       class="flex relative font-mono flex-col gap-1 justify-center items-center"
     >
       <div class="size-6 absolute z-10 top-2 left-2 text-text-secondary">
-        <button
-          onclick={() => {
-            browser.tabs.create({ url: 'archive.html' })
-          }}
-          class="p-1 setting-animation transition-colors hover:bg-surface-1 rounded-full hover:text-text-primary"
-          title={$t('archive.open_archive')}
-        >
-          <Icon icon="solar:history-linear" width="24" height="24" />
-        </button>
+        <BitsTooltip.Provider>
+          <Tooltip
+            content={$t('archive.open_archive')}
+            side="right"
+            align="start"
+          >
+            {#snippet children({ builder })}
+              <button
+                onclick={() => {
+                  browser.tabs.create({ url: 'archive.html' })
+                }}
+                class="p-1 setting-animation transition-colors hover:bg-surface-1 rounded-full hover:text-text-primary"
+                {...builder}
+              >
+                <Icon icon="solar:history-linear" width="24" height="24" />
+              </button>
+            {/snippet}
+          </Tooltip>
+        </BitsTooltip.Provider>
       </div>
       <div class="size-6 z-10 absolute top-2 right-4 text-text-secondary">
         <SettingButton />

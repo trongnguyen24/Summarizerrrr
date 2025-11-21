@@ -7,6 +7,8 @@
     fetchCommentSummary,
     summaryState,
   } from '@/stores/summaryStore.svelte.js'
+  import Tooltip from '@/components/ui/Tooltip.svelte'
+  import { Tooltip as BitsTooltip } from 'bits-ui'
 
   const actions = [
     {
@@ -38,7 +40,7 @@
       key: 'comments',
       label: 'Comments',
       icon: 'heroicons:chat-bubble-bottom-center-text-16-solid',
-      description: 'Analyze YouTube comments sentiment',
+      description: 'Summarize YouTube comments',
       showOnlyForYouTube: true,
     },
   ]
@@ -60,7 +62,7 @@
         return summaryState.isYouTubeVideoActive
       }
       return true
-    })
+    }),
   )
 
   // Animation control: reset animations when visibleActions changes
@@ -82,24 +84,36 @@
 
     return () => clearTimeout(timer)
   })
+
+  let customAnchor = $state(null)
 </script>
 
-<div class="flex flex-col w-36 mx-auto gap-4 flex-wrap justify-center">
-  {#each visibleActions as action}
-    <button
-      class="action-btn font-mono relative py-2 px-4 text-sm rounded-full border border-border hover:bg-blackwhite-5 text-text-secondary hover:text-text-primary transition-colors duration-125 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-      class:animate={showAnimations}
-      onclick={() => handleActionClick(action.key)}
-      title={action.description}
-    >
-      <Icon
-        width={16}
-        icon={action.icon}
-        class="transition-colors duration-125"
-      />
-      <span class="transition-colors duration-125">{action.label}</span>
-    </button>
-  {/each}
+<div class="flex flex-col relative w-38 mx-auto gap-3 flex-wrap justify-center">
+  <div
+    bind:this={customAnchor}
+    class="absolute -bottom-4 left-1/2 -translate-x-1/2 w-px h-px"
+  ></div>
+  <BitsTooltip.Provider>
+    {#each visibleActions as action}
+      <Tooltip {customAnchor} content={action.description}>
+        {#snippet children({ builder })}
+          <button
+            class="action-btn font-mono w-full relative py-2 px-4 text-sm rounded-full border border-border hover:bg-blackwhite-5 text-text-secondary hover:text-text-primary transition-colors duration-125 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            class:animate={showAnimations}
+            onclick={() => handleActionClick(action.key)}
+            {...builder}
+          >
+            <Icon
+              width={16}
+              icon={action.icon}
+              class="transition-colors duration-125"
+            />
+            <span class="transition-colors duration-125">{action.label}</span>
+          </button>
+        {/snippet}
+      </Tooltip>
+    {/each}
+  </BitsTooltip.Provider>
 </div>
 
 <style>

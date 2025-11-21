@@ -65,7 +65,7 @@
 >
   <!-- Shared Anchor for Tooltips -->
   <div
-    class="absolute -bottom-15 left-1/2 -translate-x-1/2 w-full flex justify-center pointer-events-none"
+    class="absolute -bottom-16 left-1/2 -translate-x-1/2 w-full flex justify-center pointer-events-none"
   >
     {#if tooltipState.activeContent}
       <div

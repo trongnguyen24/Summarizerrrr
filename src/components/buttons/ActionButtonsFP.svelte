@@ -58,7 +58,9 @@
   setContext('shadow-tooltip-state', tooltipState)
 </script>
 
-<div class="flex flex-col w-36 mx-auto gap-3 flex-wrap justify-center relative">
+<div
+  class="flex flex-col mt-2 w-36 mx-auto gap-3 flex-wrap justify-center relative"
+>
   <!-- Shared Anchor for Tooltips -->
   <div
     class="absolute -bottom-12 left-1/2 -translate-x-1/2 w-full flex justify-center pointer-events-none"

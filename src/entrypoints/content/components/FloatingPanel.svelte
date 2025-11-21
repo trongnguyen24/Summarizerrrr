@@ -434,7 +434,7 @@
           class="top-stripes border-b border-border flex justify-center items-center w-full h-full"
         ></div>
         <div class="w-full flex items-center justify-center my-8">
-          <div class="size-10 absolute z-10 top-3 left-2">
+          <div class="size-10 absolute z-10 top-4 left-2">
             <ShadowTooltip content={$t('archive.open_archive')} side="right">
               <button
                 class="size-10 cursor-pointer text-text-secondary hover:text-text-primary transition-colors flex justify-center items-center"
@@ -444,7 +444,7 @@
               </button>
             </ShadowTooltip>
           </div>
-          <div class="size-10 absolute z-10 top-3 right-2">
+          <div class="size-10 absolute z-10 top-4 right-2">
             <ShadowTooltip content={$t('settings.open_settings')} side="left">
               <button
                 class="size-10 cursor-pointer text-text-secondary hover:text-text-primary transition-colors flex justify-center items-center"
@@ -470,7 +470,7 @@
           class="top-stripes border-t border-b border-border flex justify-center items-center w-full h-full"
         ></div>
       </div>
-      <div class=" py-16">
+      <div class=" py-14">
         {#if needsApiKeySetup()()}
           <div class="px-4 pt-4">
             <ApiKeySetupPrompt />

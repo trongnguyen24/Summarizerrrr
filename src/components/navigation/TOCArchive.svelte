@@ -293,23 +293,23 @@
 
 <style>
   .lv4 {
-    padding-left: 2rem;
+    padding-left: 2em;
   }
 
   .lvs2,
   .lvs3 {
-    width: 0.35rem;
+    width: 0.35em;
   }
   .lvs4 {
-    width: 0.25rem;
+    width: 0.25em;
   }
   @media (width <= 40rem /* 640px */) {
     .lvs2,
     .lvs3 {
-      width: 0.25rem;
+      width: 0.25em;
     }
     .lvs4 {
-      width: 0.125rem;
+      width: 0.125em;
     }
   }
 </style>

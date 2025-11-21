@@ -95,7 +95,7 @@
     class="absolute -bottom-15 left-1/2 -translate-x-1/2 w-px h-px"
   ></div>
   <BitsTooltip.Provider>
-    {#each visibleActions as action}
+    {#each visibleActions as action, i}
       <Tooltip
         content={$t(`custom_actions.${action.key}_description`)}
         {customAnchor}
@@ -108,6 +108,7 @@
             class:animate={showAnimations}
             onclick={() => handleActionClick(action.key)}
             {...builder}
+            style="animation-delay: {600 + i * 150}ms"
           >
             <Icon
               width={16}
@@ -132,26 +133,6 @@
   /* Only animate when class is applied */
   .action-btn-mini.animate {
     animation: fadeInScale 300ms ease-out forwards;
-  }
-
-  .action-btn-mini.animate:nth-child(1) {
-    animation-delay: 50ms;
-  }
-
-  .action-btn-mini.animate:nth-child(2) {
-    animation-delay: 200ms;
-  }
-
-  .action-btn-mini.animate:nth-child(3) {
-    animation-delay: 350ms;
-  }
-
-  .action-btn-mini.animate:nth-child(4) {
-    animation-delay: 500ms;
-  }
-
-  .action-btn-mini.animate:nth-child(5) {
-    animation-delay: 650ms;
   }
 
   @keyframes fadeInScale {

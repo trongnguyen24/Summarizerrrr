@@ -78,6 +78,11 @@
         "position_left": "Trái",
         "position_right": "Phải"
       },
+       "one_click_mode": "1 Click tóm tắt",
+      "one_click_disabled_title": "Tắt",
+      "one_click_disabled_desc": "Click nút FAB mở hanh bên (mặc dịnh)",
+      "one_click_enabled_title": "Bật",
+      "one_click_enabled_desc": "Click nút FAB sẽ tóm tắt ngay",
       "auto_hide_outside_click": "Tự động ẩn khi click bên ngoài",
       "auto_hide_disabled_title": "Tắt",
       "auto_hide_disabled_desc": "Giữ thanh bên mở khi click bên ngoài.",
@@ -220,7 +225,7 @@
     },
     "tools": {
       "deepdive": {
-        "title": "Deep Dive Questions",
+        "title": "Câu hỏi chuyên sâu",
         "description": "Tạo 3 câu hỏi chuyên sâu và trò chuyện trong tab mới.",
         "enabled": "Đang bật",
         "disabled": "Đang tắt",

@@ -89,13 +89,15 @@
   let customAnchor = $state(null)
 </script>
 
-<div class="flex flex-col relative w-38 mx-auto gap-3 flex-wrap justify-center">
+<div
+  class="flex flex-col pt-8 relative w-38 mx-auto gap-3 flex-wrap justify-center"
+>
   <div
     bind:this={customAnchor}
     class="absolute -bottom-4 left-1/2 -translate-x-1/2 w-px h-px"
   ></div>
   <BitsTooltip.Provider>
-    {#each visibleActions as action}
+    {#each visibleActions as action, i}
       <Tooltip
         {customAnchor}
         content={$t(`custom_actions.${action.key}_description`)}
@@ -106,6 +108,7 @@
             class:animate={showAnimations}
             onclick={() => handleActionClick(action.key)}
             {...builder}
+            style="animation-delay: {300 + i * 150}ms"
           >
             <Icon
               width={16}
@@ -124,32 +127,11 @@
   .action-btn {
     opacity: 0;
     transform: scale(0.7);
-    transition: none;
   }
 
   /* Only animate when class is applied */
   .action-btn.animate {
     animation: fadeInScale 300ms ease-out forwards;
-  }
-
-  .action-btn.animate:nth-child(1) {
-    animation-delay: 50ms;
-  }
-
-  .action-btn.animate:nth-child(2) {
-    animation-delay: 200ms;
-  }
-
-  .action-btn.animate:nth-child(3) {
-    animation-delay: 350ms;
-  }
-
-  .action-btn.animate:nth-child(4) {
-    animation-delay: 500ms;
-  }
-
-  .action-btn.animate:nth-child(5) {
-    animation-delay: 650ms;
   }
 
   @keyframes fadeInScale {

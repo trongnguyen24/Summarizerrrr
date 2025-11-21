@@ -16,7 +16,8 @@
   import ActionButtonsFP from '@/components/buttons/ActionButtonsFP.svelte'
   import ActionButtonsMiniFP from '@/components/buttons/ActionButtonsMiniFP.svelte'
   import ShadowToast from '@/components/feedback/ShadowToast.svelte'
-
+  import ShadowTooltip from '@/components/ui/ShadowTooltip.svelte'
+  import { t } from 'svelte-i18n'
   // Deep Dive imports
   import DeepDivePanelFP from './DeepDivePanelFP.svelte'
   import {
@@ -433,19 +434,26 @@
           class="top-stripes border-b border-border flex justify-center items-center w-full h-full"
         ></div>
         <div class="w-full flex items-center justify-center my-8">
-          <button
-            class="size-10 absolute cursor-pointer z-10 top-3 text-text-secondary hover:text-text-primary transition-colors left-2 flex justify-center items-center"
-            onclick={openArchive}
-            title="Open Archive"
-          >
-            <Icon icon="solar:history-linear" width="24" height="24" />
-          </button>
-          <button
-            class="size-10 absolute cursor-pointer z-10 top-3 text-text-secondary hover:text-text-primary transition-colors right-2 flex justify-center items-center"
-            onclick={openSettings}
-          >
-            <Icon width={24} icon="heroicons:cog-6-tooth" />
-          </button>
+          <div class="size-10 absolute z-10 top-3 left-2">
+            <ShadowTooltip content={$t('archive.open_archive')} side="right">
+              <button
+                class="size-10 cursor-pointer text-text-secondary hover:text-text-primary transition-colors flex justify-center items-center"
+                onclick={openArchive}
+              >
+                <Icon icon="solar:history-linear" width="24" height="24" />
+              </button>
+            </ShadowTooltip>
+          </div>
+          <div class="size-10 absolute z-10 top-3 right-2">
+            <ShadowTooltip content={$t('settings.open_settings')} side="left">
+              <button
+                class="size-10 cursor-pointer text-text-secondary hover:text-text-primary transition-colors flex justify-center items-center"
+                onclick={openSettings}
+              >
+                <Icon width={24} icon="heroicons:cog-6-tooth" />
+              </button>
+            </ShadowTooltip>
+          </div>
           {#if !needsApiKeySetup()()}
             <SummarizeButton
               isLoading={summarization.localSummaryState().isLoading}
@@ -462,60 +470,61 @@
           class="top-stripes border-t border-b border-border flex justify-center items-center w-full h-full"
         ></div>
       </div>
+      <div class=" py-16">
+        {#if needsApiKeySetup()()}
+          <div class="px-4 pt-4">
+            <ApiKeySetupPrompt />
+          </div>
+        {:else}
+          <FloatingPanelContent
+            status={statusToDisplay}
+            summary={summaryToDisplay}
+            error={summarization.localSummaryState().error}
+            contentType={summarization.localSummaryState().contentType}
+            courseConcepts={summarization.localSummaryState().courseConcepts}
+            isCourseSummaryLoading={summarization.localSummaryState().isLoading}
+            isCourseConceptsLoading={summarization.localSummaryState()
+              .isCourseConceptsLoading}
+            activeYouTubeTab={panelState.activeYouTubeTab()}
+            activeCourseTab={panelState.activeCourseTab()}
+            onSelectYouTubeTab={panelState.setActiveYouTubeTab}
+            onSelectCourseTab={panelState.setActiveCourseTab}
+            {summarization}
+          />
+        {/if}
 
-      {#if needsApiKeySetup()()}
-        <div class="px-4 pt-8">
-          <ApiKeySetupPrompt />
-        </div>
-      {:else}
-        <FloatingPanelContent
-          status={statusToDisplay}
-          summary={summaryToDisplay}
-          error={summarization.localSummaryState().error}
-          contentType={summarization.localSummaryState().contentType}
-          courseConcepts={summarization.localSummaryState().courseConcepts}
-          isCourseSummaryLoading={summarization.localSummaryState().isLoading}
-          isCourseConceptsLoading={summarization.localSummaryState()
-            .isCourseConceptsLoading}
-          activeYouTubeTab={panelState.activeYouTubeTab()}
-          activeCourseTab={panelState.activeCourseTab()}
-          onSelectYouTubeTab={panelState.setActiveYouTubeTab}
-          onSelectCourseTab={panelState.setActiveCourseTab}
-          {summarization}
+        {#if !summaryToDisplay && !summarization.localSummaryState().isLoading && !needsApiKeySetup()()}
+          <ActionButtonsFP
+            onActionClick={handleCustomAction}
+            isYouTubeActive={isYouTubeActive()}
+          />
+        {/if}
+
+        {#if children?.settingsMini}
+          {@render children.settingsMini()}
+        {/if}
+
+        <!-- Deep Dive Panel -->
+        {#if showDeepDive}
+          <DeepDivePanelFP
+            summaryContent={summaryToDisplay}
+            pageTitle={summarization.localSummaryState().pageTitle || 'Summary'}
+            pageUrl={summarization.localSummaryState().pageUrl ||
+              window.location.href}
+            summaryLang={settings.summaryLang || 'English'}
+            isVisible={true}
+          />
+        {/if}
+
+        <!-- Toast Notification -->
+        <ShadowToast
+          visible={toastVisible}
+          title={toastProps.title}
+          message={toastProps.message}
+          icon={toastProps.icon}
+          onClose={closeToast}
         />
-      {/if}
-
-      {#if !summaryToDisplay && !summarization.localSummaryState().isLoading && !needsApiKeySetup()()}
-        <ActionButtonsFP
-          onActionClick={handleCustomAction}
-          isYouTubeActive={isYouTubeActive()}
-        />
-      {/if}
-
-      {#if children?.settingsMini}
-        {@render children.settingsMini()}
-      {/if}
-
-      <!-- Deep Dive Panel -->
-      {#if showDeepDive}
-        <DeepDivePanelFP
-          summaryContent={summaryToDisplay}
-          pageTitle={summarization.localSummaryState().pageTitle || 'Summary'}
-          pageUrl={summarization.localSummaryState().pageUrl ||
-            window.location.href}
-          summaryLang={settings.summaryLang || 'English'}
-          isVisible={true}
-        />
-      {/if}
-
-      <!-- Toast Notification -->
-      <ShadowToast
-        visible={toastVisible}
-        title={toastProps.title}
-        message={toastProps.message}
-        icon={toastProps.icon}
-        onClose={closeToast}
-      />
+      </div>
     </div>
   </div>
 {/if}

@@ -2,6 +2,12 @@
   // @ts-nocheck
   import Icon from '@iconify/svelte'
 
+  import ShadowTooltip from '@/components/ui/ShadowTooltip.svelte'
+  import { t } from 'svelte-i18n'
+  import { ShadowTooltipState } from '@/components/ui/shadowTooltipState.svelte.js'
+  import { setContext } from 'svelte'
+  import { fade } from 'svelte/transition'
+
   let { onActionClick, isYouTubeActive = false } = $props()
 
   const actions = [
@@ -20,7 +26,7 @@
     {
       key: 'debate',
       label: 'Debate Mode',
-      icon: 'heroicons:chat-bubble-oval-left-16-solid',
+      icon: 'heroicons:scale-16-solid',
       description: 'Analyze from multiple perspectives',
     },
     {
@@ -48,24 +54,45 @@
       return true
     }),
   )
+
+  // Initialize shared tooltip state
+  const tooltipState = new ShadowTooltipState()
+  setContext('shadow-tooltip-state', tooltipState)
 </script>
 
 <div
   class="flex absolute bottom-6.5 z-30 mx-auto gap-4 flex-wrap justify-center"
 >
-  {#each visibleActions as action}
-    <button
-      class="action-btn-mini-fb font-mono relative p-3.5 rounded-full border border-border text-text-secondary hover:text-text-primary hover:bg-blackwhite-5 transition-colors duration-125 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
-      onclick={() => onActionClick(action.key)}
-      title={action.description}
-    >
-      <Icon
-        width={16}
-        icon={action.icon}
-        class="transition-colors duration-125"
-      />
-      <!-- <span class="text-text-primary">{action.label}</span> -->
-    </button>
+  <!-- Shared Anchor for Tooltips -->
+  <div
+    class="absolute -bottom-15 left-1/2 -translate-x-1/2 w-full flex justify-center pointer-events-none"
+  >
+    {#if tooltipState.activeContent}
+      <div
+        class="z-50 px-2 py-1 text-xs text-muted whitespace-nowrap mb-2"
+        in:fade={{ duration: 200 }}
+        out:fade={{ duration: 0 }}
+      >
+        {tooltipState.activeContent}
+      </div>
+    {/if}
+  </div>
+
+  {#each visibleActions as action, i}
+    <ShadowTooltip content={$t(`custom_actions.${action.key}_description`)}>
+      <button
+        class="action-btn-mini-fb font-mono relative p-3 rounded-full border border-border text-text-secondary hover:text-text-primary hover:bg-blackwhite-5 transition-colors duration-125 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
+        onclick={() => onActionClick(action.key)}
+        style="animation-delay: {600 + i * 150}ms"
+      >
+        <Icon
+          width={16}
+          icon={action.icon}
+          class="transition-colors duration-125"
+        />
+        <!-- <span class="text-text-primary">{action.label}</span> -->
+      </button>
+    </ShadowTooltip>
   {/each}
 </div>
 
@@ -74,26 +101,6 @@
     animation: fadeInScale 300ms ease-out forwards;
     opacity: 0;
     transform: scale(0.8);
-  }
-
-  .action-btn-mini-fb:nth-child(1) {
-    animation-delay: 600ms;
-  }
-
-  .action-btn-mini-fb:nth-child(2) {
-    animation-delay: 750ms;
-  }
-
-  .action-btn-mini-fb:nth-child(3) {
-    animation-delay: 900ms;
-  }
-
-  .action-btn-mini-fb:nth-child(4) {
-    animation-delay: 1050ms;
-  }
-
-  .action-btn-mini-fb:nth-child(5) {
-    animation-delay: 1200ms;
   }
 
   @keyframes fadeInScale {

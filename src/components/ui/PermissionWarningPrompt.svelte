@@ -35,7 +35,7 @@
       ) {
         console.log(
           '[PermissionWarningPrompt] Received permission change message:',
-          message
+          message,
         )
 
         // Update local state immediately
@@ -100,7 +100,7 @@
           if (cached) {
             console.log(
               '[PermissionWarningPrompt] Using cached permission:',
-              cached.value
+              cached.value,
             )
             await updateFirefoxPermission(permissionKey, cached.value)
             showWarning = !cached.value
@@ -112,12 +112,12 @@
             // Check actual permission for general sites
             console.log(
               '[PermissionWarningPrompt] Checking Firefox permission for:',
-              currentUrl
+              currentUrl,
             )
             const permission = await checkPermission(currentUrl)
             console.log(
               '[PermissionWarningPrompt] Permission result:',
-              permission
+              permission,
             )
 
             // Update store with result
@@ -133,7 +133,7 @@
       } catch (error) {
         console.error(
           '[PermissionWarningPrompt] Permission check failed:',
-          error
+          error,
         )
         permissionCheckError = error.message
         showWarning = true
@@ -160,12 +160,12 @@
     try {
       console.log(
         '[PermissionWarningPrompt] Requesting permission for:',
-        currentUrl
+        currentUrl,
       )
       const granted = await requestPermission(currentUrl)
       console.log(
         '[PermissionWarningPrompt] Permission request result:',
-        granted
+        granted,
       )
 
       if (granted) {
@@ -183,12 +183,12 @@
             timestamp: Date.now(),
           })
           console.log(
-            '[PermissionWarningPrompt] Permission change broadcasted successfully'
+            '[PermissionWarningPrompt] Permission change broadcasted successfully',
           )
         } catch (error) {
           console.warn(
             '[PermissionWarningPrompt] Failed to broadcast permission change:',
-            error
+            error,
           )
         }
 
@@ -200,7 +200,7 @@
         // Show success feedback briefly
         setTimeout(() => {
           console.log(
-            '[PermissionWarningPrompt] Permission granted successfully'
+            '[PermissionWarningPrompt] Permission granted successfully',
           )
         }, 500)
       } else {
@@ -211,7 +211,7 @@
     } catch (error) {
       console.error(
         '[PermissionWarningPrompt] Permission request failed:',
-        error
+        error,
       )
       permissionCheckError = error.message
       await updateFirefoxPermission('httpsPermission', false)
@@ -234,7 +234,9 @@
 <!-- Warning banner khi cần permission - chỉ cho Reddit và general websites -->
 <!-- YouTube, Udemy, Coursera đã có host_permissions nên không bao giờ hiển thị warning -->
 {#if showWarning && !isCheckingPermission}
-  <div class="p-4 min-w-90 absolute abs-center bg-surface-1 z-10">
+  <div
+    class="p-4 min-w-90 w-full h-[calc(100%-2.5rem)] absolute items-center justify-center flex left-1/2 top-10 -translate-x-1/2 bg-surface-1 z-[10]"
+  >
     <div class="flex gap-1 justify-center flex-col space-y-3">
       <p class="text-xs text-balance !text-center text-text-secondary mt-4">
         {$t('permissionWarning.description')}

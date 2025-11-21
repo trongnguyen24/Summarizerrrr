@@ -127,8 +127,41 @@
     setSelectedQuestion(null)
     setCustomQuestion('')
 
-    // Reuse existing generate logic
-    await handleGenerate()
+    // Generate with isRegenerate flag for diversity
+    setGenerating(true)
+    setError(null)
+
+    try {
+      console.log('[DeepDiveContent] Regenerating questions...')
+      console.log(
+        '[DeepDiveContent] Using history:',
+        deepDiveState.questionHistory.length,
+        'generations'
+      )
+
+      const generated = await generateFollowUpQuestions(
+        summaryContent,
+        pageTitle,
+        pageUrl,
+        summaryLang,
+        deepDiveState.questionHistory,
+        true // ← isRegenerate = true for flexible prompt
+      )
+
+      setQuestions(generated)
+      addToQuestionHistory(generated)
+
+      console.log('[DeepDiveContent] Regenerated questions:', generated)
+      console.log(
+        '[DeepDiveContent] Total history:',
+        deepDiveState.questionHistory.length
+      )
+    } catch (err) {
+      console.error('[DeepDiveContent] Regeneration error:', err)
+      setError(err.message || 'Failed to regenerate questions')
+    } finally {
+      setGenerating(false)
+    }
   }
 
   /**

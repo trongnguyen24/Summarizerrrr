@@ -157,7 +157,7 @@
           class="setting-btn {!toolSettings.useGeminiBasic ? 'active' : ''}"
           onclick={() => toggleProviderMode(false)}
           Description={$t(
-            'settings.tools.deepdive.custom_provider_description'
+            'settings.tools.deepdive.custom_provider_description',
           )}
         >
           <Icon icon="heroicons:cog-6-tooth" width="16" height="16" />

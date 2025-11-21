@@ -6,6 +6,7 @@
   import TocMobile from '@/components/navigation/TOCMobile.svelte'
   import { settings } from '@/stores/settingsStore.svelte.js'
   import { processThinkTags } from '@/lib/utils/thinkTagProcessor.js'
+  import { processTimestamps } from '@/lib/utils/timestampProcessor.js'
 
   let { summary, isLoading, targetId, showTOC = false, error } = $props()
 
@@ -14,6 +15,27 @@
 
   function parseMarkdown() {
     if (summary) {
+      const renderer = new marked.Renderer()
+      const originalLink = renderer.link.bind(renderer)
+
+      renderer.link = ({ href, title, text }) => {
+        if (href && href.startsWith('timestamp:')) {
+          // Match the UI of TimestampLink.svelte
+          return `
+            <a href="${href}" title="Jump to ${text}" class="timestamp-link flex w-fit items-center font-medium rounded-md bg-blackwhite/5 text-text-primary mb-2 font-mono hover:bg-blackwhite/10 transition-colors cursor-pointer no-underline border border-border">
+              <span class="border-r w-full py-1 px-2 text-base border-border">${text}</span>
+              <span class="flex justify-center shrink-0 items-center w-10">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide text-primary lucide-play">
+                  <polygon points="6 3 20 12 6 21 6 3" />
+                </svg>
+              </span>
+            </a>
+          `
+        }
+        return originalLink.call(renderer, { href, title, text })
+      }
+
+      marked.use({ renderer })
       marked.setOptions({
         highlight: function (code, lang) {
           const language = hljs.getLanguage(lang) ? lang : 'plaintext'
@@ -27,13 +49,14 @@
           console.warn(
             'SummaryContentFP: summary is not a string:',
             typeof summary,
-            summary
+            summary,
           )
           parsedContent = marked.parse(String(summary || ''))
           return
         }
 
-        const processedSummary = processThinkTags(summary)
+        let processedSummary = processThinkTags(summary)
+        processedSummary = processTimestamps(processedSummary)
         parsedContent = marked.parse(processedSummary)
       } catch (error) {
         console.warn('SummaryContentFP: Think tag processing error:', error)
@@ -57,6 +80,26 @@
         })
     }
   })
+
+  function handleContentClick(event) {
+    const link = event.target.closest('a')
+    if (!link) return
+
+    const href = link.getAttribute('href')
+    if (href && href.startsWith('timestamp:')) {
+      event.preventDefault()
+      const seconds = parseFloat(href.split(':')[1])
+
+      if (!isNaN(seconds)) {
+        // Dispatch event directly since we are already in the content script context
+        // This communicates with youtube_player_control.js in the Main World
+        const customEvent = new CustomEvent('Summarizerrrr_Seek', {
+          detail: { seconds: seconds },
+        })
+        window.dispatchEvent(customEvent)
+      }
+    }
+  }
 </script>
 
 <div id={targetId}>
@@ -71,6 +114,8 @@
       style="font-size: 16px;"
       bind:this={container}
       class="prose"
+      onclick={handleContentClick}
+      role="presentation"
     >
       {@html parsedContent}
     </div>

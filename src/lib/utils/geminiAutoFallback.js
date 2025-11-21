@@ -17,14 +17,27 @@ export const GEMINI_FALLBACK_CHAIN = [
 
 /**
  * Checks if an error is due to API overload/resource exhaustion
+ * Enhanced to detect AI_RetryError and nested error structures
  * @param {Error|any} error - Error object to check
  * @returns {boolean} True if error is overload-related
  */
 export function isOverloadError(error) {
   if (!error) return false
 
+  // Get error message and cause from multiple levels
   const errorMessage = error?.message?.toLowerCase() || ''
   const errorString = error?.toString()?.toLowerCase() || ''
+  const errorCause = error?.cause?.message?.toLowerCase() || ''
+  const errorCauseString = error?.cause?.toString?.()?.toLowerCase() || ''
+
+  // AI_RetryError specific detection
+  const isRetryError =
+    error?.constructor?.name === 'AI_RetryError' ||
+    error?.name === 'AI_RetryError' ||
+    errorMessage.includes('failed after') ||
+    errorMessage.includes('retry') ||
+    errorString.includes('failed after') ||
+    errorString.includes('retry')
 
   // Check for common overload indicators
   const overloadKeywords = [
@@ -37,19 +50,40 @@ export function isOverloadError(error) {
     '429',
     '503',
     'service unavailable',
+    'model is overloaded',
+    'the model is overloaded',
   ]
 
-  // Check error message
+  // Check error message at all levels
   const hasOverloadKeyword = overloadKeywords.some(
-    (keyword) => errorMessage.includes(keyword) || errorString.includes(keyword)
+    (keyword) =>
+      errorMessage.includes(keyword) ||
+      errorString.includes(keyword) ||
+      errorCause.includes(keyword) ||
+      errorCauseString.includes(keyword)
   )
 
   // Check HTTP status codes
   const status = error?.status || error?.statusCode || error?.code
+  const causeStatus =
+    error?.cause?.status || error?.cause?.statusCode || error?.cause?.code
   const isOverloadStatus =
-    status === 429 || status === 503 || status === 'RESOURCE_EXHAUSTED'
+    status === 429 ||
+    status === 503 ||
+    status === 'RESOURCE_EXHAUSTED' ||
+    causeStatus === 429 ||
+    causeStatus === 503 ||
+    causeStatus === 'RESOURCE_EXHAUSTED'
 
-  return hasOverloadKeyword || isOverloadStatus
+  // Return true if:
+  // 1. It's a retry error AND contains overload keywords, OR
+  // 2. It has overload status codes, OR
+  // 3. It has overload keywords in any message level
+  return (
+    (isRetryError && hasOverloadKeyword) ||
+    isOverloadStatus ||
+    hasOverloadKeyword
+  )
 }
 
 /**

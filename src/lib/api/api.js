@@ -1,8 +1,8 @@
 // @ts-nocheck
 import { settings, loadSettings } from '@/stores/settingsStore.svelte.js'
-import { promptBuilders } from '@/lib/prompting/promptBuilders.js'
-import { customActionTemplates } from '@/lib/prompting/promptTemplates.js'
-import { replacePlaceholders } from '@/lib/prompting/promptUtils.js'
+import { promptBuilders } from '@/lib/prompts/builders/index.js'
+import { customActionTemplates } from '@/lib/prompts/index.js'
+import { replacePlaceholders } from '@/lib/prompts/utils.js'
 import {
   generateContent as aiSdkGenerateContent,
   generateContentStream as aiSdkGenerateContentStream,
@@ -110,25 +110,21 @@ export async function summarizeContent(text, contentType) {
 
   let systemInstruction, userPrompt
 
-  const customActionTypes = ['analyze', 'explain', 'debate']
+  const customActionTypes = ['analyze', 'explain', 'debate', 'commentAnalysis']
 
   if (customActionTypes.includes(contentType)) {
     systemInstruction = customActionTemplates[contentType].systemPrompt
 
-    // First, replace content placeholder
-    const userPromptWithContent = customActionTemplates[contentType].userPrompt.replace(
-      '__CONTENT__',
-      text
-    )
-
-    // Then, replace other placeholders using the utility function
-    userPrompt = replacePlaceholders(
-      userPromptWithContent,
+    // First, replace all placeholders except __CONTENT__
+    const userPromptWithPlaceholders = replacePlaceholders(
+      customActionTemplates[contentType].userPrompt,
       userSettings.summaryLang,
       userSettings.summaryLength,
-      userSettings.summaryFormat,
       userSettings.summaryTone
     )
+
+    // Then, replace content placeholder
+    userPrompt = userPromptWithPlaceholders.replace('__CONTENT__', text)
   } else {
     const contentConfig =
       promptBuilders[contentType] || promptBuilders['general'] // Fallback to general
@@ -184,21 +180,55 @@ export async function* summarizeContentStream(text, contentType) {
     throw new Error('Browser does not support advanced streaming features')
   }
 
-  const contentConfig = promptBuilders[contentType] || promptBuilders['general'] // Fallback to general
+  let systemInstruction, userPrompt
 
-  if (!contentConfig.buildPrompt) {
-    throw new Error(
-      `Configuration for content type "${contentType}" is incomplete.`
+  const customActionTypes = ['analyze', 'explain', 'debate', 'commentAnalysis']
+
+  if (customActionTypes.includes(contentType)) {
+    console.log(
+      `[DEBUG] Processing custom action type in stream: ${contentType}`
     )
-  }
+    systemInstruction = customActionTemplates[contentType].systemPrompt
+    console.log(
+      `[DEBUG] System instruction for stream ${contentType}:`,
+      systemInstruction
+    )
 
-  const { systemInstruction, userPrompt } = contentConfig.buildPrompt(
-    text,
-    userSettings.summaryLang,
-    userSettings.summaryLength,
-    userSettings.summaryFormat,
-    userSettings.summaryTone
-  )
+    // First, replace all placeholders except __CONTENT__
+    const userPromptWithPlaceholders = replacePlaceholders(
+      customActionTemplates[contentType].userPrompt,
+      userSettings.summaryLang,
+      userSettings.summaryLength,
+      userSettings.summaryTone
+    )
+    console.log(
+      `[DEBUG] User prompt with placeholders for stream ${contentType}:`,
+      userPromptWithPlaceholders
+    )
+
+    // Then, replace content placeholder
+    userPrompt = userPromptWithPlaceholders.replace('__CONTENT__', text)
+    console.log(
+      `[DEBUG] Final user prompt for stream ${contentType}:`,
+      userPrompt
+    )
+  } else {
+    const contentConfig =
+      promptBuilders[contentType] || promptBuilders['general'] // Fallback to general
+
+    if (!contentConfig.buildPrompt) {
+      throw new Error(
+        `Configuration for content type "${contentType}" is incomplete.`
+      )
+    }
+
+    ;({ systemInstruction, userPrompt } = contentConfig.buildPrompt(
+      text,
+      userSettings.summaryLang,
+      userSettings.summaryLength,
+      userSettings.summaryTone
+    ))
+  }
 
   try {
     // Use AI SDK adapter for unified streaming với smoothing
@@ -402,21 +432,55 @@ export async function* summarizeContentStreamEnhanced(text, contentType) {
     throw new Error('Browser does not support advanced streaming features')
   }
 
-  const contentConfig = promptBuilders[contentType] || promptBuilders['general']
+  let systemInstruction, userPrompt
 
-  if (!contentConfig.buildPrompt) {
-    throw new Error(
-      `Configuration for content type "${contentType}" is incomplete.`
+  const customActionTypes = ['analyze', 'explain', 'debate', 'commentAnalysis']
+
+  if (customActionTypes.includes(contentType)) {
+    console.log(
+      `[DEBUG] Processing custom action type in enhanced stream: ${contentType}`
+    )
+    systemInstruction = customActionTemplates[contentType].systemPrompt
+    console.log(
+      `[DEBUG] System instruction for enhanced stream ${contentType}:`,
+      systemInstruction
+    )
+
+    // First, replace all placeholders except __CONTENT__
+    const userPromptWithPlaceholders = replacePlaceholders(
+      customActionTemplates[contentType].userPrompt,
+      userSettings.summaryLang,
+      userSettings.summaryLength,
+      userSettings.summaryTone
+    )
+    console.log(
+      `[DEBUG] User prompt with placeholders for enhanced stream ${contentType}:`,
+      userPromptWithPlaceholders
+    )
+
+    // Then, replace content placeholder
+    userPrompt = userPromptWithPlaceholders.replace('__CONTENT__', text)
+    console.log(
+      `[DEBUG] Final user prompt for enhanced stream ${contentType}:`,
+      userPrompt
+    )
+  } else {
+    const contentConfig =
+      promptBuilders[contentType] || promptBuilders['general']
+
+    if (!contentConfig.buildPrompt) {
+      throw new Error(
+        `Configuration for content type "${contentType}" is incomplete.`
+      )
+    }
+
+    const { systemInstruction, userPrompt } = contentConfig.buildPrompt(
+      text,
+      userSettings.summaryLang,
+      userSettings.summaryLength,
+      userSettings.summaryTone
     )
   }
-
-  const { systemInstruction, userPrompt } = contentConfig.buildPrompt(
-    text,
-    userSettings.summaryLang,
-    userSettings.summaryLength,
-    userSettings.summaryFormat,
-    userSettings.summaryTone
-  )
 
   try {
     const streamGenerator = aiSdkGenerateContentStreamEnhanced(

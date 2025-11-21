@@ -12,7 +12,8 @@
   import CourseSummaryDisplay from '@/components/displays/platform/CourseSummaryDisplay.svelte'
   import ErrorDisplay from '@/components/displays/ui/ErrorDisplay.svelte'
   import ApiKeySetupPrompt from '@/components/ui/ApiKeySetupPrompt.svelte'
-
+  import { Toaster, toast } from 'svelte-sonner'
+  import ModelToast from '@/components/feedback/ModelToast.svelte'
   import 'webextension-polyfill'
 
   // Import direct variables and functions from refactored stores
@@ -42,6 +43,8 @@
   import { fade, slide } from 'svelte/transition'
   import ActionButtonsMini from '@/components/buttons/ActionButtonsMini.svelte'
   import { debounce } from '@/lib/utils/utils.js'
+  import Tooltip from '@/components/ui/Tooltip.svelte'
+  import { Tooltip as BitsTooltip } from 'bits-ui'
 
   // Deep Dive imports
   import DeepDiveFAB from '@/components/tools/deepdive/DeepDiveFAB.svelte'
@@ -110,9 +113,33 @@
     }
   })
 
+  // Listen for custom toast events from non-component files
+  $effect(() => {
+    const handleToast = (event) => {
+      const { title, message, icon } = event.detail
+      const id = Math.random().toString(36).substring(7)
+      toast.custom(ModelToast, {
+        id,
+        componentProps: {
+          id,
+          title,
+          message,
+          icon,
+        },
+        duration: 8000,
+      })
+    }
+
+    window.addEventListener('gemini-toast', handleToast)
+
+    return () => {
+      window.removeEventListener('gemini-toast', handleToast)
+    }
+  })
+
   // Create derived variable to check if any Course summary is loading
   const isAnyCourseLoading = $derived(
-    summaryState.isCourseSummaryLoading || summaryState.isCourseConceptsLoading
+    summaryState.isCourseSummaryLoading || summaryState.isCourseConceptsLoading,
   )
 
   // Create derived variable to check if all summaries for the current page type are completed
@@ -184,7 +211,7 @@
       summaryState.courseSummaryError ||
       summaryState.courseConceptsError ||
       summaryState.selectedTextError ||
-      summaryState.customActionError
+      summaryState.customActionError,
   )
 
   // Handle summarize button click
@@ -301,7 +328,7 @@
         content,
         summaryState.pageTitle,
         summaryState.pageUrl,
-        settings.summaryLang || 'English'
+        settings.summaryLang || 'English',
       )
     }
   })
@@ -349,7 +376,7 @@
             summaryState.pageTitle,
             summaryState.pageUrl,
             settings.summaryLang || 'English',
-            deepDiveState.questionHistory
+            deepDiveState.questionHistory,
           )
 
           setQuestions(questions)
@@ -423,15 +450,25 @@
       class="flex relative font-mono flex-col gap-1 justify-center items-center"
     >
       <div class="size-6 absolute z-10 top-2 left-2 text-text-secondary">
-        <button
-          onclick={() => {
-            browser.tabs.create({ url: 'archive.html' })
-          }}
-          class="p-1 setting-animation transition-colors hover:bg-surface-1 rounded-full hover:text-text-primary"
-          title={$t('archive.open_archive')}
-        >
-          <Icon icon="solar:history-linear" width="24" height="24" />
-        </button>
+        <BitsTooltip.Provider>
+          <Tooltip
+            content={$t('archive.open_archive')}
+            side="right"
+            align="start"
+          >
+            {#snippet children({ builder })}
+              <button
+                onclick={() => {
+                  browser.tabs.create({ url: 'archive.html' })
+                }}
+                class="p-1 setting-animation transition-colors hover:bg-surface-1 rounded-full hover:text-text-primary"
+                {...builder}
+              >
+                <Icon icon="solar:history-linear" width="24" height="24" />
+              </button>
+            {/snippet}
+          </Tooltip>
+        </BitsTooltip.Provider>
       </div>
       <div class="size-6 z-10 absolute top-2 right-4 text-text-secondary">
         <SettingButton />
@@ -530,6 +567,15 @@
           targetId="custom-action-display"
           showTOC={true}
         />
+        <!-- Inline Deep Dive Questions for Custom Actions -->
+        {#if shouldShowDeepDive() && settings.tools?.deepDive?.autoGenerate}
+          <InlineDeepDiveQuestions
+            summaryContent={getSummaryContent()}
+            pageTitle={summaryState.pageTitle}
+            pageUrl={summaryState.pageUrl}
+            summaryLang={settings.summaryLang || 'English'}
+          />
+        {/if}
       {:else}
         <ActionButtons />
       {/if}
@@ -540,6 +586,7 @@
 <div
   class=" fixed bg-linear-to-t from-surface-1 to-surface-1/40 bottom-0 mask-t-from-50% h-16 backdrop-blur-[2px] w-full z-30 pointer-events-none"
 ></div>
+<Toaster />
 <!-- Deep Dive FAB & Section with Error Boundary -->
 {#if shouldShowDeepDive()}
   {#await Promise.resolve()}

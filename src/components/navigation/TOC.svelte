@@ -69,8 +69,8 @@
     // }
   }
 
-  function generateRandomString(length = 4) {
-    const characters = 'abcdefghijklmnopqrstuvwxyz'
+  function generateRandomString(length = 8) {
+    const characters = 'abcdefghijklmnopqrstuvwxyz0123456789'
     let result = ''
     for (let i = 0; i < length; i++) {
       result += characters.charAt(Math.floor(Math.random() * characters.length))
@@ -78,14 +78,8 @@
     return result
   }
 
-  function generateId(text) {
-    const baseId = text
-      .toLowerCase()
-      .replace(/[^a-z0-9\s-]/g, '')
-      .trim()
-      .replace(/\s+/g, '-')
-      .replace(/-+/g, '-')
-    return `${baseId}-${generateRandomString()}`
+  function generateId() {
+    return `h-${generateRandomString()}`
   }
 
   function updateTOC() {
@@ -103,7 +97,7 @@
       if (text.endsWith(':')) {
         text = text.slice(0, -1)
       }
-      const id = heading.id || generateId(text)
+      const id = heading.id || generateId()
       heading.id = id // Ensure heading has an ID
       return { text, id, level: parseInt(heading.tagName.substring(1)) }
     })
@@ -215,7 +209,7 @@
     </span>
   </div>
   <nav
-    class="fixed bottom-18 pt-4 px-3 right-0 hidden group-hover:block opacity-0 group-hover:opacity-100"
+    class="fixed bottom-14 py-4 px-3 right-0 hidden group-hover:block opacity-0 group-hover:opacity-100"
   >
     <div class="relative">
       <div
@@ -247,13 +241,13 @@
       >
         <a
           href="#footer"
-          class="px-3 border-border border-r flex justify-end items-center gap-1 py-3 font-mono text-xs/4 no-underline transition-colors"
+          class="px-3 border-border border-r flex justify-center w-full items-center gap-1 py-4 font-mono text-xs/4 no-underline transition-colors"
           ><Icon class=" rotate-180" width="16" icon="carbon:up-to-top" /></a
         >
         <a
           href="#top"
-          class="px-3 w-full flex justify-end items-center gap-1 py-3 font-mono text-xs/4 no-underline transition-colors"
-          ><Icon width="16" icon="carbon:up-to-top" />Go to top</a
+          class="px-3 flex justify-center w-full items-center gap-1 py-4 font-mono text-xs/4 no-underline transition-colors"
+          ><Icon width="16" icon="carbon:up-to-top" /></a
         >
       </div>
     </div>

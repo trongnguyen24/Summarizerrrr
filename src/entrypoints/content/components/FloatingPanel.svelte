@@ -15,7 +15,9 @@
   import FloatingPanelContent from '@/components/displays/floating-panel/FloatingPanelContent.svelte'
   import ActionButtonsFP from '@/components/buttons/ActionButtonsFP.svelte'
   import ActionButtonsMiniFP from '@/components/buttons/ActionButtonsMiniFP.svelte'
-
+  import ShadowToast from '@/components/feedback/ShadowToast.svelte'
+  import ShadowTooltip from '@/components/ui/ShadowTooltip.svelte'
+  import { t } from 'svelte-i18n'
   // Deep Dive imports
   import DeepDivePanelFP from './DeepDivePanelFP.svelte'
   import {
@@ -31,6 +33,34 @@
   let currentWidthPx = $state(0) // Will be set in loadWidth()
   let showElement = $state(false) // Internal state để control DOM rendering
   const { needsApiKeySetup } = useApiKeyValidation()
+
+  // Toast state
+  let toastVisible = $state(false)
+  let toastProps = $state({
+    title: '',
+    message: '',
+    icon: '',
+  })
+  let toastTimeout
+
+  function handleToastEvent(event) {
+    const { title, message, icon } = event.detail
+    toastProps = { title, message, icon }
+    toastVisible = true
+
+    // Clear existing timeout
+    if (toastTimeout) clearTimeout(toastTimeout)
+
+    // Auto hide after 3 seconds
+    toastTimeout = setTimeout(() => {
+      toastVisible = false
+    }, 3000)
+  }
+
+  function closeToast() {
+    toastVisible = false
+    if (toastTimeout) clearTimeout(toastTimeout)
+  }
 
   async function requestSummary() {
     console.log('Requesting page summary...')
@@ -65,6 +95,8 @@
     console.log(`[FloatingPanel] Executing custom action: ${actionType}`)
     if (actionType === 'chapters') {
       await summarization.summarizeChapters()
+    } else if (actionType === 'comments') {
+      await summarization.summarizeComments()
     } else {
       await summarization.summarizePageContent(actionType)
     }
@@ -86,7 +118,7 @@
   function emToPx(em) {
     try {
       const rootFontSize = parseFloat(
-        getComputedStyle(document.documentElement).fontSize
+        getComputedStyle(document.documentElement).fontSize,
       )
       // Fallback to 16px if root font size cannot be determined
       const fontSize = isNaN(rootFontSize) ? 16 : rootFontSize
@@ -94,7 +126,7 @@
     } catch (error) {
       console.warn(
         'Failed to get root font size, using 16px as fallback:',
-        error
+        error,
       )
       return em * 16 // Fallback to 16px
     }
@@ -102,7 +134,7 @@
 
   function pxToEm(px) {
     const rootFontSize = parseFloat(
-      getComputedStyle(document.documentElement).fontSize
+      getComputedStyle(document.documentElement).fontSize,
     )
     return px / rootFontSize
   }
@@ -117,7 +149,7 @@
       ? 'loading'
       : summarization.localSummaryState().error
         ? 'error'
-        : status
+        : status,
   )
 
   // Deep Dive visibility
@@ -125,7 +157,7 @@
     shouldShowDeepDive() &&
       summaryToDisplay &&
       summaryToDisplay.trim() !== '' &&
-      !summarization.localSummaryState().isLoading
+      !summarization.localSummaryState().isLoading,
   )
 
   // Load saved width
@@ -146,7 +178,7 @@
         // Set default width if no saved width or invalid saved width
         currentWidthPx = Math.max(
           MIN_WIDTH_PX,
-          Math.min(emToPx(settings.sidePanelDefaultWidth), MAX_WIDTH_PX)
+          Math.min(emToPx(settings.sidePanelDefaultWidth), MAX_WIDTH_PX),
         )
         if (panelElement) {
           panelElement.style.width = `${currentWidthPx}px`
@@ -157,7 +189,7 @@
       // Fallback to default width on error
       currentWidthPx = Math.max(
         MIN_WIDTH_PX,
-        Math.min(emToPx(settings.sidePanelDefaultWidth), MAX_WIDTH_PX)
+        Math.min(emToPx(settings.sidePanelDefaultWidth), MAX_WIDTH_PX),
       )
       if (panelElement) {
         panelElement.style.width = `${currentWidthPx}px`
@@ -271,12 +303,15 @@
     loadWidth()
     window.addEventListener('keydown', handleKeyDown)
     document.addEventListener('summarizeClick', handleSummarizeClick)
+    window.addEventListener('gemini-toast', handleToastEvent)
   })
 
   onDestroy(() => {
     window.removeEventListener('keydown', handleKeyDown)
     document.removeEventListener('summarizeClick', handleSummarizeClick)
+    window.removeEventListener('gemini-toast', handleToastEvent)
     document.body.style.userSelect = ''
+    if (toastTimeout) clearTimeout(toastTimeout)
   })
 </script>
 
@@ -299,7 +334,6 @@
     bind:this={panelElement}
     role="dialog"
     aria-modal="true"
-    tabindex="-1"
     style="width: {currentWidthPx}px"
   >
     {#if !settings.hasCompletedOnboarding}
@@ -390,25 +424,36 @@
         height="24"
       /></button
     >
-    <div id="shadow-scroll" class="w-full h-full overflow-y-auto pb-32">
+    <div
+      id="shadow-scroll"
+      class="w-full h-full overflow-y-auto pb-32 outline-none"
+      tabindex="-1"
+    >
       <div class="grid grid-rows-[10px_200px_10px_1fr] relative">
         <div
           class="top-stripes border-b border-border flex justify-center items-center w-full h-full"
         ></div>
         <div class="w-full flex items-center justify-center my-8">
-          <button
-            class="size-10 absolute cursor-pointer z-10 top-3 text-text-secondary hover:text-text-primary transition-colors left-2 flex justify-center items-center"
-            onclick={openArchive}
-            title="Open Archive"
-          >
-            <Icon icon="solar:history-linear" width="24" height="24" />
-          </button>
-          <button
-            class="size-10 absolute cursor-pointer z-10 top-3 text-text-secondary hover:text-text-primary transition-colors right-2 flex justify-center items-center"
-            onclick={openSettings}
-          >
-            <Icon width={24} icon="heroicons:cog-6-tooth" />
-          </button>
+          <div class="size-10 absolute z-10 top-4 left-2">
+            <ShadowTooltip content={$t('archive.open_archive')} side="right">
+              <button
+                class="size-10 cursor-pointer text-text-secondary hover:text-text-primary transition-colors flex justify-center items-center"
+                onclick={openArchive}
+              >
+                <Icon icon="solar:history-linear" width="24" height="24" />
+              </button>
+            </ShadowTooltip>
+          </div>
+          <div class="size-10 absolute z-10 top-4 right-2">
+            <ShadowTooltip content={$t('settings.open_settings')} side="left">
+              <button
+                class="size-10 cursor-pointer text-text-secondary hover:text-text-primary transition-colors flex justify-center items-center"
+                onclick={openSettings}
+              >
+                <Icon width={24} icon="heroicons:cog-6-tooth" />
+              </button>
+            </ShadowTooltip>
+          </div>
           {#if !needsApiKeySetup()()}
             <SummarizeButton
               isLoading={summarization.localSummaryState().isLoading}
@@ -425,51 +470,61 @@
           class="top-stripes border-t border-b border-border flex justify-center items-center w-full h-full"
         ></div>
       </div>
+      <div class=" py-14">
+        {#if needsApiKeySetup()()}
+          <div class="px-4 pt-4">
+            <ApiKeySetupPrompt />
+          </div>
+        {:else}
+          <FloatingPanelContent
+            status={statusToDisplay}
+            summary={summaryToDisplay}
+            error={summarization.localSummaryState().error}
+            contentType={summarization.localSummaryState().contentType}
+            courseConcepts={summarization.localSummaryState().courseConcepts}
+            isCourseSummaryLoading={summarization.localSummaryState().isLoading}
+            isCourseConceptsLoading={summarization.localSummaryState()
+              .isCourseConceptsLoading}
+            activeYouTubeTab={panelState.activeYouTubeTab()}
+            activeCourseTab={panelState.activeCourseTab()}
+            onSelectYouTubeTab={panelState.setActiveYouTubeTab}
+            onSelectCourseTab={panelState.setActiveCourseTab}
+            {summarization}
+          />
+        {/if}
 
-      {#if needsApiKeySetup()()}
-        <div class="px-4 pt-8">
-          <ApiKeySetupPrompt />
-        </div>
-      {:else}
-        <FloatingPanelContent
-          status={statusToDisplay}
-          summary={summaryToDisplay}
-          error={summarization.localSummaryState().error}
-          contentType={summarization.localSummaryState().contentType}
-          courseConcepts={summarization.localSummaryState().courseConcepts}
-          isCourseSummaryLoading={summarization.localSummaryState().isLoading}
-          isCourseConceptsLoading={summarization.localSummaryState()
-            .isCourseConceptsLoading}
-          activeYouTubeTab={panelState.activeYouTubeTab()}
-          activeCourseTab={panelState.activeCourseTab()}
-          onSelectYouTubeTab={panelState.setActiveYouTubeTab}
-          onSelectCourseTab={panelState.setActiveCourseTab}
-          {summarization}
+        {#if !summaryToDisplay && !summarization.localSummaryState().isLoading && !needsApiKeySetup()()}
+          <ActionButtonsFP
+            onActionClick={handleCustomAction}
+            isYouTubeActive={isYouTubeActive()}
+          />
+        {/if}
+
+        {#if children?.settingsMini}
+          {@render children.settingsMini()}
+        {/if}
+
+        <!-- Deep Dive Panel -->
+        {#if showDeepDive}
+          <DeepDivePanelFP
+            summaryContent={summaryToDisplay}
+            pageTitle={summarization.localSummaryState().pageTitle || 'Summary'}
+            pageUrl={summarization.localSummaryState().pageUrl ||
+              window.location.href}
+            summaryLang={settings.summaryLang || 'English'}
+            isVisible={true}
+          />
+        {/if}
+
+        <!-- Toast Notification -->
+        <ShadowToast
+          visible={toastVisible}
+          title={toastProps.title}
+          message={toastProps.message}
+          icon={toastProps.icon}
+          onClose={closeToast}
         />
-      {/if}
-
-      {#if !summaryToDisplay && !summarization.localSummaryState().isLoading && !needsApiKeySetup()()}
-        <ActionButtonsFP
-          onActionClick={handleCustomAction}
-          isYouTubeActive={isYouTubeActive()}
-        />
-      {/if}
-
-      {#if children?.settingsMini}
-        {@render children.settingsMini()}
-      {/if}
-
-      <!-- Deep Dive Panel -->
-      {#if showDeepDive}
-        <DeepDivePanelFP
-          summaryContent={summaryToDisplay}
-          pageTitle={summarization.localSummaryState().pageTitle || 'Summary'}
-          pageUrl={summarization.localSummaryState().pageUrl ||
-            window.location.href}
-          summaryLang={settings.summaryLang || 'English'}
-          isVisible={true}
-        />
-      {/if}
+      </div>
     </div>
   </div>
 {/if}

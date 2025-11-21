@@ -336,11 +336,24 @@
     "edge_addons": "Edge Add-ons"
   },
   "permissionWarning": {
-    "title": "Permissions",
-    "button": "Accéder à vos données pour tous les sites Web",
-    "description": "Accès par défaut à YouTube, Udemy et Coursera. Pour résumer d'autres sites, veuillez accorder les autorisations ci-dessous.",
+    "title": "Permissions requises",
+    "button": "Autoriser l'accès à tous les sites",
+    "description": "Summarizerrrr fonctionne par défaut sur YouTube, Udemy, Coursera, Reddit et Wikipédia. Pour résumer le contenu d'autres sites Web, veuillez accorder l'autorisation ci-dessous.",
     "requesting": "Demande en cours...",
     "grant_permissions": "Accorder les autorisations"
+  },
+  "custom_actions": {
+    "analyze": "Analyser",
+    "explain": "Expliquer",
+    "debate": "Débattre",
+    "analyze_description": "Analyser la structure et les arguments",
+    "explain_description": "Expliquer en termes simples",
+    "reply_description": "Générer une réponse réfléchie",
+    "processing": "Traitement de {action}...",
+    "error": "Échec de {action} du contenu",
+    "debate_description": "Analyser sous plusieurs angles",
+    "chapters_description": "Résumer par chapitres",
+    "comments_description": "Résumer les commentaires YouTube"
   },
   "tags": {
     "title": "Étiquettes",

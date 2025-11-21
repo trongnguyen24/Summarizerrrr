@@ -1,5 +1,6 @@
 // @ts-nocheck
 import { loadSettings, settings } from '@/stores/settingsStore.svelte.js'
+import { updateModelStatus } from '@/stores/summaryStore.svelte.js'
 import { ContentExtractorService } from '../services/ContentExtractorService.js'
 import { SummarizationService } from '../services/SummarizationService.js'
 import {
@@ -113,6 +114,8 @@ export function useSummarization() {
       // 1. Reset state (giữ lại isLoading = true)
       const wasLoading = localSummaryState.isLoading
       resetLocalSummaryState()
+      // Reset global model status
+      updateModelStatus(null, null, false)
       localSummaryState.isLoading = wasLoading
       localSummaryState.startTime = Date.now()
 
@@ -240,7 +243,18 @@ export function useSummarization() {
       console.log(`[useSummarization] Summarization completed in ${duration}ms`)
 
       // 6. Auto-save to history
-      await autoSaveToHistory()
+      let typeLabel = 'Summary'
+      if (customContentType) {
+        typeLabel =
+          customContentType.charAt(0).toUpperCase() + customContentType.slice(1)
+      } else if (contentType === 'course') {
+        typeLabel = 'Course Summary'
+      } else if (contentType === 'youtube') {
+        typeLabel = 'Video Summary'
+      } else {
+        typeLabel = 'Web Summary'
+      }
+      await autoSaveToHistory(typeLabel)
 
       // 7. Update Deep Dive context and auto-generate if enabled
       await handleDeepDiveAfterSummary()
@@ -269,6 +283,8 @@ export function useSummarization() {
 
     // Reset summary trước để chapters được lưu như một entry mới
     localSummaryState.summary = ''
+    // Reset global model status
+    updateModelStatus(null, null, false)
     localSummaryState.isLoading = true
     isProcessing = true
 
@@ -299,8 +315,8 @@ export function useSummarization() {
 
       console.log('[useSummarization] Chapter summarization completed')
 
-      // Auto-save to history - sẽ lưu summary (chứa chapters) như một entry mới
-      await autoSaveToHistory()
+      // Auto-save to history - sẽ lưu summary (chứa chapters) như một entry riêng
+      await autoSaveToHistory('Chapters')
 
       // Update Deep Dive context
       await handleDeepDiveAfterSummary()
@@ -313,7 +329,181 @@ export function useSummarization() {
     }
   }
 
-  async function autoSaveToHistory() {
+  /**
+   * Summarize YouTube comments (for floating panel)
+   * Fetch comments và analyze với AI
+   */
+  async function summarizeComments() {
+    if (isProcessing) {
+      console.log(
+        '[useSummarization] Already processing, ignoring duplicate request'
+      )
+      return
+    }
+
+    // Reset summary trước
+    localSummaryState.summary = ''
+    // Reset global model status
+    updateModelStatus(null, null, false)
+    localSummaryState.isLoading = true
+    isProcessing = true
+
+    try {
+      console.log('[useSummarization] Starting comment analysis...')
+
+      // Set page info
+      localSummaryState.pageTitle = document.title || 'YouTube Comment Analysis'
+      localSummaryState.pageUrl = window.location.href
+
+      // Load settings
+      await loadSettings()
+
+      // Verify this is a YouTube watch page
+      const YOUTUBE_WATCH_PATTERN = /youtube\.com\/watch/i
+      if (!YOUTUBE_WATCH_PATTERN.test(localSummaryState.pageUrl)) {
+        throw new Error('This feature only works on YouTube video pages.')
+      }
+
+      console.log('[useSummarization] Fetching comments via message...')
+
+      // Fetch comments qua message passing - use chrome.runtime for content script
+      const response = await new Promise((resolve, reject) => {
+        chrome.runtime.sendMessage(
+          {
+            action: 'fetchYouTubeComments',
+            maxComments: 80,
+            maxRepliesPerComment: 10,
+          },
+          (result) => {
+            if (chrome.runtime.lastError) {
+              console.error(
+                '[useSummarization] Chrome runtime error:',
+                chrome.runtime.lastError
+              )
+              reject(new Error(chrome.runtime.lastError.message))
+            } else {
+              console.log(
+                '[useSummarization] Message sent, waiting for response...'
+              )
+              resolve(result)
+            }
+          }
+        )
+      })
+
+      console.log('[useSummarization] Comments received:', response)
+
+      if (!response || !response.success) {
+        throw new Error(
+          response?.error || 'Failed to fetch comments from YouTube.'
+        )
+      }
+
+      if (!response.comments || response.comments.length === 0) {
+        throw new Error(
+          'No comments found. This video may have comments disabled or no comments yet.'
+        )
+      }
+
+      // Format comments for AI (copy function từ summaryStore)
+      const formatCommentsForAI = (comments, metadata) => {
+        if (!comments || comments.length === 0) {
+          return 'No comments available.'
+        }
+
+        let formatted = ''
+        const seenTexts = new Set()
+
+        for (const comment of comments) {
+          // Skip duplicates and spam
+          const normalizedText = comment.text.trim().toLowerCase()
+          if (seenTexts.has(normalizedText) || comment.text.trim().length < 3) {
+            continue
+          }
+          seenTexts.add(normalizedText)
+
+          // Clean text: remove excessive emojis
+          let cleanText = comment.text
+            .trim()
+            .replace(/[\u{1F300}-\u{1F9FF}]{6,}/gu, '[emoji]')
+
+          // Truncate long comments
+          if (cleanText.length > 400) {
+            cleanText = cleanText.substring(0, 397) + '...'
+          }
+
+          // Ultra compact format
+          formatted += `@${comment.author.name}`
+          if (comment.author.isChannelOwner) {
+            formatted += '👤'
+          }
+          formatted += `|${comment.publishedTime}|${comment.likeCount}↑`
+          if (comment.replyCount > 0) {
+            formatted += `|${comment.replyCount}💬`
+          }
+          formatted += `|${cleanText}\n`
+
+          // Compact replies format
+          if (comment.replies && comment.replies.length > 0) {
+            for (const reply of comment.replies) {
+              let cleanReply = reply.text
+                .trim()
+                .replace(/[\u{1F300}-\u{1F9FF}]{6,}/gu, '[emoji]')
+
+              if (cleanReply.length > 200) {
+                cleanReply = cleanReply.substring(0, 197) + '...'
+              }
+
+              if (cleanReply.length < 3) {
+                continue
+              }
+
+              formatted += `  ${reply.index}.@${reply.author.name}|${cleanReply}\n`
+            }
+          }
+
+          formatted += '\n'
+        }
+
+        return formatted
+      }
+
+      console.log('[useSummarization] Formatting comments...')
+      const formattedComments = formatCommentsForAI(
+        response.comments,
+        response.metadata
+      )
+
+      console.log(
+        '[useSummarization] Formatted data length:',
+        formattedComments.length
+      )
+
+      // Analyze với AI
+      console.log('[useSummarization] Analyzing comments with AI...')
+      const { summarizeContent } = await import('@/lib/api/api.js')
+      localSummaryState.summary = await summarizeContent(
+        formattedComments,
+        'commentAnalysis'
+      )
+
+      console.log('[useSummarization] Comment analysis completed')
+
+      // Auto-save to history
+      await autoSaveToHistory('Comments')
+
+      // Update Deep Dive context
+      await handleDeepDiveAfterSummary()
+    } catch (error) {
+      console.error('[useSummarization] Comment analysis error:', error)
+      handleSummarizationError(error)
+    } finally {
+      localSummaryState.isLoading = false
+      isProcessing = false
+    }
+  }
+
+  async function autoSaveToHistory(typeLabel) {
     try {
       console.log('[useSummarization] Auto-saving to history...')
 
@@ -328,7 +518,11 @@ export function useSummarization() {
         url: localSummaryState.pageUrl,
       }
 
-      const newHistoryId = await saveToHistory(localSummaryState, pageInfo)
+      const newHistoryId = await saveToHistory(
+        localSummaryState,
+        pageInfo,
+        typeLabel
+      )
       if (newHistoryId) {
         localSummaryState.isSavedToHistory = true
         localSummaryState.historyId = newHistoryId
@@ -446,6 +640,7 @@ export function useSummarization() {
     // Actions
     summarizePageContent,
     summarizeChapters,
+    summarizeComments,
     resetLocalSummaryState,
     handleSummarizationError,
     manualSaveToArchive,

@@ -4,8 +4,12 @@
   import {
     executeCustomAction,
     fetchChapterSummary,
+    fetchCommentSummary,
     summaryState,
   } from '@/stores/summaryStore.svelte.js'
+  import Tooltip from '@/components/ui/Tooltip.svelte'
+  import { Tooltip as BitsTooltip } from 'bits-ui'
+  import { t } from 'svelte-i18n'
 
   const actions = [
     {
@@ -23,7 +27,7 @@
     {
       key: 'debate',
       label: 'Debate',
-      icon: 'heroicons:chat-bubble-oval-left-16-solid',
+      icon: 'heroicons:scale-16-solid',
       description: 'Analyze from multiple perspectives',
     },
     {
@@ -33,11 +37,20 @@
       description: 'Summarize by chapters',
       showOnlyForYouTube: true,
     },
+    {
+      key: 'comments',
+      label: 'Comments',
+      icon: 'heroicons:chat-bubble-bottom-center-text-16-solid',
+      description: 'Summarize YouTube comments',
+      showOnlyForYouTube: true,
+    },
   ]
 
   async function handleActionClick(actionType) {
     if (actionType === 'chapters') {
       await fetchChapterSummary()
+    } else if (actionType === 'comments') {
+      await fetchCommentSummary()
     } else {
       await executeCustomAction(actionType)
     }
@@ -50,7 +63,7 @@
         return summaryState.isYouTubeVideoActive
       }
       return true
-    })
+    }),
   )
 
   // Animation control: reset animations when visibleActions changes
@@ -72,52 +85,53 @@
 
     return () => clearTimeout(timer)
   })
+
+  let customAnchor = $state(null)
 </script>
 
-<div class="flex flex-col w-36 mx-auto gap-4 flex-wrap justify-center">
-  {#each visibleActions as action}
-    <button
-      class="action-btn font-mono relative py-2 px-4 text-sm rounded-full border border-border hover:bg-blackwhite-5 text-text-secondary hover:text-text-primary transition-colors duration-125 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-      class:animate={showAnimations}
-      onclick={() => handleActionClick(action.key)}
-      title={action.description}
-    >
-      <Icon
-        width={16}
-        icon={action.icon}
-        class="transition-colors duration-125"
-      />
-      <span class="transition-colors duration-125">{action.label}</span>
-    </button>
-  {/each}
+<div
+  class="flex flex-col pt-8 relative w-38 mx-auto gap-3 flex-wrap justify-center"
+>
+  <div
+    bind:this={customAnchor}
+    class="absolute -bottom-4 left-1/2 -translate-x-1/2 w-px h-px"
+  ></div>
+  <BitsTooltip.Provider>
+    {#each visibleActions as action, i}
+      <Tooltip
+        {customAnchor}
+        content={$t(`custom_actions.${action.key}_description`)}
+      >
+        {#snippet children({ builder })}
+          <button
+            class="action-btn font-mono w-full relative py-2 px-4 text-sm rounded-full border border-border hover:bg-blackwhite-5 text-text-secondary hover:text-text-primary transition-colors duration-125 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            class:animate={showAnimations}
+            onclick={() => handleActionClick(action.key)}
+            {...builder}
+            style="animation-delay: {300 + i * 150}ms"
+          >
+            <Icon
+              width={16}
+              icon={action.icon}
+              class="transition-colors duration-125"
+            />
+            <span class="transition-colors duration-125">{action.label}</span>
+          </button>
+        {/snippet}
+      </Tooltip>
+    {/each}
+  </BitsTooltip.Provider>
 </div>
 
 <style>
   .action-btn {
     opacity: 0;
     transform: scale(0.7);
-    transition: none;
   }
 
   /* Only animate when class is applied */
   .action-btn.animate {
     animation: fadeInScale 300ms ease-out forwards;
-  }
-
-  .action-btn.animate:nth-child(1) {
-    animation-delay: 50ms;
-  }
-
-  .action-btn.animate:nth-child(2) {
-    animation-delay: 200ms;
-  }
-
-  .action-btn.animate:nth-child(3) {
-    animation-delay: 350ms;
-  }
-
-  .action-btn.animate:nth-child(4) {
-    animation-delay: 500ms;
   }
 
   @keyframes fadeInScale {

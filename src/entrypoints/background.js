@@ -21,7 +21,7 @@ import {
 import { getAISDKModel, mapGenerationConfig } from '@/lib/api/aiSdkAdapter.js'
 import { generateText } from 'ai'
 import { aiConfig } from '../lib/config/aiConfig.js'
-import { generateAISummaryPrompt } from '../lib/prompts/aiSummaryPrompt.js'
+import { generateAISummaryPrompt } from '../lib/prompts/templates/aiSummary.js'
 
 // --- Helper Functions ---
 
@@ -629,6 +629,46 @@ export default defineBackground(() => {
   // --- Consolidated Message Listener ---
   browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
     // Async handlers that need `return true`
+
+    // YouTube Comments Fetch - Forward to content script in same tab
+    if (message.action === 'fetchYouTubeComments') {
+      ;(async () => {
+        try {
+          console.log(
+            '[Background] Forwarding fetchYouTubeComments to tab:',
+            sender.tab?.id
+          )
+
+          if (!sender.tab?.id) {
+            throw new Error('No tab ID available from sender')
+          }
+
+          // Forward message to content script in the same tab
+          const response = await browser.tabs.sendMessage(sender.tab.id, {
+            action: 'fetchYouTubeComments',
+            videoId: message.videoId,
+            maxComments: message.maxComments,
+          })
+
+          console.log(
+            '[Background] Received comments response:',
+            response?.success
+          )
+          sendResponse(response)
+        } catch (error) {
+          console.error(
+            '[Background] Error forwarding fetchYouTubeComments:',
+            error
+          )
+          sendResponse({
+            success: false,
+            error: error.message || 'Failed to fetch comments',
+          })
+        }
+      })()
+      return true
+    }
+
     if (message.type === 'PERMISSION_CHANGED') {
       // Broadcast permission change to all tabs and sidepanel
       ;(async () => {
@@ -1244,5 +1284,102 @@ export default defineBackground(() => {
       console.error(`[Background] Error processing ${service} request:`, error)
       sendResponse({ success: false, error: error.message })
     }
+  }
+  // --- Firefox Dynamic Content Script Registration ---
+  if (import.meta.env.BROWSER === 'firefox') {
+    const DYNAMIC_SCRIPT_ID = 'dynamic-content-script'
+
+    async function getDynamicContentScriptFiles() {
+      const manifest = browser.runtime.getManifest()
+      const contentScripts = manifest.content_scripts || []
+      // Find the script that matches our restricted list (e.g. YouTube)
+      const mainScript = contentScripts.find(
+        (cs) =>
+          cs.matches &&
+          cs.matches.some((m) => m.includes('youtube.com')) &&
+          cs.js &&
+          cs.js.length > 0
+      )
+      return mainScript ? { js: mainScript.js, css: mainScript.css } : null
+    }
+
+    async function registerDynamicContentScript() {
+      try {
+        const files = await getDynamicContentScriptFiles()
+        if (!files) {
+          console.warn(
+            '[Background] Could not find main content script files for dynamic registration'
+          )
+          return
+        }
+
+        // Check if already registered
+        const existing = await browser.scripting.getRegisteredContentScripts({
+          ids: [DYNAMIC_SCRIPT_ID],
+        })
+        if (existing && existing.length > 0) {
+          console.log('[Background] Dynamic content script already registered')
+          return
+        }
+
+        await browser.scripting.registerContentScripts([
+          {
+            id: DYNAMIC_SCRIPT_ID,
+            js: files.js,
+            css: files.css,
+            matches: ['<all_urls>'],
+            runAt: 'document_end',
+            persistAcrossSessions: true,
+          },
+        ])
+        console.log(
+          '[Background] Dynamic content script registered for <all_urls>'
+        )
+      } catch (error) {
+        console.error(
+          '[Background] Failed to register dynamic content script:',
+          error
+        )
+      }
+    }
+
+    async function unregisterDynamicContentScript() {
+      try {
+        await browser.scripting.unregisterContentScripts({
+          ids: [DYNAMIC_SCRIPT_ID],
+        })
+        console.log('[Background] Dynamic content script unregistered')
+      } catch (error) {
+        // Ignore error if script wasn't registered
+      }
+    }
+
+    // Listen for permission changes
+    browser.permissions.onAdded.addListener(async (permissions) => {
+      if (
+        permissions.origins &&
+        permissions.origins.some((o) => o === '<all_urls>' || o === '*://*/*')
+      ) {
+        await registerDynamicContentScript()
+      }
+    })
+
+    browser.permissions.onRemoved.addListener(async (permissions) => {
+      if (
+        permissions.origins &&
+        permissions.origins.some((o) => o === '<all_urls>' || o === '*://*/*')
+      ) {
+        await unregisterDynamicContentScript()
+      }
+    })
+
+    // Check on startup
+    browser.permissions
+      .contains({ origins: ['<all_urls>'] })
+      .then((hasPermission) => {
+        if (hasPermission) {
+          registerDynamicContentScript()
+        }
+      })
   }
 })

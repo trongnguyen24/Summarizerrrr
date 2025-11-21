@@ -1,11 +1,11 @@
 <script>
   // @ts-nocheck
   import { t } from 'svelte-i18n'
-  import { promptTemplates } from '@/lib/prompting/promptTemplates.js'
+  import { promptTemplates } from '@/lib/prompts/index.js'
   import 'overlayscrollbars/overlayscrollbars.css'
   import { useOverlayScrollbars } from 'overlayscrollbars-svelte'
   import Icon from '@iconify/svelte'
-  import PlusIcon from '@/components/icon/PlusIcon.svelte'
+  import PlusIcon from '@/components/icons/PlusIcon.svelte'
   import TextScramble from '@/lib/ui/textScramble.js'
   import PromptMenu from './PromptMenu.svelte'
   import CustomToast from '@/components/feedback/CustomToast.svelte'
@@ -27,7 +27,7 @@
   import { fade } from 'svelte/transition'
   import { slideScaleFade } from '@/lib/ui/slideScaleFade.js'
   import { enhancePrompt } from '@/lib/api/api.js'
-  import aiPrompt from '@/lib/prompts/aiPrompt.js'
+  import aiPrompt from '@/lib/prompts/templates/promptEnhance.js'
 
   let isOpen = $state(false) // State for the dialog
   let enhancedUserPrompt = $state('')
@@ -37,7 +37,7 @@
   let loading = $state(false)
 
   const showEnhanceButton = $derived(
-    currentUserPrompt.trim().split(/\s+/).filter(Boolean).length > 2
+    currentUserPrompt.trim().split(/\s+/).filter(Boolean).length > 2,
   )
 
   const handlePromptEnhance = async () => {
@@ -122,20 +122,20 @@
   $effect(() => {
     promptTitles = {
       youtubeCustomPromptContent: $t(
-        'settings.summary.custom_prompts.youtube_summary'
+        'settings.summary.custom_prompts.youtube_summary',
       ),
       chapterCustomPromptContent: $t(
-        'settings.summary.custom_prompts.youtube_chapter'
+        'settings.summary.custom_prompts.youtube_chapter',
       ),
       webCustomPromptContent: $t('settings.summary.custom_prompts.web_summary'),
       courseSummaryCustomPromptContent: $t(
-        'settings.summary.custom_prompts.course_summary'
+        'settings.summary.custom_prompts.course_summary',
       ),
       courseConceptsCustomPromptContent: $t(
-        'settings.summary.custom_prompts.course_concepts'
+        'settings.summary.custom_prompts.course_concepts',
       ),
       selectedTextCustomPromptContent: $t(
-        'settings.summary.custom_prompts.selected_text'
+        'settings.summary.custom_prompts.selected_text',
       ),
     }
   })
@@ -157,7 +157,7 @@
     if (settings) {
       const systemPromptKey = key.replace(
         'CustomPromptContent',
-        'CustomSystemInstructionContent'
+        'CustomSystemInstructionContent',
       )
       initialSystemPrompt = settings[systemPromptKey] || ''
       initialUserPrompt = settings[key] || ''
@@ -195,7 +195,7 @@
     updateSettings({
       [promptKey.replace(
         'CustomPromptContent',
-        'CustomSystemInstructionContent'
+        'CustomSystemInstructionContent',
       )]: currentSystemPrompt,
       [promptKey]: currentUserPrompt,
     })

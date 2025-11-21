@@ -8,18 +8,9 @@ export default defineContentScript({
     if (window.youtubeTranscriptListenerAdded) return
     window.youtubeTranscriptListenerAdded = true
 
-    // Inject youtube_transcript.js if not already loaded
-    if (typeof getCaptions === 'undefined') {
-      const script = document.createElement('script')
-      script.src = browser.runtime.getURL('youtube_transcript.js')
-      script.onload = () => {
-        console.log('[YouTubeTranscript] Transcript script injected successfully')
-      }
-      script.onerror = () => {
-        console.error('[YouTubeTranscript] Failed to inject transcript script')
-      }
-      ;(document.head || document.documentElement).appendChild(script)
-    }
+    // youtube_transcript.js is already loaded via content_scripts in wxt.config.ts
+    // No need to inject it into the main world.
+
 
     // Inject youtube_player_control.js for seeking functionality
     if (!window.youtubePlayerControlInjected) {

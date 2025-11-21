@@ -189,7 +189,7 @@ The input content is a video transcript with timestamps. Specific examples, illu
 <OUTPUT_STRUCTURE>
 ## [Video title or main topic]
 
-### [Timestamp] - [Chapter Name]
+### [[Timestamp]] - [Chapter Name]
 [Summary content presented scientifically using paragraphs, #### and bullet points]
 
 ## Overall Conclusion
@@ -210,14 +210,14 @@ The input content is a video transcript with timestamps. Specific examples, illu
 <EXAMPLE>
 ## Growth Mindset
 
-### 0:00 - Introduction to Growth Mindset
+### [0:00] - Introduction to Growth Mindset
 #### Carol Dweck's concept of **Growth Mindset** vs **Fixed Mindset**
 People with growth mindset believe abilities can be improved through effort.
 
 #### Example of Michael Jordan:
 Cut from high school basketball team but didn't give up, practiced hard and became an NBA legend.
 
-### 3:45 - Research in Education
+### [3:45] - Research in Education
 **Experiment with 400 students**:
 - How praise affects children's mindset
 - Praising "process" is more effective than praising "results"
@@ -225,7 +225,7 @@ Cut from high school basketball team but didn't give up, practiced hard and beca
 
 **Lisa's story**: Weak math student who changed her thinking from "I'm not good at math" to "I'm not good at math yet", eventually achieved an A grade.
 
-### 8:20 - Application in the Workplace
+### [8:20] - Application in the Workplace
 Companies like **Microsoft** apply Growth Mindset in corporate culture, encouraging employees to learn from failure rather than avoid risks.
 
 ## Overall Conclusion

@@ -45,6 +45,7 @@ declare module "wxt/browser" {
     | "/sidepanel.html"
     | "/wxt.svg"
     | "/youtube_comments.js"
+    | "/youtube_player_control.js"
     | "/youtube_transcript.js"
   type HtmlPublicPath = Extract<PublicPath, `${string}.html`>
   export interface WxtRuntime {

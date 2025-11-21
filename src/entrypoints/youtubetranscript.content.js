@@ -13,12 +13,26 @@ export default defineContentScript({
       const script = document.createElement('script')
       script.src = browser.runtime.getURL('youtube_transcript.js')
       script.onload = () => {
-        console.log('[YouTubeTranscript] Script injected successfully')
+        console.log('[YouTubeTranscript] Transcript script injected successfully')
       }
       script.onerror = () => {
-        console.error('[YouTubeTranscript] Failed to inject script')
+        console.error('[YouTubeTranscript] Failed to inject transcript script')
       }
       ;(document.head || document.documentElement).appendChild(script)
+    }
+
+    // Inject youtube_player_control.js for seeking functionality
+    if (!window.youtubePlayerControlInjected) {
+      const controlScript = document.createElement('script')
+      controlScript.src = browser.runtime.getURL('youtube_player_control.js')
+      controlScript.onload = () => {
+        console.log('[YouTubeTranscript] Player control script injected successfully')
+        window.youtubePlayerControlInjected = true
+      }
+      controlScript.onerror = () => {
+        console.error('[YouTubeTranscript] Failed to inject player control script')
+      }
+      ;(document.head || document.documentElement).appendChild(controlScript)
     }
 
     const transcriptExtractor = new MessageBasedTranscriptExtractor('en')
@@ -79,6 +93,24 @@ export default defineContentScript({
 
           case 'pingYouTubeScript':
             sendResponse({ success: true, message: 'pong' })
+            break
+
+          case 'seekToTimestamp':
+            try {
+              // Dispatch a custom event that youtube_transcript.js (running in Main World) will listen to
+              const event = new CustomEvent('Summarizerrrr_Seek', {
+                detail: { seconds: request.seconds }
+              })
+              window.dispatchEvent(event)
+
+              sendResponse({ success: true })
+            } catch (error) {
+              console.error(
+                '[YouTubeTranscript] Error in seekToTimestamp:',
+                error
+              )
+              sendResponse({ success: false, error: error.message })
+            }
             break
 
           default:

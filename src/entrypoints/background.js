@@ -867,15 +867,18 @@ export default defineBackground(() => {
           if (type === 'selectedText') {
             await summarizeSelectedText(payload.text)
             const summary = get(summaryState.selectedTextSummary)
-            sendResponse({ action: 'SUMMARY_RESPONSE', summary, requestId })
+            const modelStatus = get(summaryState.modelStatus)
+            sendResponse({ action: 'SUMMARY_RESPONSE', summary, modelStatus, requestId })
           } else if (type === 'content') {
              const { summarizeContent } = await import('@/lib/api/api.js')
              const summary = await summarizeContent(payload.content, payload.contentType, abortSignal)
-             sendResponse({ action: 'SUMMARY_RESPONSE', summary, requestId })
+             const modelStatus = summaryState.modelStatus
+             sendResponse({ action: 'SUMMARY_RESPONSE', summary, modelStatus, requestId })
           } else if (type === 'chapters') {
              const { summarizeChapters } = await import('@/lib/api/api.js')
              const summary = await summarizeChapters(payload.content, abortSignal)
-             sendResponse({ action: 'SUMMARY_RESPONSE', summary, requestId })
+             const modelStatus = summaryState.modelStatus
+             sendResponse({ action: 'SUMMARY_RESPONSE', summary, modelStatus, requestId })
           } else {
             throw new Error(`Unsupported summary type: ${type}`)
           }

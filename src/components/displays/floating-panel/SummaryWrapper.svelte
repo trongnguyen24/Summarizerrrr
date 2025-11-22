@@ -10,6 +10,7 @@
     error,
     loadingText,
     errorTitle,
+    modelStatus = null,
     children,
     'no-data': noDataSlot,
   } = $props()
@@ -23,7 +24,6 @@
       >
         {loadingText || 'Loading...'}
       </div>
-      <ModelStatusDisplay modelStatus={summaryState.modelStatus} />
     </div>
   {:else if error}
     <div
@@ -40,5 +40,10 @@
     {@render children()}
   {:else if noDataSlot}
     {@render noDataSlot()}
+  {/if}
+
+  <!-- Show model status when available, regardless of loading state -->
+  {#if modelStatus?.currentModel || summaryState.modelStatus?.currentModel}
+    <ModelStatusDisplay modelStatus={modelStatus || summaryState.modelStatus} />
   {/if}
 </div>

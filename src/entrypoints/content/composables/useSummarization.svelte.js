@@ -93,6 +93,17 @@ export function useSummarization() {
       }
       
       if (response.action === 'SUMMARY_RESPONSE') {
+        // Update model status if provided
+        if (response.modelStatus) {
+          console.log('[useSummarization] Updating model status:', JSON.stringify(response.modelStatus))
+          updateModelStatus(
+            response.modelStatus.currentModel,
+            response.modelStatus.fallbackFrom,
+            response.modelStatus.isFallback
+          )
+        } else {
+          console.log('[useSummarization] No modelStatus in response')
+        }
         return response.summary
       } else if (response.action === 'SUMMARY_ABORTED') {
         throw new DOMException('Aborted', 'AbortError')

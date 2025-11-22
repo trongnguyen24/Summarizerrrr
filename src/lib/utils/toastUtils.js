@@ -3,7 +3,25 @@
  * @param {object} props - Props to pass to the toast component
  */
 function dispatchToastEvent(props) {
-  if (typeof window !== 'undefined') {
+  // Check if we're in a background script context
+  const isBackgroundScript = typeof window === 'undefined' || !window.document
+  
+  if (isBackgroundScript) {
+    // In background script: send message to all tabs
+    if (typeof browser !== 'undefined' && browser.tabs) {
+      browser.tabs.query({}).then(tabs => {
+        tabs.forEach(tab => {
+          browser.tabs.sendMessage(tab.id, {
+            type: 'SHOW_TOAST',
+            toast: props
+          }).catch(() => {
+            // Ignore errors for tabs without content scripts
+          })
+        })
+      })
+    }
+  } else {
+    // In content script: dispatch event normally
     window.dispatchEvent(
       new CustomEvent('gemini-toast', {
         detail: props,

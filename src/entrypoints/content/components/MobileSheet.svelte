@@ -139,6 +139,18 @@
     window.addEventListener('keydown', handleKeyDown)
     document.addEventListener('summarizeClick', handleSummarizeClick)
     window.addEventListener('gemini-toast', handleToastEvent)
+
+    // Listen for toast messages from background script
+    const messageListener = (message) => {
+      if (message.type === 'SHOW_TOAST') {
+        handleToastEvent({ detail: message.toast })
+      }
+    }
+    browser.runtime.onMessage.addListener(messageListener)
+
+    return () => {
+      browser.runtime.onMessage.removeListener(messageListener)
+    }
   })
 
   onDestroy(() => {

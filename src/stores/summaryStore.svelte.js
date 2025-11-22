@@ -652,7 +652,12 @@ export async function fetchAndSummarizeStream() {
 
         // If streaming completed with 0 chunks, it might be a silent error
         // Fallback to blocking mode to get proper error
-        if (chunkCount === 0 && summaryState.summary.trim() === '') {
+        // BUT only if not aborted by user
+        if (
+          chunkCount === 0 &&
+          summaryState.summary.trim() === '' &&
+          !abortSignal.aborted
+        ) {
           console.log(
             '[summaryStore] YouTube streaming failed silently (0 chunks), trying blocking mode...'
           )
@@ -751,7 +756,12 @@ export async function fetchAndSummarizeStream() {
         }
 
         // Check if stream completed without content - likely due to API error
-        if (!hasContent && summaryState.summary.trim() === '') {
+        // BUT only if not aborted by user
+        if (
+          !hasContent &&
+          summaryState.summary.trim() === '' &&
+          !abortSignal.aborted
+        ) {
           // Try to get actual error from last global error or fallback to blocking mode
           try {
             console.log(

@@ -185,7 +185,7 @@
 </script>
 
 <div
-  class="toc fixed z-20 right-0 bottom-18 group p-2 pr-3 origin-bottom-right"
+  class="toc fixed z-40 right-0 bottom-18 group p-2 pr-3 origin-bottom-right"
 >
   <div
     class="flex items-end group-hover:opacity-0 transition-all flex-col gap-1.5"

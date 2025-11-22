@@ -35,13 +35,16 @@
   <a
     {href}
     onclick={handleTimestampClick}
-    class="timestamp-link flex w-fit items-center font-medium rounded-md bg-blackwhite/5 text-text-primary mb-2 font-mono hover:bg-blackwhite/10 transition-colors cursor-pointer no-underline border border-border"
+    class="timestamp-link flex w-fit group items-center bg-surface-2 font-medium rounded-md overflow-hidden text-text-primary mb-2 font-mono transition-colors cursor-pointer no-underline border border-border"
     title="Jump to {text}"
   >
-    <span class=" border-r w-full py-1 px-2 text-base border-border">
+    <span class=" border-r w-full py-1 px-3 text-sm border-border">
       {@render children?.()}
     </span>
-    <span class="flex justify-center shrink-0 items-center w-10">
+    <span class="flex relative justify-center shrink-0 items-center w-8 h-7">
+      <span
+        class="absolute top-0 left-0 w-0 h-full bg-blackwhite/5 group-hover:w-full transition-all duration-300 ease-in-out"
+      ></span>
       <svg
         xmlns="http://www.w3.org/2000/svg"
         width="12"

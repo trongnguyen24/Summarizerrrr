@@ -92,6 +92,31 @@ export function stopStreaming() {
     summaryState.abortController.abort()
     summaryState.abortController = null
   }
+
+  // Explicitly reset all loading states to ensure UI updates immediately
+  summaryState.isLoading = false
+  summaryState.isCourseSummaryLoading = false
+  summaryState.isCourseConceptsLoading = false
+  summaryState.isSelectedTextLoading = false
+  summaryState.isCustomActionLoading = false
+
+  // Check if we should reset the display state (if no content was generated)
+  const hasContent =
+    (summaryState.summary && summaryState.summary.trim() !== '') ||
+    (summaryState.courseSummary && summaryState.courseSummary.trim() !== '') ||
+    (summaryState.courseConcepts &&
+      summaryState.courseConcepts.trim() !== '') ||
+    (summaryState.selectedTextSummary &&
+      summaryState.selectedTextSummary.trim() !== '') ||
+    (summaryState.customActionResult &&
+      summaryState.customActionResult.trim() !== '')
+
+  if (!hasContent) {
+    console.log(
+      '[summaryStore] No content generated when stopped, resetting display state'
+    )
+    summaryState.lastSummaryTypeDisplayed = null
+  }
 }
 
 /**

@@ -102,6 +102,11 @@
     }
   }
 
+  function handleStopSummarization() {
+    console.log('[FloatingPanel] Stopping summarization...')
+    summarization.stopSummarization()
+  }
+
   // Detect if current page is YouTube
   let isYouTubeActive = $derived(() => {
     const url = window.location.href
@@ -457,6 +462,8 @@
           {#if !needsApiKeySetup()()}
             <SummarizeButton
               isLoading={summarization.localSummaryState().isLoading}
+              onStop={handleStopSummarization}
+              onClick={handleSummarizeClick}
             />
           {/if}
           {#if summaryToDisplay || summarization.localSummaryState().error}

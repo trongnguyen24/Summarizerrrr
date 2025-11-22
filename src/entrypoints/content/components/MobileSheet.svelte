@@ -275,6 +275,11 @@
     console.log(`[MobileSheet] Executing custom action: ${actionType}`)
     summarization.summarizePageContent(actionType)
   }
+
+  function handleStopSummarization() {
+    console.log('[MobileSheet] Stopping summarization...')
+    summarization.stopSummarization()
+  }
 </script>
 
 <!-- Drawer Container -->
@@ -373,6 +378,8 @@
             <SummarizeButton
               isLoading={statusToDisplay === 'loading'}
               isChapterLoading={false}
+              onStop={handleStopSummarization}
+              onClick={handleSummarizeClick}
             />
           {/if}
           {#if summaryToDisplay || summarization.localSummaryState().error}

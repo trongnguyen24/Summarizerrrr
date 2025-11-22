@@ -11,7 +11,7 @@
   import { fade, scale } from 'svelte/transition'
 
   // Props received from App.svelte
-  let { isLoading, disabled = false } = $props()
+  let { isLoading, disabled = false, onStop = null, onClick = null } = $props()
 
   // Element references for shadow DOM compatibility
   let buttonElement
@@ -40,9 +40,19 @@
     }, 300)
 
     if (isLoading) {
-      stopStreaming()
+      // Nếu có onStop callback (FloatingPanel), dùng nó
+      if (onStop) {
+        onStop()
+      } else {
+        // Fallback cho sidepanel (dùng summaryStore)
+        stopStreaming()
+      }
     } else {
-      fetchAndSummarize()
+      if (onClick) {
+        onClick()
+      } else {
+        fetchAndSummarize()
+      }
     }
   }
 

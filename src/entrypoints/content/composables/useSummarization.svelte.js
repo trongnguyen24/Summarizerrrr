@@ -44,12 +44,19 @@ export function useSummarization() {
     saveError: null,
     pageTitle: '', // Thêm pageTitle
     pageUrl: '', // Thêm pageUrl
+    abortController: null, // AbortController for cancellation
   })
 
   /**
    * Reset local summary state
    */
   function resetLocalSummaryState() {
+    // Abort any ongoing operation
+    if (localSummaryState.abortController) {
+      localSummaryState.abortController.abort()
+      localSummaryState.abortController = null
+    }
+
     localSummaryState.isLoading = false
     localSummaryState.summary = ''
     localSummaryState.error = null
@@ -89,6 +96,38 @@ export function useSummarization() {
     } else if (error.type === 'NETWORK') {
       localSummaryState.error.message =
         'Network error. Please check your connection.'
+    }
+  }
+
+  /**
+   * Stop the current summarization operation
+   * Note: Content script uses blocking mode, so we can't cancel the API call
+   * We can only reset the UI state to stop waiting for the response
+   */
+  function stopSummarization() {
+    console.log('[useSummarization] Stopping summarization...')
+
+    // Abort controller nếu có
+    if (localSummaryState.abortController) {
+      localSummaryState.abortController.abort()
+      localSummaryState.abortController = null
+    }
+
+    // Reset loading states
+    localSummaryState.isLoading = false
+    localSummaryState.isCourseConceptsLoading = false
+
+    // Reset processing flag
+    isProcessing = false
+
+    // Kiểm tra nếu không có content thì reset display
+    const hasContent =
+      localSummaryState.summary && localSummaryState.summary.trim() !== ''
+    if (!hasContent) {
+      console.log(
+        '[useSummarization] No content generated when stopped, resetting display state'
+      )
+      resetLocalSummaryState()
     }
   }
 
@@ -164,6 +203,13 @@ export function useSummarization() {
                 content,
                 settings
               )
+            
+            // Check abort before updating state
+            if (!localSummaryState.abortController) {
+              console.log('[useSummarization] Course summary aborted, skipping update')
+              return
+            }
+
             localSummaryState.summary = result.summary
             console.log(
               '[useSummarization] Course summary completed and displayed'
@@ -185,6 +231,13 @@ export function useSummarization() {
                 content,
                 settings
               )
+            
+            // Check abort before updating state
+            if (!localSummaryState.abortController) {
+              console.log('[useSummarization] Course concepts aborted, skipping update')
+              return
+            }
+
             localSummaryState.courseConcepts = result.courseConcepts
             console.log(
               '[useSummarization] Course concepts completed and displayed'
@@ -218,12 +271,22 @@ export function useSummarization() {
 
           if (customContentType === 'chapters') {
             // Tóm tắt chapters và lưu vào summary field (như một entry riêng)
-            localSummaryState.summary = await summarizeChapters(content)
+            const result = await summarizeChapters(content)
+            
+            // Check abort
+            if (!localSummaryState.abortController) return
+            
+            localSummaryState.summary = result
           } else {
-            localSummaryState.summary = await summarizeContent(
+            const result = await summarizeContent(
               content,
               customContentType
             )
+            
+            // Check abort
+            if (!localSummaryState.abortController) return
+            
+            localSummaryState.summary = result
           }
         } else {
           // Logic gốc cho content thường - CHỈ TÓM TẮT CHÍNH
@@ -232,6 +295,13 @@ export function useSummarization() {
             contentType,
             settings
           )
+          
+          // Check abort
+          if (!localSummaryState.abortController) {
+            console.log('[useSummarization] Summarization aborted, skipping update')
+            return
+          }
+
           localSummaryState.summary = result.summary
           // Không tự động tóm tắt chapters nữa
         }
@@ -311,7 +381,15 @@ export function useSummarization() {
       const { summarizeChapters: apiSummarizeChapters } = await import(
         '@/lib/api/api.js'
       )
-      localSummaryState.summary = await apiSummarizeChapters(content)
+      const result = await apiSummarizeChapters(content)
+
+      // Check abort
+      if (!localSummaryState.abortController) {
+        console.log('[useSummarization] Chapter summarization aborted, skipping update')
+        return
+      }
+
+      localSummaryState.summary = result
 
       console.log('[useSummarization] Chapter summarization completed')
 
@@ -482,10 +560,18 @@ export function useSummarization() {
       // Analyze với AI
       console.log('[useSummarization] Analyzing comments with AI...')
       const { summarizeContent } = await import('@/lib/api/api.js')
-      localSummaryState.summary = await summarizeContent(
+      const result = await summarizeContent(
         formattedComments,
         'commentAnalysis'
       )
+
+      // Check abort
+      if (!localSummaryState.abortController) {
+        console.log('[useSummarization] Comment analysis aborted, skipping update')
+        return
+      }
+
+      localSummaryState.summary = result
 
       console.log('[useSummarization] Comment analysis completed')
 
@@ -636,6 +722,7 @@ export function useSummarization() {
     localSummaryState: () => localSummaryState,
     summaryToDisplay: () => summaryToDisplay,
     statusToDisplay: () => statusToDisplay,
+    isProcessing: () => isProcessing,
 
     // Actions
     summarizePageContent,
@@ -644,5 +731,6 @@ export function useSummarization() {
     resetLocalSummaryState,
     handleSummarizationError,
     manualSaveToArchive,
+    stopSummarization,
   }
 }

@@ -21,6 +21,7 @@ export function useOneClickSummarization() {
     resetLocalSummaryState,
     handleSummarizationError,
     manualSaveToArchive,
+    stopSummarization,
   } = useSummarization()
 
   // State cho one-click behavior
@@ -204,6 +205,7 @@ export function useOneClickSummarization() {
     resetDisplayStateOnly, // NEW: Reset display state khi URL thay đổi
     updateOneClickMode,
     manualSaveToArchive,
+    stopSummarization,
 
     // Direct access to base summarization if needed
     summarizePageContent,

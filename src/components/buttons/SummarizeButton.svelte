@@ -11,7 +11,7 @@
   import { fade, scale } from 'svelte/transition'
 
   // Props received from App.svelte
-  let { isLoading, disabled = false } = $props()
+  let { isLoading, disabled = false, onStop, onSummarize } = $props()
 
   // Element references for shadow DOM compatibility
   let buttonElement
@@ -40,9 +40,17 @@
     }, 300)
 
     if (isLoading) {
-      stopStreaming()
+      if (onStop) {
+        onStop()
+      } else {
+        stopStreaming()
+      }
     } else {
-      fetchAndSummarize()
+      if (onSummarize) {
+        onSummarize()
+      } else {
+        fetchAndSummarize()
+      }
     }
   }
 

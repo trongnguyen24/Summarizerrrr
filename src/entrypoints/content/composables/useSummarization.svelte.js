@@ -3,6 +3,8 @@ import { loadSettings, settings } from '@/stores/settingsStore.svelte.js'
 import { updateModelStatus } from '@/stores/summaryStore.svelte.js'
 import { ContentExtractorService } from '../services/ContentExtractorService.js'
 import { SummarizationService } from '../services/SummarizationService.js'
+import { generateUUID } from '@/lib/utils/utils.js'
+import { browser } from 'wxt/browser'
 import {
   saveToHistory,
   saveToArchive,
@@ -27,23 +29,24 @@ let isProcessing = false
  */
 export function useSummarization() {
   // Local summarization state - independent from global summaryState
-  let localSummaryState = $state({
+  // --- State ---
+  const localSummaryState = $state({
     isLoading: false,
     summary: '',
     error: null,
     contentType: 'general',
     startTime: null,
     streamingEnabled: false,
-    // Extra fields cho FP displays
     courseConcepts: '',
     isCourseConceptsLoading: false,
-    // State cho việc lưu trữ
     isSavedToHistory: false,
     isSavedToArchive: false,
-    historyId: null, // Lưu ID của bản ghi history
+    historyId: null,
     saveError: null,
     pageTitle: '', // Thêm pageTitle
     pageUrl: '', // Thêm pageUrl
+    abortController: null,
+    activeRequestIds: [], // Store active request IDs for background delegation
   })
 
   /**
@@ -64,6 +67,61 @@ export function useSummarization() {
     localSummaryState.saveError = null
     localSummaryState.pageTitle = ''
     localSummaryState.pageUrl = ''
+    localSummaryState.abortController = null
+    localSummaryState.activeRequestIds = []
+  }
+
+  /**
+   * Send summary request to background and handle response
+   */
+  async function requestBackgroundSummary(type, payload) {
+    const requestId = generateUUID()
+    localSummaryState.activeRequestIds.push(requestId)
+    
+    try {
+      const response = await browser.runtime.sendMessage({
+        action: 'REQUEST_SUMMARY',
+        type,
+        payload,
+        requestId
+      })
+      
+      if (response.action === 'SUMMARY_RESPONSE') {
+        return response.summary
+      } else if (response.action === 'SUMMARY_ABORTED') {
+        throw new DOMException('Aborted', 'AbortError')
+      } else {
+        throw new Error(response.error || 'Unknown error')
+      }
+    } finally {
+      localSummaryState.activeRequestIds = localSummaryState.activeRequestIds.filter(id => id !== requestId)
+    }
+  }
+
+  /**
+   * Stop current summarization
+   */
+  function stopSummarization() {
+    // Abort local controller (if any left)
+    if (localSummaryState.abortController) {
+      localSummaryState.abortController.abort()
+      localSummaryState.abortController = null
+    }
+    
+    // Send abort requests for all active background requests
+    if (localSummaryState.activeRequestIds.length > 0) {
+      localSummaryState.activeRequestIds.forEach(requestId => {
+        browser.runtime.sendMessage({
+          action: 'ABORT_REQUEST',
+          requestId
+        }).catch(err => console.warn('[useSummarization] Failed to send abort request:', err))
+      })
+      localSummaryState.activeRequestIds = []
+    }
+
+    localSummaryState.isLoading = false
+    localSummaryState.isCourseConceptsLoading = false
+    isProcessing = false
   }
 
   /**
@@ -92,6 +150,8 @@ export function useSummarization() {
     }
   }
 
+
+
   /**
    * Main summarization function với independent loading
    */
@@ -104,7 +164,7 @@ export function useSummarization() {
       return
     }
 
-    // Set immediate loading state để disable button ngay lập tức
+    // Set immediate loading state
     localSummaryState.isLoading = true
     isProcessing = true
 
@@ -114,6 +174,7 @@ export function useSummarization() {
       // 1. Reset state (giữ lại isLoading = true)
       const wasLoading = localSummaryState.isLoading
       resetLocalSummaryState()
+      
       // Reset global model status
       updateModelStatus(null, null, false)
       localSummaryState.isLoading = wasLoading
@@ -130,7 +191,8 @@ export function useSummarization() {
       const contentExtractor = new ContentExtractorService(
         (settings?.uiLanguage || 'en').slice(0, 2)
       )
-      const summarizationService = new SummarizationService(contentExtractor)
+      // SummarizationService is not needed for API calls anymore, but we might use it for utils if needed.
+      // const summarizationService = new SummarizationService(contentExtractor)
 
       // 4. Extract content MỘT LẦN DUY NHẤT
       let contentType, content
@@ -146,8 +208,8 @@ export function useSummarization() {
         content = extractResult.content
       }
       localSummaryState.contentType = contentType
-      localSummaryState.streamingEnabled =
-        summarizationService.shouldUseStreaming(settings)
+      // Streaming is disabled for FloatingPanel (delegated to background)
+      localSummaryState.streamingEnabled = false
 
       // 5. Course content: Gọi APIs parallel nhưng update UI independently
       if (contentType === 'course') {
@@ -155,16 +217,12 @@ export function useSummarization() {
         localSummaryState.isLoading = true
         localSummaryState.isCourseConceptsLoading = true
 
-        // Course Summary - Independent API call với content đã có
+        // Course Summary - Independent API call
         const courseSummaryPromise = (async () => {
           try {
             console.log('[useSummarization] Starting course summary...')
-            const result =
-              await summarizationService.summarizeCourseSummaryWithContent(
-                content,
-                settings
-              )
-            localSummaryState.summary = result.summary
+            const summary = await requestBackgroundSummary('content', { content, contentType: 'courseSummary' })
+            localSummaryState.summary = summary
             console.log(
               '[useSummarization] Course summary completed and displayed'
             )
@@ -176,16 +234,12 @@ export function useSummarization() {
           }
         })()
 
-        // Course Concepts - Independent API call với content đã có
+        // Course Concepts - Independent API call
         const courseConceptsPromise = (async () => {
           try {
             console.log('[useSummarization] Starting course concepts...')
-            const result =
-              await summarizationService.extractCourseConceptsWithContent(
-                content,
-                settings
-              )
-            localSummaryState.courseConcepts = result.courseConcepts
+            const concepts = await requestBackgroundSummary('content', { content, contentType: 'courseConcepts' })
+            localSummaryState.courseConcepts = concepts
             console.log(
               '[useSummarization] Course concepts completed and displayed'
             )
@@ -212,28 +266,29 @@ export function useSummarization() {
             customContentType
           )
         ) {
-          const { summarizeContent, summarizeChapters } = await import(
-            '@/lib/api/api.js'
-          )
-
           if (customContentType === 'chapters') {
             // Tóm tắt chapters và lưu vào summary field (như một entry riêng)
-            localSummaryState.summary = await summarizeChapters(content)
+            // Need timestamped transcript for chapters
+            // extractPageContent might return it if contentType was youtube, but here customContentType is chapters.
+            // We should try to extract timestamped transcript explicitly if content is not enough?
+            // Actually, let's assume contentExtractor handles it or we call extractTimestampedTranscript.
+            
+            // If we are on YouTube, we should try to get timestamped transcript.
+            const YOUTUBE_MATCH_PATTERN = /youtube\.com\/watch/i
+            if (YOUTUBE_MATCH_PATTERN.test(localSummaryState.pageUrl)) {
+               const timestamped = await contentExtractor.extractTimestampedTranscript()
+               if (timestamped) {
+                 content = timestamped
+               }
+            }
+            
+            localSummaryState.summary = await requestBackgroundSummary('chapters', { content })
           } else {
-            localSummaryState.summary = await summarizeContent(
-              content,
-              customContentType
-            )
+            localSummaryState.summary = await requestBackgroundSummary('content', { content, contentType: customContentType })
           }
         } else {
           // Logic gốc cho content thường - CHỈ TÓM TẮT CHÍNH
-          const result = await summarizationService.summarizeWithContent(
-            content,
-            contentType,
-            settings
-          )
-          localSummaryState.summary = result.summary
-          // Không tự động tóm tắt chapters nữa
+          localSummaryState.summary = await requestBackgroundSummary('content', { content, contentType })
         }
 
         localSummaryState.isLoading = false
@@ -274,6 +329,7 @@ export function useSummarization() {
    * Chapters được lưu vào summary field để auto-save như một entry riêng
    */
   async function summarizeChapters() {
+    // Prevent multiple concurrent requests
     if (isProcessing) {
       console.log(
         '[useSummarization] Already processing, ignoring duplicate request'
@@ -281,8 +337,6 @@ export function useSummarization() {
       return
     }
 
-    // Reset summary trước để chapters được lưu như một entry mới
-    localSummaryState.summary = ''
     // Reset global model status
     updateModelStatus(null, null, false)
     localSummaryState.isLoading = true
@@ -307,16 +361,13 @@ export function useSummarization() {
       const extractResult = await contentExtractor.extractPageContent()
       const content = extractResult.content
 
-      // Call chapter summarization và lưu vào summary field
-      const { summarizeChapters: apiSummarizeChapters } = await import(
-        '@/lib/api/api.js'
-      )
-      localSummaryState.summary = await apiSummarizeChapters(content)
+      // Call chapter summarization via background
+      localSummaryState.summary = await requestBackgroundSummary('chapters', { content })
 
       console.log('[useSummarization] Chapter summarization completed')
 
-      // Auto-save to history - sẽ lưu summary (chứa chapters) như một entry riêng
-      await autoSaveToHistory('Chapters')
+      // Auto save to history
+      autoSaveToHistory('Chapters')
 
       // Update Deep Dive context
       await handleDeepDiveAfterSummary()
@@ -347,6 +398,14 @@ export function useSummarization() {
     updateModelStatus(null, null, false)
     localSummaryState.isLoading = true
     isProcessing = true
+
+    // Create new AbortController
+    if (localSummaryState.abortController) {
+      localSummaryState.abortController.abort()
+    }
+    const controller = new AbortController()
+    localSummaryState.abortController = controller
+    const abortSignal = controller.signal
 
     try {
       console.log('[useSummarization] Starting comment analysis...')
@@ -479,18 +538,14 @@ export function useSummarization() {
         formattedComments.length
       )
 
-      // Analyze với AI
+      // Analyze với AI via background
       console.log('[useSummarization] Analyzing comments with AI...')
-      const { summarizeContent } = await import('@/lib/api/api.js')
-      localSummaryState.summary = await summarizeContent(
-        formattedComments,
-        'commentAnalysis'
-      )
+      localSummaryState.summary = await requestBackgroundSummary('content', { content: formattedComments, contentType: 'commentAnalysis' })
 
       console.log('[useSummarization] Comment analysis completed')
 
-      // Auto-save to history
-      await autoSaveToHistory('Comments')
+      // Auto save to history
+      autoSaveToHistory('Comment Analysis')
 
       // Update Deep Dive context
       await handleDeepDiveAfterSummary()
@@ -639,6 +694,7 @@ export function useSummarization() {
 
     // Actions
     summarizePageContent,
+    stopSummarization,
     summarizeChapters,
     summarizeComments,
     resetLocalSummaryState,

@@ -259,7 +259,7 @@ export class SummarizationService {
    * @param {string} contentType
    * @returns {Promise<{summary: string, chapterSummary?: string}>}
    */
-  async summarizeWithoutStreaming(content, contentType) {
+  async summarizeWithoutStreaming(content, contentType, abortSignal = null) {
     let summary = ''
     let chapterSummary = ''
 
@@ -267,7 +267,7 @@ export class SummarizationService {
       // YouTube: tạo cả video summary và chapter summary parallel
       const videoSummaryPromise = (async () => {
         try {
-          summary = await summarizeContent(content, 'youtube')
+          summary = await summarizeContent(content, 'youtube', abortSignal)
         } catch (error) {
           console.error('[SummarizationService] Video summary error:', error)
           throw error
@@ -310,7 +310,7 @@ export class SummarizationService {
 
       const courseSummaryPromise = (async () => {
         try {
-          summary = await summarizeContent(content, 'courseSummary')
+          summary = await summarizeContent(content, 'courseSummary', abortSignal)
         } catch (error) {
           console.error('[SummarizationService] Course summary error:', error)
           throw error
@@ -319,7 +319,7 @@ export class SummarizationService {
 
       const courseConceptsPromise = (async () => {
         try {
-          courseConcepts = await summarizeContent(content, 'courseConcepts')
+          courseConcepts = await summarizeContent(content, 'courseConcepts', abortSignal)
         } catch (error) {
           console.error('[SummarizationService] Course concepts error:', error)
           courseConcepts = '<p><i>Could not generate course concepts.</i></p>'
@@ -333,7 +333,7 @@ export class SummarizationService {
     } else {
       // Non-YouTube, Non-Course: regular summarization
       try {
-        summary = await summarizeContent(content, contentType)
+        summary = await summarizeContent(content, contentType, abortSignal)
       } catch (error) {
         throw error
       }
@@ -349,7 +349,7 @@ export class SummarizationService {
    * @param {Object} settings
    * @returns {Promise<{summary: string, chapterSummary?: string, contentType: string}>}
    */
-  async summarizeWithContent(content, contentType, settings) {
+  async summarizeWithContent(content, contentType, settings, abortSignal = null) {
     // Xác định phương thức summarization
     const useStreaming = this.shouldUseStreaming(settings)
     const selectedProvider = settings.selectedProvider || 'gemini'
@@ -358,7 +358,7 @@ export class SummarizationService {
     if (useStreaming) {
       result = await this.summarizeWithStreaming(content, contentType)
     } else {
-      result = await this.summarizeWithoutStreaming(content, contentType)
+      result = await this.summarizeWithoutStreaming(content, contentType, abortSignal)
     }
 
     return {

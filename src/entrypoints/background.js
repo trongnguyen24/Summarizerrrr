@@ -834,23 +834,71 @@ export default defineBackground(() => {
       })()
       return true
     }
+    // Map to store AbortControllers for FloatingPanel requests
+    // Key: requestId, Value: AbortController
+    const floatingPanelControllers = new Map()
+
+    if (message.action === 'ABORT_REQUEST') {
+      const { requestId } = message
+      
+      if (requestId && floatingPanelControllers.has(requestId)) {
+        const controller = floatingPanelControllers.get(requestId)
+        controller.abort()
+        floatingPanelControllers.delete(requestId)
+        sendResponse({ success: true })
+      } else {
+        sendResponse({ success: false, error: 'Request not found' })
+      }
+      return true
+    }
+
     if (message.action === 'REQUEST_SUMMARY') {
       ;(async () => {
         const { type, payload, requestId } = message
+        
+        // Create AbortController for this request
+        const controller = new AbortController()
+        if (requestId) {
+          floatingPanelControllers.set(requestId, controller)
+        }
+        const abortSignal = controller.signal
+
         try {
           if (type === 'selectedText') {
             await summarizeSelectedText(payload.text)
             const summary = get(summaryState.selectedTextSummary)
             sendResponse({ action: 'SUMMARY_RESPONSE', summary, requestId })
+          } else if (type === 'content') {
+             const { summarizeContent } = await import('@/lib/api/api.js')
+             const summary = await summarizeContent(payload.content, payload.contentType, abortSignal)
+             sendResponse({ action: 'SUMMARY_RESPONSE', summary, requestId })
+          } else if (type === 'chapters') {
+             const { summarizeChapters } = await import('@/lib/api/api.js')
+             const summary = await summarizeChapters(payload.content, abortSignal)
+             sendResponse({ action: 'SUMMARY_RESPONSE', summary, requestId })
           } else {
             throw new Error(`Unsupported summary type: ${type}`)
           }
         } catch (error) {
-          sendResponse({
-            action: 'SUMMARY_ERROR',
-            error: error.message,
-            requestId,
-          })
+          console.error('[Background] REQUEST_SUMMARY error:', error)
+          
+          // Check if aborted
+          if (abortSignal.aborted || error.name === 'AbortError') {
+             sendResponse({
+              action: 'SUMMARY_ABORTED',
+              requestId,
+            })
+          } else {
+            sendResponse({
+              action: 'SUMMARY_ERROR',
+              error: error.message,
+              requestId,
+            })
+          }
+        } finally {
+          if (requestId) {
+            floatingPanelControllers.delete(requestId)
+          }
         }
       })()
       return true

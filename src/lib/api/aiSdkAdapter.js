@@ -173,8 +173,10 @@ export async function generateContent(
   providerId,
   settings,
   systemInstruction,
-  userPrompt
+  userPrompt,
+  options = {}
 ) {
+  const { abortSignal } = options
   // Check if auto-fallback is enabled (Gemini Basic only)
   const autoFallbackEnabled = shouldEnableAutoFallback(providerId, settings)
   let currentModel = autoFallbackEnabled
@@ -235,6 +237,7 @@ export async function generateContent(
           prompt: userPrompt,
           maxRetries: 0, // Disable AI SDK built-in retry to allow custom fallback to work faster
           ...generationConfig,
+          abortSignal,
         })
         console.log(`[aiSdkAdapter] ✅ API Success - Model: ${modelName}`)
         return text

@@ -457,6 +457,8 @@
           {#if !needsApiKeySetup()()}
             <SummarizeButton
               isLoading={summarization.localSummaryState().isLoading}
+              onStop={() => summarization.stopSummarization()}
+              onSummarize={() => summarization.summarizePageContent()}
             />
           {/if}
           {#if summaryToDisplay || summarization.localSummaryState().error}

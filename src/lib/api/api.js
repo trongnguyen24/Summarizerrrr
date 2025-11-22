@@ -94,7 +94,7 @@ function validateApiKey(userSettings, selectedProviderId) {
  * @param {'youtube' | 'general' | 'selectedText' | 'analyze' | 'explain' | 'debate'} contentType - The type of content being summarized.
  * @returns {Promise<string>} - Promise that resolves with the summary in Markdown format.
  */
-export async function summarizeContent(text, contentType) {
+export async function summarizeContent(text, contentType, abortSignal = null) {
   // Ensure settings are initialized
   await loadSettings()
 
@@ -150,7 +150,8 @@ export async function summarizeContent(text, contentType) {
       selectedProviderId,
       userSettings,
       systemInstruction,
-      userPrompt
+      userPrompt,
+      { abortSignal }
     )
   } catch (e) {
     console.error(`AI SDK Error for ${selectedProviderId}:`, e)
@@ -313,7 +314,7 @@ export async function enhancePrompt(userPrompt) {
  * @param {string} timestampedTranscript - Video transcript with timestamps.
  * @returns {Promise<string>} - Promise that resolves with the chapter summary in Markdown format.
  */
-export async function summarizeChapters(timestampedTranscript) {
+export async function summarizeChapters(timestampedTranscript, abortSignal = null) {
   // Ensure settings are initialized
   await loadSettings()
 
@@ -346,7 +347,8 @@ export async function summarizeChapters(timestampedTranscript) {
       selectedProviderId,
       userSettings,
       systemInstruction,
-      userPrompt
+      userPrompt,
+      { abortSignal }
     )
   } catch (e) {
     console.error(`AI SDK Error for ${selectedProviderId} (Chapters):`, e)

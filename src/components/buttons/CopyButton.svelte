@@ -1,4 +1,3 @@
-<!-- @ts-nocheck -->
 <script>
   import { t } from 'svelte-i18n'
   import Icon, { loadIcons } from '@iconify/svelte'
@@ -40,6 +39,14 @@
   function cleanElementStyles(element) {
     // Clone element để không ảnh hưởng đến original
     const cleanElement = element.cloneNode(true)
+
+    // Always remove timestamps
+    // Remove timestamp links (both specific class and href pattern)
+    cleanElement
+      .querySelectorAll('.timestamp-link, a[href^="timestamp:"]')
+      .forEach((el) => {
+        el.remove()
+      })
 
     // Force reset màu mặc định cho element gốc
     cleanElement.style.cssText = `
@@ -227,13 +234,15 @@
       if (text != null) {
         // Nếu có text được truyền trực tiếp, chỉ copy plain text
         content = asString(text)
+        // Always remove timestamps
+        content = content.replace(/\[\d{1,2}:\d{2}(?::\d{2})?\]/g, '')
         await writeToClipboard(content)
       } else {
         const sel = normalizeId(targetId)
         const el = sel ? findInSameTree(sel, root) : null
         if (!el) {
           console.warn(
-            `Không tìm thấy element với id "${targetId}" trong DOM/Shadow DOM`
+            `Không tìm thấy element với id "${targetId}" trong DOM/Shadow DOM`,
           )
           return
         }
@@ -244,6 +253,8 @@
         ) {
           // Input/textarea chỉ có plain text
           content = asString(el.value)
+          // Always remove timestamps
+          content = content.replace(/\[\d{1,2}:\d{2}(?::\d{2})?\]/g, '')
           await writeToClipboard(content)
         } else {
           // Element khác: thử copy với Selection API trước (giữ HTML format)
@@ -253,13 +264,15 @@
             // Fallback: copy plain text nếu Selection API thất bại
             console.warn(
               'Selection API failed, falling back to plain text:',
-              selectionError
+              selectionError,
             )
             content = asString(el.innerText?.trim() || el.textContent?.trim())
             if (!content) {
               console.warn('Không có nội dung để copy')
               return
             }
+            // Always remove timestamps
+            content = content.replace(/\[\d{1,2}:\d{2}(?::\d{2})?\]/g, '')
             await writeToClipboard(content)
           }
         }

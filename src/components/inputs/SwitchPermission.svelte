@@ -4,12 +4,6 @@
   import Icon from '@iconify/svelte'
 
   let { id, name, checked = $bindable(), onCheckedChange } = $props()
-
-  $effect(() => {
-    if (onCheckedChange) {
-      onCheckedChange(checked)
-    }
-  })
 </script>
 
 <div class="flex flex-row items-center gap-0.5">
@@ -17,6 +11,7 @@
     {id}
     {name}
     bind:checked
+    {onCheckedChange}
     title="Active custom prompt"
     class="focus-visible:ring-primary group overflow-hidden relative  text-text-secondary flex items-center focus-visible:ring-offset-background pl-8 pr-2  transition-colors focus-visible:outline-hidden w-full h-9  cursor-pointer  focus-visible:ring-1 focus-visible:ring-offset-1 data-[state=checked]:border-border data-[state=checked]:text-white"
   >

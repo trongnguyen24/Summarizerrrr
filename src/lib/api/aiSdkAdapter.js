@@ -173,7 +173,8 @@ export async function generateContent(
   providerId,
   settings,
   systemInstruction,
-  userPrompt
+  userPrompt,
+  options = {}
 ) {
   // Check if auto-fallback is enabled (Gemini Basic only)
   const autoFallbackEnabled = shouldEnableAutoFallback(providerId, settings)
@@ -223,6 +224,7 @@ export async function generateContent(
           system: systemInstruction,
           prompt: userPrompt,
           ...generationConfig,
+          ...(options.abortSignal && { abortSignal: options.abortSignal }),
         })
         console.log('[DEBUG] Proxy raw result:', result.text) // Add debug log
         console.log(`[aiSdkAdapter] ✅ API Success - Model: ${modelName}`)
@@ -235,6 +237,7 @@ export async function generateContent(
           prompt: userPrompt,
           maxRetries: 0, // Disable AI SDK built-in retry to allow custom fallback to work faster
           ...generationConfig,
+          ...(options.abortSignal && { abortSignal: options.abortSignal }),
         })
         console.log(`[aiSdkAdapter] ✅ API Success - Model: ${modelName}`)
         return text
@@ -263,6 +266,12 @@ export async function generateContent(
       })
 
       lastError = error
+
+      // Check if this is an abort error - if so, just return (don't throw)
+      if (error.name === 'AbortError' || error.message?.includes('aborted')) {
+        console.log('[aiSdkAdapter] Request aborted by user')
+        throw error // Re-throw abort error so caller knows it was aborted
+      }
 
       // Check if we should try fallback
       if (autoFallbackEnabled && isOverloadError(error)) {

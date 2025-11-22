@@ -47,6 +47,9 @@ export function useSummarization() {
     currentRequestId: null, // Unique ID for the current summarization request
   })
 
+  // AbortController to handle cancellation
+  let abortController = null
+
   /**
    * Reset local summary state
    */
@@ -75,6 +78,12 @@ export function useSummarization() {
    * @param {Error} error
    */
   function handleSummarizationError(error) {
+    // Ignore AbortError
+    if (error.name === 'AbortError' || error.message?.includes('aborted')) {
+      console.log('[useSummarization] Operation aborted, ignoring error')
+      return
+    }
+
     console.error('[useSummarization] Summarization error:', error)
 
     localSummaryState.error = {
@@ -98,11 +107,15 @@ export function useSummarization() {
 
   /**
    * Stop the current summarization operation
-   * Note: Content script uses blocking mode, so we can't cancel the API call
-   * We can only reset the UI state to stop waiting for the response
    */
   function stopSummarization() {
     console.log('[useSummarization] Stopping summarization...')
+
+    // Abort current request if exists
+    if (abortController) {
+      abortController.abort()
+      abortController = null
+    }
 
     // Invalidate current request
     localSummaryState.currentRequestId = null
@@ -136,6 +149,14 @@ export function useSummarization() {
       )
       return
     }
+
+    // Cancel any previous request
+    if (abortController) {
+      abortController.abort()
+    }
+    // Create new AbortController
+    abortController = new AbortController()
+    const signal = abortController.signal
 
     // Set immediate loading state để disable button ngay lập tức
     localSummaryState.isLoading = true
@@ -189,6 +210,9 @@ export function useSummarization() {
       localSummaryState.streamingEnabled =
         summarizationService.shouldUseStreaming(settings)
 
+      // Check abort signal
+      if (signal.aborted) throw new Error('Aborted')
+
       // 5. Course content: Gọi APIs parallel nhưng update UI independently
       if (contentType === 'course') {
         // Start both loading states
@@ -202,7 +226,8 @@ export function useSummarization() {
             const result =
               await summarizationService.summarizeCourseSummaryWithContent(
                 content,
-                settings
+                settings,
+                signal
               )
             
             // Check request ID before updating state
@@ -216,6 +241,7 @@ export function useSummarization() {
               '[useSummarization] Course summary completed and displayed'
             )
           } catch (error) {
+            if (error.name === 'AbortError' || signal.aborted) return
             console.error('[useSummarization] Course summary error:', error)
             handleSummarizationError(error)
           } finally {
@@ -233,7 +259,8 @@ export function useSummarization() {
             const result =
               await summarizationService.extractCourseConceptsWithContent(
                 content,
-                settings
+                settings,
+                signal
               )
             
             // Check request ID before updating state
@@ -247,6 +274,7 @@ export function useSummarization() {
               '[useSummarization] Course concepts completed and displayed'
             )
           } catch (error) {
+            if (error.name === 'AbortError' || signal.aborted) return
             console.error('[useSummarization] Course concepts error:', error)
             // Set fallback content for concepts
             localSummaryState.courseConcepts =
@@ -278,7 +306,7 @@ export function useSummarization() {
 
           if (customContentType === 'chapters') {
             // Tóm tắt chapters và lưu vào summary field (như một entry riêng)
-            const result = await summarizeChapters(content)
+            const result = await summarizeChapters(content, signal)
             
             // Check request ID
             if (localSummaryState.currentRequestId !== requestId) return
@@ -287,7 +315,8 @@ export function useSummarization() {
           } else {
             const result = await summarizeContent(
               content,
-              customContentType
+              customContentType,
+              signal
             )
             
             // Check request ID
@@ -300,7 +329,8 @@ export function useSummarization() {
           const result = await summarizationService.summarizeWithContent(
             content,
             contentType,
-            settings
+            settings,
+            signal
           )
           
           // Check request ID
@@ -349,6 +379,10 @@ export function useSummarization() {
     } finally {
       // Reset processing flag
       isProcessing = false
+      // Reset abort controller if it's the current one
+      if (abortController && abortController.signal === signal) {
+        abortController = null
+      }
     }
   }
 
@@ -363,6 +397,14 @@ export function useSummarization() {
       )
       return
     }
+
+    // Cancel any previous request
+    if (abortController) {
+      abortController.abort()
+    }
+    // Create new AbortController
+    abortController = new AbortController()
+    const signal = abortController.signal
 
     // Generate new request ID
     const requestId = Date.now().toString()
@@ -394,11 +436,14 @@ export function useSummarization() {
       const extractResult = await contentExtractor.extractPageContent()
       const content = extractResult.content
 
+      // Check abort signal
+      if (signal.aborted) throw new Error('Aborted')
+
       // Call chapter summarization và lưu vào summary field
       const { summarizeChapters: apiSummarizeChapters } = await import(
         '@/lib/api/api.js'
       )
-      const result = await apiSummarizeChapters(content)
+      const result = await apiSummarizeChapters(content, signal)
 
       // Check request ID
       if (localSummaryState.currentRequestId !== requestId) {
@@ -425,6 +470,9 @@ export function useSummarization() {
         localSummaryState.isLoading = false
       }
       isProcessing = false
+      if (abortController && abortController.signal === signal) {
+        abortController = null
+      }
     }
   }
 
@@ -439,6 +487,14 @@ export function useSummarization() {
       )
       return
     }
+
+    // Cancel any previous request
+    if (abortController) {
+      abortController.abort()
+    }
+    // Create new AbortController
+    abortController = new AbortController()
+    const signal = abortController.signal
 
     // Generate new request ID
     const requestId = Date.now().toString()
@@ -493,6 +549,9 @@ export function useSummarization() {
           }
         )
       })
+
+      // Check abort signal
+      if (signal.aborted) throw new Error('Aborted')
 
       console.log('[useSummarization] Comments received:', response)
 
@@ -587,7 +646,8 @@ export function useSummarization() {
       const { summarizeContent } = await import('@/lib/api/api.js')
       const result = await summarizeContent(
         formattedComments,
-        'commentAnalysis'
+        'commentAnalysis',
+        signal
       )
 
       // Check request ID
@@ -615,6 +675,9 @@ export function useSummarization() {
         localSummaryState.isLoading = false
       }
       isProcessing = false
+      if (abortController && abortController.signal === signal) {
+        abortController = null
+      }
     }
   }
 

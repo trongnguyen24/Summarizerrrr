@@ -41,9 +41,10 @@ export class SummarizationService {
    * Summarize với streaming
    * @param {string} content
    * @param {string} contentType
+   * @param {AbortSignal} [abortSignal]
    * @returns {Promise<{summary: string, chapterSummary?: string}>}
    */
-  async summarizeWithStreaming(content, contentType) {
+  async summarizeWithStreaming(content, contentType, abortSignal) {
     let summary = ''
     let chapterSummary = ''
 
@@ -57,7 +58,7 @@ export class SummarizationService {
       // Video summary stream
       const videoSummaryPromise = (async () => {
         try {
-          const stream = summarizeContentStream(content, 'youtube')
+          const stream = summarizeContentStream(content, 'youtube', abortSignal)
           for await (const chunk of stream) {
             summary += chunk
           }
@@ -76,7 +77,7 @@ export class SummarizationService {
               '[SummarizationService] Falling back to non-streaming for Firefox mobile'
             )
             // Fallback to non-streaming
-            summary = await summarizeContent(content, 'youtube')
+            summary = await summarizeContent(content, 'youtube', abortSignal)
             return
           }
 
@@ -98,7 +99,7 @@ export class SummarizationService {
             timestampedTranscript &&
             timestampedTranscript.trim().length > 50
           ) {
-            const chapterStream = summarizeChaptersStream(timestampedTranscript)
+            const chapterStream = summarizeChaptersStream(timestampedTranscript, abortSignal)
             for await (const chunk of chapterStream) {
               chapterSummary += chunk
             }
@@ -131,7 +132,7 @@ export class SummarizationService {
                 timestampedTranscript &&
                 timestampedTranscript.trim().length > 50
               ) {
-                chapterSummary = await summarizeChapters(timestampedTranscript)
+                chapterSummary = await summarizeChapters(timestampedTranscript, abortSignal)
               } else {
                 chapterSummary =
                   '<p><i>Timestamped transcript not available for chapter summary.</i></p>'
@@ -158,7 +159,7 @@ export class SummarizationService {
 
       const courseSummaryPromise = (async () => {
         try {
-          const stream = summarizeContentStream(content, 'courseSummary')
+          const stream = summarizeContentStream(content, 'courseSummary', abortSignal)
           for await (const chunk of stream) {
             summary += chunk
           }
@@ -177,7 +178,7 @@ export class SummarizationService {
               '[SummarizationService] Falling back to non-streaming course summary for Firefox mobile'
             )
             // Fallback to non-streaming
-            summary = await summarizeContent(content, 'courseSummary')
+            summary = await summarizeContent(content, 'courseSummary', abortSignal)
             return
           }
 
@@ -189,7 +190,7 @@ export class SummarizationService {
       let courseConcepts = ''
       const courseConceptsPromise = (async () => {
         try {
-          const stream = summarizeContentStream(content, 'courseConcepts')
+          const stream = summarizeContentStream(content, 'courseConcepts', abortSignal)
           for await (const chunk of stream) {
             courseConcepts += chunk
           }
@@ -208,7 +209,7 @@ export class SummarizationService {
               '[SummarizationService] Falling back to non-streaming course concepts for Firefox mobile'
             )
             // Fallback to non-streaming
-            courseConcepts = await summarizeContent(content, 'courseConcepts')
+            courseConcepts = await summarizeContent(content, 'courseConcepts', abortSignal)
             return
           }
 
@@ -224,7 +225,7 @@ export class SummarizationService {
     } else {
       // Non-YouTube, Non-Course: regular streaming
       try {
-        const stream = summarizeContentStream(content, contentType)
+        const stream = summarizeContentStream(content, contentType, abortSignal)
         for await (const chunk of stream) {
           summary += chunk
         }
@@ -238,7 +239,7 @@ export class SummarizationService {
             '[SummarizationService] Falling back to non-streaming for Firefox mobile'
           )
           // Fallback to non-streaming
-          summary = await summarizeContent(content, contentType)
+          summary = await summarizeContent(content, contentType, abortSignal)
           console.log(
             '[SummarizationService] Fallback summary result:',
             summary ? 'has content' : 'empty'
@@ -257,9 +258,10 @@ export class SummarizationService {
    * Summarize không streaming
    * @param {string} content
    * @param {string} contentType
+   * @param {AbortSignal} [abortSignal]
    * @returns {Promise<{summary: string, chapterSummary?: string}>}
    */
-  async summarizeWithoutStreaming(content, contentType) {
+  async summarizeWithoutStreaming(content, contentType, abortSignal) {
     let summary = ''
     let chapterSummary = ''
 
@@ -267,7 +269,7 @@ export class SummarizationService {
       // YouTube: tạo cả video summary và chapter summary parallel
       const videoSummaryPromise = (async () => {
         try {
-          summary = await summarizeContent(content, 'youtube')
+          summary = await summarizeContent(content, 'youtube', abortSignal)
         } catch (error) {
           console.error('[SummarizationService] Video summary error:', error)
           throw error
@@ -286,7 +288,7 @@ export class SummarizationService {
             timestampedTranscript &&
             timestampedTranscript.trim().length > 50
           ) {
-            const result = await summarizeChapters(timestampedTranscript)
+            const result = await summarizeChapters(timestampedTranscript, abortSignal)
             chapterSummary =
               result || '<p><i>Could not generate chapter summary.</i></p>'
           } else {
@@ -310,7 +312,7 @@ export class SummarizationService {
 
       const courseSummaryPromise = (async () => {
         try {
-          summary = await summarizeContent(content, 'courseSummary')
+          summary = await summarizeContent(content, 'courseSummary', abortSignal)
         } catch (error) {
           console.error('[SummarizationService] Course summary error:', error)
           throw error
@@ -319,7 +321,7 @@ export class SummarizationService {
 
       const courseConceptsPromise = (async () => {
         try {
-          courseConcepts = await summarizeContent(content, 'courseConcepts')
+          courseConcepts = await summarizeContent(content, 'courseConcepts', abortSignal)
         } catch (error) {
           console.error('[SummarizationService] Course concepts error:', error)
           courseConcepts = '<p><i>Could not generate course concepts.</i></p>'
@@ -333,7 +335,7 @@ export class SummarizationService {
     } else {
       // Non-YouTube, Non-Course: regular summarization
       try {
-        summary = await summarizeContent(content, contentType)
+        summary = await summarizeContent(content, contentType, abortSignal)
       } catch (error) {
         throw error
       }
@@ -347,18 +349,19 @@ export class SummarizationService {
    * @param {string} content - Nội dung đã trích xuất
    * @param {string} contentType - Loại nội dung
    * @param {Object} settings
+   * @param {AbortSignal} [abortSignal]
    * @returns {Promise<{summary: string, chapterSummary?: string, contentType: string}>}
    */
-  async summarizeWithContent(content, contentType, settings) {
+  async summarizeWithContent(content, contentType, settings, abortSignal) {
     // Xác định phương thức summarization
     const useStreaming = this.shouldUseStreaming(settings)
     const selectedProvider = settings.selectedProvider || 'gemini'
 
     let result
     if (useStreaming) {
-      result = await this.summarizeWithStreaming(content, contentType)
+      result = await this.summarizeWithStreaming(content, contentType, abortSignal)
     } else {
-      result = await this.summarizeWithoutStreaming(content, contentType)
+      result = await this.summarizeWithoutStreaming(content, contentType, abortSignal)
     }
 
     return {
@@ -370,9 +373,10 @@ export class SummarizationService {
   /**
    * Thực hiện summarization
    * @param {Object} settings
+   * @param {AbortSignal} [abortSignal]
    * @returns {Promise<{summary: string, chapterSummary?: string, contentType: string}>}
    */
-  async summarize(settings) {
+  async summarize(settings, abortSignal) {
     // Extract content
     const { content, contentType } =
       await this.contentExtractorService.extractPageContent()
@@ -383,9 +387,9 @@ export class SummarizationService {
 
     let result
     if (useStreaming) {
-      result = await this.summarizeWithStreaming(content, contentType)
+      result = await this.summarizeWithStreaming(content, contentType, abortSignal)
     } else {
-      result = await this.summarizeWithoutStreaming(content, contentType)
+      result = await this.summarizeWithoutStreaming(content, contentType, abortSignal)
     }
 
     return {
@@ -397,9 +401,10 @@ export class SummarizationService {
   /**
    * Summarize course content only (independent call)
    * @param {Object} settings
+   * @param {AbortSignal} [abortSignal]
    * @returns {Promise<{summary: string, contentType: string}>}
    */
-  async summarizeCourseSummary(settings) {
+  async summarizeCourseSummary(settings, abortSignal) {
     // Extract content
     const { content, contentType } =
       await this.contentExtractorService.extractPageContent()
@@ -414,13 +419,13 @@ export class SummarizationService {
     try {
       if (useStreaming) {
         // Streaming mode
-        const stream = summarizeContentStream(content, 'courseSummary')
+        const stream = summarizeContentStream(content, 'courseSummary', abortSignal)
         for await (const chunk of stream) {
           summary += chunk
         }
       } else {
         // Non-streaming mode
-        summary = await summarizeContent(content, 'courseSummary')
+        summary = await summarizeContent(content, 'courseSummary', abortSignal)
       }
     } catch (error) {
       // Firefox mobile fallback
@@ -432,7 +437,7 @@ export class SummarizationService {
         console.log(
           '[SummarizationService] Falling back to non-streaming for course summary'
         )
-        summary = await summarizeContent(content, 'courseSummary')
+        summary = await summarizeContent(content, 'courseSummary', abortSignal)
       } else {
         throw error
       }
@@ -448,9 +453,10 @@ export class SummarizationService {
    * Summarize course content only với content đã có (independent call)
    * @param {string} content - Nội dung đã trích xuất
    * @param {Object} settings
+   * @param {AbortSignal} [abortSignal]
    * @returns {Promise<{summary: string, contentType: string}>}
    */
-  async summarizeCourseSummaryWithContent(content, settings) {
+  async summarizeCourseSummaryWithContent(content, settings, abortSignal) {
     // Xác định phương thức summarization
     const useStreaming = this.shouldUseStreaming(settings)
     const selectedProvider = settings.selectedProvider || 'gemini'
@@ -461,13 +467,13 @@ export class SummarizationService {
     try {
       if (useStreaming) {
         // Streaming mode
-        const stream = summarizeContentStream(content, 'courseSummary')
+        const stream = summarizeContentStream(content, 'courseSummary', abortSignal)
         for await (const chunk of stream) {
           summary += chunk
         }
       } else {
         // Non-streaming mode
-        summary = await summarizeContent(content, 'courseSummary')
+        summary = await summarizeContent(content, 'courseSummary', abortSignal)
       }
     } catch (error) {
       // Firefox mobile fallback
@@ -479,7 +485,7 @@ export class SummarizationService {
         console.log(
           '[SummarizationService] Falling back to non-streaming for course summary'
         )
-        summary = await summarizeContent(content, 'courseSummary')
+        summary = await summarizeContent(content, 'courseSummary', abortSignal)
       } else {
         throw error
       }
@@ -495,9 +501,10 @@ export class SummarizationService {
    * Extract course concepts only với content đã có (independent call)
    * @param {string} content - Nội dung đã trích xuất
    * @param {Object} settings
+   * @param {AbortSignal} [abortSignal]
    * @returns {Promise<{courseConcepts: string, contentType: string}>}
    */
-  async extractCourseConceptsWithContent(content, settings) {
+  async extractCourseConceptsWithContent(content, settings, abortSignal) {
     // Xác định phương thức summarization
     const useStreaming = this.shouldUseStreaming(settings)
     const selectedProvider = settings.selectedProvider || 'gemini'
@@ -508,13 +515,13 @@ export class SummarizationService {
     try {
       if (useStreaming) {
         // Streaming mode
-        const stream = summarizeContentStream(content, 'courseConcepts')
+        const stream = summarizeContentStream(content, 'courseConcepts', abortSignal)
         for await (const chunk of stream) {
           courseConcepts += chunk
         }
       } else {
         // Non-streaming mode
-        courseConcepts = await summarizeContent(content, 'courseConcepts')
+        courseConcepts = await summarizeContent(content, 'courseConcepts', abortSignal)
       }
     } catch (error) {
       // Firefox mobile fallback
@@ -526,7 +533,7 @@ export class SummarizationService {
         console.log(
           '[SummarizationService] Falling back to non-streaming for course concepts'
         )
-        courseConcepts = await summarizeContent(content, 'courseConcepts')
+        courseConcepts = await summarizeContent(content, 'courseConcepts', abortSignal)
       } else {
         console.error('[SummarizationService] Course concepts error:', error)
         courseConcepts = '<p><i>Could not generate course concepts.</i></p>'
@@ -543,9 +550,10 @@ export class SummarizationService {
   /**
    * Extract course concepts only (independent call)
    * @param {Object} settings
+   * @param {AbortSignal} [abortSignal]
    * @returns {Promise<{courseConcepts: string, contentType: string}>}
    */
-  async extractCourseConcepts(settings) {
+  async extractCourseConcepts(settings, abortSignal) {
     // Extract content
     const { content, contentType } =
       await this.contentExtractorService.extractPageContent()
@@ -560,13 +568,13 @@ export class SummarizationService {
     try {
       if (useStreaming) {
         // Streaming mode
-        const stream = summarizeContentStream(content, 'courseConcepts')
+        const stream = summarizeContentStream(content, 'courseConcepts', abortSignal)
         for await (const chunk of stream) {
           courseConcepts += chunk
         }
       } else {
         // Non-streaming mode
-        courseConcepts = await summarizeContent(content, 'courseConcepts')
+        courseConcepts = await summarizeContent(content, 'courseConcepts', abortSignal)
       }
     } catch (error) {
       // Firefox mobile fallback
@@ -578,7 +586,7 @@ export class SummarizationService {
         console.log(
           '[SummarizationService] Falling back to non-streaming for course concepts'
         )
-        courseConcepts = await summarizeContent(content, 'courseConcepts')
+        courseConcepts = await summarizeContent(content, 'courseConcepts', abortSignal)
       } else {
         console.error('[SummarizationService] Course concepts error:', error)
         courseConcepts = '<p><i>Could not generate course concepts.</i></p>'

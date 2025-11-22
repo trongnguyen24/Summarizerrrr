@@ -5,7 +5,6 @@
   import 'overlayscrollbars/overlayscrollbars.css'
   import SettingButton from '@/components/buttons/SettingButton.svelte'
   import SummarizeButton from '@/components/buttons/SummarizeButton.svelte'
-  import StopStreamingButton from '@/components/buttons/StopStreamingButton.svelte'
   import ActionButtons from '@/components/buttons/ActionButtons.svelte'
   import TabNavigation from '@/components/navigation/TabNavigation.svelte'
   import GenericSummaryDisplay from '@/components/displays/core/GenericSummaryDisplay.svelte'
@@ -214,20 +213,6 @@
       summaryState.selectedTextError ||
       summaryState.customActionError,
   )
-
-  // Handle summarize button click
-  // Register global event listener and ensure it's cleaned up when component is destroyed
-  $effect(() => {
-    const handleSummarizeClick = () => {
-      fetchAndSummarize() // Call the main summarization function, it will handle its own state reset
-    }
-
-    document.addEventListener('summarizeClick', handleSummarizeClick)
-
-    return () => {
-      document.removeEventListener('summarizeClick', handleSummarizeClick)
-    }
-  })
 
   // Track current tab URL for permission checking with tab change listener (Firefox only)
   $effect(async () => {
@@ -478,19 +463,11 @@
       <div class="flex flex-col gap-4 items-center justify-center">
         {#if !needsApiKeySetup()()}
           <div class="flex flex-row gap-3 items-center">
-            <span class=" ">
-              <SummarizeButton
-                isLoading={summaryState.isLoading ||
-                  isAnyCourseLoading ||
-                  summaryState.isCustomActionLoading}
-                disabled={!hasPermission && import.meta.env.BROWSER === 'firefox'}
-              />
-            </span>
-            <!-- Stop Streaming Button - Only show when streaming is active -->
-            <StopStreamingButton
-              show={summaryState.isLoading ||
+            <SummarizeButton
+              isLoading={summaryState.isLoading ||
                 isAnyCourseLoading ||
                 summaryState.isCustomActionLoading}
+              disabled={!hasPermission && import.meta.env.BROWSER === 'firefox'}
             />
           </div>
           <!-- Custom Action Buttons - Only show when all summaries are completed -->

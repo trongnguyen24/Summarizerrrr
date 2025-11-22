@@ -4,9 +4,13 @@
   import { animate, stagger } from 'animejs'
   import { onMount } from 'svelte'
   import { slideScaleFade } from '@/lib/ui/slideScaleFade.js'
-  import { on } from 'svelte/events'
+  import {
+    stopStreaming,
+    fetchAndSummarize,
+  } from '@/stores/summaryStore.svelte.js'
+  import { fade, scale } from 'svelte/transition'
 
-  // Props received from App.svelte (or directly from summaryStore if desired)
+  // Props received from App.svelte
   let { isLoading, disabled = false } = $props()
 
   // Element references for shadow DOM compatibility
@@ -15,10 +19,31 @@
   let animaeTextElements = []
   let animaeText2Elements = []
 
-  // Event dispatcher to notify when the button is clicked
+  // State for hover and stopping
+  let isHovered = $state(false)
+  let isDebouncing = $state(false)
+
+  // Event dispatcher
   const dispatch = () => {
     const customEvent = new CustomEvent('summarizeClick')
-    document.dispatchEvent(customEvent) // Dispatch to document or a specific element
+    document.dispatchEvent(customEvent)
+  }
+
+  // Handle click based on state
+  const handleClick = () => {
+    if (isDebouncing) return
+
+    // Apply debounce
+    isDebouncing = true
+    setTimeout(() => {
+      isDebouncing = false
+    }, 300)
+
+    if (isLoading) {
+      stopStreaming()
+    } else {
+      fetchAndSummarize()
+    }
   }
 
   // Define keyframes for .animae-text animation
@@ -81,24 +106,44 @@
     ],
   }
 
-  // if isLoading || isChapterLoading is true
+  // Effect to handle animations and style changes based on state
   $effect(() => {
     if (buttonElement && backgroundElement) {
       if (isLoading) {
-        animate(buttonElement, {
-          color: 'var(--color-blackwhite)',
-          duration: 300,
-          easing: 'easeInOutQuad',
-        })
-        animate(backgroundElement, {
-          top: 36,
-          left: 16,
-          width: '24px',
-          height: 4,
-          duration: 300,
-          easing: 'easeInOutQuad',
-        })
+        if (isHovered) {
+          // Loading + Hover = Stop State (Red)
+          animate(buttonElement, {
+            color: 'var(--color-blackwhite)',
+            duration: 200,
+            easing: 'easeInOutQuad',
+          })
+          animate(backgroundElement, {
+            top: 36,
+            left: 16,
+            width: '24px',
+            height: 4,
+            duration: 300,
+            easing: 'easeInOutQuad',
+          })
+        } else {
+          // Loading + No Hover = Loading State (Spinner)
+          animate(buttonElement, {
+            color: 'var(--color-blackwhite)',
+            duration: 300,
+            easing: 'easeInOutQuad',
+          })
+          animate(backgroundElement, {
+            top: 36,
+            left: 16,
+            width: '24px',
+            height: 4,
+            backgroundColor: '#ffffff', // Reset to white
+            duration: 300,
+            easing: 'easeInOutQuad',
+          })
+        }
       } else {
+        // Idle State (Summarize)
         animate(buttonElement, {
           color: 'var(--color-summarize)',
           duration: 300,
@@ -109,6 +154,7 @@
           left: 0,
           width: '100%',
           height: '100%',
+          backgroundColor: '#ffffff', // Reset to white
           duration: 300,
           easing: 'easeInOutQuad',
         })
@@ -116,7 +162,7 @@
     }
   })
 
-  // Animation function
+  // Animation function for text
   onMount(() => {
     if (animaeTextElements.length > 0) {
       animate(animaeTextElements, {
@@ -136,32 +182,65 @@
 
 <button
   bind:this={buttonElement}
-  class="relative font-mono summarize p-[1em] pl-[1em] pr-[1.5em] overflow-hidden text-black flex outline-offset-2 !outline-primary items-center rounded-full gap-[0.5em] w-fit h-[3em]"
-  onclick={dispatch}
-  disabled={isLoading || disabled}
-  title="Summarize"
+  class="relative font-mono summarize p-[1em] pl-[1em] pr-[1.5em] overflow-hidden text-black flex outline-offset-2 items-center rounded-full gap-[0.5em] w-fit h-[3em] transition-colors duration-200"
+  class:!outline-red-400={isLoading && isHovered}
+  class:!outline-primary={!isLoading || !isHovered}
+  class:cursor-wait={isDebouncing}
+  onclick={handleClick}
+  onmouseenter={() => (isHovered = true)}
+  onmouseleave={() => (isHovered = false)}
+  disabled={disabled || isDebouncing}
+  title={isLoading ? 'Stop Streaming' : 'Summarize'}
 >
-  <div class="text-primary relative z-10 size-[1.5em]">
-    {#if isLoading}
-      <span transition:slideScaleFade>
-        <Icon
-          width={24}
-          icon="svg-spinners:bouncing-ball"
-          class="absolute inset-0"
-        />
+  <div
+    class="text-inherit relative z-10 size-[1.5em] flex items-center justify-center"
+  >
+    {#if isLoading && isHovered}
+      <span
+        transition:slideScaleFade={{
+          duration: 200,
+          slideFrom: 'bottom',
+          startScale: 0.8,
+          slideDistance: '0rem',
+          startBlur: 1,
+        }}
+        class="absolute inset-0 text-error"
+      >
+        <Icon width={24} icon="heroicons:stop-solid" />
+      </span>
+    {:else if isLoading && !isHovered}
+      <!-- Spinner -->
+      <span
+        transition:slideScaleFade={{
+          duration: 200,
+          slideFrom: 'bottom',
+          startScale: 0.8,
+          slideDistance: '0rem',
+          startBlur: 1,
+        }}
+        class="absolute inset-0 text-primary"
+      >
+        <Icon width={24} icon="svg-spinners:bouncing-ball" />
       </span>
     {:else}
-      <!--  octicon:sparkle-fill-16 -->
-      <span transition:slideScaleFade>
-        <Icon
-          class="absolute inset-0"
-          width={24}
-          icon="octicon:sparkle-fill-16"
-        />
+      <!-- Sparkle Icon -->
+      <span
+        transition:slideScaleFade={{
+          duration: 200,
+          slideFrom: 'bottom',
+          startScale: 0.8,
+          slideDistance: '0rem',
+          startBlur: 1,
+        }}
+        class="absolute inset-0 text-primary z"
+      >
+        <Icon width={24} icon="octicon:sparkle-fill-16" />
       </span>
     {/if}
   </div>
+
   <div class="grid z-10 grid-cols-1 grid-rows-1 text-[1.125em]">
+    <!-- Summarize Text Animation -->
     <div class="flex col-start-1 row-start-1 gap-px">
       <span bind:this={animaeTextElements[0]} class="animae-text">S</span>
       <span bind:this={animaeTextElements[1]} class="animae-text">u</span>
@@ -203,6 +282,7 @@
       >
     </div>
   </div>
+
   <div
     bind:this={backgroundElement}
     class="bg-white summarize-bg absolute z-0 w-full left-0 h-full rounded-full"

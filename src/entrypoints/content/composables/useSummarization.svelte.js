@@ -86,6 +86,12 @@ export function useSummarization() {
         requestId
       })
       
+      // Check if request was aborted while waiting for response
+      if (!localSummaryState.activeRequestIds.includes(requestId)) {
+        // Request was aborted, don't process the response
+        throw new DOMException('Aborted', 'AbortError')
+      }
+      
       if (response.action === 'SUMMARY_RESPONSE') {
         return response.summary
       } else if (response.action === 'SUMMARY_ABORTED') {
@@ -130,6 +136,11 @@ export function useSummarization() {
    */
   function handleSummarizationError(error) {
     console.error('[useSummarization] Summarization error:', error)
+
+    // Don't show error for user-initiated cancellation
+    if (error.name === 'AbortError') {
+      return
+    }
 
     localSummaryState.error = {
       message: error.message || 'Unknown error occurred',

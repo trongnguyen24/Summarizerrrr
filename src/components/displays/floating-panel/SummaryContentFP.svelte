@@ -94,9 +94,22 @@
       if (!isNaN(seconds)) {
         // Dispatch event directly since we are already in the content script context
         // This communicates with youtube_player_control.js in the Main World
-        const customEvent = new CustomEvent('Summarizerrrr_Seek', {
-          detail: { seconds: seconds },
-        })
+        const detail = { seconds: seconds }
+        let customEvent
+
+        // Firefox requires cloneInto for CustomEvent details to be accessible in the main world
+        if (typeof cloneInto !== 'undefined') {
+          // @ts-ignore
+          const clonedDetail = cloneInto(detail, document.defaultView)
+          customEvent = new CustomEvent('Summarizerrrr_Seek', {
+            detail: clonedDetail,
+          })
+        } else {
+          customEvent = new CustomEvent('Summarizerrrr_Seek', {
+            detail: detail,
+          })
+        }
+
         window.dispatchEvent(customEvent)
       }
     }

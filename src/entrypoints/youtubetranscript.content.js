@@ -89,9 +89,21 @@ export default defineContentScript({
           case 'seekToTimestamp':
             try {
               // Dispatch a custom event that youtube_transcript.js (running in Main World) will listen to
-              const event = new CustomEvent('Summarizerrrr_Seek', {
-                detail: { seconds: request.seconds }
-              })
+              const detail = { seconds: request.seconds }
+              let event
+
+              // Firefox requires cloneInto for CustomEvent details to be accessible in the main world
+              if (typeof cloneInto !== 'undefined') {
+                const clonedDetail = cloneInto(detail, document.defaultView)
+                event = new CustomEvent('Summarizerrrr_Seek', {
+                  detail: clonedDetail,
+                })
+              } else {
+                event = new CustomEvent('Summarizerrrr_Seek', {
+                  detail: detail,
+                })
+              }
+
               window.dispatchEvent(event)
 
               sendResponse({ success: true })

@@ -1,8 +1,8 @@
 <div align="center">
-  <img width="320px" src="public/Sumarizzerrrr.png" alt="Summarizerrrr"/>
+  <img width="200px" src="public/Sumarizzerrrr.png" alt="Summarizerrrr Logo"/>
   <h1>Summarizerrrr</h1>
-  <p><strong>Summarize everything in 1 click, save time.</strong></p>
-  <p>An intelligent AI extension to summarize YouTube, Udemy, Coursera, and any website. Crafted with a superior UI/UX design.</p>
+  <p><strong>Summarize everything in 1 click. Save time. Learn faster.</strong></p>
+  <p>The ultimate AI-powered browser extension for YouTube, Web Pages, Udemy, Coursera, and more. <br/> Built with privacy, customization, and a premium UI/UX in mind.</p>
   
   <p>
     <a href="https://chromewebstore.google.com/detail/summarizerrrr/ahfjndakflcegianjdojpldllodpkkpc">
@@ -17,54 +17,112 @@
   </p>
 </div>
 
-## ✨ Key Features
+---
 
-- 🔐 **Your data is yours**  
-  Your keys, your data, your control. For complete privacy, use a local model through our integration with Ollama.
+## ✨ Why Summarizerrrr?
 
-- 🛠️ **Highly Customizable**  
-  Tailor everything to your needs: AI Provider, temperature, top P, summary length, format, language, appearance, system prompts, and user prompts.
+Summarizerrrr isn't just another wrapper. It's a fully-featured productivity tool designed to help you consume content more efficiently. Whether you're researching, learning a new skill, or just trying to get the gist of a long video, Summarizerrrr has you covered.
 
-- 📱 **Cross-Platform Compatibility**  
-  Works seamlessly on Desktop, Tablet, and Mobile browsers, including Firefox for Android and Kiwi Browser.
+### 🧠 Smart Summarization
+- **YouTube Intelligence**: Get concise summaries of videos with **clickable timestamps** that take you directly to the key moments.
+- **Comment Insights**: Don't just watch the video; understand the community sentiment by summarizing the top comments.
+- **Universal Support**: Works on **Any Website**, plus specialized support for learning platforms like **Udemy** and **Coursera**.
+
+### 🤖 AI Your Way
+- **Multi-Model Support**: Choose your brain. We support **Google Gemini**, **OpenAI (ChatGPT)**, **DeepSeek**, and more.
+- **Local Privacy**: Run **Ollama** locally to summarize content without your data ever leaving your machine. Your keys, your data.
+
+### ⚡ Powerful Modes
+- **Side Panel**: Supported on Firefox, Chrome, and Edge. Watch YouTube while keeping the summary side-by-side for easy reference.
+- **Floating Panel**: An in-page panel that runs independently in each tab. Perfect for tablet users or browsers like Arc.
+- **Mobile Sheet**: Optimized for mobile devices. Open the summary with a single tap.
+
+### 🛠️ Interactive Tools
+- **Deep Dive**: Not satisfied with the summary? Ask follow-up questions to the AI directly about the content.
+- **Custom Actions**: One-click tools to **Analyze**, **Explain**, or **Debate** the content you're viewing.
+- **Transcript**: Copy transcript of the video or download transcript as a .srt file.
+
+### 🎨 Premium Experience
+- **Beautiful UI**: Built with **Svelte 5** and **Tailwind CSS 4** for a smooth, modern, and responsive experience.
+- **Dark/Light Mode**: Automatically syncs with your system or can be toggled manually.
+- **Internationalization (i18n)**: Fully localized in **English, Vietnamese, Spanish, Chinese, German, French, Japanese, and Korean**.
+
+---
 
 ## 🚀 Installation
 
-1.  **Install from your browser's store:**
-    - [Chrome Web Store](https://chromewebstore.google.com/detail/summarizerrrr/ahfjndakflcegianjdojpldllodpkkpc)
-    - [Firefox Add-ons](https://addons.mozilla.org/en-CA/firefox/addon/summarizerrrr/)
-    - [Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/summarizerrrr/kgoolaebmcbhbjokofmhdcjbljagaiif)
-2.  **Get an API key** from your preferred provider (e.g., Google Gemini, OpenRouter, or run Ollama locally).
-3.  **Paste the key** into the extension's settings. You're ready to go!
+### Official Stores
+The easiest way to get started is to install from your browser's extension store:
+- [**Chrome Web Store**](https://chromewebstore.google.com/detail/summarizerrrr/ahfjndakflcegianjdojpldllodpkkpc)
+- [**Firefox Add-ons**](https://addons.mozilla.org/en-CA/firefox/addon/summarizerrrr/)
+- [**Edge Add-ons**](https://microsoftedge.microsoft.com/addons/detail/summarizerrrr/kgoolaebmcbhbjokofmhdcjbljagaiif)
 
-## 👨‍💻 For Developers
+### Manual Installation (Developer Mode)
+If you want to try the latest features before they are released:
 
+1.  Clone the repository:
+    ```bash
+    git clone https://github.com/trongnguyen24/Summarizerrrr.git
+    cd Summarizerrrr
+    ```
+2.  Install dependencies:
+    ```bash
+    npm install
+    ```
+3.  Build the project:
+    ```bash
+    npm run build
+    ```
+4.  Load the extension:
+    - **Chrome/Edge**: Go to `chrome://extensions`, enable "Developer mode", click "Load unpacked", and select the `.output/chrome-mv3` folder.
+    - **Firefox**: Go to `about:debugging#/runtime/this-firefox`, click "Load Temporary Add-on", and select the `manifest.json` file in `.output/firefox-mv2`.
+
+---
+
+## ⚙️ Configuration
+
+1.  **Open Settings**: Click the gear icon in the extension popup or panel.
+2.  **Choose Provider**: Select your preferred AI provider (Gemini is a great free starting point).
+3.  **Enter API Key**: Get your key from the provider's dashboard and paste it in.
+    - *Note: Keys are stored securely in your browser's local storage.*
+4.  **Customize**: Adjust the prompt language, summary length, and other preferences to fit your workflow.
+
+---
+
+## 👨‍💻 Development
+
+Summarizerrrr is built with the latest web technologies:
+- **Framework**: [WXT](https://wxt.dev/) (Next-gen Web Extension Framework)
+- **UI Library**: [Svelte 5](https://svelte.dev/) (Runes mode)
+- **Styling**: [Tailwind CSS 4](https://tailwindcss.com/)
+- **AI Integration**: [Vercel AI SDK](https://sdk.vercel.ai/)
+
+### Commands
 ```bash
-# Clone the repository
-git clone https://github.com/trongnguyen24/Summarizerrrr.git
-cd Summarizerrrr
+# Start Development Server (Chrome)
+npm run dev
 
-# Install dependencies
-npm install
+# Start Development Server (Firefox)
+npm run dev:firefox
 
-# Build the extension for production
+# Build for Production
 npm run build
 
-# Or run in development mode
-npm run dev
+# Package for Distribution (.zip)
+npm run zip
 ```
 
-Then, load the `.output` folder as an unpacked extension in your browser's developer mode.
+---
 
 ## 💬 Community & Support
 
-- 🐛 **Report a Bug:** [GitHub Issues](https://github.com/trongnguyen24/Summarizerrrr/issues)
-- 💡 **Request a Feature:** [GitHub Discussions](https://github.com/trongnguyen24/Summarizerrrr/discussions)
-- ⭐ **Love the project?** Give us a star on GitHub!
+- 🐛 **Found a bug?** [Open an Issue](https://github.com/trongnguyen24/Summarizerrrr/issues)
+- 💡 **Have an idea?** [Start a Discussion](https://github.com/trongnguyen24/Summarizerrrr/discussions)
+- ⭐ **Enjoying the app?** Please leave a review on the store and star the repo!
 
 ---
 
 <div align="center">
   <p>Designed and Developed with ❤️ in Viet Nam 🇻🇳</p>
-  <p><strong>MIT License</strong></p>
+  <p>Licensed under <strong>MIT</strong></p>
 </div>

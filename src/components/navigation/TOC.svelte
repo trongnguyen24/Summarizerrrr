@@ -214,7 +214,7 @@
     <div class="relative">
       <div
         id="toc-scroll"
-        class="w-64 xs:w-80 overflow-auto max-h-[calc(100vh-150px)] border rounded-t-lg border-border bg-surface-1"
+        class="w-[clamp(280px,70vw,400px)] overflow-auto max-h-[calc(100vh-150px)] border rounded-t-lg border-border bg-surface-1"
       >
         <div
           class="flex flex-col divide-y divide-border/50 dark:divide-border/70"

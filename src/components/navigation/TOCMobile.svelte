@@ -236,7 +236,7 @@
 </script>
 
 <div
-  class="toc fixed z-20 right-0 bottom-2 group origin-bottom-right {!isTouchDevice()
+  class="toc fixed z-40 right-0 bottom-2 group origin-bottom-right {!isTouchDevice()
     ? '!right-3'
     : ''}"
 >

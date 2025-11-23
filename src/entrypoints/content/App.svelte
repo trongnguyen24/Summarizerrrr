@@ -18,6 +18,7 @@
   import FloatingButton from './components/FloatingButton.svelte'
   import FloatingPanel from './components/FloatingPanel.svelte'
   import MobileSheet from './components/MobileSheet.svelte'
+  import BlacklistConfirmModal from './components/BlacklistConfirmModal.svelte'
   import { useNavigationManager } from './composables/useNavigationManager.svelte.js'
   import { useOneClickSummarization } from './composables/useOneClickSummarization.svelte.js'
   import '@fontsource-variable/geist-mono'
@@ -27,6 +28,7 @@
 
   let isPanelVisible = $state(false) // Add $state
   let isMobile = $state(false) // Add $state
+  let showBlacklistConfirm = $state(false)
   let shadowContainer = $state(null) // Shadow DOM container reference
   let navigationManager = useNavigationManager()
   let unsubscribeNavigation = null
@@ -149,6 +151,10 @@
     return await oneClickSummarization.handleFloatingButtonClick()
   }
 
+  function handleBlacklistRequest() {
+    showBlacklistConfirm = true
+  }
+
   // Initialize one-click when component mounts
   $effect(() => {
     if (settings && shadowContainer) {
@@ -199,8 +205,13 @@
         toggle={togglePanel}
         oneClickHandler={handleOneClickSummarization}
         buttonState={oneClickSummarization.oneClickState().buttonState}
+        onBlacklistRequest={handleBlacklistRequest}
       />
     {/key}
+  {/if}
+
+  {#if showBlacklistConfirm}
+    <BlacklistConfirmModal onclose={() => (showBlacklistConfirm = false)} />
   {/if}
   {#if isMobile}
     {#key currentUrlKey}

@@ -16,11 +16,18 @@
   import { isFirefox } from '@/lib/utils/browserDetection.js'
 
   // @ts-nocheck
-  let { toggle, topButton, oneClickHandler, buttonState = 'idle' } = $props()
+  let {
+    toggle,
+    topButton,
+    oneClickHandler,
+    buttonState = 'idle',
+    onBlacklistRequest,
+  } = $props()
   let buttonElement
   let buttonElementBG
   let snapedge
   let isFirefoxBrowser = $state(false)
+  let isHovered = $state(false)
 
   // Kiểm tra Firefox khi component mount
   $effect(() => {
@@ -29,7 +36,7 @@
 
   // Reactive state để quản lý button position - khởi tạo dựa trên settings để tránh nhảy khi re-render
   let buttonPosition = $state(
-    settings?.floatButtonLeft !== false ? 'left' : 'right'
+    settings?.floatButtonLeft !== false ? 'left' : 'right',
   )
 
   const config = {
@@ -136,14 +143,14 @@
       if (targetSnapX === null) stateButton.velocityX *= config.bounceFactor
       newX = Math.max(
         0,
-        Math.min(newX, metrics.containerWidth - metrics.draggableWidth)
+        Math.min(newX, metrics.containerWidth - metrics.draggableWidth),
       )
     }
     if (newY < 0 || newY + metrics.draggableHeight > metrics.containerHeight) {
       stateButton.velocityY *= config.bounceFactor
       newY = Math.max(
         0,
-        Math.min(newY, metrics.containerHeight - metrics.draggableHeight)
+        Math.min(newY, metrics.containerHeight - metrics.draggableHeight),
       )
     }
 
@@ -214,8 +221,8 @@
       0,
       Math.min(
         settings.floatButton || topButton || 100,
-        metrics.containerHeight - metrics.draggableHeight
-      )
+        metrics.containerHeight - metrics.draggableHeight,
+      ),
     )
 
     setPosition(initialX, initialY)
@@ -265,7 +272,7 @@
     if (!stateButton.isDragThresholdMet) {
       const distanceFromStart = Math.sqrt(
         Math.pow(pointer.clientX - stateButton.startX, 2) +
-          Math.pow(pointer.clientY - stateButton.startY, 2)
+          Math.pow(pointer.clientY - stateButton.startY, 2),
       )
 
       if (distanceFromStart >= config.dragThreshold) {
@@ -293,15 +300,15 @@
       0,
       Math.min(
         stateButton.x + dx,
-        metrics.containerWidth - metrics.draggableWidth
-      )
+        metrics.containerWidth - metrics.draggableWidth,
+      ),
     )
     const newY = Math.max(
       0,
       Math.min(
         stateButton.y + dy,
-        metrics.containerHeight - metrics.draggableHeight
-      )
+        metrics.containerHeight - metrics.draggableHeight,
+      ),
     )
     setPosition(newX, newY)
 
@@ -328,7 +335,7 @@
     // Reset drag states
     stateButton.isDragging = false
     stateButton.isDragThresholdMet = false
-    if (buttonElement) buttonElement.style.cursor = 'grab'
+    if (buttonElement) buttonElement.style.cursor = 'pointer'
 
     document.removeEventListener('mousemove', handleMove)
     document.removeEventListener('touchmove', handleMove)
@@ -444,65 +451,108 @@
 </script>
 
 <!-- svelte-ignore a11y_consider_explicit_label -->
-<button
+<!-- svelte-ignore a11y_no_static_element_interactions -->
+<div
   bind:this={buttonElement}
-  class="floating-button"
-  title="Toggle Summarizer"
+  class="floating-button-container"
   style="left: 0; top: 0;"
   onmousedown={handleStart}
   use:nonPassiveTouch={handleStart}
+  onmouseenter={() => (isHovered = true)}
+  onmouseleave={() => (isHovered = false)}
 >
-  <div
-    bind:this={buttonElementBG}
-    class=" flex items-center justify-center h-10 w-10 text-gray-500/50 overflow-hidden rounded-4xl ease-out delay-150 duration-500 transition-all"
-    class:round-l={buttonPosition === 'left'}
-    class:round-r={buttonPosition === 'right'}
-    class:error={buttonState === 'error'}
-  >
-    <div class="floating-button-bg">
-      <div class="BG-cri border border-slate-500/20">
-        {#if buttonState === 'loading'}
-          <span
-            transition:slideScaleFade={{
-              duration: 300,
-              delay: 0,
-              slideFrom: 'left',
-              slideDistance: '0',
-              startScale: 0.8,
-            }}
-            class="blinking-cursor text-gray-400/70 absolute inset-0"
-            class:firefox={isFirefoxBrowser}
-          >
-          </span>
-        {:else}
-          <!-- Normal icon -->
-          <span
-            class=" size-9 flex justify-center items-center"
-            transition:slideScaleFade={{
-              duration: 400,
-              delay: 0,
-              slideFrom: 'left',
-              slideDistance: '0',
-              startScale: 0.8,
-            }}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="18"
-              height="18"
-              viewBox="0 0 16 16"
+  <!-- Tooltip -->
+  {#if isHovered && !stateButton.isDragging}
+    <div
+      class="absolute top-1/2 -translate-y-1/2 whitespace-nowrap px-3 py-1.5 rounded-lg bg-surface-1 text-text-primary text-xs font-medium shadow-lg border border-border z-50 pointer-events-none"
+      class:right-full={buttonPosition === 'right'}
+      class:mr-3={buttonPosition === 'right'}
+      class:left-full={buttonPosition === 'left'}
+      class:ml-3={buttonPosition === 'left'}
+      transition:slideScaleFade={{
+        duration: 200,
+        startScale: 0.9,
+        slideDistance: '5px',
+      }}
+    >
+      {settings.oneClickSummarize ? 'Bắt đầu tóm tắt' : 'Summarizerrrr'}
+    </div>
+  {/if}
+
+  <!-- Close Button -->
+  {#if isHovered && !stateButton.isDragging}
+    <button
+      class="absolute left-1/2 -translate-x-1/2 -bottom-8 size-6 flex items-center justify-center rounded-full bg-surface-1 text-text-secondary hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 border border-border shadow-sm transition-colors z-50"
+      onmousedown={(e) => e.stopPropagation()}
+      onclick={(e) => {
+        e.stopPropagation()
+        onBlacklistRequest?.()
+      }}
+      transition:slideScaleFade={{
+        duration: 200,
+        startScale: 0.8,
+        slideDistance: '-5px',
+        slideFrom: 'top',
+      }}
+      title="Hide on this site"
+    >
+      <Icon icon="heroicons:x-mark-16-solid" width="14" height="14" />
+    </button>
+  {/if}
+
+  <div class="floating-button">
+    <div
+      bind:this={buttonElementBG}
+      class=" flex items-center justify-center h-10 w-10 text-gray-500/50 overflow-hidden rounded-4xl ease-out delay-150 duration-500 transition-all"
+      class:round-l={buttonPosition === 'left'}
+      class:round-r={buttonPosition === 'right'}
+      class:error={buttonState === 'error'}
+    >
+      <div class="floating-button-bg">
+        <div class="BG-cri border border-slate-500/20">
+          {#if buttonState === 'loading'}
+            <span
+              transition:slideScaleFade={{
+                duration: 300,
+                delay: 0,
+                slideFrom: 'left',
+                slideDistance: '0',
+                startScale: 0.8,
+              }}
+              class="blinking-cursor text-gray-400/70 absolute inset-0"
+              class:firefox={isFirefoxBrowser}
             >
-              <path
-                fill="currentColor"
-                d="M7.53 1.282a.5.5 0 0 1 .94 0l.478 1.306a7.5 7.5 0 0 0 4.464 4.464l1.305.478a.5.5 0 0 1 0 .94l-1.305.478a7.5 7.5 0 0 0-4.464 4.464l-.478 1.305a.5.5 0 0 1-.94 0l-.478-1.305a7.5 7.5 0 0 0-4.464-4.464L1.282 8.47a.5.5 0 0 1 0-.94l1.306-.478a7.5 7.5 0 0 0 4.464-4.464Z"
-              />
-            </svg>
-          </span>
-        {/if}
+            </span>
+          {:else}
+            <!-- Normal icon -->
+            <span
+              class=" size-9 flex justify-center items-center"
+              transition:slideScaleFade={{
+                duration: 400,
+                delay: 0,
+                slideFrom: 'left',
+                slideDistance: '0',
+                startScale: 0.8,
+              }}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="18"
+                height="18"
+                viewBox="0 0 16 16"
+              >
+                <path
+                  fill="currentColor"
+                  d="M7.53 1.282a.5.5 0 0 1 .94 0l.478 1.306a7.5 7.5 0 0 0 4.464 4.464l1.305.478a.5.5 0 0 1 0 .94l-1.305.478a7.5 7.5 0 0 0-4.464 4.464l-.478 1.305a.5.5 0 0 1-.94 0l-.478-1.305a7.5 7.5 0 0 0-4.464-4.464L1.282 8.47a.5.5 0 0 1 0-.94l1.306-.478a7.5 7.5 0 0 0 4.464-4.464Z"
+                />
+              </svg>
+            </span>
+          {/if}
+        </div>
       </div>
     </div>
   </div>
-</button>
+</div>
 
 <div bind:this={snapedge} class="snapedge"></div>
 
@@ -518,30 +568,38 @@
     z-index: 100000;
   }
 
-  .floating-button:hover ~ .snapedge {
+  .floating-button-container:hover ~ .snapedge {
     pointer-events: visible;
   }
-  .floating-button {
+
+  .floating-button-container {
     position: fixed;
-    background: none !important;
+    z-index: 2147483647;
+    touch-action: none;
+    will-change: transform;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
     width: 40px;
     height: 40px;
+  }
+
+  .floating-button-container:active {
+    cursor: grabbing;
+  }
+
+  .floating-button {
+    position: absolute;
+    inset: 0;
+    background: none !important;
+    width: 100%;
+    height: 100%;
     border-radius: 50%;
     border: none !important;
     display: flex;
     padding: 0 !important;
     align-items: center;
     justify-content: center;
-    z-index: 2147483647;
-    cursor: pointer;
-    user-select: none;
-    -webkit-user-select: none;
-    touch-action: none;
-    will-change: transform;
-  }
-
-  .floating-button:active {
-    cursor: grabbing;
   }
 
   .floating-button-bg {

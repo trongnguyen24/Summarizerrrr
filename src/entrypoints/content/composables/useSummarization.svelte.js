@@ -18,6 +18,10 @@ import {
   deepDiveState,
 } from '@/stores/deepDiveStore.svelte.js'
 import { generateFollowUpQuestions } from '@/services/tools/deepDiveService.js'
+import {
+  formatCommentsForAI,
+  fetchYouTubeComments,
+} from '@/lib/utils/youtubeUtils.js'
 
 // Flag để prevent concurrent requests
 let isProcessing = false
@@ -531,28 +535,10 @@ export function useSummarization() {
       console.log('[useSummarization] Fetching comments via message...')
 
       // Fetch comments qua message passing - use chrome.runtime for content script
-      const response = await new Promise((resolve, reject) => {
-        chrome.runtime.sendMessage(
-          {
-            action: 'fetchYouTubeComments',
-            maxComments: 80,
-            maxRepliesPerComment: 10,
-          },
-          (result) => {
-            if (chrome.runtime.lastError) {
-              console.error(
-                '[useSummarization] Chrome runtime error:',
-                chrome.runtime.lastError
-              )
-              reject(new Error(chrome.runtime.lastError.message))
-            } else {
-              console.log(
-                '[useSummarization] Message sent, waiting for response...'
-              )
-              resolve(result)
-            }
-          }
-        )
+      // Fetch comments qua message passing - use chrome.runtime for content script
+      const response = await fetchYouTubeComments(null, {
+        maxComments: 80,
+        maxRepliesPerComment: 10,
       })
 
       // Check abort signal
@@ -572,68 +558,6 @@ export function useSummarization() {
         )
       }
 
-      // Format comments for AI (copy function từ summaryStore)
-      const formatCommentsForAI = (comments, metadata) => {
-        if (!comments || comments.length === 0) {
-          return 'No comments available.'
-        }
-
-        let formatted = ''
-        const seenTexts = new Set()
-
-        for (const comment of comments) {
-          // Skip duplicates and spam
-          const normalizedText = comment.text.trim().toLowerCase()
-          if (seenTexts.has(normalizedText) || comment.text.trim().length < 3) {
-            continue
-          }
-          seenTexts.add(normalizedText)
-
-          // Clean text: remove excessive emojis
-          let cleanText = comment.text
-            .trim()
-            .replace(/[\u{1F300}-\u{1F9FF}]{6,}/gu, '[emoji]')
-
-          // Truncate long comments
-          if (cleanText.length > 400) {
-            cleanText = cleanText.substring(0, 397) + '...'
-          }
-
-          // Ultra compact format
-          formatted += `@${comment.author.name}`
-          if (comment.author.isChannelOwner) {
-            formatted += '👤'
-          }
-          formatted += `|${comment.publishedTime}|${comment.likeCount}↑`
-          if (comment.replyCount > 0) {
-            formatted += `|${comment.replyCount}💬`
-          }
-          formatted += `|${cleanText}\n`
-
-          // Compact replies format
-          if (comment.replies && comment.replies.length > 0) {
-            for (const reply of comment.replies) {
-              let cleanReply = reply.text
-                .trim()
-                .replace(/[\u{1F300}-\u{1F9FF}]{6,}/gu, '[emoji]')
-
-              if (cleanReply.length > 200) {
-                cleanReply = cleanReply.substring(0, 197) + '...'
-              }
-
-              if (cleanReply.length < 3) {
-                continue
-              }
-
-              formatted += `  ${reply.index}.@${reply.author.name}|${cleanReply}\n`
-            }
-          }
-
-          formatted += '\n'
-        }
-
-        return formatted
-      }
 
       console.log('[useSummarization] Formatting comments...')
       const formattedComments = formatCommentsForAI(

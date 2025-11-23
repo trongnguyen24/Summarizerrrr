@@ -10,7 +10,6 @@ import { settingsStorage } from '../services/wxtStorageService.js'
 import {
   summaryState,
   summarizeSelectedText,
-  logAllGeneratedSummariesToHistory,
 } from '../stores/summaryStore.svelte.js'
 import { get } from 'svelte/store'
 import {

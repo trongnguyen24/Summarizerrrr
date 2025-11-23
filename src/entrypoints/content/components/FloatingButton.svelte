@@ -26,8 +26,10 @@
   let buttonElement
   let buttonElementBG
   let snapedge
+  let dropZoneElement
   let isFirefoxBrowser = $state(false)
   let isHovered = $state(false)
+  let isOverDropZone = $state(false)
 
   // Kiểm tra Firefox khi component mount
   $effect(() => {
@@ -258,6 +260,21 @@
     document.addEventListener('touchend', handleEnd)
   }
 
+  function checkCollision() {
+    if (!dropZoneElement || !buttonElement) return false
+
+    const buttonRect = buttonElement.getBoundingClientRect()
+    const zoneRect = dropZoneElement.getBoundingClientRect()
+
+    // Simple AABB collision detection
+    return !(
+      buttonRect.right < zoneRect.left ||
+      buttonRect.left > zoneRect.right ||
+      buttonRect.bottom < zoneRect.top ||
+      buttonRect.top > zoneRect.bottom
+    )
+  }
+
   /**
    * Unified event handler for move (mousemove/touchmove)
    */
@@ -312,6 +329,9 @@
     )
     setPosition(newX, newY)
 
+    // Check collision with drop zone
+    isOverDropZone = checkCollision()
+
     if (deltaTime > 0) {
       const scaleFactor = 1 / (deltaTime * 16.67)
       stateButton.velocityX = dx * scaleFactor
@@ -332,9 +352,21 @@
       (Math.abs(stateButton.velocityX) > 2 ||
         Math.abs(stateButton.velocityY) > 2)
 
+    // Check if dropped in zone
+    if (stateButton.isDragging && isOverDropZone) {
+      onBlacklistRequest?.()
+      // Reset position to nearest edge immediately to avoid it staying in the zone
+      const isLeft = stateButton.x < metrics.snapThreshold
+      const targetX = isLeft
+        ? 0
+        : metrics.containerWidth - metrics.draggableWidth
+      setPosition(targetX, stateButton.y)
+    }
+
     // Reset drag states
     stateButton.isDragging = false
     stateButton.isDragThresholdMet = false
+    isOverDropZone = false
     if (buttonElement) buttonElement.style.cursor = 'pointer'
 
     document.removeEventListener('mousemove', handleMove)
@@ -553,6 +585,25 @@
     </div>
   </div>
 </div>
+
+<!-- Drop Zone -->
+{#if stateButton.isDragging}
+  <div
+    bind:this={dropZoneElement}
+    class="fixed left-1/2 -translate-x-1/2 flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-red-500/90 text-white shadow-lg backdrop-blur-sm transition-all duration-200 z-[2147483646]"
+    class:scale-110={isOverDropZone}
+    class:bg-red-600={isOverDropZone}
+    style="bottom: 10svh;"
+    transition:slideScaleFade={{
+      duration: 200,
+      slideFrom: 'bottom',
+      slideDistance: '20px',
+    }}
+  >
+    <Icon icon="heroicons:x-mark-20-solid" width="20" height="20" />
+    <span class="font-medium text-sm">Drop to Hide</span>
+  </div>
+{/if}
 
 <div bind:this={snapedge} class="snapedge"></div>
 

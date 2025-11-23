@@ -26,6 +26,7 @@ import {
 } from '@/services/firefoxPermissionService.js'
 // Import Deep Dive store
 import { resetDeepDive } from './deepDiveStore.svelte.js'
+import { showBlockingModeToast } from '@/lib/utils/toastUtils.js'
 
 // --- State ---
 export const summaryState = $state({
@@ -54,14 +55,80 @@ export const summaryState = $state({
   customActionResult: '',
   isCustomActionLoading: false,
   customActionError: null,
+  modelStatus: {
+    currentModel: null,
+    fallbackFrom: null,
+    isFallback: false,
+  },
+  abortController: null, // AbortController for cancelling streaming operations
 })
 
 // --- Actions ---
 
 /**
+ * Update model status for UI display
+ * @param {string|null} currentModel - Current model being used
+ * @param {string|null} fallbackFrom - Original model that failed (if fallback occurred)
+ * @param {boolean} isFallback - Whether we're currently in fallback mode
+ */
+export function updateModelStatus(
+  currentModel = null,
+  fallbackFrom = null,
+  isFallback = false
+) {
+  summaryState.modelStatus = {
+    currentModel,
+    fallbackFrom,
+    isFallback,
+  }
+}
+
+/**
+ * Stop the current streaming operation
+ */
+export function stopStreaming() {
+  if (summaryState.abortController) {
+    console.log('[summaryStore] Stopping streaming...')
+    summaryState.abortController.abort()
+    summaryState.abortController = null
+  }
+
+  // Explicitly reset all loading states to ensure UI updates immediately
+  summaryState.isLoading = false
+  summaryState.isCourseSummaryLoading = false
+  summaryState.isCourseConceptsLoading = false
+  summaryState.isSelectedTextLoading = false
+  summaryState.isCustomActionLoading = false
+
+  // Check if we should reset the display state (if no content was generated)
+  const hasContent =
+    (summaryState.summary && summaryState.summary.trim() !== '') ||
+    (summaryState.courseSummary && summaryState.courseSummary.trim() !== '') ||
+    (summaryState.courseConcepts &&
+      summaryState.courseConcepts.trim() !== '') ||
+    (summaryState.selectedTextSummary &&
+      summaryState.selectedTextSummary.trim() !== '') ||
+    (summaryState.customActionResult &&
+      summaryState.customActionResult.trim() !== '')
+
+  if (!hasContent) {
+    console.log(
+      '[summaryStore] No content generated when stopped, resetting display state'
+    )
+    summaryState.lastSummaryTypeDisplayed = null
+  }
+}
+
+/**
  * Reset all summary-related states.
  */
 export function resetState() {
+  // Abort any ongoing streaming operation
+  if (summaryState.abortController) {
+    summaryState.abortController.abort()
+    summaryState.abortController = null
+  }
+
   summaryState.summary = ''
   summaryState.courseSummary = ''
   summaryState.courseConcepts = ''
@@ -87,6 +154,11 @@ export function resetState() {
   summaryState.customActionResult = ''
   summaryState.isCustomActionLoading = false
   summaryState.customActionError = null
+  summaryState.modelStatus = {
+    currentModel: null,
+    fallbackFrom: null,
+    isFallback: false,
+  }
 
   // Reset Deep Dive state
   resetDeepDive()
@@ -109,6 +181,11 @@ export function resetDisplayState() {
   summaryState.activeCourseTab = 'courseSummary'
   summaryState.customActionResult = ''
   summaryState.customActionError = null
+  summaryState.modelStatus = {
+    currentModel: null,
+    fallbackFrom: null,
+    isFallback: false,
+  }
 
   // Reset Deep Dive state
   resetDeepDive()
@@ -335,7 +412,37 @@ export async function fetchAndSummarize() {
     summaryState.isCourseConceptsLoading = false
 
     // Log all generated summaries to history after all loading is complete
-    await logAllGeneratedSummariesToHistory()
+    // Log generated summaries to history as separate entries
+    if (summaryState.isYouTubeVideoActive && summaryState.summary) {
+      await logSingleSummaryToHistory(
+        summaryState.summary,
+        summaryState.pageTitle,
+        summaryState.pageUrl,
+        'Video Summary'
+      )
+    } else if (summaryState.isCourseVideoActive) {
+      if (summaryState.courseSummary)
+        await logSingleSummaryToHistory(
+          summaryState.courseSummary,
+          summaryState.pageTitle,
+          summaryState.pageUrl,
+          'Course Summary'
+        )
+      if (summaryState.courseConcepts)
+        await logSingleSummaryToHistory(
+          summaryState.courseConcepts,
+          summaryState.pageTitle,
+          summaryState.pageUrl,
+          'Course Concepts'
+        )
+    } else if (summaryState.summary) {
+      await logSingleSummaryToHistory(
+        summaryState.summary,
+        summaryState.pageTitle,
+        summaryState.pageUrl,
+        'Web Summary'
+      )
+    }
   }
 }
 
@@ -369,6 +476,16 @@ export async function fetchChapterSummary() {
   summaryState.currentActionType = 'chapters'
   summaryState.customActionResult = ''
   summaryState.customActionError = null
+  // Reset model status for custom actions
+  summaryState.modelStatus = {
+    currentModel: null,
+    fallbackFrom: null,
+    isFallback: false,
+  }
+
+  // Create new AbortController for this streaming operation
+  summaryState.abortController = new AbortController()
+  const abortSignal = summaryState.abortController.signal
 
   try {
     // Get current tab info
@@ -412,7 +529,7 @@ export async function fetchChapterSummary() {
       // Use streaming mode - stream directly to customActionResult
       try {
         console.log('[summaryStore] Starting chapter streaming...')
-        const chapterStream = summarizeChaptersStream(transcript)
+        const chapterStream = summarizeChaptersStream(transcript, abortSignal)
         let chunkCount = 0
         for await (const chunk of chapterStream) {
           summaryState.customActionResult += chunk
@@ -426,6 +543,7 @@ export async function fetchChapterSummary() {
           '[summaryStore] Chapter streaming error, falling back to blocking mode:',
           streamError
         )
+        showBlockingModeToast()
         // Fallback to blocking mode
         const chapterText = await summarizeChapters(transcript)
         summaryState.customActionResult =
@@ -451,8 +569,16 @@ export async function fetchChapterSummary() {
     summaryState.customActionError = errorObject
   } finally {
     summaryState.isCustomActionLoading = false
+    // Clear abort controller after streaming completes
+    summaryState.abortController = null
+
     // Log to history after chapter summary is complete
-    await logAllGeneratedSummariesToHistory()
+    await logSingleSummaryToHistory(
+      summaryState.customActionResult,
+      summaryState.pageTitle,
+      summaryState.pageUrl,
+      'Chapters'
+    )
   }
 }
 export async function fetchAndSummarizeStream() {
@@ -468,6 +594,10 @@ export async function fetchAndSummarizeStream() {
   await loadSettings()
   const userSettings = settings
   resetState()
+
+  // Create new AbortController for this streaming operation
+  summaryState.abortController = new AbortController()
+  const abortSignal = summaryState.abortController.signal
 
   try {
     summaryState.isLoading = true
@@ -533,7 +663,8 @@ export async function fetchAndSummarizeStream() {
         console.log('[summaryStore] Starting YouTube video streaming...')
         const videoSummaryStream = summarizeContentStream(
           summaryState.currentContentSource,
-          'youtube'
+          'youtube',
+          abortSignal
         )
         let chunkCount = 0
         for await (const chunk of videoSummaryStream) {
@@ -546,10 +677,16 @@ export async function fetchAndSummarizeStream() {
 
         // If streaming completed with 0 chunks, it might be a silent error
         // Fallback to blocking mode to get proper error
-        if (chunkCount === 0 && summaryState.summary.trim() === '') {
+        // BUT only if not aborted by user
+        if (
+          chunkCount === 0 &&
+          summaryState.summary.trim() === '' &&
+          !abortSignal.aborted
+        ) {
           console.log(
             '[summaryStore] YouTube streaming failed silently (0 chunks), trying blocking mode...'
           )
+          showBlockingModeToast()
           try {
             const blockingResult = await summarizeContent(
               summaryState.currentContentSource,
@@ -593,7 +730,8 @@ export async function fetchAndSummarizeStream() {
         try {
           const courseSummaryStream = summarizeContentStream(
             summaryState.currentContentSource,
-            'courseSummary'
+            'courseSummary',
+            abortSignal
           )
           for await (const chunk of courseSummaryStream) {
             summaryState.courseSummary += chunk
@@ -613,7 +751,8 @@ export async function fetchAndSummarizeStream() {
         try {
           const courseConceptsStream = summarizeContentStream(
             summaryState.currentContentSource,
-            'courseConcepts'
+            'courseConcepts',
+            abortSignal
           )
           for await (const chunk of courseConceptsStream) {
             summaryState.courseConcepts += chunk
@@ -632,7 +771,8 @@ export async function fetchAndSummarizeStream() {
       try {
         const webSummaryStream = summarizeContentStream(
           summaryState.currentContentSource,
-          'general'
+          'general',
+          abortSignal
         )
         let hasContent = false
         for await (const chunk of webSummaryStream) {
@@ -641,12 +781,18 @@ export async function fetchAndSummarizeStream() {
         }
 
         // Check if stream completed without content - likely due to API error
-        if (!hasContent && summaryState.summary.trim() === '') {
+        // BUT only if not aborted by user
+        if (
+          !hasContent &&
+          summaryState.summary.trim() === '' &&
+          !abortSignal.aborted
+        ) {
           // Try to get actual error from last global error or fallback to blocking mode
           try {
             console.log(
               '[summaryStore] Stream failed silently, trying blocking mode...'
             )
+            showBlockingModeToast()
             // Fallback to blocking mode to get proper error
             const blockingSummary = await summarizeContent(
               summaryState.currentContentSource,
@@ -664,6 +810,7 @@ export async function fetchAndSummarizeStream() {
         console.log(
           '[fetchAndSummarizeStream] Falling back to blocking mode...'
         )
+        showBlockingModeToast()
         // Fallback to blocking mode to get proper error display
         try {
           const blockingSummary = await summarizeContent(
@@ -695,7 +842,40 @@ export async function fetchAndSummarizeStream() {
     summaryState.lastSummaryTypeDisplayed = 'web'
   } finally {
     summaryState.isLoading = false
-    await logAllGeneratedSummariesToHistory()
+    // Clear abort controller after streaming completes
+    summaryState.abortController = null
+
+    // Log generated summaries to history as separate entries
+    if (summaryState.isYouTubeVideoActive && summaryState.summary) {
+      await logSingleSummaryToHistory(
+        summaryState.summary,
+        summaryState.pageTitle,
+        summaryState.pageUrl,
+        'Video Summary'
+      )
+    } else if (summaryState.isCourseVideoActive) {
+      if (summaryState.courseSummary)
+        await logSingleSummaryToHistory(
+          summaryState.courseSummary,
+          summaryState.pageTitle,
+          summaryState.pageUrl,
+          'Course Summary'
+        )
+      if (summaryState.courseConcepts)
+        await logSingleSummaryToHistory(
+          summaryState.courseConcepts,
+          summaryState.pageTitle,
+          summaryState.pageUrl,
+          'Course Concepts'
+        )
+    } else if (summaryState.summary) {
+      await logSingleSummaryToHistory(
+        summaryState.summary,
+        summaryState.pageTitle,
+        summaryState.pageUrl,
+        'Web Summary'
+      )
+    }
   }
 }
 export async function summarizeSelectedText(text) {
@@ -739,7 +919,12 @@ export async function summarizeSelectedText(text) {
     summaryState.lastSummaryTypeDisplayed = 'selectedText'
   } finally {
     summaryState.isSelectedTextLoading = false
-    await logAllGeneratedSummariesToHistory()
+    await logSingleSummaryToHistory(
+      summaryState.selectedTextSummary,
+      summaryState.pageTitle,
+      summaryState.pageUrl,
+      'Selected Text'
+    )
   }
 }
 
@@ -814,57 +999,15 @@ export async function saveAllGeneratedSummariesToArchive() {
   } catch (error) {}
 }
 
-export async function logAllGeneratedSummariesToHistory() {
-  const summariesToLog = []
-
-  if (summaryState.summary && summaryState.summary.trim() !== '') {
-    summariesToLog.push({
-      title:
-        summaryState.lastSummaryTypeDisplayed === 'youtube'
-          ? 'Summary'
-          : 'Summary',
-      content: summaryState.summary,
-    })
-  }
-  if (summaryState.courseSummary && summaryState.courseSummary.trim() !== '') {
-    summariesToLog.push({
-      title: 'Summary',
-      content: summaryState.courseSummary,
-    })
-  }
-  if (
-    summaryState.courseConcepts &&
-    summaryState.courseConcepts.trim() !== ''
-  ) {
-    summariesToLog.push({
-      title: 'Concepts',
-      content: summaryState.courseConcepts,
-    })
-  }
-  if (
-    summaryState.selectedTextSummary &&
-    summaryState.selectedTextSummary.trim() !== ''
-  ) {
-    summariesToLog.push({
-      title: 'Selected Text',
-      content: summaryState.selectedTextSummary,
-    })
-  }
-
-  // Add custom action result
-  if (
-    summaryState.customActionResult &&
-    summaryState.customActionResult.trim() !== ''
-  ) {
-    summariesToLog.push({
-      title:
-        summaryState.currentActionType.charAt(0).toUpperCase() +
-        summaryState.currentActionType.slice(1),
-      content: summaryState.customActionResult,
-    })
-  }
-
-  if (summariesToLog.length === 0) {
+/**
+ * Log a single summary action to history as a separate entry
+ * @param {string} content - The summary content
+ * @param {string} title - The page title
+ * @param {string} url - The page URL
+ * @param {string} typeLabel - The label to append to the title (e.g., "Summary", "Comments")
+ */
+export async function logSingleSummaryToHistory(content, title, url, typeLabel) {
+  if (!content || content.trim() === '') {
     return
   }
 
@@ -876,22 +1019,28 @@ export async function logAllGeneratedSummariesToHistory() {
 
     const historyEntry = {
       id: generateUUID(), // Generate UUID for new entry
-      title: summaryState.pageTitle || 'Tiêu đề không xác định',
-      url: summaryState.pageUrl || 'URL không xác định',
+      title: `${title} - ${typeLabel}`, // Append type to title
+      url: url || 'URL không xác định',
       date: new Date().toISOString(),
-      summaries: summariesToLog,
-      contentType: detectContentType(summaryState.pageUrl), // Auto-assign content type
+      summaries: [
+        {
+          title: typeLabel,
+          content: content,
+        },
+      ],
+      contentType: detectContentType(url), // Auto-assign content type
     }
 
     await addHistory(historyEntry)
     document.dispatchEvent(
       new CustomEvent('saveSummarySuccess', {
-        detail: { message: 'Logged to History successfully!' },
+        detail: { message: `Logged ${typeLabel} to History successfully!` },
       })
     )
     // Notify other components that the data has been updated
     await appStateStorage.setValue({ data_updated_at: new Date().getTime() })
   } catch (error) {
+    console.error('Error logging to history:', error)
     document.dispatchEvent(
       new CustomEvent('saveSummaryError', {
         detail: { message: `Error logging to History: ${error}` },
@@ -899,6 +1048,12 @@ export async function logAllGeneratedSummariesToHistory() {
     )
   }
 }
+
+export async function logAllGeneratedSummariesToHistory() {
+  // Deprecated: This function is no longer used for new logic but kept for reference or potential cleanup
+  // We are now using logSingleSummaryToHistory for granular history tracking
+}
+
 
 /**
  * Execute custom action (analyze, explain, debate) on current page content
@@ -922,7 +1077,17 @@ export async function executeCustomAction(actionType) {
   summaryState.currentActionType = actionType
   summaryState.customActionResult = ''
   summaryState.customActionError = null
+  // Reset model status for custom actions
+  summaryState.modelStatus = {
+    currentModel: null,
+    fallbackFrom: null,
+    isFallback: false,
+  }
   summaryState.lastSummaryTypeDisplayed = 'custom'
+
+  // Create new AbortController for this streaming operation
+  summaryState.abortController = new AbortController()
+  const abortSignal = summaryState.abortController.signal
 
   try {
     // Get current tab info
@@ -982,7 +1147,8 @@ export async function executeCustomAction(actionType) {
         console.log(`[summaryStore] Starting ${actionType} streaming...`)
         const actionStream = summarizeContentStream(
           contentResult.content,
-          actionType
+          actionType,
+          abortSignal
         )
         let chunkCount = 0
         for await (const chunk of actionStream) {
@@ -1015,7 +1181,360 @@ export async function executeCustomAction(actionType) {
     summaryState.customActionError = errorObject
   } finally {
     summaryState.isCustomActionLoading = false
+    // Clear abort controller after streaming completes
+    summaryState.abortController = null
+
     // Log to history
-    await logAllGeneratedSummariesToHistory()
+    // Log to history
+    const actionLabel =
+      summaryState.currentActionType.charAt(0).toUpperCase() +
+      summaryState.currentActionType.slice(1)
+    await logSingleSummaryToHistory(
+      summaryState.customActionResult,
+      summaryState.pageTitle,
+      summaryState.pageUrl,
+      actionLabel
+    )
+  }
+}
+
+/**
+ * Format comments data for AI analysis
+ * Cleans and structures comment data to optimize for AI processing
+ * @param {Array} comments - Raw comment array from content script
+ * @param {Object} metadata - Metadata object with video info
+ * @returns {string} Formatted markdown string ready for AI
+ */
+function formatCommentsForAI(comments, metadata) {
+  if (!comments || comments.length === 0) {
+    return 'No comments available.'
+  }
+
+  // Ultra-compact format - no metadata header
+  let formatted = ''
+  const seenTexts = new Set()
+
+  for (const comment of comments) {
+    // Skip duplicates and spam
+    const normalizedText = comment.text.trim().toLowerCase()
+    if (seenTexts.has(normalizedText) || comment.text.trim().length < 3) {
+      continue
+    }
+    seenTexts.add(normalizedText)
+
+    // Clean text: remove excessive emojis
+    let cleanText = comment.text
+      .trim()
+      .replace(/[\u{1F300}-\u{1F9FF}]{6,}/gu, '[emoji]')
+
+    // Truncate long comments (max 400 chars for better token efficiency)
+    if (cleanText.length > 400) {
+      cleanText = cleanText.substring(0, 397) + '...'
+    }
+
+    // Ultra compact format: @author|time|likes↑|replies💬|text
+    formatted += `@${comment.author.name}`
+    if (comment.author.isChannelOwner) {
+      formatted += '👤'
+    }
+    formatted += `|${comment.publishedTime}|${comment.likeCount}↑`
+    if (comment.replyCount > 0) {
+      formatted += `|${comment.replyCount}💬`
+    }
+    formatted += `|${cleanText}\n`
+
+    // Compact replies format
+    if (comment.replies && comment.replies.length > 0) {
+      for (const reply of comment.replies) {
+        // Clean reply text
+        let cleanReply = reply.text
+          .trim()
+          .replace(/[\u{1F300}-\u{1F9FF}]{6,}/gu, '[emoji]')
+
+        // Truncate long replies (max 200 chars)
+        if (cleanReply.length > 200) {
+          cleanReply = cleanReply.substring(0, 197) + '...'
+        }
+
+        // Skip very short replies
+        if (cleanReply.length < 3) {
+          continue
+        }
+
+        // Compact reply: indent + number.@author|text
+        formatted += `  ${reply.index}.@${reply.author.name}|${cleanReply}\n`
+      }
+    }
+
+    formatted += '\n'
+  }
+
+  return formatted
+}
+
+/**
+ * Fetch and analyze YouTube comments
+ * Fetches comments from YouTube and analyzes them with AI
+ * @param {number} maxComments - Max comments to fetch (default: 50)
+ * @param {number} maxRepliesPerComment - Max replies per comment (default: 10)
+ */
+export async function fetchCommentSummary(
+  maxComments = 80,
+  maxRepliesPerComment = 10
+) {
+  // Prevent multiple simultaneous actions
+  if (summaryState.isCustomActionLoading || summaryState.isLoading) {
+    console.log('[fetchCommentSummary] Already loading, skipping...')
+    return
+  }
+
+  // Wait for settings to be initialized
+  await loadSettings()
+  const userSettings = settings
+
+  // Reset Deep Dive when starting custom action
+  resetDeepDive()
+
+  // Reset custom action state
+  summaryState.isCustomActionLoading = true
+  summaryState.currentActionType = 'comments'
+  summaryState.customActionResult = ''
+  summaryState.customActionError = null
+  // Reset model status for custom actions
+  summaryState.modelStatus = {
+    currentModel: null,
+    fallbackFrom: null,
+    isFallback: false,
+  }
+  summaryState.lastSummaryTypeDisplayed = 'custom'
+
+  // Create new AbortController for this streaming operation
+  summaryState.abortController = new AbortController()
+  const abortSignal = summaryState.abortController.signal
+
+  try {
+    console.log('[fetchCommentSummary] Starting comment fetch...')
+
+    // Get current tab info
+    const [tabInfo] = await browser.tabs.query({
+      active: true,
+      currentWindow: true,
+    })
+
+    if (!tabInfo || !tabInfo.url) {
+      throw new Error('Could not get current tab information or URL.')
+    }
+
+    // Verify this is a YouTube watch page
+    const YOUTUBE_WATCH_PATTERN = /youtube\.com\/watch/i
+    if (!YOUTUBE_WATCH_PATTERN.test(tabInfo.url)) {
+      throw new Error('This feature only works on YouTube video pages.')
+    }
+
+    // Check Firefox permissions
+    if (import.meta.env.BROWSER === 'firefox') {
+      const hasPermission = await checkPermission(tabInfo.url)
+      if (!hasPermission) {
+        const permissionGranted = await requestPermission(tabInfo.url)
+        if (!permissionGranted) {
+          throw new Error('Permission denied for this website.')
+        }
+      }
+    }
+
+    // Set page info
+    summaryState.pageTitle = tabInfo.title || 'YouTube Comment Analysis'
+    summaryState.pageUrl = tabInfo.url
+
+    console.log('[fetchCommentSummary] Sending message to content script...')
+
+    // Send message to content script to fetch comments
+    const response = await browser.tabs.sendMessage(tabInfo.id, {
+      action: 'fetchYouTubeComments',
+      maxComments: maxComments,
+      maxRepliesPerComment: maxRepliesPerComment,
+    })
+
+    console.log('[fetchCommentSummary] Received response:', response)
+
+    if (!response || !response.success) {
+      throw new Error(
+        response?.error || 'Failed to fetch comments from YouTube.'
+      )
+    }
+
+    if (!response.comments || response.comments.length === 0) {
+      throw new Error(
+        'No comments found. This video may have comments disabled or no comments yet.'
+      )
+    }
+
+    // Format comments for AI
+    console.log(
+      `[fetchCommentSummary] Formatting ${response.comments.length} comments...`
+    )
+    console.log(
+      '[DEBUG] Raw comments sample:',
+      JSON.stringify(response.comments.slice(0, 2), null, 2)
+    )
+    console.log('[DEBUG] Metadata:', response.metadata)
+
+    const formattedData = formatCommentsForAI(
+      response.comments,
+      response.metadata
+    )
+
+    console.log(
+      '[fetchCommentSummary] Formatted data length:',
+      formattedData.length
+    )
+    console.log(
+      '[DEBUG] Formatted data preview (first 1000 chars):',
+      formattedData.substring(0, 1000)
+    )
+
+    // Determine the actual provider to use based on isAdvancedMode
+    let selectedProviderId = userSettings.selectedProvider || 'gemini'
+    if (!userSettings.isAdvancedMode) {
+      selectedProviderId = 'gemini' // Force Gemini in basic mode
+    }
+
+    // Check if we should use streaming mode
+    const shouldUseStreaming =
+      userSettings.enableStreaming &&
+      providerSupportsStreaming(selectedProviderId)
+
+    console.log('[fetchCommentSummary] Streaming mode:', shouldUseStreaming)
+    console.log('[DEBUG] Formatted data length:', formattedData.length)
+    console.log(
+      '[DEBUG] Formatted data preview (first 500 chars):',
+      formattedData.substring(0, 500)
+    )
+
+    if (shouldUseStreaming) {
+      // Use streaming mode
+      try {
+        console.log(
+          '[fetchCommentSummary] Starting comment analysis streaming...'
+        )
+        console.log(
+          '[DEBUG] Calling summarizeContentStream with contentType: commentAnalysis'
+        )
+        const actionStream = summarizeContentStream(
+          formattedData,
+          'commentAnalysis',
+          abortSignal
+        )
+        let chunkCount = 0
+        for await (const chunk of actionStream) {
+          summaryState.customActionResult += chunk
+          chunkCount++
+        }
+        console.log(
+          `[fetchCommentSummary] Streaming completed, chunks: ${chunkCount}`
+        )
+        console.log(
+          '[DEBUG] Final streaming result length:',
+          summaryState.customActionResult.length
+        )
+        console.log(
+          '[DEBUG] Final streaming result preview (first 500 chars):',
+          summaryState.customActionResult.substring(0, 500)
+        )
+
+        // If streaming completed with 0 chunks, it might be a silent error
+        // Fallback to blocking mode to get proper error
+        if (chunkCount === 0 && summaryState.customActionResult.trim() === '') {
+          console.log(
+            '[fetchCommentSummary] Streaming failed silently (0 chunks), trying blocking mode...'
+          )
+          try {
+            const blockingResult = await summarizeContent(
+              formattedData,
+              'commentAnalysis'
+            )
+            console.log(
+              '[DEBUG] Fallback result length:',
+              blockingResult ? blockingResult.length : 0
+            )
+            console.log(
+              '[DEBUG] Fallback result preview (first 500 chars):',
+              blockingResult ? blockingResult.substring(0, 500) : 'No result'
+            )
+            summaryState.customActionResult =
+              blockingResult ||
+              '<p><i>Could not generate comment analysis.</i></p>'
+          } catch (blockingError) {
+            // This will properly display the error with correct error code
+            const errorObject = handleError(blockingError, {
+              source: 'commentAnalysisStreaming',
+            })
+            summaryState.customActionError = errorObject
+            console.log(
+              '[fetchCommentSummary] Error set for UI:',
+              summaryState.customActionError
+            )
+          }
+        }
+      } catch (streamError) {
+        console.log(
+          '[fetchCommentSummary] Streaming error, falling back to blocking mode:',
+          streamError
+        )
+        // Fallback to blocking mode on streaming error
+        console.log(
+          '[DEBUG] Calling summarizeContent with contentType: commentAnalysis (fallback)'
+        )
+        const result = await summarizeContent(formattedData, 'commentAnalysis')
+        console.log(
+          '[DEBUG] Fallback result length:',
+          result ? result.length : 0
+        )
+        console.log(
+          '[DEBUG] Fallback result preview (first 500 chars):',
+          result ? result.substring(0, 500) : 'No result'
+        )
+        summaryState.customActionResult =
+          result || '<p><i>Could not generate comment analysis.</i></p>'
+      }
+    } else {
+      // Use non-streaming mode
+      console.log('[fetchCommentSummary] Using non-streaming mode...')
+      console.log(
+        '[DEBUG] Calling summarizeContent with contentType: commentAnalysis (non-streaming)'
+      )
+      const result = await summarizeContent(formattedData, 'commentAnalysis')
+      console.log(
+        '[DEBUG] Non-streaming result length:',
+        result ? result.length : 0
+      )
+      console.log(
+        '[DEBUG] Non-streaming result preview (first 500 chars):',
+        result ? result.substring(0, 500) : 'No result'
+      )
+      summaryState.customActionResult =
+        result || '<p><i>Could not generate comment analysis.</i></p>'
+    }
+
+    console.log('[fetchCommentSummary] Analysis completed successfully')
+  } catch (e) {
+    console.error('[fetchCommentSummary] Error:', e)
+    const errorObject = handleError(e, {
+      source: 'commentAnalysis',
+    })
+    summaryState.customActionError = errorObject
+  } finally {
+    summaryState.isCustomActionLoading = false
+    // Clear abort controller after streaming completes
+    summaryState.abortController = null
+
+    // Log to history
+    // Log to history
+    await logSingleSummaryToHistory(
+      summaryState.customActionResult,
+      summaryState.pageTitle,
+      summaryState.pageUrl,
+      'Comments'
+    )
   }
 }

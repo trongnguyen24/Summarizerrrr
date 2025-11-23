@@ -1,6 +1,6 @@
 <script>
   // @ts-nocheck
-  import { geminiAdvancedModels } from '../../../lib/prompting/models/geminiModels.js'
+  import { geminiAdvancedModels } from '@/lib/prompts/models/geminiModels.js'
   import { updateSettings } from '../../../stores/settingsStore.svelte.js'
   import ApiKeyInput from '../../inputs/ApiKeyInput.svelte'
   import ReusableSelect from '../../inputs/ReusableSelect.svelte'
@@ -50,10 +50,10 @@
     items={geminiAdvancedModels}
     bindValue={selectedModel}
     defaultLabel={$t(
-      'settings.gemini_advanced_config.select_model_placeholder'
+      'settings.gemini_advanced_config.select_model_placeholder',
     )}
     ariaLabel={$t(
-      'settings.gemini_advanced_config.select_gemini_model_aria_label'
+      'settings.gemini_advanced_config.select_gemini_model_aria_label',
     )}
     onValueChangeCallback={handleGeminiAdvancedModelChange}
   />

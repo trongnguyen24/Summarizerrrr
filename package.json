@@ -59,7 +59,7 @@
     "rehype-raw": "^7.0.0",
     "svelte-i18n": "^3.7.1",
     "svelte-markdown": "^0.4.1",
-    "svelte-sonner": "^1.0.5",
+    "svelte-sonner": "^1.0.6",
     "tailwindcss": "^4.1.8",
     "webextension-polyfill": "^0.12.0"
   }

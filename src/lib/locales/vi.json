@@ -78,6 +78,11 @@
         "position_left": "Trái",
         "position_right": "Phải"
       },
+       "one_click_mode": "1 Click tóm tắt",
+      "one_click_disabled_title": "Tắt",
+      "one_click_disabled_desc": "Click nút FAB mở hanh bên (mặc dịnh)",
+      "one_click_enabled_title": "Bật",
+      "one_click_enabled_desc": "Click nút FAB sẽ tóm tắt ngay",
       "auto_hide_outside_click": "Tự động ẩn khi click bên ngoài",
       "auto_hide_disabled_title": "Tắt",
       "auto_hide_disabled_desc": "Giữ thanh bên mở khi click bên ngoài.",
@@ -220,7 +225,7 @@
     },
     "tools": {
       "deepdive": {
-        "title": "Deep Dive Questions",
+        "title": "Câu hỏi chuyên sâu",
         "description": "Tạo 3 câu hỏi chuyên sâu và trò chuyện trong tab mới.",
         "enabled": "Đang bật",
         "disabled": "Đang tắt",
@@ -329,22 +334,18 @@
     "help_project": "Hỗ trợ dự án bằng cách quyên góp hoặc để lại đánh giá!",
     "edge_addons": "Tiện ích Edge"
   },
-  "permissionWarning": {
-    "title": "Quyền truy cập",
-    "button": "Truy cập dữ liệu tất cả trang web",
-    "description": "Mặc định truy cập YouTube, Udemy và Coursera. Để tóm tắt các trang web khác, vui lòng cấp quyền bên dưới.",
-    "requesting": "Đang yêu cầu...",
-    "grant_permissions": "Cấp quyền"
-  },
   "custom_actions": {
     "analyze": "Phân tích",
     "explain": "Giải thích",
     "debate": "Tranh luận",
-    "analyze_description": "Phân tích cấu trúc và lập luận nội dung",
+    "analyze_description": "Phân tích cấu trúc nội dung và lập luận",
     "explain_description": "Giải thích bằng ngôn ngữ đơn giản",
-    "description": "Tạo phản hồi sâu sắc",
+    "reply_description": "Tạo phản hồi chu đáo",
     "processing": "Đang xử lý {action}...",
-    "error": "Không thể {action} nội dung"
+    "error": "Thất bại khi {action} nội dung",
+    "debate_description": "Phân tích từ nhiều góc độ",
+    "chapters_description": "Tóm tắt theo chương",
+    "comments_description": "Tóm tắt bình luận YouTube"
   },
   "tags": {
     "title": "Thẻ",

@@ -27,28 +27,41 @@
     const t = (type || '').toLowerCase()
     if (t === 'youtube') {
       console.log(
-        '[FloatingPanelContent] Display selected: YouTubeSummaryDisplayFP'
+        '[FloatingPanelContent] Display selected: YouTubeSummaryDisplayFP',
       )
       return YouTubeSummaryDisplayFP
     }
     if (t === 'course') {
       console.log(
-        '[FloatingPanelContent] Display selected: CourseSummaryDisplayFP'
+        '[FloatingPanelContent] Display selected: CourseSummaryDisplayFP',
       )
       return CourseSummaryDisplayFP
     }
     console.log(
-      '[FloatingPanelContent] Display selected: GenericSummaryDisplayFP (fallback)'
+      '[FloatingPanelContent] Display selected: GenericSummaryDisplayFP (fallback)',
     )
     return GenericSummaryDisplayFP
   }
 
   // Derived component để render
   let DisplayComponent = $derived(selectDisplay(contentType || 'general'))
+
+  // Derived loading text
+  let loadingText = $derived(() => {
+    const action = summarization.localSummaryState().loadingAction
+    if (action === 'comments') return 'Processing comments...'
+    if (action === 'chapters') return 'Processing chapters...'
+    if (action === 'analyze') return 'Analyzing content...'
+    if (action === 'explain') return 'Explaining content...'
+    if (action === 'debate') return 'Debating content...'
+    if (contentType === 'youtube' || action === 'summarize')
+      return 'Processing YouTube summary...'
+    return 'Processing...'
+  })
 </script>
 
 <div class="panel-content">
-  <div class="prose text-base mx-auto px-6 py-8">
+  <div class="prose text-base mx-auto px-6">
     {#if status === 'error'}
       <ErrorDisplay {error} />
     {:else if contentType === 'course'}
@@ -65,20 +78,17 @@
       <DisplayComponent
         {summary}
         isLoading={status === 'loading'}
+        loadingText={loadingText()}
         {summarization}
       />
-    {:else if summary}
+    {:else if summary || status === 'loading'}
       <DisplayComponent
         {summary}
         isLoading={status === 'loading'}
-        loadingText="Processing..."
+        loadingText={loadingText()}
         targetId="fp-generic-summary"
         {summarization}
       />
-    {:else if status === 'loading'}
-      <p class="text-center text-text-secondary animate-pulse">
-        Processing summary...
-      </p>
     {:else}
       <!-- <p>No summary available.</p> -->
     {/if}

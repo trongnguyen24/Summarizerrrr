@@ -8,17 +8,22 @@ export default defineContentScript({
     if (window.youtubeTranscriptListenerAdded) return
     window.youtubeTranscriptListenerAdded = true
 
-    // Inject youtube_transcript.js if not already loaded
-    if (typeof getCaptions === 'undefined') {
-      const script = document.createElement('script')
-      script.src = browser.runtime.getURL('youtube_transcript.js')
-      script.onload = () => {
-        console.log('[YouTubeTranscript] Script injected successfully')
+    // youtube_transcript.js is already loaded via content_scripts in wxt.config.ts
+    // No need to inject it into the main world.
+
+
+    // Inject youtube_player_control.js for seeking functionality
+    if (!window.youtubePlayerControlInjected) {
+      const controlScript = document.createElement('script')
+      controlScript.src = browser.runtime.getURL('youtube_player_control.js')
+      controlScript.onload = () => {
+        console.log('[YouTubeTranscript] Player control script injected successfully')
+        window.youtubePlayerControlInjected = true
       }
-      script.onerror = () => {
-        console.error('[YouTubeTranscript] Failed to inject script')
+      controlScript.onerror = () => {
+        console.error('[YouTubeTranscript] Failed to inject player control script')
       }
-      ;(document.head || document.documentElement).appendChild(script)
+      ;(document.head || document.documentElement).appendChild(controlScript)
     }
 
     const transcriptExtractor = new MessageBasedTranscriptExtractor('en')
@@ -81,11 +86,38 @@ export default defineContentScript({
             sendResponse({ success: true, message: 'pong' })
             break
 
+          case 'seekToTimestamp':
+            try {
+              // Dispatch a custom event that youtube_transcript.js (running in Main World) will listen to
+              const detail = { seconds: request.seconds }
+              let event
+
+              // Firefox requires cloneInto for CustomEvent details to be accessible in the main world
+              if (typeof cloneInto !== 'undefined') {
+                const clonedDetail = cloneInto(detail, document.defaultView)
+                event = new CustomEvent('Summarizerrrr_Seek', {
+                  detail: clonedDetail,
+                })
+              } else {
+                event = new CustomEvent('Summarizerrrr_Seek', {
+                  detail: detail,
+                })
+              }
+
+              window.dispatchEvent(event)
+
+              sendResponse({ success: true })
+            } catch (error) {
+              console.error(
+                '[YouTubeTranscript] Error in seekToTimestamp:',
+                error
+              )
+              sendResponse({ success: false, error: error.message })
+            }
+            break
+
           default:
-            sendResponse({
-              success: false,
-              error: `Unknown action: ${request.action}`,
-            })
+            return false // Let other listeners handle unknown actions
         }
       }
 

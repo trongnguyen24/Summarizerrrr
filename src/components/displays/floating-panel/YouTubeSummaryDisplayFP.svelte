@@ -2,7 +2,12 @@
   // @ts-nocheck
   import GenericSummaryDisplayFP from './GenericSummaryDisplayFP.svelte'
 
-  let { summary = '', isLoading = false, summarization } = $props()
+  let {
+    summary = '',
+    isLoading = false,
+    summarization,
+    loadingText = 'Processing YouTube summary...',
+  } = $props()
 </script>
 
 <!-- Video Summary -->
@@ -10,7 +15,7 @@
   <GenericSummaryDisplayFP
     {summary}
     {isLoading}
-    loadingText="Processing YouTube summary..."
+    {loadingText}
     targetId="fp-youtube-summary-display"
     {summarization}
   />

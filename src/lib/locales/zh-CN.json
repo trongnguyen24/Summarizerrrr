@@ -314,11 +314,24 @@
     "edge_addons": "Edge 附加组件"
   },
   "permissionWarning": {
-    "title": "权限",
-    "button": "访问您在所有网站上的数据",
-    "description": "默认访问 YouTube、Udemy 和 Coursera。要总结其他网站，请在下方授予权限。",
+    "title": "需要权限",
+    "button": "允许访问所有网站",
+    "description": "Summarizerrrr 默认在 YouTube、Udemy、Coursera、Reddit 和 Wikipedia 上工作。要总结其他网站的内容，请在下方授予权限。",
     "requesting": "请求中...",
     "grant_permissions": "授予权限"
+  },
+  "custom_actions": {
+    "analyze": "分析",
+    "explain": "解释",
+    "debate": "辩论",
+    "analyze_description": "分析内容结构和论点",
+    "explain_description": "用简单的术语解释",
+    "reply_description": "生成深思熟虑的回复",
+    "processing": "正在处理 {action}...",
+    "error": "无法 {action} 内容",
+    "debate_description": "从多个角度分析",
+    "chapters_description": "按章节总结",
+    "comments_description": "总结 YouTube 评论"
   },
   "tags": {
     "title": "标签",

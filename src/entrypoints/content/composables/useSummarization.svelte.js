@@ -1,5 +1,6 @@
 // @ts-nocheck
 import { loadSettings, settings } from '@/stores/settingsStore.svelte.js'
+import { updateModelStatus } from '@/stores/summaryStore.svelte.js'
 import { ContentExtractorService } from '../services/ContentExtractorService.js'
 import { SummarizationService } from '../services/SummarizationService.js'
 import {
@@ -43,12 +44,20 @@ export function useSummarization() {
     saveError: null,
     pageTitle: '', // Thêm pageTitle
     pageUrl: '', // Thêm pageUrl
+    currentRequestId: null, // Unique ID for the current summarization request
+    loadingAction: null, // 'summarize', 'chapters', 'comments', 'custom'
   })
+
+  // AbortController to handle cancellation
+  let abortController = null
 
   /**
    * Reset local summary state
    */
   function resetLocalSummaryState() {
+    // Reset request ID - invalidates any pending requests
+    localSummaryState.currentRequestId = null
+
     localSummaryState.isLoading = false
     localSummaryState.summary = ''
     localSummaryState.error = null
@@ -63,6 +72,7 @@ export function useSummarization() {
     localSummaryState.saveError = null
     localSummaryState.pageTitle = ''
     localSummaryState.pageUrl = ''
+    localSummaryState.loadingAction = null
   }
 
   /**
@@ -70,6 +80,12 @@ export function useSummarization() {
    * @param {Error} error
    */
   function handleSummarizationError(error) {
+    // Ignore AbortError
+    if (error.name === 'AbortError' || error.message?.includes('aborted')) {
+      console.log('[useSummarization] Operation aborted, ignoring error')
+      return
+    }
+
     console.error('[useSummarization] Summarization error:', error)
 
     localSummaryState.error = {
@@ -92,6 +108,39 @@ export function useSummarization() {
   }
 
   /**
+   * Stop the current summarization operation
+   */
+  function stopSummarization() {
+    console.log('[useSummarization] Stopping summarization...')
+
+    // Abort current request if exists
+    if (abortController) {
+      abortController.abort()
+      abortController = null
+    }
+
+    // Invalidate current request
+    localSummaryState.currentRequestId = null
+
+    // Reset loading states
+    localSummaryState.isLoading = false
+    localSummaryState.isCourseConceptsLoading = false
+
+    // Reset processing flag
+    isProcessing = false
+
+    // Kiểm tra nếu không có content thì reset display
+    const hasContent =
+      localSummaryState.summary && localSummaryState.summary.trim() !== ''
+    if (!hasContent) {
+      console.log(
+        '[useSummarization] No content generated when stopped, resetting display state'
+      )
+      resetLocalSummaryState()
+    }
+  }
+
+  /**
    * Main summarization function với independent loading
    */
   async function summarizePageContent(customContentType = null) {
@@ -103,16 +152,34 @@ export function useSummarization() {
       return
     }
 
+    // Cancel any previous request
+    if (abortController) {
+      abortController.abort()
+    }
+    // Create new AbortController
+    abortController = new AbortController()
+    const signal = abortController.signal
+
     // Set immediate loading state để disable button ngay lập tức
     localSummaryState.isLoading = true
     isProcessing = true
 
+    // Generate new request ID
+    const requestId = Date.now().toString()
+    localSummaryState.currentRequestId = requestId
+
     try {
-      console.log('[useSummarization] Starting independent summarization...')
+      console.log('[useSummarization] Starting independent summarization...', requestId)
 
       // 1. Reset state (giữ lại isLoading = true)
       const wasLoading = localSummaryState.isLoading
       resetLocalSummaryState()
+      // Restore request ID after reset (since reset clears it)
+      localSummaryState.currentRequestId = requestId
+      localSummaryState.loadingAction = customContentType || 'summarize'
+      
+      // Reset global model status
+      updateModelStatus(null, null, false)
       localSummaryState.isLoading = wasLoading
       localSummaryState.startTime = Date.now()
 
@@ -146,6 +213,9 @@ export function useSummarization() {
       localSummaryState.streamingEnabled =
         summarizationService.shouldUseStreaming(settings)
 
+      // Check abort signal
+      if (signal.aborted) throw new Error('Aborted')
+
       // 5. Course content: Gọi APIs parallel nhưng update UI independently
       if (contentType === 'course') {
         // Start both loading states
@@ -159,17 +229,29 @@ export function useSummarization() {
             const result =
               await summarizationService.summarizeCourseSummaryWithContent(
                 content,
-                settings
+                settings,
+                signal
               )
+            
+            // Check request ID before updating state
+            if (localSummaryState.currentRequestId !== requestId) {
+              console.log('[useSummarization] Course summary stopped/outdated, skipping update')
+              return
+            }
+
             localSummaryState.summary = result.summary
             console.log(
               '[useSummarization] Course summary completed and displayed'
             )
           } catch (error) {
+            if (error.name === 'AbortError' || signal.aborted) return
             console.error('[useSummarization] Course summary error:', error)
             handleSummarizationError(error)
           } finally {
-            localSummaryState.isLoading = false
+            // Only update loading state if this is still the active request
+            if (localSummaryState.currentRequestId === requestId) {
+              localSummaryState.isLoading = false
+            }
           }
         })()
 
@@ -180,19 +262,31 @@ export function useSummarization() {
             const result =
               await summarizationService.extractCourseConceptsWithContent(
                 content,
-                settings
+                settings,
+                signal
               )
+            
+            // Check request ID before updating state
+            if (localSummaryState.currentRequestId !== requestId) {
+              console.log('[useSummarization] Course concepts stopped/outdated, skipping update')
+              return
+            }
+
             localSummaryState.courseConcepts = result.courseConcepts
             console.log(
               '[useSummarization] Course concepts completed and displayed'
             )
           } catch (error) {
+            if (error.name === 'AbortError' || signal.aborted) return
             console.error('[useSummarization] Course concepts error:', error)
             // Set fallback content for concepts
             localSummaryState.courseConcepts =
               '<p><i>Could not generate course concepts.</i></p>'
           } finally {
-            localSummaryState.isCourseConceptsLoading = false
+             // Only update loading state if this is still the active request
+             if (localSummaryState.currentRequestId === requestId) {
+              localSummaryState.isCourseConceptsLoading = false
+             }
           }
         })()
 
@@ -215,20 +309,39 @@ export function useSummarization() {
 
           if (customContentType === 'chapters') {
             // Tóm tắt chapters và lưu vào summary field (như một entry riêng)
-            localSummaryState.summary = await summarizeChapters(content)
+            const result = await summarizeChapters(content, signal)
+            
+            // Check request ID
+            if (localSummaryState.currentRequestId !== requestId) return
+            
+            localSummaryState.summary = result
           } else {
-            localSummaryState.summary = await summarizeContent(
+            const result = await summarizeContent(
               content,
-              customContentType
+              customContentType,
+              signal
             )
+            
+            // Check request ID
+            if (localSummaryState.currentRequestId !== requestId) return
+            
+            localSummaryState.summary = result
           }
         } else {
           // Logic gốc cho content thường - CHỈ TÓM TẮT CHÍNH
           const result = await summarizationService.summarizeWithContent(
             content,
             contentType,
-            settings
+            settings,
+            signal
           )
+          
+          // Check request ID
+          if (localSummaryState.currentRequestId !== requestId) {
+            console.log('[useSummarization] Summarization stopped/outdated, skipping update')
+            return
+          }
+
           localSummaryState.summary = result.summary
           // Không tự động tóm tắt chapters nữa
         }
@@ -240,18 +353,39 @@ export function useSummarization() {
       console.log(`[useSummarization] Summarization completed in ${duration}ms`)
 
       // 6. Auto-save to history
-      await autoSaveToHistory()
+      // Check request ID again before auto-save
+      if (localSummaryState.currentRequestId !== requestId) return
+
+      let typeLabel = 'Summary'
+      if (customContentType) {
+        typeLabel =
+          customContentType.charAt(0).toUpperCase() + customContentType.slice(1)
+      } else if (contentType === 'course') {
+        typeLabel = 'Course Summary'
+      } else if (contentType === 'youtube') {
+        typeLabel = 'Video Summary'
+      } else {
+        typeLabel = 'Web Summary'
+      }
+      await autoSaveToHistory(typeLabel)
 
       // 7. Update Deep Dive context and auto-generate if enabled
       await handleDeepDiveAfterSummary()
     } catch (error) {
-      handleSummarizationError(error)
-      // Reset loading states on error
-      localSummaryState.isLoading = false
-      localSummaryState.isCourseConceptsLoading = false
+      // Only handle error if this is still the active request
+      if (localSummaryState.currentRequestId === requestId) {
+        handleSummarizationError(error)
+        // Reset loading states on error
+        localSummaryState.isLoading = false
+        localSummaryState.isCourseConceptsLoading = false
+      }
     } finally {
       // Reset processing flag
       isProcessing = false
+      // Reset abort controller if it's the current one
+      if (abortController && abortController.signal === signal) {
+        abortController = null
+      }
     }
   }
 
@@ -267,13 +401,28 @@ export function useSummarization() {
       return
     }
 
+    // Cancel any previous request
+    if (abortController) {
+      abortController.abort()
+    }
+    // Create new AbortController
+    abortController = new AbortController()
+    const signal = abortController.signal
+
+    // Generate new request ID
+    const requestId = Date.now().toString()
+    localSummaryState.currentRequestId = requestId
+
     // Reset summary trước để chapters được lưu như một entry mới
     localSummaryState.summary = ''
+    // Reset global model status
+    updateModelStatus(null, null, false)
     localSummaryState.isLoading = true
     isProcessing = true
+    localSummaryState.loadingAction = 'chapters'
 
     try {
-      console.log('[useSummarization] Starting chapter summarization...')
+      console.log('[useSummarization] Starting chapter summarization...', requestId)
 
       // Set page info (QUAN TRỌNG: Cần có để autoSaveToHistory() không skip)
       localSummaryState.pageTitle = document.title || 'Unknown Title'
@@ -291,29 +440,253 @@ export function useSummarization() {
       const extractResult = await contentExtractor.extractPageContent()
       const content = extractResult.content
 
+      // Check abort signal
+      if (signal.aborted) throw new Error('Aborted')
+
       // Call chapter summarization và lưu vào summary field
       const { summarizeChapters: apiSummarizeChapters } = await import(
         '@/lib/api/api.js'
       )
-      localSummaryState.summary = await apiSummarizeChapters(content)
+      const result = await apiSummarizeChapters(content, signal)
+
+      // Check request ID
+      if (localSummaryState.currentRequestId !== requestId) {
+        console.log('[useSummarization] Chapter summarization stopped/outdated, skipping update')
+        return
+      }
+
+      localSummaryState.summary = result
 
       console.log('[useSummarization] Chapter summarization completed')
 
-      // Auto-save to history - sẽ lưu summary (chứa chapters) như một entry mới
-      await autoSaveToHistory()
+      // Auto-save to history - sẽ lưu summary (chứa chapters) như một entry riêng
+      await autoSaveToHistory('Chapters')
 
       // Update Deep Dive context
       await handleDeepDiveAfterSummary()
     } catch (error) {
-      console.error('[useSummarization] Chapter summarization error:', error)
-      handleSummarizationError(error)
+      if (localSummaryState.currentRequestId === requestId) {
+        console.error('[useSummarization] Chapter summarization error:', error)
+        handleSummarizationError(error)
+      }
     } finally {
-      localSummaryState.isLoading = false
+      if (localSummaryState.currentRequestId === requestId) {
+        localSummaryState.isLoading = false
+      }
       isProcessing = false
+      if (abortController && abortController.signal === signal) {
+        abortController = null
+      }
     }
   }
 
-  async function autoSaveToHistory() {
+  /**
+   * Summarize YouTube comments (for floating panel)
+   * Fetch comments và analyze với AI
+   */
+  async function summarizeComments() {
+    if (isProcessing) {
+      console.log(
+        '[useSummarization] Already processing, ignoring duplicate request'
+      )
+      return
+    }
+
+    // Cancel any previous request
+    if (abortController) {
+      abortController.abort()
+    }
+    // Create new AbortController
+    abortController = new AbortController()
+    const signal = abortController.signal
+
+    // Generate new request ID
+    const requestId = Date.now().toString()
+    localSummaryState.currentRequestId = requestId
+
+    // Reset summary trước
+    localSummaryState.summary = ''
+    // Reset global model status
+    updateModelStatus(null, null, false)
+    localSummaryState.isLoading = true
+    isProcessing = true
+    localSummaryState.loadingAction = 'comments'
+
+    try {
+      console.log('[useSummarization] Starting comment analysis...', requestId)
+
+      // Set page info
+      localSummaryState.pageTitle = document.title || 'YouTube Comment Analysis'
+      localSummaryState.pageUrl = window.location.href
+
+      // Load settings
+      await loadSettings()
+
+      // Verify this is a YouTube watch page
+      const YOUTUBE_WATCH_PATTERN = /youtube\.com\/watch/i
+      if (!YOUTUBE_WATCH_PATTERN.test(localSummaryState.pageUrl)) {
+        throw new Error('This feature only works on YouTube video pages.')
+      }
+
+      console.log('[useSummarization] Fetching comments via message...')
+
+      // Fetch comments qua message passing - use chrome.runtime for content script
+      const response = await new Promise((resolve, reject) => {
+        chrome.runtime.sendMessage(
+          {
+            action: 'fetchYouTubeComments',
+            maxComments: 80,
+            maxRepliesPerComment: 10,
+          },
+          (result) => {
+            if (chrome.runtime.lastError) {
+              console.error(
+                '[useSummarization] Chrome runtime error:',
+                chrome.runtime.lastError
+              )
+              reject(new Error(chrome.runtime.lastError.message))
+            } else {
+              console.log(
+                '[useSummarization] Message sent, waiting for response...'
+              )
+              resolve(result)
+            }
+          }
+        )
+      })
+
+      // Check abort signal
+      if (signal.aborted) throw new Error('Aborted')
+
+      console.log('[useSummarization] Comments received:', response)
+
+      if (!response || !response.success) {
+        throw new Error(
+          response?.error || 'Failed to fetch comments from YouTube.'
+        )
+      }
+
+      if (!response.comments || response.comments.length === 0) {
+        throw new Error(
+          'No comments found. This video may have comments disabled or no comments yet.'
+        )
+      }
+
+      // Format comments for AI (copy function từ summaryStore)
+      const formatCommentsForAI = (comments, metadata) => {
+        if (!comments || comments.length === 0) {
+          return 'No comments available.'
+        }
+
+        let formatted = ''
+        const seenTexts = new Set()
+
+        for (const comment of comments) {
+          // Skip duplicates and spam
+          const normalizedText = comment.text.trim().toLowerCase()
+          if (seenTexts.has(normalizedText) || comment.text.trim().length < 3) {
+            continue
+          }
+          seenTexts.add(normalizedText)
+
+          // Clean text: remove excessive emojis
+          let cleanText = comment.text
+            .trim()
+            .replace(/[\u{1F300}-\u{1F9FF}]{6,}/gu, '[emoji]')
+
+          // Truncate long comments
+          if (cleanText.length > 400) {
+            cleanText = cleanText.substring(0, 397) + '...'
+          }
+
+          // Ultra compact format
+          formatted += `@${comment.author.name}`
+          if (comment.author.isChannelOwner) {
+            formatted += '👤'
+          }
+          formatted += `|${comment.publishedTime}|${comment.likeCount}↑`
+          if (comment.replyCount > 0) {
+            formatted += `|${comment.replyCount}💬`
+          }
+          formatted += `|${cleanText}\n`
+
+          // Compact replies format
+          if (comment.replies && comment.replies.length > 0) {
+            for (const reply of comment.replies) {
+              let cleanReply = reply.text
+                .trim()
+                .replace(/[\u{1F300}-\u{1F9FF}]{6,}/gu, '[emoji]')
+
+              if (cleanReply.length > 200) {
+                cleanReply = cleanReply.substring(0, 197) + '...'
+              }
+
+              if (cleanReply.length < 3) {
+                continue
+              }
+
+              formatted += `  ${reply.index}.@${reply.author.name}|${cleanReply}\n`
+            }
+          }
+
+          formatted += '\n'
+        }
+
+        return formatted
+      }
+
+      console.log('[useSummarization] Formatting comments...')
+      const formattedComments = formatCommentsForAI(
+        response.comments,
+        response.metadata
+      )
+
+      console.log(
+        '[useSummarization] Formatted data length:',
+        formattedComments.length
+      )
+
+      // Analyze với AI
+      console.log('[useSummarization] Analyzing comments with AI...')
+      const { summarizeContent } = await import('@/lib/api/api.js')
+      const result = await summarizeContent(
+        formattedComments,
+        'commentAnalysis',
+        signal
+      )
+
+      // Check request ID
+      if (localSummaryState.currentRequestId !== requestId) {
+        console.log('[useSummarization] Comment analysis stopped/outdated, skipping update')
+        return
+      }
+
+      localSummaryState.summary = result
+
+      console.log('[useSummarization] Comment analysis completed')
+
+      // Auto-save to history
+      await autoSaveToHistory('Comments')
+
+      // Update Deep Dive context
+      await handleDeepDiveAfterSummary()
+    } catch (error) {
+      if (localSummaryState.currentRequestId === requestId) {
+        console.error('[useSummarization] Comment analysis error:', error)
+        handleSummarizationError(error)
+      }
+    } finally {
+      if (localSummaryState.currentRequestId === requestId) {
+        localSummaryState.isLoading = false
+      }
+      isProcessing = false
+      if (abortController && abortController.signal === signal) {
+        abortController = null
+      }
+    }
+  }
+
+  async function autoSaveToHistory(typeLabel) {
     try {
       console.log('[useSummarization] Auto-saving to history...')
 
@@ -328,7 +701,11 @@ export function useSummarization() {
         url: localSummaryState.pageUrl,
       }
 
-      const newHistoryId = await saveToHistory(localSummaryState, pageInfo)
+      const newHistoryId = await saveToHistory(
+        localSummaryState,
+        pageInfo,
+        typeLabel
+      )
       if (newHistoryId) {
         localSummaryState.isSavedToHistory = true
         localSummaryState.historyId = newHistoryId
@@ -442,12 +819,15 @@ export function useSummarization() {
     localSummaryState: () => localSummaryState,
     summaryToDisplay: () => summaryToDisplay,
     statusToDisplay: () => statusToDisplay,
+    isProcessing: () => isProcessing,
 
     // Actions
     summarizePageContent,
     summarizeChapters,
+    summarizeComments,
     resetLocalSummaryState,
     handleSummarizationError,
     manualSaveToArchive,
+    stopSummarization,
   }
 }

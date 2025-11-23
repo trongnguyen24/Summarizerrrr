@@ -336,11 +336,24 @@
     "edge_addons": "Edge Add-ons"
   },
   "permissionWarning": {
-    "title": "Berechtigungen",
-    "button": "Zugriff auf Daten für alle Websites",
-    "description": "Standardzugriff auf YouTube, Udemy und Coursera. Um andere Websites zusammenzufassen, gewähren Sie bitte unten Berechtigungen.",
+    "title": "Berechtigungen erforderlich",
+    "button": "Zugriff auf alle Websites erlauben",
+    "description": "Summarizerrrr funktioniert standardmäßig auf YouTube, Udemy, Coursera, Reddit und Wikipedia. Um Inhalte auf anderen Websites zusammenzufassen, erteilen Sie bitte unten die Erlaubnis.",
     "requesting": "Anfrage läuft...",
     "grant_permissions": "Berechtigungen erteilen"
+  },
+  "custom_actions": {
+    "analyze": "Analysieren",
+    "explain": "Erklären",
+    "debate": "Debattieren",
+    "analyze_description": "Inhaltsstruktur und Argumente analysieren",
+    "explain_description": "In einfachen Worten erklären",
+    "reply_description": "Durchdachte Antwort generieren",
+    "processing": "Verarbeite {action}...",
+    "error": "Fehler beim {action} des Inhalts",
+    "debate_description": "Aus mehreren Perspektiven analysieren",
+    "chapters_description": "Nach Kapiteln zusammenfassen",
+    "comments_description": "YouTube-Kommentare zusammenfassen"
   },
   "tags": {
     "title": "Tags",

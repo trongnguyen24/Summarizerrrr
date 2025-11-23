@@ -62,7 +62,7 @@
         if (cached) {
           console.log(
             '[GeneralSettings] Using cached permission state:',
-            cached.value
+            cached.value,
           )
           await updateFirefoxPermission(permissionKey, cached.value)
           return
@@ -73,15 +73,16 @@
         const hasPermission = await checkSpecificPermission('https://*/*')
         console.log(
           '[GeneralSettings] Firefox permission result:',
-          hasPermission
+          hasPermission,
         )
 
         // Update store với kết quả
         await updateFirefoxPermission(permissionKey, hasPermission)
+        hasInitialized = true
       } catch (error) {
         console.error(
           '[GeneralSettings] Error loading permission states:',
-          error
+          error,
         )
       }
     }
@@ -110,12 +111,12 @@
             timestamp: Date.now(),
           })
           console.log(
-            '[GeneralSettings] Permission change broadcasted successfully'
+            '[GeneralSettings] Permission change broadcasted successfully',
           )
         } catch (error) {
           console.warn(
             '[GeneralSettings] Failed to broadcast permission change:',
-            error
+            error,
           )
           // Store updates will still work as fallback
         }
@@ -138,12 +139,12 @@
             timestamp: Date.now(),
           })
           console.log(
-            '[GeneralSettings] Permission removal broadcasted successfully'
+            '[GeneralSettings] Permission removal broadcasted successfully',
           )
         } catch (error) {
           console.warn(
             '[GeneralSettings] Failed to broadcast permission change:',
-            error
+            error,
           )
           // Store updates will still work as fallback
         }
@@ -151,7 +152,7 @@
     } catch (error) {
       console.error(
         '[GeneralSettings] Error handling permission change:',
-        error
+        error,
       )
       // Reset về trạng thái trước đó nếu có lỗi
       await updateFirefoxPermission(permissionKey, !checked)

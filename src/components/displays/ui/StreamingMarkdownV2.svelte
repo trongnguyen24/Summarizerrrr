@@ -4,6 +4,8 @@
   import hljs from 'highlight.js'
   import SvelteMarkdown from 'svelte-markdown'
   import { processThinkTags } from '@/lib/utils/thinkTagProcessor.js'
+  import { processTimestamps } from '@/lib/utils/timestampProcessor.js'
+  import TimestampLink from './TimestampLink.svelte'
 
   /**
    * Props của component - Hybrid approach: svelte-markdown cho DOM stability
@@ -40,7 +42,7 @@
           console.warn(
             'StreamingMarkdownV2: sourceMarkdown is not a string:',
             typeof sourceMarkdown,
-            sourceMarkdown
+            sourceMarkdown,
           )
           processedMarkdown = String(sourceMarkdown || '')
           return
@@ -137,7 +139,12 @@
     ? 'blinking-cursor'
     : ''} {className}"
 >
-  <SvelteMarkdown source={processedMarkdown} />
+  <SvelteMarkdown
+    source={!isStreaming
+      ? processTimestamps(processedMarkdown)
+      : processedMarkdown}
+    renderers={{ link: TimestampLink }}
+  />
 </div>
 
 <style>

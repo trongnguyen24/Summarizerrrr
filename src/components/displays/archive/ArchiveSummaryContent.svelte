@@ -20,8 +20,8 @@
 
   const currentSummary = $derived(
     selectedSummary.summaries.find(
-      (_, index) => `summary-tab-${index}` === activeTabId
-    )
+      (_, index) => `summary-tab-${index}` === activeTabId,
+    ),
   )
 </script>
 

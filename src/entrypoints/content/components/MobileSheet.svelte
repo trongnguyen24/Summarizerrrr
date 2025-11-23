@@ -18,11 +18,40 @@
   import { fade } from 'svelte/transition'
   import ActionButtonsFP from '@/components/buttons/ActionButtonsFP.svelte'
   import ActionButtonsMiniFP from '@/components/buttons/ActionButtonsMiniFP.svelte'
+  import ShadowToast from '@/components/feedback/ShadowToast.svelte'
 
   let { visible, onclose, summarization } = $props()
   // const summarization = useSummarization() // No longer needed, passed as prop
   const panelState = useFloatingPanelState()
   const { needsApiKeySetup } = useApiKeyValidation()
+
+  // Toast state
+  let toastVisible = $state(false)
+  let toastProps = $state({
+    title: '',
+    message: '',
+    icon: '',
+  })
+  let toastTimeout
+
+  function handleToastEvent(event) {
+    const { title, message, icon } = event.detail
+    toastProps = { title, message, icon }
+    toastVisible = true
+
+    // Clear existing timeout
+    if (toastTimeout) clearTimeout(toastTimeout)
+
+    // Auto hide after 3 seconds
+    toastTimeout = setTimeout(() => {
+      toastVisible = false
+    }, 3000)
+  }
+
+  function closeToast() {
+    toastVisible = false
+    if (toastTimeout) clearTimeout(toastTimeout)
+  }
 
   // Detect if current page is YouTube
   let isYouTubeActive = $derived(() => {
@@ -109,16 +138,19 @@
   onMount(() => {
     window.addEventListener('keydown', handleKeyDown)
     document.addEventListener('summarizeClick', handleSummarizeClick)
+    window.addEventListener('gemini-toast', handleToastEvent)
   })
 
   onDestroy(() => {
     window.removeEventListener('keydown', handleKeyDown)
     document.removeEventListener('summarizeClick', handleSummarizeClick)
+    window.removeEventListener('gemini-toast', handleToastEvent)
     if (animationFrameId) {
       cancelAnimationFrame(animationFrameId)
     }
     // Ensure body scroll is unlocked on component unmount
     unlockBodyScroll()
+    if (toastTimeout) clearTimeout(toastTimeout)
   })
 
   // --- Drag/Swipe to close logic ---
@@ -243,6 +275,11 @@
     console.log(`[MobileSheet] Executing custom action: ${actionType}`)
     summarization.summarizePageContent(actionType)
   }
+
+  function handleStopSummarization() {
+    console.log('[MobileSheet] Stopping summarization...')
+    summarization.stopSummarization()
+  }
 </script>
 
 <!-- Drawer Container -->
@@ -341,6 +378,8 @@
             <SummarizeButton
               isLoading={statusToDisplay === 'loading'}
               isChapterLoading={false}
+              onStop={handleStopSummarization}
+              onClick={handleSummarizeClick}
             />
           {/if}
           {#if summaryToDisplay || summarization.localSummaryState().error}
@@ -390,6 +429,15 @@
     <div
       class="absolute bottom-px left-0 right-0 h-15 bg-surface-1 translate-y-15"
     ></div>
+
+    <!-- Toast Notification -->
+    <ShadowToast
+      visible={toastVisible}
+      title={toastProps.title}
+      message={toastProps.message}
+      icon={toastProps.icon}
+      onClose={closeToast}
+    />
   </div>
 </div>
 

@@ -16,7 +16,7 @@ This document provides an index of the project's file structure and a brief desc
   - `src/components/buttons/`: Svelte components for various buttons (e.g., `SummarizeButton.svelte`, `CopyButton.svelte`).
   - `src/components/displays/`: Svelte components for displaying content (e.g., `SummaryDisplay.svelte`, `ErrorDisplay.svelte`).
   - `src/components/feedback/`: Svelte components for user feedback (e.g., `CustomToast.svelte`).
-  - `src/components/icon/`: Svelte components for icons.
+  - `src/components/icons/`: Svelte components for icons.
   - `src/components/inputs/`: Svelte components for input fields (e.g., `ApiKeyInput.svelte`, `Switch.svelte`).
   - `src/components/navigation/`: Svelte components for navigation elements (e.g., `TabNavigation.svelte`, `TOC.svelte`).
   - `src/components/providerConfigs/`: Svelte components for configuring AI providers (e.g., `ChatGPTConfig.svelte`, `GeminiAdvancedConfig.svelte`).

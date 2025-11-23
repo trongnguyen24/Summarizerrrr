@@ -34,19 +34,20 @@ async function sendStorageMessage(type, payload) {
  * Chuẩn bị dữ liệu tóm tắt từ local state để lưu vào DB
  * @param {object} localState - State từ useSummarization
  * @param {string} contentType - Loại nội dung (youtube, course, general)
+ * @param {string} typeLabel - Nhãn loại tóm tắt (ví dụ: "Video Summary", "Comments")
  * @returns {Array<{title: string, content: string}>}
  */
-function prepareSummaries(localState, contentType) {
+function prepareSummaries(localState, contentType, typeLabel) {
   const summaries = []
+  const mainTitle = typeLabel || 'Summary'
 
   if (contentType === 'youtube') {
     if (localState.summary) {
-      summaries.push({ title: 'Summary', content: localState.summary })
+      summaries.push({ title: mainTitle, content: localState.summary })
     }
-    // Xóa logic auto-save chapterSummary - chapters sẽ được lưu riêng khi user click "Chapters"
   } else if (contentType === 'course') {
     if (localState.summary) {
-      summaries.push({ title: 'Summary', content: localState.summary })
+      summaries.push({ title: mainTitle, content: localState.summary })
     }
     if (localState.courseConcepts) {
       summaries.push({
@@ -56,7 +57,7 @@ function prepareSummaries(localState, contentType) {
     }
   } else {
     if (localState.summary) {
-      summaries.push({ title: 'Summary', content: localState.summary })
+      summaries.push({ title: mainTitle, content: localState.summary })
     }
   }
 
@@ -67,10 +68,15 @@ function prepareSummaries(localState, contentType) {
  * Lưu tóm tắt từ Floating Panel vào History.
  * @param {object} localState - State từ useSummarization.
  * @param {{title: string, url: string}} pageInfo - Thông tin trang.
+ * @param {string} typeLabel - Nhãn loại tóm tắt để nối vào tiêu đề.
  * @returns {Promise<string>} - ID của history item đã được tạo.
  */
-export async function saveToHistory(localState, pageInfo) {
-  const summaries = prepareSummaries(localState, localState.contentType)
+export async function saveToHistory(localState, pageInfo, typeLabel) {
+  const summaries = prepareSummaries(
+    localState,
+    localState.contentType,
+    typeLabel
+  )
 
   if (summaries.length === 0) {
     console.warn('[FPStorageService] No summary content to save to history.')
@@ -84,7 +90,9 @@ export async function saveToHistory(localState, pageInfo) {
 
   const historyEntry = {
     id: generateUUID(),
-    title: pageInfo.title || 'Unknown Title',
+    title: typeLabel
+      ? `${pageInfo.title || 'Unknown Title'} - ${typeLabel}`
+      : pageInfo.title || 'Unknown Title',
     url: pageInfo.url || 'Unknown URL',
     date: new Date().toISOString(),
     summaries: summaries,

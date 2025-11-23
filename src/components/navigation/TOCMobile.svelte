@@ -236,7 +236,7 @@
 </script>
 
 <div
-  class="toc fixed z-20 right-0 bottom-2 group origin-bottom-right {!isTouchDevice()
+  class="toc fixed z-40 right-0 bottom-2 group origin-bottom-right {!isTouchDevice()
     ? '!right-3'
     : ''}"
 >
@@ -329,14 +329,14 @@
 
 <style>
   .lv4 {
-    padding-left: 2rem;
+    padding-left: 2em;
   }
   .lvs2,
   .lvs3 {
-    width: 0.25rem;
+    width: 0.25em;
   }
   .lvs4 {
-    width: 0.125rem;
+    width: 0.125em;
   }
 
   nav {

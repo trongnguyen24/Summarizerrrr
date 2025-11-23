@@ -20,6 +20,8 @@ import {
   shouldEnableAutoFallback,
   getCurrentGeminiModel,
 } from '@/lib/utils/geminiAutoFallback.js'
+import { updateModelStatus } from '@/stores/summaryStore.svelte.js'
+import { showModelFallbackToast } from '@/lib/utils/toastUtils.js'
 
 /**
  * Maps provider ID and settings to AI SDK model instance
@@ -171,11 +173,15 @@ export async function generateContent(
   providerId,
   settings,
   systemInstruction,
-  userPrompt
+  userPrompt,
+  options = {}
 ) {
   // Check if auto-fallback is enabled (Gemini Basic only)
   const autoFallbackEnabled = shouldEnableAutoFallback(providerId, settings)
-  let currentModel = autoFallbackEnabled ? getCurrentGeminiModel(settings) : null
+  let currentModel = autoFallbackEnabled
+    ? getCurrentGeminiModel(settings)
+    : null
+  let originalModel = currentModel // Track original model for fallback display
   let lastError = null
 
   // Retry with fallback models if enabled
@@ -186,10 +192,22 @@ export async function generateContent(
         ? { ...settings, selectedGeminiModel: currentModel }
         : settings
 
-      // LOG: Model being used for this API call
-      const modelName = autoFallbackEnabled ? currentModel :
-        (providerId === 'gemini' ? getCurrentGeminiModel(settings) : 'N/A')
-      console.log(`[aiSdkAdapter] 📡 API Call - Provider: ${providerId}, Model: ${modelName}`)
+      // Determine model name for display and logging
+      const modelName = autoFallbackEnabled
+        ? currentModel
+        : getDisplayModelName(providerId, settings)
+
+      console.log(
+        `[aiSdkAdapter] 📡 API Call - Provider: ${providerId}, Model: ${modelName}`
+      )
+
+      // Update UI with current model status
+      const isFallback = autoFallbackEnabled && currentModel !== originalModel
+      updateModelStatus(
+        modelName,
+        isFallback ? originalModel : null,
+        isFallback
+      )
 
       const baseModel = getAISDKModel(providerId, currentSettings)
 
@@ -206,6 +224,7 @@ export async function generateContent(
           system: systemInstruction,
           prompt: userPrompt,
           ...generationConfig,
+          ...(options.abortSignal && { abortSignal: options.abortSignal }),
         })
         console.log('[DEBUG] Proxy raw result:', result.text) // Add debug log
         console.log(`[aiSdkAdapter] ✅ API Success - Model: ${modelName}`)
@@ -216,16 +235,43 @@ export async function generateContent(
           model,
           system: systemInstruction,
           prompt: userPrompt,
+          maxRetries: 0, // Disable AI SDK built-in retry to allow custom fallback to work faster
           ...generationConfig,
+          ...(options.abortSignal && { abortSignal: options.abortSignal }),
         })
         console.log(`[aiSdkAdapter] ✅ API Success - Model: ${modelName}`)
         return text
       }
     } catch (error) {
-      const failedModel = autoFallbackEnabled ? currentModel :
-        (providerId === 'gemini' ? getCurrentGeminiModel(settings) : 'N/A')
-      console.error(`[aiSdkAdapter] ❌ API Failed - Model: ${failedModel}`, error)
+      const failedModel = autoFallbackEnabled
+        ? currentModel
+        : providerId === 'gemini'
+        ? getCurrentGeminiModel(settings)
+        : 'N/A'
+      console.error(
+        `[aiSdkAdapter] ❌ API Failed - Model: ${failedModel}`,
+        error
+      )
+
+      // Enhanced logging for debugging fallback flow
+      console.log('[aiSdkAdapter] 🔍 Error details:', {
+        name: error?.constructor?.name,
+        message: error?.message,
+        status: error?.status || error?.statusCode,
+        cause: error?.cause,
+        isOverloadError: isOverloadError(error),
+        autoFallbackEnabled,
+        currentModel,
+        providerId,
+      })
+
       lastError = error
+
+      // Check if this is an abort error - if so, just return (don't throw)
+      if (error.name === 'AbortError' || error.message?.includes('aborted')) {
+        console.log('[aiSdkAdapter] Request aborted by user')
+        throw error // Re-throw abort error so caller knows it was aborted
+      }
 
       // Check if we should try fallback
       if (autoFallbackEnabled && isOverloadError(error)) {
@@ -233,13 +279,21 @@ export async function generateContent(
 
         if (nextModel) {
           console.log(
-            `[aiSdkAdapter] 🔄 Gemini overloaded, auto-fallback: ${currentModel} → ${nextModel}`
+            `[aiSdkAdapter] 🔄 Auto-fallback triggered: ${currentModel} → ${nextModel}`
           )
+          showModelFallbackToast(currentModel, nextModel)
           currentModel = nextModel
           continue // Retry with next model
         } else {
           console.log(
             '[aiSdkAdapter] ❌ No more fallback models available, throwing error'
+          )
+        }
+      } else {
+        // Log why fallback was not triggered
+        if (autoFallbackEnabled) {
+          console.log(
+            '[aiSdkAdapter] ℹ️ Fallback not triggered - error not detected as overload'
           )
         }
       }
@@ -260,6 +314,7 @@ export async function generateContent(
  * @param {string} systemInstruction - System instruction/prompt
  * @param {string} userPrompt - User prompt
  * @param {object} [streamOptions] - Additional streaming options
+ * @param {AbortSignal} [streamOptions.abortSignal] - Optional abort signal for cancellation
  * @returns {AsyncIterable<string>} Stream of generated content chunks
  */
 export async function* generateContentStream(
@@ -271,7 +326,10 @@ export async function* generateContentStream(
 ) {
   // Check if auto-fallback is enabled (Gemini Basic only)
   const autoFallbackEnabled = shouldEnableAutoFallback(providerId, settings)
-  let currentModel = autoFallbackEnabled ? getCurrentGeminiModel(settings) : null
+  let currentModel = autoFallbackEnabled
+    ? getCurrentGeminiModel(settings)
+    : null
+  let originalModel = currentModel // Track original model for fallback display
   let lastError = null
 
   // Get browser compatibility info
@@ -285,10 +343,22 @@ export async function* generateContentStream(
         ? { ...settings, selectedGeminiModel: currentModel }
         : settings
 
-      // LOG: Model being used for this API call (streaming)
-      const modelName = autoFallbackEnabled ? currentModel :
-        (providerId === 'gemini' ? getCurrentGeminiModel(settings) : 'N/A')
-      console.log(`[aiSdkAdapter] 📡 API Stream Call - Provider: ${providerId}, Model: ${modelName}`)
+      // Determine model name for display and logging
+      const modelName = autoFallbackEnabled
+        ? currentModel
+        : getDisplayModelName(providerId, settings)
+
+      console.log(
+        `[aiSdkAdapter] 📡 API Stream Call - Provider: ${providerId}, Model: ${modelName}`
+      )
+
+      // Update UI with current model status
+      const isFallback = autoFallbackEnabled && currentModel !== originalModel
+      updateModelStatus(
+        modelName,
+        isFallback ? originalModel : null,
+        isFallback
+      )
 
       const baseModel = getAISDKModel(providerId, currentSettings)
 
@@ -304,13 +374,15 @@ export async function* generateContentStream(
           system: systemInstruction,
           prompt: userPrompt,
           ...generationConfig,
+          ...(streamOptions.abortSignal && {
+            abortSignal: streamOptions.abortSignal,
+          }),
         })
 
         // Yield chunks from proxy stream - now with full <think> content
         for await (const chunk of result.textStream) {
           yield chunk
         }
-        console.log(`[aiSdkAdapter] ✅ Stream Success - Model: ${modelName}`)
       } else {
         // Use standard AI SDK streaming with smoothing options - no middleware
         const defaultSmoothingOptions = {
@@ -329,8 +401,12 @@ export async function* generateContentStream(
           system: systemInstruction,
           prompt: userPrompt,
           ...generationConfig,
+          maxRetries: 0, // Disable AI SDK built-in retry to allow custom fallback to work faster
           ...(shouldUseSmoothing ? defaultSmoothingOptions : {}),
           ...streamOptions,
+          ...(streamOptions.abortSignal && {
+            abortSignal: streamOptions.abortSignal,
+          }),
         }
 
         const result = await streamText(streamConfig)
@@ -345,16 +421,41 @@ export async function* generateContentStream(
         for await (const chunk of streamToUse) {
           yield chunk
         }
-        console.log(`[aiSdkAdapter] ✅ Stream Success - Model: ${modelName}`)
       }
 
-      // If we successfully streamed, return
+      // If we successfully streamed, log success and return
+      console.log(`[aiSdkAdapter] ✅ Stream Success - Model: ${modelName}`)
       return
     } catch (error) {
-      const failedModel = autoFallbackEnabled ? currentModel :
-        (providerId === 'gemini' ? getCurrentGeminiModel(settings) : 'N/A')
-      console.error(`[aiSdkAdapter] ❌ Stream Failed - Model: ${failedModel}`, error)
+      const failedModel = autoFallbackEnabled
+        ? currentModel
+        : providerId === 'gemini'
+        ? getCurrentGeminiModel(settings)
+        : 'N/A'
+      console.error(
+        `[aiSdkAdapter] ❌ Stream Failed - Model: ${failedModel}`,
+        error
+      )
+
+      // Enhanced logging for debugging fallback flow
+      console.log('[aiSdkAdapter] 🔍 Error details:', {
+        name: error?.constructor?.name,
+        message: error?.message,
+        status: error?.status || error?.statusCode,
+        cause: error?.cause,
+        isOverloadError: isOverloadError(error),
+        autoFallbackEnabled,
+        currentModel,
+        providerId,
+      })
+
       lastError = error
+
+      // Check if this is an abort error - if so, just return (don't throw)
+      if (error.name === 'AbortError' || error.message?.includes('aborted')) {
+        console.log('[aiSdkAdapter] Stream aborted by user')
+        return // Exit gracefully without throwing
+      }
 
       // Check if this is a Firefox mobile specific error
       if (
@@ -371,13 +472,21 @@ export async function* generateContentStream(
 
         if (nextModel) {
           console.log(
-            `[aiSdkAdapter] 🔄 Gemini overloaded (stream), auto-fallback: ${currentModel} → ${nextModel}`
+            `[aiSdkAdapter] 🔄 Auto-fallback triggered: ${currentModel} → ${nextModel}`
           )
+          showModelFallbackToast(currentModel, nextModel)
           currentModel = nextModel
           continue // Retry with next model
         } else {
           console.log(
             '[aiSdkAdapter] ❌ No more fallback models available (stream), throwing error'
+          )
+        }
+      } else {
+        // Log why fallback was not triggered
+        if (autoFallbackEnabled) {
+          console.log(
+            '[aiSdkAdapter] ℹ️ Fallback not triggered - error not detected as overload'
           )
         }
       }
@@ -449,3 +558,34 @@ export async function* generateContentStreamEnhanced(
     throw error
   }
 }
+
+/**
+ * Helper to get the display name of the model based on provider and settings
+ * @param {string} providerId
+ * @param {object} settings
+ * @returns {string}
+ */
+function getDisplayModelName(providerId, settings) {
+  switch (providerId) {
+    case 'gemini':
+      return getCurrentGeminiModel(settings)
+    case 'openai':
+    case 'chatgpt':
+      return settings.selectedChatgptModel || 'gpt-3.5-turbo'
+    case 'groq':
+      return settings.selectedGroqModel || 'mixtral-8x7b-32768'
+    case 'openrouter':
+      return settings.selectedOpenrouterModel || 'openrouter/auto'
+    case 'deepseek':
+      return settings.selectedDeepseekModel || 'deepseek-chat'
+    case 'ollama':
+      return settings.selectedOllamaModel || 'llama2'
+    case 'openaiCompatible':
+      return settings.selectedOpenAICompatibleModel || 'gpt-3.5-turbo'
+    case 'lmstudio':
+      return settings.selectedLmStudioModel || 'lmstudio-community/gemma-2b-it-GGUF'
+    default:
+      return providerId
+  }
+}
+

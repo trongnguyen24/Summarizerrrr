@@ -45,6 +45,19 @@
 
   // Derived component để render
   let DisplayComponent = $derived(selectDisplay(contentType || 'general'))
+
+  // Derived loading text
+  let loadingText = $derived(() => {
+    const action = summarization.localSummaryState().loadingAction
+    if (action === 'comments') return 'Processing comments...'
+    if (action === 'chapters') return 'Processing chapters...'
+    if (action === 'analyze') return 'Analyzing content...'
+    if (action === 'explain') return 'Explaining content...'
+    if (action === 'debate') return 'Debating content...'
+    if (contentType === 'youtube' || action === 'summarize')
+      return 'Processing YouTube summary...'
+    return 'Processing...'
+  })
 </script>
 
 <div class="panel-content">
@@ -65,13 +78,14 @@
       <DisplayComponent
         {summary}
         isLoading={status === 'loading'}
+        loadingText={loadingText()}
         {summarization}
       />
     {:else if summary || status === 'loading'}
       <DisplayComponent
         {summary}
         isLoading={status === 'loading'}
-        loadingText="Processing..."
+        loadingText={loadingText()}
         targetId="fp-generic-summary"
         {summarization}
       />

@@ -45,6 +45,7 @@ export function useSummarization() {
     pageTitle: '', // Thêm pageTitle
     pageUrl: '', // Thêm pageUrl
     currentRequestId: null, // Unique ID for the current summarization request
+    loadingAction: null, // 'summarize', 'chapters', 'comments', 'custom'
   })
 
   // AbortController to handle cancellation
@@ -71,6 +72,7 @@ export function useSummarization() {
     localSummaryState.saveError = null
     localSummaryState.pageTitle = ''
     localSummaryState.pageUrl = ''
+    localSummaryState.loadingAction = null
   }
 
   /**
@@ -174,6 +176,7 @@ export function useSummarization() {
       resetLocalSummaryState()
       // Restore request ID after reset (since reset clears it)
       localSummaryState.currentRequestId = requestId
+      localSummaryState.loadingAction = customContentType || 'summarize'
       
       // Reset global model status
       updateModelStatus(null, null, false)
@@ -416,6 +419,7 @@ export function useSummarization() {
     updateModelStatus(null, null, false)
     localSummaryState.isLoading = true
     isProcessing = true
+    localSummaryState.loadingAction = 'chapters'
 
     try {
       console.log('[useSummarization] Starting chapter summarization...', requestId)
@@ -506,6 +510,7 @@ export function useSummarization() {
     updateModelStatus(null, null, false)
     localSummaryState.isLoading = true
     isProcessing = true
+    localSummaryState.loadingAction = 'comments'
 
     try {
       console.log('[useSummarization] Starting comment analysis...', requestId)

@@ -1,6 +1,5 @@
 <script>
   // @ts-nocheck
-  import Logdev from '@/components/settings/Logdev.svelte'
   import {
     settings,
     loadSettings,
@@ -26,7 +25,7 @@
   let buttonElement
   let buttonElementBG
   let snapedge
-  let dropZoneElement
+  let dropZoneElement = $state(null)
   let isFirefoxBrowser = $state(false)
   let isHovered = $state(false)
   let isOverDropZone = $state(false)
@@ -280,7 +279,7 @@
    */
   function handleMove(e) {
     e.preventDefault()
-
+    isHovered = false
     const pointer = e.type === 'touchmove' ? e.touches[0] : e
     const now = performance.now()
     const deltaTime = (now - stateButton.lastTimestamp) / 1000
@@ -494,7 +493,7 @@
   onmouseleave={() => (isHovered = false)}
 >
   <!-- Tooltip -->
-  {#if isHovered && !stateButton.isDragging}
+  <!-- {#if isHovered && !stateButton.isDragging}
     <div
       class="absolute top-1/2 -translate-y-1/2 whitespace-nowrap px-3 py-1.5 rounded-lg bg-surface-1 text-text-primary text-xs font-medium shadow-lg border border-border z-50 pointer-events-none"
       class:right-full={buttonPosition === 'right'}
@@ -509,30 +508,47 @@
     >
       {settings.oneClickSummarize ? 'Bắt đầu tóm tắt' : 'Summarizerrrr'}
     </div>
-  {/if}
+  {/if} -->
 
   <!-- Close Button -->
   {#if isHovered && !stateButton.isDragging}
     <button
-      class="absolute left-1/2 -translate-x-1/2 -bottom-8 size-6 flex items-center justify-center rounded-full bg-surface-1 text-text-secondary hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 border border-border shadow-sm transition-colors z-50"
+      class="absolute left-1/2 -translate-x-1/2 -bottom-10 size-6 flex items-center justify-center rounded-full bg-gray-400/50 backdrop-blur-md text-gray-500 hover:text-white hover:bg-red-500 hover:scale-110 transition-all z-50"
       onmousedown={(e) => e.stopPropagation()}
       onclick={(e) => {
         e.stopPropagation()
         onBlacklistRequest?.()
       }}
-      transition:slideScaleFade={{
+      in:slideScaleFade={{
+        delay: 500,
+        duration: 300,
+        startScale: 1,
+        slideDistance: '0px',
+        slideFrom: 'top',
+      }}
+      out:slideScaleFade={{
         duration: 200,
         startScale: 0.8,
-        slideDistance: '-5px',
+        slideDistance: '0px',
         slideFrom: 'top',
       }}
       title="Hide on this site"
     >
-      <Icon icon="heroicons:x-mark-16-solid" width="14" height="14" />
+      <Icon icon="heroicons:x-mark-16-solid" width="16" height="16" />
     </button>
   {/if}
 
-  <div class="floating-button">
+  <div class="floating-button group">
+    {#if !stateButton.isDragging}
+      <div
+        class="absolute group-hover:block hidden cursor-default left-1/2 -translate-x-1/2 w-10 h-28"
+        onmousedown={(e) => e.stopPropagation()}
+        ontouchstart={(e) => e.stopPropagation()}
+        onclick={(e) => e.stopPropagation()}
+        role="none"
+      ></div>
+    {/if}
+
     <div
       bind:this={buttonElementBG}
       class=" flex items-center justify-center h-10 w-10 text-gray-500/50 overflow-hidden rounded-4xl ease-out delay-150 duration-500 transition-all"

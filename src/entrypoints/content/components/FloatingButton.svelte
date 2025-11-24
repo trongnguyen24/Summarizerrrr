@@ -48,8 +48,9 @@
     dragThreshold: 10, // pixels
   }
 
+  let isDragging = $state(false)
+
   const stateButton = {
-    isDragging: false,
     isDragThresholdMet: false,
     startX: 0,
     startY: 0,
@@ -97,7 +98,7 @@
   }
 
   function animationLoop(timestamp) {
-    if (stateButton.isDragging) {
+    if (isDragging) {
       stateButton.animationFrameId = null
       return
     }
@@ -294,7 +295,7 @@
       if (distanceFromStart >= config.dragThreshold) {
         // Đã đạt threshold, kích hoạt drag mode
         stateButton.isDragThresholdMet = true
-        stateButton.isDragging = true
+        isDragging = true
         if (buttonElement) buttonElement.style.cursor = 'grabbing'
         buttonPosition = 'dragging'
       } else {
@@ -307,7 +308,7 @@
     }
 
     // Đã trong drag mode, xử lý movement bình thường
-    if (!stateButton.isDragging) return
+    if (!isDragging) return
 
     const dx = pointer.clientX - stateButton.lastPointerX
     const dy = pointer.clientY - stateButton.lastPointerY
@@ -346,13 +347,14 @@
    * Unified event handler for end (mouseup/touchend)
    */
   async function handleEnd(e) {
-    const wasDragging =
-      stateButton.isDragThresholdMet &&
+    const wasDragging = stateButton.isDragThresholdMet
+    const hasMomentum =
+      wasDragging &&
       (Math.abs(stateButton.velocityX) > 2 ||
         Math.abs(stateButton.velocityY) > 2)
 
     // Check if dropped in zone
-    if (stateButton.isDragging && isOverDropZone) {
+    if (isDragging && isOverDropZone) {
       onBlacklistRequest?.()
       // Reset position to nearest edge immediately to avoid it staying in the zone
       const isLeft = stateButton.x < metrics.snapThreshold
@@ -363,7 +365,7 @@
     }
 
     // Reset drag states
-    stateButton.isDragging = false
+    isDragging = false
     stateButton.isDragThresholdMet = false
     isOverDropZone = false
     if (buttonElement) buttonElement.style.cursor = 'pointer'
@@ -374,10 +376,19 @@
     document.removeEventListener('touchend', handleEnd)
 
     if (wasDragging) {
+      // It was a drag operation (moved more than threshold)
+      // We do NOT trigger click here.
       stateButton.lastTimestamp = performance.now()
+
+      // If it didn't have momentum, ensure velocity is low/zero so it just snaps
+      if (!hasMomentum) {
+        stateButton.velocityX = 0
+        stateButton.velocityY = 0
+      }
+
       stateButton.animationFrameId = requestAnimationFrame(animationLoop)
     } else {
-      // It was a click, not a drag (either no threshold met or low velocity)
+      // It was a click (no threshold met)
       if (oneClickHandler) {
         // Handle one-click logic first
         try {
@@ -396,7 +407,7 @@
       } else if (toggle) {
         toggle()
       }
-      // Snap back if it wasn't a real drag
+      // Snap back if it wasn't a real drag (just in case)
       stateButton.lastTimestamp = performance.now()
       stateButton.velocityX = 0 // Ensure no sliding after a click
       stateButton.velocityY = 0
@@ -493,7 +504,7 @@
   onmouseleave={() => (isHovered = false)}
 >
   <!-- Tooltip -->
-  <!-- {#if isHovered && !stateButton.isDragging}
+  <!-- {#if isHovered && !isDragging}
     <div
       class="absolute top-1/2 -translate-y-1/2 whitespace-nowrap px-3 py-1.5 rounded-lg bg-surface-1 text-text-primary text-xs font-medium shadow-lg border border-border z-50 pointer-events-none"
       class:right-full={buttonPosition === 'right'}
@@ -511,7 +522,7 @@
   {/if} -->
 
   <!-- Close Button -->
-  {#if isHovered && !stateButton.isDragging}
+  {#if isHovered && !isDragging}
     <button
       class="absolute left-1/2 -translate-x-1/2 -bottom-10 size-6 flex items-center justify-center rounded-full bg-gray-400/50 backdrop-blur-md text-gray-500 hover:text-white hover:bg-red-500 hover:scale-110 transition-all z-50"
       onmousedown={(e) => e.stopPropagation()}
@@ -519,15 +530,8 @@
         e.stopPropagation()
         onBlacklistRequest?.()
       }}
-      in:slideScaleFade={{
-        delay: 500,
+      transition:slideScaleFade={{
         duration: 300,
-        startScale: 1,
-        slideDistance: '0px',
-        slideFrom: 'top',
-      }}
-      out:slideScaleFade={{
-        duration: 200,
         startScale: 0.8,
         slideDistance: '0px',
         slideFrom: 'top',
@@ -539,7 +543,7 @@
   {/if}
 
   <div class="floating-button group">
-    {#if !stateButton.isDragging}
+    {#if !isDragging}
       <div
         class="absolute group-hover:block hidden cursor-default left-1/2 -translate-x-1/2 w-10 h-28"
         onmousedown={(e) => e.stopPropagation()}
@@ -602,16 +606,16 @@
   </div>
 </div>
 
-<!-- Drop Zone -->
-{#if stateButton.isDragging}
+{#if isDragging}
   <div
     bind:this={dropZoneElement}
-    class="fixed left-1/2 -translate-x-1/2 flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-red-500/90 text-white shadow-lg backdrop-blur-sm transition-all duration-200 z-[2147483646]"
-    class:scale-110={isOverDropZone}
+    class="fixed left-1/2 -translate-x-1/2 flex items-center justify-center gap-2 px-8 py-5 rounded-full bg-red-500/80 text-white shadow-lg backdrop-blur-sm transition-all duration-200 z-[2147483646]"
+    class:scale-125={isOverDropZone}
     class:bg-red-600={isOverDropZone}
     style="bottom: 10svh;"
     transition:slideScaleFade={{
-      duration: 200,
+      duration: 300,
+      startScale: 0.8,
       slideFrom: 'bottom',
       slideDistance: '20px',
     }}

@@ -198,7 +198,7 @@
 
 <div bind:this={shadowContainer} class="floating-ui-root absolute top-0 left-0">
   <!-- rerender when settings.floatButton changes -->
-  {#if settings.showFloatingButton}
+  {#if settings.showFloatingButton && !showBlacklistConfirm}
     {#key settings.floatButton}
       <FloatingButton
         topButton={settings.floatButton}

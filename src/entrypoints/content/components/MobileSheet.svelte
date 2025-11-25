@@ -2,7 +2,6 @@
   // @ts-nocheck
   import { onMount, onDestroy } from 'svelte'
   import Icon from '@iconify/svelte'
-  import { animate, stagger } from 'animejs'
   import SummarizeButton from '@/components/buttons/SummarizeButton.svelte'
   import { useNavigationManager } from '../composables/useNavigationManager.svelte.js'
   import { useSummarization } from '../composables/useSummarization.svelte.js'
@@ -21,7 +20,6 @@
   import ShadowToast from '@/components/feedback/ShadowToast.svelte'
 
   let { visible, onclose, summarization } = $props()
-  // const summarization = useSummarization() // No longer needed, passed as prop
   const panelState = useFloatingPanelState()
   const { needsApiKeySetup } = useApiKeyValidation()
 
@@ -39,10 +37,8 @@
     toastProps = { title, message, icon }
     toastVisible = true
 
-    // Clear existing timeout
     if (toastTimeout) clearTimeout(toastTimeout)
 
-    // Auto hide after 3 seconds
     toastTimeout = setTimeout(() => {
       toastVisible = false
     }, 3000)
@@ -62,68 +58,49 @@
   let summaryToDisplay = $derived(summarization.summaryToDisplay())
   let statusToDisplay = $derived(summarization.statusToDisplay())
 
-  let isDragging = false
-  let startY
-  let currentTranslateY
-  let animationFrameId
-  let drawerContainer, drawerBackdrop, drawerPanel, drawerHeader, drawerContent
+  // --- Drag & Animation Logic ---
+  let isDragging = $state(false)
+  let translateY = $state(100) // % of viewport height (100 = hidden, 0 = full open)
+  let dragOpacity = $state(1)
+  let startY = 0
+  let startTranslateY = 0
+  let startTime = 0
+  let drawerContent
+  let drawerHeader
+
+  // Constants
+  const MIN_OPEN_PERCENT = 40 // Minimum height % (so max translateY is 60vh)
+  const VELOCITY_THRESHOLD = 0.5 // px/ms
 
   function openDrawer() {
-    if (!drawerContainer) return
-    drawerContainer.classList.remove('pointer-events-none')
-    lockBodyScroll() // Lock body scroll when opening
-
-    // Backdrop fade in
-    animate(drawerBackdrop, {
-      opacity: settings.mobileSheetBackdropOpacity ? 1 : 0,
-      duration: 300,
-      ease: 'outCubic',
-    })
-
-    // Panel slide up with elastic effect
-    animate(drawerPanel, {
-      translateY: '0%',
-      duration: 450,
-      ease: 'outCubic',
-    })
-
-    // Content fade in with stagger
+    lockBodyScroll()
+    // Calculate initial position based on settings
+    // settings.mobileSheetHeight is likely a percentage (e.g. 50, 60, 90)
+    // If it's not set, default to 50%
+    const targetHeight = settings.mobileSheetHeight || 50
+    // translateY = 100 - height
+    translateY = 100 - targetHeight
+    dragOpacity = 1
   }
 
   function closeDrawer() {
-    if (!drawerContainer) return
-    unlockBodyScroll() // Unlock body scroll when closing
-
-    // Panel slide down
-    const panelAnimation = animate(drawerPanel, {
-      translateY: 'calc(100% + 10vh)',
-      duration: 400,
-      ease: 'inQuart',
-    })
-
-    // Backdrop fade out (overlapping)
-    animate(drawerBackdrop, {
-      opacity: settings.mobileSheetBackdropOpacity ? 0 : 0,
-      duration: 250,
-      ease: 'inCubic',
-      delay: 50,
-    })
-
-    // Complete callback
-    panelAnimation.then(() => {
-      drawerContainer.classList.add('pointer-events-none')
+    unlockBodyScroll()
+    translateY = 100 // Slide down out of view
+    dragOpacity = 0
+    setTimeout(() => {
       onclose?.()
-    })
+    }, 300) // Match transition duration
   }
 
   $effect(() => {
     if (visible) {
-      openDrawer()
+      // Use requestAnimationFrame to ensure DOM is ready and transition triggers
+      requestAnimationFrame(() => {
+        openDrawer()
+      })
     } else {
-      if (drawerContainer) {
-        // Unlock scroll immediately when starting to close
-        unlockBodyScroll()
-        // Run closing animation
+      // If visible becomes false externally
+      if (translateY < 100) {
         closeDrawer()
       }
     }
@@ -132,6 +109,86 @@
   function handleKeyDown(event) {
     if (visible && event.key === 'Escape') {
       closeDrawer()
+    }
+  }
+
+  // Drag Handlers
+  function onDragStart(e) {
+    const target = e.target
+    // Allow drag if touching header OR content at top
+    const isHeader = drawerHeader?.contains(target)
+    const isContentTop =
+      drawerContent?.contains(target) && drawerContent.scrollTop === 0
+
+    if (isHeader || isContentTop) {
+      isDragging = true
+      startY = e.touches ? e.touches[0].pageY : e.pageY
+      startTranslateY = translateY
+      startTime = Date.now()
+    }
+  }
+
+  function onDragMove(e) {
+    if (!isDragging) return
+
+    const currentY = e.touches ? e.touches[0].pageY : e.pageY
+    const deltaY = currentY - startY
+    // Convert delta pixels to vh percentage
+    const viewportHeight = window.innerHeight
+    const deltaVh = (deltaY / viewportHeight) * 100
+
+    let newTranslateY = startTranslateY + deltaVh
+
+    // Constraint: Don't pull up past 0 (100% height)
+    // Add some resistance if pulling past 0? For now just clamp.
+    if (newTranslateY < 0) newTranslateY = 0
+
+    translateY = newTranslateY
+
+    // Opacity logic: Fade out when height < 40% (translateY > 60)
+    const maxTranslate = 100 - MIN_OPEN_PERCENT
+    if (translateY > maxTranslate) {
+      const progress = (translateY - maxTranslate) / (100 - maxTranslate)
+      dragOpacity = 1 - Math.max(0, Math.min(1, progress))
+    } else {
+      dragOpacity = 1
+    }
+  }
+
+  function onDragEnd(e) {
+    if (!isDragging) return
+    isDragging = false
+
+    const endTime = Date.now()
+    const currentY = e.changedTouches ? e.changedTouches[0].pageY : e.pageY
+    const deltaY = currentY - startY
+    const timeDiff = endTime - startTime
+    const velocity = deltaY / timeDiff // px/ms
+
+    // 1. Velocity Check
+    if (velocity > VELOCITY_THRESHOLD) {
+      // Fast swipe down -> Close
+      closeDrawer()
+      return
+    } else if (velocity < -VELOCITY_THRESHOLD) {
+      // Fast swipe up -> Open 100%
+      translateY = 0
+      dragOpacity = 1
+      return
+    }
+
+    // 2. Position Check
+    // Convert current translateY to height %
+    const currentHeight = 100 - translateY
+
+    if (currentHeight < MIN_OPEN_PERCENT) {
+      // If dragged below 40% height, close it
+      closeDrawer()
+    } else {
+      // Stay at current position (Arbitrary height 40-100%)
+      // Just ensure it's clamped (already done in move, but double check)
+      if (translateY < 0) translateY = 0
+      dragOpacity = 1 // Snap back to open opacity
     }
   }
 
@@ -145,120 +202,9 @@
     window.removeEventListener('keydown', handleKeyDown)
     document.removeEventListener('summarizeClick', handleSummarizeClick)
     window.removeEventListener('gemini-toast', handleToastEvent)
-    if (animationFrameId) {
-      cancelAnimationFrame(animationFrameId)
-    }
-    // Ensure body scroll is unlocked on component unmount
     unlockBodyScroll()
     if (toastTimeout) clearTimeout(toastTimeout)
   })
-
-  // --- Drag/Swipe to close logic ---
-
-  const onDragStart = (e) => {
-    const target = e.target
-    const isHeader = drawerHeader.contains(target)
-    const isContent = drawerContent.contains(target)
-
-    // Only start dragging if:
-    // 1. Touched on the header.
-    // OR
-    // 2. Touched on the content area AND the content is scrolled to the top.
-    if (isHeader || (isContent && drawerContent.scrollTop === 0)) {
-      // Prevent default behavior (like scrolling) only when a valid drag starts.
-      // e.preventDefault()
-      isDragging = true
-      startY = e.pageY || e.touches[0].pageY
-
-      // Remove any existing transitions for real-time drag
-      drawerPanel.style.transition = 'none'
-      drawerBackdrop.style.transition = 'none'
-    } else {
-      // Otherwise, allow content to scroll normally.
-      isDragging = false
-    }
-  }
-
-  const onDragging = (e) => {
-    if (!isDragging) {
-      // If not dragging the drawer, allow default behavior (e.g., scrolling content)
-      return
-    }
-
-    const currentY = e.pageY || e.touches[0].pageY
-    // Only allow pulling down (positive deltaY)
-    const deltaY = Math.max(0, currentY - startY)
-    currentTranslateY = deltaY
-
-    if (!animationFrameId) {
-      animationFrameId = requestAnimationFrame(() => {
-        // Update panel position directly for real-time response
-        drawerPanel.style.transform = `translateY(${currentTranslateY}px)`
-
-        // Update backdrop opacity
-        const panelHeight = drawerPanel.offsetHeight
-        const maxOpacity = settings.mobileSheetBackdropOpacity ? 1 : 0
-        const opacity = maxOpacity - (currentTranslateY / panelHeight) * 0.8
-        drawerBackdrop.style.opacity = Math.max(0, opacity).toString()
-
-        animationFrameId = null
-      })
-    }
-  }
-
-  const onDragEnd = () => {
-    if (!isDragging) return
-    isDragging = false
-
-    // Restore transitions for animations
-    drawerPanel.style.transition = ''
-    drawerBackdrop.style.transition = ''
-
-    const panelHeight = drawerPanel.offsetHeight
-    if (currentTranslateY > panelHeight / 4) {
-      // Tạo animation mượt mà từ vị trí hiện tại thay vì gọi closeDrawer()
-      unlockBodyScroll()
-
-      // Tính toán vị trí đóng chính xác bằng pixel thay vì calc()
-      // 100% = panelHeight, 10vh = window.innerHeight * 0.1
-      const closePosition = panelHeight + window.innerHeight * 0.1
-
-      // Animation panel từ vị trí hiện tại xuống vị trí đóng
-      const panelAnimation = animate(drawerPanel, {
-        translateY: `${closePosition}px`,
-        duration: 200,
-        ease: 'linear',
-      })
-
-      // Animation backdrop fade out
-      animate(drawerBackdrop, {
-        opacity: 0,
-        duration: 250,
-        ease: 'inCubic',
-        delay: 50,
-      })
-
-      // Cleanup callback
-      panelAnimation.then(() => {
-        drawerContainer.classList.add('pointer-events-none')
-        onclose?.()
-      })
-    } else {
-      // Snap back to open position with elastic effect
-      animate(drawerPanel, {
-        translateY: '0px',
-        duration: 400,
-        ease: 'outCubic',
-      })
-
-      // Restore backdrop opacity
-      animate(drawerBackdrop, {
-        opacity: settings.mobileSheetBackdropOpacity ? 1 : 0,
-        duration: 250,
-        ease: 'outCubic',
-      })
-    }
-  }
 
   function openArchive() {
     browser.runtime.sendMessage({ type: 'OPEN_ARCHIVE' })
@@ -284,7 +230,6 @@
 
 <!-- Drawer Container -->
 <div
-  bind:this={drawerContainer}
   class="fixed inset-0 z-[10000] pointer-events-none"
   role="dialog"
   aria-modal="true"
@@ -293,25 +238,32 @@
   <!-- svelte-ignore a11y_click_events_have_key_events -->
   <!-- svelte-ignore a11y_no_static_element_interactions -->
   <div
-    bind:this={drawerBackdrop}
-    class="drawer-backdrop absolute inset-0 {settings.mobileSheetBackdropOpacity
-      ? 'bg-black/40'
-      : 'bg-transparent'} opacity-0"
+    class="drawer-backdrop absolute inset-0 bg-black/40 transition-opacity duration-300 ease-out pointer-events-auto"
+    class:opacity-0={!visible}
+    class:opacity-100={visible}
+    class:invisible={!visible}
+    class:transition-none={isDragging}
+    style:opacity={visible && settings.mobileSheetBackdropOpacity
+      ? dragOpacity
+      : 0}
     onclick={closeDrawer}
   ></div>
 
   <!-- Drawer Panel -->
   <div
-    bind:this={drawerPanel}
-    class="drawer-panel fixed bottom-0 left-0 right-0 border-t border-surface-2 bg-surface-1 text-black rounded-t-3xl shadow-2xl flex flex-col"
-    style="transform: translateY(calc(100% + 10vh)); height: {settings.mobileSheetHeight}svh;"
+    bind:this={drawerContent}
+    class="drawer-panel fixed bottom-0 left-0 right-0 border-t border-surface-2 bg-surface-1 text-black rounded-t-3xl shadow-2xl flex flex-col pointer-events-auto"
+    class:sheet-transition={!isDragging}
+    style:transform={`translateY(${visible ? translateY : 100}vh)`}
+    style:height="100vh"
   >
-    <!-- Drawer Header (Drag Handle)       onmousedown={onDragStart}
- -->
+    <!-- Drawer Header (Drag Handle) -->
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div
       bind:this={drawerHeader}
-      class="p-4 cursor-grab active:cursor-grabbing drag-handle relative"
+      class="p-4 cursor-grab active:cursor-grabbing drag-handle relative flex-shrink-0"
       ontouchstart={onDragStart}
+      onmousedown={onDragStart}
     >
       <div
         class="mx-auto w-12 h-1.5 flex-shrink-0 drag-handle rounded-full bg-blackwhite/10"
@@ -321,11 +273,10 @@
     <!-- Drawer Content -->
     <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div
-      bind:this={drawerContent}
       id="shadow-scroll"
-      class=" pb-4 flex-grow overflow-y-auto drawer-content relative"
-      onmousedown={onDragStart}
+      class="pb-4 flex-grow overflow-y-auto drawer-content relative"
       ontouchstart={onDragStart}
+      onmousedown={onDragStart}
     >
       {#if !settings.hasCompletedOnboarding}
         <div
@@ -442,13 +393,17 @@
 </div>
 
 <svelte:body
-  onmousemove={onDragging}
+  onmousemove={onDragMove}
   onmouseup={onDragEnd}
-  ontouchmove={onDragging}
+  ontouchmove={onDragMove}
   ontouchend={onDragEnd}
 />
 
 <style>
+  .sheet-transition {
+    transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+  }
+
   /* Ngăn chặn touch actions mặc định trên drag handle */
   .drag-handle {
     touch-action: none;

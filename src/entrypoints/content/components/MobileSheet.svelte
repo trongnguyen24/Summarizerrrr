@@ -271,8 +271,8 @@
     bind:this={drawerPanel}
     class="drawer-panel fixed bottom-0 left-0 right-0 border-t border-surface-2 bg-surface-1 text-black rounded-t-3xl shadow-2xl flex flex-col pointer-events-auto"
     class:sheet-transition={!isDragging}
-    style:transform={`translateY(${visible ? translateY : 100}vh)`}
-    style:height="100vh"
+    style:transform={`translateY(${visible ? translateY : 100}%)`}
+    style:height="100dvh"
   >
     <!-- Drawer Header (Drag Handle) -->
     <!-- svelte-ignore a11y_no_static_element_interactions -->

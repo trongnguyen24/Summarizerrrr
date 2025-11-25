@@ -7,10 +7,13 @@
   "scripts": {
     "dev": "wxt",
     "dev:firefox": "wxt -b firefox",
+    "dev:safari": "wxt -b safari",
     "build": "wxt build",
     "build:firefox": "wxt build -b firefox",
+    "build:safari": "wxt build -b safari",
     "zip": "wxt zip",
     "zip:firefox": "wxt zip -b firefox",
+    "zip:safari": "wxt zip -b safari",
     "check": "svelte-check --tsconfig ./tsconfig.json",
     "postinstall": "wxt prepare",
     "android": "web-ext run --target=firefox-android --android-device ${ANDROID_DEVICE:-emulator-5554} --firefox-apk ${FIREFOX_APK:-org.mozilla.fenix} --source-dir .output/firefox-mv2 --adb-remove-old-artifacts",

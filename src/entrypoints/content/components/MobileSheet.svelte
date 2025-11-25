@@ -62,9 +62,11 @@
   let isDragging = $state(false)
   let translateY = $state(100) // % of viewport height (100 = hidden, 0 = full open)
   let dragOpacity = $state(1)
+  let dragSource = 'header' // 'header' | 'content'
   let startY = 0
   let startTranslateY = 0
   let startTime = 0
+  let drawerPanel
   let drawerContent
   let drawerHeader
 
@@ -122,6 +124,7 @@
 
     if (isHeader || isContentTop) {
       isDragging = true
+      dragSource = isHeader ? 'header' : 'content'
       startY = e.touches ? e.touches[0].pageY : e.pageY
       startTranslateY = translateY
       startTime = Date.now()
@@ -142,6 +145,11 @@
     // Constraint: Don't pull up past 0 (100% height)
     // Add some resistance if pulling past 0? For now just clamp.
     if (newTranslateY < 0) newTranslateY = 0
+
+    // Constraint: If dragging content, cannot pull UP (expand) beyond start position
+    if (dragSource === 'content' && newTranslateY < startTranslateY) {
+      newTranslateY = startTranslateY
+    }
 
     translateY = newTranslateY
 
@@ -170,8 +178,8 @@
       // Fast swipe down -> Close
       closeDrawer()
       return
-    } else if (velocity < -VELOCITY_THRESHOLD) {
-      // Fast swipe up -> Open 100%
+    } else if (velocity < -VELOCITY_THRESHOLD && dragSource === 'header') {
+      // Fast swipe up -> Open 100% (Only allowed via header)
       translateY = 0
       dragOpacity = 1
       return
@@ -185,9 +193,14 @@
       // If dragged below 40% height, close it
       closeDrawer()
     } else {
-      // Stay at current position (Arbitrary height 40-100%)
-      // Just ensure it's clamped (already done in move, but double check)
-      if (translateY < 0) translateY = 0
+      // Not closing
+      if (dragSource === 'content') {
+        // If dragging content, snap back to original position (cancel pull-to-close)
+        translateY = startTranslateY
+      } else {
+        // If dragging header, stay at current position (Arbitrary height 40-100%)
+        if (translateY < 0) translateY = 0
+      }
       dragOpacity = 1 // Snap back to open opacity
     }
   }
@@ -251,7 +264,7 @@
 
   <!-- Drawer Panel -->
   <div
-    bind:this={drawerContent}
+    bind:this={drawerPanel}
     class="drawer-panel fixed bottom-0 left-0 right-0 border-t border-surface-2 bg-surface-1 text-black rounded-t-3xl shadow-2xl flex flex-col pointer-events-auto"
     class:sheet-transition={!isDragging}
     style:transform={`translateY(${visible ? translateY : 100}vh)`}
@@ -273,6 +286,7 @@
     <!-- Drawer Content -->
     <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div
+      bind:this={drawerContent}
       id="shadow-scroll"
       class="pb-4 flex-grow overflow-y-auto drawer-content relative"
       ontouchstart={onDragStart}

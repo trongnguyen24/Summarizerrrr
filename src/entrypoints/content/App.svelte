@@ -38,6 +38,25 @@
   // One-click summarization
   let oneClickSummarization = useOneClickSummarization()
 
+  let isFabAllowedOnDomain = $derived.by(() => {
+    const domain = window.location.hostname
+    const control = settings.fabDomainControl || {
+      mode: 'all',
+      whitelist: [],
+      blacklist: [],
+    }
+
+    if (control.mode === 'whitelist') {
+      return control.whitelist?.includes(domain) ?? false
+    }
+
+    if (control.mode === 'blacklist') {
+      return !(control.blacklist?.includes(domain) ?? false)
+    }
+
+    return true
+  })
+
   // Initialize stores
   $effect(() => {
     loadSettings()
@@ -198,7 +217,7 @@
 
 <div bind:this={shadowContainer} class="floating-ui-root absolute top-0 left-0">
   <!-- rerender when settings.floatButton changes -->
-  {#if settings.showFloatingButton && !showBlacklistConfirm}
+  {#if settings.showFloatingButton && !showBlacklistConfirm && isFabAllowedOnDomain}
     {#key settings.floatButton}
       <FloatingButton
         topButton={settings.floatButton}

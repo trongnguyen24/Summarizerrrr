@@ -61,14 +61,15 @@
       </button>
     </div>
     <div class="px-4 bg-surface-2 py-2 border-b border-border">
-      <p class="select-none font-mono text-xs font-bold text-text-primary">
+      <p class="select-none font-mono text-sm font-bold text-text-primary">
         Hide FAB?
       </p>
     </div>
 
-    <p class="text-text-secondary text-xs p-5 leading-relaxed">
-      Add <b>{window.location.hostname}</b> to your FAB blacklist. <br />
-      You can enable it from the Settings > FAB > FAB Domain Control.
+    <p class="text-text-secondary text-sm p-5 leading-relaxed">
+      Add <b class=" text-text-primary">{window.location.hostname}</b> to your
+      FAB blacklist. <br />
+      You can edit it from the Settings > FAB > FAB Domain Control.
     </p>
     <div class="flex justify-end gap-3 px-5 pb-5">
       <button

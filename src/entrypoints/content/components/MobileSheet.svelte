@@ -63,6 +63,7 @@
   let translateY = $state(100) // % of viewport height (100 = hidden, 0 = full open)
   let dragOpacity = $state(1)
   let dragSource = 'header' // 'header' | 'content'
+  let contentPadding = $state(0) // vh
   let startY = 0
   let startTranslateY = 0
   let startTime = 0
@@ -82,6 +83,7 @@
     const targetHeight = settings.mobileSheetHeight || 50
     // translateY = 100 - height
     translateY = 100 - targetHeight
+    contentPadding = translateY
     dragOpacity = 1
   }
 
@@ -91,7 +93,7 @@
     dragOpacity = 0
     setTimeout(() => {
       onclose?.()
-    }, 300) // Match transition duration
+    }, 400) // Match transition duration
   }
 
   $effect(() => {
@@ -181,6 +183,7 @@
     } else if (velocity < -VELOCITY_THRESHOLD && dragSource === 'header') {
       // Fast swipe up -> Open 100% (Only allowed via header)
       translateY = 0
+      contentPadding = 0
       dragOpacity = 1
       return
     }
@@ -200,6 +203,7 @@
       } else {
         // If dragging header, stay at current position (Arbitrary height 40-100%)
         if (translateY < 0) translateY = 0
+        contentPadding = translateY
       }
       dragOpacity = 1 // Snap back to open opacity
     }
@@ -251,7 +255,7 @@
   <!-- svelte-ignore a11y_click_events_have_key_events -->
   <!-- svelte-ignore a11y_no_static_element_interactions -->
   <div
-    class="drawer-backdrop absolute inset-0 bg-black/40 transition-opacity duration-300 ease-out pointer-events-auto"
+    class="drawer-backdrop absolute inset-0 bg-black/40 transition-opacity duration-400 ease-out pointer-events-auto"
     class:opacity-0={!visible}
     class:opacity-100={visible}
     class:invisible={!visible}
@@ -289,6 +293,7 @@
       bind:this={drawerContent}
       id="shadow-scroll"
       class="pb-4 flex-grow overflow-y-auto drawer-content relative"
+      style:padding-bottom="{contentPadding}vh"
       ontouchstart={onDragStart}
       onmousedown={onDragStart}
     >
@@ -415,7 +420,7 @@
 
 <style>
   .sheet-transition {
-    transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+    transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
   }
 
   /* Ngăn chặn touch actions mặc định trên drag handle */

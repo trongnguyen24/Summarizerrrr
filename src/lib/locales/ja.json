@@ -99,7 +99,16 @@
       "domain_input_placeholder": "example.com または *.example.com",
       "domain_whitelist_helper": "許可されたドメインでのみFABを表示します。",
       "domain_blacklist_helper": "ブロックされたドメインでFABを非表示にし、それ以外では表示します。",
-      "domain_all_helper": "FABはすべてのウェブサイトに表示されます"
+      "domain_all_helper": "FABはすべてのウェブサイトに表示されます",
+      "hide_on_site": "このサイトで非表示",
+      "drop_to_hide": "ドロップして非表示",
+      "blacklist_modal": {
+        "title": "FABを閉じますか？",
+        "disable_on": "このサイトでFABを無効にする",
+        "reenable_hint": "設定で再度有効にできます",
+        "cancel": "キャンセル",
+        "confirm": "確認"
+      }
     },
     "ai_model": {
       "title": "AI設定",

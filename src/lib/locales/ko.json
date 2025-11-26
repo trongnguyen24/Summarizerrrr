@@ -99,7 +99,16 @@
       "domain_input_placeholder": "example.com 또는 *.example.com",
       "domain_whitelist_helper": "허용된 도메인에서만 FAB 표시",
       "domain_blacklist_helper": "차단된 도메인에서 FAB 숨기기, 나머지 모든 곳 표시",
-      "domain_all_helper": "FAB는 모든 웹사이트에 표시됩니다"
+      "domain_all_helper": "FAB는 모든 웹사이트에 표시됩니다",
+      "hide_on_site": "이 사이트에서 숨기기",
+      "drop_to_hide": "놓아서 숨기기",
+      "blacklist_modal": {
+        "title": "FAB를 닫으시겠습니까?",
+        "disable_on": "이 사이트에서 FAB 비활성화",
+        "reenable_hint": "다음에서 다시 활성화할 수 있습니다",
+        "cancel": "취소",
+        "confirm": "확인"
+      }
     },
     "ai_model": {
       "title": "제공자",

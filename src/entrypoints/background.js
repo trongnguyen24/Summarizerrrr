@@ -943,8 +943,11 @@ export default defineBackground(() => {
         active: true,
       })
     } else if (message.type === 'OPEN_SETTINGS') {
+      const url = message.tab
+        ? browser.runtime.getURL(`settings.html?tab=${message.tab}`)
+        : browser.runtime.getURL('settings.html')
       browser.tabs.create({
-        url: browser.runtime.getURL('settings.html'),
+        url,
         active: true,
       })
     } else if (message.type === 'UPDATE_OLLAMA_ENDPOINT') {

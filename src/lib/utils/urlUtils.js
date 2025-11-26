@@ -5,7 +5,7 @@
  */
 
 // Valid tab names
-const VALID_TABS = ['ai-summary', 'fab', 'general', 'about']
+const VALID_TABS = ['ai-summary', 'fab', 'general', 'tools', 'about']
 const DEFAULT_TAB = 'ai-summary'
 
 /**

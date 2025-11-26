@@ -99,7 +99,16 @@
       "domain_input_placeholder": "example.com or *.example.com",
       "domain_whitelist_helper": "Show FAB only on allowed domains.",
       "domain_blacklist_helper": "Hide FAB on blocked domains, show everywhere else.",
-      "domain_all_helper": "FAB will show on all websites"
+      "domain_all_helper": "FAB will show on all websites",
+      "hide_on_site": "Hide on this site",
+      "drop_to_hide": "Drop to Hide",
+      "blacklist_modal": {
+        "title": "Close FAB?",
+        "disable_on": "Disable FAB on this site",
+        "reenable_hint": "Can be re-enabled in",
+        "cancel": "Cancel",
+        "confirm": "Confirm"
+      }
     },
     "ai_model": {
       "title": "Provider",

@@ -2,6 +2,8 @@
   import { settings, updateSettings } from '@/stores/settingsStore.svelte.js'
   import { slideScaleFade } from '@/lib/ui/slideScaleFade.js'
   import Icon from '@iconify/svelte'
+  import { browser } from 'wxt/browser'
+  import { t } from 'svelte-i18n'
 
   let { onclose } = $props()
 
@@ -30,6 +32,10 @@
 
     updateSettings({ fabDomainControl: newControl })
     onclose()
+  }
+
+  function openSettings() {
+    browser.runtime.sendMessage({ type: 'OPEN_SETTINGS', tab: 'fab' })
   }
 </script>
 
@@ -62,41 +68,49 @@
     </div>
     <div class="px-4 bg-surface-2 py-2 border-b border-border">
       <p class="select-none font-mono text-sm font-bold text-text-primary">
-        Close Floating Action Button?
+        {$t('settings.fab.blacklist_modal.title')}
       </p>
     </div>
 
-    <p class="text-text-secondary text-sm p-5 leading-relaxed">
-      Disable the on <b class=" text-text-primary">{window.location.hostname}</b
+    <p class="text-text-secondary text-sm px-5 py-8 leading-relaxed">
+      {$t('settings.fab.blacklist_modal.disable_on')}
+      <b class=" text-text-primary">{window.location.hostname}</b> <br />
+      {$t('settings.fab.blacklist_modal.reenable_hint')}
+      <button
+        class="text-primary inline-flex items-center gap-1 hover:underline bg-transparent border-none p-0 cursor-pointer"
+        onclick={openSettings}
+        >{$t('settings.title')}
+        <Icon icon="heroicons:arrow-up-right-16-solid" width="12" /></button
       >
-      (Can be re-enabled in the
-      <a class="text-primary inline-flex items-center gap-1"
-        >Settings <Icon
-          icon="heroicons:arrow-up-right-16-solid"
-          width="12"
-        /></a
-      >)
     </p>
     <div class="flex justify-end gap-3 px-5 pb-5">
       <button
-        class="font-mono text-sm flex justify-center items-center overflow-hidden relative text-text-primary"
+        class="font-mono flex justify-center items-center group overflow-hidden relative text-text-primary"
         onclick={onclose}
       >
-        <div class="absolute inset-0 border border-border bg-surface-2"></div>
-        <div class="relative !text-center z-10 px-6 py-2">Cancel</div>
+        <div
+          class="absolute inset-0 border border-border group-hover:border-border-2 bg-surface-2"
+        ></div>
+        <div class="relative !text-center z-10 px-6 py-2 text-sm">
+          {$t('settings.fab.blacklist_modal.cancel')}
+        </div>
         <span
-          class="absolute z-10 size-4 border border-border rotate-45 bg-surface-1 dark:border-surface-2 -bottom-px -left-px -translate-x-1/2 translate-y-1/2"
+          class="absolute z-10 size-4 border border-border group-hover:border-border-2 rotate-45 bg-surface-1 dark:border-surface-2 -bottom-px -left-px -translate-x-1/2 translate-y-1/2"
         ></span>
       </button>
 
       <button
-        class="font-mono text-sm overflow-hidden relative text-white"
+        class="font-mono overflow-hidden group relative text-white"
         onclick={handleConfirm}
       >
-        <div class="absolute inset-0 border border-orange-400 bg-primary"></div>
-        <div class="relative !text-center z-10 px-6 py-2">Confirm</div>
+        <div
+          class="absolute inset-0 border border-orange-400 group-hover:border-orange-300 bg-primary"
+        ></div>
+        <div class="relative !text-center z-10 px-6 py-2 text-sm">
+          {$t('settings.fab.blacklist_modal.confirm')}
+        </div>
         <span
-          class="absolute z-10 size-4 border border-orange-400 rotate-45 bg-surface-1 dark:border-surface-2 -bottom-px -left-px -translate-x-1/2 translate-y-1/2"
+          class="absolute z-10 size-4 border border-orange-400 group-hover:border-orange-300 rotate-45 bg-surface-1 dark:border-surface-2 -bottom-px -left-px -translate-x-1/2 translate-y-1/2"
         ></span>
       </button>
     </div>

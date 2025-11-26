@@ -13,6 +13,7 @@
   import { slideScaleFade } from '@/lib/ui/slideScaleFade.js'
   import Icon from '@iconify/svelte'
   import { isFirefox } from '@/lib/utils/browserDetection.js'
+  import { t } from 'svelte-i18n'
 
   // @ts-nocheck
   let {
@@ -536,7 +537,7 @@
         slideDistance: '0px',
         slideFrom: 'top',
       }}
-      title="Hide on this site"
+      title={$t('fab.hide_on_site')}
     >
       <Icon icon="heroicons:x-mark-16-solid" width="16" height="16" />
     </button>
@@ -621,7 +622,7 @@
     }}
   >
     <Icon icon="heroicons:x-mark-20-solid" width="20" height="20" />
-    <span class="font-medium text-sm">Drop to Hide</span>
+    <span class="font-medium text-sm">{$t('settings.fab.drop_to_hide')}</span>
   </div>
 {/if}
 

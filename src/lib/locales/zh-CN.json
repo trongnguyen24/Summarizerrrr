@@ -200,7 +200,16 @@
       "domain_input_placeholder": "example.com 或 *.example.com",
       "domain_whitelist_helper": "仅在允许的域名上显示 FAB。",
       "domain_blacklist_helper": "在阻止的域名上隐藏 FAB，在其他地方显示。",
-      "domain_all_helper": "FAB 将在所有网站上显示"
+      "domain_all_helper": "悬浮按钮将显示在所有网站上",
+      "hide_on_site": "在此网站隐藏",
+      "drop_to_hide": "拖放到此处隐藏",
+      "blacklist_modal": {
+        "title": "关闭悬浮按钮？",
+        "disable_on": "在此网站禁用悬浮按钮",
+        "reenable_hint": "可在设置中重新启用",
+        "cancel": "取消",
+        "confirm": "确认"
+      }
     },
     "tools": {
       "deepdive": {

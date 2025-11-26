@@ -99,7 +99,16 @@
       "domain_input_placeholder": "example.com hoặc *.example.com",
       "domain_whitelist_helper": "Chỉ hiển thị FAB trên các tên miền được phép.",
       "domain_blacklist_helper": "Ẩn FAB trên các tên miền bị chặn, hiển thị ở nơi khác.",
-      "domain_all_helper": "FAB sẽ hiển thị trên tất cả trang web"
+      "domain_all_helper": "FAB sẽ hiển thị trên tất cả trang web",
+      "hide_on_site": "Ẩn trên trang này",
+      "drop_to_hide": "Thả vào vùng để ẩn",
+      "blacklist_modal": {
+        "title": "Tắt FAB?",
+        "disable_on": "Tắt FAB trên trang này",
+        "reenable_hint": "Có thể bật lại trong",
+        "cancel": "Hủy",
+        "confirm": "Xác nhận"
+      }
     },
     "ai_model": {
       "title": "Nhà cung cấp",

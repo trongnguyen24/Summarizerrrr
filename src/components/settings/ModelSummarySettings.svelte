@@ -40,7 +40,7 @@
     textScramble.setText(
       settings.isAdvancedMode
         ? $t('settings.ai_model.mode.advanced')
-        : $t('settings.ai_model.mode.basic')
+        : $t('settings.ai_model.mode.basic'),
     )
   })
 
@@ -196,7 +196,7 @@
             class="setting-btn {!settings.enableStreaming ? 'active' : ''}"
             onclick={() => handleUpdateSetting('enableStreaming', false)}
             Description={$t(
-              'settings.general.response_mode.non_streaming_desc'
+              'settings.general.response_mode.non_streaming_desc',
             )}
           >
             <Icon
@@ -348,7 +348,7 @@
           >
           <a
             href={browser.runtime.getURL(
-              'prompt.html?promptKey=youtubeCustomPromptContent'
+              'prompt.html?promptKey=youtubeCustomPromptContent',
             )}
             target="_blank"
             class="text-xs flex items-center gap-0.5 text-primary outline-gray-500 hover:underline"
@@ -369,7 +369,7 @@
               onEdit={() =>
                 browser.tabs.create({
                   url: browser.runtime.getURL(
-                    `prompt.html?promptKey=${prompt.promptKey}`
+                    `prompt.html?promptKey=${prompt.promptKey}`,
                   ),
                 })}
             />
@@ -470,7 +470,7 @@
     {/if}
 
     <a
-      href="https://www.youtube.com/watch?v=g-Uae53Cpmw"
+      href="https://www.youtube.com/watch?v=BRlHzxy3QqY"
       target="_blank"
       class="text-xs flex gap-1 items-center mt-auto self-center text-text-secondary hover:text-primary underline underline-offset-2 transition-colors"
     >

@@ -45,7 +45,7 @@
   }}
 >
   <div
-    class=" shadow-2xl max-w-[28em] w-full border border-border mx-4 relative font-mono rounded-xl text-text-primary dark:text-text-secondar bg-background dark:bg-surface-1 overflow-hidden"
+    class=" shadow-2xl max-w-[32em] w-full border border-border mx-4 relative font-mono rounded-xl text-text-primary dark:text-text-secondar bg-background dark:bg-surface-1 overflow-hidden"
     onclick={(e) => e.stopPropagation()}
   >
     <div class="absolute z-10 right-3 top-2.5 group flex gap-2">
@@ -62,30 +62,41 @@
     </div>
     <div class="px-4 bg-surface-2 py-2 border-b border-border">
       <p class="select-none font-mono text-sm font-bold text-text-primary">
-        Hide FAB?
+        Close Floating Action Button?
       </p>
     </div>
 
     <p class="text-text-secondary text-sm p-5 leading-relaxed">
-      Add <b class=" text-text-primary">{window.location.hostname}</b> to your
-      FAB blacklist. <br />
-      You can edit it from the Settings > FAB > FAB Domain Control.
+      Disable the on <b class=" text-text-primary">{window.location.hostname}</b
+      >
+      (Can be re-enabled in the
+      <a class="text-primary inline-flex items-center gap-1"
+        >Settings <Icon
+          icon="heroicons:arrow-up-right-16-solid"
+          width="12"
+        /></a
+      >)
     </p>
     <div class="flex justify-end gap-3 px-5 pb-5">
       <button
-        class="px-4 py-2 rounded-lg font-medium text-text-secondary hover:bg-blackwhite/5 transition-colors"
+        class="font-mono text-sm flex justify-center items-center overflow-hidden relative text-text-primary"
         onclick={onclose}
       >
-        <span class="text-xs">Cancel</span>
-      </button>
-      <button class="relative overflow-hidden group" onclick={handleConfirm}>
-        <div
-          class="font-bold flex justify-center items-center h-10 px-6 border transition-colors duration-200 bg-red-600 text-red-100 border-red-500 hover:border-red-400 hover:text-white"
-        >
-          <span class="text-xs">Hide FAB</span>
-        </div>
+        <div class="absolute inset-0 border border-border bg-surface-2"></div>
+        <div class="relative !text-center z-10 px-6 py-2">Cancel</div>
         <span
-          class="size-4 absolute z-10 -left-2 -bottom-2 border bg-background dark:bg-surface-1 rotate-45 transition-colors duration-200 border-red-500 group-hover:border-red-400"
+          class="absolute z-10 size-4 border border-border rotate-45 bg-surface-1 dark:border-surface-2 -bottom-px -left-px -translate-x-1/2 translate-y-1/2"
+        ></span>
+      </button>
+
+      <button
+        class="font-mono text-sm overflow-hidden relative text-white"
+        onclick={handleConfirm}
+      >
+        <div class="absolute inset-0 border border-orange-400 bg-primary"></div>
+        <div class="relative !text-center z-10 px-6 py-2">Confirm</div>
+        <span
+          class="absolute z-10 size-4 border border-orange-400 rotate-45 bg-surface-1 dark:border-surface-2 -bottom-px -left-px -translate-x-1/2 translate-y-1/2"
         ></span>
       </button>
     </div>

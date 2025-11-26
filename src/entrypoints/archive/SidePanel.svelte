@@ -101,7 +101,7 @@
         unmatched.push(item)
       } else {
         const isMatched = archiveFilterStore.selectedTagIds.every((tagId) =>
-          item.tags.includes(tagId)
+          item.tags.includes(tagId),
         )
 
         if (isMatched) {
@@ -297,7 +297,7 @@
     startScale: 1,
     slideFrom: 'left',
   }}
-  class="w-80 relative flex flex-col h-screen"
+  class="w-80 relative flex flex-col h-lvh"
 >
   <h2 class="text-lg pl-12 pt-4.5 pb-2 font-bold">Summarizerrrr</h2>
 

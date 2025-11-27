@@ -185,7 +185,12 @@ export async function downloadBlob(
   document.body.appendChild(a)
   a.click()
   document.body.removeChild(a)
-  URL.revokeObjectURL(url)
+
+  // Small delay to ensure mobile browsers have time to process the download
+  // before the URL is revoked
+  setTimeout(() => {
+    URL.revokeObjectURL(url)
+  }, 100)
 }
 
 /**

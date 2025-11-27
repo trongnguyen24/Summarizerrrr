@@ -43,8 +43,6 @@
   bind:apiKey
   label={$t('settings.openai_compatible_config.api_key_label')}
   onSave={handleApiKeySave}
-  linkHref="https://platform.openai.com/api-keys"
-  linkText={$t('settings.openai_compatible_config.get_a_key')}
 ></ApiKeyInput>
 
 <TextInput

@@ -9,7 +9,6 @@
 /* Begin PBXBuildFile section */
 		29150BC82E7D126400491238 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29150BC72E7D126400491238 /* AppDelegate.swift */; };
 		29150BCC2E7D126400491238 /* Main.html in Resources */ = {isa = PBXBuildFile; fileRef = 29150BCA2E7D126400491238 /* Main.html */; };
-		29150BCE2E7D126400491238 /* Icon.png in Resources */ = {isa = PBXBuildFile; fileRef = 29150BCD2E7D126400491238 /* Icon.png */; };
 		29150BD02E7D126400491238 /* Style.css in Resources */ = {isa = PBXBuildFile; fileRef = 29150BCF2E7D126400491238 /* Style.css */; };
 		29150BD22E7D126400491238 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29150BD12E7D126400491238 /* SceneDelegate.swift */; };
 		29150BD42E7D126400491238 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29150BD32E7D126400491238 /* ViewController.swift */; };
@@ -34,6 +33,7 @@
 		29150C112E7D126600491238 /* assets in Resources */ = {isa = PBXBuildFile; fileRef = 29150C012E7D126600491238 /* assets */; };
 		29150C122E7D126600491238 /* Sumarizzerrrr.png in Resources */ = {isa = PBXBuildFile; fileRef = 29150C022E7D126600491238 /* Sumarizzerrrr.png */; };
 		29150C132E7D126600491238 /* archive.html in Resources */ = {isa = PBXBuildFile; fileRef = 29150C032E7D126600491238 /* archive.html */; };
+		295074AE2ED82EC60079D4D5 /* Icon.png in Resources */ = {isa = PBXBuildFile; fileRef = 29150BCD2E7D126400491238 /* Icon.png */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -269,7 +269,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				29150BCE2E7D126400491238 /* Icon.png in Resources */,
+				295074AE2ED82EC60079D4D5 /* Icon.png in Resources */,
 				29150BDA2E7D126400491238 /* Main.storyboard in Resources */,
 				29150BD72E7D126400491238 /* LaunchScreen.storyboard in Resources */,
 				29150BCC2E7D126400491238 /* Main.html in Resources */,
@@ -484,6 +484,7 @@
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = NTY32Z2254;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Summarizerrrr Extension/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Summarizerrrr Extension";
@@ -499,7 +500,7 @@
 					"-framework",
 					SafariServices,
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.yourCompany.Summarizerrrr.Extension;
+				PRODUCT_BUNDLE_IDENTIFIER = com.nguyenle.Summarizerrrr.Extension;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -513,6 +514,7 @@
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = NTY32Z2254;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Summarizerrrr Extension/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Summarizerrrr Extension";
@@ -528,7 +530,7 @@
 					"-framework",
 					SafariServices,
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.yourCompany.Summarizerrrr.Extension;
+				PRODUCT_BUNDLE_IDENTIFIER = com.nguyenle.Summarizerrrr.Extension;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -545,6 +547,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = NTY32Z2254;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Summarizerrrr/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Summarizerrrr;
@@ -565,7 +568,7 @@
 					"-framework",
 					WebKit,
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.yourCompany.Summarizerrrr;
+				PRODUCT_BUNDLE_IDENTIFIER = com.nguyenle.Summarizerrrr;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -581,6 +584,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = NTY32Z2254;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Summarizerrrr/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Summarizerrrr;
@@ -601,7 +605,7 @@
 					"-framework",
 					WebKit,
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.yourCompany.Summarizerrrr;
+				PRODUCT_BUNDLE_IDENTIFIER = com.nguyenle.Summarizerrrr;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;

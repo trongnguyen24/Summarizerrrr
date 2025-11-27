@@ -4,6 +4,7 @@
   import { fade } from 'svelte/transition'
   import Icon from '@iconify/svelte'
   import ApiKeyInput from '../inputs/ApiKeyInput.svelte'
+  import TextInput from '../inputs/TextInput.svelte'
   import { onMount } from 'svelte'
   import { t } from 'svelte-i18n'
 
@@ -11,6 +12,7 @@
 
   let chatgptModels = $state([])
   let modelLoadError = $state(null)
+  let saveStatus = $state('')
 
   /**
    * Handles saving the ChatGPT API key.
@@ -49,20 +51,6 @@
 
   // Khối $effect đã được loại bỏ. Việc lưu model được xử lý bởi hàm `scheduleChatgptModelSave`
   // được gọi từ sự kiện `oninput` của input.
-
-  let saveStatus = $state('')
-  let chatgptModelDebounceTimer = null
-
-  function scheduleChatgptModelSave(value) {
-    clearTimeout(chatgptModelDebounceTimer)
-    chatgptModelDebounceTimer = setTimeout(() => {
-      updateSettings({
-        selectedChatgptModel: value.trim(),
-      })
-      saveStatus = 'saved!'
-      setTimeout(() => (saveStatus = ''), 2000)
-    }, 300)
-  }
 </script>
 
 <ApiKeyInput
@@ -95,14 +83,13 @@
       </a>
     </div>
 
-    <input
-      type="text"
+    <TextInput
       id="chatgpt-model-input"
       list="chatgpt-model-list"
       bind:value={selectedChatgptModel}
-      class="select-none font-mono w-full relative text-xs overflow-hidden flex flex-col gap-0 px-3 text-text-primary text-left py-2 bg-muted/5 dark:bg-muted/5 border border-border hover:border-blackwhite/15 focus:border-blackwhite/30 dark:border-blackwhite/10 dark:focus:border-blackwhite/20 focus:outline-none focus:ring-0 transition-colors duration-150 chatgpt-model-input"
+      bind:saveStatus
       placeholder={$t('settings.chatgpt_config.model_placeholder')}
-      oninput={(e) => scheduleChatgptModelSave(e.target.value)}
+      onSave={(value) => updateSettings({ selectedChatgptModel: value })}
     />
 
     <datalist id="chatgpt-model-list">
@@ -114,15 +101,3 @@
     </datalist>
   </div>
 </div>
-
-<style>
-  .chatgpt-model-input::picker-input {
-    appearance: none;
-    -moz-appearance: none; /* Firefox */
-    -webkit-appearance: none; /* Safari and Chrome */
-  }
-
-  input::-webkit-calendar-picker-indicator {
-    display: none !important;
-  }
-</style>

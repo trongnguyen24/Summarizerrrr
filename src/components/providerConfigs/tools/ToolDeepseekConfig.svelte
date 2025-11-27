@@ -4,6 +4,7 @@
   import { fade } from 'svelte/transition'
   import Icon from '@iconify/svelte'
   import ApiKeyInput from '../../inputs/ApiKeyInput.svelte'
+  import TextInput from '../../inputs/TextInput.svelte'
   import { t } from 'svelte-i18n'
 
   let {
@@ -23,17 +24,6 @@
   }
 
   let saveStatus = $state('')
-  let deepseekModelDebounceTimer = null
-
-  function scheduleModelSave(value) {
-    clearTimeout(deepseekModelDebounceTimer)
-    deepseekModelDebounceTimer = setTimeout(() => {
-      // Call the callback to notify parent component (tool settings)
-      onModelChange(value.trim())
-      saveStatus = 'saved!'
-      setTimeout(() => (saveStatus = ''), 2000)
-    }, 300)
-  }
 </script>
 
 <ApiKeyInput
@@ -65,14 +55,13 @@
         <Icon width={12} icon="heroicons:arrow-up-right-16-solid" />
       </a>
     </div>
-    <input
-      type="text"
+    <TextInput
       id="deepseek-model-input"
       list="deepseek-model-list"
       value={selectedModel}
-      class="select-none font-mono w-full relative text-xs overflow-hidden flex flex-col gap-0 px-3 text-text-primary text-left py-2 bg-muted/5 dark:bg-muted/5 border border-border hover:border-blackwhite/15 focus:border-blackwhite/30 dark:border-blackwhite/10 dark:focus:border-blackwhite/20 focus:outline-none focus:ring-0 transition-colors duration-150 deepseek-model-input"
+      bind:saveStatus
       placeholder={$t('settings.deepseek_config.model_placeholder')}
-      oninput={(e) => scheduleModelSave(e.target.value)}
+      onSave={(value) => onModelChange(value)}
     />
 
     <datalist id="deepseek-model-list">
@@ -84,15 +73,3 @@
     </datalist>
   </div>
 </div>
-
-<style>
-  .deepseek-model-input::picker-input {
-    appearance: none;
-    -moz-appearance: none; /* Firefox */
-    -webkit-appearance: none; /* Safari and Chrome */
-  }
-
-  input::-webkit-calendar-picker-indicator {
-    display: none !important;
-  }
-</style>

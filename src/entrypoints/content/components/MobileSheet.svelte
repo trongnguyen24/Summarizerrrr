@@ -77,6 +77,14 @@
 
   function openDrawer() {
     lockBodyScroll()
+    // If onboarding not completed, open full screen
+    if (!settings.hasCompletedOnboarding) {
+      translateY = 0 // Full open (100% height)
+      contentPadding = 0
+      dragOpacity = 1
+      return
+    }
+
     // Calculate initial position based on settings
     // settings.mobileSheetHeight is likely a percentage (e.g. 50, 60, 90)
     // If it's not set, default to 50%
@@ -107,6 +115,16 @@
       if (translateY < 100) {
         closeDrawer()
       }
+    }
+  })
+
+  // Watch for onboarding completion to animate sheet to default position
+  $effect(() => {
+    if (settings.hasCompletedOnboarding && visible && translateY === 0) {
+      // User just completed onboarding, animate to default position
+      const targetHeight = settings.mobileSheetHeight || 50
+      translateY = 100 - targetHeight
+      contentPadding = translateY
     }
   })
 

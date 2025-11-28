@@ -70,6 +70,7 @@
   let drawerPanel
   let drawerContent
   let drawerHeader
+  let previousOnboardingState = $state(settings.hasCompletedOnboarding)
 
   // Constants
   const MIN_OPEN_PERCENT = 40 // Minimum height % (so max translateY is 60vh)
@@ -120,11 +121,22 @@
 
   // Watch for onboarding completion to animate sheet to default position
   $effect(() => {
-    if (settings.hasCompletedOnboarding && visible && translateY === 0) {
+    // Only trigger when transitioning from not completed -> completed
+    // AND sheet is currently at full position (from onboarding)
+    if (
+      !previousOnboardingState &&
+      settings.hasCompletedOnboarding &&
+      visible &&
+      translateY < 5 // Only if sheet is near full position (allowing small variance)
+    ) {
       // User just completed onboarding, animate to default position
       const targetHeight = settings.mobileSheetHeight || 50
       translateY = 100 - targetHeight
       contentPadding = translateY
+      previousOnboardingState = true // Update tracker to prevent retriggering
+    } else if (previousOnboardingState !== settings.hasCompletedOnboarding) {
+      // Sync tracker if settings changed externally
+      previousOnboardingState = settings.hasCompletedOnboarding
     }
   })
 

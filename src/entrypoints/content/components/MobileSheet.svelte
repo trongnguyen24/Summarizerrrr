@@ -32,6 +32,22 @@
   })
   let toastTimeout
 
+  // Delayed visibility for animation
+  let delayedVisible = $state(visible)
+  let visibleTimer
+  let safariHackVisible = $state(false)
+
+  $effect(() => {
+    if (visible) {
+      if (visibleTimer) clearTimeout(visibleTimer)
+      delayedVisible = true
+    } else {
+      visibleTimer = setTimeout(() => {
+        delayedVisible = false
+      }, 600)
+    }
+  })
+
   function handleToastEvent(event) {
     const { title, message, icon } = event.detail
     toastProps = { title, message, icon }
@@ -60,7 +76,7 @@
 
   // --- Drag & Animation Logic ---
   let isDragging = $state(false)
-  let translateY = $state(100) // % of viewport height (100 = hidden, 0 = full open)
+  let translateY = $state(120) // % of viewport height (120 = hidden, 0 = full open)
   let dragOpacity = $state(1)
   let dragSource = 'header' // 'header' | 'content'
   let contentPadding = $state(0) // vh
@@ -98,11 +114,18 @@
 
   function closeDrawer() {
     unlockBodyScroll()
-    translateY = 100 // Slide down out of view
+    translateY = 120 // Slide down out of view
     dragOpacity = 0
+
+    // Safari Hack: Toggle a dummy element to force repaint/clear transparent bar background
+    safariHackVisible = true
+    setTimeout(() => {
+      safariHackVisible = false
+    }, 800)
+
     setTimeout(() => {
       onclose?.()
-    }, 400) // Match transition duration
+    }, 600) // Match transition duration
   }
 
   $effect(() => {
@@ -113,7 +136,7 @@
       })
     } else {
       // If visible becomes false externally
-      if (translateY < 100) {
+      if (translateY < 120) {
         closeDrawer()
       }
     }
@@ -251,6 +274,7 @@
     window.removeEventListener('gemini-toast', handleToastEvent)
     unlockBodyScroll()
     if (toastTimeout) clearTimeout(toastTimeout)
+    if (visibleTimer) clearTimeout(visibleTimer)
   })
 
   function openArchive() {
@@ -288,7 +312,7 @@
     class="drawer-backdrop absolute inset-0 bg-black/40 transition-opacity duration-400 ease-out pointer-events-auto"
     class:opacity-0={!visible}
     class:opacity-100={visible}
-    class:invisible={!visible}
+    class:invisible={!delayedVisible}
     class:transition-none={isDragging}
     style:opacity={visible && settings.mobileSheetBackdropOpacity
       ? dragOpacity
@@ -301,7 +325,8 @@
     bind:this={drawerPanel}
     class="drawer-panel fixed bottom-0 left-0 right-0 border-t border-surface-2 bg-surface-1 text-black rounded-t-3xl shadow-2xl flex flex-col pointer-events-auto"
     class:sheet-transition={!isDragging}
-    style:transform={`translateY(${visible ? translateY : 100}%)`}
+    class:invisible={!delayedVisible}
+    style:transform={`translateY(${visible ? translateY : 120}%)`}
     style:height="100dvh"
   >
     <!-- Drawer Header (Drag Handle) -->
@@ -439,6 +464,10 @@
       onClose={closeToast}
     />
   </div>
+
+  {#if safariHackVisible}
+    <div class="fixed inset-0 z-[100000] pointer-events-none bg-black/0"></div>
+  {/if}
 </div>
 
 <svelte:body
@@ -450,7 +479,7 @@
 
 <style>
   .sheet-transition {
-    transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+    transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
   }
 
   /* Ngăn chặn touch actions mặc định trên drag handle */

@@ -431,6 +431,8 @@
     },
     "replace_warning": "⚠️ WARNUNG: Ersetzen-Modus\n\nDies löscht vorhandene Daten und ersetzt sie durch importierte Daten:",
     "merge_mode_description": "• Importierte Daten werden mit vorhandenen Daten kombiniert<br />• Duplikate (gleiche ID) werden aktualisiert<br />• Importierte Einstellungen überschreiben vorhandene Einstellungen",
-    "replace_mode_description": "• Ausgewählte Datentypen werden zuerst vollständig gelöscht<br />• Dann nur durch importierte Daten ersetzt<br />• Nicht ausgewählte Datentypen sind nicht betroffen"
+    "replace_mode_description": "• Ausgewählte Datentypen werden zuerst vollständig gelöscht<br />• Dann nur durch importierte Daten ersetzt<br />• Nicht ausgewählte Datentypen sind nicht betroffen",
+    "replace_warning_title": "Warnung: Ersetzen-Modus",
+    "confirm_replace": "Ja, ersetzen"
   }
 }

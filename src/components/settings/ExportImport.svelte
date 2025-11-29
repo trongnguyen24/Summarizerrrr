@@ -44,6 +44,7 @@
   import 'overlayscrollbars/overlayscrollbars.css'
   import { useOverlayScrollbars } from 'overlayscrollbars-svelte'
   import Preview from '../ui/Preview.svelte'
+  import ConfirmDialog from '../ui/ConfirmDialog.svelte'
 
   const MESSAGE_TIMEOUT = 3000
   const RELOAD_DELAY = 100
@@ -55,6 +56,7 @@
     successMessage: '',
     isExportingHistory: false,
     isExportingArchive: false,
+    showReplaceConfirmDialog: false,
   })
 
   let importOptions = $state({
@@ -157,7 +159,7 @@
     } catch (error) {
       setMessage(
         'error',
-        $t('exportImport.messages.export_failed', { error: error.message })
+        $t('exportImport.messages.export_failed', { error: error.message }),
       )
     }
   }
@@ -186,7 +188,7 @@
       console.error('[ExportImport] History markdown export failed:', error)
       setMessage(
         'error',
-        $t('exportImport.messages.export_failed', { error: error.message })
+        $t('exportImport.messages.export_failed', { error: error.message }),
       )
     } finally {
       state.isExportingHistory = false
@@ -217,7 +219,7 @@
       console.error('[ExportImport] Archive markdown export failed:', error)
       setMessage(
         'error',
-        $t('exportImport.messages.export_failed', { error: error.message })
+        $t('exportImport.messages.export_failed', { error: error.message }),
       )
     } finally {
       state.isExportingArchive = false
@@ -242,7 +244,7 @@
         'error',
         $t('exportImport.messages.file_processing_failed', {
           error: error.message,
-        })
+        }),
       )
       if (fileInputRef) {
         fileInputRef.value = ''
@@ -276,7 +278,7 @@
           data.summaries = result.data
           if (result.errors) {
             console.warn(
-              `Some summaries failed to parse: ${result.errorCount} errors`
+              `Some summaries failed to parse: ${result.errorCount} errors`,
             )
           }
         } catch (error) {
@@ -290,7 +292,7 @@
           data.history = result.data
           if (result.errors) {
             console.warn(
-              `Some history failed to parse: ${result.errorCount} errors`
+              `Some history failed to parse: ${result.errorCount} errors`,
             )
           }
         } catch (error) {
@@ -304,7 +306,7 @@
           data.tags = result.data
           if (result.errors) {
             console.warn(
-              `Some tags failed to parse: ${result.errorCount} errors`
+              `Some tags failed to parse: ${result.errorCount} errors`,
             )
           }
         } catch (error) {
@@ -335,21 +337,18 @@
 
     // Show warning for Replace mode
     if (importOptions.mergeMode === 'replace') {
-      const selectedTypes = Object.entries(importOptions.dataTypes)
-        .filter(([_, checked]) => checked)
-        .map(([type, _]) => {
-          // Translate each data type
-          return $t(`exportImport.${type}`)
-        })
-        .join(', ')
-
-      const warningMessage =
-        $t('exportImport.replace_warning') + `\n\n${selectedTypes}`
-      const confirmed = confirm(warningMessage)
-
-      if (!confirmed) return
+      state.showReplaceConfirmDialog = true
+      return
     }
 
+    await executeImportProcess()
+  }
+
+  async function handleConfirmReplace() {
+    await executeImportProcess()
+  }
+
+  async function executeImportProcess() {
     try {
       state.showImportModal = false
       const importedData = prepareImportData()
@@ -363,7 +362,7 @@
         'error',
         $t('exportImport.messages.import_preparation_failed', {
           error: error.message,
-        })
+        }),
       )
     }
   }
@@ -423,7 +422,7 @@
     } catch (error) {
       setMessage(
         'error',
-        $t('exportImport.messages.import_failed', { error: error.message })
+        $t('exportImport.messages.import_failed', { error: error.message }),
       )
     }
   }
@@ -458,7 +457,7 @@
       // Chỉ add nếu có data
       if (importedData.history && importedData.history.length > 0) {
         console.log(
-          `[Import] Adding ${importedData.history.length} history items...`
+          `[Import] Adding ${importedData.history.length} history items...`,
         )
         const cleanHistory = JSON.parse(JSON.stringify(importedData.history))
         await addMultipleHistory(cleanHistory)
@@ -477,10 +476,10 @@
       // Chỉ add nếu có data
       if (importedData.summaries && importedData.summaries.length > 0) {
         console.log(
-          `[Import] Adding ${importedData.summaries.length} summaries...`
+          `[Import] Adding ${importedData.summaries.length} summaries...`,
         )
         const cleanSummaries = JSON.parse(
-          JSON.stringify(importedData.summaries)
+          JSON.stringify(importedData.summaries),
         )
         await addMultipleSummaries(cleanSummaries)
       } else {
@@ -551,7 +550,7 @@
 
   function getSummariesCount() {
     return String(
-      (state.importData?.summaries || state.importData?.archive || []).length
+      (state.importData?.summaries || state.importData?.archive || []).length,
     )
   }
 
@@ -1111,7 +1110,7 @@
                     class=" flex relative overflow-hidden group"
                     onclick={startImport}
                     disabled={!Object.values(importOptions.dataTypes).some(
-                      Boolean
+                      Boolean,
                     )}
                   >
                     <div
@@ -1136,3 +1135,19 @@
     </Dialog.Content>
   </Dialog.Portal>
 </Dialog.Root>
+
+<ConfirmDialog
+  bind:open={state.showReplaceConfirmDialog}
+  title={$t('exportImport.replace_warning_title') || 'Warning: Replace Mode'}
+  description={$t('exportImport.replace_warning') +
+    '<br/><br/>' +
+    Object.entries(importOptions.dataTypes)
+      .filter(([_, checked]) => checked)
+      .map(([type, _]) => {
+        return '• ' + $t(`exportImport.${type}`)
+      })
+      .join('<br/>')}
+  confirmText={$t('exportImport.confirm_replace') || 'Yes, Replace'}
+  cancelText={$t('exportImport.cancel') || 'Cancel'}
+  onConfirm={handleConfirmReplace}
+/>

@@ -431,6 +431,8 @@
     },
     "replace_warning": "⚠️ ATTENTION : Mode de remplacement\n\nCela SUPPRIMERA les données existantes et LES REMPLACERA par les données importées :",
     "merge_mode_description": "• Les données importées sont combinées avec les données existantes<br />• Les doublons (même ID) seront mis à jour<br />• Les paramètres importés remplacent les paramètres existants",
-    "replace_mode_description": "• Les types de données sélectionnés sont complètement supprimés d'abord<br />• Puis remplacés uniquement par les données importées<br />• Les types de données non sélectionnés ne sont pas affectés"
+    "replace_mode_description": "• Les types de données sélectionnés sont complètement supprimés d'abord<br />• Puis remplacés uniquement par les données importées<br />• Les types de données non sélectionnés ne sont pas affectés",
+    "replace_warning_title": "Attention : Mode Remplacement",
+    "confirm_replace": "Oui, remplacer"
   }
 }

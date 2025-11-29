@@ -431,6 +431,8 @@
     },
     "replace_warning": "⚠️ ADVERTENCIA: Modo de reemplazo\n\nEsto ELIMINARÁ los datos existentes y LOS REEMPLAZARÁ con los datos importados:",
     "merge_mode_description": "• Los datos importados se combinan con datos existentes<br />• Los duplicados (mismo ID) serán actualizados<br />• La configuración importada sobrescribe la configuración existente",
-    "replace_mode_description": "• Los tipos de datos seleccionados se eliminan completamente primero<br />• Luego se reemplazan solo con datos importados<br />• Los tipos de datos no seleccionados no se ven afectados"
+    "replace_mode_description": "• Los tipos de datos seleccionados se eliminan completamente primero<br />• Luego se reemplazan solo con datos importados<br />• Los tipos de datos no seleccionados no se ven afectados",
+    "replace_warning_title": "Advertencia: Modo de reemplazo",
+    "confirm_replace": "Sí, reemplazar"
   }
 }

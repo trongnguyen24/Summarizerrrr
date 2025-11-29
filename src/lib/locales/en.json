@@ -431,6 +431,8 @@
     },
     "replace_warning": "⚠️ WARNING: Replace Mode\n\nThis will DELETE existing data and REPLACE with imported data:",
     "merge_mode_description": "• Imported data is combined with existing data<br />• Duplicates (same ID) will be updated<br />• Imported settings override existing settings",
-    "replace_mode_description": "• Selected data types are completely deleted first<br />• Then replaced with imported data only<br />• Unselected data types are not affected"
+    "replace_mode_description": "• Selected data types are completely deleted first<br />• Then replaced with imported data only<br />• Unselected data types are not affected",
+    "replace_warning_title": "Warning: Replace Mode",
+    "confirm_replace": "Yes, Replace"
   }
 }

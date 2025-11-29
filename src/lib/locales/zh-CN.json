@@ -409,6 +409,8 @@
     },
     "replace_warning": "⚠️ 警告：替换模式\n\n这将删除现有数据并用导入的数据替换：",
     "merge_mode_description": "• 导入的数据与现有数据合并<br />• 重复项（相同 ID）将被更新<br />• 导入的设置将覆盖现有设置",
-    "replace_mode_description": "• 首先完全删除选定的数据类型<br />• 然后仅用导入的数据替换<br />• 未选定的数据类型不受影响"
+    "replace_mode_description": "• 首先完全删除选定的数据类型<br />• 然后仅用导入的数据替换<br />• 未选定的数据类型不受影响",
+    "replace_warning_title": "警告：替换模式",
+    "confirm_replace": "是，替换"
   }
 }

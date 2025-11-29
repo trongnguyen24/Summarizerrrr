@@ -431,6 +431,8 @@
     },
     "replace_warning": "⚠️ 경고: 교체 모드\n\n기존 데이터를 삭제하고 가져온 데이터로 교체합니다:",
     "merge_mode_description": "• 가져온 데이터가 기존 데이터와 결합됨<br />• 중복 항목(동일 ID)이 업데이트됨<br />• 가져온 설정이 기존 설정을 재정의함",
-    "replace_mode_description": "• 선택된 데이터 유형이 먼저 완전히 삭제됨<br />• 그런 다음 가져온 데이터로만 교체됨<br />• 선택되지 않은 데이터 유형은 영향을 받지 않음"
+    "replace_mode_description": "• 선택된 데이터 유형이 먼저 완전히 삭제됨<br />• 그런 다음 가져온 데이터로만 교체됨<br />• 선택되지 않은 데이터 유형은 영향을 받지 않음",
+    "replace_warning_title": "경고: 교체 모드",
+    "confirm_replace": "예, 교체합니다"
   }
 }

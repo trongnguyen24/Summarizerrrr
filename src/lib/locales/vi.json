@@ -423,6 +423,8 @@
     },
     "replace_warning": "⚠️ CẢNH BÁO: Chế độ thay thế\n\nĐiều này sẽ XÓA dữ liệu hiện có và THAY THẾ bằng dữ liệu đã nhập:",
     "merge_mode_description": "• Dữ liệu đã nhập được kết hợp với dữ liệu hiện có<br />• Bản sao (cùng ID) sẽ được cập nhật<br />• Cài đặt đã nhập sẽ ghi đè cài đặt hiện có",
-    "replace_mode_description": "• Các loại dữ liệu đã chọn bị xóa hoàn toàn trước<br />• Sau đó thay thế bằng chỉ dữ liệu đã nhập<br />• Các loại dữ liệu không chọn không bị ảnh hưởng"
+    "replace_mode_description": "• Các loại dữ liệu đã chọn bị xóa hoàn toàn trước<br />• Sau đó thay thế bằng chỉ dữ liệu đã nhập<br />• Các loại dữ liệu không chọn không bị ảnh hưởng",
+    "replace_warning_title": "Cảnh báo: Chế độ Thay thế",
+    "confirm_replace": "Đồng ý thay thế"
   }
 }

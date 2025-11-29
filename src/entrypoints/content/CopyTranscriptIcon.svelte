@@ -234,7 +234,6 @@
         ) {
           await navigator.share({
             files: [file],
-            title: 'Download SRT',
           })
           return
         }

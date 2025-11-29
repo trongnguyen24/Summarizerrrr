@@ -59,7 +59,6 @@
         ) {
           await navigator.share({
             files: [file],
-            title: filename,
           })
           isDownloaded = true
           setTimeout(() => {

@@ -162,7 +162,6 @@ export async function downloadBlob(
     ) {
       await navigator.share({
         files: [file],
-        title: 'Export Data',
       })
       return
     }

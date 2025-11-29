@@ -151,6 +151,60 @@ export async function downloadBlob(
   acceptType = 'application/zip',
   extension = '.zip'
 ) {
+  // Priority 1: navigator.share (Mobile/iOS)
+  try {
+    const file = new File([blob], filename, { type: acceptType })
+    if (
+      navigator.canShare &&
+      navigator.canShare({ files: [file] }) &&
+      // Check if running on mobile/tablet by user agent or simple check
+      /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+    ) {
+      await navigator.share({
+        files: [file],
+        title: 'Export Data',
+      })
+      return
+    }
+  } catch (error) {
+    console.warn('[downloadBlob] Share failed, falling back:', error)
+  }
+
+  // Priority 2: chrome.downloads API (Extension)
+  try {
+    // @ts-ignore
+    const downloadsApi = (typeof browser !== 'undefined' ? browser : chrome)
+      .downloads
+    if (downloadsApi) {
+      const url = URL.createObjectURL(blob)
+      await new Promise((resolve, reject) => {
+        downloadsApi.download(
+          {
+            url: url,
+            filename: filename,
+            saveAs: true, // Prompt user where to save
+          },
+          (downloadId) => {
+            if (chrome.runtime.lastError) {
+              reject(chrome.runtime.lastError)
+            } else {
+              resolve(downloadId)
+            }
+          }
+        )
+      })
+      // Revoke URL after a delay to ensure download started
+      setTimeout(() => URL.revokeObjectURL(url), 10000)
+      return
+    }
+  } catch (error) {
+    console.warn(
+      '[downloadBlob] chrome.downloads failed, falling back to anchor tag:',
+      error
+    )
+  }
+
+  // Priority 3: Fallback to <a> tag (Desktop Web / Legacy)
   // Use File System Access API if available (Chrome/Edge)
   if (window.showSaveFilePicker) {
     try {
@@ -173,24 +227,39 @@ export async function downloadBlob(
         console.log('[downloadBlob] Save cancelled by user')
         return
       }
-      throw err
+      // Fallthrough to anchor tag if FS API fails
     }
   }
 
   // Fallback for browsers that don't support File System Access API
-  const url = URL.createObjectURL(blob)
+  // Use Data URL for small files (< 10MB) to avoid Blob URL revocation issues on iOS
+  let url
+  const isSmallFile = blob.size < 10 * 1024 * 1024 // 10MB
+
+  if (isSmallFile) {
+    const reader = new FileReader()
+    url = await new Promise((resolve) => {
+      reader.onloadend = () => resolve(reader.result)
+      reader.readAsDataURL(blob)
+    })
+  } else {
+    url = URL.createObjectURL(blob)
+  }
+
   const a = document.createElement('a')
   a.href = url
   a.download = filename
-  document.body.appendChild(a)
+  a.style.display = 'none' // Ensure it's not visible
+  document.body.appendChild(a) // Required for Firefox/Safari
   a.click()
-  document.body.removeChild(a)
-
-  // Small delay to ensure mobile browsers have time to process the download
-  // before the URL is revoked
+  
+  // Clean up
   setTimeout(() => {
-    URL.revokeObjectURL(url)
-  }, 100)
+    document.body.removeChild(a)
+    if (!isSmallFile) {
+      URL.revokeObjectURL(url)
+    }
+  }, 30000) // 30s timeout for iOS Safari safety
 }
 
 /**

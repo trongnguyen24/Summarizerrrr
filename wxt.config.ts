@@ -59,6 +59,7 @@ export default defineConfig({
           'tabs',
           'contextMenus',
           'declarativeNetRequest',
+          'downloads',
         ],
         action: {
           default_title: '__MSG_actionTitle__',

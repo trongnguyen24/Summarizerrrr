@@ -623,6 +623,87 @@ export default defineBackground(() => {
     browser.browserAction.onClicked.addListener(() => {
       browser.sidebarAction.toggle()
     })
+
+    // Track if we've already registered the dynamic content script
+    let isContentScriptRegistered = false
+
+    // Function to register dynamic content script for FUTURE tabs
+    async function registerDynamicContentScript() {
+      if (isContentScriptRegistered) {
+        return
+      }
+
+      try {
+        await browser.contentScripts.register({
+          matches: ['<all_urls>'],
+          js: [{ file: '/content-scripts/firefox.js' }],
+          css: [{ file: '/content-scripts/firefox.css' }],
+          runAt: 'document_end'
+        })
+        isContentScriptRegistered = true
+      } catch (err) {
+        console.error('[Background] Error registering content script:', err)
+      }
+    }
+
+    // Function to inject into EXISTING tabs immediately (only for first-time grant)
+    async function injectIntoExistingTabs() {
+      try {
+        const tabs = await browser.tabs.query({ url: '*://*/*' })
+        
+        for (const tab of tabs) {
+          // Skip special pages
+          if (!tab.url || tab.url.startsWith('about:') || tab.url.startsWith('moz-extension:')) {
+            continue
+          }
+
+          // Inject script
+          try {
+            await browser.tabs.executeScript(tab.id, {
+              file: '/content-scripts/firefox.js',
+              runAt: 'document_end'
+            })
+          } catch (err) {
+            // Some tabs may fail due to security policies (e.g., addons.mozilla.org)
+            // Silently ignore
+          }
+        }
+      } catch (err) {
+        console.error('[Background] Error injecting into existing tabs:', err)
+      }
+    }
+
+    // Listen for permission changes
+    if (browser.permissions && browser.permissions.onAdded) {
+      browser.permissions.onAdded.addListener(async (permissions) => {
+        if (permissions.origins && permissions.origins.includes('<all_urls>')) {
+          // Register for future tabs (only once)
+          await registerDynamicContentScript()
+          
+          // Inject into existing tabs (only if this is first-time grant)
+          // If already registered, tabs will get script on next reload
+          if (isContentScriptRegistered) {
+            await injectIntoExistingTabs()
+          }
+        }
+      })
+    }
+
+    // Check on startup if we already have permission
+    ;(async () => {
+      try {
+        const hasPermission = await browser.permissions.contains({
+          origins: ['<all_urls>']
+        })
+        
+        if (hasPermission) {
+          // Only register, don't inject (script will run automatically on page load)
+          await registerDynamicContentScript()
+        }
+      } catch (err) {
+        console.error('[Background] Error checking permissions at startup:', err)
+      }
+    })()
   }
 
   // --- Consolidated Message Listener ---
@@ -1006,37 +1087,48 @@ export default defineBackground(() => {
     }
   })
 
-  browser.commands.onCommand.addListener(async (command) => {
-    const [activeTab] = await browser.tabs.query({
-      active: true,
-      currentWindow: true,
-    })
-    if (!activeTab) return
+  // browser.commands API is not available on Firefox mobile
+  // Wrap in try-catch and check for API availability
+  if (browser.commands && browser.commands.onCommand) {
+    try {
+      browser.commands.onCommand.addListener(async (command) => {
+        const [activeTab] = await browser.tabs.query({
+          active: true,
+          currentWindow: true,
+        })
+        if (!activeTab) return
 
-    if (command === 'summarize-current-page') {
-      const YOUTUBE_REGEX = /youtube\.com\/watch/i
-      const UDEMY_REGEX = /udemy\.com\/course\/.*\/learn\//i
-      const COURSERA_REGEX = /coursera\.org\/learn\//i
-      const summarizePageInfo = {
-        action: 'summarizeCurrentPage',
-        tabId: activeTab.id,
-        tabUrl: activeTab.url,
-        tabTitle: activeTab.title,
-        isYouTube: YOUTUBE_REGEX.test(activeTab.url),
-        isUdemy: UDEMY_REGEX.test(activeTab.url),
-        isCoursera: COURSERA_REGEX.test(activeTab.url),
-      }
-      if (sidePanelPort) sidePanelPort.postMessage(summarizePageInfo)
-      else browser.runtime.sendMessage(summarizePageInfo).catch(() => {})
+        if (command === 'summarize-current-page') {
+          const YOUTUBE_REGEX = /youtube\.com\/watch/i
+          const UDEMY_REGEX = /udemy\.com\/course\/.*\/learn\//i
+          const COURSERA_REGEX = /coursera\.org\/learn\//i
+          const summarizePageInfo = {
+            action: 'summarizeCurrentPage',
+            tabId: activeTab.id,
+            tabUrl: activeTab.url,
+            tabTitle: activeTab.title,
+            isYouTube: YOUTUBE_REGEX.test(activeTab.url),
+            isUdemy: UDEMY_REGEX.test(activeTab.url),
+            isCoursera: COURSERA_REGEX.test(activeTab.url),
+          }
+          if (sidePanelPort) sidePanelPort.postMessage(summarizePageInfo)
+          else browser.runtime.sendMessage(summarizePageInfo).catch(() => {})
 
-      // Browser-specific panel opening
-      if (import.meta.env.BROWSER === 'chrome') {
-        await chrome.sidePanel.open({ windowId: activeTab.windowId })
-      } else {
-        await browser.sidebarAction.open()
-      }
+          // Browser-specific panel opening
+          if (import.meta.env.BROWSER === 'chrome') {
+            await chrome.sidePanel.open({ windowId: activeTab.windowId })
+          } else {
+            await browser.sidebarAction.open()
+          }
+        }
+      })
+      console.log('[Background] browser.commands listener registered')
+    } catch (error) {
+      console.warn('[Background] browser.commands not available (mobile?):', error)
     }
-  })
+  } else {
+    console.log('[Background] browser.commands API not available, skipping keyboard shortcuts')
+  }
 
   browser.runtime.onInstalled.addListener(async (details) => {
     // Run migration only on install/update, not on every startup

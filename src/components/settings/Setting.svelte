@@ -141,11 +141,13 @@
     'heroicons:arrow-up-right-16-solid',
     'mdi:reddit',
   ])
+  import FirefoxPermissionOverlay from './FirefoxPermissionOverlay.svelte'
 </script>
 
 <div
   class="relative settings font-mono text-text-primary dark:text-text-secondary text-xs bg-surface-1 overflow-hidden w-full flex-shrink-0 flex flex-col"
 >
+  <FirefoxPermissionOverlay />
   <div
     class="flex justify-center relative items-center py-2 sm:order-1 sm:bg-surface-1 bg-background dark:bg-surface-2 border-b-0 border-border"
   >
@@ -275,7 +277,7 @@
   </div>
   <div
     id="setting-scroll"
-    class="sm:h-[calc(100dvh-9.5rem)] order-2 sm:order-4 h-[calc(100dvh-6.35rem)] overflow-y-auto"
+    class="sm:h-[calc(100dvh-9.5rem)] order-2 sm:order-4 h-[calc(100dvh-6.35rem)] pb-16 overflow-y-auto"
     bind:this={scrollContainerEl}
   >
     <div>

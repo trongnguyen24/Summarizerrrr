@@ -59,7 +59,7 @@
   </li>
 {/snippet}
 
-<div class=" absolute inset-0 bg-surface-1 z-50">
+<div class=" absolute inset-0 bg-surface-1 z-[99]">
   <div
     id="release-note-scroll"
     class="h-full pb-20 {isTouchDevice() ? 'overflow-y-auto' : ''}"

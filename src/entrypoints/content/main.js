@@ -23,24 +23,18 @@ export async function main(ctx) {
         url: window.location.href,
       })
 
-      console.log(
-        `[Content] Firefox permission check for ${window.location.href}:`,
-        response
-      )
-
       if (!response.success || !response.hasPermission) {
-        console.log(
-          '[Content] No optional permission for this site - UI not mounted'
-        )
         return // Return sớm, không mount UI
       }
     } catch (error) {
-      console.error('[Content] Error checking Firefox permissions:', error)
+      console.error('[Content/Main] ❌ Error checking Firefox permissions:', error)
       return // Lỗi thì không mount UI
     }
   }
 
-  if (!shouldShowFab(window.location.href, settings.fabDomainControl)) {
+  const shouldShow = shouldShowFab(window.location.href, settings.fabDomainControl)
+  
+  if (!shouldShow) {
     return // Do not mount the UI
   }
 
@@ -68,5 +62,20 @@ export async function main(ctx) {
     },
   })
 
-  ui.mount()
+  // Use mutex lock with Promise to prevent race conditions
+  if (window.__SUMMARIZERRRR_MOUNT_LOCK__) {
+    await window.__SUMMARIZERRRR_MOUNT_LOCK__
+    
+    // CRITICAL FIX: Check if UI actually exists after waiting
+    // If UI was unmounted (e.g. SPA navigation), we must proceed to mount
+    if (document.querySelector('wxt-svelte-integrated-ui')) {
+      return
+    }
+  }
+
+  // Create new lock
+  window.__SUMMARIZERRRR_MOUNT_LOCK__ = new Promise(async (resolve) => {
+    ui.mount()
+    resolve()
+  })
 }

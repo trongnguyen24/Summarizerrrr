@@ -40,9 +40,11 @@ export async function checkPermission(url) {
       return true
     }
 
-    return await browser.permissions.contains({
+    const hasPermission = await browser.permissions.contains({
       origins: [permission],
     })
+    
+    return hasPermission
   } catch (error) {
     console.error(
       '[FirefoxPermissionService] Error checking permission:',

@@ -343,6 +343,13 @@
     "help_project": "Hỗ trợ dự án bằng cách quyên góp hoặc để lại đánh giá!",
     "edge_addons": "Tiện ích Edge"
   },
+  "permissionWarning": {
+    "title": "Yêu cầu quyền truy cập",
+    "button": "Cho phép truy cập tất cả trang web",
+    "description": "Summarizerrrr hoạt động mặc định trên YouTube, Udemy, Coursera, Reddit và Wikipedia. Để tóm tắt nội dung trên các trang web khác, vui lòng cấp quyền bên dưới.",
+    "requesting": "Đang yêu cầu...",
+    "grant_permissions": "Cấp quyền"
+  },
   "custom_actions": {
     "analyze": "Phân tích",
     "explain": "Giải thích",

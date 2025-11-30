@@ -1292,17 +1292,13 @@ export default defineBackground(() => {
     const DYNAMIC_SCRIPT_ID = 'dynamic-content-script'
 
     async function getDynamicContentScriptFiles() {
-      const manifest = browser.runtime.getManifest()
-      const contentScripts = manifest.content_scripts || []
-      // Find the script that matches our restricted list (e.g. YouTube)
-      const mainScript = contentScripts.find(
-        (cs) =>
-          cs.matches &&
-          cs.matches.some((m) => m.includes('youtube.com')) &&
-          cs.js &&
-          cs.js.length > 0
-      )
-      return mainScript ? { js: mainScript.js, css: mainScript.css } : null
+      // Directly return the firefox content script files
+      // WXT builds firefox.content.js to content-scripts/firefox.js
+      // This is the main FAB script, NOT the YouTube transcript script
+      return {
+        js: ['content-scripts/firefox.js'],
+        css: ['content-scripts/firefox.css']
+      }
     }
 
     async function registerDynamicContentScript() {

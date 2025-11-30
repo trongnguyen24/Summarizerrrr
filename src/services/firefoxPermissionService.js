@@ -23,7 +23,7 @@ export function getRequiredPermission(url) {
   }
 
   // Default cho tất cả các site khác (trừ sites có host permissions)
-  return 'https://*/*'
+  return '<all_urls>'
 }
 
 /**

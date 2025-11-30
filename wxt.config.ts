@@ -59,7 +59,6 @@ export default defineConfig({
           'tabs',
           'contextMenus',
           'declarativeNetRequest',
-          'downloads',
         ],
         action: {
           default_title: '__MSG_actionTitle__',
@@ -225,6 +224,7 @@ export default defineConfig({
           '*://*.coursera.org/*',
           '*://*.reddit.com/*',
           '*://*.wikipedia.org/*',
+          'https://www.wikipedia.org/*',
           '*://*.iconify.design/*',
           '*://api.openai.com/*',
           '*://api.groq.com/*',

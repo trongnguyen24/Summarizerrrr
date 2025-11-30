@@ -19,12 +19,7 @@
   import AboutSettings from './AboutSettings.svelte'
   import ToolsSettings from './ToolsSettings.svelte'
   import ReleaseNote from './ReleaseNote.svelte'
-  import {
-    getTabFromURL,
-    updateURLTab,
-    setupURLListener,
-    navigateToTab,
-  } from '@/lib/utils/urlUtils.js'
+  import { getTabFromURL } from '@/lib/utils/urlUtils.js'
 
   let activeTab = $state(getTabFromURL()) // Initialize tab from URL
   let tabContainerEl // Reference to the tab container element
@@ -56,15 +51,6 @@
   // Effect to update the bar when the active tab changes
   $effect(updateActiveBarPosition)
 
-  // Effect for handling URL navigation (browser back/forward)
-  $effect(() => {
-    const cleanup = setupURLListener((newTab) => {
-      activeTab = newTab
-    })
-
-    return cleanup
-  })
-
   // Effect for handling resize events
   $effect(() => {
     if (!tabContainerEl) return
@@ -83,7 +69,6 @@
   // Function to handle tab switching with URL update
   function switchTab(tabName) {
     activeTab = tabName
-    updateURLTab(tabName)
   }
   const options = {
     scrollbars: {

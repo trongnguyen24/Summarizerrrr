@@ -387,8 +387,131 @@ export default defineBackground(() => {
   const userAgent = navigator.userAgent
   const isMobile = userAgent.includes('Android') || userAgent.includes('Mobile')
   const isEdgeMobile =
-    userAgent.includes('EdgMob') ||
     (userAgent.includes('Edge') && userAgent.includes('Mobile'))
+
+  // --- Firefox Mobile Popup Setup (Must run early) ---
+  if (import.meta.env.BROWSER === 'firefox') {
+    ;(async () => {
+      try {
+        if (isMobile) {
+          console.log('[Background] Firefox Mobile detected, setting popup')
+          await browser.browserAction.setPopup({ popup: 'popop.html' })
+        } else {
+          await browser.browserAction.setPopup({ popup: '' })
+        }
+      } catch (e) {
+        console.warn('[Background] setPopup failed:', e)
+      }
+    })()
+
+    // Handle sidebar toggle for desktop
+    if (!isMobile) {
+      browser.browserAction.onClicked.addListener(() => {
+        browser.sidebarAction.toggle()
+      })
+    }
+
+    // --- Dynamic Content Script Registration ---
+    const DYNAMIC_SCRIPT_ID = 'dynamic-content-script'
+
+    async function getDynamicContentScriptFiles() {
+      // Directly return the firefox content script files
+      // WXT builds firefox.content.js to content-scripts/firefox.js
+      return {
+        js: ['content-scripts/firefox.js'],
+        css: ['content-scripts/firefox.css'],
+      }
+    }
+
+    async function registerDynamicContentScript() {
+      try {
+        const files = await getDynamicContentScriptFiles()
+        if (!files) {
+          console.warn(
+            '[Background] Could not find main content script files for dynamic registration'
+          )
+          return
+        }
+
+        // Check if already registered
+        const existing = await browser.scripting.getRegisteredContentScripts({
+          ids: [DYNAMIC_SCRIPT_ID],
+        })
+        if (existing && existing.length > 0) {
+          console.log('[Background] Dynamic content script already registered')
+          return
+        }
+
+        // Exclude domains that already have static content scripts to prevent double execution
+        const excludeMatches = [
+          '*://*.youtube.com/*',
+          '*://*.udemy.com/*',
+          '*://*.coursera.org/*',
+          '*://*.reddit.com/*',
+          '*://*.wikipedia.org/*',
+        ]
+
+        await browser.scripting.registerContentScripts([
+          {
+            id: DYNAMIC_SCRIPT_ID,
+            js: files.js,
+            css: files.css,
+            matches: ['<all_urls>'],
+            excludeMatches: excludeMatches,
+            runAt: 'document_end',
+            persistAcrossSessions: true,
+          },
+        ])
+        console.log(
+          '[Background] Dynamic content script registered for <all_urls>'
+        )
+      } catch (error) {
+        console.error(
+          '[Background] Failed to register dynamic content script:',
+          error
+        )
+      }
+    }
+
+    async function unregisterDynamicContentScript() {
+      try {
+        await browser.scripting.unregisterContentScripts({
+          ids: [DYNAMIC_SCRIPT_ID],
+        })
+        console.log('[Background] Dynamic content script unregistered')
+      } catch (error) {
+        // Ignore error if script wasn't registered
+      }
+    }
+
+    // Listen for permission changes
+    browser.permissions.onAdded.addListener(async (permissions) => {
+      if (
+        permissions.origins &&
+        permissions.origins.some((o) => o === '<all_urls>' || o === '*://*/*')
+      ) {
+        await registerDynamicContentScript()
+      }
+    })
+
+    browser.permissions.onRemoved.addListener(async (permissions) => {
+      if (
+        permissions.origins &&
+        permissions.origins.some((o) => o === '<all_urls>' || o === '*://*/*')
+      ) {
+        await unregisterDynamicContentScript()
+      }
+    })
+
+    // Check on startup
+    browser.permissions
+      .contains({ origins: ['<all_urls>'] })
+      .then((hasPermission) => {
+        if (hasPermission) {
+          registerDynamicContentScript()
+        }
+      })
+  }
 
   // --- Initial Setup ---
   // Only load settings for Chrome as it handles iconClickAction
@@ -1284,124 +1407,5 @@ export default defineBackground(() => {
       sendResponse({ success: false, error: error.message })
     }
   }
-  // --- Firefox Dynamic Content Script Registration ---
-  if (import.meta.env.BROWSER === 'firefox') {
-    // Setup popup behavior for Firefox
-    ;(async () => {
-      try {
-        if (isMobile) {
-          await browser.browserAction.setPopup({ popup: 'popop.html' })
-        } else {
-          await browser.browserAction.setPopup({ popup: '' })
-        }
-      } catch (e) {
-        console.warn('setPopup failed:', e)
-      }
-    })()
 
-    // Handle sidebar toggle
-    browser.browserAction.onClicked.addListener(() => {
-      browser.sidebarAction.toggle()
-    })
-
-    const DYNAMIC_SCRIPT_ID = 'dynamic-content-script'
-
-    async function getDynamicContentScriptFiles() {
-      // Directly return the firefox content script files
-      // WXT builds firefox.content.js to content-scripts/firefox.js
-      return {
-        js: ['content-scripts/firefox.js'],
-        css: ['content-scripts/firefox.css'],
-      }
-    }
-
-    async function registerDynamicContentScript() {
-      try {
-        const files = await getDynamicContentScriptFiles()
-        if (!files) {
-          console.warn(
-            '[Background] Could not find main content script files for dynamic registration'
-          )
-          return
-        }
-
-        // Check if already registered
-        const existing = await browser.scripting.getRegisteredContentScripts({
-          ids: [DYNAMIC_SCRIPT_ID],
-        })
-        if (existing && existing.length > 0) {
-          console.log('[Background] Dynamic content script already registered')
-          return
-        }
-
-        // Exclude domains that already have static content scripts to prevent double execution
-        const excludeMatches = [
-          '*://*.youtube.com/*',
-          '*://*.udemy.com/*',
-          '*://*.coursera.org/*',
-          '*://*.reddit.com/*',
-          '*://*.wikipedia.org/*',
-        ]
-
-        await browser.scripting.registerContentScripts([
-          {
-            id: DYNAMIC_SCRIPT_ID,
-            js: files.js,
-            css: files.css,
-            matches: ['<all_urls>'],
-            excludeMatches: excludeMatches,
-            runAt: 'document_end',
-            persistAcrossSessions: true,
-          },
-        ])
-        console.log(
-          '[Background] Dynamic content script registered for <all_urls>'
-        )
-      } catch (error) {
-        console.error(
-          '[Background] Failed to register dynamic content script:',
-          error
-        )
-      }
-    }
-
-    async function unregisterDynamicContentScript() {
-      try {
-        await browser.scripting.unregisterContentScripts({
-          ids: [DYNAMIC_SCRIPT_ID],
-        })
-        console.log('[Background] Dynamic content script unregistered')
-      } catch (error) {
-        // Ignore error if script wasn't registered
-      }
-    }
-
-    // Listen for permission changes
-    browser.permissions.onAdded.addListener(async (permissions) => {
-      if (
-        permissions.origins &&
-        permissions.origins.some((o) => o === '<all_urls>' || o === '*://*/*')
-      ) {
-        await registerDynamicContentScript()
-      }
-    })
-
-    browser.permissions.onRemoved.addListener(async (permissions) => {
-      if (
-        permissions.origins &&
-        permissions.origins.some((o) => o === '<all_urls>' || o === '*://*/*')
-      ) {
-        await unregisterDynamicContentScript()
-      }
-    })
-
-    // Check on startup
-    browser.permissions
-      .contains({ origins: ['<all_urls>'] })
-      .then((hasPermission) => {
-        if (hasPermission) {
-          registerDynamicContentScript()
-        }
-      })
-  }
 })

@@ -608,103 +608,8 @@ export default defineBackground(() => {
       }
     }
     setupChromeAction()
-  } else if (import.meta.env.BROWSER === 'firefox') {
-    ;(async () => {
-      try {
-        if (isMobile) {
-          await browser.browserAction.setPopup({ popup: 'popop.html' })
-        } else {
-          await browser.browserAction.setPopup({ popup: '' })
-        }
-      } catch (e) {
-        console.warn('setPopup failed:', e)
-      }
-    })()
-    browser.browserAction.onClicked.addListener(() => {
-      browser.sidebarAction.toggle()
-    })
-
-    // Track if we've already registered the dynamic content script
-    let isContentScriptRegistered = false
-
-    // Function to register dynamic content script for FUTURE tabs
-    async function registerDynamicContentScript() {
-      if (isContentScriptRegistered) {
-        return
-      }
-
-      try {
-        await browser.contentScripts.register({
-          matches: ['<all_urls>'],
-          js: [{ file: '/content-scripts/firefox.js' }],
-          css: [{ file: '/content-scripts/firefox.css' }],
-          runAt: 'document_end'
-        })
-        isContentScriptRegistered = true
-      } catch (err) {
-        console.error('[Background] Error registering content script:', err)
-      }
-    }
-
-    // Function to inject into EXISTING tabs immediately (only for first-time grant)
-    async function injectIntoExistingTabs() {
-      try {
-        const tabs = await browser.tabs.query({ url: '*://*/*' })
-        
-        for (const tab of tabs) {
-          // Skip special pages
-          if (!tab.url || tab.url.startsWith('about:') || tab.url.startsWith('moz-extension:')) {
-            continue
-          }
-
-          // Inject script
-          try {
-            await browser.tabs.executeScript(tab.id, {
-              file: '/content-scripts/firefox.js',
-              runAt: 'document_end'
-            })
-          } catch (err) {
-            // Some tabs may fail due to security policies (e.g., addons.mozilla.org)
-            // Silently ignore
-          }
-        }
-      } catch (err) {
-        console.error('[Background] Error injecting into existing tabs:', err)
-      }
-    }
-
-    // Listen for permission changes
-    if (browser.permissions && browser.permissions.onAdded) {
-      browser.permissions.onAdded.addListener(async (permissions) => {
-        if (permissions.origins && permissions.origins.includes('<all_urls>')) {
-          // Register for future tabs (only once)
-          await registerDynamicContentScript()
-          
-          // Inject into existing tabs (only if this is first-time grant)
-          // If already registered, tabs will get script on next reload
-          if (isContentScriptRegistered) {
-            await injectIntoExistingTabs()
-          }
-        }
-      })
-    }
-
-    // Check on startup if we already have permission
-    ;(async () => {
-      try {
-        const hasPermission = await browser.permissions.contains({
-          origins: ['<all_urls>']
-        })
-        
-        if (hasPermission) {
-          // Only register, don't inject (script will run automatically on page load)
-          await registerDynamicContentScript()
-        }
-      } catch (err) {
-        console.error('[Background] Error checking permissions at startup:', err)
-      }
-    })()
   }
+
 
   // --- Consolidated Message Listener ---
   browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -1381,15 +1286,32 @@ export default defineBackground(() => {
   }
   // --- Firefox Dynamic Content Script Registration ---
   if (import.meta.env.BROWSER === 'firefox') {
+    // Setup popup behavior for Firefox
+    ;(async () => {
+      try {
+        if (isMobile) {
+          await browser.browserAction.setPopup({ popup: 'popop.html' })
+        } else {
+          await browser.browserAction.setPopup({ popup: '' })
+        }
+      } catch (e) {
+        console.warn('setPopup failed:', e)
+      }
+    })()
+
+    // Handle sidebar toggle
+    browser.browserAction.onClicked.addListener(() => {
+      browser.sidebarAction.toggle()
+    })
+
     const DYNAMIC_SCRIPT_ID = 'dynamic-content-script'
 
     async function getDynamicContentScriptFiles() {
       // Directly return the firefox content script files
       // WXT builds firefox.content.js to content-scripts/firefox.js
-      // This is the main FAB script, NOT the YouTube transcript script
       return {
         js: ['content-scripts/firefox.js'],
-        css: ['content-scripts/firefox.css']
+        css: ['content-scripts/firefox.css'],
       }
     }
 
@@ -1412,12 +1334,22 @@ export default defineBackground(() => {
           return
         }
 
+        // Exclude domains that already have static content scripts to prevent double execution
+        const excludeMatches = [
+          '*://*.youtube.com/*',
+          '*://*.udemy.com/*',
+          '*://*.coursera.org/*',
+          '*://*.reddit.com/*',
+          '*://*.wikipedia.org/*',
+        ]
+
         await browser.scripting.registerContentScripts([
           {
             id: DYNAMIC_SCRIPT_ID,
             js: files.js,
             css: files.css,
             matches: ['<all_urls>'],
+            excludeMatches: excludeMatches,
             runAt: 'document_end',
             persistAcrossSessions: true,
           },

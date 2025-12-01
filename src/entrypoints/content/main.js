@@ -6,7 +6,7 @@ import { subscribeToLocaleChanges } from '@/stores/i18nShadowStore.svelte.js'
 import { shouldShowFab } from '@/services/fabPermissionService.js'
 import '@/lib/i18n/i18n.js' // Ensure locales are registered
 
-import './styles/floating-ui.css'
+import cssContent from './styles/floating-ui.css?inline'
 import App from './App.svelte'
 import { mount, unmount } from 'svelte'
 
@@ -52,7 +52,21 @@ export async function main(ctx) {
     name: 'wxt-svelte-integrated-ui',
     position: 'inline',
     anchor: 'body',
+    css: cssContent,
     onMount(container) {
+      // Fix layout issues by taking the host out of flow
+      // This prevents the host element from affecting the page layout (e.g. flex containers)
+      const host = container.getRootNode()?.host
+      if (host) {
+        host.style.position = 'fixed'
+        host.style.top = '0'
+        host.style.left = '0'
+        host.style.width = '0'
+        host.style.height = '0'
+        host.style.overflow = 'visible'
+        host.style.zIndex = '2147483647' // Max z-index
+      }
+
       const app = mount(App, { target: container, props: { name: 'Svelte' } })
 
       return app

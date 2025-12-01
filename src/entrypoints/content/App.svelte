@@ -1,7 +1,7 @@
 <script>
   // @ts-nocheck
   import { onMount, onDestroy } from 'svelte'
-  import './styles/floating-ui.css'
+
   import {
     settings,
     loadSettings,

@@ -239,6 +239,7 @@
   class="toc fixed z-40 right-0 bottom-2 group origin-bottom-right {!isTouchDevice()
     ? '!right-3'
     : ''}"
+  style="bottom: calc(var(--toc-bottom-offset, 0vh) + 2vh)"
 >
   <button
     class="flex items-end py-4 pl-6 pr-2 transition-all flex-col gap-1.5"
@@ -265,6 +266,7 @@
     class:active={shouldShowNav}
     onmouseenter={handleNavMouseEnter}
     onmouseleave={handleNavMouseLeave}
+    style="bottom: calc(var(--toc-bottom-offset, 0vh) + 2vh)"
   >
     <div class="relative flex flex-col justify-end inset-0 h-full">
       <div

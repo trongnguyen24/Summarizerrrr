@@ -351,6 +351,7 @@
       style:padding-bottom="{contentPadding}vh"
       ontouchstart={onDragStart}
       onmousedown={onDragStart}
+      style:--toc-bottom-offset="{contentPadding}vh"
     >
       {#if !settings.hasCompletedOnboarding}
         <div

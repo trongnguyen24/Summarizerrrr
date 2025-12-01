@@ -17,7 +17,8 @@ export function getRequiredPermission(url) {
     url.includes('youtube.com') ||
     url.includes('udemy.com') ||
     url.includes('coursera.org') ||
-    url.includes('reddit.com')
+    url.includes('reddit.com') ||
+    url.includes('wikipedia.org')
   ) {
     return null // Đã có host permission
   }

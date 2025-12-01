@@ -57,11 +57,25 @@
   }
 
   function addDomain(listType = 'whitelist') {
-    const domain =
+    let rawInput =
       listType === 'whitelist'
-        ? newWhitelistedDomain.trim()
-        : newBlacklistedDomain.trim()
-    if (!domain) return
+        ? newWhitelistedDomain.trim().toLowerCase()
+        : newBlacklistedDomain.trim().toLowerCase()
+    if (!rawInput) return
+
+    // Extract hostname from full URL if user pasted a URL
+    let domain = rawInput
+    try {
+      // Try to parse as URL (handles https://www.youtube.com/, http://example.com/path, etc.)
+      const url = new URL(rawInput)
+      domain = url.hostname
+    } catch (e) {
+      // Not a valid URL, treat as domain pattern directly
+      // Remove protocol if user typed it without proper URL format
+      domain = rawInput.replace(/^(https?:\/\/)/, '')
+      // Remove trailing slashes and paths
+      domain = domain.split('/')[0]
+    }
 
     // Validate domain pattern
     if (!isValidDomainPattern(domain)) {

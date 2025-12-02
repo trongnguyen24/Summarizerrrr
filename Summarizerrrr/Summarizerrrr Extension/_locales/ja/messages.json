@@ -1,0 +1,14 @@
+{
+  "extensionName": {
+    "message": "Summarizerrrr",
+    "description": "拡張機能の名前"
+  },
+  "extensionDescription": {
+    "message": "YouTube、Udemy、Coursera、任意のウェブサイトの要約を支援する拡張機能。優れたUI/UXデザインで作られています。",
+    "description": "拡張機能の説明"
+  },
+  "actionTitle": {
+    "message": "クリックしてSummarizerrrrを開く",
+    "description": "拡張機能アイコンをホバーしたときに表示されるツールチップテキスト"
+  }
+}

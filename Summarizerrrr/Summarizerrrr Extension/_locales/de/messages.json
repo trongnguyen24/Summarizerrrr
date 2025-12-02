@@ -1,0 +1,14 @@
+{
+  "extensionName": {
+    "message": "Summarizerrrr",
+    "description": "Name der Erweiterung"
+  },
+  "extensionDescription": {
+    "message": "Erweiterung hilft Ihnen bei der Zusammenfassung für YouTube, Udemy, Coursera, beliebige Websites. Hergestellt mit überlegenen UI/UX-Design.",
+    "description": "Beschreibung der Erweiterung"
+  },
+  "actionTitle": {
+    "message": "Klicken Sie, um Summarizerrrr zu öffnen",
+    "description": "Tooltip-Text beim Überfahren des Erweiterungssymbols"
+  }
+}

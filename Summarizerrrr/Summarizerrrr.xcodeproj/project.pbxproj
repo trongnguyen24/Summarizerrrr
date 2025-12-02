@@ -34,6 +34,7 @@
 		29150C122E7D126600491238 /* Sumarizzerrrr.png in Resources */ = {isa = PBXBuildFile; fileRef = 29150C022E7D126600491238 /* Sumarizzerrrr.png */; };
 		29150C132E7D126600491238 /* archive.html in Resources */ = {isa = PBXBuildFile; fileRef = 29150C032E7D126600491238 /* archive.html */; };
 		295074AE2ED82EC60079D4D5 /* Icon.png in Resources */ = {isa = PBXBuildFile; fileRef = 29150BCD2E7D126400491238 /* Icon.png */; };
+		2958EEAA2EDEBC1C00ED7BC8 /* _locales in Resources */ = {isa = PBXBuildFile; fileRef = 2958EEA92EDEBC1400ED7BC8 /* _locales */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -92,6 +93,7 @@
 		29150C022E7D126600491238 /* Sumarizzerrrr.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = Sumarizzerrrr.png; path = "../../.output/safari-mv2/Sumarizzerrrr.png"; sourceTree = "<group>"; };
 		29150C032E7D126600491238 /* archive.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; name = archive.html; path = "../../.output/safari-mv2/archive.html"; sourceTree = "<group>"; };
 		2943627F2EDD8A21008C66D3 /* SafariServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SafariServices.framework; path = System/Library/Frameworks/SafariServices.framework; sourceTree = SDKROOT; };
+		2958EEA92EDEBC1400ED7BC8 /* _locales */ = {isa = PBXFileReference; lastKnownFileType = folder; name = _locales; path = "../.output/safari-mv2/_locales"; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -169,6 +171,7 @@
 		29150BF32E7D126600491238 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				2958EEA92EDEBC1400ED7BC8 /* _locales */,
 				29150BF42E7D126600491238 /* popop.html */,
 				29150BF52E7D126600491238 /* background.js */,
 				29150BF62E7D126600491238 /* wxt.svg */,
@@ -293,6 +296,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				29150C102E7D126600491238 /* settings.html in Resources */,
+				2958EEAA2EDEBC1C00ED7BC8 /* _locales in Resources */,
 				29150C132E7D126600491238 /* archive.html in Resources */,
 				29150C0B2E7D126600491238 /* prompt.html in Resources */,
 				29150C0F2E7D126600491238 /* icon in Resources */,

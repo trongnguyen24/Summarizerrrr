@@ -1,0 +1,14 @@
+{
+  "extensionName": {
+    "message": "Summarizerrrr",
+    "description": "Name of the extension"
+  },
+  "extensionDescription": {
+    "message": "Extension helps you summarize for YouTube, Udemy, Coursera, any websites. Crafted with superior UI/UX design.",
+    "description": "Description of the extension"
+  },
+  "actionTitle": {
+    "message": "Click to Open Summarizerrrr",
+    "description": "Tooltip text when hovering over the extension icon"
+  }
+}

@@ -148,7 +148,7 @@ export default defineConfig({
           'contextMenus',
           'declarativeNetRequest',
         ],
-        action: {
+        browser_action: {
           default_title: 'Summarizerrrr',
           default_popup: 'popop.html',
         },
@@ -179,7 +179,7 @@ export default defineConfig({
           },
         ],
         commands: {
-          _execute_action: {
+          _execute_browser_action: {
             suggested_key: {
               default: 'Alt+A',
             },

@@ -59,39 +59,39 @@
 
         .logo-container {
             width: 100%;
-            margin-bottom: 32px;
-            height: 180px;
+            margin-bottom: 2rem;
+            height: 11.25rem;
             display: flex;
             background: var(--color-background);
             justify-content: center;
             overflow: hidden;
             position: relative;
-            border-bottom: var(--color-border) 1px solid;
+            border-bottom: var(--color-border) 0.0625rem solid;
         }
         .logo {
-            width: 600px;
+            width: 37.5rem;
             flex-shrink: 0;
-            transform: translateX(-12px);
+            transform: translateX(-0.75rem);
         }
 
         .content {
             width: 100%;
-            max-width: 600px;
-            padding: 0 16px;
+            max-width: 37.5rem;
+            padding: 0 1rem;
             display: flex;
             flex-direction: column;
-            gap: 32px;
+            gap: 2rem;
         }
 
         h1 {
-            font-size: 20px;
+            font-size: 1.25rem;
             font-weight: 700;
             text-align: center;
             color: var(--color-text-primary);
         }
 
         p {
-            font-size: 16px;
+            font-size: 1rem;
             line-height: 1.5;
             color: var(--color-text-secondary);
            
@@ -101,33 +101,33 @@
             display: flex;
             flex-direction: column;
             /* font-family: 'Geist Mono', monospace; */
-            gap: 16px;
-            padding: 0 16px;
+            gap: 1rem;
+            padding: 0 1rem;
             width: 100%;
         }
 
         .step {
-            border-radius: 12px;
+            border-radius: 0.75rem;
             display: flex;
-            gap: 8px;
+            gap: 0.5rem;
         }
 
         .step-number {
             background-color: var(--color-blackwhite-5);
             color: var(--color-text-secondary);
-            width: 24px;
-            height: 24px;
+            width: 1.5rem;
+            height: 1.5rem;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: bold;
-            font-size: 13px;
+            font-size: 0.8125rem;
             flex-shrink: 0;
         }
 
         .step-text {
-            font-size: 16px;
+            font-size: 1rem;
             color: var(--color-text-secondary);
             text-align: left;
             line-height: 1.5;
@@ -139,18 +139,46 @@
 
         /* SVG Styles */
         .fill-background { fill: var(--color-background); }
-        .stroke-blackwhite { stroke: var(--color-blackwhite); stroke-width: 1.5px; }
-        .stroke-blackwhite\/20 { stroke: var(--color-blackwhite-10); stroke-opacity: 0.2; stroke-width: 1.5px; } /* Adjusted opacity handling */
-        .stroke-blackwhite\/30 { stroke: var(--color-blackwhite-30); stroke-width: 1.5px; }
+        .stroke-blackwhite { stroke: var(--color-blackwhite); stroke-width: 0.09375rem; }
+        .stroke-blackwhite\/20 { stroke: var(--color-blackwhite-10); stroke-opacity: 0.2; stroke-width: 0.09375rem; } /* Adjusted opacity handling */
+        .stroke-blackwhite\/30 { stroke: var(--color-blackwhite-30); stroke-width: 0.09375rem; }
         
         .top-stripes {
             background-image: repeating-linear-gradient(
                 45deg,
                 transparent,
-                transparent 7px,
-                var(--color-border) 1px,
-                var(--color-border) 8px
+                transparent 0.4375rem,
+                var(--color-border) 0.0625rem,
+                var(--color-border) 0.5rem
             );
+        }
+
+        .video-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            background-color: var(--color-primary);
+            color: white;
+            border: none;
+            border-radius: 6.25rem;
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: opacity 0.2s;
+            margin-top: 1rem;
+            width: fit-content;
+            align-self: center;
+        }
+
+        .video-button:active {
+            opacity: 0.8;
+        }
+
+        #tutorialVideo {
+            display: none;
         }
     </style>
 </head>
@@ -226,6 +254,17 @@
             <div class="step-number">5</div>
             <div class="step-text" data-i18n="step5">Bật <b>Summarizerrrr</b> và cấp quyền truy cập</div>
         </div>
+    
+    <button class="video-button" onclick="playVideo()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+        </svg>
+        <span data-i18n="watchVideo">Xem hướng dẫn</span>
+    </button>
+    
+    <video id="tutorialVideo" playsinline>
+        <source src="../Ios-safari.mp4" type="video/mp4">
+    </video>
     </div>
     </div>
     <script>
@@ -237,7 +276,8 @@
                 step2: "Chọn <b>Safari</b>",
                 step3: "Chọn <b>Phần mở rộng</b> (Extensions)",
                 step4: "Chọn <b>Summarizerrrr</b>",
-                step5: "Bật <b>Summarizerrrr</b> và cấp quyền truy cập"
+                step5: "Bật <b>Summarizerrrr</b> và cấp quyền truy cập",
+                watchVideo: "Xem hướng dẫn"
             },
             en: {
                 title: "Activate Summarizerrrr",
@@ -246,7 +286,8 @@
                 step2: "Select <b>Safari</b>",
                 step3: "Select <b>Extensions</b>",
                 step4: "Select <b>Summarizerrrr</b>",
-                step5: "Turn on <b>Summarizerrrr</b> and allow access"
+                step5: "Turn on <b>Summarizerrrr</b> and allow access",
+                watchVideo: "Watch Tutorial"
             }
         };
 
@@ -264,6 +305,45 @@
                         element.innerHTML = t[key];
                     }
                 }
+            });
+        }
+
+        function playVideo() {
+            const video = document.getElementById('tutorialVideo');
+            // On iOS, calling play() on a video element triggers fullscreen if it's not inline or if configured to do so.
+            // Even with playsinline, we can try to play it. 
+            // If display:none prevents it, we might need to make it visible but hidden.
+            // Let's try simple play first as user said it auto-played fullscreen.
+            
+            // If display:none is an issue, we can temporarily show it.
+            video.style.display = 'block';
+            video.style.position = 'absolute';
+            video.style.width = '0.0625rem';
+            video.style.height = '0.0625rem';
+            video.style.opacity = '0';
+            
+            video.play().then(() => {
+                // If it plays, it might go fullscreen on iPhone.
+                // If it doesn't go fullscreen automatically (e.g. iPad), we might need to request it.
+                if (video.webkitEnterFullscreen) {
+                    video.webkitEnterFullscreen();
+                } else if (video.requestFullscreen) {
+                    video.requestFullscreen();
+                }
+            }).catch(e => {
+                console.log('Play failed:', e);
+                // Revert styles if failed
+                video.style.display = 'none';
+            });
+
+            // Reset when done or exited fullscreen
+            video.addEventListener('webkitendfullscreen', () => {
+                video.pause();
+                video.currentTime = 0;
+                video.style.display = 'none';
+            });
+            video.addEventListener('ended', () => {
+                video.style.display = 'none';
             });
         }
 

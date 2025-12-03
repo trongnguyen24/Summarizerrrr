@@ -537,7 +537,7 @@ export function useSummarization() {
       // Fetch comments qua message passing - use chrome.runtime for content script
       // Fetch comments qua message passing - use chrome.runtime for content script
       const response = await fetchYouTubeComments(null, {
-        maxComments: 80,
+        maxComments: settings.commentLimit || 60,
         maxRepliesPerComment: 10,
       })
 

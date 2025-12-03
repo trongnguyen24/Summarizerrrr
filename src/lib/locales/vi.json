@@ -167,7 +167,9 @@
         "web_summary": "Tóm tắt Web",
         "selected_text": "Văn bản đã chọn",
         "override_note": "* Cài đặt cơ bản sẽ bị ghi đè bởi các prompt tùy chỉnh đang hoạt động."
-      }
+      },
+      "comment_limit": "Cào bình luận YouTube",
+      "comment_limit_desc": "Số lượng bình luận tối đa để tóm tắt."
     },
     "chatgpt_config": {
       "api_key_label": "Khóa API",

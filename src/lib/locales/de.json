@@ -167,7 +167,9 @@
         "web_summary": "Web-Zusammenfassung",
         "selected_text": "Ausgewählter Text",
         "override_note": "* Benutzerdefinierte Prompts haben Vorrang vor den Basis-Einstellungen."
-      }
+      },
+      "comment_limit": "YouTube-Kommentar-Limit",
+      "comment_limit_desc": "Maximale Anzahl der zu analysierenden Kommentare."
     },
     "chatgpt_config": {
       "api_key_label": "API-Schlüssel",

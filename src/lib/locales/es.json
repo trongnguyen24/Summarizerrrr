@@ -167,7 +167,9 @@
         "web_summary": "Resumen web",
         "selected_text": "Texto seleccionado",
         "override_note": "* Los prompts activos anulan los ajustes básicos."
-      }
+      },
+      "comment_limit": "Límite de comentarios de YouTube",
+      "comment_limit_desc": "Número máximo de comentarios para analizar."
     },
     "chatgpt_config": {
       "api_key_label": "Clave API",

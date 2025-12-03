@@ -167,7 +167,9 @@
         "web_summary": "Web Summary",
         "selected_text": "Selected Text",
         "override_note": "* Basic settings are overridden by active custom prompts."
-      }
+      },
+      "comment_limit": "Crawl comment Youtube limit",
+      "comment_limit_desc": "Maximum number of crawl comments."
     },
     "chatgpt_config": {
       "api_key_label": "API Key",

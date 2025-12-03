@@ -63,6 +63,7 @@ export const VALID_SETTING_KEYS = [
   'summaryLang',
   'summaryTone',
   'isSummaryAdvancedMode',
+  'commentLimit',
 
   // Custom Prompts - YouTube
   'youtubePromptSelection',

@@ -339,6 +339,40 @@
         />
       </div>
 
+      <!-- Comment Limit Section -->
+      <div class="flex flex-col gap-2">
+        <!-- svelte-ignore a11y_label_has_associated_control -->
+        <label class="block text-text-secondary"
+          >{$t('settings.summary.comment_limit')}</label
+        >
+        <div class="grid grid-cols-3 w-full gap-1">
+          <ButtonSet
+            title="40"
+            class="setting-btn {settings.commentLimit === 40
+              ? 'active'
+              : ''}"
+            onclick={() => handleUpdateSetting('commentLimit', 40)}
+            Description=""
+          ></ButtonSet>
+          <ButtonSet
+            title="60"
+            class="setting-btn {settings.commentLimit === 60
+              ? 'active'
+              : ''}"
+            onclick={() => handleUpdateSetting('commentLimit', 60)}
+            Description=""
+          ></ButtonSet>
+          <ButtonSet
+            title="80"
+            class="setting-btn {settings.commentLimit === 80
+              ? 'active'
+              : ''}"
+            onclick={() => handleUpdateSetting('commentLimit', 80)}
+            Description=""
+          ></ButtonSet>
+        </div>
+      </div>
+
       <!-- Custom Prompts Section - Advanced Mode Only -->
       <div class="@container setting-secsion flex flex-col mt-4 gap-4">
         <!-- Prompt settings -->
@@ -465,6 +499,40 @@
             onchange={(event) =>
               handleUpdateSetting('summaryLang', event.detail)}
           />
+        </div>
+
+        <!-- Comment Limit Section -->
+        <div class="flex flex-col gap-2">
+          <!-- svelte-ignore a11y_label_has_associated_control -->
+          <label class="block text-text-secondary"
+            >{$t('settings.summary.comment_limit')}</label
+          >
+          <div class="grid grid-cols-3 w-full gap-1">
+            <ButtonSet
+              title="40"
+              class="setting-btn {settings.commentLimit === 40
+                ? 'active'
+                : ''}"
+              onclick={() => handleUpdateSetting('commentLimit', 40)}
+              Description=""
+            ></ButtonSet>
+            <ButtonSet
+              title="60"
+              class="setting-btn {settings.commentLimit === 60
+                ? 'active'
+                : ''}"
+              onclick={() => handleUpdateSetting('commentLimit', 60)}
+              Description=""
+            ></ButtonSet>
+            <ButtonSet
+              title="80"
+              class="setting-btn {settings.commentLimit === 80
+                ? 'active'
+                : ''}"
+              onclick={() => handleUpdateSetting('commentLimit', 80)}
+              Description=""
+            ></ButtonSet>
+          </div>
         </div>
       </div>
     {/if}

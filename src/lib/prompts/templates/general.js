@@ -393,18 +393,21 @@ Analyze the YouTube video comments below and provide a concise summary of audien
 ## 📝 Overall Summary
 [2–5 sentence overview of main reactions and themes]
 
-*Based on the top 80 comments*
+*Based on the partial top comments*
 
 
 ## 🎯 Main Topics Discussed
-### [Topic 1] – [Detailed analysis]
-### [Topic 2] – [Detailed analysis]
-### [Topic 3] – [Detailed analysis]
+### [Topic 1]
+[Detailed analysis]
+### [Topic 2]
+[Detailed analysis]
+### [Topic 3]
+[Detailed analysis]
 ...
 
 
 ## 🔝 Notable Top Comments
-- [Short summaries of the most liked, replied-to, or influential comments]
+- [Short summaries of the most liked and replied-to, or influential comments]
 
 </RESPONSE_STRUCTURE>
 

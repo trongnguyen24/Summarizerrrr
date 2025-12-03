@@ -167,7 +167,9 @@
         "web_summary": "Web要約",
         "selected_text": "選択テキスト",
         "override_note": "* カスタムプロンプトが基本設定より優先されます。"
-      }
+      },
+      "comment_limit": "YouTubeコメント制限",
+      "comment_limit_desc": "分析するコメントの最大数。"
     },
     "chatgpt_config": {
       "api_key_label": "APIキー",

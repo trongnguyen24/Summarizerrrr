@@ -99,7 +99,9 @@
         "web_summary": "网页摘要",
         "selected_text": "选中文本",
         "override_note": "* 激活的提示将覆盖基础设置。"
-      }
+      },
+      "comment_limit": "YouTube评论限制",
+      "comment_limit_desc": "分析评论的最大数量。"
     },
     "chatgpt_config": {
       "api_key_label": "API 密钥",

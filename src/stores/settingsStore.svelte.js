@@ -65,6 +65,7 @@ const DEFAULT_SETTINGS = {
   summaryLang: 'English',
   summaryTone: 'simple',
   isSummaryAdvancedMode: false,
+  commentLimit: 60,
 
   // Prompts
   youtubePromptSelection: false,

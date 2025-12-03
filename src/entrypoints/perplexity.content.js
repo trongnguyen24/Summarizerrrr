@@ -55,7 +55,7 @@ async function handleFillForm(content, sendResponse) {
         'div[contenteditable="true"][data-lexical-editor="true"]',
         'div[contenteditable="true"].outline-none',
       ],
-      { timeout: 10000, checkDisabled: false }
+      { timeout: 120000, checkDisabled: false }
     )
 
     if (!textArea) {
@@ -114,7 +114,7 @@ async function handleFillForm(content, sendResponse) {
         'button[aria-label*="Send" i]:not(:disabled)',
         'button[type="submit"]:not(:disabled)',
       ],
-      { timeout: 5000, checkDisabled: true }
+      { timeout: 120000, checkDisabled: true }
     )
 
     if (!submitButton) {

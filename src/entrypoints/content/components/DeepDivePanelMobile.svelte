@@ -104,9 +104,9 @@
     setError(null)
 
     try {
-      console.log('[DeepDivePanelFP] Generating questions...')
+      console.log('[DeepDivePanelMobile] Generating questions...')
       console.log(
-        '[DeepDivePanelFP] Using history:',
+        '[DeepDivePanelMobile] Using history:',
         deepDiveState.questionHistory.length,
         'generations',
       )
@@ -122,13 +122,13 @@
       setQuestions(generated)
       addToQuestionHistory(generated)
 
-      console.log('[DeepDivePanelFP] Generated questions:', generated)
+      console.log('[DeepDivePanelMobile] Generated questions:', generated)
       console.log(
-        '[DeepDivePanelFP] Total history:',
+        '[DeepDivePanelMobile] Total history:',
         deepDiveState.questionHistory.length,
       )
     } catch (err) {
-      console.error('[DeepDivePanelFP] Generation error:', err)
+      console.error('[DeepDivePanelMobile] Generation error:', err)
       setError(err.message || 'Failed to generate questions')
     } finally {
       setGenerating(false)
@@ -150,9 +150,9 @@
     setError(null)
 
     try {
-      console.log('[DeepDivePanelFP] Regenerating questions...')
+      console.log('[DeepDivePanelMobile] Regenerating questions...')
       console.log(
-        '[DeepDivePanelFP] Using history:',
+        '[DeepDivePanelMobile] Using history:',
         deepDiveState.questionHistory.length,
         'generations',
       )
@@ -169,13 +169,13 @@
       setQuestions(generated)
       addToQuestionHistory(generated)
 
-      console.log('[DeepDivePanelFP] Regenerated questions:', generated)
+      console.log('[DeepDivePanelMobile] Regenerated questions:', generated)
       console.log(
-        '[DeepDivePanelFP] Total history:',
+        '[DeepDivePanelMobile] Total history:',
         deepDiveState.questionHistory.length,
       )
     } catch (err) {
-      console.error('[DeepDivePanelFP] Regeneration error:', err)
+      console.error('[DeepDivePanelMobile] Regeneration error:', err)
       setError(err.message || 'Failed to regenerate questions')
     } finally {
       setGenerating(false)
@@ -202,7 +202,7 @@
   async function handleProviderChange(newProvider) {
     // Save to settings store (global) - chatProvider will auto-update via $derived
     await updateToolSettings('deepDive', { defaultChatProvider: newProvider })
-    console.log('[DeepDivePanelFP] Provider changed to:', newProvider)
+    console.log('[DeepDivePanelMobile] Provider changed to:', newProvider)
   }
 
   /**
@@ -211,7 +211,7 @@
   async function handleStartChatWithQuestion(question) {
     try {
       console.log(
-        '[DeepDivePanelFP] Starting chat with question:',
+        '[DeepDivePanelMobile] Starting chat with question:',
         question || '[open-ended]',
       )
       await openDeepDiveChat(
@@ -223,46 +223,48 @@
         chatProvider,
       )
     } catch (err) {
-      console.error('[DeepDivePanelFP] Chat error:', err)
+      console.error('[DeepDivePanelMobile] Chat error:', err)
       setError(err.message || 'Failed to open chat')
     }
   }
 </script>
 
 {#if isVisible}
-  <div class="deep-dive-panel-fp flex flex-col mx-auto gap-6 py-6">
+  <div class="deep-dive-panel-mobile flex flex-col mx-auto gap-8 py-8 w-full">
     <!-- Header -->
     <div
-      class="w-full border-t border-b py-3 border-border relative font-mono text-text-primary flex justify-center items-center gap-2"
+      class="w-full border-t border-b py-4 border-border relative font-mono text-text-primary flex justify-center items-center gap-2"
     >
       <div
         class="h-2 absolute w-full top-0 -translate-y-2 top-stripes border-t border-border"
       ></div>
-      <span class="uppercase text-xs">Deep Dive Questions</span>
+      <span class="uppercase text-sm font-bold tracking-wider"
+        >Deep Dive Questions</span
+      >
     </div>
 
     <!-- Error Display -->
     {#if error}
       <div
-        class="error-message p-3 bg-red-500/10 border border-red-500/30 rounded-md"
+        class="error-message p-4 mx-4 bg-red-500/10 border border-red-500/30 rounded-lg"
       >
-        <p class="text-xs text-red-400">{error}</p>
+        <p class="text-sm text-red-400">{error}</p>
       </div>
     {/if}
 
     <!-- Availability Warning -->
     {#if !availability.available}
       <div
-        class="warning-message p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-md"
+        class="warning-message p-4 mx-4 bg-yellow-500/10 border border-yellow-500/30 rounded-lg"
       >
-        <p class="text-xs text-yellow-400">{availability.reason}</p>
+        <p class="text-sm text-yellow-400">{availability.reason}</p>
       </div>
     {:else}
       <!-- Generate Questions Section -->
       {#if !hasQuestions}
-        <div class="generate-section">
+        <div class="generate-section flex justify-center w-full px-4">
           <button
-            class="generate-btn w-fit flex items-center justify-center gap-2 py-2.5 px-4 bg-surface-1 hover:bg-surface-2 border border-border rounded-full transition-colors duration-200 {isGenerating
+            class="generate-btn w-full max-w-xs flex items-center justify-center gap-3 py-4 px-6 bg-surface-1 hover:bg-surface-2 border border-border rounded-full transition-colors duration-200 shadow-sm active:scale-95 {isGenerating
               ? 'opacity-50 cursor-not-allowed'
               : ''}"
             onclick={handleGenerate}
@@ -271,21 +273,21 @@
             {#if isGenerating}
               <Icon
                 icon="heroicons:arrow-path"
-                width="24"
-                height="24"
+                width="28"
+                height="28"
                 class="animate-spin"
               />
-              <span class="text-xs text-text-secondary"
+              <span class="text-base font-medium text-text-secondary"
                 >{$t('settings.tools.deepdive.generating_questions')}</span
               >
             {:else}
               <Icon
                 icon="heroicons:sparkles"
-                width="24"
-                height="24"
+                width="28"
+                height="28"
                 class="text-primary"
               />
-              <span class="text-sm text-text-primary"
+              <span class="text-base font-medium text-text-primary"
                 >{$t('settings.tools.deepdive.generate_questions')}</span
               >
             {/if}
@@ -295,116 +297,117 @@
 
       <!-- Questions Display -->
       {#if hasQuestions}
-        <div
-          class="questions-section flex flex-col px-6 max-w-[32em] mx-auto gap-6"
-        >
+        <div class="questions-section flex flex-col px-4 w-full mx-auto gap-8">
           <!-- Chat Provider Buttons -->
-          <div class="flex justify-between items-center w-full">
-            <!-- Navigation Controls -->
-            {#if hasPagination}
-              <div
-                class="navigation-controls flex items-center justify-center gap-2"
-              >
-                <!-- Reload Button -->
-                <button
-                  onclick={handleRegenerate}
-                  disabled={isGenerating || !canGenerate}
-                  class="nav-btn"
-                  title={isGenerating
-                    ? $t('settings.tools.deepdive.generating')
-                    : $t('settings.tools.deepdive.generate_new_questions')}
-                  aria-label="Reload questions"
+          <div class="flex flex-col gap-4 w-full">
+            <div class="flex justify-between items-center w-full">
+              <!-- Navigation Controls -->
+              {#if hasPagination}
+                <div
+                  class="navigation-controls flex items-center justify-center gap-3"
                 >
-                  <Icon
-                    icon="heroicons:arrow-path"
-                    width="16"
-                    height="16"
-                    class={isGenerating ? 'animate-spin' : ''}
-                  />
-                </button>
-                <!-- Back Button -->
-                <button
-                  onclick={previousPage}
-                  disabled={!canGoBack}
-                  class="nav-btn"
-                  title={$t('settings.tools.deepdive.previous_questions')}
-                  aria-label="Previous page"
-                >
-                  <Icon icon="heroicons:chevron-left" width="16" height="16" />
-                </button>
+                  <!-- Reload Button -->
+                  <button
+                    onclick={handleRegenerate}
+                    disabled={isGenerating || !canGenerate}
+                    class="nav-btn"
+                    title={isGenerating
+                      ? $t('settings.tools.deepdive.generating')
+                      : $t('settings.tools.deepdive.generate_new_questions')}
+                    aria-label="Reload questions"
+                  >
+                    <Icon
+                      icon="heroicons:arrow-path"
+                      width="20"
+                      class={isGenerating ? 'animate-spin' : ''}
+                    />
+                  </button>
+                  <!-- Back Button -->
+                  <button
+                    onclick={previousPage}
+                    disabled={!canGoBack}
+                    class="nav-btn"
+                    title={$t('settings.tools.deepdive.previous_questions')}
+                    aria-label="Previous page"
+                  >
+                    <Icon icon="heroicons:chevron-left" width="20" />
+                  </button>
 
-                <!-- Forward Button -->
-                <button
-                  onclick={nextPage}
-                  disabled={!canGoForward}
-                  class="nav-btn"
-                  title={$t('settings.tools.deepdive.next_questions')}
-                  aria-label="Next page"
-                >
-                  <Icon icon="heroicons:chevron-right" width="16" height="16" />
-                </button>
+                  <!-- Forward Button -->
+                  <button
+                    onclick={nextPage}
+                    disabled={!canGoForward}
+                    class="nav-btn"
+                    title={$t('settings.tools.deepdive.next_questions')}
+                    aria-label="Next page"
+                  >
+                    <Icon icon="heroicons:chevron-right" width="20" />
+                  </button>
+                </div>
+              {:else if hasQuestions}
+                <!-- Single page - show reload only -->
+                <div class="flex justify-center">
+                  <button
+                    onclick={handleRegenerate}
+                    disabled={isGenerating || !canGenerate}
+                    class="nav-btn"
+                    title={isGenerating
+                      ? $t('settings.tools.deepdive.generating')
+                      : $t('settings.tools.deepdive.generate_new_questions')}
+                  >
+                    <Icon
+                      icon="heroicons:arrow-path"
+                      width="20"
+                      class={isGenerating ? 'animate-spin' : ''}
+                    />
+                  </button>
+                </div>
+              {/if}
+
+              <!-- Provider Buttons -->
+              <div
+                class="provider-buttons flex w-fit overflow-hidden px-1.5 gap-1.5 border border-border rounded-full ml-auto"
+              >
+                {#each providers as provider (provider.value)}
+                  {@const IconComponent = provider.icon}
+                  <button
+                    onclick={() => handleProviderChange(provider.value)}
+                    class="provider-btn px-2 sm:px-3 py-2 transition-all duration-200
+                              {chatProvider === provider.value
+                      ? '  text-primary'
+                      : 'hover:text-text-primary  text-text-secondary '}"
+                    title={provider.label}
+                  >
+                    <IconComponent width="24" height="24" />
+                  </button>
+                {/each}
               </div>
-            {:else if hasQuestions}
-              <!-- Single page - show reload only -->
-              <div class="flex justify-center">
-                <button
-                  onclick={handleRegenerate}
-                  disabled={isGenerating || !canGenerate}
-                  class="nav-btn"
-                  title={isGenerating
-                    ? $t('settings.tools.deepdive.generating')
-                    : $t('settings.tools.deepdive.generate_new_questions')}
-                >
-                  <Icon
-                    icon="heroicons:arrow-path"
-                    width="16"
-                    height="16"
-                    class={isGenerating ? 'animate-spin' : ''}
-                  />
-                </button>
-              </div>
-            {/if}
-            <!-- Provider Buttons -->
-            <div
-              class="provider-buttons flex w-fit overflow-hidden px-1 gap-1 border border-border rounded-full"
-            >
-              {#each providers as provider (provider.value)}
-                {@const IconComponent = provider.icon}
-                <button
-                  onclick={() => handleProviderChange(provider.value)}
-                  class="provider-btn px-2 py-1.5 transition-all duration-200
-                             {chatProvider === provider.value
-                    ? '  text-primary'
-                    : 'hover:text-text-primary  text-text-secondary '}"
-                  title={provider.label}
-                >
-                  <IconComponent width="20" height="20" />
-                </button>
-              {/each}
             </div>
           </div>
-          <div class="flex flex-col gap-5">
+
+          <div class="flex flex-col gap-4">
             {#each questions as question, i (question)}
-              <QuestionChip
-                {question}
-                index={i + 1}
-                isSelected={false}
-                disabled={isGenerating}
-                onclick={() => handleQuestionSelect(question)}
-              />
+              <div class="w-full">
+                <QuestionChip
+                  {question}
+                  index={i + 1}
+                  isSelected={false}
+                  disabled={isGenerating}
+                  onclick={() => handleQuestionSelect(question)}
+                  isMobile={true}
+                />
+              </div>
             {/each}
 
             <!-- Action Buttons Row -->
-            <div class="flex justify-center items-center gap-2 pt-2">
-              <!-- Regenerate Button -->
-
+            <div class="flex justify-center items-center gap-2 pt-4 pb-8">
               <!-- Ask Your Own Question Button -->
               <button
                 onclick={handleAskYourOwn}
-                class="ask-own-btn flex items-center gap-2 py-2 px-4 underline text-sm text-text-secondary hover:text-text-primary transition-all duration-200"
+                class="ask-own-btn flex items-center gap-2 py-3 px-6 rounded-full bg-surface-2/50 border border-transparent hover:border-border text-base text-text-secondary hover:text-text-primary transition-all duration-200 active:scale-95"
                 title={$t('settings.tools.deepdive.ask_own_question_in_chat')}
               >
-                <Icon icon="heroicons:sparkles" width="20" height="20" />
+                <Icon icon="heroicons:sparkles" width="24" height="24" />
                 <span>{$t('settings.tools.deepdive.ask_own_question')}</span>
               </button>
             </div>
@@ -435,7 +438,7 @@
 
   .nav-btn:hover {
     background-color: var(--color-surface-2);
-    color: var(--color-text--primary);
+    color: var(--color-text-primary);
   }
 
   .nav-btn:disabled {

@@ -18,6 +18,12 @@
   import ActionButtonsFP from '@/components/buttons/ActionButtonsFP.svelte'
   import ActionButtonsMiniFP from '@/components/buttons/ActionButtonsMiniFP.svelte'
   import ShadowToast from '@/components/feedback/ShadowToast.svelte'
+  // Deep Dive imports
+  import DeepDivePanelMobile from './DeepDivePanelMobile.svelte'
+  import {
+    deepDiveState,
+    shouldShowDeepDive,
+  } from '@/stores/deepDiveStore.svelte.js'
 
   let { visible, onclose, summarization } = $props()
   const panelState = useFloatingPanelState()
@@ -73,6 +79,14 @@
 
   let summaryToDisplay = $derived(summarization.summaryToDisplay())
   let statusToDisplay = $derived(summarization.statusToDisplay())
+
+  // Deep Dive visibility
+  let showDeepDive = $derived(
+    shouldShowDeepDive() &&
+      summaryToDisplay &&
+      summaryToDisplay.trim() !== '' &&
+      !summarization.localSummaryState().isLoading,
+  )
 
   // --- Drag & Animation Logic ---
   let isDragging = $state(false)
@@ -449,6 +463,18 @@
               isYouTubeActive={isYouTubeActive()}
             />
           </div>
+        {/if}
+
+        <!-- Deep Dive Panel -->
+        {#if showDeepDive}
+          <DeepDivePanelMobile
+            summaryContent={summaryToDisplay}
+            pageTitle={summarization.localSummaryState().pageTitle || 'Summary'}
+            pageUrl={summarization.localSummaryState().pageUrl ||
+              window.location.href}
+            summaryLang={settings.summaryLang || 'English'}
+            isVisible={true}
+          />
         {/if}
       </div>
     </div>

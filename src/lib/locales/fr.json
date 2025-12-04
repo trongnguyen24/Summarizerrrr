@@ -166,6 +166,9 @@
         "course_concepts": "Concepts de cours",
         "web_summary": "Résumé web",
         "selected_text": "Texte sélectionné",
+        "analyze": "Analyser",
+        "explain": "Expliquer",
+        "debate": "Débattre",
         "override_note": "* Les prompts actifs remplacent les réglages de base."
       },
       "comment_limit": "Limite de commentaires YouTube",
@@ -272,6 +275,10 @@
     "system_note": "Optionnel : Ignorer si pas nécessaire.",
     "user_prompt": "Prompt utilisateur",
     "user_note": "Utilisez __CONTENT__ pour insérer du contenu dynamique",
+    "sections": {
+      "summarize": "Résumé",
+      "custom_actions": "Actions personnalisées"
+    },
     "select_template": "Sélectionner un modèle",
     "prompt_enhance": "Améliorer le prompt",
     "buttons": {

@@ -81,6 +81,24 @@
       settingKey: 'selectedTextPromptSelection',
       promptKey: 'selectedTextCustomPromptContent',
     },
+    {
+      id: 'analyzep',
+      name: $t('settings.summary.custom_prompts.analyze'),
+      settingKey: 'analyzePromptSelection',
+      promptKey: 'analyzeCustomPromptContent',
+    },
+    {
+      id: 'explainp',
+      name: $t('settings.summary.custom_prompts.explain'),
+      settingKey: 'explainPromptSelection',
+      promptKey: 'explainCustomPromptContent',
+    },
+    {
+      id: 'debatep',
+      name: $t('settings.summary.custom_prompts.debate'),
+      settingKey: 'debatePromptSelection',
+      promptKey: 'debateCustomPromptContent',
+    },
   ]
 </script>
 
@@ -348,25 +366,19 @@
         <div class="grid grid-cols-3 w-full gap-1">
           <ButtonSet
             title="40"
-            class="setting-btn {settings.commentLimit === 40
-              ? 'active'
-              : ''}"
+            class="setting-btn {settings.commentLimit === 40 ? 'active' : ''}"
             onclick={() => handleUpdateSetting('commentLimit', 40)}
             Description=""
           ></ButtonSet>
           <ButtonSet
             title="60"
-            class="setting-btn {settings.commentLimit === 60
-              ? 'active'
-              : ''}"
+            class="setting-btn {settings.commentLimit === 60 ? 'active' : ''}"
             onclick={() => handleUpdateSetting('commentLimit', 60)}
             Description=""
           ></ButtonSet>
           <ButtonSet
             title="80"
-            class="setting-btn {settings.commentLimit === 80
-              ? 'active'
-              : ''}"
+            class="setting-btn {settings.commentLimit === 80 ? 'active' : ''}"
             onclick={() => handleUpdateSetting('commentLimit', 80)}
             Description=""
           ></ButtonSet>
@@ -510,25 +522,19 @@
           <div class="grid grid-cols-3 w-full gap-1">
             <ButtonSet
               title="40"
-              class="setting-btn {settings.commentLimit === 40
-                ? 'active'
-                : ''}"
+              class="setting-btn {settings.commentLimit === 40 ? 'active' : ''}"
               onclick={() => handleUpdateSetting('commentLimit', 40)}
               Description=""
             ></ButtonSet>
             <ButtonSet
               title="60"
-              class="setting-btn {settings.commentLimit === 60
-                ? 'active'
-                : ''}"
+              class="setting-btn {settings.commentLimit === 60 ? 'active' : ''}"
               onclick={() => handleUpdateSetting('commentLimit', 60)}
               Description=""
             ></ButtonSet>
             <ButtonSet
               title="80"
-              class="setting-btn {settings.commentLimit === 80
-                ? 'active'
-                : ''}"
+              class="setting-btn {settings.commentLimit === 80 ? 'active' : ''}"
               onclick={() => handleUpdateSetting('commentLimit', 80)}
               Description=""
             ></ButtonSet>

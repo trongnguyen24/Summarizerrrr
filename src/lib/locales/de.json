@@ -166,6 +166,9 @@
         "course_concepts": "Schlüsselkonzepte",
         "web_summary": "Web-Zusammenfassung",
         "selected_text": "Ausgewählter Text",
+        "analyze": "Analysieren",
+        "explain": "Erklären",
+        "debate": "Debattieren",
         "override_note": "* Benutzerdefinierte Prompts haben Vorrang vor den Basis-Einstellungen."
       },
       "comment_limit": "YouTube-Kommentar-Limit",
@@ -272,6 +275,10 @@
     "system_note": "Optional: Überspringen falls nicht benötigt.",
     "user_prompt": "Benutzer-Prompt",
     "user_note": "Nutze __CONTENT__ für dynamischen Inhalt",
+    "sections": {
+      "summarize": "Zusammenfassung",
+      "custom_actions": "Benutzerdefinierte Aktionen"
+    },
     "select_template": "Vorlage auswählen",
     "prompt_enhance": "Prompt verbessern",
     "buttons": {

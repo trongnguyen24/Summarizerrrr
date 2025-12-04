@@ -166,6 +166,9 @@
         "course_concepts": "Course Concepts",
         "web_summary": "Web Summary",
         "selected_text": "Selected Text",
+        "analyze": "Analyze",
+        "explain": "Explain",
+        "debate": "Debate",
         "override_note": "* Basic settings are overridden by active custom prompts."
       },
       "comment_limit": "YouTube Comment Limit",
@@ -272,6 +275,10 @@
     "system_note": "Optional: Skip if not needed.",
     "user_prompt": "User Prompt",
     "user_note": "Use the __CONTENT__ to insert the dynamic content",
+    "sections": {
+      "summarize": "Summarize",
+      "custom_actions": "Custom Actions"
+    },
     "select_template": "Select a template",
     "prompt_enhance": "Prompt enhance",
     "buttons": {

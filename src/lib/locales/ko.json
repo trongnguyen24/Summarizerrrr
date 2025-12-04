@@ -166,6 +166,9 @@
         "course_concepts": "강의 개념",
         "web_summary": "웹 요약",
         "selected_text": "선택된 텍스트",
+        "analyze": "분석",
+        "explain": "설명",
+        "debate": "토론",
         "override_note": "* 기본 설정은 활성 사용자 지정 프롬프트로 재정의됩니다."
       },
       "comment_limit": "YouTube 댓글 제한",
@@ -272,6 +275,10 @@
     "system_note": "선택사항: 필요하지 않으면 건너뛰기",
     "user_prompt": "사용자 프롬프트",
     "user_note": "__CONTENT__를 사용하여 동적 콘텐츠 삽입",
+    "sections": {
+      "summarize": "요약",
+      "custom_actions": "사용자 지정 액션"
+    },
     "select_template": "템플릿 선택",
     "prompt_enhance": "프롬프트 향상",
     "buttons": {

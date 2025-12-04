@@ -108,6 +108,7 @@
   let displayTitle = $state('')
   let ts = null
   let settingsLog = $state('')
+  let isPromptDirty = $state(false)
 
   $effect(() => {
     if (promptKey) {
@@ -119,14 +120,13 @@
     }
   })
 
-  let promptTitles = $state({})
+  let summarizePrompts = $state({})
+  let customActionPrompts = $state({})
+
   $effect(() => {
-    promptTitles = {
+    summarizePrompts = {
       youtubeCustomPromptContent: $t(
         'settings.summary.custom_prompts.youtube_summary',
-      ),
-      chapterCustomPromptContent: $t(
-        'settings.summary.custom_prompts.youtube_chapter',
       ),
       webCustomPromptContent: $t('settings.summary.custom_prompts.web_summary'),
       courseSummaryCustomPromptContent: $t(
@@ -139,15 +139,28 @@
         'settings.summary.custom_prompts.selected_text',
       ),
     }
+    customActionPrompts = {
+      chapterCustomPromptContent: $t(
+        'settings.summary.custom_prompts.youtube_chapter',
+      ),
+      analyzeCustomPromptContent: $t('settings.summary.custom_prompts.analyze'),
+      explainCustomPromptContent: $t('settings.summary.custom_prompts.explain'),
+      debateCustomPromptContent: $t('settings.summary.custom_prompts.debate'),
+    }
   })
 
   function getPromptTitle(key) {
-    return promptTitles[key] || 'Unknown Prompt'
+    return summarizePrompts[key] || customActionPrompts[key] || 'Unknown Prompt'
   }
 
   function getPromptKeyFromTitle(title) {
-    for (const key in promptTitles) {
-      if (promptTitles[key] === title) {
+    for (const key in summarizePrompts) {
+      if (summarizePrompts[key] === title) {
+        return key
+      }
+    }
+    for (const key in customActionPrompts) {
+      if (customActionPrompts[key] === title) {
         return key
       }
     }
@@ -268,7 +281,12 @@
     class="absolute z-10 h-px w-full min-w-lvw bg-border/70 bottom-8 translate-y-px left-0"
   ></span>
   <!-- Left Column: Prompt Menu -->
-  <PromptMenu {promptKey} {promptTitles} {handlePromptMenuClick} />
+  <PromptMenu
+    {promptKey}
+    {summarizePrompts}
+    {customActionPrompts}
+    {handlePromptMenuClick}
+  />
 
   <!-- Right Column: Prompt Editor -->
   <div

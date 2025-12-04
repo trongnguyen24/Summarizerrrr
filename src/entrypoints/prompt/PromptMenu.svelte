@@ -1,15 +1,44 @@
 <script>
+  import { t } from 'svelte-i18n'
   export let promptKey
-  export let promptTitles
+  export let summarizePrompts
+  export let customActionPrompts
   export let handlePromptMenuClick
 </script>
 
 <div
   class="w-56 relative z-20 bg-background overflow-hidden border-r border-border/70 flex flex-col"
 >
-  <h2 class="text-lg p-4 font-bold">Prompts</h2>
+  <h2 class="text-lg p-4 font-bold">{$t('prompts.title')}</h2>
+
+  <!-- Summarize Section -->
   <div class="flex flex-col px-2 text-muted gap-1">
-    {#each Object.entries(promptTitles) as [key, title]}
+    <h3
+      class="text-xs uppercase tracking-wider text-text-primary px-2 py-1 font-semibold"
+    >
+      {$t('prompts.sections.summarize')}
+    </h3>
+    {#each Object.entries(summarizePrompts) as [key, title]}
+      <button
+        class="prompt-button relative p-2 transition-colors duration-125 hover:bg-blackwhite/5 rounded-sm {promptKey ===
+        key
+          ? 'text-text-primary active font-bold'
+          : 'variant-ghost'} w-full text-left"
+        onclick={() => handlePromptMenuClick(key)}
+      >
+        {title}
+      </button>
+    {/each}
+  </div>
+
+  <!-- Custom Actions Section -->
+  <div class="flex flex-col px-2 text-muted gap-1 mt-4">
+    <h3
+      class="text-xs uppercase tracking-wider text-text-primary px-2 py-1 font-semibold"
+    >
+      {$t('prompts.sections.custom_actions')}
+    </h3>
+    {#each Object.entries(customActionPrompts) as [key, title]}
       <button
         class="prompt-button relative p-2 transition-colors duration-125 hover:bg-blackwhite/5 rounded-sm {promptKey ===
         key

@@ -93,6 +93,17 @@ const DEFAULT_SETTINGS = {
     'Summarize content, format by ## and ###: __CONTENT__',
   selectedTextCustomSystemInstructionContent: 'You are an AI assistant.',
 
+  // Custom Action Prompts
+  analyzePromptSelection: false,
+  analyzeCustomPromptContent: '',
+  analyzeCustomSystemInstructionContent: '',
+  explainPromptSelection: false,
+  explainCustomPromptContent: '',
+  explainCustomSystemInstructionContent: '',
+  debatePromptSelection: false,
+  debateCustomPromptContent: '',
+  debateCustomSystemInstructionContent: '',
+
   // Advanced Mode (from former stores)
   isAdvancedMode: false,
   temperature: 0.7,

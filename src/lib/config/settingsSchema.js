@@ -95,6 +95,21 @@ export const VALID_SETTING_KEYS = [
   'selectedTextCustomPromptContent',
   'selectedTextCustomSystemInstructionContent',
 
+  // Custom Prompts - Analyze
+  'analyzePromptSelection',
+  'analyzeCustomPromptContent',
+  'analyzeCustomSystemInstructionContent',
+
+  // Custom Prompts - Explain
+  'explainPromptSelection',
+  'explainCustomPromptContent',
+  'explainCustomSystemInstructionContent',
+
+  // Custom Prompts - Debate
+  'debatePromptSelection',
+  'debateCustomPromptContent',
+  'debateCustomSystemInstructionContent',
+
   // Advanced Mode
   'isAdvancedMode',
   'temperature',

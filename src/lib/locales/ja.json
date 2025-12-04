@@ -166,6 +166,9 @@
         "course_concepts": "コースの要点",
         "web_summary": "Web要約",
         "selected_text": "選択テキスト",
+        "analyze": "分析",
+        "explain": "説明",
+        "debate": "討論",
         "override_note": "* カスタムプロンプトが基本設定より優先されます。"
       },
       "comment_limit": "YouTubeコメント制限",
@@ -272,6 +275,10 @@
     "system_note": "オプション：不要な場合はスキップ。",
     "user_prompt": "ユーザープロンプト",
     "user_note": "__CONTENT__を使用して動的コンテンツを挿入",
+    "sections": {
+      "summarize": "要約",
+      "custom_actions": "カスタムアクション"
+    },
     "select_template": "テンプレートを選択",
     "prompt_enhance": "プロンプト改善",
     "buttons": {

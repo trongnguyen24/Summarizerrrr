@@ -98,6 +98,9 @@
         "course_concepts": "课程概念",
         "web_summary": "网页摘要",
         "selected_text": "选中文本",
+        "analyze": "分析",
+        "explain": "解释",
+        "debate": "辩论",
         "override_note": "* 激活的提示将覆盖基础设置。"
       },
       "comment_limit": "YouTube评论限制",
@@ -250,6 +253,10 @@
     "system_note": "可选：如不需要可跳过。",
     "user_prompt": "用户提示词",
     "user_note": "使用 __CONTENT__ 插入动态内容",
+    "sections": {
+      "summarize": "摘要",
+      "custom_actions": "自定义操作"
+    },
     "select_template": "选择模板",
     "prompt_enhance": "优化提示词",
     "buttons": {

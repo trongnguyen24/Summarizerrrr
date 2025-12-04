@@ -220,82 +220,29 @@ export function useSummarization() {
       // Check abort signal
       if (signal.aborted) throw new Error('Aborted')
 
-      // 5. Course content: Gọi APIs parallel nhưng update UI independently
+      // 5. Course content: Chỉ tóm tắt Summary, Concepts là custom action riêng
       if (contentType === 'course') {
-        // Start both loading states
         localSummaryState.isLoading = true
-        localSummaryState.isCourseConceptsLoading = true
 
-        // Course Summary - Independent API call với content đã có
-        const courseSummaryPromise = (async () => {
-          try {
-            console.log('[useSummarization] Starting course summary...')
-            const result =
-              await summarizationService.summarizeCourseSummaryWithContent(
-                content,
-                settings,
-                signal
-              )
-            
-            // Check request ID before updating state
-            if (localSummaryState.currentRequestId !== requestId) {
-              console.log('[useSummarization] Course summary stopped/outdated, skipping update')
-              return
-            }
+        console.log('[useSummarization] Starting course summary...')
+        const result =
+          await summarizationService.summarizeCourseSummaryWithContent(
+            content,
+            settings,
+            signal
+          )
+        
+        // Check request ID before updating state
+        if (localSummaryState.currentRequestId !== requestId) {
+          console.log('[useSummarization] Course summary stopped/outdated, skipping update')
+          return
+        }
 
-            localSummaryState.summary = result.summary
-            console.log(
-              '[useSummarization] Course summary completed and displayed'
-            )
-          } catch (error) {
-            if (error.name === 'AbortError' || signal.aborted) return
-            console.error('[useSummarization] Course summary error:', error)
-            handleSummarizationError(error)
-          } finally {
-            // Only update loading state if this is still the active request
-            if (localSummaryState.currentRequestId === requestId) {
-              localSummaryState.isLoading = false
-            }
-          }
-        })()
-
-        // Course Concepts - Independent API call với content đã có
-        const courseConceptsPromise = (async () => {
-          try {
-            console.log('[useSummarization] Starting course concepts...')
-            const result =
-              await summarizationService.extractCourseConceptsWithContent(
-                content,
-                settings,
-                signal
-              )
-            
-            // Check request ID before updating state
-            if (localSummaryState.currentRequestId !== requestId) {
-              console.log('[useSummarization] Course concepts stopped/outdated, skipping update')
-              return
-            }
-
-            localSummaryState.courseConcepts = result.courseConcepts
-            console.log(
-              '[useSummarization] Course concepts completed and displayed'
-            )
-          } catch (error) {
-            if (error.name === 'AbortError' || signal.aborted) return
-            console.error('[useSummarization] Course concepts error:', error)
-            // Set fallback content for concepts
-            localSummaryState.courseConcepts =
-              '<p><i>Could not generate course concepts.</i></p>'
-          } finally {
-             // Only update loading state if this is still the active request
-             if (localSummaryState.currentRequestId === requestId) {
-              localSummaryState.isCourseConceptsLoading = false
-             }
-          }
-        })()
-
-        // Don't wait for both to complete - let them update UI independently
-        await Promise.allSettled([courseSummaryPromise, courseConceptsPromise])
+        localSummaryState.summary = result.summary
+        localSummaryState.isLoading = false
+        console.log(
+          '[useSummarization] Course summary completed and displayed'
+        )
       } else {
         // Non-course content: Use original logic hoặc custom actions
         localSummaryState.isLoading = true
@@ -471,6 +418,95 @@ export function useSummarization() {
     } catch (error) {
       if (localSummaryState.currentRequestId === requestId) {
         console.error('[useSummarization] Chapter summarization error:', error)
+        handleSummarizationError(error)
+      }
+    } finally {
+      if (localSummaryState.currentRequestId === requestId) {
+        localSummaryState.isLoading = false
+      }
+      isProcessing = false
+      if (abortController && abortController.signal === signal) {
+        abortController = null
+      }
+    }
+  }
+
+  /**
+   * Summarize course concepts specifically (for floating panel)
+   * Concepts được lưu vào summary field để auto-save như một entry riêng
+   */
+  async function summarizeCourseConcepts() {
+    if (isProcessing) {
+      console.log(
+        '[useSummarization] Already processing, ignoring duplicate request'
+      )
+      return
+    }
+
+    // Cancel any previous request
+    if (abortController) {
+      abortController.abort()
+    }
+    // Create new AbortController
+    abortController = new AbortController()
+    const signal = abortController.signal
+
+    // Generate new request ID
+    const requestId = Date.now().toString()
+    localSummaryState.currentRequestId = requestId
+
+    // Reset summary trước để concepts được lưu như một entry mới
+    localSummaryState.summary = ''
+    // Reset global model status
+    updateModelStatus(null, null, false)
+    localSummaryState.isLoading = true
+    isProcessing = true
+    localSummaryState.loadingAction = 'courseConcepts'
+
+    try {
+      console.log('[useSummarization] Starting course concepts summarization...', requestId)
+
+      // Set page info (QUAN TRỌNG: Cần có để autoSaveToHistory() không skip)
+      localSummaryState.pageTitle = document.title || 'Unknown Title'
+      localSummaryState.pageUrl = window.location.href
+
+      // Load settings
+      await loadSettings()
+
+      // Initialize services
+      const contentExtractor = new ContentExtractorService(
+        (settings?.uiLanguage || 'en').slice(0, 2)
+      )
+      const summarizationService = new SummarizationService(contentExtractor)
+
+      // Extract content
+      const extractResult = await contentExtractor.extractPageContent()
+      const content = extractResult.content
+
+      // Check abort signal
+      if (signal.aborted) throw new Error('Aborted')
+
+      // Call course concepts và lưu vào summary field
+      const result = await summarizationService.extractCourseConcepts(settings, signal)
+
+      // Check request ID
+      if (localSummaryState.currentRequestId !== requestId) {
+        console.log('[useSummarization] Course concepts stopped/outdated, skipping update')
+        return
+      }
+
+      localSummaryState.summary = result.courseConcepts
+
+      console.log('[useSummarization] Course concepts summarization completed')
+
+      // Auto-save to history - sẽ lưu summary (chứa concepts) như một entry riêng
+      await autoSaveToHistory('Course Concepts')
+
+      // Update Deep Dive context
+      await handleDeepDiveAfterSummary()
+    } catch (error) {
+      if (localSummaryState.currentRequestId === requestId) {
+        console.error('[useSummarization] Course concepts summarization error:', error)
         handleSummarizationError(error)
       }
     } finally {
@@ -749,6 +785,7 @@ export function useSummarization() {
     summarizePageContent,
     summarizeChapters,
     summarizeComments,
+    summarizeCourseConcepts,
     resetLocalSummaryState,
     handleSummarizationError,
     manualSaveToArchive,

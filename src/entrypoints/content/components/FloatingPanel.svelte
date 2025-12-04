@@ -97,6 +97,8 @@
       await summarization.summarizeChapters()
     } else if (actionType === 'comments') {
       await summarization.summarizeComments()
+    } else if (actionType === 'courseConcepts') {
+      await summarization.summarizeCourseConcepts()
     } else {
       await summarization.summarizePageContent(actionType)
     }
@@ -111,6 +113,12 @@
   let isYouTubeActive = $derived(() => {
     const url = window.location.href
     return /youtube\.com\/watch/i.test(url)
+  })
+
+  // Detect if current page is Course (Udemy/Coursera)
+  let isCourseActive = $derived(() => {
+    const url = window.location.href
+    return /udemy\.com|coursera\.org/i.test(url)
   })
   function togglePanelPosition() {
     updateSettings({ floatingPanelLeft: !settings.floatingPanelLeft })
@@ -470,6 +478,7 @@
             <ActionButtonsMiniFP
               onActionClick={handleCustomAction}
               isYouTubeActive={isYouTubeActive()}
+              isCourseActive={isCourseActive()}
             />
           {/if}
         </div>
@@ -504,6 +513,7 @@
           <ActionButtonsFP
             onActionClick={handleCustomAction}
             isYouTubeActive={isYouTubeActive()}
+            isCourseActive={isCourseActive()}
           />
         {/if}
 

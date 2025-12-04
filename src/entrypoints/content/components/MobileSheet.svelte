@@ -77,6 +77,12 @@
     return /youtube\.com\/watch/i.test(url)
   })
 
+  // Detect if current page is Course (Udemy/Coursera)
+  let isCourseActive = $derived(() => {
+    const url = window.location.href
+    return /udemy\.com|coursera\.org/i.test(url)
+  })
+
   let summaryToDisplay = $derived(summarization.summaryToDisplay())
   let statusToDisplay = $derived(summarization.statusToDisplay())
 
@@ -304,7 +310,15 @@
 
   function handleCustomAction(actionType) {
     console.log(`[MobileSheet] Executing custom action: ${actionType}`)
-    summarization.summarizePageContent(actionType)
+    if (actionType === 'chapters') {
+      summarization.summarizeChapters()
+    } else if (actionType === 'comments') {
+      summarization.summarizeComments()
+    } else if (actionType === 'courseConcepts') {
+      summarization.summarizeCourseConcepts()
+    } else {
+      summarization.summarizePageContent(actionType)
+    }
   }
 
   function handleStopSummarization() {
@@ -426,6 +440,7 @@
             <ActionButtonsMiniFP
               onActionClick={handleCustomAction}
               isYouTubeActive={isYouTubeActive()}
+              isCourseActive={isCourseActive()}
             />
           {/if}
         </div>
@@ -461,6 +476,7 @@
             <ActionButtonsFP
               onActionClick={handleCustomAction}
               isYouTubeActive={isYouTubeActive()}
+              isCourseActive={isCourseActive()}
             />
           </div>
         {/if}

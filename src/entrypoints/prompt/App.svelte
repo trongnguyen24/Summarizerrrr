@@ -135,9 +135,6 @@
       courseSummaryCustomPromptContent: $t(
         'settings.summary.custom_prompts.course_summary',
       ),
-      courseConceptsCustomPromptContent: $t(
-        'settings.summary.custom_prompts.course_concepts',
-      ),
       selectedTextCustomPromptContent: $t(
         'settings.summary.custom_prompts.selected_text',
       ),
@@ -151,6 +148,9 @@
       ),
       commentCustomPromptContent: $t(
         'settings.summary.custom_prompts.youtube_comment',
+      ),
+      courseConceptsCustomPromptContent: $t(
+        'settings.summary.custom_prompts.course_concepts',
       ),
     }
   })
@@ -257,6 +257,12 @@
       title: 'YouTube Comment',
       systemInstruction: customActionTemplates.commentAnalysis.systemPrompt,
       userPrompt: customActionTemplates.commentAnalysis.userPrompt,
+    },
+    {
+      title: 'Course Concepts',
+      systemInstruction:
+        customActionTemplates.courseConcepts?.systemPrompt || '',
+      userPrompt: customActionTemplates.courseConcepts?.userPrompt || '',
     },
   ]
 

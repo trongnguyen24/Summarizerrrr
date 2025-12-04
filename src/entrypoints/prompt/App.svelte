@@ -43,7 +43,7 @@
   const handlePromptEnhance = async () => {
     loading = true
     error = null
-    const userPrompt = document.getElementById('currentUserPrompt').value
+    const userPrompt = currentUserPrompt
     const prompt = aiPrompt.replace('{{userPrompt}}', userPrompt)
 
     try {
@@ -58,10 +58,7 @@
   }
 
   const handleApplyPrompt = () => {
-    const userPromptTextarea = document.getElementById('currentUserPrompt')
-    userPromptTextarea.value = dataget
     currentUserPrompt = dataget
-    isPromptDirty = true // Đặt isPromptDirty thành true
     isOpen = false
   }
 
@@ -101,7 +98,11 @@
   let currentUserPrompt = $state('')
   let initialSystemPrompt = $state('')
   let initialUserPrompt = $state('')
-  let isPromptDirty = $state(false)
+
+  const isPromptModified = $derived(
+    currentSystemPrompt !== initialSystemPrompt ||
+      currentUserPrompt !== initialUserPrompt,
+  )
 
   let scrambleInterval
   let displayTitle = $state('')
@@ -168,13 +169,6 @@
     }
   }
 
-  function isPromptModified() {
-    const modified =
-      currentSystemPrompt !== initialSystemPrompt ||
-      currentUserPrompt !== initialUserPrompt
-    return modified
-  }
-
   loadSettings().then(() => {
     subscribeToSettingsChanges()
     const urlParams = new URLSearchParams(window.location.search)
@@ -228,7 +222,6 @@
       if (template) {
         currentSystemPrompt = template.systemInstruction
         currentUserPrompt = template.userPrompt
-        isPromptDirty = true
       }
     }
   }
@@ -390,7 +383,7 @@
             onclick={handleDiscardChanges}
           >
             <div
-              class=" font-medium py-2 px-4 border transition-colors duration-200 {isPromptModified()
+              class=" font-medium py-2 px-4 border transition-colors duration-200 {isPromptModified
                 ? 'bg-surface-2 group-hover:bg-surface-2/95 dark:group-hover:surface-2/90  text-text-secondary border-border hover:border-gray-500/50 hover:text-text-primary dark:hover:text-white'
                 : ' bg-white dark:bg-surface-1 text-text-secondary border-border/40'}"
             >
@@ -398,7 +391,7 @@
             </div>
 
             <span
-              class="size-4 absolute z-10 -left-2 -bottom-2 border bg-white dark:bg-surface-1 rotate-45 transition-colors duration-200 {isPromptModified()
+              class="size-4 absolute z-10 -left-2 -bottom-2 border bg-white dark:bg-surface-1 rotate-45 transition-colors duration-200 {isPromptModified
                 ? ' border-border group-hover:border-gray-500'
                 : ' border-border/40'}"
             ></span>
@@ -406,17 +399,17 @@
           <button
             class=" flex relative overflow-hidden group"
             onclick={handleSavePrompt}
-            disabled={!isPromptModified()}
+            disabled={!isPromptModified}
           >
             <div
-              class=" font-medium py-2 px-4 border transition-colors duration-200 {isPromptModified()
+              class=" font-medium py-2 px-4 border transition-colors duration-200 {isPromptModified
                 ? 'bg-primary group-hover:bg-primary/95 dark:group-hover:bg-orange-500 text-orange-50 dark:text-orange-100/90 border-orange-400 hover:border-orange-300/75 hover:text-white'
                 : ' bg-white dark:bg-surface-1 text-text-secondary border-border/40'}"
             >
               {$t('prompts.buttons.save')}
             </div>
             <span
-              class="size-4 absolute z-10 -left-2 -bottom-2 border bg-white dark:bg-surface-1 rotate-45 transition-colors duration-200 {isPromptModified()
+              class="size-4 absolute z-10 -left-2 -bottom-2 border bg-white dark:bg-surface-1 rotate-45 transition-colors duration-200 {isPromptModified
                 ? ' border-orange-400 group-hover:border-orange-300/75'
                 : ' border-border/40'}"
             ></span>

@@ -14,16 +14,16 @@
   <!-- Summarize Section -->
   <div class="flex flex-col px-2 text-muted gap-1">
     <h3
-      class="text-xs uppercase tracking-wider text-text-primary px-2 py-1 font-semibold"
+      class="text-xs uppercase tracking-wider text-muted/70 px-2 py-1 font-semibold"
     >
       {$t('prompts.sections.summarize')}
     </h3>
     {#each Object.entries(summarizePrompts) as [key, title]}
       <button
-        class="prompt-button relative p-2 transition-colors duration-125 hover:bg-blackwhite/5 rounded-sm {promptKey ===
+        class="prompt-button relative py-2 px-4 transition-colors duration-125 hover:bg-blackwhite/5 rounded-sm {promptKey ===
         key
           ? 'text-text-primary active font-bold'
-          : 'variant-ghost'} w-full text-left"
+          : 'text-text-secondary'} w-full text-left"
         onclick={() => handlePromptMenuClick(key)}
       >
         {title}
@@ -34,16 +34,16 @@
   <!-- Custom Actions Section -->
   <div class="flex flex-col px-2 text-muted gap-1 mt-4">
     <h3
-      class="text-xs uppercase tracking-wider text-text-primary px-2 py-1 font-semibold"
+      class="text-xs uppercase tracking-wider text-muted/70 px-2 py-1 font-semibold"
     >
       {$t('prompts.sections.custom_actions')}
     </h3>
     {#each Object.entries(customActionPrompts) as [key, title]}
       <button
-        class="prompt-button relative p-2 transition-colors duration-125 hover:bg-blackwhite/5 rounded-sm {promptKey ===
+        class="prompt-button relative py-2 px-4 transition-colors duration-125 hover:bg-blackwhite/5 rounded-sm {promptKey ===
         key
           ? 'text-text-primary active font-bold'
-          : 'variant-ghost'} w-full text-left"
+          : 'text-text-secondary'} w-full text-left"
         onclick={() => handlePromptMenuClick(key)}
       >
         {title}

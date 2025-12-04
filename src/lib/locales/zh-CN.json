@@ -101,6 +101,7 @@
         "analyze": "分析",
         "explain": "解释",
         "debate": "辩论",
+        "youtube_comment": "YouTube评论",
         "override_note": "* 激活的提示将覆盖基础设置。"
       },
       "comment_limit": "YouTube评论限制",

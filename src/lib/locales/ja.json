@@ -169,6 +169,7 @@
         "analyze": "分析",
         "explain": "説明",
         "debate": "討論",
+        "youtube_comment": "YouTubeコメント",
         "override_note": "* カスタムプロンプトが基本設定より優先されます。"
       },
       "comment_limit": "YouTubeコメント制限",

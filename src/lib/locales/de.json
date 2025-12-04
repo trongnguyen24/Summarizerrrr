@@ -169,6 +169,7 @@
         "analyze": "Analysieren",
         "explain": "Erklären",
         "debate": "Debattieren",
+        "youtube_comment": "YouTube-Kommentar",
         "override_note": "* Benutzerdefinierte Prompts haben Vorrang vor den Basis-Einstellungen."
       },
       "comment_limit": "YouTube-Kommentar-Limit",

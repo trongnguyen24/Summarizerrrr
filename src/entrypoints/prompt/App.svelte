@@ -1,7 +1,10 @@
 <script>
   // @ts-nocheck
   import { t } from 'svelte-i18n'
-  import { promptTemplates } from '@/lib/prompts/index.js'
+  import {
+    promptTemplates,
+    customActionTemplates,
+  } from '@/lib/prompts/index.js'
   import 'overlayscrollbars/overlayscrollbars.css'
   import { useOverlayScrollbars } from 'overlayscrollbars-svelte'
   import Icon from '@iconify/svelte'
@@ -140,12 +143,15 @@
       ),
     }
     customActionPrompts = {
-      chapterCustomPromptContent: $t(
-        'settings.summary.custom_prompts.youtube_chapter',
-      ),
       analyzeCustomPromptContent: $t('settings.summary.custom_prompts.analyze'),
       explainCustomPromptContent: $t('settings.summary.custom_prompts.explain'),
       debateCustomPromptContent: $t('settings.summary.custom_prompts.debate'),
+      chapterCustomPromptContent: $t(
+        'settings.summary.custom_prompts.youtube_chapter',
+      ),
+      commentCustomPromptContent: $t(
+        'settings.summary.custom_prompts.youtube_comment',
+      ),
     }
   })
 
@@ -229,9 +235,34 @@
     selectedTemplate = event.target.value
   }
 
+  // Combine all templates for import dropdown
+  const allTemplates = [
+    ...promptTemplates,
+    {
+      title: 'Analyze',
+      systemInstruction: customActionTemplates.analyze.systemPrompt,
+      userPrompt: customActionTemplates.analyze.userPrompt,
+    },
+    {
+      title: 'Explain',
+      systemInstruction: customActionTemplates.explain.systemPrompt,
+      userPrompt: customActionTemplates.explain.userPrompt,
+    },
+    {
+      title: 'Debate',
+      systemInstruction: customActionTemplates.debate.systemPrompt,
+      userPrompt: customActionTemplates.debate.userPrompt,
+    },
+    {
+      title: 'YouTube Comment',
+      systemInstruction: customActionTemplates.commentAnalysis.systemPrompt,
+      userPrompt: customActionTemplates.commentAnalysis.userPrompt,
+    },
+  ]
+
   function handleImportTemplate() {
     if (selectedTemplate) {
-      const template = promptTemplates.find((t) => t.title === selectedTemplate)
+      const template = allTemplates.find((t) => t.title === selectedTemplate)
       if (template) {
         currentSystemPrompt = template.systemInstruction
         currentUserPrompt = template.userPrompt
@@ -376,7 +407,7 @@
             <option value="" disabled selected class="dark:bg-surface-1">
               {$t('prompts.select_template')}</option
             >
-            {#each promptTemplates as template}
+            {#each allTemplates as template}
               <option value={template.title}>{template.title}</option>
             {/each}
           </select>

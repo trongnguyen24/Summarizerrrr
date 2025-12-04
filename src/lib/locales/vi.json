@@ -169,7 +169,8 @@
         "analyze": "Phân tích",
         "explain": "Giải thích",
         "debate": "Tranh luận",
-        "override_note": "* Cài đặt cơ bản sẽ bị ghi đè bởi các prompt tùy chỉnh đang hoạt động."
+        "youtube_comment": "Bình luận YouTube",
+        "override_note": "* Prompt tùy chỉnh sẽ ghi đè cài đặt mặc định."
       },
       "comment_limit": "Giới hạn bình luận YouTube",
       "comment_limit_desc": "Số lượng bình luận tối đa để phân tích."

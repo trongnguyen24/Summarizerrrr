@@ -169,6 +169,7 @@
         "analyze": "Analyser",
         "explain": "Expliquer",
         "debate": "Débattre",
+        "youtube_comment": "Commentaire YouTube",
         "override_note": "* Les prompts actifs remplacent les réglages de base."
       },
       "comment_limit": "Limite de commentaires YouTube",

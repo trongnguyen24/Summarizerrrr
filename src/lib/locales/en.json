@@ -169,7 +169,8 @@
         "analyze": "Analyze",
         "explain": "Explain",
         "debate": "Debate",
-        "override_note": "* Basic settings are overridden by active custom prompts."
+        "youtube_comment": "YouTube Comment",
+        "override_note": "* Active prompts override basic settings."
       },
       "comment_limit": "YouTube Comment Limit",
       "comment_limit_desc": "Maximum number of comments to analyze."

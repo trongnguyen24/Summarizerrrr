@@ -169,6 +169,7 @@
         "analyze": "Analizar",
         "explain": "Explicar",
         "debate": "Debatir",
+        "youtube_comment": "Comentario de YouTube",
         "override_note": "* Los prompts activos anulan los ajustes básicos."
       },
       "comment_limit": "Límite de comentarios de YouTube",

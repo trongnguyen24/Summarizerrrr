@@ -103,6 +103,10 @@ const DEFAULT_SETTINGS = {
   debatePromptSelection: false,
   debateCustomPromptContent: '',
   debateCustomSystemInstructionContent: '',
+  // Custom Action Prompts - YouTube Comment
+  commentPromptSelection: false,
+  commentCustomPromptContent: '',
+  commentCustomSystemInstructionContent: '',
 
   // Advanced Mode (from former stores)
   isAdvancedMode: false,

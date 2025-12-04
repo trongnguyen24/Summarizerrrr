@@ -99,6 +99,12 @@
       settingKey: 'debatePromptSelection',
       promptKey: 'debateCustomPromptContent',
     },
+    {
+      id: 'commentp',
+      name: $t('settings.summary.custom_prompts.youtube_comment'),
+      settingKey: 'commentPromptSelection',
+      promptKey: 'commentCustomPromptContent',
+    },
   ]
 </script>
 

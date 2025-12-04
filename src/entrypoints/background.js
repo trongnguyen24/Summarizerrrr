@@ -656,6 +656,12 @@ export default defineBackground(() => {
             type: 'normal',
             contexts: contexts,
           })
+          browser.contextMenus.create({
+            id: 'openPromptEditor',
+            title: 'Open Prompt Editor',
+            type: 'normal',
+            contexts: contexts,
+          })
         }
       }
     } catch (error) {
@@ -1210,6 +1216,11 @@ export default defineBackground(() => {
     } else if (info.menuItemId === 'openHistory') {
       browser.tabs.create({
         url: browser.runtime.getURL('archive.html'),
+        active: true,
+      })
+    } else if (info.menuItemId === 'openPromptEditor') {
+      browser.tabs.create({
+        url: browser.runtime.getURL('prompt.html'),
         active: true,
       })
     }

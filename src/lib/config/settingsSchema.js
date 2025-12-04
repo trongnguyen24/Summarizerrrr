@@ -110,6 +110,11 @@ export const VALID_SETTING_KEYS = [
   'debateCustomPromptContent',
   'debateCustomSystemInstructionContent',
 
+  // Custom Prompts - YouTube Comment
+  'commentPromptSelection',
+  'commentCustomPromptContent',
+  'commentCustomSystemInstructionContent',
+
   // Advanced Mode
   'isAdvancedMode',
   'temperature',

@@ -169,6 +169,7 @@
         "analyze": "분석",
         "explain": "설명",
         "debate": "토론",
+        "youtube_comment": "YouTube 댓글",
         "override_note": "* 기본 설정은 활성 사용자 지정 프롬프트로 재정의됩니다."
       },
       "comment_limit": "YouTube 댓글 제한",

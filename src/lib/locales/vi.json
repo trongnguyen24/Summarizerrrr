@@ -160,16 +160,16 @@
       "custom_prompts": {
         "title": "Prompt tùy chỉnh",
         "editor_button": "Trình sửa Prompt",
-        "youtube_summary": "Tóm tắt Youtube",
-        "youtube_chapter": "Chương Youtube",
+        "youtube_summary": "Tóm tắt YouTube",
+        "youtube_chapter": "Chương YouTube",
         "course_summary": "Tóm tắt Khóa học",
         "course_concepts": "Khái niệm Khóa học",
         "web_summary": "Tóm tắt Web",
         "selected_text": "Văn bản đã chọn",
         "override_note": "* Cài đặt cơ bản sẽ bị ghi đè bởi các prompt tùy chỉnh đang hoạt động."
       },
-      "comment_limit": "Cào bình luận YouTube",
-      "comment_limit_desc": "Số lượng bình luận tối đa để tóm tắt."
+      "comment_limit": "Giới hạn bình luận YouTube",
+      "comment_limit_desc": "Số lượng bình luận tối đa để phân tích."
     },
     "chatgpt_config": {
       "api_key_label": "Khóa API",

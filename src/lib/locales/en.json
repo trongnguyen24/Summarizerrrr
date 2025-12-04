@@ -160,16 +160,16 @@
       "custom_prompts": {
         "title": "Active custom prompts",
         "editor_button": "Prompt Editor",
-        "youtube_summary": "Youtube Summary",
-        "youtube_chapter": "Youtube Chapter",
+        "youtube_summary": "YouTube Summary",
+        "youtube_chapter": "YouTube Chapter",
         "course_summary": "Course Summary",
         "course_concepts": "Course Concepts",
         "web_summary": "Web Summary",
         "selected_text": "Selected Text",
         "override_note": "* Basic settings are overridden by active custom prompts."
       },
-      "comment_limit": "Crawl comment Youtube limit",
-      "comment_limit_desc": "Maximum number of crawl comments."
+      "comment_limit": "YouTube Comment Limit",
+      "comment_limit_desc": "Maximum number of comments to analyze."
     },
     "chatgpt_config": {
       "api_key_label": "API Key",

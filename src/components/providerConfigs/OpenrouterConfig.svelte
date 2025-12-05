@@ -2,6 +2,7 @@
 <script>
   import { updateSettings } from '../../stores/settingsStore.svelte.js' // Chỉ import updateSettings
   import ApiKeyInput from '../inputs/ApiKeyInput.svelte'
+  import TextInput from '../inputs/TextInput.svelte'
   import { fade } from 'svelte/transition'
   import Icon from '@iconify/svelte'
   import { t } from 'svelte-i18n'
@@ -18,6 +19,7 @@
   import { onMount } from 'svelte'
   let openrouterModels = $state([])
   let modelLoadError = $state(null)
+  let saveStatus = $state('')
 
   onMount(async () => {
     try {
@@ -45,20 +47,6 @@
 
   // Khối $effect đã được loại bỏ. Việc lưu model được xử lý bởi hàm `scheduleOpenrouterModelSave`
   // được gọi từ sự kiện `oninput` của input.
-
-  let saveStatus = $state('')
-  let openrouterModelDebounceTimer = null
-
-  function scheduleOpenrouterModelSave(value) {
-    clearTimeout(openrouterModelDebounceTimer)
-    openrouterModelDebounceTimer = setTimeout(() => {
-      updateSettings({
-        selectedOpenrouterModel: value.trim(),
-      })
-      saveStatus = 'saved!'
-      setTimeout(() => (saveStatus = ''), 2000)
-    }, 300)
-  }
 </script>
 
 <ApiKeyInput
@@ -91,14 +79,13 @@
   {#if modelLoadError}
     <p class="text-red-500">Error loading models: {modelLoadError.message}</p>
   {:else}
-    <input
-      type="text"
+    <TextInput
       id="openrouter-model-input"
       list="openrouter-model-list"
       bind:value={selectedOpenrouterModel}
-      class="select-none font-mono w-full relative text-xs overflow-hidden flex flex-col gap-0 px-3 text-text-primary text-left py-2 bg-muted/5 dark:bg-muted/5 border border-border hover:border-blackwhite/15 focus:border-blackwhite/30 dark:border-blackwhite/10 dark:focus:border-blackwhite/20 focus:outline-none focus:ring-0 transition-colors duration-150 openrouter-model-input"
+      bind:saveStatus
       placeholder="Enter OpenRouter Model"
-      oninput={(e) => scheduleOpenrouterModelSave(e.target.value)}
+      onSave={(value) => updateSettings({ selectedOpenrouterModel: value })}
     />
 
     <datalist id="openrouter-model-list">
@@ -110,15 +97,3 @@
     </datalist>
   {/if}
 </div>
-
-<style>
-  .openrouter-model-input::picker-input {
-    appearance: none;
-    -moz-appearance: none; /* Firefox */
-    -webkit-appearance: none; /* Safari and Chrome */
-  }
-
-  input::-webkit-calendar-picker-indicator {
-    display: none !important;
-  }
-</style>

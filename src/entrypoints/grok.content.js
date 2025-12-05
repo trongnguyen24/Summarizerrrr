@@ -17,24 +17,18 @@ export default defineContentScript({
     // Configuration
     const CONFIG = {
       selectors: {
-        textarea: {
-          layer1: [
-            // Semantic - Most stable
-            'textarea[aria-label*="Grok" i]',
-            'textarea[aria-label*="ask" i]',
-            'textarea[placeholder*="ask" i]',
-          ],
-          layer2: [
-            // Functional
-            'textarea[dir="auto"]',
-            'textarea:not([disabled]):not([readonly])',
-          ],
-          layer3: [
-            // Structural
-            'textarea.w-full',
-            'div[contenteditable="true"]',
-          ],
-        },
+        textarea: [
+          // Semantic - Most stable
+          'textarea[aria-label*="Grok" i]',
+          'textarea[aria-label*="ask" i]',
+          'textarea[placeholder*="ask" i]',
+          // Functional
+          'textarea[dir="auto"]',
+          'textarea:not([disabled]):not([readonly])',
+          // Structural
+          'textarea.w-full',
+          'div[contenteditable="true"]',
+        ],
         submitButton: [
           // Prioritized
           'button[aria-label*="Submit" i]',
@@ -45,13 +39,10 @@ export default defineContentScript({
         ],
       },
       timing: {
-        retryInterval: [50, 100, 200], // Faster retry
-        uiUpdateDelay: 200, // Reduced from 200ms
-        buttonEnableTimeout: 1500, // Reduced from 3000ms
-        layerTimeout: 1500, // Reduced from 2000ms
-      },
-      retry: {
-        maxAttempts: 3,
+        initialRetryInterval: 100, // Start fast
+        maxRetryInterval: 1000, // Cap at 1s
+        uiUpdateDelay: 200, // Back to fast UI updates
+        totalTimeout: 120000, // Keep 2 minutes for Cloudflare
       },
     }
 
@@ -129,47 +120,26 @@ export default defineContentScript({
     async function findTextAreaRobust() {
       console.log('[GrokContentScript] Searching for textarea...')
 
-      // Try Layer 1 - Semantic (highest priority)
-      let element = await trySelectorsWithRetry(
-        CONFIG.selectors.textarea.layer1,
-        { timeout: CONFIG.timing.layerTimeout }
-      )
-      if (element) {
-        console.log('[GrokContentScript] Found textarea via Layer 1 (Semantic)')
-        return element
-      }
-
-      // Try Layer 2 - Functional
-      element = await trySelectorsWithRetry(CONFIG.selectors.textarea.layer2, {
-        timeout: CONFIG.timing.layerTimeout,
+      // Try all selectors with robust retry
+      const element = await trySelectorsWithRetry(CONFIG.selectors.textarea, {
+        timeout: CONFIG.timing.totalTimeout,
       })
+
       if (element) {
-        console.log(
-          '[GrokContentScript] Found textarea via Layer 2 (Functional)'
-        )
+        console.log('[GrokContentScript] Found textarea')
         return element
       }
 
-      // Try Layer 3 - Structural
-      element = await trySelectorsWithRetry(CONFIG.selectors.textarea.layer3, {
-        timeout: 1000,
-      })
-      if (element) {
+      // Universal fallback
+      const fallback = findVisibleTextarea()
+      if (fallback) {
         console.log(
-          '[GrokContentScript] Found textarea via Layer 3 (Structural)'
+          '[GrokContentScript] Found textarea via universal fallback'
         )
-        return element
+        return fallback
       }
 
-      // Layer 4 - Universal fallback
-      element = findVisibleTextarea()
-      if (element) {
-        console.log(
-          '[GrokContentScript] Found textarea via Layer 4 (Universal)'
-        )
-      }
-
-      return element
+      return null
     }
 
     /**
@@ -260,7 +230,7 @@ export default defineContentScript({
       const button = await trySelectorsWithRetry(
         CONFIG.selectors.submitButton,
         {
-          timeout: CONFIG.timing.buttonEnableTimeout,
+          timeout: CONFIG.timing.totalTimeout,
           checkDisabled: true,
         }
       )
@@ -290,23 +260,29 @@ export default defineContentScript({
     async function trySelectorsWithRetry(selectors, options = {}) {
       const { timeout = 3000, checkDisabled = false } = options
       const startTime = Date.now()
+      let currentInterval = CONFIG.timing.initialRetryInterval
 
-      for (const selector of selectors) {
-        for (let attempt = 0; attempt < CONFIG.retry.maxAttempts; attempt++) {
-          if (Date.now() - startTime > timeout) return null
-
+      while (Date.now() - startTime < timeout) {
+        // Check ALL selectors in this pass
+        for (const selector of selectors) {
           const element = document.querySelector(selector)
 
           if (element && isElementVisible(element)) {
             if (checkDisabled && element.disabled) {
-              await wait(CONFIG.timing.retryInterval[attempt])
               continue
             }
             return element
           }
-
-          await wait(CONFIG.timing.retryInterval[attempt])
         }
+
+        // Wait before next pass
+        await wait(currentInterval)
+        
+        // Exponential backoff for interval, capped at max
+        currentInterval = Math.min(
+          currentInterval * 1.5,
+          CONFIG.timing.maxRetryInterval
+        )
       }
 
       return null

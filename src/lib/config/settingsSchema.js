@@ -63,6 +63,7 @@ export const VALID_SETTING_KEYS = [
   'summaryLang',
   'summaryTone',
   'isSummaryAdvancedMode',
+  'commentLimit',
 
   // Custom Prompts - YouTube
   'youtubePromptSelection',
@@ -93,6 +94,26 @@ export const VALID_SETTING_KEYS = [
   'selectedTextPromptSelection',
   'selectedTextCustomPromptContent',
   'selectedTextCustomSystemInstructionContent',
+
+  // Custom Prompts - Analyze
+  'analyzePromptSelection',
+  'analyzeCustomPromptContent',
+  'analyzeCustomSystemInstructionContent',
+
+  // Custom Prompts - Explain
+  'explainPromptSelection',
+  'explainCustomPromptContent',
+  'explainCustomSystemInstructionContent',
+
+  // Custom Prompts - Debate
+  'debatePromptSelection',
+  'debateCustomPromptContent',
+  'debateCustomSystemInstructionContent',
+
+  // Custom Prompts - YouTube Comment
+  'commentPromptSelection',
+  'commentCustomPromptContent',
+  'commentCustomSystemInstructionContent',
 
   // Advanced Mode
   'isAdvancedMode',

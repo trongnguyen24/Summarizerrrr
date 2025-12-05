@@ -5,6 +5,7 @@
     executeCustomAction,
     fetchChapterSummary,
     fetchCommentSummary,
+    fetchCourseConcepts,
     summaryState,
   } from '@/stores/summaryStore.svelte.js'
   import Tooltip from '@/components/ui/Tooltip.svelte'
@@ -20,6 +21,8 @@
       await fetchChapterSummary()
     } else if (actionType === 'comments') {
       await fetchCommentSummary()
+    } else if (actionType === 'courseConcepts') {
+      await fetchCourseConcepts()
     } else {
       await executeCustomAction(actionType)
     }
@@ -30,6 +33,9 @@
     actions.filter((action) => {
       if (action.showOnlyForYouTube) {
         return summaryState.isYouTubeVideoActive
+      }
+      if (action.showOnlyForCourse) {
+        return summaryState.isCourseVideoActive
       }
       return true
     }),

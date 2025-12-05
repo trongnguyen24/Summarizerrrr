@@ -27,7 +27,7 @@
         '[CopyTranscriptIcon] Video changed:',
         currentVideoId,
         '->',
-        newVideoId
+        newVideoId,
       )
       currentVideoId = newVideoId
 
@@ -172,7 +172,7 @@
         transcriptData.length === 0
       ) {
         console.warn(
-          '[CopyTranscriptIcon] No transcript data for SRT conversion'
+          '[CopyTranscriptIcon] No transcript data for SRT conversion',
         )
         return null
       }
@@ -183,7 +183,7 @@
         const sequenceNumber = index + 1
         const startTime = convertTimestampToSRT(segment.startTime)
         const endTime = convertTimestampToSRT(
-          segment.endTime || segment.startTime
+          segment.endTime || segment.startTime,
         )
         const text = segment.text.trim()
 
@@ -220,16 +220,56 @@
         .toLowerCase()
       const filename = `${sanitizedTitle}.srt`
 
-      // Create blob and download
+      // Create blob
       const blob = new Blob([srtContent], { type: 'text/plain;charset=utf-8' })
-      const url = URL.createObjectURL(blob)
+
+      // Priority 1: navigator.share (Mobile/iOS)
+      try {
+        const file = new File([blob], filename, { type: 'text/plain' })
+        if (
+          navigator.canShare &&
+          navigator.canShare({ files: [file] }) &&
+          // Check if running on mobile/tablet
+          /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+        ) {
+          await navigator.share({
+            files: [file],
+          })
+          return
+        }
+      } catch (error) {
+        console.warn('[CopyTranscriptIcon] Share failed, falling back:', error)
+      }
+
+      // Priority 2: Fallback to <a> tag
+      // Use Data URL for small files (< 10MB) to avoid Blob URL revocation issues on iOS
+      let url
+      const isSmallFile = blob.size < 10 * 1024 * 1024 // 10MB
+
+      if (isSmallFile) {
+        const reader = new FileReader()
+        url = await new Promise((resolve) => {
+          reader.onloadend = () => resolve(reader.result)
+          reader.readAsDataURL(blob)
+        })
+      } else {
+        url = URL.createObjectURL(blob)
+      }
+
       const link = document.createElement('a')
       link.href = url
       link.download = filename
+      link.style.display = 'none'
       document.body.appendChild(link)
       link.click()
-      document.body.removeChild(link)
-      URL.revokeObjectURL(url)
+
+      // Clean up
+      setTimeout(() => {
+        document.body.removeChild(link)
+        if (!isSmallFile) {
+          URL.revokeObjectURL(url)
+        }
+      }, 30000)
 
       console.log('[CopyTranscriptIcon] SRT file downloaded:', filename)
     } catch (error) {
@@ -263,7 +303,7 @@
       // getTimestampedTranscript() already includes <title>, so wrap with <transcript>
       const fullContent = `<transcript>${transcript.trim()}</transcript>`
       console.log(
-        `[CopyTranscriptIcon] Timestamped transcript extracted: ${fullContent.length} characters`
+        `[CopyTranscriptIcon] Timestamped transcript extracted: ${fullContent.length} characters`,
       )
 
       // Send simple message to background script
@@ -275,21 +315,21 @@
         (response) => {
           if (response && response.success) {
             console.log(
-              `[CopyTranscriptIcon] ${provider} tab opened successfully`
+              `[CopyTranscriptIcon] ${provider} tab opened successfully`,
             )
             showPopover = false // Hide popover after success
           } else {
             console.error(
               `[CopyTranscriptIcon] Failed to open ${provider}:`,
-              response?.error
+              response?.error,
             )
           }
-        }
+        },
       )
     } catch (error) {
       console.error(
         `[CopyTranscriptIcon] Error in ${provider} summarization:`,
-        error
+        error,
       )
     } finally {
       loadingStates[provider] = false

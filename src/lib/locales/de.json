@@ -99,7 +99,16 @@
       "domain_input_placeholder": "example.com oder *.example.com",
       "domain_whitelist_helper": "FAB nur auf erlaubten Domains anzeigen.",
       "domain_blacklist_helper": "FAB auf blockierten Domains ausblenden, überall sonst anzeigen.",
-      "domain_all_helper": "FAB wird auf allen Websites angezeigt"
+      "domain_all_helper": "FAB wird auf allen Websites angezeigt",
+      "hide_on_site": "Auf dieser Seite ausblenden",
+      "drop_to_hide": "Zum Ausblenden ablegen",
+      "blacklist_modal": {
+        "title": "FAB schließen?",
+        "disable_on": "FAB auf dieser Seite deaktivieren",
+        "reenable_hint": "Kann wieder aktiviert werden in",
+        "cancel": "Abbrechen",
+        "confirm": "Bestätigen"
+      }
     },
     "ai_model": {
       "title": "KI-Einstellungen",
@@ -157,8 +166,14 @@
         "course_concepts": "Schlüsselkonzepte",
         "web_summary": "Web-Zusammenfassung",
         "selected_text": "Ausgewählter Text",
+        "analyze": "Analysieren",
+        "explain": "Erklären",
+        "debate": "Debattieren",
+        "youtube_comment": "YouTube-Kommentar",
         "override_note": "* Benutzerdefinierte Prompts haben Vorrang vor den Basis-Einstellungen."
-      }
+      },
+      "comment_limit": "YouTube-Kommentar-Limit",
+      "comment_limit_desc": "Maximale Anzahl der zu analysierenden Kommentare."
     },
     "chatgpt_config": {
       "api_key_label": "API-Schlüssel",
@@ -261,6 +276,10 @@
     "system_note": "Optional: Überspringen falls nicht benötigt.",
     "user_prompt": "Benutzer-Prompt",
     "user_note": "Nutze __CONTENT__ für dynamischen Inhalt",
+    "sections": {
+      "summarize": "Zusammenfassung",
+      "custom_actions": "Benutzerdefinierte Aktionen"
+    },
     "select_template": "Vorlage auswählen",
     "prompt_enhance": "Prompt verbessern",
     "buttons": {
@@ -422,6 +441,8 @@
     },
     "replace_warning": "⚠️ WARNUNG: Ersetzen-Modus\n\nDies löscht vorhandene Daten und ersetzt sie durch importierte Daten:",
     "merge_mode_description": "• Importierte Daten werden mit vorhandenen Daten kombiniert<br />• Duplikate (gleiche ID) werden aktualisiert<br />• Importierte Einstellungen überschreiben vorhandene Einstellungen",
-    "replace_mode_description": "• Ausgewählte Datentypen werden zuerst vollständig gelöscht<br />• Dann nur durch importierte Daten ersetzt<br />• Nicht ausgewählte Datentypen sind nicht betroffen"
+    "replace_mode_description": "• Ausgewählte Datentypen werden zuerst vollständig gelöscht<br />• Dann nur durch importierte Daten ersetzt<br />• Nicht ausgewählte Datentypen sind nicht betroffen",
+    "replace_warning_title": "Warnung: Ersetzen-Modus",
+    "confirm_replace": "Ja, ersetzen"
   }
 }

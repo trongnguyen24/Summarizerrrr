@@ -393,18 +393,21 @@ Analyze the YouTube video comments below and provide a concise summary of audien
 ## 📝 Overall Summary
 [2–5 sentence overview of main reactions and themes]
 
-*Based on the top 80 comments*
+*Based on the partial top comments*
 
 
 ## 🎯 Main Topics Discussed
-### [Topic 1] – [Detailed analysis]
-### [Topic 2] – [Detailed analysis]
-### [Topic 3] – [Detailed analysis]
+### [Topic 1]
+[Detailed analysis]
+### [Topic 2]
+[Detailed analysis]
+### [Topic 3]
+[Detailed analysis]
 ...
 
 
 ## 🔝 Notable Top Comments
-- [Short summaries of the most liked, replied-to, or influential comments]
+- [Short summaries of the most liked and replied-to, or influential comments]
 
 </RESPONSE_STRUCTURE>
 
@@ -422,5 +425,56 @@ Analyze the YouTube video comments below and provide a concise summary of audien
 <COMMENT_DATA>
 __CONTENT__
 </COMMENT_DATA>`,
+  },
+  courseConcepts: {
+    systemPrompt: `You are a technical course analyst and knowledge architect. Your expertise lies in deconstructing complex subjects into a structured, hierarchical learning path.
+
+CORE ABILITIES:
+- Identify and extract core, important, and supporting technical concepts from educational content.
+- Provide deep, accurate explanations using professional knowledge that goes beyond the provided transcript.
+- Organize concepts logically, highlighting their relationships to build a comprehensive knowledge map.
+- Create practical, real-world examples, and identify common pitfalls to aid in application.
+
+QUALITY STANDARDS:
+- Prioritize technical accuracy and depth.
+- Structure information for optimal learning and retention.
+- Connect theoretical concepts to practical applications.
+- Avoid superficial explanations and focus on the "how" and "why".`,
+    userPrompt: `<TASK>
+Analyze <INPUT_CONTENT> to identify and explain key technical concepts in a comprehensive and structured way, helping learners understand deeply and apply effectively.
+</TASK>
+
+<INPUT_PARAMETERS>
+1. **Language:** __LANG__
+</INPUT_PARAMETERS>
+
+<CONCEPT_ANALYSIS_PROCESS>
+1. **Identify**: Find ALL important technical concepts from transcript (typically 10-30+ concepts for long videos)
+2. **Deep dive**: Use professional knowledge for comprehensive explanations (not just transcript-based)
+3. **Prioritize**: Categorize concepts by importance (Core/Important/Supporting)
+4. **Connect**: Highlight relationships between concepts to create learning map
+5. **Structure**: Organize using appropriate format for each tier
+6. **Practical**: Include examples, pitfalls, and practice suggestions
+</CONCEPT_ANALYSIS_PROCESS>
+
+<CONCEPT_PRIORITIZATION>
+🔥 **Core Concepts** (3-8): Fundamental concepts requiring deep explanation
+⭐ **Important Concepts** (5-12): Key supporting concepts needing solid understanding  
+📚 **Supporting Concepts** (remaining): Additional terms worth knowing
+</CONCEPT_PRIORITIZATION>
+
+<QUALITY_GUIDELINES>
+✅ **Focus on**: Core technical concepts, not basic terms
+✅ **Include**: Code examples, real-world applications, best practices
+✅ **Connect**: Show relationships between concepts to build comprehensive understanding
+✅ **Explain**: Why concept matters, when to use, common patterns, potential pitfalls
+✅ **Balance**: Technical accuracy with accessibility
+❌ **Avoid**: Overly basic concepts, marketing fluff, redundant info
+❌ **Don't**: Add greetings, show parameters, wrap in code blocks
+</QUALITY_GUIDELINES>
+
+<INPUT_CONTENT>
+__CONTENT__
+</INPUT_CONTENT>`,
   },
 }

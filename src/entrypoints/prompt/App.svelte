@@ -1,7 +1,10 @@
 <script>
   // @ts-nocheck
   import { t } from 'svelte-i18n'
-  import { promptTemplates } from '@/lib/prompts/index.js'
+  import {
+    promptTemplates,
+    customActionTemplates,
+  } from '@/lib/prompts/index.js'
   import 'overlayscrollbars/overlayscrollbars.css'
   import { useOverlayScrollbars } from 'overlayscrollbars-svelte'
   import Icon from '@iconify/svelte'
@@ -43,7 +46,7 @@
   const handlePromptEnhance = async () => {
     loading = true
     error = null
-    const userPrompt = document.getElementById('currentUserPrompt').value
+    const userPrompt = currentUserPrompt
     const prompt = aiPrompt.replace('{{userPrompt}}', userPrompt)
 
     try {
@@ -58,10 +61,7 @@
   }
 
   const handleApplyPrompt = () => {
-    const userPromptTextarea = document.getElementById('currentUserPrompt')
-    userPromptTextarea.value = dataget
     currentUserPrompt = dataget
-    isPromptDirty = true // Đặt isPromptDirty thành true
     isOpen = false
   }
 
@@ -101,12 +101,17 @@
   let currentUserPrompt = $state('')
   let initialSystemPrompt = $state('')
   let initialUserPrompt = $state('')
-  let isPromptDirty = $state(false)
+
+  const isPromptModified = $derived(
+    currentSystemPrompt !== initialSystemPrompt ||
+      currentUserPrompt !== initialUserPrompt,
+  )
 
   let scrambleInterval
   let displayTitle = $state('')
   let ts = null
   let settingsLog = $state('')
+  let isPromptDirty = $state(false)
 
   $effect(() => {
     if (promptKey) {
@@ -118,35 +123,50 @@
     }
   })
 
-  let promptTitles = $state({})
+  let summarizePrompts = $state({})
+  let customActionPrompts = $state({})
+
   $effect(() => {
-    promptTitles = {
+    summarizePrompts = {
       youtubeCustomPromptContent: $t(
         'settings.summary.custom_prompts.youtube_summary',
-      ),
-      chapterCustomPromptContent: $t(
-        'settings.summary.custom_prompts.youtube_chapter',
       ),
       webCustomPromptContent: $t('settings.summary.custom_prompts.web_summary'),
       courseSummaryCustomPromptContent: $t(
         'settings.summary.custom_prompts.course_summary',
       ),
-      courseConceptsCustomPromptContent: $t(
-        'settings.summary.custom_prompts.course_concepts',
-      ),
       selectedTextCustomPromptContent: $t(
         'settings.summary.custom_prompts.selected_text',
+      ),
+    }
+    customActionPrompts = {
+      analyzeCustomPromptContent: $t('settings.summary.custom_prompts.analyze'),
+      explainCustomPromptContent: $t('settings.summary.custom_prompts.explain'),
+      debateCustomPromptContent: $t('settings.summary.custom_prompts.debate'),
+      chapterCustomPromptContent: $t(
+        'settings.summary.custom_prompts.youtube_chapter',
+      ),
+      commentCustomPromptContent: $t(
+        'settings.summary.custom_prompts.youtube_comment',
+      ),
+      courseConceptsCustomPromptContent: $t(
+        'settings.summary.custom_prompts.course_concepts',
       ),
     }
   })
 
   function getPromptTitle(key) {
-    return promptTitles[key] || 'Unknown Prompt'
+    return summarizePrompts[key] || customActionPrompts[key] || 'Unknown Prompt'
   }
 
   function getPromptKeyFromTitle(title) {
-    for (const key in promptTitles) {
-      if (promptTitles[key] === title) {
+    for (const key in summarizePrompts) {
+      if (summarizePrompts[key] === title) {
+        return key
+      }
+    }
+    for (const key in customActionPrompts) {
+      if (customActionPrompts[key] === title) {
         return key
       }
     }
@@ -166,13 +186,6 @@
     } else {
       console.log('Settings are not available yet.')
     }
-  }
-
-  function isPromptModified() {
-    const modified =
-      currentSystemPrompt !== initialSystemPrompt ||
-      currentUserPrompt !== initialUserPrompt
-    return modified
   }
 
   loadSettings().then(() => {
@@ -222,13 +235,43 @@
     selectedTemplate = event.target.value
   }
 
+  // Combine all templates for import dropdown
+  const allTemplates = [
+    ...promptTemplates,
+    {
+      title: 'Analyze',
+      systemInstruction: customActionTemplates.analyze.systemPrompt,
+      userPrompt: customActionTemplates.analyze.userPrompt,
+    },
+    {
+      title: 'Explain',
+      systemInstruction: customActionTemplates.explain.systemPrompt,
+      userPrompt: customActionTemplates.explain.userPrompt,
+    },
+    {
+      title: 'Debate',
+      systemInstruction: customActionTemplates.debate.systemPrompt,
+      userPrompt: customActionTemplates.debate.userPrompt,
+    },
+    {
+      title: 'YouTube Comment',
+      systemInstruction: customActionTemplates.commentAnalysis.systemPrompt,
+      userPrompt: customActionTemplates.commentAnalysis.userPrompt,
+    },
+    {
+      title: 'Course Concepts',
+      systemInstruction:
+        customActionTemplates.courseConcepts?.systemPrompt || '',
+      userPrompt: customActionTemplates.courseConcepts?.userPrompt || '',
+    },
+  ]
+
   function handleImportTemplate() {
     if (selectedTemplate) {
-      const template = promptTemplates.find((t) => t.title === selectedTemplate)
+      const template = allTemplates.find((t) => t.title === selectedTemplate)
       if (template) {
         currentSystemPrompt = template.systemInstruction
         currentUserPrompt = template.userPrompt
-        isPromptDirty = true
       }
     }
   }
@@ -275,7 +318,12 @@
     class="absolute z-10 h-px w-full min-w-lvw bg-border/70 bottom-8 translate-y-px left-0"
   ></span>
   <!-- Left Column: Prompt Menu -->
-  <PromptMenu {promptKey} {promptTitles} {handlePromptMenuClick} />
+  <PromptMenu
+    {promptKey}
+    {summarizePrompts}
+    {customActionPrompts}
+    {handlePromptMenuClick}
+  />
 
   <!-- Right Column: Prompt Editor -->
   <div
@@ -365,7 +413,7 @@
             <option value="" disabled selected class="dark:bg-surface-1">
               {$t('prompts.select_template')}</option
             >
-            {#each promptTemplates as template}
+            {#each allTemplates as template}
               <option value={template.title}>{template.title}</option>
             {/each}
           </select>
@@ -390,7 +438,7 @@
             onclick={handleDiscardChanges}
           >
             <div
-              class=" font-medium py-2 px-4 border transition-colors duration-200 {isPromptModified()
+              class=" font-medium py-2 px-4 border transition-colors duration-200 {isPromptModified
                 ? 'bg-surface-2 group-hover:bg-surface-2/95 dark:group-hover:surface-2/90  text-text-secondary border-border hover:border-gray-500/50 hover:text-text-primary dark:hover:text-white'
                 : ' bg-white dark:bg-surface-1 text-text-secondary border-border/40'}"
             >
@@ -398,7 +446,7 @@
             </div>
 
             <span
-              class="size-4 absolute z-10 -left-2 -bottom-2 border bg-white dark:bg-surface-1 rotate-45 transition-colors duration-200 {isPromptModified()
+              class="size-4 absolute z-10 -left-2 -bottom-2 border bg-white dark:bg-surface-1 rotate-45 transition-colors duration-200 {isPromptModified
                 ? ' border-border group-hover:border-gray-500'
                 : ' border-border/40'}"
             ></span>
@@ -406,17 +454,17 @@
           <button
             class=" flex relative overflow-hidden group"
             onclick={handleSavePrompt}
-            disabled={!isPromptModified()}
+            disabled={!isPromptModified}
           >
             <div
-              class=" font-medium py-2 px-4 border transition-colors duration-200 {isPromptModified()
+              class=" font-medium py-2 px-4 border transition-colors duration-200 {isPromptModified
                 ? 'bg-primary group-hover:bg-primary/95 dark:group-hover:bg-orange-500 text-orange-50 dark:text-orange-100/90 border-orange-400 hover:border-orange-300/75 hover:text-white'
                 : ' bg-white dark:bg-surface-1 text-text-secondary border-border/40'}"
             >
               {$t('prompts.buttons.save')}
             </div>
             <span
-              class="size-4 absolute z-10 -left-2 -bottom-2 border bg-white dark:bg-surface-1 rotate-45 transition-colors duration-200 {isPromptModified()
+              class="size-4 absolute z-10 -left-2 -bottom-2 border bg-white dark:bg-surface-1 rotate-45 transition-colors duration-200 {isPromptModified
                 ? ' border-orange-400 group-hover:border-orange-300/75'
                 : ' border-border/40'}"
             ></span>

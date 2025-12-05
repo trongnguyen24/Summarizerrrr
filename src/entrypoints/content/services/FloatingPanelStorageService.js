@@ -41,24 +41,9 @@ function prepareSummaries(localState, contentType, typeLabel) {
   const summaries = []
   const mainTitle = typeLabel || 'Summary'
 
-  if (contentType === 'youtube') {
-    if (localState.summary) {
-      summaries.push({ title: mainTitle, content: localState.summary })
-    }
-  } else if (contentType === 'course') {
-    if (localState.summary) {
-      summaries.push({ title: mainTitle, content: localState.summary })
-    }
-    if (localState.courseConcepts) {
-      summaries.push({
-        title: 'Concepts',
-        content: localState.courseConcepts,
-      })
-    }
-  } else {
-    if (localState.summary) {
-      summaries.push({ title: mainTitle, content: localState.summary })
-    }
+  // Course concepts giờ là custom action riêng, không còn gộp vào summary
+  if (localState.summary) {
+    summaries.push({ title: mainTitle, content: localState.summary })
   }
 
   return summaries.filter((s) => s.content && s.content.trim() !== '')

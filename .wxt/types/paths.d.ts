@@ -21,8 +21,8 @@ declare module "wxt/browser" {
     | "/content-script.js"
     | "/content-scripts/chatgpt.js"
     | "/content-scripts/coursera.js"
-    | "/content-scripts/firefox.js"
     | "/content-scripts/gemini.js"
+    | "/content-scripts/global.js"
     | "/content-scripts/grok.js"
     | "/content-scripts/perplexity.js"
     | "/content-scripts/udemy.js"
@@ -45,7 +45,6 @@ declare module "wxt/browser" {
     | "/sidepanel.html"
     | "/wxt.svg"
     | "/youtube_comments.js"
-    | "/youtube_player_control.js"
     | "/youtube_transcript.js"
   type HtmlPublicPath = Extract<PublicPath, `${string}.html`>
   export interface WxtRuntime {

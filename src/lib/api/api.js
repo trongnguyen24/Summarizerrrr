@@ -112,19 +112,46 @@ export async function summarizeContent(text, contentType, abortSignal = null) {
 
   const customActionTypes = ['analyze', 'explain', 'debate', 'commentAnalysis']
 
+  // Mapping từ contentType sang settingKey
+  const customActionSettingMap = {
+    analyze: 'analyze',
+    explain: 'explain',
+    debate: 'debate',
+    commentAnalysis: 'comment',
+  }
+
   if (customActionTypes.includes(contentType)) {
-    systemInstruction = customActionTemplates[contentType].systemPrompt
+    const settingPrefix = customActionSettingMap[contentType]
+    const selectionKey = `${settingPrefix}PromptSelection`
+    const customPromptKey = `${settingPrefix}CustomPromptContent`
+    const customSystemKey = `${settingPrefix}CustomSystemInstructionContent`
 
-    // First, replace all placeholders except __CONTENT__
-    const userPromptWithPlaceholders = replacePlaceholders(
-      customActionTemplates[contentType].userPrompt,
-      userSettings.summaryLang,
-      userSettings.summaryLength,
-      userSettings.summaryTone
-    )
+    // Kiểm tra nếu user đã bật custom prompt và có nội dung
+    if (
+      userSettings.isSummaryAdvancedMode &&
+      userSettings[selectionKey] &&
+      userSettings[customPromptKey]
+    ) {
+      // Sử dụng custom prompts từ user settings
+      systemInstruction = userSettings[customSystemKey] || ''
+      userPrompt = userSettings[customPromptKey]
+        .replace(/__CONTENT__/g, text)
+        .replace(/__LANG__/g, userSettings.summaryLang)
+    } else {
+      // Sử dụng default templates
+      systemInstruction = customActionTemplates[contentType].systemPrompt
 
-    // Then, replace content placeholder
-    userPrompt = userPromptWithPlaceholders.replace('__CONTENT__', text)
+      // First, replace all placeholders except __CONTENT__
+      const userPromptWithPlaceholders = replacePlaceholders(
+        customActionTemplates[contentType].userPrompt,
+        userSettings.summaryLang,
+        userSettings.summaryLength,
+        userSettings.summaryTone
+      )
+
+      // Then, replace content placeholder
+      userPrompt = userPromptWithPlaceholders.replace('__CONTENT__', text)
+    }
   } else {
     const contentConfig =
       promptBuilders[contentType] || promptBuilders['general'] // Fallback to general
@@ -185,34 +212,61 @@ export async function* summarizeContentStream(text, contentType, abortSignal = n
 
   const customActionTypes = ['analyze', 'explain', 'debate', 'commentAnalysis']
 
+  // Mapping từ contentType sang settingKey
+  const customActionSettingMap = {
+    analyze: 'analyze',
+    explain: 'explain',
+    debate: 'debate',
+    commentAnalysis: 'comment',
+  }
+
   if (customActionTypes.includes(contentType)) {
+    const settingPrefix = customActionSettingMap[contentType]
+    const selectionKey = `${settingPrefix}PromptSelection`
+    const customPromptKey = `${settingPrefix}CustomPromptContent`
+    const customSystemKey = `${settingPrefix}CustomSystemInstructionContent`
+
     console.log(
       `[DEBUG] Processing custom action type in stream: ${contentType}`
     )
-    systemInstruction = customActionTemplates[contentType].systemPrompt
     console.log(
-      `[DEBUG] System instruction for stream ${contentType}:`,
-      systemInstruction
+      `[DEBUG] Custom prompt enabled: ${userSettings[selectionKey]}, Advanced mode: ${userSettings.isSummaryAdvancedMode}`
     )
 
-    // First, replace all placeholders except __CONTENT__
-    const userPromptWithPlaceholders = replacePlaceholders(
-      customActionTemplates[contentType].userPrompt,
-      userSettings.summaryLang,
-      userSettings.summaryLength,
-      userSettings.summaryTone
-    )
-    console.log(
-      `[DEBUG] User prompt with placeholders for stream ${contentType}:`,
-      userPromptWithPlaceholders
-    )
+    // Kiểm tra nếu user đã bật custom prompt và có nội dung
+    if (
+      userSettings.isSummaryAdvancedMode &&
+      userSettings[selectionKey] &&
+      userSettings[customPromptKey]
+    ) {
+      // Sử dụng custom prompts từ user settings
+      systemInstruction = userSettings[customSystemKey] || ''
+      userPrompt = userSettings[customPromptKey]
+        .replace(/__CONTENT__/g, text)
+        .replace(/__LANG__/g, userSettings.summaryLang)
+      console.log(
+        `[DEBUG] Using CUSTOM prompt for ${contentType}:`,
+        userPrompt.substring(0, 100) + '...'
+      )
+    } else {
+      // Sử dụng default templates
+      systemInstruction = customActionTemplates[contentType].systemPrompt
 
-    // Then, replace content placeholder
-    userPrompt = userPromptWithPlaceholders.replace('__CONTENT__', text)
-    console.log(
-      `[DEBUG] Final user prompt for stream ${contentType}:`,
-      userPrompt
-    )
+      // First, replace all placeholders except __CONTENT__
+      const userPromptWithPlaceholders = replacePlaceholders(
+        customActionTemplates[contentType].userPrompt,
+        userSettings.summaryLang,
+        userSettings.summaryLength,
+        userSettings.summaryTone
+      )
+
+      // Then, replace content placeholder
+      userPrompt = userPromptWithPlaceholders.replace('__CONTENT__', text)
+      console.log(
+        `[DEBUG] Using DEFAULT template for ${contentType}:`,
+        userPrompt.substring(0, 100) + '...'
+      )
+    }
   } else {
     const contentConfig =
       promptBuilders[contentType] || promptBuilders['general'] // Fallback to general
@@ -456,34 +510,61 @@ export async function* summarizeContentStreamEnhanced(text, contentType) {
 
   const customActionTypes = ['analyze', 'explain', 'debate', 'commentAnalysis']
 
+  // Mapping từ contentType sang settingKey
+  const customActionSettingMap = {
+    analyze: 'analyze',
+    explain: 'explain',
+    debate: 'debate',
+    commentAnalysis: 'comment',
+  }
+
   if (customActionTypes.includes(contentType)) {
+    const settingPrefix = customActionSettingMap[contentType]
+    const selectionKey = `${settingPrefix}PromptSelection`
+    const customPromptKey = `${settingPrefix}CustomPromptContent`
+    const customSystemKey = `${settingPrefix}CustomSystemInstructionContent`
+
     console.log(
       `[DEBUG] Processing custom action type in enhanced stream: ${contentType}`
     )
-    systemInstruction = customActionTemplates[contentType].systemPrompt
     console.log(
-      `[DEBUG] System instruction for enhanced stream ${contentType}:`,
-      systemInstruction
+      `[DEBUG] Custom prompt enabled: ${userSettings[selectionKey]}, Advanced mode: ${userSettings.isSummaryAdvancedMode}`
     )
 
-    // First, replace all placeholders except __CONTENT__
-    const userPromptWithPlaceholders = replacePlaceholders(
-      customActionTemplates[contentType].userPrompt,
-      userSettings.summaryLang,
-      userSettings.summaryLength,
-      userSettings.summaryTone
-    )
-    console.log(
-      `[DEBUG] User prompt with placeholders for enhanced stream ${contentType}:`,
-      userPromptWithPlaceholders
-    )
+    // Kiểm tra nếu user đã bật custom prompt và có nội dung
+    if (
+      userSettings.isSummaryAdvancedMode &&
+      userSettings[selectionKey] &&
+      userSettings[customPromptKey]
+    ) {
+      // Sử dụng custom prompts từ user settings
+      systemInstruction = userSettings[customSystemKey] || ''
+      userPrompt = userSettings[customPromptKey]
+        .replace(/__CONTENT__/g, text)
+        .replace(/__LANG__/g, userSettings.summaryLang)
+      console.log(
+        `[DEBUG] Using CUSTOM prompt for enhanced ${contentType}:`,
+        userPrompt.substring(0, 100) + '...'
+      )
+    } else {
+      // Sử dụng default templates
+      systemInstruction = customActionTemplates[contentType].systemPrompt
 
-    // Then, replace content placeholder
-    userPrompt = userPromptWithPlaceholders.replace('__CONTENT__', text)
-    console.log(
-      `[DEBUG] Final user prompt for enhanced stream ${contentType}:`,
-      userPrompt
-    )
+      // First, replace all placeholders except __CONTENT__
+      const userPromptWithPlaceholders = replacePlaceholders(
+        customActionTemplates[contentType].userPrompt,
+        userSettings.summaryLang,
+        userSettings.summaryLength,
+        userSettings.summaryTone
+      )
+
+      // Then, replace content placeholder
+      userPrompt = userPromptWithPlaceholders.replace('__CONTENT__', text)
+      console.log(
+        `[DEBUG] Using DEFAULT template for enhanced ${contentType}:`,
+        userPrompt.substring(0, 100) + '...'
+      )
+    }
   } else {
     const contentConfig =
       promptBuilders[contentType] || promptBuilders['general']

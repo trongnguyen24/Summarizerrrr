@@ -98,8 +98,14 @@
         "course_concepts": "课程概念",
         "web_summary": "网页摘要",
         "selected_text": "选中文本",
+        "analyze": "分析",
+        "explain": "解释",
+        "debate": "辩论",
+        "youtube_comment": "YouTube评论",
         "override_note": "* 激活的提示将覆盖基础设置。"
-      }
+      },
+      "comment_limit": "YouTube评论限制",
+      "comment_limit_desc": "分析评论的最大数量。"
     },
     "chatgpt_config": {
       "api_key_label": "API 密钥",
@@ -200,7 +206,16 @@
       "domain_input_placeholder": "example.com 或 *.example.com",
       "domain_whitelist_helper": "仅在允许的域名上显示 FAB。",
       "domain_blacklist_helper": "在阻止的域名上隐藏 FAB，在其他地方显示。",
-      "domain_all_helper": "FAB 将在所有网站上显示"
+      "domain_all_helper": "悬浮按钮将显示在所有网站上",
+      "hide_on_site": "在此网站隐藏",
+      "drop_to_hide": "拖放到此处隐藏",
+      "blacklist_modal": {
+        "title": "关闭悬浮按钮？",
+        "disable_on": "在此网站禁用悬浮按钮",
+        "reenable_hint": "可在设置中重新启用",
+        "cancel": "取消",
+        "confirm": "确认"
+      }
     },
     "tools": {
       "deepdive": {
@@ -239,6 +254,10 @@
     "system_note": "可选：如不需要可跳过。",
     "user_prompt": "用户提示词",
     "user_note": "使用 __CONTENT__ 插入动态内容",
+    "sections": {
+      "summarize": "摘要",
+      "custom_actions": "自定义操作"
+    },
     "select_template": "选择模板",
     "prompt_enhance": "优化提示词",
     "buttons": {
@@ -400,6 +419,8 @@
     },
     "replace_warning": "⚠️ 警告：替换模式\n\n这将删除现有数据并用导入的数据替换：",
     "merge_mode_description": "• 导入的数据与现有数据合并<br />• 重复项（相同 ID）将被更新<br />• 导入的设置将覆盖现有设置",
-    "replace_mode_description": "• 首先完全删除选定的数据类型<br />• 然后仅用导入的数据替换<br />• 未选定的数据类型不受影响"
+    "replace_mode_description": "• 首先完全删除选定的数据类型<br />• 然后仅用导入的数据替换<br />• 未选定的数据类型不受影响",
+    "replace_warning_title": "警告：替换模式",
+    "confirm_replace": "是，替换"
   }
 }

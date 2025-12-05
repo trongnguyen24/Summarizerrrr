@@ -99,7 +99,16 @@
       "domain_input_placeholder": "example.com o *.example.com",
       "domain_whitelist_helper": "Mostrar FAB solo en dominios permitidos.",
       "domain_blacklist_helper": "Ocultar FAB en dominios bloqueados, mostrar en todos los demás.",
-      "domain_all_helper": "FAB se mostrará en todos los sitios web"
+      "domain_all_helper": "FAB se mostrará en todos los sitios web",
+      "hide_on_site": "Ocultar en este sitio",
+      "drop_to_hide": "Soltar para ocultar",
+      "blacklist_modal": {
+        "title": "¿Cerrar FAB?",
+        "disable_on": "Desactivar FAB en este sitio",
+        "reenable_hint": "Se puede reactivar en",
+        "cancel": "Cancelar",
+        "confirm": "Confirmar"
+      }
     },
     "ai_model": {
       "title": "Modelo IA",
@@ -157,8 +166,14 @@
         "course_concepts": "Conceptos de curso",
         "web_summary": "Resumen web",
         "selected_text": "Texto seleccionado",
+        "analyze": "Analizar",
+        "explain": "Explicar",
+        "debate": "Debatir",
+        "youtube_comment": "Comentario de YouTube",
         "override_note": "* Los prompts activos anulan los ajustes básicos."
-      }
+      },
+      "comment_limit": "Límite de comentarios de YouTube",
+      "comment_limit_desc": "Número máximo de comentarios para analizar."
     },
     "chatgpt_config": {
       "api_key_label": "Clave API",
@@ -261,6 +276,10 @@
     "system_note": "Opcional: Omitir si no es necesario.",
     "user_prompt": "Prompt del usuario",
     "user_note": "Usa __CONTENT__ para insertar contenido dinámico",
+    "sections": {
+      "summarize": "Resumen",
+      "custom_actions": "Acciones Personalizadas"
+    },
     "select_template": "Seleccionar plantilla",
     "prompt_enhance": "Mejorar prompt",
     "buttons": {
@@ -422,6 +441,8 @@
     },
     "replace_warning": "⚠️ ADVERTENCIA: Modo de reemplazo\n\nEsto ELIMINARÁ los datos existentes y LOS REEMPLAZARÁ con los datos importados:",
     "merge_mode_description": "• Los datos importados se combinan con datos existentes<br />• Los duplicados (mismo ID) serán actualizados<br />• La configuración importada sobrescribe la configuración existente",
-    "replace_mode_description": "• Los tipos de datos seleccionados se eliminan completamente primero<br />• Luego se reemplazan solo con datos importados<br />• Los tipos de datos no seleccionados no se ven afectados"
+    "replace_mode_description": "• Los tipos de datos seleccionados se eliminan completamente primero<br />• Luego se reemplazan solo con datos importados<br />• Los tipos de datos no seleccionados no se ven afectados",
+    "replace_warning_title": "Advertencia: Modo de reemplazo",
+    "confirm_replace": "Sí, reemplazar"
   }
 }

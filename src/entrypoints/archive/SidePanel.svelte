@@ -101,7 +101,7 @@
         unmatched.push(item)
       } else {
         const isMatched = archiveFilterStore.selectedTagIds.every((tagId) =>
-          item.tags.includes(tagId)
+          item.tags.includes(tagId),
         )
 
         if (isMatched) {
@@ -297,7 +297,7 @@
     startScale: 1,
     slideFrom: 'left',
   }}
-  class="w-80 relative flex flex-col h-screen"
+  class="w-80 relative flex flex-col h-lvh"
 >
   <h2 class="text-lg pl-12 pt-4.5 pb-2 font-bold">Summarizerrrr</h2>
 
@@ -594,12 +594,16 @@
     <div class="flex relative p-px gap-4 flex-col">
       <div class="p-4 flex justify-end gap-2">
         <div class="lang flex-1 overflow-hidden relative">
-          <input
-            type="text"
-            class="w-full px-3 h-10 bg-muted/5 dark:bg-muted/5 border border-border hover:border-blackwhite/15 focus:border-blackwhite/30 dark:border-blackwhite/10 dark:focus:border-blackwhite/20 focus:outline-none focus:ring-0 placeholder:text-muted transition-colors duration-150"
-            bind:value={newSummaryName}
-            onkeydown={handleKeyDown}
-          />
+          <div
+            class="overflow-hidden relative w-full h-10 bg-muted/5 dark:bg-muted/5 border border-border hover:border-blackwhite/15 focus-within:!border-blackwhite/30 dark:border-blackwhite/10 dark:focus-within:!border-blackwhite/20 transition-colors duration-150"
+          >
+            <input
+              type="text"
+              class="absolute top-0 left-0 w-[133.33%] h-[133.33%] pl-4 pr-12 text-base text-text-primary bg-transparent border-none focus:outline-none focus:ring-0 placeholder:text-muted origin-top-left scale-75"
+              bind:value={newSummaryName}
+              onkeydown={handleKeyDown}
+            />
+          </div>
         </div>
 
         <button class="relative overflow-hidden group" onclick={handleRename}>
@@ -696,14 +700,4 @@
   }
 
   /* Additional styles for smooth transitions */
-  .unmatched-item {
-    transition:
-      opacity 0.3s ease-in-out,
-      transform 0.3s ease-in-out;
-  }
-
-  .unmatched-item:hover {
-    opacity: 0.7 !important;
-    transform: translateX(2px);
-  }
 </style>

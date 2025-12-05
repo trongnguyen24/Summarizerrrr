@@ -65,6 +65,7 @@ const DEFAULT_SETTINGS = {
   summaryLang: 'English',
   summaryTone: 'simple',
   isSummaryAdvancedMode: false,
+  commentLimit: 60,
 
   // Prompts
   youtubePromptSelection: false,
@@ -91,6 +92,21 @@ const DEFAULT_SETTINGS = {
   selectedTextCustomPromptContent:
     'Summarize content, format by ## and ###: __CONTENT__',
   selectedTextCustomSystemInstructionContent: 'You are an AI assistant.',
+
+  // Custom Action Prompts
+  analyzePromptSelection: false,
+  analyzeCustomPromptContent: '',
+  analyzeCustomSystemInstructionContent: '',
+  explainPromptSelection: false,
+  explainCustomPromptContent: '',
+  explainCustomSystemInstructionContent: '',
+  debatePromptSelection: false,
+  debateCustomPromptContent: '',
+  debateCustomSystemInstructionContent: '',
+  // Custom Action Prompts - YouTube Comment
+  commentPromptSelection: false,
+  commentCustomPromptContent: '',
+  commentCustomSystemInstructionContent: '',
 
   // Advanced Mode (from former stores)
   isAdvancedMode: false,

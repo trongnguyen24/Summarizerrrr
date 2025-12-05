@@ -156,7 +156,7 @@
     const existingTag = tags.find(
       (t) =>
         t.name.toLowerCase() === validation.name.toLowerCase() &&
-        t.id !== tag.id
+        t.id !== tag.id,
     )
 
     if (existingTag) {
@@ -337,7 +337,7 @@
         <div class="relative group">
           <button
             class="flex items-center gap-1.5 text-sm w-full relative text-left hover:bg-surface-1 dark:hover:bg-surface-2 rounded-md {isTagSelected(
-              tag.id
+              tag.id,
             )
               ? '  text-blackwhite'
               : ' text-text-secondary'} {isTouchScreen
@@ -462,17 +462,21 @@
     <div class="flex relative p-px gap-4 flex-col">
       <div class="p-4 flex xs:flex-row flex-col justify-end gap-3 xs:gap-2">
         <div class="lang flex-1 overflow-hidden relative">
-          <input
-            type="text"
-            class="w-full px-3 h-10 bg-muted/5 dark:bg-muted/5 border border-border hover:border-blackwhite/15 focus:border-blackwhite/30 dark:border-blackwhite/10 dark:focus:border-blackwhite/20 focus:outline-none focus:ring-0 placeholder:text-muted transition-colors duration-150"
-            bind:value={dialogState.create.name}
-            onkeydown={createTagKeydown}
-            oninput={() => (dialogState.create.error = null)}
-            placeholder="Enter tag name..."
-            maxlength="60"
-            aria-label="Tag name"
-            bind:this={createInputRef}
-          />
+          <div
+            class="overflow-hidden relative w-full h-10 bg-muted/5 dark:bg-muted/5 border border-border hover:border-blackwhite/15 focus-within:!border-blackwhite/30 dark:border-blackwhite/10 dark:focus-within:!border-blackwhite/20 transition-colors duration-150"
+          >
+            <input
+              type="text"
+              class="absolute top-0 left-0 w-[133.33%] h-[133.33%] pl-4 pr-12 text-base text-text-primary bg-transparent border-none focus:outline-none focus:ring-0 placeholder:text-muted origin-top-left scale-75"
+              bind:value={dialogState.create.name}
+              onkeydown={createTagKeydown}
+              oninput={() => (dialogState.create.error = null)}
+              placeholder="Enter tag name..."
+              maxlength="60"
+              aria-label="Tag name"
+              bind:this={createInputRef}
+            />
+          </div>
           {#if dialogState.create.error}
             <p class="text-red-500 text-xs mt-1">{dialogState.create.error}</p>
           {/if}
@@ -528,17 +532,21 @@
     <div class="flex relative p-px gap-4 flex-col">
       <div class="p-4 flex xs:flex-row flex-col justify-end gap-3 xs:gap-2">
         <div class="lang flex-1 overflow-hidden relative">
-          <input
-            type="text"
-            class="w-full px-3 h-10 bg-muted/5 dark:bg-muted/5 border border-border hover:border-blackwhite/15 focus:border-blackwhite/30 dark:border-blackwhite/10 dark:focus:border-blackwhite/20 focus:outline-none focus:ring-0 placeholder:text-muted transition-colors duration-150"
-            bind:value={dialogState.rename.name}
-            onkeydown={renameTagKeydown}
-            oninput={() => (dialogState.rename.error = null)}
-            placeholder="Enter new tag name..."
-            maxlength="50"
-            aria-label="New tag name"
-            bind:this={renameInputRef}
-          />
+          <div
+            class="overflow-hidden relative w-full h-10 bg-muted/5 dark:bg-muted/5 border border-border hover:border-blackwhite/15 focus-within:!border-blackwhite/30 dark:border-blackwhite/10 dark:focus-within:!border-blackwhite/20 transition-colors duration-150"
+          >
+            <input
+              type="text"
+              class="absolute top-0 left-0 w-[133.33%] h-[133.33%] pl-4 pr-12 text-base text-text-primary bg-transparent border-none focus:outline-none focus:ring-0 placeholder:text-muted origin-top-left scale-75"
+              bind:value={dialogState.rename.name}
+              onkeydown={renameTagKeydown}
+              oninput={() => (dialogState.rename.error = null)}
+              placeholder="Enter new tag name..."
+              maxlength="50"
+              aria-label="New tag name"
+              bind:this={renameInputRef}
+            />
+          </div>
           {#if dialogState.rename.error}
             <p class="text-red-500 text-xs mt-1">{dialogState.rename.error}</p>
           {/if}

@@ -50,7 +50,7 @@
 
   // Derived state for provider (sync with global settings)
   let chatProvider = $derived(
-    settings.tools?.deepDive?.defaultChatProvider || 'gemini'
+    settings.tools?.deepDive?.defaultChatProvider || 'gemini',
   )
 
   // Derived state
@@ -58,7 +58,7 @@
   let isToolEnabled = $derived(toolConfig.enabled ?? false)
   let availability = $derived(validateDeepDiveAvailability())
   let canGenerate = $derived(
-    isToolEnabled && availability.available && summaryContent && !isGenerating
+    isToolEnabled && availability.available && summaryContent && !isGenerating,
   )
   let hasQuestions = $derived(questions.length > 0)
 
@@ -67,7 +67,7 @@
   let hasPagination = $derived(totalPages > 1)
   let canGoBack = $derived(deepDiveState.currentPageIndex > 0 && !isGenerating)
   let canGoForward = $derived(
-    deepDiveState.currentPageIndex < totalPages - 1 && !isGenerating
+    deepDiveState.currentPageIndex < totalPages - 1 && !isGenerating,
   )
 
   // Chat provider configs
@@ -91,7 +91,7 @@
   ]
 
   const selectedProvider = $derived(
-    providers.find((p) => p.value === chatProvider) || providers[0]
+    providers.find((p) => p.value === chatProvider) || providers[0],
   )
 
   /**
@@ -108,7 +108,7 @@
       console.log(
         '[DeepDivePanelFP] Using history:',
         deepDiveState.questionHistory.length,
-        'generations'
+        'generations',
       )
 
       const generated = await generateFollowUpQuestions(
@@ -116,7 +116,7 @@
         pageTitle,
         pageUrl,
         summaryLang,
-        deepDiveState.questionHistory
+        deepDiveState.questionHistory,
       )
 
       setQuestions(generated)
@@ -125,7 +125,7 @@
       console.log('[DeepDivePanelFP] Generated questions:', generated)
       console.log(
         '[DeepDivePanelFP] Total history:',
-        deepDiveState.questionHistory.length
+        deepDiveState.questionHistory.length,
       )
     } catch (err) {
       console.error('[DeepDivePanelFP] Generation error:', err)
@@ -154,7 +154,7 @@
       console.log(
         '[DeepDivePanelFP] Using history:',
         deepDiveState.questionHistory.length,
-        'generations'
+        'generations',
       )
 
       const generated = await generateFollowUpQuestions(
@@ -163,7 +163,7 @@
         pageUrl,
         summaryLang,
         deepDiveState.questionHistory,
-        true // ← isRegenerate = true for flexible prompt
+        true, // ← isRegenerate = true for flexible prompt
       )
 
       setQuestions(generated)
@@ -172,7 +172,7 @@
       console.log('[DeepDivePanelFP] Regenerated questions:', generated)
       console.log(
         '[DeepDivePanelFP] Total history:',
-        deepDiveState.questionHistory.length
+        deepDiveState.questionHistory.length,
       )
     } catch (err) {
       console.error('[DeepDivePanelFP] Regeneration error:', err)
@@ -212,7 +212,7 @@
     try {
       console.log(
         '[DeepDivePanelFP] Starting chat with question:',
-        question || '[open-ended]'
+        question || '[open-ended]',
       )
       await openDeepDiveChat(
         question,
@@ -220,7 +220,7 @@
         pageTitle,
         pageUrl,
         summaryLang,
-        chatProvider
+        chatProvider,
       )
     } catch (err) {
       console.error('[DeepDivePanelFP] Chat error:', err)
@@ -426,7 +426,7 @@
     background-color: var(--color-surface-1);
     border: 1px solid var(--color-border);
     border-radius: 10rem;
-    color: var(--text-secondary);
+    color: var(--color-text-secondary);
     transition: all 200ms;
     display: flex;
     align-items: center;
@@ -435,7 +435,7 @@
 
   .nav-btn:hover {
     background-color: var(--color-surface-2);
-    color: var(--primary);
+    color: var(--color-text--primary);
   }
 
   .nav-btn:disabled {

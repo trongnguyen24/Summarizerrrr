@@ -70,7 +70,7 @@
 
         // Nếu không có cache, check actual permission
         console.log('[GeneralSettings] Checking actual Firefox permission...')
-        const hasPermission = await checkSpecificPermission('https://*/*')
+        const hasPermission = await checkSpecificPermission('<all_urls>')
         console.log(
           '[GeneralSettings] Firefox permission result:',
           hasPermission,
@@ -95,7 +95,7 @@
     try {
       if (checked) {
         console.log('[GeneralSettings] Requesting Firefox permission...')
-        const granted = await requestSpecificPermission('https://*/*')
+        const granted = await requestSpecificPermission('<all_urls>')
         console.log('[GeneralSettings] Permission granted:', granted)
 
         // Update store thay vì local state
@@ -122,7 +122,7 @@
         }
       } else {
         console.log('[GeneralSettings] Removing Firefox permission...')
-        const removed = await removeSpecificPermission('https://*/*')
+        const removed = await removeSpecificPermission('<all_urls>')
         console.log('[GeneralSettings] Permission removed:', removed)
 
         // Update store - nếu removed thành công thì permission = false

@@ -99,7 +99,16 @@
       "domain_input_placeholder": "example.com or *.example.com",
       "domain_whitelist_helper": "Show FAB only on allowed domains.",
       "domain_blacklist_helper": "Hide FAB on blocked domains, show everywhere else.",
-      "domain_all_helper": "FAB will show on all websites"
+      "domain_all_helper": "FAB will show on all websites",
+      "hide_on_site": "Hide on this site",
+      "drop_to_hide": "Drop to Hide",
+      "blacklist_modal": {
+        "title": "Close FAB?",
+        "disable_on": "Disable FAB on this site",
+        "reenable_hint": "Can be re-enabled in",
+        "cancel": "Cancel",
+        "confirm": "Confirm"
+      }
     },
     "ai_model": {
       "title": "Provider",
@@ -151,14 +160,20 @@
       "custom_prompts": {
         "title": "Active custom prompts",
         "editor_button": "Prompt Editor",
-        "youtube_summary": "Youtube Summary",
-        "youtube_chapter": "Youtube Chapter",
+        "youtube_summary": "YouTube Summary",
+        "youtube_chapter": "YouTube Chapter",
         "course_summary": "Course Summary",
         "course_concepts": "Course Concepts",
         "web_summary": "Web Summary",
         "selected_text": "Selected Text",
-        "override_note": "* Basic settings are overridden by active custom prompts."
-      }
+        "analyze": "Analyze",
+        "explain": "Explain",
+        "debate": "Debate",
+        "youtube_comment": "YouTube Comment",
+        "override_note": "* Active prompts override basic settings."
+      },
+      "comment_limit": "YouTube Comment Limit",
+      "comment_limit_desc": "Maximum number of comments to analyze."
     },
     "chatgpt_config": {
       "api_key_label": "API Key",
@@ -261,6 +276,10 @@
     "system_note": "Optional: Skip if not needed.",
     "user_prompt": "User Prompt",
     "user_note": "Use the __CONTENT__ to insert the dynamic content",
+    "sections": {
+      "summarize": "Summarize",
+      "custom_actions": "Custom Actions"
+    },
     "select_template": "Select a template",
     "prompt_enhance": "Prompt enhance",
     "buttons": {
@@ -353,7 +372,8 @@
     "error": "Failed to {action} content",
     "debate_description": "Analyze from multiple perspectives",
     "chapters_description": "Summarize by chapters",
-    "comments_description": "Summarize YouTube comments"
+    "comments_description": "Summarize YouTube comments",
+    "courseConcepts_description": "Extract key concepts from course"
   },
   "tags": {
     "title": "Tags",
@@ -422,6 +442,8 @@
     },
     "replace_warning": "⚠️ WARNING: Replace Mode\n\nThis will DELETE existing data and REPLACE with imported data:",
     "merge_mode_description": "• Imported data is combined with existing data<br />• Duplicates (same ID) will be updated<br />• Imported settings override existing settings",
-    "replace_mode_description": "• Selected data types are completely deleted first<br />• Then replaced with imported data only<br />• Unselected data types are not affected"
+    "replace_mode_description": "• Selected data types are completely deleted first<br />• Then replaced with imported data only<br />• Unselected data types are not affected",
+    "replace_warning_title": "Warning: Replace Mode",
+    "confirm_replace": "Yes, Replace"
   }
 }

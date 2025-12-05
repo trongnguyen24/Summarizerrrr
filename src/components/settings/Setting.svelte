@@ -19,14 +19,9 @@
   import AboutSettings from './AboutSettings.svelte'
   import ToolsSettings from './ToolsSettings.svelte'
   import ReleaseNote from './ReleaseNote.svelte'
-  // import {
-  //   getTabFromURL,
-  //   updateURLTab,
-  //   setupURLListener,
-  //   navigateToTab,
-  // } from '@/lib/utils/urlUtils.js'
+  import { getTabFromURL } from '@/lib/utils/urlUtils.js'
 
-  let activeTab = $state('ai-summary') // Initialize tab from URL
+  let activeTab = $state(getTabFromURL()) // Initialize tab from URL
   let tabContainerEl // Reference to the tab container element
   let activeBarEl // Reference to the active bar element
   let scrollContainerEl // Reference to the scroll container element
@@ -37,7 +32,7 @@
     scrollContainerEl.scrollTop = 0
     document.querySelector('#setting-scroll > div:nth-child(1)').scrollTop = 0
     const activeButton = tabContainerEl.querySelector(
-      `[data-tab='${activeTab}']`
+      `[data-tab='${activeTab}']`,
     )
     if (!activeButton || !activeBarEl) return
 
@@ -55,15 +50,6 @@
 
   // Effect to update the bar when the active tab changes
   $effect(updateActiveBarPosition)
-
-  // Effect for handling URL navigation (browser back/forward)
-  // $effect(() => {
-  //   const cleanup = setupURLListener((newTab) => {
-  //     activeTab = newTab
-  //   })
-  //
-  //   return cleanup
-  // })
 
   // Effect for handling resize events
   $effect(() => {
@@ -83,7 +69,6 @@
   // Function to handle tab switching with URL update
   function switchTab(tabName) {
     activeTab = tabName
-    // updateURLTab(tabName)
   }
   const options = {
     scrollbars: {
@@ -141,11 +126,13 @@
     'heroicons:arrow-up-right-16-solid',
     'mdi:reddit',
   ])
+  import FirefoxPermissionOverlay from './FirefoxPermissionOverlay.svelte'
 </script>
 
 <div
   class="relative settings font-mono text-text-primary dark:text-text-secondary text-xs bg-surface-1 overflow-hidden w-full flex-shrink-0 flex flex-col"
 >
+  <FirefoxPermissionOverlay />
   <div
     class="flex justify-center relative items-center py-2 sm:order-1 sm:bg-surface-1 bg-background dark:bg-surface-2 border-b-0 border-border"
   >
@@ -275,7 +262,7 @@
   </div>
   <div
     id="setting-scroll"
-    class="sm:h-[calc(100dvh-9.5rem)] order-2 sm:order-4 h-[calc(100dvh-6.35rem)] overflow-y-auto"
+    class="sm:h-[calc(100dvh-9.5rem)] order-2 sm:order-4 h-[calc(100dvh-6.35rem)] pb-16 overflow-y-auto"
     bind:this={scrollContainerEl}
   >
     <div>

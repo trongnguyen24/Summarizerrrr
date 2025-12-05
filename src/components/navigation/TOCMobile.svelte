@@ -1,10 +1,27 @@
 <script>
   // @ts-nocheck
   import Icon from '@iconify/svelte'
+  import { t } from 'svelte-i18n'
+  import { settings, updateSettings } from '@/stores/settingsStore.svelte.js'
 
   import { animate, stagger, onScroll } from 'animejs'
 
   const { targetDivId } = $props()
+
+  // Font size levels in em units for shadow DOM
+  const fontSizeLevels = [0.875, 1, 1.25, 1.5]
+
+  function increaseFontSize() {
+    if (settings.fontSizeIndex < fontSizeLevels.length - 1) {
+      updateSettings({ fontSizeIndex: settings.fontSizeIndex + 1 })
+    }
+  }
+
+  function decreaseFontSize() {
+    if (settings.fontSizeIndex > 0) {
+      updateSettings({ fontSizeIndex: settings.fontSizeIndex - 1 })
+    }
+  }
 
   let idScroll = 'shadow-scroll'
 
@@ -239,6 +256,7 @@
   class="toc fixed z-40 right-0 bottom-2 group origin-bottom-right {!isTouchDevice()
     ? '!right-3'
     : ''}"
+  style="bottom: calc(var(--toc-bottom-offset, 0vh) + 2vh)"
 >
   <button
     class="flex items-end py-4 pl-6 pr-2 transition-all flex-col gap-1.5"
@@ -265,6 +283,7 @@
     class:active={shouldShowNav}
     onmouseenter={handleNavMouseEnter}
     onmouseleave={handleNavMouseLeave}
+    style="bottom: calc(var(--toc-bottom-offset, 0vh) + 2vh)"
   >
     <div class="relative flex flex-col justify-end inset-0 h-full">
       <div
@@ -293,12 +312,28 @@
       <div
         class="bg-surface-1 flex justify-between items-center border border-border overflow-hidden xs:rounded-b-lg border-t-0"
       >
+        <!-- Font Size Controls -->
+        <button
+          onclick={decreaseFontSize}
+          disabled={settings.fontSizeIndex === 0}
+          title={$t('archive.font_dec')}
+          class="px-4 border-border border-r flex-1/5 flex justify-center items-center gap-1 py-6 font-mono text-sm/4 no-underline transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          >A-</button
+        >
+        <button
+          onclick={increaseFontSize}
+          disabled={settings.fontSizeIndex === fontSizeLevels.length - 1}
+          title={$t('archive.font_inc')}
+          class="px-4 border-border border-r flex-1/5 flex justify-center items-center gap-1 py-6 font-mono text-sm/4 no-underline transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          >A+</button
+        >
+
         <button
           onclick={() => {
             scrollToBottom()
             isNavOpen = false
           }}
-          class="px-4 border-border border-r flex-1/3 flex justify-center items-center gap-1 py-6 font-mono text-sm/4 no-underline transition-colors"
+          class="px-4 border-border border-r flex-1/5 flex justify-center items-center gap-1 py-6 font-mono text-sm/4 no-underline transition-colors"
           ><Icon
             class=" rotate-180"
             width="20"
@@ -311,7 +346,7 @@
             scrollToTop()
             isNavOpen = false
           }}
-          class="px-4 flex justify-center flex-1/3 items-center gap-1 py-6 font-mono text-sm/4 no-underline transition-colors"
+          class="px-4 flex justify-center flex-1/5 items-center gap-1 py-6 font-mono text-sm/4 no-underline transition-colors"
           ><Icon width="20" icon="carbon:up-to-top" /></button
         >
         {#if isTouchDevice()}

@@ -21,7 +21,7 @@
       xmlns="http://www.w3.org/2000/svg"
       viewBox="0 0 16 16"
       fill="currentColor"
-      class="size-4 translate-y-0.5 group-hover:text-blackwhite transition-colors text-muted"
+      class="size-4 translate-y-1 sm:translate-y-0.5 group-hover:text-blackwhite transition-colors text-muted"
     >
       <path
         fill-rule="evenodd"
@@ -30,6 +30,8 @@
       />
     </svg>
 
-    <p class="question-text !m-0 !p-0 !text-sm flex-1">{question}</p>
+    <p class="question-text !m-0 !p-0 xs:text-sm text-base flex-1">
+      {question}
+    </p>
   </div>
 </button>

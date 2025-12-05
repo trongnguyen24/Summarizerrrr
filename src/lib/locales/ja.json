@@ -99,7 +99,16 @@
       "domain_input_placeholder": "example.com または *.example.com",
       "domain_whitelist_helper": "許可されたドメインでのみFABを表示します。",
       "domain_blacklist_helper": "ブロックされたドメインでFABを非表示にし、それ以外では表示します。",
-      "domain_all_helper": "FABはすべてのウェブサイトに表示されます"
+      "domain_all_helper": "FABはすべてのウェブサイトに表示されます",
+      "hide_on_site": "このサイトで非表示",
+      "drop_to_hide": "ドロップして非表示",
+      "blacklist_modal": {
+        "title": "FABを閉じますか？",
+        "disable_on": "このサイトでFABを無効にする",
+        "reenable_hint": "設定で再度有効にできます",
+        "cancel": "キャンセル",
+        "confirm": "確認"
+      }
     },
     "ai_model": {
       "title": "AI設定",
@@ -157,8 +166,14 @@
         "course_concepts": "コースの要点",
         "web_summary": "Web要約",
         "selected_text": "選択テキスト",
+        "analyze": "分析",
+        "explain": "説明",
+        "debate": "討論",
+        "youtube_comment": "YouTubeコメント",
         "override_note": "* カスタムプロンプトが基本設定より優先されます。"
-      }
+      },
+      "comment_limit": "YouTubeコメント制限",
+      "comment_limit_desc": "分析するコメントの最大数。"
     },
     "chatgpt_config": {
       "api_key_label": "APIキー",
@@ -261,6 +276,10 @@
     "system_note": "オプション：不要な場合はスキップ。",
     "user_prompt": "ユーザープロンプト",
     "user_note": "__CONTENT__を使用して動的コンテンツを挿入",
+    "sections": {
+      "summarize": "要約",
+      "custom_actions": "カスタムアクション"
+    },
     "select_template": "テンプレートを選択",
     "prompt_enhance": "プロンプト改善",
     "buttons": {
@@ -422,6 +441,8 @@
     },
     "replace_warning": "⚠️ 警告：置換モード\n\n既存のデータを削除し、インポートしたデータに置き換えます：",
     "merge_mode_description": "• インポートしたデータが既存のデータと結合されます<br />• 重複（同じID）は更新されます<br />• インポートした設定が既存の設定を上書きします",
-    "replace_mode_description": "• 選択したデータタイプが最初に完全に削除されます<br />• その後、インポートしたデータのみに置換されます<br />• 選択されていないデータタイプは影響を受けません"
+    "replace_mode_description": "• 選択したデータタイプが最初に完全に削除されます<br />• その後、インポートしたデータのみに置換されます<br />• 選択されていないデータタイプは影響を受けません",
+    "replace_warning_title": "警告: 置換モード",
+    "confirm_replace": "はい、置換します"
   }
 }

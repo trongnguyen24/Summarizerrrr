@@ -99,7 +99,16 @@
       "domain_input_placeholder": "example.com ou *.example.com",
       "domain_whitelist_helper": "Afficher le FAB seulement sur les domaines autorisés.",
       "domain_blacklist_helper": "Masquer le FAB sur les domaines bloqués, afficher partout ailleurs.",
-      "domain_all_helper": "Le FAB apparaîtra sur tous les sites web"
+      "domain_all_helper": "Le FAB apparaîtra sur tous les sites web",
+      "hide_on_site": "Masquer sur ce site",
+      "drop_to_hide": "Déposer pour masquer",
+      "blacklist_modal": {
+        "title": "Fermer le FAB ?",
+        "disable_on": "Désactiver le FAB sur ce site",
+        "reenable_hint": "Peut être réactivé dans",
+        "cancel": "Annuler",
+        "confirm": "Confirmer"
+      }
     },
     "ai_model": {
       "title": "Modèle IA",
@@ -157,8 +166,14 @@
         "course_concepts": "Concepts de cours",
         "web_summary": "Résumé web",
         "selected_text": "Texte sélectionné",
+        "analyze": "Analyser",
+        "explain": "Expliquer",
+        "debate": "Débattre",
+        "youtube_comment": "Commentaire YouTube",
         "override_note": "* Les prompts actifs remplacent les réglages de base."
-      }
+      },
+      "comment_limit": "Limite de commentaires YouTube",
+      "comment_limit_desc": "Nombre maximum de commentaires à analyser."
     },
     "chatgpt_config": {
       "api_key_label": "Clé API",
@@ -261,6 +276,10 @@
     "system_note": "Optionnel : Ignorer si pas nécessaire.",
     "user_prompt": "Prompt utilisateur",
     "user_note": "Utilisez __CONTENT__ pour insérer du contenu dynamique",
+    "sections": {
+      "summarize": "Résumé",
+      "custom_actions": "Actions personnalisées"
+    },
     "select_template": "Sélectionner un modèle",
     "prompt_enhance": "Améliorer le prompt",
     "buttons": {
@@ -422,6 +441,8 @@
     },
     "replace_warning": "⚠️ ATTENTION : Mode de remplacement\n\nCela SUPPRIMERA les données existantes et LES REMPLACERA par les données importées :",
     "merge_mode_description": "• Les données importées sont combinées avec les données existantes<br />• Les doublons (même ID) seront mis à jour<br />• Les paramètres importés remplacent les paramètres existants",
-    "replace_mode_description": "• Les types de données sélectionnés sont complètement supprimés d'abord<br />• Puis remplacés uniquement par les données importées<br />• Les types de données non sélectionnés ne sont pas affectés"
+    "replace_mode_description": "• Les types de données sélectionnés sont complètement supprimés d'abord<br />• Puis remplacés uniquement par les données importées<br />• Les types de données non sélectionnés ne sont pas affectés",
+    "replace_warning_title": "Attention : Mode Remplacement",
+    "confirm_replace": "Oui, remplacer"
   }
 }

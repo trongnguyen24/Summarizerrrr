@@ -8,7 +8,11 @@
   import { setContext } from 'svelte'
   import { fade } from 'svelte/transition'
 
-  let { onActionClick, isYouTubeActive = false } = $props()
+  let {
+    onActionClick,
+    isYouTubeActive = false,
+    isCourseActive = false,
+  } = $props()
 
   import { ACTION_BUTTONS } from '@/lib/constants/actionConstants.js'
 
@@ -19,6 +23,9 @@
     actions.filter((action) => {
       if (action.showOnlyForYouTube) {
         return isYouTubeActive
+      }
+      if (action.showOnlyForCourse) {
+        return isCourseActive
       }
       return true
     }),

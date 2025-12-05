@@ -99,7 +99,16 @@
       "domain_input_placeholder": "example.com hoặc *.example.com",
       "domain_whitelist_helper": "Chỉ hiển thị FAB trên các tên miền được phép.",
       "domain_blacklist_helper": "Ẩn FAB trên các tên miền bị chặn, hiển thị ở nơi khác.",
-      "domain_all_helper": "FAB sẽ hiển thị trên tất cả trang web"
+      "domain_all_helper": "FAB sẽ hiển thị trên tất cả trang web",
+      "hide_on_site": "Ẩn trên trang này",
+      "drop_to_hide": "Thả vào vùng để ẩn",
+      "blacklist_modal": {
+        "title": "Tắt FAB?",
+        "disable_on": "Tắt FAB trên trang này",
+        "reenable_hint": "Có thể bật lại trong",
+        "cancel": "Hủy",
+        "confirm": "Xác nhận"
+      }
     },
     "ai_model": {
       "title": "Nhà cung cấp",
@@ -151,14 +160,20 @@
       "custom_prompts": {
         "title": "Prompt tùy chỉnh",
         "editor_button": "Trình sửa Prompt",
-        "youtube_summary": "Tóm tắt Youtube",
-        "youtube_chapter": "Chương Youtube",
+        "youtube_summary": "Tóm tắt YouTube",
+        "youtube_chapter": "Chương YouTube",
         "course_summary": "Tóm tắt Khóa học",
         "course_concepts": "Khái niệm Khóa học",
         "web_summary": "Tóm tắt Web",
         "selected_text": "Văn bản đã chọn",
-        "override_note": "* Cài đặt cơ bản sẽ bị ghi đè bởi các prompt tùy chỉnh đang hoạt động."
-      }
+        "analyze": "Phân tích",
+        "explain": "Giải thích",
+        "debate": "Tranh luận",
+        "youtube_comment": "Bình luận YouTube",
+        "override_note": "* Prompt tùy chỉnh sẽ ghi đè cài đặt mặc định."
+      },
+      "comment_limit": "Giới hạn bình luận YouTube",
+      "comment_limit_desc": "Số lượng bình luận tối đa để phân tích."
     },
     "chatgpt_config": {
       "api_key_label": "Khóa API",
@@ -260,6 +275,10 @@
     "system_note": "Bổ sung, có thể bỏ qua",
     "user_prompt": "Prompt người dùng",
     "user_note": "Chèn __CONTENT__ để thêm nội dung ngữ cảnh",
+    "sections": {
+      "summarize": "Tóm tắt",
+      "custom_actions": "Hành động tùy chỉnh"
+    },
     "select_template": "Chọn mẫu prompt",
     "prompt_enhance": "Nâng cấp Prompt",
     "buttons": {
@@ -334,6 +353,13 @@
     "help_project": "Hỗ trợ dự án bằng cách quyên góp hoặc để lại đánh giá!",
     "edge_addons": "Tiện ích Edge"
   },
+  "permissionWarning": {
+    "title": "Yêu cầu quyền truy cập",
+    "button": "Cho phép truy cập tất cả trang web",
+    "description": "Summarizerrrr hoạt động mặc định trên YouTube, Udemy, Coursera, Reddit và Wikipedia. Để tóm tắt nội dung trên các trang web khác, vui lòng cấp quyền bên dưới.",
+    "requesting": "Đang yêu cầu...",
+    "grant_permissions": "Cấp quyền"
+  },
   "custom_actions": {
     "analyze": "Phân tích",
     "explain": "Giải thích",
@@ -345,7 +371,8 @@
     "error": "Thất bại khi {action} nội dung",
     "debate_description": "Phân tích từ nhiều góc độ",
     "chapters_description": "Tóm tắt theo chương",
-    "comments_description": "Tóm tắt bình luận YouTube"
+    "comments_description": "Tóm tắt bình luận YouTube",
+    "courseConcepts_description": "Trích xuất khái niệm khóa học"
   },
   "tags": {
     "title": "Thẻ",
@@ -414,6 +441,8 @@
     },
     "replace_warning": "⚠️ CẢNH BÁO: Chế độ thay thế\n\nĐiều này sẽ XÓA dữ liệu hiện có và THAY THẾ bằng dữ liệu đã nhập:",
     "merge_mode_description": "• Dữ liệu đã nhập được kết hợp với dữ liệu hiện có<br />• Bản sao (cùng ID) sẽ được cập nhật<br />• Cài đặt đã nhập sẽ ghi đè cài đặt hiện có",
-    "replace_mode_description": "• Các loại dữ liệu đã chọn bị xóa hoàn toàn trước<br />• Sau đó thay thế bằng chỉ dữ liệu đã nhập<br />• Các loại dữ liệu không chọn không bị ảnh hưởng"
+    "replace_mode_description": "• Các loại dữ liệu đã chọn bị xóa hoàn toàn trước<br />• Sau đó thay thế bằng chỉ dữ liệu đã nhập<br />• Các loại dữ liệu không chọn không bị ảnh hưởng",
+    "replace_warning_title": "Cảnh báo: Chế độ Thay thế",
+    "confirm_replace": "Đồng ý thay thế"
   }
 }

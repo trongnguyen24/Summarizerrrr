@@ -1,7 +1,7 @@
 <script>
   // @ts-nocheck
   import { onMount, onDestroy } from 'svelte'
-  import './styles/floating-ui.css'
+
   import {
     settings,
     loadSettings,
@@ -18,6 +18,7 @@
   import FloatingButton from './components/FloatingButton.svelte'
   import FloatingPanel from './components/FloatingPanel.svelte'
   import MobileSheet from './components/MobileSheet.svelte'
+  import BlacklistConfirmModal from './components/BlacklistConfirmModal.svelte'
   import { useNavigationManager } from './composables/useNavigationManager.svelte.js'
   import { useOneClickSummarization } from './composables/useOneClickSummarization.svelte.js'
   import '@fontsource-variable/geist-mono'
@@ -27,6 +28,7 @@
 
   let isPanelVisible = $state(false) // Add $state
   let isMobile = $state(false) // Add $state
+  let showBlacklistConfirm = $state(false)
   let shadowContainer = $state(null) // Shadow DOM container reference
   let navigationManager = useNavigationManager()
   let unsubscribeNavigation = null
@@ -35,6 +37,25 @@
 
   // One-click summarization
   let oneClickSummarization = useOneClickSummarization()
+
+  let isFabAllowedOnDomain = $derived.by(() => {
+    const domain = window.location.hostname
+    const control = settings.fabDomainControl || {
+      mode: 'all',
+      whitelist: [],
+      blacklist: [],
+    }
+
+    if (control.mode === 'whitelist') {
+      return control.whitelist?.includes(domain) ?? false
+    }
+
+    if (control.mode === 'blacklist') {
+      return !(control.blacklist?.includes(domain) ?? false)
+    }
+
+    return true
+  })
 
   // Initialize stores
   $effect(() => {
@@ -149,6 +170,10 @@
     return await oneClickSummarization.handleFloatingButtonClick()
   }
 
+  function handleBlacklistRequest() {
+    showBlacklistConfirm = true
+  }
+
   // Initialize one-click when component mounts
   $effect(() => {
     if (settings && shadowContainer) {
@@ -192,15 +217,20 @@
 
 <div bind:this={shadowContainer} class="floating-ui-root absolute top-0 left-0">
   <!-- rerender when settings.floatButton changes -->
-  {#if settings.showFloatingButton}
+  {#if settings.showFloatingButton && !showBlacklistConfirm && isFabAllowedOnDomain}
     {#key settings.floatButton}
       <FloatingButton
         topButton={settings.floatButton}
         toggle={togglePanel}
         oneClickHandler={handleOneClickSummarization}
         buttonState={oneClickSummarization.oneClickState().buttonState}
+        onBlacklistRequest={handleBlacklistRequest}
       />
     {/key}
+  {/if}
+
+  {#if showBlacklistConfirm}
+    <BlacklistConfirmModal onclose={() => (showBlacklistConfirm = false)} />
   {/if}
   {#if isMobile}
     {#key currentUrlKey}

@@ -31,4 +31,12 @@ export const ACTION_BUTTONS = [
     description: 'Summarize YouTube comments',
     showOnlyForYouTube: true,
   },
+  {
+    key: 'courseConcepts',
+    label: 'Concepts',
+    icon: 'heroicons:academic-cap-16-solid',
+    description: 'Extract key concepts from course',
+    showOnlyForCourse: true,
+  },
 ]
+

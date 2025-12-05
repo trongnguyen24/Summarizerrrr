@@ -15,6 +15,8 @@ function wildcardToRegex(pattern) {
 
 /**
  * Checks if a hostname matches a domain pattern (with wildcard support)
+ * Case insensitive and supports subdomain matching for plain domains.
+ * Also supports bidirectional www matching (youtube.com matches www.youtube.com and vice versa).
  * @param {string} hostname - The hostname to check
  * @param {string} domainPattern - Domain pattern (may contain *)
  * @returns {boolean} - True if matches
@@ -22,14 +24,33 @@ function wildcardToRegex(pattern) {
 function matchesDomainPattern(hostname, domainPattern) {
   if (!hostname || !domainPattern) return false
 
+  const host = hostname.toLowerCase()
+  const pattern = domainPattern.toLowerCase()
+
   // If pattern contains *, use regex matching
-  if (domainPattern.includes('*')) {
-    const regex = wildcardToRegex(domainPattern)
-    return regex.test(hostname)
+  if (pattern.includes('*')) {
+    const regex = wildcardToRegex(pattern)
+    return regex.test(host)
   }
 
-  // For simple patterns, use contains matching (backward compatibility)
-  return hostname.includes(domainPattern)
+  // Exact match
+  if (host === pattern) return true
+
+  // Normalize domains by removing www. prefix for comparison
+  const normalizedHost = host.startsWith('www.') ? host.slice(4) : host
+  const normalizedPattern = pattern.startsWith('www.') ? pattern.slice(4) : pattern
+
+  // After normalization, check if they match
+  if (normalizedHost === normalizedPattern) return true
+
+  // Subdomain match (e.g., "youtube.com" matches "www.youtube.com" or "m.youtube.com")
+  // Ensure it's a dot boundary to avoid partial matches like "myyoutube.com"
+  if (host.endsWith('.' + pattern)) return true
+  
+  // Reverse subdomain match (e.g., "www.youtube.com" pattern matches "youtube.com" host)
+  if (pattern.endsWith('.' + host)) return true
+
+  return false
 }
 
 /**

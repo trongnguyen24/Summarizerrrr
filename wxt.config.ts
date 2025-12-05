@@ -115,6 +115,95 @@ export default defineConfig({
           },
         },
       }
+    } else if (browser === 'safari') {
+      return {
+        manifest_version: 2,
+        name: 'Summarizerrrr',
+        description:
+          'Extension helps you summarize for YouTube, Udemy, Coursera, any websites. Crafted with superior UI/UX design.',
+        default_locale: 'en',
+        background: {
+          scripts: ['background.js'],
+          persistent: false,
+        },
+        host_permissions: [
+          'http://127.0.0.1:11434/*',
+          'http://localhost:11434/*',
+          'http://localhost:1234/*',
+          '*://*.iconify.design/*',
+          '*://api.openai.com/*',
+          '*://api.groq.com/*',
+          '*://generativelanguage.googleapis.com/*',
+          '*://api.anthropic.com/*',
+          '*://openrouter.ai/*',
+          '*://api.cerebras.ai/*',
+          '*://api.deepseek.com/*',
+          '<all_urls>',
+        ],
+        permissions: [
+          'storage',
+          'activeTab',
+          'scripting',
+          'tabs',
+          'contextMenus',
+          'declarativeNetRequest',
+        ],
+        browser_action: {
+          default_title: 'Summarizerrrr',
+          default_popup: 'popop.html',
+        },
+        sidebar_action: {
+          default_panel: 'sidepanel.html',
+          default_title: 'Summarizerrrr',
+        },
+        content_scripts: [
+          {
+            matches: ['*://m.youtube.com/*', '*://www.youtube.com/*'],
+            js: [
+              'libs/protobuf.min.js',
+              'youtube_transcript.js',
+              'content-script.js',
+            ],
+            run_at: 'document_end',
+          },
+        ],
+        web_accessible_resources: [
+          {
+            resources: [
+              'libs/protobuf.min.js',
+              'youtube_transcript.js',
+              'youtube_comments.js',
+              'youtube_player_control.js',
+            ],
+            matches: ['*://m.youtube.com/*', '*://www.youtube.com/*'],
+          },
+        ],
+        commands: {
+          _execute_browser_action: {
+            suggested_key: {
+              default: 'Alt+A',
+            },
+          },
+          'summarize-current-page': {
+            suggested_key: {
+              default: 'Alt+S',
+            },
+            description: 'Summarize current page',
+          },
+          'open-prompt-page': {
+            suggested_key: {
+              default: 'Alt+P',
+            },
+            description: 'Open prompt editer',
+          },
+          'open-archive-panel': {
+            suggested_key: {
+              default: 'Alt+X',
+            },
+            description: 'Open archive panel',
+          },
+        },
+      }
     } else if (browser === 'firefox') {
       return {
         default_locale: 'en',
@@ -134,6 +223,8 @@ export default defineConfig({
           '*://*.udemy.com/*',
           '*://*.coursera.org/*',
           '*://*.reddit.com/*',
+          '*://*.wikipedia.org/*',
+          'https://www.wikipedia.org/*',
           '*://*.iconify.design/*',
           '*://api.openai.com/*',
           '*://api.groq.com/*',

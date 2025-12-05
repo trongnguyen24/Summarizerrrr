@@ -348,44 +348,24 @@ export async function fetchAndSummarize() {
         summaryState.summaryError = errorObject
       }
     } else if (summaryState.isCourseVideoActive) {
-      const courseSummaryPromise = (async () => {
-        summaryState.courseSummaryError = null
-        try {
-          const courseSummarizedText = await summarizeContent(
-            summaryState.currentContentSource,
-            'courseSummary'
-          )
-          summaryState.courseSummary =
-            courseSummarizedText ||
-            '<p><i>Could not generate course summary.</i></p>'
-        } catch (e) {
-          summaryState.courseSummaryError = handleError(e, {
-            source: 'courseSummarization',
-          })
-        } finally {
-          summaryState.isCourseSummaryLoading = false
-        }
-      })()
-
-      const courseConceptsPromise = (async () => {
-        summaryState.courseConceptsError = null
-        try {
-          const courseConceptsText = await summarizeContent(
-            summaryState.currentContentSource,
-            'courseConcepts'
-          )
-          summaryState.courseConcepts =
-            courseConceptsText ||
-            '<p><i>Could not explain course concepts.</i></p>'
-        } catch (e) {
-          summaryState.courseConceptsError = handleError(e, {
-            source: 'courseConceptsExplanation',
-          })
-        } finally {
-          summaryState.isCourseConceptsLoading = false
-        }
-      })()
-      await Promise.allSettled([courseSummaryPromise, courseConceptsPromise])
+      // Course: chỉ tóm tắt courseSummary, courseConcepts là custom action riêng
+      summaryState.courseSummaryError = null
+      try {
+        const courseSummarizedText = await summarizeContent(
+          summaryState.currentContentSource,
+          'courseSummary'
+        )
+        summaryState.courseSummary =
+          courseSummarizedText ||
+          '<p><i>Could not generate course summary.</i></p>'
+      } catch (e) {
+        summaryState.courseSummaryError = handleError(e, {
+          source: 'courseSummarization',
+        })
+      } finally {
+        summaryState.isCourseSummaryLoading = false
+        summaryState.isCourseConceptsLoading = false
+      }
     } else {
       summaryState.summaryError = null
       try {
@@ -425,19 +405,13 @@ export async function fetchAndSummarize() {
         'Video Summary'
       )
     } else if (summaryState.isCourseVideoActive) {
+      // Course: chỉ log courseSummary, courseConcepts là custom action riêng
       if (summaryState.courseSummary)
         await logSingleSummaryToHistory(
           summaryState.courseSummary,
           summaryState.pageTitle,
           summaryState.pageUrl,
           'Course Summary'
-        )
-      if (summaryState.courseConcepts)
-        await logSingleSummaryToHistory(
-          summaryState.courseConcepts,
-          summaryState.pageTitle,
-          summaryState.pageUrl,
-          'Course Concepts'
         )
     } else if (summaryState.summary) {
       await logSingleSummaryToHistory(
@@ -585,6 +559,140 @@ export async function fetchChapterSummary() {
     )
   }
 }
+
+/**
+ * Fetches and generates Course Concepts summary.
+ * Standalone custom action for course pages (Udemy/Coursera).
+ */
+export async function fetchCourseConcepts() {
+  // Wait for settings to be initialized
+  await loadSettings()
+
+  const userSettings = settings
+
+  // Determine the actual provider to use based on isAdvancedMode
+  let selectedProviderId = userSettings.selectedProvider || 'gemini'
+  if (!userSettings.isAdvancedMode) {
+    selectedProviderId = 'gemini' // Force Gemini in basic mode
+  }
+
+  // Check if we should use streaming mode
+  const shouldUseStreaming =
+    userSettings.enableStreaming &&
+    providerSupportsStreaming(selectedProviderId)
+
+  // Reset Deep Dive when starting course concepts
+  resetDeepDive()
+
+  // Reset custom action state for course concepts
+  summaryState.isCustomActionLoading = true
+  summaryState.lastSummaryTypeDisplayed = 'custom'
+  summaryState.currentActionType = 'courseConcepts'
+  summaryState.customActionResult = ''
+  summaryState.customActionError = null
+  // Reset model status for custom actions
+  summaryState.modelStatus = {
+    currentModel: null,
+    fallbackFrom: null,
+    isFallback: false,
+  }
+
+  // Create new AbortController for this streaming operation
+  summaryState.abortController = new AbortController()
+  const abortSignal = summaryState.abortController.signal
+
+  try {
+    // Get current tab info
+    const [tabInfo] = await browser.tabs.query({
+      active: true,
+      currentWindow: true,
+    })
+    if (!tabInfo || !tabInfo.url) {
+      throw new Error('Could not get current tab information or URL.')
+    }
+
+    // Verify this is a course page
+    const COURSE_MATCH_PATTERN = /udemy\.com\/course\/.*\/learn\/|coursera\.org\/learn\//i
+    if (!COURSE_MATCH_PATTERN.test(tabInfo.url)) {
+      throw new Error('Course Concepts is only available for Udemy/Coursera course pages.')
+    }
+
+    // Check Firefox permissions
+    if (import.meta.env.BROWSER === 'firefox') {
+      const hasPermission = await checkPermission(tabInfo.url)
+      if (!hasPermission) {
+        const permissionGranted = await requestPermission(tabInfo.url)
+        if (!permissionGranted) {
+          throw new Error(
+            'Permission denied for this website. Please enable permissions in Settings or grant access when prompted.'
+          )
+        }
+      }
+    }
+
+    // Fetch course transcript
+    console.log('[summaryStore] Fetching transcript for course concepts')
+    const contentResult = await getPageContent(
+      'transcript',
+      userSettings.summaryLang
+    )
+    const transcript = contentResult.content
+
+    // Generate course concepts
+    if (shouldUseStreaming) {
+      // Use streaming mode
+      try {
+        console.log('[summaryStore] Starting course concepts streaming...')
+        const conceptsStream = summarizeContentStream(transcript, 'courseConcepts', abortSignal)
+        let chunkCount = 0
+        for await (const chunk of conceptsStream) {
+          summaryState.customActionResult += chunk
+          chunkCount++
+        }
+        console.log(
+          `[summaryStore] Course concepts streaming completed, chunks: ${chunkCount}`
+        )
+      } catch (streamError) {
+        console.log(
+          '[summaryStore] Course concepts streaming error, falling back to blocking mode:',
+          streamError
+        )
+        showBlockingModeToast()
+        // Fallback to blocking mode
+        const conceptsText = await summarizeContent(transcript, 'courseConcepts')
+        summaryState.customActionResult =
+          conceptsText || '<p><i>Could not generate course concepts.</i></p>'
+      }
+    } else {
+      // Use non-streaming mode
+      const conceptsText = await summarizeContent(transcript, 'courseConcepts')
+      summaryState.customActionResult =
+        conceptsText || '<p><i>Could not generate course concepts.</i></p>'
+    }
+
+    // Update page info
+    summaryState.pageTitle = tabInfo.title || 'Unknown Title'
+    summaryState.pageUrl = tabInfo.url || 'Unknown URL'
+
+  } catch (e) {
+    const errorObject = handleError(e, {
+      source: 'courseConceptsSummarization',
+    })
+    summaryState.customActionError = errorObject
+  } finally {
+    summaryState.isCustomActionLoading = false
+    // Clear abort controller after streaming completes
+    summaryState.abortController = null
+
+    // Log to history after course concepts is complete
+    await logSingleSummaryToHistory(
+      summaryState.customActionResult,
+      summaryState.pageTitle,
+      summaryState.pageUrl,
+      'Course Concepts'
+    )
+  }
+}
 export async function fetchAndSummarizeStream() {
   if (
     summaryState.isLoading ||
@@ -726,50 +834,27 @@ export async function fetchAndSummarizeStream() {
         }
       }
     } else if (summaryState.isCourseVideoActive) {
+      // Course: chỉ streaming courseSummary, courseConcepts là custom action riêng
       summaryState.isCourseSummaryLoading = true
-      summaryState.isCourseConceptsLoading = true
+      summaryState.isCourseConceptsLoading = false
+      summaryState.courseSummaryError = null
 
-      const courseSummaryPromise = (async () => {
-        summaryState.courseSummaryError = null
-        try {
-          const courseSummaryStream = summarizeContentStream(
-            summaryState.currentContentSource,
-            'courseSummary',
-            abortSignal
-          )
-          for await (const chunk of courseSummaryStream) {
-            summaryState.courseSummary += chunk
-          }
-        } catch (e) {
-          summaryState.courseSummaryError = handleError(e, {
-            source: 'courseSummaryStreamSummarization',
-          })
-        } finally {
-          summaryState.isCourseSummaryLoading = false
+      try {
+        const courseSummaryStream = summarizeContentStream(
+          summaryState.currentContentSource,
+          'courseSummary',
+          abortSignal
+        )
+        for await (const chunk of courseSummaryStream) {
+          summaryState.courseSummary += chunk
         }
-      })()
-      promises.push(courseSummaryPromise)
-
-      const courseConceptsPromise = (async () => {
-        summaryState.courseConceptsError = null
-        try {
-          const courseConceptsStream = summarizeContentStream(
-            summaryState.currentContentSource,
-            'courseConcepts',
-            abortSignal
-          )
-          for await (const chunk of courseConceptsStream) {
-            summaryState.courseConcepts += chunk
-          }
-        } catch (e) {
-          summaryState.courseConceptsError = handleError(e, {
-            source: 'courseConceptsStreamSummarization',
-          })
-        } finally {
-          summaryState.isCourseConceptsLoading = false
-        }
-      })()
-      promises.push(courseConceptsPromise)
+      } catch (e) {
+        summaryState.courseSummaryError = handleError(e, {
+          source: 'courseSummaryStreamSummarization',
+        })
+      } finally {
+        summaryState.isCourseSummaryLoading = false
+      }
     } else {
       summaryState.summaryError = null
       try {

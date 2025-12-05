@@ -44,12 +44,72 @@
     const filename = `${sanitizedTitle || 'summary'}.md`
 
     try {
+      const blob = new Blob([contentWithMetadata], {
+        type: 'text/markdown;charset=utf-8',
+      })
+
+      // Priority 1: navigator.share (Mobile/iOS)
+      try {
+        const file = new File([blob], filename, { type: 'text/markdown' })
+        if (
+          navigator.canShare &&
+          navigator.canShare({ files: [file] }) &&
+          // Check if running on mobile/tablet
+          /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+        ) {
+          await navigator.share({
+            files: [file],
+          })
+          isDownloaded = true
+          setTimeout(() => {
+            isDownloaded = false
+          }, 2000)
+          return
+        }
+      } catch (error) {
+        console.warn('[DownloadButton] Share failed, falling back:', error)
+      }
+
+      // Priority 2: chrome.downloads API (Extension)
+      try {
+        // @ts-ignore
+        const downloadsApi = (typeof browser !== 'undefined' ? browser : chrome)
+          .downloads
+        if (downloadsApi) {
+          const url = URL.createObjectURL(blob)
+          await new Promise((resolve, reject) => {
+            downloadsApi.download(
+              {
+                url: url,
+                filename: filename,
+                saveAs: true,
+              },
+              (downloadId) => {
+                if (chrome.runtime.lastError) {
+                  reject(chrome.runtime.lastError)
+                } else {
+                  resolve(downloadId)
+                }
+              },
+            )
+          })
+          setTimeout(() => URL.revokeObjectURL(url), 10000)
+          isDownloaded = true
+          setTimeout(() => {
+            isDownloaded = false
+          }, 2000)
+          return
+        }
+      } catch (error) {
+        console.warn(
+          '[DownloadButton] chrome.downloads failed, falling back:',
+          error,
+        )
+      }
+
+      // Priority 3: Fallback to <a> tag (Desktop Web / Legacy)
       // Check if File System Access API is supported
       if ('showSaveFilePicker' in window) {
-        const blob = new Blob([contentWithMetadata], {
-          type: 'text/markdown;charset=utf-8',
-        })
-
         const options = {
           suggestedName: filename,
           types: [
@@ -68,19 +128,34 @@
         await writable.close()
       } else {
         // Fallback for browsers that don't support File System Access API
-        const blob = new Blob([contentWithMetadata], {
-          type: 'text/markdown;charset=utf-8',
-        })
-        const url = URL.createObjectURL(blob)
+        // Use Data URL for small files (< 10MB) to avoid Blob URL revocation issues on iOS
+        let url
+        const isSmallFile = blob.size < 10 * 1024 * 1024 // 10MB
+
+        if (isSmallFile) {
+          const reader = new FileReader()
+          url = await new Promise((resolve) => {
+            reader.onloadend = () => resolve(reader.result)
+            reader.readAsDataURL(blob)
+          })
+        } else {
+          url = URL.createObjectURL(blob)
+        }
 
         const link = document.createElement('a')
         link.href = url
         link.download = filename
+        link.style.display = 'none'
         document.body.appendChild(link)
         link.click()
-        document.body.removeChild(link)
 
-        URL.revokeObjectURL(url)
+        // Clean up
+        setTimeout(() => {
+          document.body.removeChild(link)
+          if (!isSmallFile) {
+            URL.revokeObjectURL(url)
+          }
+        }, 30000)
       }
 
       isDownloaded = true

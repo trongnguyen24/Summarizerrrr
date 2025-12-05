@@ -17,13 +17,14 @@ export function getRequiredPermission(url) {
     url.includes('youtube.com') ||
     url.includes('udemy.com') ||
     url.includes('coursera.org') ||
-    url.includes('reddit.com')
+    url.includes('reddit.com') ||
+    url.includes('wikipedia.org')
   ) {
     return null // Đã có host permission
   }
 
   // Default cho tất cả các site khác (trừ sites có host permissions)
-  return 'https://*/*'
+  return '<all_urls>'
 }
 
 /**
@@ -40,9 +41,11 @@ export async function checkPermission(url) {
       return true
     }
 
-    return await browser.permissions.contains({
+    const hasPermission = await browser.permissions.contains({
       origins: [permission],
     })
+    
+    return hasPermission
   } catch (error) {
     console.error(
       '[FirefoxPermissionService] Error checking permission:',

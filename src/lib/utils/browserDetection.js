@@ -49,6 +49,23 @@ export function isMobile() {
 }
 
 /**
+ * Detects if the current device is a touch device
+ * @returns {boolean} True if touch device, false otherwise
+ */
+export function isTouchDevice() {
+  try {
+    return (
+      'ontouchstart' in window ||
+      navigator.maxTouchPoints > 0 ||
+      navigator.msMaxTouchPoints > 0
+    )
+  } catch (error) {
+    console.log('Error detecting touch device:', error)
+    return false
+  }
+}
+
+/**
  * Checks if the browser supports advanced streaming features
  * @returns {boolean} True if advanced streaming is supported, false otherwise
  */
@@ -108,6 +125,7 @@ export function isInWebExtensionContext() {
 export function getBrowserCompatibility() {
   const compatibility = {
     isMobile: isMobile(),
+    isTouchDevice: isTouchDevice(),
     isFirefoxMobile: isFirefoxMobile(),
     supportsAdvancedStreaming: supportsAdvancedStreaming(),
     isInWebExtensionContext: isInWebExtensionContext(),

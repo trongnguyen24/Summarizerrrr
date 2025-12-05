@@ -99,7 +99,16 @@
       "domain_input_placeholder": "example.com 또는 *.example.com",
       "domain_whitelist_helper": "허용된 도메인에서만 FAB 표시",
       "domain_blacklist_helper": "차단된 도메인에서 FAB 숨기기, 나머지 모든 곳 표시",
-      "domain_all_helper": "FAB는 모든 웹사이트에 표시됩니다"
+      "domain_all_helper": "FAB는 모든 웹사이트에 표시됩니다",
+      "hide_on_site": "이 사이트에서 숨기기",
+      "drop_to_hide": "놓아서 숨기기",
+      "blacklist_modal": {
+        "title": "FAB를 닫으시겠습니까?",
+        "disable_on": "이 사이트에서 FAB 비활성화",
+        "reenable_hint": "다음에서 다시 활성화할 수 있습니다",
+        "cancel": "취소",
+        "confirm": "확인"
+      }
     },
     "ai_model": {
       "title": "제공자",
@@ -157,8 +166,14 @@
         "course_concepts": "강의 개념",
         "web_summary": "웹 요약",
         "selected_text": "선택된 텍스트",
+        "analyze": "분석",
+        "explain": "설명",
+        "debate": "토론",
+        "youtube_comment": "YouTube 댓글",
         "override_note": "* 기본 설정은 활성 사용자 지정 프롬프트로 재정의됩니다."
-      }
+      },
+      "comment_limit": "YouTube 댓글 제한",
+      "comment_limit_desc": "분석할 댓글의 최대 수."
     },
     "chatgpt_config": {
       "api_key_label": "API 키",
@@ -261,6 +276,10 @@
     "system_note": "선택사항: 필요하지 않으면 건너뛰기",
     "user_prompt": "사용자 프롬프트",
     "user_note": "__CONTENT__를 사용하여 동적 콘텐츠 삽입",
+    "sections": {
+      "summarize": "요약",
+      "custom_actions": "사용자 지정 액션"
+    },
     "select_template": "템플릿 선택",
     "prompt_enhance": "프롬프트 향상",
     "buttons": {
@@ -422,6 +441,8 @@
     },
     "replace_warning": "⚠️ 경고: 교체 모드\n\n기존 데이터를 삭제하고 가져온 데이터로 교체합니다:",
     "merge_mode_description": "• 가져온 데이터가 기존 데이터와 결합됨<br />• 중복 항목(동일 ID)이 업데이트됨<br />• 가져온 설정이 기존 설정을 재정의함",
-    "replace_mode_description": "• 선택된 데이터 유형이 먼저 완전히 삭제됨<br />• 그런 다음 가져온 데이터로만 교체됨<br />• 선택되지 않은 데이터 유형은 영향을 받지 않음"
+    "replace_mode_description": "• 선택된 데이터 유형이 먼저 완전히 삭제됨<br />• 그런 다음 가져온 데이터로만 교체됨<br />• 선택되지 않은 데이터 유형은 영향을 받지 않음",
+    "replace_warning_title": "경고: 교체 모드",
+    "confirm_replace": "예, 교체합니다"
   }
 }

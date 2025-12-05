@@ -10,6 +10,16 @@
 
   let { summary, isLoading, targetId, showTOC = false, error } = $props()
 
+  // Font size levels in em units for shadow DOM
+  const fontSizeLevels = [0.875, 1, 1.125, 1.25] // 14px, 16px, 18px, 20px at base 16px
+
+  const fontMap = {
+    default: 'font-default',
+    'noto-serif': 'font-noto-serif',
+    opendyslexic: 'font-opendyslexic',
+    mali: 'font-mali',
+  }
+
   let parsedContent = $state('')
   let container = $state()
 
@@ -109,9 +119,9 @@
   {:else if parsedContent}
     <div
       id="fp-generic-summary"
-      style="font-size: 16px;"
+      style="font-size: {fontSizeLevels[settings.fontSizeIndex]}em;"
       bind:this={container}
-      class="prose markdown-container-v2"
+      class="prose markdown-container-v2 {fontMap[settings.selectedFont]}"
       onclick={handleContentClick}
       role="presentation"
     >

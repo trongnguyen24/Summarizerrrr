@@ -15,6 +15,7 @@
   import CopyButton from '@/components/buttons/CopyButton.svelte'
   import DownloadButton from '@/components/buttons/DownloadButton.svelte'
   import DisplaySettingsControls from '@/components/displays/ui/DisplaySettingsControls.svelte'
+  import DeepDiveQuestionsArchive from '@/components/tools/deepdive/DeepDiveQuestionsArchive.svelte'
   import {
     settings, // Giữ lại vì vẫn dùng để tính toán class cho prose
   } from '@/stores/settingsStore.svelte.js'
@@ -291,6 +292,21 @@
           </svg>
         </div>
       </div>
+
+      <!-- Deep Dive Questions Section -->
+      {#if activeTabId}
+        {@const currentSummaryForDeepDive = selectedSummary.summaries.find(
+          (_, index) => `summary-tab-${index}` === activeTabId,
+        )}
+        {#if currentSummaryForDeepDive && settings.tools?.deepDive?.enabled}
+          <DeepDiveQuestionsArchive
+            summaryContent={currentSummaryForDeepDive.content}
+            pageTitle={selectedSummary.title}
+            pageUrl={selectedSummary.url}
+            summaryLang={settings.summaryLang || 'English'}
+          />
+        {/if}
+      {/if}
     </div>
   </div>
 

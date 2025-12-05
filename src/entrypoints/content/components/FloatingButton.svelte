@@ -22,6 +22,7 @@
     oneClickHandler,
     buttonState = 'idle',
     onBlacklistRequest,
+    isOpen = false,
   } = $props()
   let buttonElement
   let buttonElementBG
@@ -585,22 +586,60 @@
               class:firefox={isFirefoxBrowser}
             >
             </span>
-          {:else}
-            <!-- Normal icon -->
+          {:else if isOpen}
+            <!-- Close icon when panel is open -->
             <span
-              class=" size-9 flex justify-center items-center"
-              transition:slideScaleFade={{
+              class=" flex absolute inset-0 justify-center items-center"
+              in:slideScaleFade={{
+                duration: 400,
+                delay: 100,
+                slideFrom: 'left',
+                slideDistance: '0',
+                startScale: 0.6,
+              }}
+              out:slideScaleFade={{
                 duration: 400,
                 delay: 0,
                 slideFrom: 'left',
                 slideDistance: '0',
-                startScale: 0.8,
+                startScale: 0.6,
               }}
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                width="18"
-                height="18"
+                width="24"
+                height="24"
+                viewBox="0 0 16 16"
+                fill="currentColor"
+              >
+                <path
+                  d="M5.28 4.22a.75.75 0 0 0-1.06 1.06L6.94 8l-2.72 2.72a.75.75 0 1 0 1.06 1.06L8 9.06l2.72 2.72a.75.75 0 1 0 1.06-1.06L9.06 8l2.72-2.72a.75.75 0 0 0-1.06-1.06L8 6.94 5.28 4.22Z"
+                />
+              </svg>
+            </span>
+          {:else}
+            <!-- Normal icon -->
+            <span
+              class=" size-9 flex justify-center items-center"
+              in:slideScaleFade={{
+                duration: 400,
+                delay: 100,
+                slideFrom: 'left',
+                slideDistance: '0',
+                startScale: 0.6,
+              }}
+              out:slideScaleFade={{
+                duration: 400,
+                delay: 0,
+                slideFrom: 'left',
+                slideDistance: '0',
+                startScale: 0.6,
+              }}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
                 viewBox="0 0 16 16"
               >
                 <path

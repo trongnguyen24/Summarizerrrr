@@ -111,7 +111,6 @@
   let displayTitle = $state('')
   let ts = null
   let settingsLog = $state('')
-  let isPromptDirty = $state(false)
 
   $effect(() => {
     if (promptKey) {
@@ -214,14 +213,12 @@
     })
     initialSystemPrompt = currentSystemPrompt
     initialUserPrompt = currentUserPrompt
-    isPromptDirty = false
     toast(CustomToast)
   }
 
   function handleDiscardChanges() {
     currentSystemPrompt = initialSystemPrompt
     currentUserPrompt = initialUserPrompt
-    isPromptDirty = false
   }
 
   function handlePromptMenuClick(key) {
@@ -348,7 +345,6 @@
           id="currentSystemPrompt"
           class="textarea relative z-10 bg-white dark:bg-surface-1 border border-border h-full w-full mb-2 p-2 rounded-lg outline-0 shadow-[0_0_0_0_var(--color-border)] focus:shadow-[0_0_0_3px_var(--color-border)] transition-shadow focus:border-muted/60"
           bind:value={currentSystemPrompt}
-          oninput={() => (isPromptDirty = true)}
           placeholder=""
         ></textarea>
       </div>
@@ -369,7 +365,6 @@
           id="currentUserPrompt"
           class="textarea relative z-10 bg-white dark:bg-surface-1 border border-border h-full w-full mb-2 p-2 rounded-lg outline-0 shadow-[0_0_0_0_var(--color-border)] focus:shadow-[0_0_0_3px_var(--color-border)] transition-shadow focus:border-muted/60"
           bind:value={currentUserPrompt}
-          oninput={() => (isPromptDirty = true)}
           placeholder=""
         ></textarea>
         {#if showEnhanceButton}

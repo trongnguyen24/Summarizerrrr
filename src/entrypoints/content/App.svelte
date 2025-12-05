@@ -225,6 +225,7 @@
         oneClickHandler={handleOneClickSummarization}
         buttonState={oneClickSummarization.oneClickState().buttonState}
         onBlacklistRequest={handleBlacklistRequest}
+        isOpen={isPanelVisible}
       />
     {/key}
   {/if}

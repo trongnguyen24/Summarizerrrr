@@ -43,13 +43,33 @@
   let visibleTimer
   let safariHackVisible = $state(false)
 
+  // Animation state tracking - để cancel pending animations
+  let animationFrameId = null
+  let closeTimer = null
+  let isAnimating = $state(false)
+
   $effect(() => {
+    // Cancel bất kỳ pending animation nào trước đó
+    if (animationFrameId) {
+      cancelAnimationFrame(animationFrameId)
+      animationFrameId = null
+    }
+    if (closeTimer) {
+      clearTimeout(closeTimer)
+      closeTimer = null
+    }
+    if (visibleTimer) {
+      clearTimeout(visibleTimer)
+      visibleTimer = null
+    }
+
     if (visible) {
-      if (visibleTimer) clearTimeout(visibleTimer)
       delayedVisible = true
+      isAnimating = true
     } else {
       visibleTimer = setTimeout(() => {
         delayedVisible = false
+        isAnimating = false
       }, 600)
     }
   })
@@ -113,12 +133,17 @@
   const VELOCITY_THRESHOLD = 0.5 // px/ms
 
   function openDrawer() {
+    isAnimating = true
     lockBodyScroll()
     // If onboarding not completed, open full screen
     if (!settings.hasCompletedOnboarding) {
       translateY = 0 // Full open (100% height)
       contentPadding = 0
       dragOpacity = 1
+      // Mark animation as complete after transition
+      setTimeout(() => {
+        isAnimating = false
+      }, 600)
       return
     }
 
@@ -130,10 +155,21 @@
     translateY = 100 - targetHeight
     contentPadding = translateY
     dragOpacity = 1
+    // Mark animation as complete after transition
+    setTimeout(() => {
+      isAnimating = false
+    }, 600)
   }
 
   function closeDrawer() {
+    // Cancel any pending close operations
+    if (closeTimer) {
+      clearTimeout(closeTimer)
+      closeTimer = null
+    }
+
     unlockBodyScroll()
+    isAnimating = true
     translateY = 120 // Slide down out of view
     dragOpacity = 0
 
@@ -143,21 +179,41 @@
       safariHackVisible = false
     }, 800)
 
-    setTimeout(() => {
+    closeTimer = setTimeout(() => {
+      isAnimating = false
       onclose?.()
     }, 600) // Match transition duration
   }
 
   $effect(() => {
+    // Cancel pending animation frame
+    if (animationFrameId) {
+      cancelAnimationFrame(animationFrameId)
+      animationFrameId = null
+    }
+
     if (visible) {
-      // Use requestAnimationFrame to ensure DOM is ready and transition triggers
-      requestAnimationFrame(() => {
-        openDrawer()
+      // Cancel pending close if opening
+      if (closeTimer) {
+        clearTimeout(closeTimer)
+        closeTimer = null
+      }
+
+      // Use double requestAnimationFrame for smoother animation start
+      animationFrameId = requestAnimationFrame(() => {
+        animationFrameId = requestAnimationFrame(() => {
+          animationFrameId = null
+          openDrawer()
+        })
       })
     } else {
       // If visible becomes false externally
-      if (translateY < 120) {
+      if (translateY < 120 && !isAnimating) {
         closeDrawer()
+      } else if (!isAnimating) {
+        // Ensure we clean up state even if already at closed position
+        translateY = 120
+        dragOpacity = 0
       }
     }
   })
@@ -295,6 +351,8 @@
     unlockBodyScroll()
     if (toastTimeout) clearTimeout(toastTimeout)
     if (visibleTimer) clearTimeout(visibleTimer)
+    if (closeTimer) clearTimeout(closeTimer)
+    if (animationFrameId) cancelAnimationFrame(animationFrameId)
   })
 
   function openArchive() {
@@ -523,6 +581,11 @@
 <style>
   .sheet-transition {
     transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+    will-change: transform;
+  }
+
+  .drawer-backdrop {
+    will-change: opacity;
   }
 
   /* Ngăn chặn touch actions mặc định trên drag handle */

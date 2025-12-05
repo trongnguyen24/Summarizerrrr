@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		290111D22EE2D10C0015C4F8 /* GeistVF.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 290111D12EE2D10C0015C4F8 /* GeistVF.ttf */; };
 		29150BC82E7D126400491238 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29150BC72E7D126400491238 /* AppDelegate.swift */; };
 		29150BCC2E7D126400491238 /* Main.html in Resources */ = {isa = PBXBuildFile; fileRef = 29150BCA2E7D126400491238 /* Main.html */; };
 		29150BD02E7D126400491238 /* Style.css in Resources */ = {isa = PBXBuildFile; fileRef = 29150BCF2E7D126400491238 /* Style.css */; };
@@ -63,6 +64,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		290111D12EE2D10C0015C4F8 /* GeistVF.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = GeistVF.ttf; sourceTree = "<group>"; };
 		29150BC42E7D126400491238 /* Summarizerrrr.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Summarizerrrr.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		29150BC72E7D126400491238 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		29150BCB2E7D126400491238 /* Base */ = {isa = PBXFileReference; lastKnownFileType = text.html; name = Base; path = ../Base.lproj/Main.html; sourceTree = "<group>"; };
@@ -154,6 +156,7 @@
 			isa = PBXGroup;
 			children = (
 				29150BCA2E7D126400491238 /* Main.html */,
+				290111D12EE2D10C0015C4F8 /* GeistVF.ttf */,
 				29150BCD2E7D126400491238 /* Icon.png */,
 				2958EEAB2EDECF0000ED7BC8 /* Ios-safari.mp4 */,
 				29150BCF2E7D126400491238 /* Style.css */,
@@ -292,6 +295,7 @@
 				29150BCC2E7D126400491238 /* Main.html in Resources */,
 				29150BE92E7D126500491238 /* Assets.xcassets in Resources */,
 				29150BD02E7D126400491238 /* Style.css in Resources */,
+				290111D22EE2D10C0015C4F8 /* GeistVF.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

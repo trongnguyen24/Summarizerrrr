@@ -2,7 +2,7 @@
   "name": "Summarizerrrr",
   "description": "Extension helps you summarize for YouTube, Udemy, Coursera, any websites. Crafted with superior UI/UX design.",
   "private": true,
-  "version": "2.5.6",
+  "version": "2.6.0",
   "type": "module",
   "scripts": {
     "dev": "wxt",

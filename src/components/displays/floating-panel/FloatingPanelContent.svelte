@@ -54,9 +54,9 @@
     if (action === 'analyze') return 'Analyzing content...'
     if (action === 'explain') return 'Explaining content...'
     if (action === 'debate') return 'Debating content...'
-    if (contentType === 'youtube' || action === 'summarize')
-      return 'Processing YouTube summary...'
-    return 'Processing...'
+    if (contentType === 'youtube') return 'Processing YouTube summary...'
+    if (contentType === 'course') return 'Processing course summary...'
+    return 'Processing summary...'
   })
 </script>
 

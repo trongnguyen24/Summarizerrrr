@@ -1,5 +1,6 @@
 <script>
   // @ts-nocheck
+  import { tick } from 'svelte'
   import Icon from '@iconify/svelte'
   import { marked } from 'marked'
   import hljs from 'highlight.js'
@@ -23,6 +24,7 @@
   let activeTabId = $state(null)
   let tabs = $state([])
   let parsedContent = $state('')
+  let markdownContainer = $state()
 
   // @ts-nocheck
   const fontSizeClasses = [
@@ -153,19 +155,26 @@
 
   // Effect để highlight code và cuộn trang khi selectedSummary hoặc activeTabId thay đổi
   $effect(() => {
-    if (selectedSummary && activeTabId) {
-      // Svelte 5 $effect chạy sau khi DOM đã được cập nhật,
-      // vì vậy các phần tử sẽ có sẵn để tô sáng.
-      document
-        .querySelectorAll(
-          '.summary-content pre code, .summary-content .think-section pre code',
-        )
-        .forEach((block) => {
-          hljs.highlightElement(block)
-        })
+    if (selectedSummary && activeTabId && parsedContent) {
+      // Sử dụng tick() để chờ DOM được cập nhật hoàn toàn
+      tick().then(() => {
+        // Query trực tiếp trên document sau khi DOM đã update
+        const container = document.getElementById('copy-cat')
+        if (container) {
+          container
+            .querySelectorAll('pre code, .think-section pre code')
+            .forEach((block) => {
+              // Kiểm tra xem block đã được highlight chưa
+              if (!block.dataset.highlighted) {
+                hljs.highlightElement(block)
+                block.dataset.highlighted = 'true'
+              }
+            })
+        }
 
-      // Cuộn lên đầu trang khi tab thay đổi
-      window.scrollTo({ top: 0, behavior: 'instant' })
+        // Cuộn lên đầu trang khi tab thay đổi
+        window.scrollTo({ top: 0, behavior: 'instant' })
+      })
     }
   })
 
@@ -228,7 +237,13 @@
           (_, index) => `summary-tab-${index}` === activeTabId,
         )}
         {#if currentSummary}
-          <div id="copy-cat">{@html parsedContent}</div>
+          <div
+            bind:this={markdownContainer}
+            class="markdown-container-v2"
+            id="copy-cat"
+          >
+            {@html parsedContent}
+          </div>
         {/if}
       {/if}
 
@@ -317,5 +332,69 @@
     opacity: 0.75;
     overflow: hidden;
     margin-bottom: 1rem;
+  }
+
+  /* === Table Styling - Horizontal Scroll === */
+  .markdown-container-v2 :global(table) {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch; /* Smooth scroll trên iOS */
+    border: 1px solid var(--color-border);
+    border-radius: 0.5em;
+    padding: 0.5em 0;
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+  }
+
+  .markdown-container-v2 :global(table thead),
+  .markdown-container-v2 :global(table tbody),
+  .markdown-container-v2 :global(table tr) {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+  }
+
+  .markdown-container-v2 :global(table:hover) {
+    scrollbar-color: var(--color-border) transparent;
+  }
+
+  /* Webkit scrollbar - ẩn background */
+  .markdown-container-v2 :global(table::-webkit-scrollbar) {
+    height: 6px;
+    background: transparent;
+  }
+
+  .markdown-container-v2 :global(table::-webkit-scrollbar-track) {
+    background: transparent;
+  }
+
+  .markdown-container-v2 :global(table::-webkit-scrollbar-thumb) {
+    background: transparent;
+    border-radius: 3px;
+  }
+
+  .markdown-container-v2 :global(table:hover::-webkit-scrollbar-thumb) {
+    background: var(--color-border);
+  }
+
+  .markdown-container-v2 :global(th) {
+    min-width: 100px;
+    white-space: nowrap;
+  }
+
+  .markdown-container-v2 :global(td) {
+    min-width: 80px;
+  }
+
+  /* Padding cho cell đầu và cuối của mỗi row */
+  .markdown-container-v2 :global(th:first-child),
+  .markdown-container-v2 :global(td:first-child) {
+    padding-left: 0.5em;
+  }
+
+  .markdown-container-v2 :global(th:last-child),
+  .markdown-container-v2 :global(td:last-child) {
+    padding-right: 0.5em;
   }
 </style>

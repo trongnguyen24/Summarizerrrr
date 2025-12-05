@@ -111,7 +111,7 @@
       id="fp-generic-summary"
       style="font-size: 16px;"
       bind:this={container}
-      class="prose"
+      class="prose markdown-container-v2"
       onclick={handleContentClick}
       role="presentation"
     >
@@ -158,5 +158,67 @@
     opacity: 0.75;
     margin-bottom: 1em;
     overflow: hidden;
+  }
+
+  /* === Table Styling - Horizontal Scroll === */
+  .markdown-container-v2 :global(table) {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border: 1px solid var(--color-border);
+    border-radius: 0.5em;
+    padding: 0.5em 0;
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+  }
+
+  .markdown-container-v2 :global(table thead),
+  .markdown-container-v2 :global(table tbody),
+  .markdown-container-v2 :global(table tr) {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+  }
+
+  .markdown-container-v2 :global(table:hover) {
+    scrollbar-color: var(--color-border) transparent;
+  }
+
+  .markdown-container-v2 :global(table::-webkit-scrollbar) {
+    height: 6px;
+    background: transparent;
+  }
+
+  .markdown-container-v2 :global(table::-webkit-scrollbar-track) {
+    background: transparent;
+  }
+
+  .markdown-container-v2 :global(table::-webkit-scrollbar-thumb) {
+    background: transparent;
+    border-radius: 3px;
+  }
+
+  .markdown-container-v2 :global(table:hover::-webkit-scrollbar-thumb) {
+    background: var(--color-border);
+  }
+
+  .markdown-container-v2 :global(th) {
+    min-width: 100px;
+    white-space: nowrap;
+  }
+
+  .markdown-container-v2 :global(td) {
+    min-width: 80px;
+  }
+
+  .markdown-container-v2 :global(th:first-child),
+  .markdown-container-v2 :global(td:first-child) {
+    padding-left: 0.5em;
+  }
+
+  .markdown-container-v2 :global(th:last-child),
+  .markdown-container-v2 :global(td:last-child) {
+    padding-right: 0.5em;
   }
 </style>

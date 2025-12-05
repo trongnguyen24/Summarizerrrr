@@ -89,6 +89,30 @@
     <div class="p-6 prose prose-sm w-full max-w-full">
       <h2>Release note</h2>
 
+      <b class="font-mono">2.6.0</b>
+      <ul class="mt-0">
+        {@render note(
+          'Enhanced Mobile Experience:',
+          'Mobile sheet now supports natural swipe gestures (quick swipe to dismiss, slow drag to snap back), freely adjustable height (40% to 100% of screen height), and customizable font size.',
+        )}
+        {@render note(
+          'Course Concepts:',
+          'Course summarization is now a custom action, streamlining the process by eliminating redundant API calls.',
+        )}
+        {@render note(
+          'Refactored Prompt Management:',
+          "Completely redesigned prompt system now supports custom prompts for multiple actions including 'Analyze', 'Explain', 'Debate', and 'YouTube Comments', in addition to existing summary prompts.",
+        )}
+        {@render note(
+          'Deep Dive Questions:',
+          'Deep Dive feature is now fully integrated into History and Archive sections.',
+        )}
+        {@render note(
+          'Improved FAB Control:',
+          'Floating Action Button now includes a blacklist feature with a dedicated drop zone and confirmation dialog, making it easy to hide the FAB on specific websites.',
+        )}
+      </ul>
+
       <b class="font-mono">2.5.0</b>
       <ul class="mt-0">
         {@render note(

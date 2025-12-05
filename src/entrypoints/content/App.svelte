@@ -21,6 +21,7 @@
   import BlacklistConfirmModal from './components/BlacklistConfirmModal.svelte'
   import { useNavigationManager } from './composables/useNavigationManager.svelte.js'
   import { useOneClickSummarization } from './composables/useOneClickSummarization.svelte.js'
+  import { shouldShowFab } from '@/services/fabPermissionService.js'
   import '@fontsource-variable/geist-mono'
   import '@fontsource-variable/noto-serif'
   import '@fontsource/opendyslexic'
@@ -39,22 +40,8 @@
   let oneClickSummarization = useOneClickSummarization()
 
   let isFabAllowedOnDomain = $derived.by(() => {
-    const domain = window.location.hostname
-    const control = settings.fabDomainControl || {
-      mode: 'all',
-      whitelist: [],
-      blacklist: [],
-    }
-
-    if (control.mode === 'whitelist') {
-      return control.whitelist?.includes(domain) ?? false
-    }
-
-    if (control.mode === 'blacklist') {
-      return !(control.blacklist?.includes(domain) ?? false)
-    }
-
-    return true
+    // Use the same matching logic as main.js for consistency
+    return shouldShowFab(window.location.href, settings.fabDomainControl)
   })
 
   // Initialize stores

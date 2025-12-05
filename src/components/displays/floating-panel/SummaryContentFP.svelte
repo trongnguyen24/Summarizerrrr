@@ -25,25 +25,26 @@
 
   function parseMarkdown() {
     if (summary) {
-      const renderer = new marked.Renderer()
-      const originalLink = renderer.link.bind(renderer)
-
-      renderer.link = ({ href, title, text }) => {
-        if (href && href.startsWith('timestamp:')) {
-          // Match the UI of TimestampLink.svelte
-          return `
-            <a href="${href}" title="Jump to ${text}" class="timestamp-link flex w-fit group items-center bg-surface-2 font-medium rounded-md overflow-hidden text-text-primary mb-2 font-mono transition-colors cursor-pointer no-underline border border-border">
-              <span class="border-r w-full py-1 px-3 text-sm border-border">${text}</span>
-              <span class="flex relative justify-center shrink-0 items-center w-8 h-7">
-                <span class="absolute top-0 left-0 w-0 h-full bg-blackwhite/5 group-hover:w-full transition-all duration-300 ease-in-out"></span>
-                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide text-primary lucide-play">
-                  <polygon points="6 3 20 12 6 21 6 3" />
-                </svg>
-              </span>
-            </a>
-          `
-        }
-        return originalLink.call(renderer, { href, title, text })
+      // Create custom renderer for marked v15+ compatible
+      const renderer = {
+        link({ href, title, text }) {
+          if (href && href.startsWith('timestamp:')) {
+            // Match the UI of TimestampLink.svelte
+            return `
+              <a href="${href}" title="Jump to ${text}" class="timestamp-link flex w-fit group items-center bg-surface-2 font-medium rounded-md overflow-hidden text-text-primary mb-2 font-mono transition-colors cursor-pointer no-underline border border-border">
+                <span class="border-r w-full py-1 px-3 text-sm border-border">${text}</span>
+                <span class="flex relative justify-center shrink-0 items-center w-8 h-7">
+                  <span class="absolute top-0 left-0 w-0 h-full bg-blackwhite/5 group-hover:w-full transition-all duration-300 ease-in-out"></span>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide text-primary lucide-play">
+                    <polygon points="6 3 20 12 6 21 6 3" />
+                  </svg>
+                </span>
+              </a>
+            `
+          }
+          // Return false to use default link rendering
+          return false
+        },
       }
 
       marked.use({ renderer })

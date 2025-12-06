@@ -49,6 +49,7 @@
   let animationFrameId = null
   let closeTimer = null
   let isAnimating = $state(false)
+  let closingFromBackdrop = $state(false) // Track if closing from backdrop click
 
   $effect(() => {
     // Cancel bất kỳ pending animation nào trước đó
@@ -177,23 +178,67 @@
     // Force unlock to ensure body scroll is restored regardless of lock count
     forceUnlockBodyScroll()
     isAnimating = true
-    translateY = 120 // Slide down out of view
-    dragOpacity = 0
+    closingFromBackdrop = false
 
-    // Safari Hack: Toggle a dummy element to force repaint/clear transparent bar background
-    safariHackVisible = true
-    setTimeout(() => {
-      safariHackVisible = false
-    }, 800)
+    // Use double requestAnimationFrame for Safari to warm up GPU layer
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        translateY = 120 // Slide down out of view
+        dragOpacity = 0
 
-    closeTimer = setTimeout(() => {
-      isAnimating = false
-      // Double-check body is unlocked when animation completes
-      if (isBodyLocked()) {
-        forceUnlockBodyScroll()
-      }
-      onclose?.()
-    }, 600) // Match transition duration
+        // Safari Hack: Toggle a dummy element to force repaint/clear transparent bar background
+        safariHackVisible = true
+        setTimeout(() => {
+          safariHackVisible = false
+        }, 800)
+
+        closeTimer = setTimeout(() => {
+          isAnimating = false
+          // Double-check body is unlocked when animation completes
+          if (isBodyLocked()) {
+            forceUnlockBodyScroll()
+          }
+          onclose?.()
+        }, 600) // Match transition duration
+      })
+    })
+  }
+
+  // Special close function for backdrop - smoother on Safari mobile
+  function closeFromBackdrop() {
+    // Cancel any pending close operations
+    if (closeTimer) {
+      clearTimeout(closeTimer)
+      closeTimer = null
+    }
+
+    // Force unlock to ensure body scroll is restored regardless of lock count
+    forceUnlockBodyScroll()
+    isAnimating = true
+    closingFromBackdrop = true
+
+    // Use requestAnimationFrame for Safari to ensure smooth transition start
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        translateY = 120
+        dragOpacity = 0
+
+        // Safari Hack: Toggle a dummy element to force repaint
+        safariHackVisible = true
+        setTimeout(() => {
+          safariHackVisible = false
+        }, 500)
+
+        closeTimer = setTimeout(() => {
+          isAnimating = false
+          closingFromBackdrop = false
+          if (isBodyLocked()) {
+            forceUnlockBodyScroll()
+          }
+          onclose?.()
+        }, 400) // Shorter duration for backdrop close
+      })
+    })
   }
 
   $effect(() => {
@@ -415,16 +460,17 @@
     style:opacity={visible && settings.mobileSheetBackdropOpacity
       ? dragOpacity
       : 0}
-    onclick={closeDrawer}
+    onclick={closeFromBackdrop}
   ></div>
 
   <!-- Drawer Panel -->
   <div
     bind:this={drawerPanel}
     class="drawer-panel fixed bottom-0 left-0 right-0 border-t border-surface-2 bg-surface-1 text-black rounded-t-3xl shadow-2xl flex flex-col pointer-events-auto"
-    class:sheet-transition={!isDragging}
+    class:sheet-transition={!isDragging && !closingFromBackdrop}
+    class:sheet-transition-fast={closingFromBackdrop}
     class:invisible={!delayedVisible}
-    style:transform={`translateY(${visible ? translateY : 120}%)`}
+    style:transform={`translate3d(0, ${visible ? translateY : 120}%, 0)`}
     style:height="100dvh"
   >
     <!-- Drawer Header (Drag Handle) -->
@@ -579,7 +625,10 @@
   </div>
 
   {#if safariHackVisible}
-    <div class="fixed inset-0 z-[100000] pointer-events-none bg-black/0"></div>
+    <div
+      transition:fade={{ delay: 700 }}
+      class="fixed top-full h-64 w-full z-[1000] pointer-events-none bg-surface-1/40"
+    ></div>
   {/if}
 </div>
 
@@ -594,6 +643,27 @@
   .sheet-transition {
     transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
     will-change: transform;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    -webkit-transform-style: preserve-3d;
+    transform-style: preserve-3d;
+  }
+
+  /* Faster transition for backdrop close - smoother on Safari mobile */
+  .sheet-transition-fast {
+    transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+    will-change: transform;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    -webkit-transform-style: preserve-3d;
+    transform-style: preserve-3d;
+  }
+
+  .drawer-panel {
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    -webkit-transform-style: preserve-3d;
+    transform-style: preserve-3d;
   }
 
   .drawer-backdrop {

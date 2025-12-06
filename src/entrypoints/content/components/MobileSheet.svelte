@@ -9,6 +9,8 @@
   import {
     lockBodyScroll,
     unlockBodyScroll,
+    forceUnlockBodyScroll,
+    isBodyLocked,
   } from '../composables/scroll-freezer.js'
   import FloatingPanelContent from '@/components/displays/floating-panel/FloatingPanelContent.svelte'
   import ApiKeySetupPrompt from '@/components/ui/ApiKeySetupPrompt.svelte'
@@ -133,8 +135,12 @@
   const VELOCITY_THRESHOLD = 0.5 // px/ms
 
   function openDrawer() {
+    // Force unlock first to reset any stuck state from rapid clicks
+    forceUnlockBodyScroll()
+
     isAnimating = true
     lockBodyScroll()
+
     // If onboarding not completed, open full screen
     if (!settings.hasCompletedOnboarding) {
       translateY = 0 // Full open (100% height)
@@ -168,7 +174,8 @@
       closeTimer = null
     }
 
-    unlockBodyScroll()
+    // Force unlock to ensure body scroll is restored regardless of lock count
+    forceUnlockBodyScroll()
     isAnimating = true
     translateY = 120 // Slide down out of view
     dragOpacity = 0
@@ -181,6 +188,10 @@
 
     closeTimer = setTimeout(() => {
       isAnimating = false
+      // Double-check body is unlocked when animation completes
+      if (isBodyLocked()) {
+        forceUnlockBodyScroll()
+      }
       onclose?.()
     }, 600) // Match transition duration
   }
@@ -348,7 +359,8 @@
     window.removeEventListener('keydown', handleKeyDown)
     document.removeEventListener('summarizeClick', handleSummarizeClick)
     window.removeEventListener('gemini-toast', handleToastEvent)
-    unlockBodyScroll()
+    // Force unlock to ensure body scroll is always restored when component is destroyed
+    forceUnlockBodyScroll()
     if (toastTimeout) clearTimeout(toastTimeout)
     if (visibleTimer) clearTimeout(visibleTimer)
     if (closeTimer) clearTimeout(closeTimer)

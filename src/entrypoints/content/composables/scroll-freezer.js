@@ -60,6 +60,22 @@ export function unlockBodyScroll() {
   lockCount--
   if (lockCount > 0) return
 
+  restoreBodyScroll()
+}
+
+/**
+ * Force unlock body scroll regardless of lock count.
+ * Use this to reset state when race conditions occur.
+ */
+export function forceUnlockBodyScroll() {
+  lockCount = 0
+  restoreBodyScroll()
+}
+
+/**
+ * Internal function to restore body scroll state
+ */
+function restoreBodyScroll() {
   const body = bodyEl()
   const root = docEl()
 
@@ -96,4 +112,11 @@ export function unlockBodyScroll() {
 
 export function isBodyLocked() {
   return lockCount > 0
+}
+
+/**
+ * Get current lock count for debugging
+ */
+export function getLockCount() {
+  return lockCount
 }

@@ -755,9 +755,16 @@
     -webkit-backdrop-filter: blur(6px);
   }
 
-  .floating-button-bg:hover {
-    background: #ff8711;
-    color: rgb(119, 196, 255);
+  /* Only apply hover effects on devices that support hover (desktop with mouse) */
+  @media (hover: hover) {
+    .floating-button-bg:hover {
+      background: #ff8711;
+      color: rgb(119, 196, 255);
+    }
+
+    .floating-button-bg:hover .BG-cri {
+      background: #25345c;
+    }
   }
 
   .BG-cri {
@@ -770,10 +777,6 @@
     justify-content: center;
     position: relative;
     transition: all 0.3s ease-in-out;
-  }
-
-  .floating-button-bg:hover .BG-cri {
-    background: #25345c;
   }
 
   /* Error state */

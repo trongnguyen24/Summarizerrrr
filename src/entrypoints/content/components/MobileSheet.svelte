@@ -45,6 +45,9 @@
   let visibleTimer
   let safariHackVisible = $state(false)
 
+  // Detect Safari browser
+  const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent)
+
   // Animation state tracking - để cancel pending animations
   let animationFrameId = null
   let closeTimer = null
@@ -625,7 +628,7 @@
   </div>
 </div>
 
-{#if safariHackVisible}
+{#if safariHackVisible && isSafari}
   <div
     in:fade={{ delay: 0, duration: 300 }}
     out:fade={{ delay: 500, duration: 200 }}

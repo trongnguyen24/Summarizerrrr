@@ -610,9 +610,9 @@
         {/if}
       </div>
     </div>
-    <div
+    <!-- <div
       class="absolute bottom-px left-0 right-0 h-15 bg-surface-1 translate-y-15"
-    ></div>
+    ></div> -->
 
     <!-- Toast Notification -->
     <ShadowToast
@@ -623,14 +623,19 @@
       onClose={closeToast}
     />
   </div>
-
-  {#if safariHackVisible}
-    <div
-      transition:fade={{ delay: 700 }}
-      class="fixed top-full h-64 w-full z-[1000] pointer-events-none bg-surface-1/40"
-    ></div>
-  {/if}
 </div>
+
+{#if safariHackVisible}
+  <div
+    in:fade={{ delay: 0, duration: 300 }}
+    out:fade={{ delay: 500, duration: 200 }}
+    class="fixed top-[79.9svh] h-[48px] w-full z-[100000] pointer-events-none"
+  >
+    <div
+      class=" bg-linear-to-t from-surface-1 via-surface-1/40 via-90% to-surface-1/0 h-svh w-full"
+    ></div>
+  </div>
+{/if}
 
 <svelte:body
   onmousemove={onDragMove}

@@ -139,9 +139,6 @@
   const VELOCITY_THRESHOLD = 0.5 // px/ms
 
   function openDrawer() {
-    // Force unlock first to reset any stuck state from rapid clicks
-    forceUnlockBodyScroll()
-
     isAnimating = true
     lockBodyScroll()
 

@@ -13,7 +13,9 @@ const DEFAULT_SETTINGS = {
   showFloatingButton: true,
   floatingPanelLeft: false, // Default to right side
   closePanelOnOutsideClick: true, // Close floating panel when clicking outside
-  geminiApiKey: '',
+  geminiApiKey: '', // Legacy single key (kept for backward compatibility)
+  geminiApiKeys: [], // Array of multiple API keys for rotation
+  currentGeminiApiKeyIndex: 0, // Index of currently active API key
   selectedGeminiModel: 'gemini-2.5-flash',
   geminiAdvancedApiKey: '',
   selectedGeminiAdvancedModel: 'gemini-2.5-flash',
@@ -265,6 +267,35 @@ export async function loadSettings() {
             whitelist: normalizeFabWhitelist(whitelist) || [],
             blacklist: normalizeFabWhitelist(blacklist) || [],
           }
+        }
+
+        // ============================================
+        // GEMINI API KEYS MIGRATION
+        // ============================================
+        // Migrate from single geminiApiKey to geminiApiKeys array
+        if (
+          cleanStoredSettings.geminiApiKey &&
+          cleanStoredSettings.geminiApiKey.trim() !== '' &&
+          (!cleanStoredSettings.geminiApiKeys ||
+            cleanStoredSettings.geminiApiKeys.length === 0)
+        ) {
+          console.log(
+            '[settingsStore] Migration: Converting geminiApiKey to geminiApiKeys array'
+          )
+          cleanStoredSettings.geminiApiKeys = [cleanStoredSettings.geminiApiKey]
+          cleanStoredSettings.currentGeminiApiKeyIndex = 0
+        }
+
+        // Ensure geminiApiKeys is always an array
+        if (!Array.isArray(cleanStoredSettings.geminiApiKeys)) {
+          cleanStoredSettings.geminiApiKeys = []
+        }
+
+        // Ensure currentGeminiApiKeyIndex is within bounds
+        if (
+          cleanStoredSettings.currentGeminiApiKeyIndex >= cleanStoredSettings.geminiApiKeys.length
+        ) {
+          cleanStoredSettings.currentGeminiApiKeyIndex = 0
         }
 
         // ============================================

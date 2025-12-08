@@ -1,22 +1,20 @@
 <script>
   // @ts-nocheck
   import { geminiBasicModels } from '@/lib/prompts/models/geminiModels.js'
-  import { updateSettings } from '../../stores/settingsStore.svelte.js'
+  import {
+    updateSettings,
+    settings,
+  } from '../../stores/settingsStore.svelte.js'
   import ButtonSet from '../buttons/ButtonSet.svelte'
-  import ApiKeyInput from '../inputs/ApiKeyInput.svelte'
-  import Icon from '@iconify/svelte'
+  import MultiApiKeyInput from '../inputs/MultiApiKeyInput.svelte'
   import { t } from 'svelte-i18n'
 
-  let { geminiApiKey = $bindable(), selectedGeminiModel = $bindable() } =
-    $props()
+  let { selectedGeminiModel = $bindable() } = $props()
 
   // Đảm bảo giá trị mặc định nếu props không được cung cấp
   if (!selectedGeminiModel) {
     selectedGeminiModel = geminiBasicModels[0].value
   }
-
-  // $effect để lưu API key đã được loại bỏ.
-  // Việc lưu trữ sẽ được xử lý bởi sự kiện `onSave` của `ApiKeyInput`.
 
   // Sử dụng $effect để lưu model khi nó thay đổi
   $effect(() => {
@@ -28,14 +26,21 @@
     name: model.label,
     description: model.description,
   }))
+
+  // Handle keys change - forces reactive update
+  function handleKeysChange() {
+    // Settings đã được update bởi apiKeyRotationService,
+    // nhưng chúng ta có thể thêm logic bổ sung ở đây nếu cần
+  }
 </script>
 
-<ApiKeyInput
-  apiKey={geminiApiKey}
+<MultiApiKeyInput
+  bind:apiKeys={settings.geminiApiKeys}
+  bind:currentIndex={settings.currentGeminiApiKeyIndex}
   label={$t('settings.gemini_basic_config.api_key_label')}
-  onSave={(apiKey) => updateSettings({ geminiApiKey: apiKey })}
   linkHref="https://aistudio.google.com/app/apikey"
   linkText={$t('settings.gemini_basic_config.get_a_key')}
+  onKeysChange={handleKeysChange}
 />
 
 <div class="flex flex-col gap-2">

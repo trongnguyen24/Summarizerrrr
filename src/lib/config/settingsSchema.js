@@ -13,6 +13,8 @@ export const VALID_SETTING_KEYS = [
   // Provider Configuration
   'selectedProvider',
   'geminiApiKey',
+  'geminiApiKeys', // Array of multiple API keys for rotation
+  'currentGeminiApiKeyIndex', // Index of currently active API key
   'selectedGeminiModel',
   'geminiAdvancedApiKey',
   'selectedGeminiAdvancedModel',

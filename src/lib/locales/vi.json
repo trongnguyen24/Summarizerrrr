@@ -201,7 +201,15 @@
     "gemini_basic_config": {
       "api_key_label": "Khóa API Gemini",
       "get_a_key": "Lấy khóa",
-      "select_model_label": "Chọn mô hình Gemini"
+      "select_model_label": "Chọn mô hình Gemini",
+      "add_api_key": "Thêm API Key",
+      "remove_api_key": "Xóa",
+      "active_key": "Đang dùng",
+      "set_active": "Sử dụng",
+      "no_api_keys": "Chưa có API key nào",
+      "saved_status": "Đã lưu!",
+      "max_keys_reached": "Đã đạt tối đa {max} key",
+      "key_rotated": "Đã chuyển sang API key {current}/{total}"
     },
     "ollama_config": {
       "endpoint_label": "Điểm cuối Ollama",

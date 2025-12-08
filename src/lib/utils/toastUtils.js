@@ -46,3 +46,16 @@ export function showOverloadToast() {
     icon: 'heroicons-outline:exclamation-triangle',
   })
 }
+
+/**
+ * Shows a toast notification for API key rotation
+ * @param {number} current - Current key index (1-based)
+ * @param {number} total - Total number of keys
+ */
+export function showApiKeyRotationToast(current, total) {
+  dispatchToastEvent({
+    title: 'Rate limit reached',
+    message: `Switched to API key ${current}/${total}`,
+    icon: 'heroicons-outline:key',
+  })
+}

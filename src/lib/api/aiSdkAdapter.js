@@ -22,6 +22,11 @@ import {
 } from '@/lib/utils/geminiAutoFallback.js'
 import { updateModelStatus } from '@/stores/summaryStore.svelte.js'
 import { showModelFallbackToast } from '@/lib/utils/toastUtils.js'
+import {
+  getCurrentGeminiApiKey,
+  rotateToNextApiKey,
+  isRateLimitError,
+} from '@/services/apiKeyRotationService.js'
 
 /**
  * Maps provider ID and settings to AI SDK model instance
@@ -37,9 +42,10 @@ export function getAISDKModel(providerId, settings) {
 
   switch (providerId) {
     case 'gemini':
+      // For Advanced mode, use single key; for Basic mode, use key rotation
       const geminiApiKey = settings.isAdvancedMode
         ? settings.geminiAdvancedApiKey
-        : settings.geminiApiKey
+        : getCurrentGeminiApiKey(settings)
       const geminiModel = settings.isAdvancedMode
         ? settings.selectedGeminiAdvancedModel || 'gemini-2.0-flash'
         : settings.selectedGeminiModel || 'gemini-2.0-flash'
@@ -66,6 +72,7 @@ export function getAISDKModel(providerId, settings) {
         console.error('[aiSdkAdapter] Error creating Google model:', error)
         throw error
       }
+
 
     case 'openai':
     case 'chatgpt':

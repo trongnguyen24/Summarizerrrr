@@ -434,7 +434,6 @@
       <div class="setting-block flex gap-5 pb-2 flex-col">
         <!-- Gemini Basic Config (Provider cố định) -->
         <GeminiBasicConfig
-          bind:geminiApiKey={settings.geminiApiKey}
           bind:selectedGeminiModel={settings.selectedGeminiModel}
         />
 

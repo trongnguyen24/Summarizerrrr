@@ -14,6 +14,7 @@ const DEFAULT_SETTINGS = {
   floatingPanelLeft: false, // Default to right side
   closePanelOnOutsideClick: true, // Close floating panel when clicking outside
   geminiApiKey: '',
+  geminiApiKeys: [],
   selectedGeminiModel: 'gemini-2.5-flash',
   geminiAdvancedApiKey: '',
   selectedGeminiAdvancedModel: 'gemini-2.5-flash',
@@ -298,6 +299,17 @@ export async function loadSettings() {
               }
             }
           })
+        }
+
+        if (
+          cleanStoredSettings.geminiApiKey &&
+          (!cleanStoredSettings.geminiApiKeys ||
+            cleanStoredSettings.geminiApiKeys.length === 0)
+        ) {
+          console.log(
+            '[settingsStore] Migration: Converting single Gemini key to array'
+          )
+          cleanStoredSettings.geminiApiKeys = [cleanStoredSettings.geminiApiKey]
         }
 
         // Merge settings with defaults

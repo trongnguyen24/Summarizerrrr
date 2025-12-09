@@ -37,9 +37,30 @@ export function getAISDKModel(providerId, settings) {
 
   switch (providerId) {
     case 'gemini':
-      const geminiApiKey = settings.isAdvancedMode
-        ? settings.geminiAdvancedApiKey
-        : settings.geminiApiKey
+      let geminiApiKey
+      if (settings.isAdvancedMode) {
+        geminiApiKey = settings.geminiAdvancedApiKey
+      } else {
+        // Use rotation for basic keys
+        // Filter out empty keys
+        const validKeys =
+          settings.geminiApiKeys?.filter((k) => k && k.trim() !== '') || []
+
+        if (validKeys.length > 0) {
+          // Wrap in simple rotation or random selection
+          // Random selection is better for stateless distribution
+          const randomIndex = Math.floor(Math.random() * validKeys.length)
+          geminiApiKey = validKeys[randomIndex]
+          console.log(
+            `[aiSdkAdapter] 🔑 Using Gemini Key ${randomIndex + 1}/${
+              validKeys.length
+            }`
+          )
+        } else {
+          // Fallback to legacy single key if array is empty
+          geminiApiKey = settings.geminiApiKey
+        }
+      }
       const geminiModel = settings.isAdvancedMode
         ? settings.selectedGeminiAdvancedModel || 'gemini-2.0-flash'
         : settings.selectedGeminiModel || 'gemini-2.0-flash'

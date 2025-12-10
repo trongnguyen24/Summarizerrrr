@@ -21,7 +21,6 @@ Summarize <INPUT_CONTENT> in a structured format, including both main content an
 
 <PARAMETERS>
 - **Length:** __LENGTH_DESCRIPTION__
-- **Language:** __LANG__  
 - **Tone:** __TONE_DESCRIPTION__
 </PARAMETERS>
 
@@ -68,6 +67,8 @@ Summarize <INPUT_CONTENT> in a structured format, including both main content an
 <INPUT_CONTENT>
 __CONTENT__
 </INPUT_CONTENT>
+
+Reply in __LANG__.
 `,
 }
 
@@ -75,12 +76,6 @@ export const generalSummaryMedium = `
 <TASK>
 Provide a structured summary (100-200 words) of <INPUT_CONTENT>, covering the main points in a clear, organized format.
 </TASK>
-
-<PARAMETERS>
-- **Length:** __LENGTH_DESCRIPTION__
-- **Language:** __LANG__  
-- **Tone:** __TONE_DESCRIPTION__
-</PARAMETERS>
 
 <OUTPUT_FORMAT>
 ## [Main Title or Topic]
@@ -108,18 +103,16 @@ Provide a structured summary (100-200 words) of <INPUT_CONTENT>, covering the ma
 <INPUT_CONTENT>
 __CONTENT__
 </INPUT_CONTENT>
+
+- Length __LENGTH_DESCRIPTION__
+- Follow tone __TONE_DESCRIPTION__
+- Reply in __LANG__  
 `
 
 export const generalSummaryShort = `
 <TASK>
-Provide a concise summary (50-100 words) of <INPUT_CONTENT>, capturing only the most essential information.
+Provide a concise summary (50-100 words) of <INPUT_CONTENT>, capturing only the most essential information. Reply in __LANG__.
 </TASK>
-
-<PARAMETERS>
-- **Length:** __LENGTH_DESCRIPTION__
-- **Language:** __LANG__  
-- **Tone:** __TONE_DESCRIPTION__
-</PARAMETERS>
 
 <OUTPUT_FORMAT>
 ## Main Point
@@ -140,6 +133,10 @@ Provide a concise summary (50-100 words) of <INPUT_CONTENT>, capturing only the 
 <INPUT_CONTENT>
 __CONTENT__
 </INPUT_CONTENT>
+
+- **Length:** __LENGTH_DESCRIPTION__
+- **Tone:** Follow tone __TONE_DESCRIPTION__
+- **Language:** reply in __LANG__ 
 `
 
 export const customActionTemplates = {
@@ -154,11 +151,6 @@ Analyze <INPUT_CONTENT> and generate a structured report with two sections:
 2. Deep Expert Analysis including bias detection, contextual insights, and fact-based commentary
 </TASK>
 
-<INPUT_PARAMETERS>
-1. **Length:** __LENGTH_DESCRIPTION__
-2. **Language:** __LANG__
-3. **Tone:** __TONE_DESCRIPTION__
-</INPUT_PARAMETERS>
 
 <RESPONSE_STRUCTURE>
 ## Content Summary
@@ -218,7 +210,12 @@ This piece fits within **media ethics and AI policy** discussions.
 
 <INPUT_CONTENT>
 __CONTENT__
-</INPUT_CONTENT>`,
+</INPUT_CONTENT>
+
+- **Length:** __LENGTH_DESCRIPTION__
+- **Tone:** Follow tone __TONE_DESCRIPTION__
+- **Language:** reply in __LANG__  
+`,
   },
 
   explain: {
@@ -230,12 +227,6 @@ If no content is provided, politely ask what topic the user would like explained
 Explain <INPUT_CONTENT> in a way that is easy to understand, structured from fundamental to advanced concepts.
 Make it engaging with familiar analogies, real-world examples, and clear logical flow.
 </TASK>
-
-<INPUT_PARAMETERS>
-1. **Length:** __LENGTH_DESCRIPTION__
-2. **Language:** __LANG__
-3. **Tone:** __TONE_DESCRIPTION__
-</INPUT_PARAMETERS>
 
 <RESPONSE_STRUCTURE>
 ## Explanation Overview
@@ -272,7 +263,6 @@ Make it engaging with familiar analogies, real-world examples, and clear logical
 - **Headers**: Use ## and ### to organize sections
 - **Emphasis**: Use **bold** for important concepts
 - **Bullets**: Use - for lists, keep lists concise
-- **Language**: Native-level __LANG__
 - **Tone**: __TONE_DESCRIPTION__, clear and engaging
 - **No meta notes or system explanations**
 </STYLE_GUIDELINES>
@@ -304,7 +294,12 @@ They allow machines to learn patterns from data — similar to how people learn 
 
 <INPUT_CONTENT>
 __CONTENT__
-</INPUT_CONTENT>`,
+</INPUT_CONTENT>
+
+- **Length:** __LENGTH_DESCRIPTION__
+- **Tone:** Follow tone __TONE_DESCRIPTION__
+- **Language:** reply in __LANG__  
+`,
   },
 
   debate: {
@@ -316,11 +311,6 @@ If no content is provided, ask which idea or issue the user wants to analyze fro
 Analyze <INPUT_CONTENT> from two opposing viewpoints. Present arguments for and against objectively, then note which aspects need more evidence.
 </TASK>
 
-<INPUT_PARAMETERS>
-- **Length:** __LENGTH_DESCRIPTION__
-- **Language:** __LANG__
-- **Tone:** __TONE_DESCRIPTION__
-</INPUT_PARAMETERS>
 
 <RESPONSE_STRUCTURE>
 ## Arguments For
@@ -342,6 +332,7 @@ Analyze <INPUT_CONTENT> from two opposing viewpoints. Present arguments for and 
 
 **Style:**
 - Write in __LANG__ following Tone
+- Follow tone __TONE_DESCRIPTION__
 - Use **bold** for key terms
 - Keep tone formal, clear, and neutral
 - No opinions on which side is better
@@ -362,7 +353,12 @@ Economic growth claims lack strong evidence in developing nations. Both sides ne
 
 <INPUT_CONTENT>
 __CONTENT__
-</INPUT_CONTENT>`,
+</INPUT_CONTENT>
+
+- Length __LENGTH_DESCRIPTION__
+- Follow tone __TONE_DESCRIPTION__
+- Reply in __LANG__  
+`,
   },
 
   commentAnalysis: {
@@ -382,11 +378,6 @@ QUALITY PRINCIPLES:
     userPrompt: `<TASK>
 Analyze the YouTube video comments below and provide a concise summary of audience sentiment and key discussion topics.
 </TASK>
-
-<INPUT_PARAMETERS>
-- **Language:** __LANG__
-- **Tone:** __TONE_DESCRIPTION__
-</INPUT_PARAMETERS>
 
 <RESPONSE_STRUCTURE>
 
@@ -413,18 +404,23 @@ Analyze the YouTube video comments below and provide a concise summary of audien
 
 
 <STYLE_GUIDELINES>
-- Reply in Native-level __LANG__ following Tone
 - Analytical and concise
 - [Structured summary using ##, ### and bullets, emoji for clear presentation]
 - Keep the output scannable and compact
 - Only reflect patterns present across multiple comments
 - Do not fabricate opinions or sentiment
+- Follow tone __TONE_DESCRIPTION__
 - Ignore spam or irrelevant messages
 </STYLE_GUIDELINES>
 
 <COMMENT_DATA>
 __CONTENT__
-</COMMENT_DATA>`,
+</COMMENT_DATA>
+
+- Length __LENGTH_DESCRIPTION__
+- Follow tone __TONE_DESCRIPTION__
+- Reply in __LANG__   
+`,
   },
   courseConcepts: {
     systemPrompt: `You are a technical course analyst and knowledge architect. Your expertise lies in deconstructing complex subjects into a structured, hierarchical learning path.
@@ -443,10 +439,6 @@ QUALITY STANDARDS:
     userPrompt: `<TASK>
 Analyze <INPUT_CONTENT> to identify and explain key technical concepts in a comprehensive and structured way, helping learners understand deeply and apply effectively.
 </TASK>
-
-<INPUT_PARAMETERS>
-1. **Language:** __LANG__
-</INPUT_PARAMETERS>
 
 <CONCEPT_ANALYSIS_PROCESS>
 1. **Identify**: Find ALL important technical concepts from transcript (typically 10-30+ concepts for long videos)
@@ -475,6 +467,11 @@ Analyze <INPUT_CONTENT> to identify and explain key technical concepts in a comp
 
 <INPUT_CONTENT>
 __CONTENT__
-</INPUT_CONTENT>`,
+</INPUT_CONTENT>
+
+- Length __LENGTH_DESCRIPTION__
+- Follow tone __TONE_DESCRIPTION__
+- Reply in __LANG__  
+`,
   },
 }

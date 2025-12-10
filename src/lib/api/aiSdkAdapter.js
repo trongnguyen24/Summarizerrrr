@@ -238,6 +238,12 @@ export async function generateContent(
 
       const baseModel = getAISDKModel(providerId, currentSettings)
 
+      // Gemma models do not support system instructions via the API
+      // User request: Remove system instruction completely for these smaller models as they don't handle long prompts well
+      const isGemmaModel = modelName.toLowerCase().includes('gemma')
+      const effectiveSystemInstruction = isGemmaModel ? undefined : systemInstruction
+      const effectiveUserPrompt = userPrompt
+
       // Check if this is a proxy model
       const isProxyModel = requiresApiProxy(providerId)
       // DISABLE REASONING EXTRACTION MIDDLEWARE FOR TESTING - KEEP FULL OUTPUT WITH <think> TAGS
@@ -248,8 +254,8 @@ export async function generateContent(
         // Use the proxy model's custom generateText method
         console.log('[aiSdkAdapter] Using proxy model for generateContent')
         const result = await model.generateText({
-          system: systemInstruction,
-          prompt: userPrompt,
+          system: effectiveSystemInstruction,
+          prompt: effectiveUserPrompt,
           ...generationConfig,
           ...(options.abortSignal && { abortSignal: options.abortSignal }),
         })
@@ -260,8 +266,8 @@ export async function generateContent(
         // Use the standard AI SDK generateText for direct calls - no middleware
         const { text } = await generateText({
           model,
-          system: systemInstruction,
-          prompt: userPrompt,
+          system: effectiveSystemInstruction,
+          prompt: effectiveUserPrompt,
           maxRetries: 0, // Disable AI SDK built-in retry to allow custom fallback to work faster
           ...generationConfig,
           ...(options.abortSignal && { abortSignal: options.abortSignal }),
@@ -389,6 +395,13 @@ export async function* generateContentStream(
 
       const baseModel = getAISDKModel(providerId, currentSettings)
 
+      // Handle specific model limitations
+      // Gemma models do not support system instructions via the API
+      // User request: Remove system instruction completely for these smaller models as they don't handle long prompts well
+      const isGemmaModel = modelName.toLowerCase().includes('gemma')
+      const effectiveSystemInstruction = isGemmaModel ? undefined : systemInstruction
+      const effectiveUserPrompt = userPrompt
+
       // Check if this is a proxy model (doesn't need reasoning extraction wrapper)
       const isProxyModel = requiresApiProxy(providerId)
       // DISABLE REASONING EXTRACTION MIDDLEWARE FOR TESTING - KEEP FULL OUTPUT WITH <think> TAGS
@@ -398,8 +411,8 @@ export async function* generateContentStream(
       if (isProxyModel) {
         // Use proxy model's streamText method directly
         const result = await model.streamText({
-          system: systemInstruction,
-          prompt: userPrompt,
+          system: effectiveSystemInstruction,
+          prompt: effectiveUserPrompt,
           ...generationConfig,
           ...(streamOptions.abortSignal && {
             abortSignal: streamOptions.abortSignal,
@@ -425,8 +438,8 @@ export async function* generateContentStream(
 
         const streamConfig = {
           model,
-          system: systemInstruction,
-          prompt: userPrompt,
+          system: effectiveSystemInstruction,
+          prompt: effectiveUserPrompt,
           ...generationConfig,
           maxRetries: 0, // Disable AI SDK built-in retry to allow custom fallback to work faster
           ...(shouldUseSmoothing ? defaultSmoothingOptions : {}),

@@ -13,11 +13,6 @@ CORE PRINCIPLES:
 Summarize YouTube video content from <INPUT_CONTENT>. Focus on main points, specific examples, and useful information.
 </TASK>
 
-<INPUT_PARAMETERS>
-1. **Length:** __LENGTH_DESCRIPTION__
-2. **Language:** __LANG__
-</INPUT_PARAMETERS>
-
 <OUTPUT_STRUCTURE>
 ## [Video title or main topic]
 
@@ -38,7 +33,6 @@ Summarize YouTube video content from <INPUT_CONTENT>. Focus on main points, spec
 ✅ **Timestamps Location**: **CRITICAL RULE**: Timestamps MUST ONLY appear at the very beginning of the H3 headers (###).
 ✅ **Visuals**: Use relevant emojis (e.g., 💡, 🚀, ⚠️, 📉) to make the summary visually appealing.
 ✅ **Content**: Main topics, important points, specific examples/data, steps/instructions.
-✅ **Tone**: Follow tone __TONE_DESCRIPTION__.
 ✅ **Clear separation**: Use headings, bullet points, or paragraphs.
 ❌ **No Output Tags**: Don't include the <title> or <OUTPUT_STRUCTURE> tags.
 ❌ **No Redundancy**: Do not repeat the timestamp in the content body.
@@ -70,7 +64,12 @@ Summarize YouTube video content from <INPUT_CONTENT>. Focus on main points, spec
 
 <INPUT_CONTENT>
 __CONTENT__
-</INPUT_CONTENT>`,
+</INPUT_CONTENT>
+
+- Length __LENGTH_DESCRIPTION__
+- Follow tone __TONE_DESCRIPTION__
+- Reply in __LANG__  
+`,
 }
 export const youtubeSummaryMedium = `
 <TASK>
@@ -84,12 +83,6 @@ The input transcript includes:
 
 Use the title to understand the video topic and timestamps to understand structure, but don't include them in your summary.
 </INPUT_FORMAT>
-
-<PARAMETERS>
-- **Length:** __LENGTH_DESCRIPTION__
-- **Language:** __LANG__
-- **Tone:** __TONE_DESCRIPTION__
-</PARAMETERS>
 
 <OUTPUT_FORMAT>
 ## [Video Topic/Title]
@@ -117,6 +110,10 @@ Use the title to understand the video topic and timestamps to understand structu
 <INPUT_CONTENT>
 __CONTENT__
 </INPUT_CONTENT>
+
+- Length __LENGTH_DESCRIPTION__
+- Follow tone __TONE_DESCRIPTION__
+- Reply in __LANG__  
 `
 
 export const youtubeSummaryShort = `
@@ -131,12 +128,6 @@ The input transcript includes:
 
 Use the title to understand the video topic and timestamps to understand structure, but don't include them in your summary.
 </INPUT_FORMAT>
-
-<PARAMETERS>
-- **Length:** __LENGTH_DESCRIPTION__
-- **Language:** __LANG__
-- **Tone:** __TONE_DESCRIPTION__
-</PARAMETERS>
 
 <OUTPUT_FORMAT>
 ## Main Topic
@@ -157,6 +148,10 @@ Use the title to understand the video topic and timestamps to understand structu
 <INPUT_CONTENT>
 __CONTENT__
 </INPUT_CONTENT>
+
+- Length __LENGTH_DESCRIPTION__
+- Follow tone __TONE_DESCRIPTION__
+- Reply in __LANG__  
 `
 
 export const youtubeChapter = {
@@ -185,10 +180,6 @@ Analyze <INPUT_CONTENT> and create detailed chapter-by-chapter summaries with es
 The input content is a video transcript with timestamps. Specific examples, illustrative stories, and case studies are crucial elements that make content more understandable and persuasive.
 </CONTEXT>
 
-<INPUT_PARAMETERS>
-1. **Output language:** __LANG__
-2. **Length:** Detailed summary including main arguments, illustrative examples, and important supporting information
-</INPUT_PARAMETERS>
 
 <OUTPUT_STRUCTURE>
 ## [Video title or main topic]
@@ -238,5 +229,10 @@ Growth mindset not only improves learning but also helps people overcome challen
 
 <INPUT_CONTENT>
 __CONTENT__
-</INPUT_CONTENT>`,
+</INPUT_CONTENT>
+
+- **Length:** Detailed summary including main arguments, illustrative examples, and important supporting information
+- **Tone:** __TONE_DESCRIPTION__
+- **Language:** reply in __LANG__
+`,
 }

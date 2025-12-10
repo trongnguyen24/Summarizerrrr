@@ -70,7 +70,7 @@
 </script>
 
 <div class="flex flex-col gap-4">
-  <div class="flex flex-col gap-3">
+  <div class="flex flex-col gap-1">
     <!-- Main API Key Input -->
     <div class="flex items-end group">
       <div class="flex-1">

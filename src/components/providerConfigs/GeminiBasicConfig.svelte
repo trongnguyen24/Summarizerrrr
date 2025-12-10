@@ -3,7 +3,7 @@
   import { geminiBasicModels } from '@/lib/prompts/models/geminiModels.js'
   import { updateSettings } from '../../stores/settingsStore.svelte.js'
   import ButtonSet from '../buttons/ButtonSet.svelte'
-  import ApiKeyInput from '../inputs/ApiKeyInput.svelte'
+  import ApiKeyInputMulti from '../inputs/ApiKeyInputMulti.svelte'
   import Icon from '@iconify/svelte'
   import { t } from 'svelte-i18n'
 
@@ -74,9 +74,9 @@
 <div class="flex flex-col gap-4">
   <div class="flex flex-col gap-3">
     {#each geminiApiKeys as key, index}
-      <div class="flex items-end gap-2 group">
+      <div class="flex items-end group">
         <div class="flex-1">
-          <ApiKeyInput
+          <ApiKeyInputMulti
             bind:apiKey={geminiApiKeys[index]}
             label={index === 0
               ? $t('settings.gemini_basic_config.api_key_label')
@@ -88,19 +88,17 @@
             linkText={index === 0
               ? $t('settings.gemini_basic_config.get_a_key')
               : ''}
-            placeholder={$t(
-              'settings.gemini_basic_config.api_key_placeholder',
-            ) || 'Enter Gemini API Key'}
+            placeholder="Enter Gemini API Key"
           />
         </div>
 
         {#if geminiApiKeys.length > 1}
           <button
-            class="mb-1.5 p-2 rounded-lg text-text-secondary hover:text-red-500 hover:bg-red-500/10 transition-colors"
+            class="text-text-secondary bg-muted/5 border size-8.5 border-l-0 flex justify-center items-center border-border hover:text-text-primary hover:bg-muted/20 transition-colors"
             onclick={() => removeKey(index)}
             title="Remove API Key"
           >
-            <Icon icon="heroicons:trash-20-solid" width="20" height="20" />
+            <Icon icon="heroicons:minus-16-solid" width="16" height="16" />
           </button>
         {/if}
       </div>

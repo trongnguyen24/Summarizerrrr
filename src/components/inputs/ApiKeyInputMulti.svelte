@@ -11,6 +11,9 @@
     onSave = () => {},
     linkHref = '',
     linkText = '',
+    id = 'api-key-input',
+    showStatus = true,
+    externalStatus = null,
   } = $props()
 
   let showApiKey = $state(false)
@@ -18,18 +21,10 @@
   let apiKeyDebounceTimer = null
 
   function scheduleApiKeySave() {
-    console.log('[ApiKeyInputMulti] scheduleApiKeySave called, apiKey:', apiKey)
     clearTimeout(apiKeyDebounceTimer)
     apiKeyDebounceTimer = setTimeout(() => {
-      console.log(
-        '[ApiKeyInputMulti] Debounce complete, calling onSave with apiKey:',
-        apiKey,
-      )
       // Guard against undefined apiKey
       if (apiKey === undefined || apiKey === null) {
-        console.warn(
-          '[ApiKeyInputMulti] apiKey is undefined/null, skipping save',
-        )
         return
       }
       onSave(apiKey.trim())
@@ -37,16 +32,20 @@
       setTimeout(() => (saveStatus = ''), 2000)
     }, 300)
   }
+
+  let finalStatus = $derived(
+    externalStatus !== null ? externalStatus : showStatus ? saveStatus : '',
+  )
 </script>
 
 <div class="flex flex-col gap-2">
   <div class="flex items-center gap-1 justify-between">
-    <label for="api-key-input" class="block">
+    <label for={id} class="block">
       {label}
     </label>
-    {#if saveStatus}
+    {#if finalStatus}
       <p id="save-status" transition:fade class="text-success flex mr-auto">
-        Saved!
+        {finalStatus === 'saved!' ? 'Saved!' : finalStatus}
       </p>
     {/if}
     {#if linkHref && linkText}
@@ -67,7 +66,7 @@
     >
       <input
         type={showApiKey ? 'text' : 'password'}
-        id="api-key-input"
+        {id}
         {placeholder}
         bind:value={apiKey}
         class="absolute top-0 left-0 w-[133.33%] h-[133.33%] pl-4 pr-12 text-base text-text-primary bg-transparent border-none focus:outline-none focus:ring-0 placeholder:text-muted origin-top-left scale-75"

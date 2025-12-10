@@ -42,9 +42,15 @@ export function getAISDKModel(providerId, settings) {
         geminiApiKey = settings.geminiAdvancedApiKey
       } else {
         // Use rotation for basic keys
+        // Combine main key and additional keys
+        const allKeys = [
+          settings.geminiApiKey,
+          ...(settings.geminiAdditionalApiKeys || [])
+        ]
+        
         // Filter out empty keys
         const validKeys =
-          settings.geminiApiKeys?.filter((k) => k && k.trim() !== '') || []
+          allKeys.filter((k) => k && k.trim() !== '')
 
         if (validKeys.length > 0) {
           // Wrap in simple rotation or random selection
@@ -57,7 +63,7 @@ export function getAISDKModel(providerId, settings) {
             }`
           )
         } else {
-          // Fallback to legacy single key if array is empty
+          // Fallback to legacy single key if array is empty (though included in validKeys check above)
           geminiApiKey = settings.geminiApiKey
         }
       }

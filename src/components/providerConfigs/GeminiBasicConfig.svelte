@@ -4,29 +4,19 @@
   import { updateSettings } from '../../stores/settingsStore.svelte.js'
   import ButtonSet from '../buttons/ButtonSet.svelte'
   import ApiKeyInputMulti from '../inputs/ApiKeyInputMulti.svelte'
+  import { settings } from '@/stores/settingsStore.svelte.js'
   import Icon from '@iconify/svelte'
   import { t } from 'svelte-i18n'
+  import { onMount } from 'svelte'
 
   let {
     geminiApiKey = $bindable(),
-    geminiApiKeys = $bindable([]),
+    geminiAdditionalApiKeys = $bindable([]),
     selectedGeminiModel = $bindable(),
   } = $props()
 
-  // Ensure array is initialized
-  $effect(() => {
-    if (!geminiApiKeys) {
-      geminiApiKeys = []
-    }
-    // Migration fallback for component ref init
-    if (geminiApiKeys.length === 0 && geminiApiKey) {
-      geminiApiKeys = [geminiApiKey]
-    }
-    // Ensure at least one input exists if everything is empty
-    if (geminiApiKeys.length === 0) {
-      geminiApiKeys = ['']
-    }
-  })
+  let sharedSaveStatus = $state('')
+  let statusTimeout = null
 
   // Đảm bảo giá trị mặc định nếu props không được cung cấp
   if (!selectedGeminiModel) {
@@ -45,62 +35,78 @@
   }))
 
   function saveKeys() {
-    // Sync legacy key with the first key for backward compatibility
-    let firstKey = ''
-    if (geminiApiKeys && geminiApiKeys.length > 0) {
-      firstKey = geminiApiKeys[0]
-    }
+    // Create a plain array copy to ensure no Proxy objects are passed to storage
+    const plainAdditionalKeys = Array.from(
+      $state.snapshot(geminiAdditionalApiKeys),
+    )
 
-    // Update store with both new array and legacy string
     updateSettings({
-      geminiApiKeys,
-      geminiApiKey: firstKey,
+      geminiApiKey,
+      geminiAdditionalApiKeys: plainAdditionalKeys,
     })
 
-    // Also update localized bindable if needed (though store update should handle it)
-    geminiApiKey = firstKey
+    // Update shared status
+    clearTimeout(statusTimeout)
+    sharedSaveStatus = 'saved!'
+    statusTimeout = setTimeout(() => {
+      sharedSaveStatus = ''
+    }, 2000)
   }
 
   function addKey() {
-    geminiApiKeys = [...geminiApiKeys, '']
+    geminiAdditionalApiKeys = [...geminiAdditionalApiKeys, '']
   }
 
+  onMount(() => {
+    geminiAdditionalApiKeys = settings.geminiAdditionalApiKeys
+  })
+
   function removeKey(index) {
-    geminiApiKeys = geminiApiKeys.filter((_, i) => i !== index)
+    geminiAdditionalApiKeys = geminiAdditionalApiKeys.filter(
+      (_, i) => i !== index,
+    )
     saveKeys()
   }
 </script>
 
 <div class="flex flex-col gap-4">
   <div class="flex flex-col gap-3">
-    {#each geminiApiKeys as key, index}
+    <!-- Main API Key Input -->
+    <div class="flex items-end group">
+      <div class="flex-1">
+        <ApiKeyInputMulti
+          bind:apiKey={geminiApiKey}
+          label={$t('settings.gemini_basic_config.api_key_label')}
+          onSave={saveKeys}
+          linkHref={'https://aistudio.google.com/app/apikey'}
+          placeholder="Enter Gemini API Key (Primary)"
+          id="gemini-api-key-main"
+          externalStatus={sharedSaveStatus}
+        />
+      </div>
+    </div>
+
+    <!-- Additional API Keys -->
+    {#each geminiAdditionalApiKeys as key, index}
       <div class="flex items-end group">
         <div class="flex-1">
           <ApiKeyInputMulti
-            bind:apiKey={geminiApiKeys[index]}
-            label={index === 0
-              ? $t('settings.gemini_basic_config.api_key_label')
-              : ''}
+            bind:apiKey={geminiAdditionalApiKeys[index]}
+            label=""
             onSave={saveKeys}
-            linkHref={index === 0
-              ? 'https://aistudio.google.com/app/apikey'
-              : ''}
-            linkText={index === 0
-              ? $t('settings.gemini_basic_config.get_a_key')
-              : ''}
-            placeholder="Enter Gemini API Key"
+            placeholder={`Enter Additional Gemini API Key #${index + 1}`}
+            id={`gemini-additional-key-${index}`}
+            showStatus={false}
           />
         </div>
 
-        {#if geminiApiKeys.length > 1}
-          <button
-            class="text-text-secondary bg-muted/5 border size-8.5 border-l-0 flex justify-center items-center border-border hover:text-text-primary hover:bg-muted/20 transition-colors"
-            onclick={() => removeKey(index)}
-            title="Remove API Key"
-          >
-            <Icon icon="heroicons:minus-16-solid" width="16" height="16" />
-          </button>
-        {/if}
+        <button
+          class="text-text-secondary bg-muted/5 border size-8.5 border-l-0 flex justify-center items-center border-border hover:text-text-primary hover:bg-muted/20 transition-colors"
+          onclick={() => removeKey(index)}
+          title="Remove API Key"
+        >
+          <Icon icon="heroicons:minus-16-solid" width="16" height="16" />
+        </button>
       </div>
     {/each}
   </div>

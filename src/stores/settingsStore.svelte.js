@@ -14,7 +14,7 @@ const DEFAULT_SETTINGS = {
   floatingPanelLeft: false, // Default to right side
   closePanelOnOutsideClick: true, // Close floating panel when clicking outside
   geminiApiKey: '',
-  geminiApiKeys: [],
+  geminiAdditionalApiKeys: [], // New storage for extra keys
   selectedGeminiModel: 'gemini-2.5-flash',
   geminiAdvancedApiKey: '',
   selectedGeminiAdvancedModel: 'gemini-2.5-flash',
@@ -301,15 +301,35 @@ export async function loadSettings() {
           })
         }
 
+        // MIGRATION: Split geminiApiKeys into geminiApiKey + geminiAdditionalApiKeys
+        if (cleanStoredSettings.geminiApiKeys && cleanStoredSettings.geminiApiKeys.length > 0) {
+          console.log('[settingsStore] Migration: Splitting geminiApiKeys into main + additional')
+          
+          // If main key is empty or not set, take the first one from the array
+          if (!cleanStoredSettings.geminiApiKey) {
+             cleanStoredSettings.geminiApiKey = cleanStoredSettings.geminiApiKeys[0] || ''
+          }
+          
+          // The rest go into additional keys
+          // Filter out the one we just used as main key if needed, or just take rest
+          // Better logic: Take ALL distinct keys, remove the main key from the list
+          const allKeys = [...cleanStoredSettings.geminiApiKeys]
+          const mainKey = cleanStoredSettings.geminiApiKey
+          
+          const additionalKeys = allKeys.filter(k => k !== mainKey && k.trim() !== '')
+          cleanStoredSettings.geminiAdditionalApiKeys = additionalKeys
+          
+          // Clear the old array
+          cleanStoredSettings.geminiApiKeys = []
+        }
+
         if (
           cleanStoredSettings.geminiApiKey &&
           (!cleanStoredSettings.geminiApiKeys ||
             cleanStoredSettings.geminiApiKeys.length === 0)
         ) {
-          console.log(
-            '[settingsStore] Migration: Converting single Gemini key to array'
-          )
-          cleanStoredSettings.geminiApiKeys = [cleanStoredSettings.geminiApiKey]
+           // Legacy check - no longer needed if we use the logic above, but keeping for safety
+           // If we have a single key but no array, it's fine.
         }
 
         // Merge settings with defaults
@@ -317,6 +337,7 @@ export async function loadSettings() {
           ...DEFAULT_SETTINGS,
           ...cleanStoredSettings,
         }
+        
         Object.assign(settings, mergedSettings)
 
         // ✅ MIGRATION: Save cleaned settings back to storage

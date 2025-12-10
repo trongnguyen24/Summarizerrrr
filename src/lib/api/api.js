@@ -52,11 +52,14 @@ function validateApiKey(userSettings, selectedProviderId) {
       if (userSettings.isAdvancedMode) {
         apiKey = userSettings.geminiAdvancedApiKey
       } else {
-        // Check if there are any valid keys in the array
-        const hasValidKeys =
-          userSettings.geminiApiKeys?.some((k) => k && k.trim() !== '')
-        // Or if the legacy key is present
-        apiKey = hasValidKeys ? 'valid' : userSettings.geminiApiKey
+        // Check if there are any valid keys in the additional array
+        const hasAdditionalKeys =
+          userSettings.geminiAdditionalApiKeys?.some((k) => k && k.trim() !== '')
+        
+        // Valid if main key exists OR additional keys exist
+        const hasMainKey = userSettings.geminiApiKey && userSettings.geminiApiKey.trim() !== ''
+        
+        apiKey = (hasMainKey || hasAdditionalKeys) ? 'valid' : ''
       }
       providerName = 'Google Gemini'
       break

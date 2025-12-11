@@ -14,11 +14,17 @@ import { selectedText } from '../templates/selectedText.js'
 import { courseSummary, courseConcepts } from '../templates/course.js'
 import { systemInstructions } from '../systemInstructions.js'
 import { replacePlaceholders } from '../utils.js'
+import { toneDefinitions } from '../modules/toneDefinitions.js'
+
+function getSystemRole(tone) {
+  const toneDef = toneDefinitions[tone]
+  return typeof toneDef === 'object' ? toneDef.systemRole : null
+}
 
 export const promptBuilders = {
   youtube: {
     buildPrompt: (text, lang, length, tone) => {
-      let systemInstruction = systemInstructions.youtube
+      let systemInstruction = getSystemRole(tone) || systemInstructions.youtube
       let userPrompt = youtubeSummary.userPrompt
 
       if (settings.isSummaryAdvancedMode && settings.youtubePromptSelection) {
@@ -44,7 +50,7 @@ export const promptBuilders = {
   },
   general: {
     buildPrompt: (text, lang, length, tone) => {
-      let systemInstruction = systemInstructions.general
+      let systemInstruction = getSystemRole(tone) || systemInstructions.general
       let userPrompt = generalSummary.userPrompt
 
       if (settings.isSummaryAdvancedMode && settings.webPromptSelection) {
@@ -70,7 +76,7 @@ export const promptBuilders = {
   },
   chapter: {
     buildPrompt: (timestampedTranscript, lang, length, tone) => {
-      let systemInstruction = systemInstructions.chapter
+      let systemInstruction = getSystemRole(tone) || systemInstructions.chapter
       let userPrompt = youtubeChapter.userPrompt
 
       if (settings.isSummaryAdvancedMode && settings.chapterPromptSelection) {
@@ -88,7 +94,7 @@ export const promptBuilders = {
   },
   selectedText: {
     buildPrompt: (text, lang, length, tone) => {
-      let systemInstruction = systemInstructions.selectedText
+      let systemInstruction = getSystemRole(tone) || systemInstructions.selectedText
       let userPrompt = selectedText.userPrompt
 
       if (
@@ -110,7 +116,7 @@ export const promptBuilders = {
   },
   courseSummary: {
     buildPrompt: (text, lang, length, tone) => {
-      let systemInstruction = systemInstructions.courseSummary
+      let systemInstruction = getSystemRole(tone) || systemInstructions.courseSummary
       let userPrompt = courseSummary.userPrompt
 
       if (
@@ -132,7 +138,7 @@ export const promptBuilders = {
   },
   courseConcepts: {
     buildPrompt: (text, lang, tone) => {
-      let systemInstruction = systemInstructions.courseConcepts
+      let systemInstruction = getSystemRole(tone) || systemInstructions.courseConcepts
       let userPrompt = courseConcepts.userPrompt
 
       if (

@@ -16,16 +16,10 @@ QUALITY STANDARDS:
 - Adapt the summary format to best suit the source material (e.g., technical articles vs. Reddit threads).`,
   userPrompt: `
 <TASK>
-Summarize <INPUT_CONTENT> in a structured format, including both main content and comments (if present).
+Summarize <INPUT_CONTENT> in a structured format, including both main content and comments (if present). __TONE_DESCRIPTION__
 </TASK>
 
-<PARAMETERS>
-- **Length:** __LENGTH_DESCRIPTION__
-- **Tone:** __TONE_DESCRIPTION__
-</PARAMETERS>
-
 <OUTPUT_FORMAT>
-
 ## [Main Title]
 [Structured summary using ##, ###, #### and bullets, tables, emoji for clear presentation]
 
@@ -44,7 +38,7 @@ Summarize <INPUT_CONTENT> in a structured format, including both main content an
 - Prioritize the most upvoted/most replied/most cited comments.
 </OUTPUT_FORMAT>
 
-<CORE_REQUIREMENTS>
+<REQUIREMENTS>
 ✅ **Comprehensive**: Include ALL important information, no omissions
 ✅ **Structured**: Use diverse formats (headings, bullets, tables, emoji)
 ✅ **Objective**: Maintain original meaning, present balanced viewpoints
@@ -54,7 +48,7 @@ Summarize <INPUT_CONTENT> in a structured format, including both main content an
 ❌ **No greetings or exclamations**: Start directly with content, avoid unnecessary greetings or thanks
 ❌ **Do not add** personal opinions or external information
 ❌ **Do not omit** important insights from comments (especially Reddit threads)
-</CORE_REQUIREMENTS>
+</REQUIREMENTS>
 
 <SPECIAL_NOTES>
 - **Key Takeaways section**: Focus on actionable insights, surprising findings, main conclusions, or critical information
@@ -68,23 +62,23 @@ Summarize <INPUT_CONTENT> in a structured format, including both main content an
 __CONTENT__
 </INPUT_CONTENT>
 
-Reply in __LANG__.
+Reply in __LANG__
 `,
 }
 
 export const generalSummaryMedium = `
 <TASK>
-Provide a structured summary (100-200 words) of <INPUT_CONTENT>, covering the main points in a clear, organized format.
+Provide a structured summary (100-200 words) of <INPUT_CONTENT>, covering the main points in a clear, organized format. __TONE_DESCRIPTION__
 </TASK>
 
 <OUTPUT_FORMAT>
 ## [Main Title or Topic]
 [Brief overview in 1-2 sentences]
 
-## Key Points
-- [Main point 1 - concise sentence]
-- [Main point 2 - concise sentence] 
-- [Main point 3 - concise sentence]
+## Main Points
+- [Key point 1 - concise sentence]
+- [Key point 2 - concise sentence] 
+- [Key point 3 - concise sentence]
 - [Additional points if necessary, max 5 total]
 
 ## Conclusion
@@ -104,14 +98,12 @@ Provide a structured summary (100-200 words) of <INPUT_CONTENT>, covering the ma
 __CONTENT__
 </INPUT_CONTENT>
 
-- Length __LENGTH_DESCRIPTION__
-- Follow tone __TONE_DESCRIPTION__
-- Reply in __LANG__  
+Reply in __LANG__
 `
 
 export const generalSummaryShort = `
 <TASK>
-Provide a concise summary (50-100 words) of <INPUT_CONTENT>, capturing only the most essential information. Reply in __LANG__.
+Provide a concise summary (50-100 words) of <INPUT_CONTENT>, capturing only the most essential information. __TONE_DESCRIPTION__
 </TASK>
 
 <OUTPUT_FORMAT>
@@ -134,9 +126,7 @@ Provide a concise summary (50-100 words) of <INPUT_CONTENT>, capturing only the 
 __CONTENT__
 </INPUT_CONTENT>
 
-- **Length:** __LENGTH_DESCRIPTION__
-- **Tone:** Follow tone __TONE_DESCRIPTION__
-- **Language:** reply in __LANG__ 
+Reply in __LANG__ 
 `
 
 export const customActionTemplates = {
@@ -148,7 +138,8 @@ If no content is provided, politely ask for clarification about the subject matt
     userPrompt: `<TASK>
 Analyze <INPUT_CONTENT> and generate a structured report with two sections:
 1. Objective Summary of the content
-2. Deep Expert Analysis including bias detection, contextual insights, and fact-based commentary
+2. Deep Expert Analysis including bias detection, contextual insights, and fact-based commentary.
+__TONE_DESCRIPTION__
 </TASK>
 
 
@@ -181,8 +172,6 @@ Include cross-references or factual clarifications if beneficial.]
 <STYLE_GUIDELINES>
 - **Headers**: Use "##" for main sections, "###" for subsections
 - **Emphasis**: Use **Bold** for core ideas, - for bullet points
-- **Language**: Natural, fluent __LANG__
-- **Tone**: __TONE_DESCRIPTION__, analytical but readable
 - **No meta-text**: Don't mention tasks, prompts, or instructions in your output
 </STYLE_GUIDELINES>
 
@@ -212,9 +201,7 @@ This piece fits within **media ethics and AI policy** discussions.
 __CONTENT__
 </INPUT_CONTENT>
 
-- **Length:** __LENGTH_DESCRIPTION__
-- **Tone:** Follow tone __TONE_DESCRIPTION__
-- **Language:** reply in __LANG__  
+Reply in __LANG__
 `,
   },
 
@@ -226,6 +213,7 @@ If no content is provided, politely ask what topic the user would like explained
     userPrompt: `<TASK>
 Explain <INPUT_CONTENT> in a way that is easy to understand, structured from fundamental to advanced concepts.
 Make it engaging with familiar analogies, real-world examples, and clear logical flow.
+__TONE_DESCRIPTION__
 </TASK>
 
 <RESPONSE_STRUCTURE>
@@ -263,7 +251,6 @@ Make it engaging with familiar analogies, real-world examples, and clear logical
 - **Headers**: Use ## and ### to organize sections
 - **Emphasis**: Use **bold** for important concepts
 - **Bullets**: Use - for lists, keep lists concise
-- **Tone**: __TONE_DESCRIPTION__, clear and engaging
 - **No meta notes or system explanations**
 </STYLE_GUIDELINES>
 
@@ -296,9 +283,7 @@ They allow machines to learn patterns from data — similar to how people learn 
 __CONTENT__
 </INPUT_CONTENT>
 
-- **Length:** __LENGTH_DESCRIPTION__
-- **Tone:** Follow tone __TONE_DESCRIPTION__
-- **Language:** reply in __LANG__  
+Reply in __LANG__
 `,
   },
 
@@ -309,6 +294,7 @@ Remain neutral, factual, and concise.
 If no content is provided, ask which idea or issue the user wants to analyze from both sides.`,
     userPrompt: `<TASK>
 Analyze <INPUT_CONTENT> from two opposing viewpoints. Present arguments for and against objectively, then note which aspects need more evidence.
+__TONE_DESCRIPTION__
 </TASK>
 
 
@@ -331,8 +317,6 @@ Analyze <INPUT_CONTENT> from two opposing viewpoints. Present arguments for and 
 - Consider social, ethical, or technical implications
 
 **Style:**
-- Write in __LANG__ following Tone
-- Follow tone __TONE_DESCRIPTION__
 - Use **bold** for key terms
 - Keep tone formal, clear, and neutral
 - No opinions on which side is better
@@ -355,9 +339,7 @@ Economic growth claims lack strong evidence in developing nations. Both sides ne
 __CONTENT__
 </INPUT_CONTENT>
 
-- Length __LENGTH_DESCRIPTION__
-- Follow tone __TONE_DESCRIPTION__
-- Reply in __LANG__  
+Reply in __LANG__
 `,
   },
 
@@ -377,6 +359,7 @@ QUALITY PRINCIPLES:
 - Scope applies only to the top comments provided`,
     userPrompt: `<TASK>
 Analyze the YouTube video comments below and provide a concise summary of audience sentiment and key discussion topics.
+__TONE_DESCRIPTION__
 </TASK>
 
 <RESPONSE_STRUCTURE>
@@ -409,7 +392,6 @@ Analyze the YouTube video comments below and provide a concise summary of audien
 - Keep the output scannable and compact
 - Only reflect patterns present across multiple comments
 - Do not fabricate opinions or sentiment
-- Follow tone __TONE_DESCRIPTION__
 - Ignore spam or irrelevant messages
 </STYLE_GUIDELINES>
 
@@ -417,9 +399,7 @@ Analyze the YouTube video comments below and provide a concise summary of audien
 __CONTENT__
 </COMMENT_DATA>
 
-- Length __LENGTH_DESCRIPTION__
-- Follow tone __TONE_DESCRIPTION__
-- Reply in __LANG__   
+Reply in __LANG__
 `,
   },
   courseConcepts: {
@@ -438,6 +418,7 @@ QUALITY STANDARDS:
 - Avoid superficial explanations and focus on the "how" and "why".`,
     userPrompt: `<TASK>
 Analyze <INPUT_CONTENT> to identify and explain key technical concepts in a comprehensive and structured way, helping learners understand deeply and apply effectively.
+__TONE_DESCRIPTION__
 </TASK>
 
 <CONCEPT_ANALYSIS_PROCESS>
@@ -469,9 +450,7 @@ Analyze <INPUT_CONTENT> to identify and explain key technical concepts in a comp
 __CONTENT__
 </INPUT_CONTENT>
 
-- Length __LENGTH_DESCRIPTION__
-- Follow tone __TONE_DESCRIPTION__
-- Reply in __LANG__  
+Reply in __LANG__
 `,
   },
 }

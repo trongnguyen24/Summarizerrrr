@@ -1,35 +1,13 @@
 // @ts-nocheck
 export const youtubeSummary = {
   title: 'YouTube Summarizer',
-  systemInstruction: `You are an expert content summarizer specializing in YouTube video transcripts. Your task is to create structured, comprehensive summaries that preserve key information, examples, and actionable insights.
-CORE PRINCIPLES:
-- Focus on main topics, supporting evidence, examples, and practical applications
-- Preserve important names, numbers, technical terms, and specific details
-- Organize content logically with clear headings and bullet points
-- Remove filler words, repetitions, and non-essential transitions
-- Maintain objective tone while highlighting key concepts`,
-
+  // System role is now handled dynamically in builders/index.js based on toneDefinitions
+  // Keeping a default/fallback here if needed, but the builder will prioritize toneDefinitions
   userPrompt: `<TASK>
-Summarize YouTube video content from <INPUT_CONTENT>. Focus on main points, specific examples, and useful information.
+Summarize YouTube video content from <INPUT_CONTENT>. Focus on main points, specific examples, and useful information. __TONE_DESCRIPTION__. __LENGTH_DESCRIPTION__. Reply in __LANG__
 </TASK>
 
-<OUTPUT_STRUCTURE>
-## [Video title or main topic]
-
-## 🔑 Key Takeaways
-[List of key takeaways include emojis for key concepts]
-
-## 📝 Details of the video
-### [Timestamp] [Main topic of this section]
-[Structured summary using #### and bullets, tables, include emojis for key concepts]
-
-### [Timestamp] [Main topic of this section]
-[Structured summary using #### and bullets, tables, include emojis for key concepts]
-
-</OUTPUT_STRUCTURE>
-
 <REQUIREMENTS>
-✅ **Structure**: Strictly follow the <OUTPUT_STRUCTURE>.
 ✅ **Timestamps Location**: **CRITICAL RULE**: Timestamps MUST ONLY appear at the very beginning of the H3 headers (###).
 ✅ **Visuals**: Use relevant emojis (e.g., 💡, 🚀, ⚠️, 📉) to make the summary visually appealing.
 ✅ **Content**: Main topics, important points, specific examples/data, steps/instructions.
@@ -39,12 +17,6 @@ Summarize YouTube video content from <INPUT_CONTENT>. Focus on main points, spec
 ❌ **No Plain Blocks**: Avoid long blocks of text without visual breaks (emojis/bullets).
 </REQUIREMENTS>
 
-<SPECIAL_CASES>
-- **Short/noisy transcript**: Summarize what's available.
-- **Tutorial videos**: Use 👉 for steps.
-- **Data-heavy videos**: Use 📊 for statistics.
-</SPECIAL_CASES>
-
 <EXAMPLE>
 ## Growth Mindset vs Fixed Mindset
 
@@ -52,6 +24,7 @@ Summarize YouTube video content from <INPUT_CONTENT>. Focus on main points, spec
 - [Key point 1 - concise sentence include emojis for key concepts]
 - [Key point 2 - concise sentence include emojis for key concepts]
 - [Key point 3 - concise sentence include emojis for key concepts]
+- [Key point ...]
 
 ## 📝 Details of the video
 ### [00:00] Introduction to Growth Mindset
@@ -69,14 +42,13 @@ Summarize YouTube video content from <INPUT_CONTENT>. Focus on main points, spec
 __CONTENT__
 </INPUT_CONTENT>
 
-- Length __LENGTH_DESCRIPTION__
-- Follow tone __TONE_DESCRIPTION__
-- Reply in __LANG__  
+Reply in __LANG__
 `,
 }
+
 export const youtubeSummaryMedium = `
 <TASK>
-Provide a structured summary (100-300 words) of this YouTube video content, covering the main points clearly.
+Provide a structured summary (100-300 words) of this YouTube video content, covering the main points clearly. __TONE_DESCRIPTION__. __LENGTH_DESCRIPTION__. Reply in __LANG__ 
 </TASK>
 
 <INPUT_FORMAT>
@@ -114,14 +86,12 @@ Use the title to understand the video topic and timestamps to understand structu
 __CONTENT__
 </INPUT_CONTENT>
 
-- Length __LENGTH_DESCRIPTION__
-- Follow tone __TONE_DESCRIPTION__
-- Reply in __LANG__  
+Reply in __LANG__
 `
 
 export const youtubeSummaryShort = `
 <TASK>
-Provide a concise summary (50-100 words) of this YouTube video content, focusing only on the most essential information.
+Provide a concise summary (50-100 words) of this YouTube video content, focusing only on the most essential information. __TONE_DESCRIPTION__. __LENGTH_DESCRIPTION__. Reply in __LANG__
 </TASK>
 
 <INPUT_FORMAT>
@@ -152,31 +122,14 @@ Use the title to understand the video topic and timestamps to understand structu
 __CONTENT__
 </INPUT_CONTENT>
 
-- Length __LENGTH_DESCRIPTION__
-- Follow tone __TONE_DESCRIPTION__
-- Reply in __LANG__  
+Reply in __LANG__
 `
 
 export const youtubeChapter = {
   title: 'Chapter Summarizer',
-  systemInstruction: `You are a YouTube video analysis expert specializing in creating structured and detailed chapter summaries. Your tasks:
-
-CORE ABILITIES:
-✅ Analyze timestamped transcripts to identify chapter boundaries
-✅ Create concise, descriptive chapter names
-✅ Summarize content in detail including key points, examples, data
-✅ Preserve important details: numbers, names, technical terms
-✅ Organize information logically by timeline
-
-QUALITY STANDARDS:
-- Chapter names: Descriptive, concise, in requested language
-- Timestamps: Start timestamp in chapter content
-- Content: Detailed but not redundant, focus on value
-- Examples: Always include when mentioned - crucial for engagement
-- Technical accuracy: Preserve exact terms, numbers, names`,
-
+  // System role is now handled dynamically in builders/index.js based on toneDefinitions
   userPrompt: `<TASK>
-Analyze <INPUT_CONTENT> and create detailed chapter-by-chapter summaries with estimated start times. Pay special attention to preserving examples, stories, and important illustrative details.
+Analyze <INPUT_CONTENT> and create detailed chapter-by-chapter summaries with estimated start times. Pay special attention to preserving examples, stories, and important illustrative details. __TONE_DESCRIPTION__. __LENGTH_DESCRIPTION__. Reply in __LANG__
 </TASK>
 
 <CONTEXT>
@@ -234,8 +187,6 @@ Growth mindset not only improves learning but also helps people overcome challen
 __CONTENT__
 </INPUT_CONTENT>
 
-- **Length:** Detailed summary including main arguments, illustrative examples, and important supporting information
-- **Tone:** __TONE_DESCRIPTION__
-- **Language:** reply in __LANG__
+Reply in __LANG__
 `,
 }

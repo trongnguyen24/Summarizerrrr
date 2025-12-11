@@ -1,17 +1,19 @@
 <script>
   // @ts-nocheck
   import TextInput from '../inputs/TextInput.svelte'
+  import ReusableCombobox from '../inputs/ReusableCombobox.svelte'
   import { settings, updateSettings } from '../../stores/settingsStore.svelte'
-  import { fade } from 'svelte/transition'
   import { t } from 'svelte-i18n'
-  import ButtonIcon from '../buttons/ButtonIcon.svelte'
   import Icon from '@iconify/svelte'
-  import { onMount } from 'svelte'
 
   let ollamaModels = $state([])
   let endpointDebounceTimer = null
 
   const DEFAULT_OLLAMA_ENDPOINT = 'http://127.0.0.1:11434/'
+
+  const comboboxItems = $derived(
+    ollamaModels.map((model) => ({ value: model, label: model })),
+  )
 
   async function fetchOllamaModels(endpoint) {
     if (!endpoint) return
@@ -45,6 +47,10 @@
     }, 500) // 500ms debounce
   }
 
+  function handleModelChange(value) {
+    updateSettings({ selectedOllamaModel: value })
+  }
+
   // Fetch models when the component mounts and whenever the endpoint changes
   $effect(() => {
     fetchOllamaModels(settings.ollamaEndpoint)
@@ -68,21 +74,20 @@
   </button>
 </div>
 
-<div class="flex flex-col gap-2">
+<div class="flex flex-col gap-2 relative z-50">
   <div class="flex flex-col gap-2">
-    <TextInput
-      label={$t('settings.ollama_config.model_label')}
-      id="ollama-model-input"
-      list="ollama-model-list"
-      bind:value={settings.selectedOllamaModel}
+    <label
+      for="ollama-model-input"
+      class="block text-xs font-medium text-text-primary"
+      >{$t('settings.ollama_config.model_label')}</label
+    >
+    <ReusableCombobox
+      items={comboboxItems}
+      bind:bindValue={settings.selectedOllamaModel}
       placeholder={$t('settings.ollama_config.model_placeholder')}
-      onSave={(value) => updateSettings({ selectedOllamaModel: value })}
+      id="ollama-model-input"
+      ariaLabel="Search Ollama model"
+      onValueChangeCallback={handleModelChange}
     />
-
-    <datalist id="ollama-model-list">
-      {#each ollamaModels as model}
-        <option value={model}>{model}</option>
-      {/each}
-    </datalist>
   </div>
 </div>

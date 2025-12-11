@@ -1,21 +1,24 @@
 <script>
   // @ts-nocheck
   import { updateSettings } from '../../../stores/settingsStore.svelte'
-  import { fade } from 'svelte/transition'
   import Icon from '@iconify/svelte'
   import ApiKeyInput from '../../inputs/ApiKeyInput.svelte'
-  import TextInput from '../../inputs/TextInput.svelte'
+  import ReusableCombobox from '../../inputs/ReusableCombobox.svelte'
   import { onMount } from 'svelte'
   import { t } from 'svelte-i18n'
 
   let {
     apiKey = $bindable(),
-    selectedModel = '',
+    selectedModel = $bindable(''),
     onModelChange = () => {},
   } = $props()
 
   let openrouterModels = $state([])
   let modelLoadError = $state(null)
+
+  const comboboxItems = $derived(
+    openrouterModels.map((model) => ({ value: model, label: model })),
+  )
 
   /**
    * Handles saving the OpenRouter API key to GLOBAL settings
@@ -49,7 +52,9 @@
     }
   })
 
-  let saveStatus = $state('')
+  function handleModelChange(value) {
+    onModelChange(value)
+  }
 </script>
 
 <ApiKeyInput
@@ -61,17 +66,12 @@
   linkHref="https://openrouter.ai/keys"
   linkText={$t('settings.openrouter_config.get_a_key')}
 />
-<div class="flex flex-col gap-2">
+<div class="flex flex-col gap-2 relative z-50">
   <div class="flex flex-col gap-2">
     <div class="flex items-center gap-1 justify-between">
       <label for="openrouter-model-input" class="block"
         >{$t('settings.openrouter_config.model_label')}</label
       >
-      {#if saveStatus}
-        <p id="save-status" transition:fade class="text-success flex mr-auto">
-          {$t('settings.openrouter_config.saved_status')}
-        </p>
-      {/if}
       <a
         href="https://openrouter.ai/models"
         target="_blank"
@@ -84,22 +84,14 @@
     {#if modelLoadError}
       <p class="text-red-500">Error loading models: {modelLoadError.message}</p>
     {:else}
-      <TextInput
-        id="openrouter-model-input"
-        list="openrouter-model-list"
-        value={selectedModel}
-        bind:saveStatus
+      <ReusableCombobox
+        items={comboboxItems}
+        bind:bindValue={selectedModel}
         placeholder="Enter OpenRouter Model"
-        onSave={(value) => onModelChange(value)}
+        id="openrouter-model-input"
+        ariaLabel="Search OpenRouter model"
+        onValueChangeCallback={handleModelChange}
       />
-
-      <datalist id="openrouter-model-list">
-        {#each openrouterModels as model}
-          <option value={model}>
-            {model}
-          </option>
-        {/each}
-      </datalist>
     {/if}
   </div>
 </div>

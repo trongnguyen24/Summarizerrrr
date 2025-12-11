@@ -1,20 +1,24 @@
 <script>
   // @ts-nocheck
   import TextInput from '../../inputs/TextInput.svelte'
+  import ReusableCombobox from '../../inputs/ReusableCombobox.svelte'
   import {
     settings,
     updateSettings,
   } from '../../../stores/settingsStore.svelte'
-  import { fade } from 'svelte/transition'
   import { t } from 'svelte-i18n'
   import Icon from '@iconify/svelte'
 
-  let { selectedModel = '', onModelChange = () => {} } = $props()
+  let { selectedModel = $bindable(''), onModelChange = () => {} } = $props()
 
   let ollamaModels = $state([])
   let endpointDebounceTimer = null
 
   const DEFAULT_OLLAMA_ENDPOINT = 'http://127.0.0.1:11434/'
+
+  const comboboxItems = $derived(
+    ollamaModels.map((model) => ({ value: model, label: model })),
+  )
 
   async function fetchOllamaModels(endpoint) {
     if (!endpoint) return
@@ -48,6 +52,10 @@
     }, 500) // 500ms debounce
   }
 
+  function handleModelChange(value) {
+    onModelChange(value)
+  }
+
   // Fetch models when the component mounts and whenever the endpoint changes
   $effect(() => {
     fetchOllamaModels(settings.ollamaEndpoint)
@@ -71,19 +79,18 @@
   </button>
 </div>
 
-<div class="flex flex-col gap-2">
-  <TextInput
-    label={$t('settings.ollama_config.model_label')}
-    id="ollama-model-input"
-    list="ollama-model-list"
-    value={selectedModel}
+<div class="flex flex-col gap-2 relative z-50">
+  <label
+    for="ollama-model-input"
+    class="block text-xs font-medium text-text-primary"
+    >{$t('settings.ollama_config.model_label')}</label
+  >
+  <ReusableCombobox
+    items={comboboxItems}
+    bind:bindValue={selectedModel}
     placeholder={$t('settings.ollama_config.model_placeholder')}
-    onSave={(value) => onModelChange(value)}
+    id="ollama-model-input"
+    ariaLabel="Search Ollama model"
+    onValueChangeCallback={handleModelChange}
   />
-
-  <datalist id="ollama-model-list">
-    {#each ollamaModels as model}
-      <option value={model}>{model}</option>
-    {/each}
-  </datalist>
 </div>

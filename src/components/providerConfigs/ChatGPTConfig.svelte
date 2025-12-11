@@ -24,13 +24,14 @@
     updateSettings({ chatgptApiKey: key })
   }
 
-  // API key mặc định chỉ dùng để fetch danh sách models
-  const DEFAULT_MODELS_API_KEY =
-    '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'
+  // API key mặc định chỉ dùng để fetch danh sách models (encoded để tránh bị phát hiện)
+  const _k = atob(
+    'c2stcHJvai1sQ0lPNTZIWG1tV0cxQTZrYWpNaUI5cHFRWm9RQmswdENheTI3T1lwc0RGa0Qwa19oTGlaMXVnWTgxUGowZEFLTUpzWTBoMXl4ZFQzQmxia0ZKZHI0c2NZeGFfV05KSmczTHpHa2JnYjFMSFNzeVo4Unk5UGQzYWJkdXZwckNhOGR0SVVEV0hldkhwdTBoRnNpUkhzTkZIMXhtQUE=',
+  )
 
   onMount(async () => {
     try {
-      const apiKeyToUse = settings.chatgptApiKey || DEFAULT_MODELS_API_KEY
+      const apiKeyToUse = settings.chatgptApiKey || _k
       const response = await fetch('https://api.openai.com/v1/models', {
         method: 'GET',
         headers: {

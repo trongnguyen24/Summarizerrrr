@@ -2,7 +2,7 @@
   // @ts-nocheck
   import { updateSettings } from '../../stores/settingsStore.svelte.js'
   import ApiKeyInput from '../inputs/ApiKeyInput.svelte'
-  import TextInput from '../inputs/TextInput.svelte'
+  import ReusableCombobox from '../inputs/ReusableCombobox.svelte'
   import { t } from 'svelte-i18n'
 
   let {
@@ -10,63 +10,46 @@
     selectedGeminiAdvancedModel = $bindable(),
   } = $props()
 
-  let saveStatus = $state('')
-
   const availableModels = [
     {
-      name: 'models/gemini-3-pro-preview',
-      version: '3-pro-preview-11-2025',
-      displayName: 'Gemini 3 Pro Preview',
+      value: 'gemini-3-pro-preview',
+      label: 'gemini-3-pro-preview',
+    },
+    { value: 'gemini-2.5-pro', label: 'gemini-2.5-pro' },
+    { value: 'gemini-2.5-flash', label: 'gemini-2.5-flash' },
+    {
+      value: 'gemini-2.5-flash-lite',
+      label: 'gemini-2.5-flash-lite',
     },
     {
-      name: 'models/gemini-2.5-pro',
-      version: '2.5',
-      displayName: 'Gemini 2.5 Pro',
+      value: 'gemini-2.5-computer-use-preview-10-2025',
+      label: 'gemini-2.5-computer-use-preview-10-2025',
     },
+    { value: 'gemini-2.0-flash', label: 'gemini-2.0-flash' },
     {
-      name: 'models/gemini-2.5-flash',
-      version: '001',
-      displayName: 'Gemini 2.5 Flash',
+      value: 'gemini-2.0-flash-lite',
+      label: 'gemini-2.0-flash-lite',
     },
+    { value: 'gemma-3-27b-it', label: 'gemma-3-27b-it' },
     {
-      name: 'models/gemini-2.5-flash-lite',
-      version: '001',
-      displayName: 'Gemini 2.5 Flash-Lite',
-    },
-    {
-      name: 'models/gemini-2.5-computer-use-preview-10-2025',
-      version: 'Gemini 2.5 Computer Use Preview 10-2025',
-      displayName: 'Gemini 2.5 Computer Use Preview 10-2025',
-    },
-    {
-      name: 'models/gemini-2.0-flash',
-      version: '2.0',
-      displayName: 'Gemini 2.0 Flash',
-    },
-    {
-      name: 'models/gemini-2.0-flash-lite',
-      version: '2.0',
-      displayName: 'Gemini 2.0 Flash-Lite',
-    },
-    {
-      name: 'models/gemma-3-27b-it',
-      version: '001',
-      displayName: 'Gemma 3 27B',
-    },
-    {
-      name: 'models/gemini-robotics-er-1.5-preview',
-      version: '1.5-preview',
-      displayName: 'Gemini Robotics-ER 1.5 Preview',
+      value: 'gemini-robotics-er-1.5-preview',
+      label: 'gemini-robotics-er-1.5-preview',
     },
   ]
 
   // Đảm bảo giá trị mặc định nếu props không được cung cấp
   if (!selectedGeminiAdvancedModel) {
-    selectedGeminiAdvancedModel = availableModels[0].name
+    selectedGeminiAdvancedModel = availableModels[0].value
   }
 
   function handleGeminiAdvancedApiKeySave(apiKey) {
     updateSettings({ geminiAdvancedApiKey: apiKey })
+  }
+
+  function handleModelChange(newValue) {
+    if (newValue) {
+      updateSettings({ selectedGeminiAdvancedModel: newValue })
+    }
   }
 </script>
 
@@ -78,18 +61,19 @@
   linkText={$t('settings.gemini_advanced_config.get_a_key')}
 ></ApiKeyInput>
 
-<div class="flex flex-col gap-2">
-  <TextInput
-    label={$t('settings.gemini_advanced_config.select_model_label')}
+<div class="flex flex-col gap-2 relative z-50">
+  <label
+    class="text-xs font-medium text-text-primary"
+    for="gemini-model-select"
+  >
+    {$t('settings.gemini_advanced_config.select_model_label')}
+  </label>
+  <ReusableCombobox
+    items={availableModels}
+    bind:bindValue={selectedGeminiAdvancedModel}
     placeholder={$t('settings.gemini_advanced_config.select_model_placeholder')}
-    bind:value={selectedGeminiAdvancedModel}
-    bind:saveStatus
-    list="gemini-models"
-    onSave={(val) => updateSettings({ selectedGeminiAdvancedModel: val })}
+    id="gemini-model-select"
+    ariaLabel="Search a model"
+    onValueChangeCallback={handleModelChange}
   />
-  <datalist id="gemini-models">
-    {#each availableModels as model}
-      <option value={model.name}>{model.displayName}</option>
-    {/each}
-  </datalist>
 </div>

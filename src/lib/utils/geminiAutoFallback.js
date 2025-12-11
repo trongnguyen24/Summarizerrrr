@@ -12,7 +12,7 @@
 export const GEMINI_FALLBACK_CHAIN = [
   'gemini-2.5-flash',
   'gemini-2.5-flash-lite',
-  'gemini-2.0-flash',
+  'gemma-3-27b-it',
 ]
 
 /**
@@ -169,6 +169,6 @@ export function shouldEnableAutoFallback(providerId, settings) {
  */
 export function getCurrentGeminiModel(settings) {
   return settings.isAdvancedMode
-    ? settings.selectedGeminiAdvancedModel || 'gemini-2.0-flash'
-    : settings.selectedGeminiModel || 'gemini-2.0-flash'
+    ? settings.selectedGeminiAdvancedModel || 'gemini-2.5-flash'
+    : settings.selectedGeminiModel || 'gemini-2.5-flash'
 }

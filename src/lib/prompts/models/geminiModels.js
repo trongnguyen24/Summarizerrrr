@@ -1,11 +1,11 @@
 // @ts-nocheck
 export const geminiBasicModels = [
   {
-    value: 'gemini-2.0-flash',
-    label: '2.0 Flash',
-    description: 'Fast and efficient.',
+    value: 'gemma-3-27b-it',
+    label: 'Gemma 3',
+    description: 'lightweight and slow',
     generationConfig: {
-      maxOutputTokens: 8192,
+      maxOutputTokens: 16384,
       temperature: 0.2,
       topP: 0.9,
     },

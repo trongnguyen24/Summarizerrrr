@@ -12,20 +12,29 @@
   } = $props()
 
   const availableModels = [
-    { value: 'gemini-3-pro-preview', label: 'Gemini 3 Pro Preview' },
-    { value: 'gemini-2.5-pro', label: 'Gemini 2.5 Pro' },
-    { value: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash' },
-    { value: 'gemini-2.5-flash-lite', label: 'Gemini 2.5 Flash-Lite' },
+    {
+      value: 'gemini-3-pro-preview',
+      label: 'gemini-3-pro-preview',
+    },
+    { value: 'gemini-2.5-pro', label: 'gemini-2.5-pro' },
+    { value: 'gemini-2.5-flash', label: 'gemini-2.5-flash' },
+    {
+      value: 'gemini-2.5-flash-lite',
+      label: 'gemini-2.5-flash-lite',
+    },
     {
       value: 'gemini-2.5-computer-use-preview-10-2025',
-      label: 'Gemini 2.5 Computer Use Preview',
+      label: 'gemini-2.5-computer-use-preview-10-2025',
     },
-    { value: 'gemini-2.0-flash', label: 'Gemini 2.0 Flash' },
-    { value: 'gemini-2.0-flash-lite', label: 'Gemini 2.0 Flash-Lite' },
-    { value: 'gemma-3-27b-it', label: 'Gemma 3 27B' },
+    { value: 'gemini-2.0-flash', label: 'gemini-2.0-flash' },
+    {
+      value: 'gemini-2.0-flash-lite',
+      label: 'gemini-2.0-flash-lite',
+    },
+    { value: 'gemma-3-27b-it', label: 'gemma-3-27b-it' },
     {
       value: 'gemini-robotics-er-1.5-preview',
-      label: 'Gemini Robotics-ER 1.5 Preview',
+      label: 'gemini-robotics-er-1.5-preview',
     },
   ]
 

@@ -201,7 +201,10 @@
     "gemini_basic_config": {
       "api_key_label": "Gemini API 키",
       "get_a_key": "키 얻기",
-      "select_model_label": "Gemini 모델 선택"
+      "select_model_label": "Gemini 모델 선택",
+      "placeholder_additional_key": "추가 Gemini API 키 #{index} 입력",
+      "remove_api_key": "API 키 삭제",
+      "add_key_for_higher_limit": "더 높은 한도를 위해 키 추가"
     },
     "ollama_config": {
       "endpoint_label": "Ollama 엔드포인트",

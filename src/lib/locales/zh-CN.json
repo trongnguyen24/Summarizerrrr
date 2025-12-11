@@ -133,7 +133,10 @@
     "gemini_basic_config": {
       "api_key_label": "Gemini API 密钥",
       "get_a_key": "获取密钥",
-      "select_model_label": "选择 Gemini 模型"
+      "select_model_label": "选择 Gemini 模型",
+      "placeholder_additional_key": "输入额外的 Gemini API 密钥 #{index}",
+      "remove_api_key": "删除 API 密钥",
+      "add_key_for_higher_limit": "添加密钥以提高限制"
     },
     "ollama_config": {
       "endpoint_label": "Ollama 端点",

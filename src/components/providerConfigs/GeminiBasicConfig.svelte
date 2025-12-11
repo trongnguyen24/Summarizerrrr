@@ -79,6 +79,7 @@
           label={$t('settings.gemini_basic_config.api_key_label')}
           onSave={saveKeys}
           linkHref={'https://aistudio.google.com/app/apikey'}
+          linkText={$t('settings.gemini_basic_config.get_a_key')}
           placeholder="Enter Gemini API Key (Primary)"
           id="gemini-api-key-main"
           externalStatus={sharedSaveStatus}
@@ -94,29 +95,54 @@
             bind:apiKey={geminiAdditionalApiKeys[index]}
             label=""
             onSave={saveKeys}
-            placeholder={`Enter Additional Gemini API Key #${index + 1}`}
+            placeholder={$t(
+              'settings.gemini_basic_config.placeholder_additional_key',
+              { values: { index: index + 1 } },
+            )}
             id={`gemini-additional-key-${index}`}
             showStatus={false}
           />
         </div>
 
+        <!-- svelte-ignore a11y_consider_explicit_label -->
         <button
-          class="text-text-secondary bg-muted/5 border size-8.5 border-l-0 flex justify-center items-center border-border hover:text-text-primary hover:bg-muted/20 transition-colors"
+          class="text-text-secondary size-8.5 border-l-0 flex justify-center items-center bg-muted/5 dark:bg-muted/5 border border-border focus-within:border-blackwhite/30 dark:border-blackwhite/10 dark:focus-within:border-blackwhite/20 transition-colors duration-150 hover:text-text-primary hover:bg-muted/20"
           onclick={() => removeKey(index)}
-          title="Remove API Key"
+          title={$t('settings.gemini_basic_config.remove_api_key')}
         >
-          <Icon icon="heroicons:minus-16-solid" width="16" height="16" />
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 16 16"
+            fill="currentColor"
+            class="size-4"
+          >
+            <path
+              d="M3.75 7.25a.75.75 0 0 0 0 1.5h8.5a.75.75 0 0 0 0-1.5h-8.5Z"
+            />
+          </svg>
         </button>
       </div>
     {/each}
   </div>
 
   <button
-    class="flex items-center gap-2 text-sm font-medium text-primary hover:text-primary/80 transition-colors w-fit px-1"
+    class="flex items-center mx-auto gap-2 font-medium text-primary hover:text-primary/80 transition-colors w-fit px-1"
     onclick={addKey}
   >
-    <Icon icon="heroicons:plus-circle-20-solid" width="18" height="18" />
-    Add another API key
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 16 16"
+      fill="currentColor"
+      class="size-4"
+    >
+      <path
+        fill-rule="evenodd"
+        d="M8 15A7 7 0 1 0 8 1a7 7 0 0 0 0 14Zm.75-10.25v2.5h2.5a.75.75 0 0 1 0 1.5h-2.5v2.5a.75.75 0 0 1-1.5 0v-2.5h-2.5a.75.75 0 0 1 0-1.5h2.5v-2.5a.75.75 0 0 1 1.5 0Z"
+        clip-rule="evenodd"
+      />
+    </svg>
+
+    {$t('settings.gemini_basic_config.add_key_for_higher_limit')}
   </button>
 </div>
 

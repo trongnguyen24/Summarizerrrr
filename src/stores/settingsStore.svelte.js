@@ -120,7 +120,7 @@ const DEFAULT_SETTINGS = {
       enabled: true,
       useGeminiBasic: true,
       customProvider: 'gemini',
-      customModel: 'gemini-2.5-flash-lite',
+      customModel: 'gemma-3-27b-it',
       autoGenerate: true,
       defaultChatProvider: 'gemini',
     },
@@ -162,6 +162,24 @@ function migrateDeprecatedGeminiModels(settings) {
   }
 
   return migrated
+}
+
+/**
+ * Migrates Deep Dive Questions default model from gemini-2.5-flash-lite to gemma-3-27b-it
+ * @param {Object} settings - Settings object to migrate
+ * @returns {boolean} - True if migration was performed
+ */
+function migrateDeepDiveModel(settings) {
+  const OLD_MODEL = 'gemini-2.5-flash-lite'
+  const NEW_MODEL = 'gemma-3-27b-it'
+  
+  if (settings.tools?.deepDive?.customModel === OLD_MODEL) {
+    console.log('[settingsStore] Migration: Upgrading Deep Dive model to gemma-3-27b-it')
+    settings.tools.deepDive.customModel = NEW_MODEL
+    return true
+  }
+  
+  return false
 }
 
 /**
@@ -300,6 +318,9 @@ export async function loadSettings() {
             }
           })
         }
+
+        // ✅ MIGRATION: Upgrade Deep Dive model to gemma-3-27b-it
+        migrateDeepDiveModel(cleanStoredSettings)
 
         // MIGRATION: Split geminiApiKeys into geminiApiKey + geminiAdditionalApiKeys
         if (cleanStoredSettings.geminiApiKeys && cleanStoredSettings.geminiApiKeys.length > 0) {

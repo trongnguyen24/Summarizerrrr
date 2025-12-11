@@ -49,6 +49,9 @@ Summarize YouTube video content from <INPUT_CONTENT>. Focus on main points, spec
 ## Growth Mindset vs Fixed Mindset
 
 ## 🔑 Key Takeaways
+- [Key point 1 - concise sentence include emojis for key concepts]
+- [Key point 2 - concise sentence include emojis for key concepts]
+- [Key point 3 - concise sentence include emojis for key concepts]
 
 ## 📝 Details of the video
 ### [00:00] Introduction to Growth Mindset

@@ -201,7 +201,10 @@
     "gemini_basic_config": {
       "api_key_label": "Clé API Gemini",
       "get_a_key": "Obtenir une clé",
-      "select_model_label": "Sélectionner un modèle Gemini"
+      "select_model_label": "Sélectionner un modèle Gemini",
+      "placeholder_additional_key": "Entrez la clé API Gemini supplémentaire #{index}",
+      "remove_api_key": "Supprimer la clé API",
+      "add_key_for_higher_limit": "Ajouter une clé pour augmenter la limite"
     },
     "ollama_config": {
       "endpoint_label": "Point de terminaison Ollama",

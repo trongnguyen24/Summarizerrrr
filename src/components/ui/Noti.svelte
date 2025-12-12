@@ -157,10 +157,10 @@
   <!-- Sheet Content (separate for animation) -->
 
   <div
-    class="fixed bottom-0 left-1/2 -translate-x-1/2 z-[101] flex justify-center"
+    class="fixed bottom-0 max-w-100 w-full left-1/2 -translate-x-1/2 z-[101] flex justify-center"
   >
     <div
-      class="relative w-full max-w-100 bg-surface-2 rounded-t-3xl border-t border-x border-surface-2 dark:border-border shadow-2xl"
+      class="relative w-full bg-surface-2 rounded-t-3xl border-t border-x border-surface-2 dark:border-border shadow-2xl"
       class:sheet-open={!isClosing}
       class:sheet-close={isClosing}
       style="height: max(40vh, 320px);"

@@ -104,11 +104,11 @@
           />
         </div>
 
-        <!-- svelte-ignore a11y_consider_explicit_label -->
         <button
           class="text-text-secondary size-8.5 border-l-0 flex justify-center items-center bg-muted/5 dark:bg-muted/5 border border-border focus-within:border-blackwhite/30 dark:border-blackwhite/10 dark:focus-within:border-blackwhite/20 transition-colors duration-150 hover:text-text-primary hover:bg-muted/20"
           onclick={() => removeKey(index)}
           title={$t('settings.gemini_basic_config.remove_api_key')}
+          aria-label={$t('settings.gemini_basic_config.remove_api_key')}
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"

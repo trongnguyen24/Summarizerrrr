@@ -94,7 +94,7 @@
   <!-- Notification Bar -->
   <button
     onclick={openSheet}
-    class="absolute mx-auto w-full font-mono flex flex-col justify-center max-w-120 bottom-2 z-50 p-2 rounded-full cursor-pointer group"
+    class="absolute left-1/2 -translate-x-1/2 w-full font-mono flex flex-col justify-center max-w-100 bottom-2 z-50 p-2 rounded-full cursor-pointer group"
     aria-label="Open notifications"
   >
     <div
@@ -144,16 +144,23 @@
 
 <!-- Bottom Sheet -->
 {#if isSheetOpen}
-  <!-- Backdrop (separate div for click handling) -->
+  <!-- Backdrop -->
   <!-- svelte-ignore a11y_click_events_have_key_events -->
-  <!-- svelte-ignore a11y_no_static_element_interactions -->
-  <div class="fixed inset-0 z-[100]" onclick={handleBackdropClick}></div>
+  <!-- svelte-ignore a11y_interactive_supports_focus -->
+  <div
+    class="fixed inset-0 z-[100] cursor-default bg-transparent border-none"
+    onclick={handleBackdropClick}
+    role="button"
+    aria-label="Close notification sheet"
+  ></div>
 
   <!-- Sheet Content (separate for animation) -->
 
-  <div class="fixed bottom-0 left-0 right-0 z-[101] flex justify-center">
+  <div
+    class="fixed bottom-0 left-1/2 -translate-x-1/2 z-[101] flex justify-center"
+  >
     <div
-      class="relative w-full max-w-lg bg-surface-2 rounded-t-3xl border-t border-x border-surface-2 dark:border-border shadow-2xl"
+      class="relative w-full max-w-100 bg-surface-2 rounded-t-3xl border-t border-x border-surface-2 dark:border-border shadow-2xl"
       class:sheet-open={!isClosing}
       class:sheet-close={isClosing}
       style="height: max(40vh, 320px);"

@@ -68,7 +68,7 @@ EXAMPLE OUTPUT (English):
 EXAMPLE OUTPUT (Vietnamese):
 {"questions": ["Distillation (chưng cất) hoạt động ra sao?", "Fine-tuning (tinh chỉnh) khác Distillation (chưng cất) ở đâu?", "RLHF áp dụng khi nào?"]}
 </OUTPUT_FORMAT>
-Relly in __LANG__ and max 15 words per question
+Reply in __LANG__ and max 15 words per question
 `,
 }
 
@@ -147,7 +147,7 @@ EXAMPLE OUTPUT (Vietnamese):
 {"questions": ["Constitutional AI (AI hiến pháp) khác RLHF (học tăng cường) thế nào?", "Scaling Laws (quy luật mở rộng) ảnh hưởng gì?", "Privacy (riêng tư) được đảm bảo như thế nào?"]}
 </OUTPUT_FORMAT>
 
-Relly in __LANG__ and max 15 words per question
+Reply in __LANG__ and max 15 words per question
 `,
 }
 

@@ -4,7 +4,7 @@ export const youtubeSummary = {
   // System role is now handled dynamically in builders/index.js based on toneDefinitions
   // Keeping a default/fallback here if needed, but the builder will prioritize toneDefinitions
   userPrompt: `<TASK>
-Summarize YouTube video content from <INPUT_CONTENT>. Focus on main points, specific examples, and useful information. __TONE_DESCRIPTION__. __LENGTH_DESCRIPTION__. Reply in __LANG__
+Summarize YouTube video content from <INPUT_CONTENT>. Focus on main points, specific examples, and useful information. __TONE_DESCRIPTION__. Reply in __LANG__
 </TASK>
 
 <REQUIREMENTS>
@@ -48,25 +48,17 @@ Reply in __LANG__
 
 export const youtubeSummaryMedium = `
 <TASK>
-Provide a structured summary (100-300 words) of this YouTube video content, covering the main points clearly. __TONE_DESCRIPTION__. __LENGTH_DESCRIPTION__. Reply in __LANG__ 
+Provide a structured summary (100-300 words) of this YouTube video content, covering the main points clearly. __TONE_DESCRIPTION__. Reply in __LANG__.
 </TASK>
-
-<INPUT_FORMAT>
-The input transcript includes:
-1. **Video title** wrapped in <title></title> tags at the beginning
-2. **Timestamped transcript** in format [HH:MM:SS → HH:MM:SS] or [MM:SS → MM:SS]
-
-Use the title to understand the video topic and timestamps to understand structure, but don't include them in your summary.
-</INPUT_FORMAT>
 
 <OUTPUT_FORMAT>
 ## [Video Topic/Title]
 [Brief overview of what the video covers]
 
 ## Main Points
-- [Key point 1 - concise sentence]
-- [Key point 2 - concise sentence]
-- [Key point 3 - concise sentence]
+- [Key point 1 - concise sentence include emojis for key concepts]
+- [Key point 2 - concise sentence include emojis for key concepts]
+- [Key point 3 - concise sentence include emojis for key concepts]
 - [Additional points if necessary, max 8 total]
 
 ## Key Takeaways
@@ -75,8 +67,7 @@ Use the title to understand the video topic and timestamps to understand structu
 
 <REQUIREMENTS>
 ✅ **Focused**: Main topics and important points only
-✅ **Structured**: Clear bullet points for easy reading
-✅ **Balanced**: 100-200 words maximum
+✅ **Visuals**: Use relevant emojis (e.g., 💡, 🚀, ⚠️, 📉) to make the summary visually appealing.
 ✅ **Actionable**: Include practical takeaways when present
 ❌ **Avoid**: Detailed step-by-step instructions, minor examples
 ❌ **No**: Excessive sub-sections, lengthy explanations
@@ -91,16 +82,9 @@ Reply in __LANG__
 
 export const youtubeSummaryShort = `
 <TASK>
-Provide a concise summary (50-100 words) of this YouTube video content, focusing only on the most essential information. __TONE_DESCRIPTION__. __LENGTH_DESCRIPTION__. Reply in __LANG__
+Provide a concise summary (50-100 words) of this YouTube video content, focusing only on the most essential information. __TONE_DESCRIPTION__. Reply in __LANG__.
 </TASK>
 
-<INPUT_FORMAT>
-The input transcript includes:
-1. **Video title** wrapped in <title></title> tags at the beginning
-2. **Timestamped transcript** in format [HH:MM:SS → HH:MM:SS] or [MM:SS → MM:SS]
-
-Use the title to understand the video topic and timestamps to understand structure, but don't include them in your summary.
-</INPUT_FORMAT>
 
 <OUTPUT_FORMAT>
 ## Main Topic
@@ -132,26 +116,10 @@ export const youtubeChapter = {
 Analyze <INPUT_CONTENT> and create detailed chapter-by-chapter summaries with estimated start times. Pay special attention to preserving examples, stories, and important illustrative details. __TONE_DESCRIPTION__. __LENGTH_DESCRIPTION__. Reply in __LANG__
 </TASK>
 
-<CONTEXT>
-The input content is a video transcript with timestamps. Specific examples, illustrative stories, and case studies are crucial elements that make content more understandable and persuasive.
-</CONTEXT>
-
-
-<OUTPUT_STRUCTURE>
-## [Video title or main topic]
-
-### [[Timestamp]] [Chapter Name]
-[Summary content presented scientifically using paragraphs, #### and bullet points]
-
-## Overall Conclusion
-[Overall message or key theme throughout the video]
-</OUTPUT_STRUCTURE>
-
 <KEY_REQUIREMENTS>
 ✅ **Clearly separate** using paragraphs, headings and bullet points
 ✅ **Preserve proper names and numbers** for accuracy
 ✅ **Link examples to main arguments** - explain what each example illustrates
-✅ All content in __LANG__ language
 ❌ Don't write long continuous paragraphs
 ❌ Don't mix different types of information together
 ❌ Don't skip important illustrative examples

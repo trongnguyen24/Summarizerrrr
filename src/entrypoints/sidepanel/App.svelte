@@ -14,6 +14,7 @@
   import ApiKeySetupPrompt from '@/components/ui/ApiKeySetupPrompt.svelte'
   import { Toaster, toast } from 'svelte-sonner'
   import ModelToast from '@/components/feedback/ModelToast.svelte'
+  import Noti from '@/components/ui/Noti.svelte'
   import 'webextension-polyfill'
 
   // Import direct variables and functions from refactored stores
@@ -572,6 +573,7 @@
 <div
   class=" fixed bg-linear-to-t from-surface-1 to-surface-1/40 bottom-0 mask-t-from-50% h-16 backdrop-blur-[2px] w-full z-30 pointer-events-none"
 ></div>
+<Noti />
 <Toaster />
 <!-- Deep Dive FAB & Section with Error Boundary -->
 {#if shouldShowDeepDive()}

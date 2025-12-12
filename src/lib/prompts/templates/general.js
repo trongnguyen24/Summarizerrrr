@@ -16,7 +16,7 @@ QUALITY STANDARDS:
 - Adapt the summary format to best suit the source material (e.g., technical articles vs. Reddit threads).`,
   userPrompt: `
 <TASK>
-Summarize <INPUT_CONTENT> in a structured format, including both main content and comments (if present). __TONE_DESCRIPTION__
+Summarize <INPUT_CONTENT> in a structured format, including both main content and comments (if present). __TONE_DESCRIPTION__. Reply in __LANG__
 </TASK>
 
 <OUTPUT_FORMAT>
@@ -68,7 +68,7 @@ Reply in __LANG__
 
 export const generalSummaryMedium = `
 <TASK>
-Provide a structured summary (100-200 words) of <INPUT_CONTENT>, covering the main points in a clear, organized format. __TONE_DESCRIPTION__
+Provide a structured summary (100-200 words) of <INPUT_CONTENT>, covering the main points in a clear, organized format. __TONE_DESCRIPTION__. Reply in __LANG__.
 </TASK>
 
 <OUTPUT_FORMAT>
@@ -103,7 +103,7 @@ Reply in __LANG__
 
 export const generalSummaryShort = `
 <TASK>
-Provide a concise summary (50-100 words) of <INPUT_CONTENT>, capturing only the most essential information. __TONE_DESCRIPTION__
+Provide a concise summary (50-100 words) of <INPUT_CONTENT>, capturing only the most essential information. __TONE_DESCRIPTION__. Reply in __LANG__.
 </TASK>
 
 <OUTPUT_FORMAT>
@@ -139,18 +139,8 @@ If no content is provided, politely ask for clarification about the subject matt
 Analyze <INPUT_CONTENT> and generate a structured report with two sections:
 1. Objective Summary of the content
 2. Deep Expert Analysis including bias detection, contextual insights, and fact-based commentary.
-__TONE_DESCRIPTION__
+3. __TONE_DESCRIPTION__. Reply in __LANG__.
 </TASK>
-
-
-<RESPONSE_STRUCTURE>
-## Content Summary
-[Faithful summary of main ideas, arguments, data, and conclusions — objective, neutral tone]
-
-## Expert Analysis
-[In-depth analysis that identifies patterns, bias, implications, and contextual relevance.
-Include cross-references or factual clarifications if beneficial.]
-</RESPONSE_STRUCTURE>
 
 <SUMMARY_REQUIREMENTS>
 ✅ **Objective**: Remain factual and neutral; no personal opinions in summary
@@ -175,11 +165,6 @@ Include cross-references or factual clarifications if beneficial.]
 - **No meta-text**: Don't mention tasks, prompts, or instructions in your output
 </STYLE_GUIDELINES>
 
-<FORMAT_CONTROL>
-If <INPUT_CONTENT> is empty or unclear, do not fabricate.
-Instead, ask: "Could you clarify or provide the specific content or topic you'd like me to analyze?"
-Never include apologies, system notes, or non-requested commentary in the output.
-</FORMAT_CONTROL>
 
 <EXAMPLE>
 ## Content Summary
@@ -213,7 +198,7 @@ If no content is provided, politely ask what topic the user would like explained
     userPrompt: `<TASK>
 Explain <INPUT_CONTENT> in a way that is easy to understand, structured from fundamental to advanced concepts.
 Make it engaging with familiar analogies, real-world examples, and clear logical flow.
-__TONE_DESCRIPTION__
+__TONE_DESCRIPTION__. Reply in __LANG__.
 </TASK>
 
 <RESPONSE_STRUCTURE>
@@ -254,12 +239,6 @@ __TONE_DESCRIPTION__
 - **No meta notes or system explanations**
 </STYLE_GUIDELINES>
 
-<FORMAT_CONTROL>
-If <INPUT_CONTENT> is empty or unclear, do not fabricate.
-Instead, ask: "Which topic or concept would you like me to explain in simple terms?"
-Never include apologies, system notes, or self-reference in the output.
-</FORMAT_CONTROL>
-
 <EXAMPLE>
 ## Explanation Overview
 **Neural networks** are computer systems inspired by the way the human brain processes information.
@@ -294,20 +273,8 @@ Remain neutral, factual, and concise.
 If no content is provided, ask which idea or issue the user wants to analyze from both sides.`,
     userPrompt: `<TASK>
 Analyze <INPUT_CONTENT> from two opposing viewpoints. Present arguments for and against objectively, then note which aspects need more evidence.
-__TONE_DESCRIPTION__
+__TONE_DESCRIPTION__. Reply in __LANG__.
 </TASK>
-
-
-<RESPONSE_STRUCTURE>
-## Arguments For
-[Strongest supporting arguments: evidence, logic, benefits, reasoning]
-
-## Arguments Against
-[Strongest counterarguments: criticisms, risks, flaws, opposing logic]
-
-## Evaluation Note
-[Which claims need more evidence, are weakly supported, or unclear in reasoning]
-</RESPONSE_STRUCTURE>
 
 <REQUIREMENTS>
 **Analysis:**
@@ -359,7 +326,7 @@ QUALITY PRINCIPLES:
 - Scope applies only to the top comments provided`,
     userPrompt: `<TASK>
 Analyze the YouTube video comments below and provide a concise summary of audience sentiment and key discussion topics.
-__TONE_DESCRIPTION__
+__TONE_DESCRIPTION__. Reply in __LANG__.
 </TASK>
 
 <RESPONSE_STRUCTURE>
@@ -418,7 +385,7 @@ QUALITY STANDARDS:
 - Avoid superficial explanations and focus on the "how" and "why".`,
     userPrompt: `<TASK>
 Analyze <INPUT_CONTENT> to identify and explain key technical concepts in a comprehensive and structured way, helping learners understand deeply and apply effectively.
-__TONE_DESCRIPTION__
+__TONE_DESCRIPTION__ Reply in __LANG__.
 </TASK>
 
 <CONCEPT_ANALYSIS_PROCESS>

@@ -49,9 +49,18 @@ function validateApiKey(userSettings, selectedProviderId) {
 
   switch (selectedProviderId) {
     case 'gemini':
-      apiKey = userSettings.isAdvancedMode
-        ? userSettings.geminiAdvancedApiKey
-        : userSettings.geminiApiKey
+      if (userSettings.isAdvancedMode) {
+        apiKey = userSettings.geminiAdvancedApiKey
+      } else {
+        // Check if there are any valid keys in the additional array
+        const hasAdditionalKeys =
+          userSettings.geminiAdditionalApiKeys?.some((k) => k && k.trim() !== '')
+        
+        // Valid if main key exists OR additional keys exist
+        const hasMainKey = userSettings.geminiApiKey && userSettings.geminiApiKey.trim() !== ''
+        
+        apiKey = (hasMainKey || hasAdditionalKeys) ? 'valid' : ''
+      }
       providerName = 'Google Gemini'
       break
     case 'openrouter':

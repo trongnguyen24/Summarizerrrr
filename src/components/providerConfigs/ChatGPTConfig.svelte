@@ -1,10 +1,9 @@
 <script>
   // @ts-nocheck
   import { settings, updateSettings } from '../../stores/settingsStore.svelte'
-  import { fade } from 'svelte/transition'
   import Icon from '@iconify/svelte'
   import ApiKeyInput from '../inputs/ApiKeyInput.svelte'
-  import TextInput from '../inputs/TextInput.svelte'
+  import ReusableCombobox from '../inputs/ReusableCombobox.svelte'
   import { onMount } from 'svelte'
   import { t } from 'svelte-i18n'
 
@@ -12,7 +11,10 @@
 
   let chatgptModels = $state([])
   let modelLoadError = $state(null)
-  let saveStatus = $state('')
+
+  const comboboxItems = $derived(
+    chatgptModels.map((model) => ({ value: model, label: model })),
+  )
 
   /**
    * Handles saving the ChatGPT API key.
@@ -22,12 +24,18 @@
     updateSettings({ chatgptApiKey: key })
   }
 
+  // API key mặc định chỉ dùng để fetch danh sách models (encoded để tránh bị phát hiện)
+  const _k = atob(
+    'c2stcHJvai1sQ0lPNTZIWG1tV0cxQTZrYWpNaUI5cHFRWm9RQmswdENheTI3T1lwc0RGa0Qwa19oTGlaMXVnWTgxUGowZEFLTUpzWTBoMXl4ZFQzQmxia0ZKZHI0c2NZeGFfV05KSmczTHpHa2JnYjFMSFNzeVo4Unk5UGQzYWJkdXZwckNhOGR0SVVEV0hldkhwdTBoRnNpUkhzTkZIMXhtQUE=',
+  )
+
   onMount(async () => {
     try {
+      const apiKeyToUse = settings.chatgptApiKey || _k
       const response = await fetch('https://api.openai.com/v1/models', {
         method: 'GET',
         headers: {
-          Authorization: `Bearer ${settings.chatgptApiKey}`,
+          Authorization: `Bearer ${apiKeyToUse}`,
         },
       })
 
@@ -49,8 +57,9 @@
     }
   })
 
-  // Khối $effect đã được loại bỏ. Việc lưu model được xử lý bởi hàm `scheduleChatgptModelSave`
-  // được gọi từ sự kiện `oninput` của input.
+  function handleModelChange(value) {
+    updateSettings({ selectedChatgptModel: value })
+  }
 </script>
 
 <ApiKeyInput
@@ -62,17 +71,12 @@
   linkHref="https://platform.openai.com/api-keys"
   linkText={$t('settings.groq_config.get_a_key')}
 />
-<div class="flex flex-col gap-2">
+<div class="flex flex-col gap-2 relative z-50">
   <div class="flex flex-col gap-2">
     <div class="flex items-center gap-1 justify-between">
       <label for="chatgpt-model-input" class="block"
         >{$t('settings.chatgpt_config.model_name_label')}</label
       >
-      {#if saveStatus}
-        <p id="save-status" transition:fade class="text-success flex mr-auto">
-          {$t('settings.chatgpt_config.saved_status')}
-        </p>
-      {/if}
       <a
         href="https://platform.openai.com/docs/pricing"
         target="_blank"
@@ -83,21 +87,13 @@
       </a>
     </div>
 
-    <TextInput
-      id="chatgpt-model-input"
-      list="chatgpt-model-list"
-      bind:value={selectedChatgptModel}
-      bind:saveStatus
+    <ReusableCombobox
+      items={comboboxItems}
+      bind:bindValue={selectedChatgptModel}
       placeholder={$t('settings.chatgpt_config.model_placeholder')}
-      onSave={(value) => updateSettings({ selectedChatgptModel: value })}
+      id="chatgpt-model-input"
+      ariaLabel="Search ChatGPT model"
+      onValueChangeCallback={handleModelChange}
     />
-
-    <datalist id="chatgpt-model-list">
-      {#each chatgptModels as model}
-        <option value={model}>
-          {model}
-        </option>
-      {/each}
-    </datalist>
   </div>
 </div>

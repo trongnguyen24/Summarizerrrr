@@ -201,7 +201,10 @@
     "gemini_basic_config": {
       "api_key_label": "Gemini API-Schlüssel",
       "get_a_key": "Schlüssel holen",
-      "select_model_label": "Gemini-Modell auswählen"
+      "select_model_label": "Gemini-Modell auswählen",
+      "placeholder_additional_key": "Zusätzlichen Gemini API-Schlüssel #{index} eingeben",
+      "remove_api_key": "API-Schlüssel entfernen",
+      "add_key_for_higher_limit": "Schlüssel für höheres Limit hinzufügen"
     },
     "ollama_config": {
       "endpoint_label": "Ollama-Endpunkt",
@@ -444,5 +447,18 @@
     "replace_mode_description": "• Ausgewählte Datentypen werden zuerst vollständig gelöscht<br />• Dann nur durch importierte Daten ersetzt<br />• Nicht ausgewählte Datentypen sind nicht betroffen",
     "replace_warning_title": "Warnung: Ersetzen-Modus",
     "confirm_replace": "Ja, ersetzen"
+  },
+  "notifications": {
+    "no_notifications": "Keine Benachrichtigungen",
+    "api_limits": {
+      "title": "Gemini API-Limits reduziert",
+      "description": "Fügen Sie 3-5 API-Schlüssel hinzu, um Ihr tägliches Anfragelimit zu erhöhen.",
+      "cta_label": "Anleitung ansehen"
+    },
+    "version_update": {
+      "title": "Version 2.7.0 veröffentlicht",
+      "description": "Entdecken Sie die neuen Funktionen unter Einstellungen → Info → Was ist neu?",
+      "cta_label": "Einstellungen öffnen"
+    }
   }
 }

@@ -16,13 +16,8 @@ QUALITY STANDARDS:
 - Remove filler content and redundancies without losing important context.`,
   userPrompt: `
 <TASK>
-Summarize Course lecture from <INPUT_CONTENT>, focusing on core knowledge and practical steps.
+Summarize Course lecture from <INPUT_CONTENT>, focusing on core knowledge and practical steps. Reply in __LANG__.
 </TASK>
-
-<INPUT_PARAMETERS>
-1. **Length:** A comprehensive (deep) summary - recounting the entire content in detail from beginning to end, including context, arguments, illustrations, and conclusions. The goal is for the reader to grasp almost all information without needing to view/read the original content. The specific length will depend on the complexity and amount of information in the original content
-2. **Language:** __LANG__
-</INPUT_PARAMETERS>
 
 <REQUIREMENTS>
 ✅ **Include**: Main concepts, term definitions, practical steps, code examples/demos
@@ -53,6 +48,8 @@ Summarize Course lecture from <INPUT_CONTENT>, focusing on core knowledge and pr
 <INPUT_CONTENT>
 __CONTENT__
 </INPUT_CONTENT>
+
+Reply in __LANG__.
 `,
 }
 
@@ -73,12 +70,9 @@ QUALITY STANDARDS:
 - Avoid superficial explanations and focus on the "how" and "why".`,
   userPrompt: `
 <TASK>
-Analyze <INPUT_CONTENT> to identify and explain key technical concepts in a comprehensive and structured way, helping learners understand deeply and apply effectively.
+Analyze <INPUT_CONTENT> to identify and explain key technical concepts in a comprehensive and structured way, helping learners understand deeply and apply effectively. Reply in __LANG__.
 </TASK>
 
-<INPUT_PARAMETERS>
-1. **Language:** __LANG__
-</INPUT_PARAMETERS>
 
 <CONCEPT_ANALYSIS_PROCESS>
 1. **Identify**: Find ALL important technical concepts from transcript (typically 10-30+ concepts for long videos)
@@ -162,5 +156,7 @@ Analyze <INPUT_CONTENT> to identify and explain key technical concepts in a comp
 <INPUT_CONTENT>
 __CONTENT__
 </INPUT_CONTENT>
+
+Reply in __LANG__
 `,
 }

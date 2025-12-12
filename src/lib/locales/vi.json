@@ -201,7 +201,10 @@
     "gemini_basic_config": {
       "api_key_label": "Khóa API Gemini",
       "get_a_key": "Lấy khóa",
-      "select_model_label": "Chọn mô hình Gemini"
+      "select_model_label": "Chọn mô hình Gemini",
+      "placeholder_additional_key": "Nhập khóa API Gemini bổ sung #{index}",
+      "remove_api_key": "Xóa khóa API",
+      "add_key_for_higher_limit": "Thêm key để tăng giới hạn"
     },
     "ollama_config": {
       "endpoint_label": "Điểm cuối Ollama",
@@ -444,5 +447,18 @@
     "replace_mode_description": "• Các loại dữ liệu đã chọn bị xóa hoàn toàn trước<br />• Sau đó thay thế bằng chỉ dữ liệu đã nhập<br />• Các loại dữ liệu không chọn không bị ảnh hưởng",
     "replace_warning_title": "Cảnh báo: Chế độ Thay thế",
     "confirm_replace": "Đồng ý thay thế"
+  },
+  "notifications": {
+    "no_notifications": "Không có thông báo",
+    "api_limits": {
+      "title": "Giới hạn API Gemini đã giảm",
+      "description": "Thêm 3-5 API key để tăng giới hạn yêu cầu hàng ngày.",
+      "cta_label": "Xem hướng dẫn"
+    },
+    "version_update": {
+      "title": "Phiên bản 2.7.0 đã phát hành",
+      "description": "Xem các tính năng mới trong Cài đặt → Giới thiệu → Có gì mới?",
+      "cta_label": "Mở Cài đặt"
+    }
   }
 }

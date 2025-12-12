@@ -1,30 +1,55 @@
 <script>
   // @ts-nocheck
-  import { geminiAdvancedModels } from '@/lib/prompts/models/geminiModels.js'
-  import { updateSettings } from '../../stores/settingsStore.svelte.js' // Chỉ import updateSettings
+  import { updateSettings } from '../../stores/settingsStore.svelte.js'
   import ApiKeyInput from '../inputs/ApiKeyInput.svelte'
-  import Icon from '@iconify/svelte'
-  import ReusableSelect from '../inputs/ReusableSelect.svelte'
+  import ReusableCombobox from '../inputs/ReusableCombobox.svelte'
   import { t } from 'svelte-i18n'
 
   let {
     geminiAdvancedApiKey = $bindable(),
-    selectedGeminiAdvancedModel = $bindable(), // Thêm lại selectedGeminiAdvancedModel là bindable prop
+    selectedGeminiAdvancedModel = $bindable(),
   } = $props()
+
+  const availableModels = [
+    {
+      value: 'gemini-3-pro-preview',
+      label: 'gemini-3-pro-preview',
+    },
+    { value: 'gemini-2.5-pro', label: 'gemini-2.5-pro' },
+    { value: 'gemini-2.5-flash', label: 'gemini-2.5-flash' },
+    {
+      value: 'gemini-2.5-flash-lite',
+      label: 'gemini-2.5-flash-lite',
+    },
+    {
+      value: 'gemini-2.5-computer-use-preview-10-2025',
+      label: 'gemini-2.5-computer-use-preview-10-2025',
+    },
+    { value: 'gemini-2.0-flash', label: 'gemini-2.0-flash' },
+    {
+      value: 'gemini-2.0-flash-lite',
+      label: 'gemini-2.0-flash-lite',
+    },
+    { value: 'gemma-3-27b-it', label: 'gemma-3-27b-it' },
+    {
+      value: 'gemini-robotics-er-1.5-preview',
+      label: 'gemini-robotics-er-1.5-preview',
+    },
+  ]
 
   // Đảm bảo giá trị mặc định nếu props không được cung cấp
   if (!selectedGeminiAdvancedModel) {
-    selectedGeminiAdvancedModel = geminiAdvancedModels[0].value
+    selectedGeminiAdvancedModel = availableModels[0].value
   }
 
   function handleGeminiAdvancedApiKeySave(apiKey) {
     updateSettings({ geminiAdvancedApiKey: apiKey })
   }
 
-  function handleGeminiAdvancedModelChange(newValue) {
-    selectedGeminiAdvancedModel = newValue
-    // Lưu trực tiếp khi giá trị thay đổi từ ReusableSelect
-    updateSettings({ selectedGeminiAdvancedModel: newValue })
+  function handleModelChange(newValue) {
+    if (newValue) {
+      updateSettings({ selectedGeminiAdvancedModel: newValue })
+    }
   }
 </script>
 
@@ -36,19 +61,19 @@
   linkText={$t('settings.gemini_advanced_config.get_a_key')}
 ></ApiKeyInput>
 
-<div class="flex flex-col gap-2">
-  <label for="Select a model" class="block"
-    >{$t('settings.gemini_advanced_config.select_model_label')}</label
+<div class="flex flex-col gap-2 relative z-50">
+  <label
+    class="text-xs font-medium text-text-primary"
+    for="gemini-model-select"
   >
-  <ReusableSelect
-    items={geminiAdvancedModels}
-    bindValue={selectedGeminiAdvancedModel}
-    defaultLabel={$t(
-      'settings.gemini_advanced_config.select_model_placeholder',
-    )}
-    ariaLabel={$t(
-      'settings.gemini_advanced_config.select_gemini_model_aria_label',
-    )}
-    onValueChangeCallback={handleGeminiAdvancedModelChange}
+    {$t('settings.gemini_advanced_config.select_model_label')}
+  </label>
+  <ReusableCombobox
+    items={availableModels}
+    bind:bindValue={selectedGeminiAdvancedModel}
+    placeholder={$t('settings.gemini_advanced_config.select_model_placeholder')}
+    id="gemini-model-select"
+    ariaLabel="Search a model"
+    onValueChangeCallback={handleModelChange}
   />
 </div>

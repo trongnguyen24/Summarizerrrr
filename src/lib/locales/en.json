@@ -201,7 +201,10 @@
     "gemini_basic_config": {
       "api_key_label": "Gemini API Key",
       "get_a_key": "Get a key",
-      "select_model_label": "Select Gemini Model"
+      "select_model_label": "Select Gemini Model",
+      "placeholder_additional_key": "Enter Additional Gemini API Key #{index}",
+      "remove_api_key": "Remove API Key",
+      "add_key_for_higher_limit": "Add key for higher limit"
     },
     "ollama_config": {
       "endpoint_label": "Ollama Endpoint",
@@ -445,5 +448,18 @@
     "replace_mode_description": "• Selected data types are completely deleted first<br />• Then replaced with imported data only<br />• Unselected data types are not affected",
     "replace_warning_title": "Warning: Replace Mode",
     "confirm_replace": "Yes, Replace"
+  },
+  "notifications": {
+    "no_notifications": "No notifications",
+    "api_limits": {
+      "title": "Gemini API limits reduced",
+      "description": "Add 3-5 API keys to increase your daily request limit.",
+      "cta_label": "Watch guide"
+    },
+    "version_update": {
+      "title": "Version 2.7.0 released",
+      "description": "Check out the new features in Settings → About → What's new?",
+      "cta_label": "Open Settings"
+    }
   }
 }

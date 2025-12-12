@@ -13,6 +13,7 @@ export const VALID_SETTING_KEYS = [
   // Provider Configuration
   'selectedProvider',
   'geminiApiKey',
+  'geminiAdditionalApiKeys',
   'selectedGeminiModel',
   'geminiAdvancedApiKey',
   'selectedGeminiAdvancedModel',

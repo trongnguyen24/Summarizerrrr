@@ -210,6 +210,7 @@
       <div class="setting-block flex gap-5 pb-2 flex-col">
         <GeminiBasicConfig
           bind:geminiApiKey={settings.geminiApiKey}
+          bind:geminiAdditionalApiKeys={settings.geminiAdditionalApiKeys}
           bind:selectedGeminiModel={settings.selectedGeminiModel}
         />
         <!-- Response Mode Section for Basic Mode -->

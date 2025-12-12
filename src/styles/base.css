@@ -45,6 +45,7 @@
   --breakpoint-xs: 38rem;
   --color-blackwhite: oklch(0 0 0);
   --color-whiteblack: oklch(1 0 0);
+  --color-cat: oklch(0.1 0 0);
   --color-whiteblack-10: oklch(1 0 0 / 10%);
   --color-blackwhite-5: oklch(0 0 0 / 5%);
   --color-blackwhite-10: oklch(0 0 0 / 10%);
@@ -88,6 +89,7 @@
 
   --color-summarize: oklch(0 0 0);
   --color-blackwhite: oklch(1 0 0);
+  --color-cat: oklch(0 0 0);
   --color-whiteblack: oklch(0 0 0);
   --color-whiteblack-10: oklch(0 0 0/ 10%);
   --color-blackwhite-5: oklch(1 0 0 / 5%);
@@ -151,4 +153,9 @@
     var(--color-border) 1px,
     var(--color-border) 8px
   );
+}
+
+.thin-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
 }

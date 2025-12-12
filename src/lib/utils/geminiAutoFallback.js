@@ -12,7 +12,7 @@
 export const GEMINI_FALLBACK_CHAIN = [
   'gemini-2.5-flash',
   'gemini-2.5-flash-lite',
-  'gemini-2.0-flash',
+  'gemma-3-27b-it',
 ]
 
 /**
@@ -41,13 +41,8 @@ export function isOverloadError(error) {
 
   // Check for common overload indicators
   const overloadKeywords = [
-    'resource_exhausted',
-    'resource exhausted',
     'overloaded',
-    'too many requests',
     'rate limit',
-    'quota',
-    '429',
     '503',
     'service unavailable',
     'model is overloaded',
@@ -68,12 +63,8 @@ export function isOverloadError(error) {
   const causeStatus =
     error?.cause?.status || error?.cause?.statusCode || error?.cause?.code
   const isOverloadStatus =
-    status === 429 ||
     status === 503 ||
-    status === 'RESOURCE_EXHAUSTED' ||
-    causeStatus === 429 ||
-    causeStatus === 503 ||
-    causeStatus === 'RESOURCE_EXHAUSTED'
+    causeStatus === 503
 
   // Return true if:
   // 1. It's a retry error AND contains overload keywords, OR
@@ -83,6 +74,51 @@ export function isOverloadError(error) {
     (isRetryError && hasOverloadKeyword) ||
     isOverloadStatus ||
     hasOverloadKeyword
+  )
+}
+
+/**
+ * Checks if an error is due to API quota exhaustion (429)
+ * @param {Error|any} error - Error object to check
+ * @returns {boolean} True if error is quota-related
+ */
+export function isQuotaError(error) {
+  if (!error) return false
+
+  // Get error message and cause from multiple levels
+  const errorMessage = error?.message?.toLowerCase() || ''
+  const errorString = error?.toString()?.toLowerCase() || ''
+  const errorCause = error?.cause?.message?.toLowerCase() || ''
+  const errorCauseString = error?.cause?.toString?.()?.toLowerCase() || ''
+
+  const quotaKeywords = [
+    'resource_exhausted',
+    'resource exhausted',
+    'quota',
+    '429',
+    'too many requests',
+  ]
+
+  // Check error message at all levels
+  const hasQuotaKeyword = quotaKeywords.some(
+    (keyword) =>
+      errorMessage.includes(keyword) ||
+      errorString.includes(keyword) ||
+      errorCause.includes(keyword) ||
+      errorCauseString.includes(keyword)
+  )
+
+  // Check HTTP status codes
+  const status = error?.status || error?.statusCode || error?.code
+  const causeStatus =
+    error?.cause?.status || error?.cause?.statusCode || error?.cause?.code
+
+  return (
+    status === 429 ||
+    causeStatus === 429 ||
+    status === 'RESOURCE_EXHAUSTED' ||
+    causeStatus === 'RESOURCE_EXHAUSTED' ||
+    hasQuotaKeyword
   )
 }
 
@@ -133,6 +169,6 @@ export function shouldEnableAutoFallback(providerId, settings) {
  */
 export function getCurrentGeminiModel(settings) {
   return settings.isAdvancedMode
-    ? settings.selectedGeminiAdvancedModel || 'gemini-2.0-flash'
-    : settings.selectedGeminiModel || 'gemini-2.0-flash'
+    ? settings.selectedGeminiAdvancedModel || 'gemini-2.5-flash'
+    : settings.selectedGeminiModel || 'gemini-2.5-flash'
 }

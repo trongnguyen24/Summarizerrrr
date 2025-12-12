@@ -1,19 +1,21 @@
 <script>
   // @ts-nocheck
   import { updateSettings } from '../../../stores/settingsStore.svelte'
-  import { fade } from 'svelte/transition'
   import Icon from '@iconify/svelte'
   import ApiKeyInput from '../../inputs/ApiKeyInput.svelte'
-  import TextInput from '../../inputs/TextInput.svelte'
+  import ReusableCombobox from '../../inputs/ReusableCombobox.svelte'
   import { t } from 'svelte-i18n'
 
   let {
     apiKey = $bindable(),
-    selectedModel = '',
+    selectedModel = $bindable(''),
     onModelChange = () => {},
   } = $props()
 
-  const deepseekModels = ['deepseek-chat', 'deepseek-reasoner']
+  const deepseekModels = [
+    { value: 'deepseek-chat', label: 'deepseek-chat' },
+    { value: 'deepseek-reasoner', label: 'deepseek-reasoner' },
+  ]
 
   /**
    * Handles saving the Deepseek API key to GLOBAL settings
@@ -23,7 +25,9 @@
     updateSettings({ deepseekApiKey: key })
   }
 
-  let saveStatus = $state('')
+  function handleModelChange(value) {
+    onModelChange(value)
+  }
 </script>
 
 <ApiKeyInput
@@ -35,17 +39,12 @@
   linkHref="https://platform.deepseek.com/api_keys"
   linkText={$t('settings.groq_config.get_a_key')}
 />
-<div class="flex flex-col gap-2">
+<div class="flex flex-col gap-2 relative z-50">
   <div class="flex flex-col gap-2">
     <div class="flex items-center gap-1 justify-between">
       <label for="deepseek-model-input" class="block"
         >{$t('settings.deepseek_config.model_name_label')}</label
       >
-      {#if saveStatus}
-        <p id="save-status" transition:fade class="text-success flex mr-auto">
-          {$t('settings.deepseek_config.saved_status')}
-        </p>
-      {/if}
       <a
         href="https://api-docs.deepseek.com/quick_start/pricing"
         target="_blank"
@@ -55,21 +54,13 @@
         <Icon width={12} icon="heroicons:arrow-up-right-16-solid" />
       </a>
     </div>
-    <TextInput
-      id="deepseek-model-input"
-      list="deepseek-model-list"
-      value={selectedModel}
-      bind:saveStatus
+    <ReusableCombobox
+      items={deepseekModels}
+      bind:bindValue={selectedModel}
       placeholder={$t('settings.deepseek_config.model_placeholder')}
-      onSave={(value) => onModelChange(value)}
+      id="deepseek-model-input"
+      ariaLabel="Search Deepseek model"
+      onValueChangeCallback={handleModelChange}
     />
-
-    <datalist id="deepseek-model-list">
-      {#each deepseekModels as model}
-        <option value={model}>
-          {model}
-        </option>
-      {/each}
-    </datalist>
   </div>
 </div>

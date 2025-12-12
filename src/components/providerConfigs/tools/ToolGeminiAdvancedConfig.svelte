@@ -1,9 +1,8 @@
 <script>
   // @ts-nocheck
-  import { geminiAdvancedModels } from '@/lib/prompts/models/geminiModels.js'
   import { updateSettings } from '../../../stores/settingsStore.svelte.js'
   import ApiKeyInput from '../../inputs/ApiKeyInput.svelte'
-  import ReusableSelect from '../../inputs/ReusableSelect.svelte'
+  import ReusableCombobox from '../../inputs/ReusableCombobox.svelte'
   import { t } from 'svelte-i18n'
 
   let {
@@ -12,9 +11,36 @@
     onModelChange = () => {},
   } = $props()
 
+  const availableModels = [
+    {
+      value: 'gemini-3-pro-preview',
+      label: 'gemini-3-pro-preview',
+    },
+    { value: 'gemini-2.5-pro', label: 'gemini-2.5-pro' },
+    { value: 'gemini-2.5-flash', label: 'gemini-2.5-flash' },
+    {
+      value: 'gemini-2.5-flash-lite',
+      label: 'gemini-2.5-flash-lite',
+    },
+    {
+      value: 'gemini-2.5-computer-use-preview-10-2025',
+      label: 'gemini-2.5-computer-use-preview-10-2025',
+    },
+    { value: 'gemini-2.0-flash', label: 'gemini-2.0-flash' },
+    {
+      value: 'gemini-2.0-flash-lite',
+      label: 'gemini-2.0-flash-lite',
+    },
+    { value: 'gemma-3-27b-it', label: 'gemma-3-27b-it' },
+    {
+      value: 'gemini-robotics-er-1.5-preview',
+      label: 'gemini-robotics-er-1.5-preview',
+    },
+  ]
+
   // Đảm bảo giá trị mặc định nếu props không được cung cấp
   if (!selectedModel) {
-    selectedModel = geminiAdvancedModels[0].value
+    selectedModel = availableModels[0].value
   }
 
   /**
@@ -25,11 +51,9 @@
     updateSettings({ geminiAdvancedApiKey: key })
   }
 
-  function handleGeminiAdvancedModelChange(newValue) {
+  function handleModelSave(newValue) {
     selectedModel = newValue
-    // Call tool-specific callback to notify parent component
     onModelChange(newValue)
-    // Also save to global settings
     updateSettings({ selectedGeminiAdvancedModel: newValue })
   }
 </script>
@@ -42,19 +66,18 @@
   linkText={$t('settings.gemini_advanced_config.get_a_key')}
 ></ApiKeyInput>
 
-<div class="flex flex-col gap-2">
-  <label for="Select a model" class="block"
+<div class="flex flex-col gap-2 relative z-50">
+  <label
+    for="gemini-tool-model"
+    class="block text-xs font-medium text-text-primary"
     >{$t('settings.gemini_advanced_config.select_model_label')}</label
   >
-  <ReusableSelect
-    items={geminiAdvancedModels}
-    bindValue={selectedModel}
-    defaultLabel={$t(
-      'settings.gemini_advanced_config.select_model_placeholder',
-    )}
-    ariaLabel={$t(
-      'settings.gemini_advanced_config.select_gemini_model_aria_label',
-    )}
-    onValueChangeCallback={handleGeminiAdvancedModelChange}
+  <ReusableCombobox
+    items={availableModels}
+    bind:bindValue={selectedModel}
+    placeholder={$t('settings.gemini_advanced_config.select_model_placeholder')}
+    id="gemini-tool-model"
+    ariaLabel="Search Gemini model"
+    onValueChangeCallback={handleModelSave}
   />
 </div>

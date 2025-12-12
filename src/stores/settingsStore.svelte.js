@@ -14,6 +14,7 @@ const DEFAULT_SETTINGS = {
   floatingPanelLeft: false, // Default to right side
   closePanelOnOutsideClick: true, // Close floating panel when clicking outside
   geminiApiKey: '',
+  geminiAdditionalApiKeys: [], // New storage for extra keys
   selectedGeminiModel: 'gemini-2.5-flash',
   geminiAdvancedApiKey: '',
   selectedGeminiAdvancedModel: 'gemini-2.5-flash',
@@ -119,7 +120,7 @@ const DEFAULT_SETTINGS = {
       enabled: true,
       useGeminiBasic: true,
       customProvider: 'gemini',
-      customModel: 'gemini-2.5-flash-lite',
+      customModel: 'gemma-3-27b-it',
       autoGenerate: true,
       defaultChatProvider: 'gemini',
     },
@@ -161,6 +162,24 @@ function migrateDeprecatedGeminiModels(settings) {
   }
 
   return migrated
+}
+
+/**
+ * Migrates Deep Dive Questions default model from gemini-2.5-flash-lite to gemma-3-27b-it
+ * @param {Object} settings - Settings object to migrate
+ * @returns {boolean} - True if migration was performed
+ */
+function migrateDeepDiveModel(settings) {
+  const OLD_MODEL = 'gemini-2.5-flash-lite'
+  const NEW_MODEL = 'gemma-3-27b-it'
+  
+  if (settings.tools?.deepDive?.customModel === OLD_MODEL) {
+    console.log('[settingsStore] Migration: Upgrading Deep Dive model to gemma-3-27b-it')
+    settings.tools.deepDive.customModel = NEW_MODEL
+    return true
+  }
+  
+  return false
 }
 
 /**
@@ -300,11 +319,46 @@ export async function loadSettings() {
           })
         }
 
+        // ✅ MIGRATION: Upgrade Deep Dive model to gemma-3-27b-it
+        migrateDeepDiveModel(cleanStoredSettings)
+
+        // MIGRATION: Split geminiApiKeys into geminiApiKey + geminiAdditionalApiKeys
+        if (cleanStoredSettings.geminiApiKeys && cleanStoredSettings.geminiApiKeys.length > 0) {
+          console.log('[settingsStore] Migration: Splitting geminiApiKeys into main + additional')
+          
+          // If main key is empty or not set, take the first one from the array
+          if (!cleanStoredSettings.geminiApiKey) {
+             cleanStoredSettings.geminiApiKey = cleanStoredSettings.geminiApiKeys[0] || ''
+          }
+          
+          // The rest go into additional keys
+          // Filter out the one we just used as main key if needed, or just take rest
+          // Better logic: Take ALL distinct keys, remove the main key from the list
+          const allKeys = [...cleanStoredSettings.geminiApiKeys]
+          const mainKey = cleanStoredSettings.geminiApiKey
+          
+          const additionalKeys = allKeys.filter(k => k !== mainKey && k.trim() !== '')
+          cleanStoredSettings.geminiAdditionalApiKeys = additionalKeys
+          
+          // Clear the old array
+          cleanStoredSettings.geminiApiKeys = []
+        }
+
+        if (
+          cleanStoredSettings.geminiApiKey &&
+          (!cleanStoredSettings.geminiApiKeys ||
+            cleanStoredSettings.geminiApiKeys.length === 0)
+        ) {
+           // Legacy check - no longer needed if we use the logic above, but keeping for safety
+           // If we have a single key but no array, it's fine.
+        }
+
         // Merge settings with defaults
         const mergedSettings = {
           ...DEFAULT_SETTINGS,
           ...cleanStoredSettings,
         }
+        
         Object.assign(settings, mergedSettings)
 
         // ✅ MIGRATION: Save cleaned settings back to storage

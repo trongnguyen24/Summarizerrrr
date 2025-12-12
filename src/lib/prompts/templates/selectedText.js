@@ -16,12 +16,11 @@ QUALITY STANDARDS:
 - Maintain a professional and analytical tone throughout.`,
   userPrompt: `
 <TASK>
-Analyze <INPUT_CONTENT> and create a response with two parts: objective summary and expert commentary.
+Analyze <INPUT_CONTENT> and create a response with two parts: objective summary and expert commentary. Reply in __LANG__.
 </TASK>
 
 <INPUT_PARAMETERS>
 1. **Length:** A comprehensive (deep) summary - recounting the entire content in detail from beginning to end, including context, arguments, illustrations, and conclusions. The goal is for the reader to grasp almost all information without needing to view/read the original content. The specific length will depend on the complexity and amount of information in the original content
-2. **Language:** __LANG__
 </INPUT_PARAMETERS>
 
 <RESPONSE_STRUCTURE>
@@ -49,7 +48,6 @@ Analyze <INPUT_CONTENT> and create a response with two parts: objective summary 
 <STYLE_GUIDELINES>
 - **Headers**: ## for main sections, ### for subsections
 - **Emphasis**: **Bold** for key concepts, - bullets for lists
-- **Language**: Natural, native-level __LANG__ expression
 - **Technical terms**: Accurate translation, original term in () if uncertain
 - **No fluff**: Direct response, no greetings/conclusions outside structure
 </STYLE_GUIDELINES>
@@ -76,5 +74,7 @@ This content falls under **cognitive psychology**, specifically metacognitive bi
 <INPUT_CONTENT>
 __CONTENT__
 </INPUT_CONTENT>
+
+Reply in __LANG__
 `,
 }

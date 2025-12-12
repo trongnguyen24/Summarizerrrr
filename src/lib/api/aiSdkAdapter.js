@@ -16,12 +16,52 @@ import { requiresApiProxy } from '@/lib/utils/contextDetection.js'
 import { createOllamaProxyModel } from './ollamaProxyModel.js'
 import {
   isOverloadError,
+  isQuotaError,
   getNextFallbackModel,
   shouldEnableAutoFallback,
   getCurrentGeminiModel,
 } from '@/lib/utils/geminiAutoFallback.js'
 import { updateModelStatus } from '@/stores/summaryStore.svelte.js'
+
 import { showModelFallbackToast } from '@/lib/utils/toastUtils.js'
+
+// Global index for round-robin key rotation
+let currentKeyIndex = 0
+
+/**
+ * Helper to get the next Gemini API key using sequential calculation
+ * @param {object} settings - User settings
+ * @returns {string} The selected API key
+ */
+function getGeminiApiKey(settings) {
+  if (settings.isAdvancedMode) {
+    return settings.geminiAdvancedApiKey
+  }
+
+  // Combine main key and additional keys
+  const allKeys = [
+    settings.geminiApiKey,
+    ...(settings.geminiAdditionalApiKeys || [])
+  ]
+  
+  // Filter out empty keys
+  const validKeys = allKeys.filter((k) => k && k.trim() !== '')
+
+  if (validKeys.length === 0) {
+    return settings.geminiApiKey // Fallback even if empty
+  }
+
+  // Use round-robin selection
+  const key = validKeys[currentKeyIndex % validKeys.length]
+  console.log(
+    `[aiSdkAdapter] 🔑 Using Gemini Key Index ${currentKeyIndex % validKeys.length} (Total: ${validKeys.length})`
+  )
+  
+  // Increment index for next call
+  currentKeyIndex++
+  
+  return key
+}
 
 /**
  * Maps provider ID and settings to AI SDK model instance
@@ -37,9 +77,13 @@ export function getAISDKModel(providerId, settings) {
 
   switch (providerId) {
     case 'gemini':
-      const geminiApiKey = settings.isAdvancedMode
-        ? settings.geminiAdvancedApiKey
-        : settings.geminiApiKey
+      let geminiApiKey
+      if (settings.isAdvancedMode) {
+        geminiApiKey = settings.geminiAdvancedApiKey
+      } else {
+        // Use sequential rotation for basic keys or specific key if provided
+        geminiApiKey = settings.specificApiKey || getGeminiApiKey(settings)
+      }
       const geminiModel = settings.isAdvancedMode
         ? settings.selectedGeminiAdvancedModel || 'gemini-2.0-flash'
         : settings.selectedGeminiModel || 'gemini-2.0-flash'
@@ -183,14 +227,31 @@ export async function generateContent(
     : null
   let originalModel = currentModel // Track original model for fallback display
   let lastError = null
+  let failedKeys = new Set() // Track failed keys for this request
+  let currentApiKey = null // Track current key being used
 
   // Retry with fallback models if enabled
   while (true) {
     try {
-      // Create settings with current model
-      const currentSettings = autoFallbackEnabled
-        ? { ...settings, selectedGeminiModel: currentModel }
-        : settings
+      // Create settings with current model & key
+      // If autoFallbackEnabled (Gemini Basic), explicit key management is needed
+      if (autoFallbackEnabled && !currentApiKey) {
+           const allKeys = [
+             settings.geminiApiKey,
+             ...(settings.geminiAdditionalApiKeys || [])
+           ].filter(k => k && k.trim() !== '') || []
+           
+           if (allKeys.length > 0) {
+               // Use the next sequential key
+               currentApiKey = getGeminiApiKey(settings)
+           }
+      }
+
+      const currentSettings = {
+        ...settings,
+        ...(autoFallbackEnabled ? { selectedGeminiModel: currentModel } : {}),
+        ...(currentApiKey ? { specificApiKey: currentApiKey } : {})
+      }
 
       // Determine model name for display and logging
       const modelName = autoFallbackEnabled
@@ -211,6 +272,12 @@ export async function generateContent(
 
       const baseModel = getAISDKModel(providerId, currentSettings)
 
+      // Gemma models do not support system instructions via the API
+      // User request: Remove system instruction completely for these smaller models as they don't handle long prompts well
+      const isGemmaModel = modelName.toLowerCase().includes('gemma')
+      const effectiveSystemInstruction = isGemmaModel ? undefined : systemInstruction
+      const effectiveUserPrompt = userPrompt
+
       // Check if this is a proxy model
       const isProxyModel = requiresApiProxy(providerId)
       // DISABLE REASONING EXTRACTION MIDDLEWARE FOR TESTING - KEEP FULL OUTPUT WITH <think> TAGS
@@ -221,8 +288,8 @@ export async function generateContent(
         // Use the proxy model's custom generateText method
         console.log('[aiSdkAdapter] Using proxy model for generateContent')
         const result = await model.generateText({
-          system: systemInstruction,
-          prompt: userPrompt,
+          system: effectiveSystemInstruction,
+          prompt: effectiveUserPrompt,
           ...generationConfig,
           ...(options.abortSignal && { abortSignal: options.abortSignal }),
         })
@@ -233,8 +300,8 @@ export async function generateContent(
         // Use the standard AI SDK generateText for direct calls - no middleware
         const { text } = await generateText({
           model,
-          system: systemInstruction,
-          prompt: userPrompt,
+          system: effectiveSystemInstruction,
+          prompt: effectiveUserPrompt,
           maxRetries: 0, // Disable AI SDK built-in retry to allow custom fallback to work faster
           ...generationConfig,
           ...(options.abortSignal && { abortSignal: options.abortSignal }),
@@ -273,22 +340,75 @@ export async function generateContent(
         throw error // Re-throw abort error so caller knows it was aborted
       }
 
-      // Check if we should try fallback
-      if (autoFallbackEnabled && isOverloadError(error)) {
-        const nextModel = getNextFallbackModel(currentModel)
+        // Check if we should try fallback
+      if (autoFallbackEnabled) {
+          // 1. Check for Quota Error (429) -> Try different KEY
+          if (isQuotaError(error)) {
+             console.log(`[aiSdkAdapter] ⚠️ Quota exceeded for key ending in ...${currentApiKey?.slice(-4)}`)
+             failedKeys.add(currentApiKey)
+             
+             // Find a key that hasn't failed yet
+             const allKeys = [
+                 settings.geminiApiKey,
+                 ...(settings.geminiAdditionalApiKeys || [])
+             ].filter(k => k && k.trim() !== '')
+             
+             const availableKeys = allKeys.filter(k => !failedKeys.has(k))
+             
+             if (availableKeys.length > 0) {
+                 // Pick next available key
+                 currentApiKey = availableKeys[0]
+                 console.log(`[aiSdkAdapter] 🔄 Switching to fresh API key ending in ...${currentApiKey.slice(-4)}`)
+                 continue // Retry loop with new key
+             } else {
+                 console.log('[aiSdkAdapter] ❌ All API keys exhausted (Quota)')
+                 // If all keys exhausted, logic could potentially fall through to model fallback 
+                 // BUT usually quota means quota. Let's see if IS_OVERLOAD is also true?
+                 // If we want to switch model after ALL keys fail, we can proceed.
+                 // For now, let's treat "All Keys Quota" as a potential reason to switch model (maybe lighter model has different quota tracking? unlikely for same account, but maybe).
+                 // Actually, usually quota is per project/account.
+                 // Let's try model fallback as last resort if quota fails on all keys.
+             }
+          }
 
-        if (nextModel) {
-          console.log(
-            `[aiSdkAdapter] 🔄 Auto-fallback triggered: ${currentModel} → ${nextModel}`
-          )
-          showModelFallbackToast(currentModel, nextModel)
-          currentModel = nextModel
-          continue // Retry with next model
-        } else {
-          console.log(
-            '[aiSdkAdapter] ❌ No more fallback models available, throwing error'
-          )
-        }
+          // 2. Check for Overload Error (503) OR (All keys failed quota) -> Try different MODEL
+          if (isOverloadError(error) || (isQuotaError(error) && failedKeys.size >= ([settings.geminiApiKey, ...(settings.geminiAdditionalApiKeys||[])].filter(k => k && k.trim() !== '').length || 1))) {
+               const nextModel = getNextFallbackModel(currentModel)
+
+                if (nextModel) {
+                  console.log(
+                    `[aiSdkAdapter] 🔄 Auto-fallback triggered: ${currentModel} → ${nextModel}`
+                  )
+                  showModelFallbackToast(currentModel, nextModel)
+                  currentModel = nextModel
+                  // Reset failed keys when switching model? 
+                  // Maybe lighter model works with same keys? 
+                  // Let's keep failed keys if it was quota error, but if it was 503, keys might be fine.
+                  // If 503, keys are likely fine. 
+                  if (isOverloadError(error) && !isQuotaError(error)) {
+                      // It was purely overload, keys are innocent.
+                      // But we shouldn't reset specificApiKey if we want to stick to one key? 
+                      // No, if we switch model, we can retry with *current* key first.
+                  } else {
+                      // It was quota error and we ran out of keys. 
+                      // Switching model *might* help if different models have different quotas (Gemini Flash vs Pro often do).
+                      // So we should RESET failed keys to try all keys again on the new model.
+                      failedKeys.clear()
+                      // Pick a fresh key (or start from current)
+                       const allKeys = [
+                         settings.geminiApiKey,
+                         ...(settings.geminiAdditionalApiKeys || [])
+                        ].filter(k => k && k.trim() !== '')
+                        if (allKeys.length > 0) currentApiKey = allKeys[0] // Reset to first available? Or just random?
+                  }
+                  
+                  continue // Retry with next model
+                } else {
+                  console.log(
+                    '[aiSdkAdapter] ❌ No more fallback models available, throwing error'
+                  )
+                }
+          }
       } else {
         // Log why fallback was not triggered
         if (autoFallbackEnabled) {
@@ -331,6 +451,8 @@ export async function* generateContentStream(
     : null
   let originalModel = currentModel // Track original model for fallback display
   let lastError = null
+  let failedKeys = new Set() // Track failed keys for this request
+  let currentApiKey = null // Track current key being used
 
   // Get browser compatibility info
   const browserCompatibility = getBrowserCompatibility()
@@ -338,10 +460,25 @@ export async function* generateContentStream(
   // Retry with fallback models if enabled
   while (true) {
     try {
-      // Create settings with current model
-      const currentSettings = autoFallbackEnabled
-        ? { ...settings, selectedGeminiModel: currentModel }
-        : settings
+      // Create settings with current model & key
+      // If autoFallbackEnabled (Gemini Basic), explicit key management is needed
+      if (autoFallbackEnabled && !currentApiKey) {
+           const allKeys = [
+             settings.geminiApiKey,
+             ...(settings.geminiAdditionalApiKeys || [])
+           ].filter(k => k && k.trim() !== '') || []
+           
+           if (allKeys.length > 0) {
+               // Use the next sequential key
+               currentApiKey = getGeminiApiKey(settings)
+           }
+      }
+
+      const currentSettings = {
+        ...settings,
+        ...(autoFallbackEnabled ? { selectedGeminiModel: currentModel } : {}),
+        ...(currentApiKey ? { specificApiKey: currentApiKey } : {})
+      }
 
       // Determine model name for display and logging
       const modelName = autoFallbackEnabled
@@ -362,6 +499,13 @@ export async function* generateContentStream(
 
       const baseModel = getAISDKModel(providerId, currentSettings)
 
+      // Handle specific model limitations
+      // Gemma models do not support system instructions via the API
+      // User request: Remove system instruction completely for these smaller models as they don't handle long prompts well
+      const isGemmaModel = modelName.toLowerCase().includes('gemma')
+      const effectiveSystemInstruction = isGemmaModel ? undefined : systemInstruction
+      const effectiveUserPrompt = userPrompt
+
       // Check if this is a proxy model (doesn't need reasoning extraction wrapper)
       const isProxyModel = requiresApiProxy(providerId)
       // DISABLE REASONING EXTRACTION MIDDLEWARE FOR TESTING - KEEP FULL OUTPUT WITH <think> TAGS
@@ -371,8 +515,8 @@ export async function* generateContentStream(
       if (isProxyModel) {
         // Use proxy model's streamText method directly
         const result = await model.streamText({
-          system: systemInstruction,
-          prompt: userPrompt,
+          system: effectiveSystemInstruction,
+          prompt: effectiveUserPrompt,
           ...generationConfig,
           ...(streamOptions.abortSignal && {
             abortSignal: streamOptions.abortSignal,
@@ -398,8 +542,8 @@ export async function* generateContentStream(
 
         const streamConfig = {
           model,
-          system: systemInstruction,
-          prompt: userPrompt,
+          system: effectiveSystemInstruction,
+          prompt: effectiveUserPrompt,
           ...generationConfig,
           maxRetries: 0, // Disable AI SDK built-in retry to allow custom fallback to work faster
           ...(shouldUseSmoothing ? defaultSmoothingOptions : {}),
@@ -466,22 +610,57 @@ export async function* generateContentStream(
         error.isFirefoxMobileStreamingError = true
       }
 
-      // Check if we should try fallback
-      if (autoFallbackEnabled && isOverloadError(error)) {
-        const nextModel = getNextFallbackModel(currentModel)
+        // Check if we should try fallback
+      if (autoFallbackEnabled) {
+          // 1. Check for Quota Error (429) -> Try different KEY
+          if (isQuotaError(error)) {
+             console.log(`[aiSdkAdapter] ⚠️ Stream Quota exceeded for key ending in ...${currentApiKey?.slice(-4)}`)
+             failedKeys.add(currentApiKey)
+             
+             // Find a key that hasn't failed yet
+             const allKeys = [
+                 settings.geminiApiKey,
+                 ...(settings.geminiAdditionalApiKeys || [])
+             ].filter(k => k && k.trim() !== '')
+             
+             const availableKeys = allKeys.filter(k => !failedKeys.has(k))
+             
+             if (availableKeys.length > 0) {
+                 // Pick next available key
+                 currentApiKey = availableKeys[0]
+                 console.log(`[aiSdkAdapter] 🔄 Stream switching to fresh API key ending in ...${currentApiKey.slice(-4)}`)
+                 continue // Retry loop with new key
+             }
+          }
 
-        if (nextModel) {
-          console.log(
-            `[aiSdkAdapter] 🔄 Auto-fallback triggered: ${currentModel} → ${nextModel}`
-          )
-          showModelFallbackToast(currentModel, nextModel)
-          currentModel = nextModel
-          continue // Retry with next model
-        } else {
-          console.log(
-            '[aiSdkAdapter] ❌ No more fallback models available (stream), throwing error'
-          )
-        }
+          // 2. Check for Overload Error (503) OR (All keys failed quota) -> Try different MODEL
+          if (isOverloadError(error) || (isQuotaError(error) && failedKeys.size >= ([settings.geminiApiKey, ...(settings.geminiAdditionalApiKeys||[])].filter(k => k && k.trim() !== '').length || 1))) {
+                const nextModel = getNextFallbackModel(currentModel)
+        
+                if (nextModel) {
+                  console.log(
+                    `[aiSdkAdapter] 🔄 Auto-fallback triggered: ${currentModel} → ${nextModel}`
+                  )
+                  showModelFallbackToast(currentModel, nextModel)
+                  currentModel = nextModel
+                  
+                  // Reset failed keys for new model (different model might have different quota buckets)
+                  if (isQuotaError(error)) {
+                      failedKeys.clear()
+                      const allKeys = [
+                         settings.geminiApiKey,
+                         ...(settings.geminiAdditionalApiKeys || [])
+                        ].filter(k => k && k.trim() !== '')
+                        if (allKeys.length > 0) currentApiKey = allKeys[0]
+                  }
+                  
+                  continue // Retry with next model
+                } else {
+                  console.log(
+                    '[aiSdkAdapter] ❌ No more fallback models available (stream), throwing error'
+                  )
+                }
+          }
       } else {
         // Log why fallback was not triggered
         if (autoFallbackEnabled) {

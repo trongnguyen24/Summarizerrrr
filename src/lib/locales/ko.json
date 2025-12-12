@@ -201,7 +201,10 @@
     "gemini_basic_config": {
       "api_key_label": "Gemini API 키",
       "get_a_key": "키 얻기",
-      "select_model_label": "Gemini 모델 선택"
+      "select_model_label": "Gemini 모델 선택",
+      "placeholder_additional_key": "추가 Gemini API 키 #{index} 입력",
+      "remove_api_key": "API 키 삭제",
+      "add_key_for_higher_limit": "더 높은 한도를 위해 키 추가"
     },
     "ollama_config": {
       "endpoint_label": "Ollama 엔드포인트",
@@ -444,5 +447,18 @@
     "replace_mode_description": "• 선택된 데이터 유형이 먼저 완전히 삭제됨<br />• 그런 다음 가져온 데이터로만 교체됨<br />• 선택되지 않은 데이터 유형은 영향을 받지 않음",
     "replace_warning_title": "경고: 교체 모드",
     "confirm_replace": "예, 교체합니다"
+  },
+  "notifications": {
+    "no_notifications": "알림이 없습니다",
+    "api_limits": {
+      "title": "Gemini API 제한이 감소했습니다",
+      "description": "일일 요청 제한을 늘리려면 3-5개의 API 키를 추가하세요.",
+      "cta_label": "가이드 보기"
+    },
+    "version_update": {
+      "title": "버전 2.7.0이 출시되었습니다",
+      "description": "설정 → 정보 → 새로운 기능에서 새 기능을 확인하세요",
+      "cta_label": "설정 열기"
+    }
   }
 }

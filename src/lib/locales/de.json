@@ -447,5 +447,18 @@
     "replace_mode_description": "• Ausgewählte Datentypen werden zuerst vollständig gelöscht<br />• Dann nur durch importierte Daten ersetzt<br />• Nicht ausgewählte Datentypen sind nicht betroffen",
     "replace_warning_title": "Warnung: Ersetzen-Modus",
     "confirm_replace": "Ja, ersetzen"
+  },
+  "notifications": {
+    "no_notifications": "Keine Benachrichtigungen",
+    "api_limits": {
+      "title": "Gemini API-Limits reduziert",
+      "description": "Fügen Sie 3-5 API-Schlüssel hinzu, um Ihr tägliches Anfragelimit zu erhöhen.",
+      "cta_label": "Anleitung ansehen"
+    },
+    "version_update": {
+      "title": "Version 2.7.0 veröffentlicht",
+      "description": "Entdecken Sie die neuen Funktionen unter Einstellungen → Info → Was ist neu?",
+      "cta_label": "Einstellungen öffnen"
+    }
   }
 }

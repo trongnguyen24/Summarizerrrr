@@ -425,5 +425,18 @@
     "replace_mode_description": "• 首先完全删除选定的数据类型<br />• 然后仅用导入的数据替换<br />• 未选定的数据类型不受影响",
     "replace_warning_title": "警告：替换模式",
     "confirm_replace": "是，替换"
+  },
+  "notifications": {
+    "no_notifications": "暂无通知",
+    "api_limits": {
+      "title": "Gemini API 限制已减少",
+      "description": "添加 3-5 个 API 密钥以增加每日请求限制。",
+      "cta_label": "观看指南"
+    },
+    "version_update": {
+      "title": "版本 2.7.0 已发布",
+      "description": "在设置 → 关于 → 新功能中查看新功能",
+      "cta_label": "打开设置"
+    }
   }
 }

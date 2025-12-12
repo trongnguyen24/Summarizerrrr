@@ -447,5 +447,18 @@
     "replace_mode_description": "• 選択したデータタイプが最初に完全に削除されます<br />• その後、インポートしたデータのみに置換されます<br />• 選択されていないデータタイプは影響を受けません",
     "replace_warning_title": "警告: 置換モード",
     "confirm_replace": "はい、置換します"
+  },
+  "notifications": {
+    "no_notifications": "通知はありません",
+    "api_limits": {
+      "title": "Gemini APIの制限が減少しました",
+      "description": "3〜5個のAPIキーを追加して、1日のリクエスト制限を増やしましょう。",
+      "cta_label": "ガイドを見る"
+    },
+    "version_update": {
+      "title": "バージョン2.7.0がリリースされました",
+      "description": "設定 → 情報 → 新機能で新機能をご覧ください",
+      "cta_label": "設定を開く"
+    }
   }
 }

@@ -167,6 +167,20 @@ function migrateDeprecatedGeminiModels(settings) {
 }
 
 /**
+ * Migrates deprecated 'alien' tone to 'witty'
+ * @param {Object} settings - Settings object to migrate
+ * @returns {boolean} - True if any migration was performed
+ */
+function migrateDeprecatedTone(settings) {
+  if (settings.summaryTone === 'alien') {
+    console.log("[settingsStore] Migration: 'alien' tone -> 'witty'")
+    settings.summaryTone = 'witty'
+    return true
+  }
+  return false
+}
+
+/**
  * Migrates Deep Dive Questions default model from gemini-2.5-flash-lite to gemma-3-27b-it
  * @param {Object} settings - Settings object to migrate
  * @returns {boolean} - True if migration was performed
@@ -237,6 +251,12 @@ export async function loadSettings() {
 
         // ✅ MIGRATION: Migrate deprecated Gemini model names
         migrateDeprecatedGeminiModels(cleanStoredSettings)
+
+        // ✅ MIGRATION: Migrate deprecated Gemini model names
+        migrateDeprecatedGeminiModels(cleanStoredSettings)
+        
+        // ✅ MIGRATION: Migrate 'alien' tone to 'witty'
+        migrateDeprecatedTone(cleanStoredSettings)
 
         // Handle migration from old fabDomainPermissions to new fabDomainControl format
         if (

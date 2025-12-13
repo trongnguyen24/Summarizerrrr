@@ -153,8 +153,10 @@
         "simple_desc": "Leicht verständlich, freundlich.",
         "expert": "Experte",
         "expert_desc": "Professionell, technisch, autoritativ.",
-        "alien": "Grobian",
-        "alien_desc": "Vulgär, grob und unhöflich."
+        "savage": "Savage",
+        "savage_desc": "Vulgär, grob und unhöflich.",
+        "witty": "Witzig",
+        "witty_desc": "Verspielt, leichter Sarkasmus."
       },
       "language_output": "Ausgabesprache",
       "custom_prompts": {

@@ -153,8 +153,10 @@
         "simple_desc": "理解しやすく、親しみやすい。",
         "expert": "専門家",
         "expert_desc": "専門的、技術的、権威的。",
-        "alien": "毒舌",
-        "alien_desc": "口が悪く、下品で無礼。"
+        "savage": "毒舌",
+        "savage_desc": "口が悪く、下品で無礼。",
+        "witty": "機知",
+        "witty_desc": "遊び心のある、軽い皮肉。"
       },
       "language_output": "出力言語",
       "custom_prompts": {

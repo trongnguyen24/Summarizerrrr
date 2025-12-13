@@ -153,8 +153,10 @@
         "simple_desc": "이해하기 쉽고 친근한",
         "expert": "전문가",
         "expert_desc": "전문적이고 기술적이며 권위적",
-        "alien": "독설가",
-        "alien_desc": "입이 험하고, 거칠며 무례함."
+        "savage": "독설가",
+        "savage_desc": "입이 험하고, 거칠며 무례함.",
+        "witty": "재치",
+        "witty_desc": "장난기 있는, 가벼운 풍자."
       },
       "language_output": "출력 언어",
       "custom_prompts": {

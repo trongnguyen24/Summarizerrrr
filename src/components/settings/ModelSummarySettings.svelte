@@ -1,3 +1,5 @@
+<svelte:options runes={true} />
+
 <script>
   // @ts-nocheck
   import { t } from 'svelte-i18n'
@@ -31,6 +33,28 @@
   function handleAdvancedModeToggle(value) {
     handleUpdateSetting('isAdvancedMode', value)
     handleUpdateSetting('isSummaryAdvancedMode', value)
+  }
+
+  let wittyClickCount = $state(0)
+
+  function handleWittyClick() {
+    if (settings.summaryTone === 'witty') {
+      wittyClickCount++
+      if (wittyClickCount >= 3) {
+        handleUpdateSetting('summaryTone', 'savage')
+      }
+    } else if (settings.summaryTone === 'savage') {
+      // Do nothing, already savage
+    } else {
+      // Switching to witty
+      handleUpdateSetting('summaryTone', 'witty')
+      wittyClickCount = 0
+    }
+  }
+
+  function handleStandardToneClick(tone) {
+    handleUpdateSetting('summaryTone', tone)
+    wittyClickCount = 0
   }
 
   let textElement
@@ -487,7 +511,7 @@
               class="setting-btn {settings.summaryTone === 'simple'
                 ? 'active'
                 : ''}"
-              onclick={() => handleUpdateSetting('summaryTone', 'simple')}
+              onclick={() => handleStandardToneClick('simple')}
               Description={$t('settings.summary.tone_mode.simple_desc')}
             ></ButtonSet>
             <ButtonSet
@@ -495,16 +519,21 @@
               class="setting-btn {settings.summaryTone === 'expert'
                 ? 'active'
                 : ''}"
-              onclick={() => handleUpdateSetting('summaryTone', 'expert')}
+              onclick={() => handleStandardToneClick('expert')}
               Description={$t('settings.summary.tone_mode.expert_desc')}
             ></ButtonSet>
             <ButtonSet
-              title={$t('settings.summary.tone_mode.alien')}
-              class="setting-btn {settings.summaryTone === 'alien'
+              title={settings.summaryTone === 'savage'
+                ? $t('settings.summary.tone_mode.savage')
+                : $t('settings.summary.tone_mode.witty')}
+              class="setting-btn {settings.summaryTone === 'witty' ||
+              settings.summaryTone === 'savage'
                 ? 'active'
                 : ''}"
-              onclick={() => handleUpdateSetting('summaryTone', 'alien')}
-              Description={$t('settings.summary.tone_mode.alien_desc')}
+              onclick={handleWittyClick}
+              Description={settings.summaryTone === 'savage'
+                ? $t('settings.summary.tone_mode.savage_desc')
+                : $t('settings.summary.tone_mode.witty_desc')}
             ></ButtonSet>
           </div>
         </div>

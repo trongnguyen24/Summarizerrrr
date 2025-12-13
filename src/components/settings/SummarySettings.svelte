@@ -1,3 +1,5 @@
+<svelte:options runes={true} />
+
 <script>
   // @ts-nocheck
   import { t } from 'svelte-i18n'
@@ -12,8 +14,28 @@
     updateSettings,
   } from '../../stores/settingsStore.svelte.js'
 
-  function handleUpdateSetting(key, value) {
-    updateSettings({ [key]: value })
+  updateSettings({ [key]: value })
+
+  let wittyClickCount = $state(0)
+
+  function handleWittyClick() {
+    if (settings.summaryTone === 'witty') {
+      wittyClickCount++
+      if (wittyClickCount >= 3) {
+        handleUpdateSetting('summaryTone', 'savage')
+      }
+    } else if (settings.summaryTone === 'savage') {
+      // Do nothing, already savage
+    } else {
+      // Switching to witty
+      handleUpdateSetting('summaryTone', 'witty')
+      wittyClickCount = 0
+    }
+  }
+
+  function handleStandardToneClick(tone) {
+    handleUpdateSetting('summaryTone', tone)
+    wittyClickCount = 0
   }
 
   let textElement
@@ -27,7 +49,7 @@
       textScramble.setText(
         settings.isSummaryAdvancedMode
           ? $t('settings.ai_model.mode.advanced')
-          : $t('settings.ai_model.mode.basic')
+          : $t('settings.ai_model.mode.basic'),
       )
     }
   })
@@ -161,7 +183,7 @@
           class="setting-btn {settings.summaryTone === 'simple'
             ? 'active'
             : ''}"
-          onclick={() => handleUpdateSetting('summaryTone', 'simple')}
+          onclick={() => handleStandardToneClick('simple')}
           Description={$t('settings.summary.tone_mode.simple_desc')}
         ></ButtonSet>
         <ButtonSet
@@ -169,14 +191,21 @@
           class="setting-btn {settings.summaryTone === 'expert'
             ? 'active'
             : ''}"
-          onclick={() => handleUpdateSetting('summaryTone', 'expert')}
+          onclick={() => handleStandardToneClick('expert')}
           Description={$t('settings.summary.tone_mode.expert_desc')}
         ></ButtonSet>
         <ButtonSet
-          title={$t('settings.summary.tone_mode.alien')}
-          class="setting-btn {settings.summaryTone === 'alien' ? 'active' : ''}"
-          onclick={() => handleUpdateSetting('summaryTone', 'alien')}
-          Description={$t('settings.summary.tone_mode.alien_desc')}
+          title={settings.summaryTone === 'savage'
+            ? $t('settings.summary.tone_mode.savage')
+            : $t('settings.summary.tone_mode.witty')}
+          class="setting-btn {settings.summaryTone === 'witty' ||
+          settings.summaryTone === 'savage'
+            ? 'active'
+            : ''}"
+          onclick={handleWittyClick}
+          Description={settings.summaryTone === 'savage'
+            ? $t('settings.summary.tone_mode.savage_desc')
+            : $t('settings.summary.tone_mode.witty_desc')}
         ></ButtonSet>
       </div>
     </div>
@@ -201,7 +230,7 @@
         {$t('settings.summary.custom_prompts.title')}
         <a
           href={browser.runtime.getURL(
-            'prompt.html?promptKey=youtubeCustomPromptContent'
+            'prompt.html?promptKey=youtubeCustomPromptContent',
           )}
           target="_blank"
           class="text-xs flex items-center gap-0.5 text-primary outline-gray-500 hover:underline"
@@ -222,7 +251,7 @@
             onEdit={() =>
               browser.tabs.create({
                 url: browser.runtime.getURL(
-                  `prompt.html?promptKey=${prompt.promptKey}`
+                  `prompt.html?promptKey=${prompt.promptKey}`,
                 ),
               })}
           />

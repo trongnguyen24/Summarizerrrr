@@ -432,6 +432,12 @@
     if (importedData.settings) {
       const cleanImportedSettings = sanitizeSettings(importedData.settings)
 
+      // ✅ MIGRATION: Migrate 'alien' tone to 'witty' on import
+      if (cleanImportedSettings.summaryTone === 'alien') {
+        console.log("[Import] Migration: 'alien' tone -> 'witty'")
+        cleanImportedSettings.summaryTone = 'witty'
+      }
+
       if (importOptions.mergeMode === 'replace') {
         // Replace: Overwrite all settings
         await updateSettings(cleanImportedSettings)

@@ -153,8 +153,10 @@
         "simple_desc": "Dễ hiểu, thân thiện.",
         "expert": "Chuyên",
         "expert_desc": "Chuyên nghiệp, kỹ thuật, có thẩm quyền.",
-        "alien": "Chí phèo",
-        "alien_desc": "Thô tục, cục súc và bất lịch sự."
+        "savage": "Cục súc",
+        "savage_desc": "Thô tục, cục súc và bất lịch sự.",
+        "witty": "Xéo xắt",
+        "witty_desc": "Hài hước, mỉa mai nhẹ nhàng."
       },
       "language_output": "Ngôn ngữ tóm tắt",
       "custom_prompts": {

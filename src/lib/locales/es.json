@@ -153,8 +153,10 @@
         "simple_desc": "Lenguaje claro y fácil de entender.",
         "expert": "Experto",
         "expert_desc": "Lenguaje formal y técnico.",
-        "alien": "Salvaje",
-        "alien_desc": "Grosero, vulgar y maleducado."
+        "savage": "Salvaje",
+        "savage_desc": "Grosero, vulgar y maleducado.",
+        "witty": "Ingenioso",
+        "witty_desc": "Juguetón, sarcasmo leve."
       },
       "language_output": "Idioma de salida",
       "custom_prompts": {

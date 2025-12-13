@@ -153,8 +153,10 @@
         "simple_desc": "Langage clair et facile à comprendre.",
         "expert": "Expert",
         "expert_desc": "Langage formel et technique.",
-        "alien": "Sauvage",
-        "alien_desc": "Grossier, cru et impoli."
+        "savage": "Sauvage",
+        "savage_desc": "Grossier, cru et impoli.",
+        "witty": "Spirituel",
+        "witty_desc": "Ludique, sarcasme léger."
       },
       "language_output": "Langue de sortie",
       "custom_prompts": {

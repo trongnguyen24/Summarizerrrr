@@ -85,8 +85,10 @@
         "simple_desc": "语言清晰，易于理解。",
         "expert": "专家",
         "expert_desc": "使用正式、专业的技术语言。",
-        "alien": "毒舌",
-        "alien_desc": "嘴臭，粗鲁且不礼貌。"
+        "savage": "毒舌",
+        "savage_desc": "嘴臭，粗鲁且不礼貌。",
+        "witty": "机智",
+        "witty_desc": "俏皮，轻微讽刺。"
       },
       "language_output": "输出语言",
       "custom_prompts": {

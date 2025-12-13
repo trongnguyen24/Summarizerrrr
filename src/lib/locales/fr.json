@@ -153,8 +153,8 @@
         "simple_desc": "Langage clair et facile à comprendre.",
         "expert": "Expert",
         "expert_desc": "Langage formel et technique.",
-        "alien": "Alien",
-        "alien_desc": "Perspective curieuse et objective."
+        "alien": "Sauvage",
+        "alien_desc": "Grossier, cru et impoli."
       },
       "language_output": "Langue de sortie",
       "custom_prompts": {

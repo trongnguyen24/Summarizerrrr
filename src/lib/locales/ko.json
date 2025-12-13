@@ -153,8 +153,8 @@
         "simple_desc": "이해하기 쉽고 친근한",
         "expert": "전문가",
         "expert_desc": "전문적이고 기술적이며 권위적",
-        "alien": "외계인",
-        "alien_desc": "호기심 많고 분석적이며 초연한"
+        "alien": "독설가",
+        "alien_desc": "입이 험하고, 거칠며 무례함."
       },
       "language_output": "출력 언어",
       "custom_prompts": {

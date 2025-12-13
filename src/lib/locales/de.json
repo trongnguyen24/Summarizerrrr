@@ -153,8 +153,8 @@
         "simple_desc": "Leicht verständlich, freundlich.",
         "expert": "Experte",
         "expert_desc": "Professionell, technisch, autoritativ.",
-        "alien": "Alien",
-        "alien_desc": "Neugierig, analytisch, distanziert."
+        "alien": "Grobian",
+        "alien_desc": "Vulgär, grob und unhöflich."
       },
       "language_output": "Ausgabesprache",
       "custom_prompts": {

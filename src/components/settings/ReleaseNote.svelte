@@ -89,6 +89,34 @@
     <div class="p-6 prose prose-sm w-full max-w-full">
       <h2>Release note</h2>
 
+      <b class="font-mono">2.7.0</b>
+      <ul class="mt-0">
+        {@render note(
+          'New AI Provider - Cerebras:',
+          'Added a new option offering lightning-fast speeds and daily free usage tokens.',
+        )}
+        {@render note(
+          'Improved Gemini Reliability:',
+          'You can now add multiple API keys. The system auto-switches between them to prevent errors and keep your connection stable.',
+        )}
+        {@render note(
+          'Easier Model Selection:',
+          'Replaced old inputs with a smart, searchable dropdown menu, making it faster to switch AI models.',
+        )}
+        {@render note(
+          'Smarter Summaries:',
+          'Upgraded the prompt engine to better align with your selected "Tone" and "Language."',
+        )}
+        {@render note(
+          'New Notification Style:',
+          'Important updates now appear in a clean bottom-sheet view, featuring a fun animated cat.',
+        )}
+        {@render note(
+          'Replaced Gemini 2.0 Flash:',
+          'Since this model is no longer available on the Free Tier, it has been replaced by Gemma-3-27b-it.',
+        )}
+      </ul>
+
       <b class="font-mono">2.6.0</b>
       <ul class="mt-0">
         {@render note(

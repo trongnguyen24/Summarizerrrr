@@ -85,8 +85,8 @@
         "simple_desc": "语言清晰，易于理解。",
         "expert": "专家",
         "expert_desc": "使用正式、专业的技术语言。",
-        "alien": "外星人",
-        "alien_desc": "以好奇、客观的视角进行分析。"
+        "alien": "毒舌",
+        "alien_desc": "嘴臭，粗鲁且不礼貌。"
       },
       "language_output": "输出语言",
       "custom_prompts": {

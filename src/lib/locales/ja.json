@@ -153,8 +153,8 @@
         "simple_desc": "理解しやすく、親しみやすい。",
         "expert": "専門家",
         "expert_desc": "専門的、技術的、権威的。",
-        "alien": "エイリアン",
-        "alien_desc": "好奇心旺盛、分析的、客観的。"
+        "alien": "毒舌",
+        "alien_desc": "口が悪く、下品で無礼。"
       },
       "language_output": "出力言語",
       "custom_prompts": {

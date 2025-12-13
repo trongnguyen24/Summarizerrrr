@@ -94,7 +94,7 @@
   <!-- Notification Bar -->
   <button
     onclick={openSheet}
-    class="absolute left-1/2 -translate-x-1/2 w-full font-mono flex flex-col justify-center max-w-100 bottom-2 z-50 p-2 rounded-full cursor-pointer group"
+    class="fixed left-1/2 -translate-x-1/2 w-full font-mono flex flex-col justify-center max-w-100 bottom-2 z-50 p-2 rounded-full cursor-pointer group"
     aria-label="Open notifications"
   >
     <div

@@ -153,8 +153,8 @@
         "simple_desc": "Easy to understand, friendly.",
         "expert": "Expert",
         "expert_desc": "Professional, technical, authoritative.",
-        "alien": "Alien",
-        "alien_desc": "Curious, analytical, detached."
+        "alien": "Savage",
+        "alien_desc": "foul-mouthed, crude, and impolite."
       },
       "language_output": "Language output",
       "custom_prompts": {

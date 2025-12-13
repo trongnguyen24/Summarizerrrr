@@ -153,8 +153,8 @@
         "simple_desc": "Dễ hiểu, thân thiện.",
         "expert": "Chuyên",
         "expert_desc": "Chuyên nghiệp, kỹ thuật, có thẩm quyền.",
-        "alien": "Alien",
-        "alien_desc": "Tò mò, phân tích, khách quan."
+        "alien": "Chí phèo",
+        "alien_desc": "Thô tục, cục súc và bất lịch sự."
       },
       "language_output": "Ngôn ngữ tóm tắt",
       "custom_prompts": {

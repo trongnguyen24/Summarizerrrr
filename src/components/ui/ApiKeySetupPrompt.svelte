@@ -55,7 +55,7 @@
       {$t('apiKeyPrompt.openSettings')}
     </button>
     <a
-      href="https://www.youtube.com/watch?v=BRlHzxy3QqY"
+      href="https://www.youtube.com/watch?v=Is2mJuF2HPY"
       target="_blank"
       class="text-xs flex items-center text-text-secondary hover:text-primary underline underline-offset-2 transition-colors"
     >

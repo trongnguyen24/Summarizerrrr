@@ -4,14 +4,15 @@
 
   // ✅ Component riêng cho tool settings - KHÔNG modify global settings
   const providers = [
-    { value: 'gemini', label: 'Google Gemini' },
-    { value: 'openrouter', label: 'OpenRouter' },
-    { value: 'ollama', label: 'Ollama' },
-    { value: 'openaiCompatible', label: 'OpenAI Compatible' },
+    { value: 'cerebras', label: 'Cerebras' },
     { value: 'chatgpt', label: 'ChatGPT' },
     { value: 'deepseek', label: 'DeepSeek' },
-    { value: 'lmstudio', label: 'LM Studio' },
+    { value: 'gemini', label: 'Google Gemini' },
     { value: 'groq', label: 'Groq' },
+    { value: 'lmstudio', label: 'LM Studio' },
+    { value: 'ollama', label: 'Ollama' },
+    { value: 'openaiCompatible', label: 'OpenAI Compatible' },
+    { value: 'openrouter', label: 'OpenRouter' },
   ]
 
   let { value = $bindable(), onchange } = $props()

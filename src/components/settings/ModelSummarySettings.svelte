@@ -117,7 +117,7 @@
     >
     <div class="flex items-center">
       <Label.Root
-        class="cursor-pointer  pr-2 py-2 w-20 !text-right font-bold select-none transition-colors duration-1000 {settings.isAdvancedMode
+        class="cursor-pointer  pr-2 py-2 w-20 text-right font-bold select-none transition-colors duration-1000 {settings.isAdvancedMode
           ? 'text-primary'
           : 'text-text-primary'}"
         for="provider-toggle"
@@ -553,7 +553,7 @@
     {/if}
 
     <a
-      href="https://www.youtube.com/watch?v=BRlHzxy3QqY"
+      href="https://www.youtube.com/watch?v=Is2mJuF2HPY"
       target="_blank"
       class="text-xs flex gap-1 items-center mt-auto self-center text-text-secondary hover:text-primary underline underline-offset-2 transition-colors"
     >

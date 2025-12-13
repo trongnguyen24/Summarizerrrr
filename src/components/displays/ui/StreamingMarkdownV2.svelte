@@ -6,6 +6,7 @@
   import { processThinkTags } from '@/lib/utils/thinkTagProcessor.js'
   import { processTimestamps } from '@/lib/utils/timestampProcessor.js'
   import TimestampLink from './TimestampLink.svelte'
+  import TableRenderer from './TableRenderer.svelte'
 
   /**
    * Props của component - Hybrid approach: svelte-markdown cho DOM stability
@@ -143,7 +144,7 @@
     source={!isStreaming
       ? processTimestamps(processedMarkdown)
       : processedMarkdown}
-    renderers={{ link: TimestampLink }}
+    renderers={{ link: TimestampLink, table: TableRenderer }}
   />
 </div>
 
@@ -231,18 +232,18 @@
   }
 
   /* === Table Styling - Horizontal Scroll === */
+  /* Note: Scrolling is now handled by TableRenderer wrapper */
   .markdown-container-v2 :global(table) {
-    display: block;
     width: 100%;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch; /* Smooth scroll trên iOS */
-    border: 1px solid var(--color-border);
-    border-radius: 0.5em;
+    /* border: 1px solid var(--color-border); -> Moved to wrapper */
+    /* border-radius: 0.5em; -> Moved to wrapper */
     padding: 0.5em 0;
-    scrollbar-width: thin;
-    scrollbar-color: transparent transparent;
+    /* scrollbar-width: thin; -> Moved to wrapper */
+    /* scrollbar-color: transparent transparent; -> Moved to wrapper */
   }
 
+  /* Remove these display overrides as we want standard table behavior inside the wrapper */
+  /*
   .markdown-container-v2 :global(table thead),
   .markdown-container-v2 :global(table tbody),
   .markdown-container-v2 :global(table tr) {
@@ -250,37 +251,21 @@
     width: 100%;
     table-layout: fixed;
   }
+  */
 
+  /* Kept for context but commented out as wrapper handles it
   .markdown-container-v2 :global(table:hover) {
     scrollbar-color: var(--color-border) transparent;
   }
-
-  /* Webkit scrollbar - ẩn background */
-  .markdown-container-v2 :global(table::-webkit-scrollbar) {
-    height: 6px;
-    background: transparent;
-  }
-
-  .markdown-container-v2 :global(table::-webkit-scrollbar-track) {
-    background: transparent;
-  }
-
-  .markdown-container-v2 :global(table::-webkit-scrollbar-thumb) {
-    background: transparent;
-    border-radius: 3px;
-  }
-
-  .markdown-container-v2 :global(table:hover::-webkit-scrollbar-thumb) {
-    background: var(--color-border);
-  }
+  */
 
   .markdown-container-v2 :global(th) {
-    min-width: 100px;
+    min-width: 60px;
     white-space: nowrap;
   }
 
   .markdown-container-v2 :global(td) {
-    min-width: 80px;
+    min-width: 60px;
   }
 
   /* Padding cho cell đầu và cuối của mỗi row */

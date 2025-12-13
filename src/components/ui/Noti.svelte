@@ -12,7 +12,7 @@
       descriptionKey: 'notifications.api_limits.description',
       cta: {
         labelKey: 'notifications.api_limits.cta_label',
-        link: 'https://www.youtube.com/watch?v=yebNIHKAC4A',
+        link: 'https://www.youtube.com/watch?v=ZLiRcFxzPBI',
       },
     },
     {

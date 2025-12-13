@@ -17,6 +17,7 @@
   import ToolLMStudioConfig from '@/components/providerConfigs/tools/ToolLMStudioConfig.svelte'
   import ToolOpenrouterConfig from '@/components/providerConfigs/tools/ToolOpenrouterConfig.svelte'
   import ToolOpenAICompatibleConfig from '@/components/providerConfigs/tools/ToolOpenAICompatibleConfig.svelte'
+  import ToolCerebrasConfig from '@/components/providerConfigs/tools/ToolCerebrasConfig.svelte'
 
   // ✅ Computed value cho tool settings
   let toolSettings = $derived.by(() => settings.tools?.deepDive ?? {})
@@ -75,6 +76,7 @@
       lmstudio: 'google/gemma-3-12b',
       openrouter: 'google/gemma-3-27b-it:free',
       openaiCompatible: '',
+      cerebras: 'llama-3.3-70b',
     }
 
     updateSettings({
@@ -236,6 +238,12 @@
           {:else if toolSettings.customProvider === 'openaiCompatible'}
             <ToolOpenAICompatibleConfig
               bind:apiKey={settings.openaiCompatibleApiKey}
+              selectedModel={toolSettings.customModel || ''}
+              onModelChange={handleModelChange}
+            />
+          {:else if toolSettings.customProvider === 'cerebras'}
+            <ToolCerebrasConfig
+              bind:apiKey={settings.cerebrasApiKey}
               selectedModel={toolSettings.customModel || ''}
               onModelChange={handleModelChange}
             />

@@ -103,6 +103,7 @@ function getProviderApiKey(providerId) {
     ollama: 'local', // Ollama doesn't require API key
     lmstudio: 'local',
     openaiCompatible: settings.openaiCompatibleApiKey,
+    cerebras: settings.cerebrasApiKey,
   }
 
   const key = keyMap[providerId]
@@ -183,6 +184,7 @@ function getProviderModelKey(providerId) {
     ollama: 'selectedOllamaModel',
     lmstudio: 'selectedLmStudioModel',
     openaiCompatible: 'selectedOpenAICompatibleModel',
+    cerebras: 'selectedCerebrasModel',
   }
   return modelKeyMap[providerId] || 'selectedGeminiModel'
 }
@@ -201,6 +203,7 @@ function getDefaultModel(providerId) {
     openrouter: 'deepseek/deepseek-r1-0528:free',
     ollama: 'deepseek-r1:8b',
     lmstudio: 'lmstudio-community/gemma-2b-it-GGUF',
+    cerebras: 'llama-3.3-70b',
   }
   return defaultModels[providerId] || 'gemini-2.5-flash'
 }
@@ -243,6 +246,7 @@ export function buildModelSettings(providerConfig, globalSettings) {
     ollama: 'selectedOllamaModel',
     lmstudio: 'selectedLmStudioModel',
     openaiCompatible: 'selectedOpenAICompatibleModel',
+    cerebras: 'selectedCerebrasModel',
   }
 
   const modelKey = modelKeyMap[provider] || 'selectedGeminiModel'

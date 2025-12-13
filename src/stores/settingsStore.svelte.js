@@ -35,6 +35,8 @@ const DEFAULT_SETTINGS = {
   selectedLmStudioModel: 'lmstudio-community/gemma-2b-it-GGUF',
   groqApiKey: '',
   selectedGroqModel: 'moonshotai/kimi-k2-instruct',
+  cerebrasApiKey: '',
+  selectedCerebrasModel: 'llama-3.3-70b',
   selectedFont: 'default',
   enableStreaming: true,
   uiLang: 'en',

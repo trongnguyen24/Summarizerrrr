@@ -227,6 +227,12 @@
       "saved_status": "저장됨!",
       "view_models": "모델 보기"
     },
+    "cerebras_config": {
+      "api_key_label": "API 키",
+      "model_label": "모델명",
+      "get_a_key": "키 얻기",
+      "model_placeholder": "llama-3.3-70b"
+    },
     "openai_compatible_config": {
       "api_key_label": "API 키",
       "api_key_placeholder": "API 키",

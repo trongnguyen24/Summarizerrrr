@@ -227,6 +227,12 @@
       "saved_status": "¡Guardado!",
       "view_models": "Ver modelos"
     },
+    "cerebras_config": {
+      "api_key_label": "Clave API",
+      "model_label": "Nombre del modelo",
+      "get_a_key": "Obtener clave",
+      "model_placeholder": "llama-3.3-70b"
+    },
     "openai_compatible_config": {
       "api_key_label": "Clave API",
       "api_key_placeholder": "Clave API",

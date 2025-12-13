@@ -144,6 +144,27 @@
       "model_label": "Ollama 模型",
       "model_placeholder": "llama2"
     },
+    "lmstudio_config": {
+      "endpoint_label": "端点",
+      "endpoint_placeholder": "http://localhost:1234/v1",
+      "model_label": "模型名称",
+      "model_placeholder": "lmstudio-community/gemma-2b-it-GGUF"
+    },
+    "groq_config": {
+      "api_key_label": "API 密钥",
+      "api_key_placeholder": "输入您的 Groq API 密钥",
+      "model_label": "模型名称",
+      "get_a_key": "获取密钥",
+      "model_placeholder": "mixtral-8x7b-32768",
+      "saved_status": "已保存!",
+      "view_models": "查看模型"
+    },
+    "cerebras_config": {
+      "api_key_label": "API 密钥",
+      "model_label": "模型名称",
+      "get_a_key": "获取密钥",
+      "model_placeholder": "llama-3.3-70b"
+    },
     "openai_compatible_config": {
       "api_key_label": "API 密钥",
       "api_key_placeholder": "API 密钥",

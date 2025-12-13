@@ -168,6 +168,14 @@ export function getAISDKModel(providerId, settings) {
         settings.selectedLmStudioModel || 'lmstudio-community/gemma-2b-it-GGUF'
       )
 
+    case 'cerebras':
+      const cerebras = createOpenAICompatible({
+        name: 'cerebras',
+        apiKey: settings.cerebrasApiKey,
+        baseURL: 'https://api.cerebras.ai/v1',
+      })
+      return cerebras(settings.selectedCerebrasModel || 'llama3.1-8b')
+
     default:
       throw new Error(`Unsupported provider: ${providerId}`)
   }
@@ -312,9 +320,7 @@ export async function generateContent(
     } catch (error) {
       const failedModel = autoFallbackEnabled
         ? currentModel
-        : providerId === 'gemini'
-        ? getCurrentGeminiModel(settings)
-        : 'N/A'
+        : getDisplayModelName(providerId, settings)
       console.error(
         `[aiSdkAdapter] ❌ API Failed - Model: ${failedModel}`,
         error
@@ -573,9 +579,7 @@ export async function* generateContentStream(
     } catch (error) {
       const failedModel = autoFallbackEnabled
         ? currentModel
-        : providerId === 'gemini'
-        ? getCurrentGeminiModel(settings)
-        : 'N/A'
+        : getDisplayModelName(providerId, settings)
       console.error(
         `[aiSdkAdapter] ❌ Stream Failed - Model: ${failedModel}`,
         error
@@ -763,6 +767,8 @@ function getDisplayModelName(providerId, settings) {
       return settings.selectedOpenAICompatibleModel || 'gpt-3.5-turbo'
     case 'lmstudio':
       return settings.selectedLmStudioModel || 'lmstudio-community/gemma-2b-it-GGUF'
+    case 'cerebras':
+      return settings.selectedCerebrasModel || 'qwen-3-32b'
     default:
       return providerId
   }

@@ -33,6 +33,7 @@
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^2.0.0",
+    "@ai-sdk/cerebras": "^1.0.33",
     "@ai-sdk/deepseek": "^1.0.0",
     "@ai-sdk/google": "^2.0.0",
     "@ai-sdk/groq": "^2.0.0",

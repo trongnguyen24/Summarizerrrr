@@ -34,6 +34,8 @@ export const VALID_SETTING_KEYS = [
   'selectedLmStudioModel',
   'groqApiKey',
   'selectedGroqModel',
+  'cerebrasApiKey',
+  'selectedCerebrasModel',
 
   // UI Configuration
   'floatButton',

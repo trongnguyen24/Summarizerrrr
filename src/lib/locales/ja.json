@@ -227,6 +227,12 @@
       "saved_status": "保存完了！",
       "view_models": "モデル一覧"
     },
+    "cerebras_config": {
+      "api_key_label": "APIキー",
+      "model_label": "モデル名",
+      "get_a_key": "キーを取得",
+      "model_placeholder": "llama-3.3-70b"
+    },
     "openai_compatible_config": {
       "api_key_label": "APIキー",
       "api_key_placeholder": "APIキー",

@@ -7,14 +7,15 @@
 
   // Hardcode danh sách providers vì providersConfig đã bị xóa
   const providers = [
-    { value: 'gemini', label: 'Google Gemini' },
-    { value: 'openrouter', label: 'OpenRouter' },
-    { value: 'ollama', label: 'Ollama' },
-    { value: 'openaiCompatible', label: 'OpenAI Compatible' },
+    { value: 'cerebras', label: 'Cerebras' },
     { value: 'chatgpt', label: 'ChatGPT' },
     { value: 'deepseek', label: 'DeepSeek' },
-    { value: 'lmstudio', label: 'LM Studio' },
+    { value: 'gemini', label: 'Google Gemini' },
     { value: 'groq', label: 'Groq' },
+    { value: 'lmstudio', label: 'LM Studio' },
+    { value: 'ollama', label: 'Ollama' },
+    { value: 'openaiCompatible', label: 'OpenAI Compatible' },
+    { value: 'openrouter', label: 'OpenRouter' },
   ]
 
   let { value = $bindable() } = $props()
@@ -50,7 +51,10 @@
         settings.selectedModel = settings.selectedLmStudioModel
         break
       case 'groq':
-        settings.selectedModel = settings.groqApiKey
+        settings.selectedModel = settings.selectedGroqModel
+        break
+      case 'cerebras':
+        settings.selectedModel = settings.selectedCerebrasModel
         break
       default:
         // Fallback or error handling

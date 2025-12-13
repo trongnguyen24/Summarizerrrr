@@ -15,6 +15,7 @@
   import DeepseekConfig from '../providerConfigs/DeepseekConfig.svelte'
   import LMStudioConfig from '../providerConfigs/LMStudioConfig.svelte'
   import GroqConfig from '../providerConfigs/GroqConfig.svelte'
+  import CerebrasConfig from '../providerConfigs/CerebrasConfig.svelte'
   import SwitchButton from '../inputs/Switch.svelte'
   import { Label, Switch } from 'bits-ui'
   import {
@@ -198,6 +199,8 @@
         <LMStudioConfig />
       {:else if settings.selectedProvider === 'groq'}
         <GroqConfig />
+      {:else if settings.selectedProvider === 'cerebras'}
+        <CerebrasConfig />
       {/if}
 
       <!-- Response Mode Section for Advanced Mode -->

@@ -45,14 +45,34 @@ export class ContentExtractorService {
       const transcriptExtractor = new MessageBasedTranscriptExtractor(
         this.language.slice(0, 2)
       )
-      const transcript = await transcriptExtractor.getPlainTranscript()
+
+      // Prioritize timestamped transcript as it provides better context for AI
+      // and aligns with user expectations for features like "seek to"
+      const transcript = await transcriptExtractor.getTimestampedTranscript()
 
       if (transcript && transcript.trim().length >= this.minContentLength) {
         console.log(
-          '[ContentExtractorService] YouTube transcript extracted successfully'
+          '[ContentExtractorService] YouTube timestamped transcript extracted successfully'
         )
         return transcript.trim()
       }
+
+      // Fallback to plain transcript if timestamped is not available
+      console.log(
+        '[ContentExtractorService] Timestamped transcript failed, trying plain transcript...'
+      )
+      const plainTranscript = await transcriptExtractor.getPlainTranscript()
+
+      if (
+        plainTranscript &&
+        plainTranscript.trim().length >= this.minContentLength
+      ) {
+        console.log(
+          '[ContentExtractorService] YouTube plain transcript extracted successfully'
+        )
+        return plainTranscript.trim()
+      }
+
       throw new Error('YouTube transcript not available or too short')
     } catch (error) {
       console.log('[ContentExtractorService] YouTube extraction failed:', error)

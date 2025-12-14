@@ -51,108 +51,34 @@ export class SummarizationService {
     // Get browser compatibility info
     const browserCompatibility = getBrowserCompatibility()
 
+    // Regular streaming for all content types (including YouTube)
+    // We no longer auto-generate chapters in parallel
     if (contentType === 'youtube') {
-      // YouTube: tạo cả video summary và chapter summary parallel
-      const promises = []
-
-      // Video summary stream
-      const videoSummaryPromise = (async () => {
-        try {
-          const stream = summarizeContentStream(content, 'youtube', abortSignal)
-          for await (const chunk of stream) {
-            summary += chunk
-          }
-        } catch (error) {
-          console.error(
-            '[SummarizationService] Video summary streaming error:',
-            error
-          )
-
-          // Check if this is a Firefox mobile streaming error that requires fallback
-          if (
-            browserCompatibility.isFirefoxMobile &&
-            error.isFirefoxMobileStreamingError
-          ) {
-            console.log(
-              '[SummarizationService] Falling back to non-streaming for Firefox mobile'
-            )
-            // Fallback to non-streaming
-            summary = await summarizeContent(content, 'youtube', abortSignal)
-            return
-          }
-
-          throw error
+      try {
+        const stream = summarizeContentStream(content, 'youtube', abortSignal)
+        for await (const chunk of stream) {
+          summary += chunk
         }
-      })()
-      promises.push(videoSummaryPromise)
+      } catch (error) {
+        console.error(
+          '[SummarizationService] Video summary streaming error:',
+          error
+        )
 
-      // Chapter summary stream (parallel)
-      const chapterSummaryPromise = (async () => {
-        try {
+        // Check if this is a Firefox mobile streaming error that requires fallback
+        if (
+          browserCompatibility.isFirefoxMobile &&
+          error.isFirefoxMobileStreamingError
+        ) {
           console.log(
-            '[SummarizationService] Extracting timestamped transcript for chapters...'
+            '[SummarizationService] Falling back to non-streaming for Firefox mobile'
           )
-          const timestampedTranscript =
-            await this.contentExtractorService.extractTimestampedTranscript()
-
-          if (
-            timestampedTranscript &&
-            timestampedTranscript.trim().length > 50
-          ) {
-            const chapterStream = summarizeChaptersStream(timestampedTranscript, abortSignal)
-            for await (const chunk of chapterStream) {
-              chapterSummary += chunk
-            }
-          } else {
-            console.log(
-              '[SummarizationService] No timestamped transcript available for chapters'
-            )
-            chapterSummary =
-              '<p><i>Timestamped transcript not available for chapter summary.</i></p>'
-          }
-        } catch (error) {
-          console.error(
-            '[SummarizationService] Chapter summary streaming error:',
-            error
-          )
-
-          // Check if this is a Firefox mobile streaming error that requires fallback
-          if (
-            browserCompatibility.isFirefoxMobile &&
-            error.isFirefoxMobileStreamingError
-          ) {
-            console.log(
-              '[SummarizationService] Falling back to non-streaming chapters for Firefox mobile'
-            )
-            // Try non-streaming fallback for chapters
-            try {
-              const timestampedTranscript =
-                await this.contentExtractorService.extractTimestampedTranscript()
-              if (
-                timestampedTranscript &&
-                timestampedTranscript.trim().length > 50
-              ) {
-                chapterSummary = await summarizeChapters(timestampedTranscript, abortSignal)
-              } else {
-                chapterSummary =
-                  '<p><i>Timestamped transcript not available for chapter summary.</i></p>'
-              }
-              return
-            } catch (fallbackError) {
-              console.error(
-                '[SummarizationService] Chapter summary fallback failed:',
-                fallbackError
-              )
-            }
-          }
-
-          chapterSummary = '<p><i>Could not generate chapter summary.</i></p>'
+          // Fallback to non-streaming
+          summary = await summarizeContent(content, 'youtube', abortSignal)
+        } else {
           throw error
         }
-      })()
-      promises.push(chapterSummaryPromise)
-
-      await Promise.all(promises)
+      }
     } else if (contentType === 'course') {
       // Course: chỉ tóm tắt courseSummary, courseConcepts là custom action riêng
       try {
@@ -181,7 +107,7 @@ export class SummarizationService {
         }
       }
     } else {
-      // Non-YouTube, Non-Course: regular streaming
+      // Regular content
       try {
         const stream = summarizeContentStream(content, contentType, abortSignal)
         for await (const chunk of stream) {
@@ -198,10 +124,6 @@ export class SummarizationService {
           )
           // Fallback to non-streaming
           summary = await summarizeContent(content, contentType, abortSignal)
-          console.log(
-            '[SummarizationService] Fallback summary result:',
-            summary ? 'has content' : 'empty'
-          )
           return { summary, chapterSummary }
         }
 
@@ -224,46 +146,13 @@ export class SummarizationService {
     let chapterSummary = ''
 
     if (contentType === 'youtube') {
-      // YouTube: tạo cả video summary và chapter summary parallel
-      const videoSummaryPromise = (async () => {
-        try {
-          summary = await summarizeContent(content, 'youtube', abortSignal)
-        } catch (error) {
-          console.error('[SummarizationService] Video summary error:', error)
-          throw error
-        }
-      })()
-
-      const chapterSummaryPromise = (async () => {
-        try {
-          console.log(
-            '[SummarizationService] Extracting timestamped transcript for chapters...'
-          )
-          const timestampedTranscript =
-            await this.contentExtractorService.extractTimestampedTranscript()
-
-          if (
-            timestampedTranscript &&
-            timestampedTranscript.trim().length > 50
-          ) {
-            const result = await summarizeChapters(timestampedTranscript, abortSignal)
-            chapterSummary =
-              result || '<p><i>Could not generate chapter summary.</i></p>'
-          } else {
-            console.log(
-              '[SummarizationService] No timestamped transcript available for chapters'
-            )
-            chapterSummary =
-              '<p><i>Timestamped transcript not available for chapter summary.</i></p>'
-          }
-        } catch (error) {
-          console.error('[SummarizationService] Chapter summary error:', error)
-          chapterSummary = '<p><i>Could not generate chapter summary.</i></p>'
-          throw error
-        }
-      })()
-
-      await Promise.all([videoSummaryPromise, chapterSummaryPromise])
+      // YouTube: Just summary, no parallel chapters
+      try {
+        summary = await summarizeContent(content, 'youtube', abortSignal)
+      } catch (error) {
+        console.error('[SummarizationService] Video summary error:', error)
+        throw error
+      }
     } else if (contentType === 'course') {
       // Course: chỉ tóm tắt courseSummary, courseConcepts là custom action riêng
       try {

@@ -175,7 +175,6 @@ export async function summarizeContent(text, contentType, abortSignal = null) {
       text,
       userSettings.summaryLang,
       userSettings.summaryLength,
-      userSettings.summaryFormat,
       userSettings.summaryTone
     ))
   }

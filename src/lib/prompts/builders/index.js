@@ -17,7 +17,9 @@ import { replacePlaceholders } from '../utils.js'
 import { toneDefinitions } from '../modules/toneDefinitions.js'
 
 function getSystemRole(tone) {
-  const toneDef = toneDefinitions[tone]
+  if (!tone) return null
+  const toneLower = tone.toLowerCase()
+  const toneDef = toneDefinitions[toneLower]
   return typeof toneDef === 'object' ? toneDef.systemRole : null
 }
 

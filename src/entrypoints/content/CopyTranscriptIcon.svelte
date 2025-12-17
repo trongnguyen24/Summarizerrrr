@@ -162,9 +162,9 @@
         currentTranscriptExtractor = new MessageBasedTranscriptExtractor('en')
       }
 
-      // Get raw transcript data with timestamps
-      const videoUrl = window.location.href
-      const transcriptData = await getCaptions(videoUrl, 'en')
+      // Get raw transcript data with timestamps using the extractor
+      const transcriptData =
+        await currentTranscriptExtractor.getRawTranscriptData('en')
 
       if (
         !transcriptData ||

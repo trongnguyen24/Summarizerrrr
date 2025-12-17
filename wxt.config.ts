@@ -70,21 +70,13 @@ export default defineConfig({
         content_scripts: [
           {
             matches: ['*://m.youtube.com/*', '*://www.youtube.com/*'],
-            js: [
-              'libs/protobuf.min.js',
-              'youtube_transcript.js',
-              'content-script.js',
-            ],
+            js: ['content-script.js'],
             run_at: 'document_end',
           },
         ],
         web_accessible_resources: [
           {
-            resources: [
-              'libs/protobuf.min.js',
-              'youtube_transcript.js',
-              'youtube_comments.js',
-            ],
+            resources: ['youtube_comments.js'],
             matches: ['*://m.youtube.com/*', '*://www.youtube.com/*'],
           },
         ],
@@ -158,21 +150,13 @@ export default defineConfig({
         content_scripts: [
           {
             matches: ['*://m.youtube.com/*', '*://www.youtube.com/*'],
-            js: [
-              'libs/protobuf.min.js',
-              'youtube_transcript.js',
-              'content-script.js',
-            ],
+            js: ['content-script.js'],
             run_at: 'document_end',
           },
         ],
         web_accessible_resources: [
           {
-            resources: [
-              'libs/protobuf.min.js',
-              'youtube_transcript.js',
-              'youtube_comments.js',
-            ],
+            resources: ['youtube_comments.js'],
             matches: ['*://m.youtube.com/*', '*://www.youtube.com/*'],
           },
         ],
@@ -250,21 +234,13 @@ export default defineConfig({
         content_scripts: [
           {
             matches: ['*://m.youtube.com/*', '*://www.youtube.com/*'],
-            js: [
-              'libs/protobuf.min.js',
-              'youtube_transcript.js',
-              'content-script.js',
-            ],
+            js: ['content-script.js'],
             run_at: 'document_end',
           },
         ],
         web_accessible_resources: [
           {
-            resources: [
-              'libs/protobuf.min.js',
-              'youtube_transcript.js',
-              'youtube_comments.js',
-            ],
+            resources: ['youtube_comments.js'],
             matches: ['*://m.youtube.com/*', '*://www.youtube.com/*'],
           },
         ],

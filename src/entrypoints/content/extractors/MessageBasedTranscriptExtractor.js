@@ -1,8 +1,11 @@
 // @ts-nocheck
 /**
- * MessageBasedTranscriptExtractor - Lấy transcript thông qua getCaptions function
- * Thay thế cho YouTubeTranscriptExtractor sử dụng DOM interaction
+ * MessageBasedTranscriptExtractor - Lấy transcript sử dụng youtube-transcript-plus
+ * Thay thế cho phương pháp inject youtube_transcript.js
  */
+import { fetchTranscript } from 'youtube-transcript-plus'
+import { decode } from 'html-entities'
+
 export class MessageBasedTranscriptExtractor {
   /**
    * Khởi tạo extractor với ngôn ngữ mặc định
@@ -110,22 +113,35 @@ export class MessageBasedTranscriptExtractor {
   }
 
   /**
-   * Kiểm tra xem getCaptions function có sẵn không
-   * @returns {boolean} - True nếu getCaptions có sẵn
+   * Format seconds to timestamp string MM:SS or HH:MM:SS
+   * @param {number} seconds - Time in seconds
+   * @returns {string} - Formatted timestamp
    */
-  isCaptionsAvailable() {
-    return typeof getCaptions !== 'undefined'
+  formatTime(seconds) {
+    const totalSeconds = Math.floor(seconds)
+    const hours = Math.floor(totalSeconds / 3600)
+    const minutes = Math.floor((totalSeconds % 3600) / 60)
+    const secs = totalSeconds % 60
+
+    const paddedSeconds = String(secs).padStart(2, '0')
+    const paddedMinutes = String(minutes).padStart(2, '0')
+
+    if (hours > 0) {
+      const paddedHours = String(hours).padStart(2, '0')
+      return `${paddedHours}:${paddedMinutes}:${paddedSeconds}`
+    } else {
+      return `${paddedMinutes}:${paddedSeconds}`
+    }
   }
 
   /**
-   * Lấy transcript sử dụng getCaptions function
+   * Lấy transcript sử dụng youtube-transcript-plus
    * @param {boolean} includeTimestamps - Có bao gồm timestamp không
    * @param {string} preferredLang - Mã ngôn ngữ ưa thích
    * @returns {Promise<string|null>} - Transcript hoặc null nếu không thành công
    */
   async fetchTranscript(includeTimestamps = false, preferredLang = 'en') {
     try {
-      const videoUrl = window.location.href
       const videoId = this.getVideoId()
 
       if (!videoId) {
@@ -147,13 +163,6 @@ export class MessageBasedTranscriptExtractor {
         return this.transcriptCache.get(cacheKey)
       }
 
-      if (!this.isCaptionsAvailable()) {
-        console.error(
-          '[MessageBasedTranscriptExtractor] getCaptions function is not available. Make sure youtube_transcript.js is loaded.'
-        )
-        return null
-      }
-
       console.log(
         `[MessageBasedTranscriptExtractor] Fetching fresh transcript for video: ${videoId}, lang: ${preferredLang}, videoChanged: ${videoChanged}`
       )
@@ -172,14 +181,16 @@ export class MessageBasedTranscriptExtractor {
       }
 
       // Prioritize the preferred language, then fall back to others
-      const languageCodes = [preferredLang, 'en', 'vi', 'zz']
+      const languageCodes = [preferredLang, 'en', 'vi']
       const uniqueLanguageCodes = [...new Set(languageCodes)]
 
       for (const langCode of uniqueLanguageCodes) {
         try {
           // Add small delay to ensure fresh fetch
           await new Promise((resolve) => setTimeout(resolve, 100))
-          const transcriptData = await getCaptions(videoUrl, langCode)
+          
+          // Use youtube-transcript-plus library
+          const transcriptData = await fetchTranscript(videoId, { lang: langCode })
 
           if (
             transcriptData &&
@@ -190,21 +201,22 @@ export class MessageBasedTranscriptExtractor {
               `[MessageBasedTranscriptExtractor] Fresh transcript found for language: ${langCode}, segments: ${transcriptData.length}`
             )
 
+            // Decode HTML entities in transcript text
+            const decodedTranscript = transcriptData.map((segment) => ({
+              ...segment,
+              text: decode(decode(segment.text.trim())).trim(),
+            }))
+
             let result
             if (includeTimestamps) {
               // Get video title
               const videoTitle = this.getVideoTitle()
 
-              // Format transcript with title
-              const transcriptContent = transcriptData
+              // Format transcript with title - offset and duration are in SECONDS
+              const transcriptContent = decodedTranscript
                 .map((segment) => {
-                  const timeRange =
-                    segment.startTime && segment.endTime
-                      ? `[${segment.startTime} → ${segment.endTime}]`
-                      : segment.startTime
-                      ? `[${segment.startTime}]`
-                      : ''
-                  return `${timeRange} ${segment.text}`.trim()
+                  const startTime = this.formatTime(segment.offset)
+                  return `[${startTime}] ${segment.text}`.trim()
                 })
                 .join('\n')
 
@@ -215,7 +227,7 @@ export class MessageBasedTranscriptExtractor {
                 result = transcriptContent
               }
             } else {
-              result = transcriptData.map((segment) => segment.text).join(' ')
+              result = decodedTranscript.map((segment) => segment.text).join(' ')
             }
 
             // Cache the fresh result
@@ -233,6 +245,49 @@ export class MessageBasedTranscriptExtractor {
         }
       }
 
+      // Try fetching default transcript without language specification
+      try {
+        console.log('[MessageBasedTranscriptExtractor] Trying default transcript...')
+        const defaultTranscript = await fetchTranscript(videoId)
+        
+        if (defaultTranscript && Array.isArray(defaultTranscript) && defaultTranscript.length > 0) {
+          console.log(
+            `[MessageBasedTranscriptExtractor] Default transcript found, segments: ${defaultTranscript.length}`
+          )
+
+          const decodedTranscript = defaultTranscript.map((segment) => ({
+            ...segment,
+            text: decode(decode(segment.text.trim())).trim(),
+          }))
+
+          let result
+          if (includeTimestamps) {
+            const videoTitle = this.getVideoTitle()
+            const transcriptContent = decodedTranscript
+              .map((segment) => {
+                const startTime = this.formatTime(segment.offset)
+                return `[${startTime}] ${segment.text}`.trim()
+              })
+              .join('\n')
+
+            if (videoTitle) {
+              result = `<title>${videoTitle}</title>\n\n${transcriptContent}`
+            } else {
+              result = transcriptContent
+            }
+          } else {
+            result = decodedTranscript.map((segment) => segment.text).join(' ')
+          }
+
+          this.transcriptCache.set(cacheKey, result)
+          return result
+        }
+      } catch (error) {
+        console.log(
+          `[MessageBasedTranscriptExtractor] Default transcript also failed: ${error.message}`
+        )
+      }
+
       console.log(
         '[MessageBasedTranscriptExtractor] No transcript found for any attempted language.'
       )
@@ -242,6 +297,60 @@ export class MessageBasedTranscriptExtractor {
         '[MessageBasedTranscriptExtractor] An error occurred while fetching transcript:',
         error
       )
+      return null
+    }
+  }
+
+  /**
+   * Get raw transcript data (for SRT conversion, etc.)
+   * @param {string} preferredLang - Preferred language code
+   * @returns {Promise<Array|null>} - Raw transcript segments or null
+   */
+  async getRawTranscriptData(preferredLang = 'en') {
+    try {
+      const videoId = this.getVideoId()
+      if (!videoId) return null
+
+      const languageCodes = [preferredLang, 'en', 'vi']
+      const uniqueLanguageCodes = [...new Set(languageCodes)]
+
+      for (const langCode of uniqueLanguageCodes) {
+        try {
+          const transcriptData = await fetchTranscript(videoId, { lang: langCode })
+          if (transcriptData && Array.isArray(transcriptData) && transcriptData.length > 0) {
+            // Return decoded data with formatted times - offset and duration are in SECONDS
+            return transcriptData.map((segment) => ({
+              text: decode(decode(segment.text.trim())).trim(),
+              startTime: this.formatTime(segment.offset),
+              endTime: this.formatTime(segment.offset + segment.duration),
+              offset: segment.offset,
+              duration: segment.duration,
+            }))
+          }
+        } catch (error) {
+          console.log(`[MessageBasedTranscriptExtractor] getRawTranscriptData failed for ${langCode}`)
+        }
+      }
+
+      // Try default transcript
+      try {
+        const defaultTranscript = await fetchTranscript(videoId)
+        if (defaultTranscript && Array.isArray(defaultTranscript) && defaultTranscript.length > 0) {
+          return defaultTranscript.map((segment) => ({
+            text: decode(decode(segment.text.trim())).trim(),
+            startTime: this.formatTime(segment.offset),
+            endTime: this.formatTime(segment.offset + segment.duration),
+            offset: segment.offset,
+            duration: segment.duration,
+          }))
+        }
+      } catch (error) {
+        console.log('[MessageBasedTranscriptExtractor] Default getRawTranscriptData failed')
+      }
+
+      return null
+    } catch (error) {
+      console.error('[MessageBasedTranscriptExtractor] getRawTranscriptData error:', error)
       return null
     }
   }

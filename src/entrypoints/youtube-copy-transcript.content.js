@@ -58,23 +58,6 @@ export default defineContentScript({
     // Check if transcript is available
     const checkTranscriptAvailability = async () => {
       try {
-        // Wait for YouTube transcript script to be available
-        if (typeof getCaptions === 'undefined') {
-          console.log(
-            '[YouTube Copy Transcript] Waiting for transcript script...'
-          )
-          await new Promise((resolve) => {
-            const checkScript = () => {
-              if (typeof getCaptions !== 'undefined') {
-                resolve()
-              } else {
-                setTimeout(checkScript, 100)
-              }
-            }
-            checkScript()
-          })
-        }
-
         const videoTitle =
           document
             .querySelector('h1.ytd-watch-metadata')

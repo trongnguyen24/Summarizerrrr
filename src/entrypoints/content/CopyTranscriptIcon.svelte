@@ -408,7 +408,7 @@
       onclick={(e) => e.stopPropagation()}
     >
       <div class="summarizerrrr-background">
-        <button
+        <!-- <button
           class="summarizerrrr-btn-item"
           title="Download as SRT"
           aria-label="Download as SRT"
@@ -430,7 +430,7 @@
             </svg>
           {/if}
           Download as SRT
-        </button>
+        </button> -->
         <button
           class="copy-transcript-btn summarizerrrr-btn-item"
           title="Copy Transcript"

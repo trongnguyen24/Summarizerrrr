@@ -188,6 +188,9 @@
       {#if settings.selectedProvider === 'gemini'}
         <GeminiAdvancedConfig
           bind:geminiAdvancedApiKey={settings.geminiAdvancedApiKey}
+          bind:geminiAdvancedAdditionalApiKeys={
+            settings.geminiAdvancedAdditionalApiKeys
+          }
           bind:selectedGeminiAdvancedModel={
             settings.selectedGeminiAdvancedModel
           }
@@ -368,12 +371,17 @@
             Description={$t('settings.summary.tone_mode.expert_desc')}
           ></ButtonSet>
           <ButtonSet
-            title={$t('settings.summary.tone_mode.alien')}
-            class="setting-btn {settings.summaryTone === 'alien'
+            title={settings.summaryTone === 'savage'
+              ? $t('settings.summary.tone_mode.savage')
+              : $t('settings.summary.tone_mode.witty')}
+            class="setting-btn {settings.summaryTone === 'witty' ||
+            settings.summaryTone === 'savage'
               ? 'active'
               : ''}"
-            onclick={() => handleUpdateSetting('summaryTone', 'alien')}
-            Description={$t('settings.summary.tone_mode.alien_desc')}
+            onclick={handleWittyClick}
+            Description={settings.summaryTone === 'savage'
+              ? $t('settings.summary.tone_mode.savage_desc')
+              : $t('settings.summary.tone_mode.witty_desc')}
           ></ButtonSet>
         </div>
       </div>

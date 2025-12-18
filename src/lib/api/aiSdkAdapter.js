@@ -35,10 +35,32 @@ let currentKeyIndex = 0
  */
 function getGeminiApiKey(settings) {
   if (settings.isAdvancedMode) {
-    return settings.geminiAdvancedApiKey
+    // Combine main key and additional keys for Advanced mode
+    const allKeys = [
+      settings.geminiAdvancedApiKey,
+      ...(settings.geminiAdvancedAdditionalApiKeys || [])
+    ]
+    
+    // Filter out empty keys
+    const validKeys = allKeys.filter((k) => k && k.trim() !== '')
+
+    if (validKeys.length === 0) {
+      return settings.geminiAdvancedApiKey // Fallback even if empty
+    }
+
+    // Use round-robin selection
+    const key = validKeys[currentKeyIndex % validKeys.length]
+    console.log(
+      `[aiSdkAdapter] 🔑 Using Gemini Advanced Key Index ${currentKeyIndex % validKeys.length} (Total: ${validKeys.length})`
+    )
+    
+    // Increment index for next call
+    currentKeyIndex++
+    
+    return key
   }
 
-  // Combine main key and additional keys
+  // Combine main key and additional keys for Basic mode
   const allKeys = [
     settings.geminiApiKey,
     ...(settings.geminiAdditionalApiKeys || [])
@@ -77,13 +99,9 @@ export function getAISDKModel(providerId, settings) {
 
   switch (providerId) {
     case 'gemini':
-      let geminiApiKey
-      if (settings.isAdvancedMode) {
-        geminiApiKey = settings.geminiAdvancedApiKey
-      } else {
-        // Use sequential rotation for basic keys or specific key if provided
-        geminiApiKey = settings.specificApiKey || getGeminiApiKey(settings)
-      }
+      // Use sequential rotation for keys or specific key if provided
+      // getGeminiApiKey handles both Advanced and Basic mode
+      const geminiApiKey = settings.specificApiKey || getGeminiApiKey(settings)
       const geminiModel = settings.isAdvancedMode
         ? settings.selectedGeminiAdvancedModel || 'gemini-2.0-flash'
         : settings.selectedGeminiModel || 'gemini-2.0-flash'

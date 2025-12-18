@@ -50,7 +50,14 @@ function validateApiKey(userSettings, selectedProviderId) {
   switch (selectedProviderId) {
     case 'gemini':
       if (userSettings.isAdvancedMode) {
-        apiKey = userSettings.geminiAdvancedApiKey
+        // Check if there are any valid keys in the additional array for Advanced mode
+        const hasAdvancedAdditionalKeys =
+          userSettings.geminiAdvancedAdditionalApiKeys?.some((k) => k && k.trim() !== '')
+        
+        // Valid if main key exists OR additional keys exist
+        const hasAdvancedMainKey = userSettings.geminiAdvancedApiKey && userSettings.geminiAdvancedApiKey.trim() !== ''
+        
+        apiKey = (hasAdvancedMainKey || hasAdvancedAdditionalKeys) ? 'valid' : ''
       } else {
         // Check if there are any valid keys in the additional array
         const hasAdditionalKeys =

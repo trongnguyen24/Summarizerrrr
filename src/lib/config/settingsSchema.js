@@ -16,6 +16,7 @@ export const VALID_SETTING_KEYS = [
   'geminiAdditionalApiKeys',
   'selectedGeminiModel',
   'geminiAdvancedApiKey',
+  'geminiAdvancedAdditionalApiKeys',
   'selectedGeminiAdvancedModel',
   'openaiCompatibleApiKey',
   'openaiCompatibleBaseUrl',

@@ -17,6 +17,7 @@ const DEFAULT_SETTINGS = {
   geminiAdditionalApiKeys: [], // New storage for extra keys
   selectedGeminiModel: 'gemini-2.5-flash',
   geminiAdvancedApiKey: '',
+  geminiAdvancedAdditionalApiKeys: [], // Additional API keys for Gemini Advanced mode
   selectedGeminiAdvancedModel: 'gemini-2.5-flash',
   openaiCompatibleApiKey: '',
   openaiCompatibleBaseUrl: '',

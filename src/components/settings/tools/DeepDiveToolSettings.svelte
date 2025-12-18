@@ -198,6 +198,7 @@
           {#if toolSettings.customProvider === 'gemini'}
             <ToolGeminiAdvancedConfig
               bind:apiKey={settings.geminiAdvancedApiKey}
+              bind:additionalApiKeys={settings.geminiAdvancedAdditionalApiKeys}
               selectedModel={toolSettings.customModel || ''}
               onModelChange={handleModelChange}
             />

@@ -10,9 +10,9 @@
  * Order: Best performance → Lighter → Lightest
  */
 export const GEMINI_FALLBACK_CHAIN = [
+  'gemini-3-flash-preview',
   'gemini-2.5-flash',
   'gemini-2.5-flash-lite',
-  'gemma-3-27b-it',
 ]
 
 /**
@@ -169,6 +169,6 @@ export function shouldEnableAutoFallback(providerId, settings) {
  */
 export function getCurrentGeminiModel(settings) {
   return settings.isAdvancedMode
-    ? settings.selectedGeminiAdvancedModel || 'gemini-2.5-flash'
-    : settings.selectedGeminiModel || 'gemini-2.5-flash'
+    ? settings.selectedGeminiAdvancedModel || 'gemini-3-flash-preview'
+    : settings.selectedGeminiModel || 'gemini-3-flash-preview'
 }

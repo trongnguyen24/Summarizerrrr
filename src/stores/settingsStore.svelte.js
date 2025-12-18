@@ -15,10 +15,10 @@ const DEFAULT_SETTINGS = {
   closePanelOnOutsideClick: true, // Close floating panel when clicking outside
   geminiApiKey: '',
   geminiAdditionalApiKeys: [], // New storage for extra keys
-  selectedGeminiModel: 'gemini-2.5-flash',
+  selectedGeminiModel: 'gemini-3-flash-preview',
   geminiAdvancedApiKey: '',
   geminiAdvancedAdditionalApiKeys: [], // Additional API keys for Gemini Advanced mode
-  selectedGeminiAdvancedModel: 'gemini-2.5-flash',
+  selectedGeminiAdvancedModel: 'gemini-3-flash-preview',
   openaiCompatibleApiKey: '',
   openaiCompatibleBaseUrl: '',
   selectedOpenAICompatibleModel: '',

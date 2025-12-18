@@ -17,6 +17,7 @@
   let statusTimeout = null
 
   const availableModels = [
+    { value: 'gemini-3-flash-preview', label: 'gemini-3-flash-preview' },
     {
       value: 'gemini-3-pro-preview',
       label: 'gemini-3-pro-preview',
@@ -72,7 +73,8 @@
   }
 
   onMount(() => {
-    geminiAdvancedAdditionalApiKeys = settings.geminiAdvancedAdditionalApiKeys || []
+    geminiAdvancedAdditionalApiKeys =
+      settings.geminiAdvancedAdditionalApiKeys || []
   })
 
   function removeKey(index) {
@@ -167,10 +169,7 @@
 </div>
 
 <div class="flex flex-col gap-2 relative z-50">
-  <label
-    class="text-xs font-medium text-text-primary"
-    for="gemini-model-select"
-  >
+  <label class="text-xs text-text-secondary" for="gemini-model-select">
     {$t('settings.gemini_advanced_config.select_model_label')}
   </label>
   <ReusableCombobox

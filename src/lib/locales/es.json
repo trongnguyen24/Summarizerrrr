@@ -467,6 +467,16 @@
       "title": "Versión 2.7.0 lanzada",
       "description": "Consulta las nuevas funciones en Ajustes → Acerca de → ¿Qué hay de nuevo?",
       "cta_label": "Abrir ajustes"
+    },
+    "intro_video": {
+      "title": "Video: Summarizerrrr en 100 segundos",
+      "description": "Una breve introducción a la extensión.",
+      "cta_label": "Ver ahora"
+    },
+    "gemini_flash_update": {
+      "title": "Prueba Gemini 3.0 Flash",
+      "description": "Prueba el modelo más reciente ahora.",
+      "cta_label": "Abrir ajustes"
     }
   }
 }

@@ -460,6 +460,16 @@
       "title": "版本 2.7.0 已发布",
       "description": "在设置 → 关于 → 新功能中查看新功能",
       "cta_label": "打开设置"
+    },
+    "intro_video": {
+      "title": "视频：100秒了解 Summarizerrrr",
+      "description": "扩展功能快速介绍视频。",
+      "cta_label": "立即观看"
+    },
+    "gemini_flash_update": {
+      "title": "体验 Gemini 3.0 Flash",
+      "description": "立即体验最新模型。",
+      "cta_label": "打开设置"
     }
   }
 }

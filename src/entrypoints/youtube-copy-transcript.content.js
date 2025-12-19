@@ -162,8 +162,15 @@ export default defineContentScript({
     // Helper function to get current video ID
     const getCurrentVideoId = () => {
       const url = window.location.href
-      const match = url.match(/[?&]v=([^&]+)/)
-      return match ? match[1] : null
+      // Normal watch URL: ?v=videoId
+      const watchMatch = url.match(/[?&]v=([^&]+)/)
+      if (watchMatch) return watchMatch[1]
+
+      // Live URL: /live/videoId
+      const liveMatch = url.match(/\/live\/([^/?#&]+)/)
+      if (liveMatch) return liveMatch[1]
+
+      return null
     }
 
     // Watch for navigation changes in YouTube SPA
@@ -186,8 +193,8 @@ export default defineContentScript({
           currentUrl = newUrl
           currentVideoId = newVideoId
 
-          // Only proceed if we're on a watch page with a video ID
-          if (newVideoId) {
+          // Only proceed if we're on a watch or live page with a video ID
+          if (newVideoId && (newUrl.includes('/watch') || newUrl.includes('/live/'))) {
             // Small delay to ensure DOM is ready
             setTimeout(async () => {
               try {

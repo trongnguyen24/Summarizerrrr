@@ -16,6 +16,7 @@ declare module "wxt/browser" {
     | "/_locales/ko/messages.json"
     | "/_locales/vi/messages.json"
     | "/_locales/zh_CN/messages.json"
+    | "/accessibility-tree.js"
     | "/archive.html"
     | "/background.js"
     | "/content-script.js"

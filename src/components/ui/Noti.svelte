@@ -17,6 +17,24 @@
     },
     {
       id: 2,
+      titleKey: 'notifications.gemini_flash_update.title',
+      descriptionKey: 'notifications.gemini_flash_update.description',
+      cta: {
+        labelKey: 'notifications.gemini_flash_update.cta_label',
+        link: 'settings.html?tab=aimodels',
+      },
+    },
+    {
+      id: 3,
+      titleKey: 'notifications.intro_video.title',
+      descriptionKey: 'notifications.intro_video.description',
+      cta: {
+        labelKey: 'notifications.intro_video.cta_label',
+        link: 'https://www.youtube.com/watch?v=pRZvPWjbJ4c',
+      },
+    },
+    {
+      id: 4,
       titleKey: 'notifications.version_update.title',
       descriptionKey: 'notifications.version_update.description',
       cta: {
@@ -160,18 +178,74 @@
     class="fixed bottom-0 max-w-100 w-full left-1/2 -translate-x-1/2 z-[101] flex justify-center"
   >
     <div
-      class="relative w-full bg-surface-2 rounded-t-3xl border-t border-x border-surface-2 dark:border-border shadow-2xl"
+      class="relative w-full bg-surface-2 rounded-t-3xl border-t border-x border-surface-2 dark:border-border shadow-2xl py-2 flex flex-col"
       class:sheet-open={!isClosing}
       class:sheet-close={isClosing}
       style="height: max(40vh, 320px);"
     >
       <Cat {isClosing} />
-      <!-- Drag Handle -->
-      <div class="flex justify-center pt-0.5">
-        <!-- <div class="w-10 h-1 rounded-full bg-border"></div> -->
+      <!-- Notifications List -->
+      <div class="relative flex-1 flex flex-col min-h-0">
+        <!-- Scroll Gradient Overlays -->
+        <div
+          class="absolute top-0 left-0 right-0 h-8 bg-gradient-to-b from-surface-2 to-transparent z-10 pointer-events-none"
+        ></div>
+
+        <div
+          class="overflow-y-auto thin-scroll px-4 py-4 flex flex-col gap-4 flex-1"
+        >
+          {#each notifications as notification}
+            <div class="">
+              <div class="flex flex-col pb-4 gap-2">
+                <div class="flex flex-col gap-1">
+                  <h3 class="text-sm font-medium text-text-primary">
+                    {$t(notification.titleKey)}
+                  </h3>
+                  <p class="text-xs text-text-secondary leading-relaxed">
+                    {$t(notification.descriptionKey)}
+                  </p>
+                </div>
+                {#if notification.cta}
+                  <button
+                    onclick={() =>
+                      browser.tabs.create({ url: notification.cta.link })}
+                    class="inline-flex items-center gap-1 text-xs font-medium text-primary hover:text-primary-hover transition-colors w-fit cursor-pointer"
+                  >
+                    {$t(notification.cta.labelKey)}
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        fill="currentColor"
+                        d="M16.175 13H4v-2h12.175l-5.6-5.6L12 4l8 8l-8 8l-1.425-1.4z"
+                      />
+                    </svg>
+                  </button>
+                {/if}
+              </div>
+            </div>
+          {/each}
+
+          {#if notifications.length === 0}
+            <div
+              class="flex flex-col items-center justify-center py-8 text-text-tertiary"
+            >
+              <p class="text-xs">{$t('notifications.no_notifications')}</p>
+            </div>
+          {/if}
+        </div>
+
+        <div
+          class="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-surface-2 to-transparent z-10 pointer-events-none"
+        ></div>
+      </div>
+      <div class="flex px-2 justify-center">
         <button
           onclick={closeSheet}
-          class="p-1.5 rounded-full hover:bg-surface-3 transition-colors text-text-secondary hover:text-text-primary"
+          class="p-1.5 w-full flex items-center justify-center bg-blackwhite-5 rounded-full hover:bg-blackwhite-10 transition-colors text-text-secondary hover:text-text-primary"
           aria-label="Close notifications"
         >
           <svg
@@ -186,55 +260,6 @@
             />
           </svg>
         </button>
-      </div>
-
-      <!-- Notifications List -->
-      <div
-        class="overflow-y-auto thin-scroll px-4 py-3 flex flex-col gap-4"
-        style="max-height: calc(max(40vh, 320px) - 40px);"
-      >
-        {#each notifications as notification}
-          <div class="">
-            <div class="flex flex-col gap-2">
-              <div class="flex flex-col gap-1">
-                <h3 class="text-sm font-medium text-text-primary">
-                  {$t(notification.titleKey)}
-                </h3>
-                <p class="text-xs text-text-secondary leading-relaxed">
-                  {$t(notification.descriptionKey)}
-                </p>
-              </div>
-              {#if notification.cta}
-                <button
-                  onclick={() =>
-                    browser.tabs.create({ url: notification.cta.link })}
-                  class="inline-flex items-center gap-1 text-xs font-medium text-primary hover:text-primary-hover transition-colors w-fit cursor-pointer"
-                >
-                  {$t(notification.cta.labelKey)}
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      fill="currentColor"
-                      d="M16.175 13H4v-2h12.175l-5.6-5.6L12 4l8 8l-8 8l-1.425-1.4z"
-                    />
-                  </svg>
-                </button>
-              {/if}
-            </div>
-          </div>
-        {/each}
-
-        {#if notifications.length === 0}
-          <div
-            class="flex flex-col items-center justify-center py-8 text-text-tertiary"
-          >
-            <p class="text-xs">{$t('notifications.no_notifications')}</p>
-          </div>
-        {/if}
       </div>
     </div>
   </div>

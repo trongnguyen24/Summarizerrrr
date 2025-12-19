@@ -467,6 +467,16 @@
       "title": "Version 2.7.0 publiée",
       "description": "Découvrez les nouvelles fonctionnalités dans Paramètres → À propos → Quoi de neuf ?",
       "cta_label": "Ouvrir les paramètres"
+    },
+    "intro_video": {
+      "title": "Vidéo: Summarizerrrr en 100 secondes",
+      "description": "Une introduction rapide à l'extension.",
+      "cta_label": "Regarder maintenant"
+    },
+    "gemini_flash_update": {
+      "title": "Essayez Gemini 3.0 Flash",
+      "description": "Découvrez le dernier modèle maintenant.",
+      "cta_label": "Ouvrir les paramètres"
     }
   }
 }

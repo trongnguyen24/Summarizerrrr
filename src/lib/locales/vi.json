@@ -468,6 +468,16 @@
       "title": "Phiên bản 2.7.0 đã phát hành",
       "description": "Xem các tính năng mới trong Cài đặt → Giới thiệu → Có gì mới?",
       "cta_label": "Mở Cài đặt"
+    },
+    "intro_video": {
+      "title": "Video: Summarizerrrr trong 100 giây",
+      "description": "Video giới thiệu nhanh về extension.",
+      "cta_label": "Xem ngay"
+    },
+    "gemini_flash_update": {
+      "title": "Thử Gemini 3.0 Flash",
+      "description": "Trải nghiệm ngay mô hình mới nhất.",
+      "cta_label": "Mở Cài đặt"
     }
   }
 }

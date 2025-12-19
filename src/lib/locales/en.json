@@ -468,6 +468,16 @@
       "title": "Version 2.7.0 released",
       "description": "Check out the new features in Settings → About → What's new?",
       "cta_label": "Open Settings"
+    },
+    "intro_video": {
+      "title": "Video: Summarizerrrr in 100 Seconds",
+      "description": "A quick introduction to the extension.",
+      "cta_label": "Watch Now"
+    },
+    "gemini_flash_update": {
+      "title": "Try Gemini 3.0 Flash",
+      "description": "Experience the newest model now.",
+      "cta_label": "Open Settings"
     }
   }
 }

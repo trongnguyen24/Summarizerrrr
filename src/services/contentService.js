@@ -2,7 +2,7 @@
 import { browser } from 'wxt/browser'
 import { handleError } from '../lib/error/simpleErrorHandler.js'
 
-const YOUTUBE_MATCH_PATTERN = /youtube\.com\/watch/i
+const YOUTUBE_MATCH_PATTERN = /youtube\.com\/(watch|live)/i
 const COURSE_MATCH_PATTERN =
   /(udemy\.com\/course\/.*\/learn\/|coursera\.org\/learn\/.*\/lecture\/|coursera\.org\/learn\/.*\/supplement\/)/i
 
@@ -71,19 +71,51 @@ async function sendMessageWithRetry(
   throw lastError || new Error('Failed to communicate with content script')
 }
 
-function getWebpageText() {
-  const minLength = 50
-  let content = document.body?.innerText?.trim()
-  if (content && content.length >= minLength) {
-    return content
+/**
+ * Lấy nội dung trang web bằng Accessibility Tree script.
+ * Cách này sạch hơn và cấu trúc tốt hơn innerText.
+ * @param {number} tabId
+ * @returns {Promise<string>}
+ */
+async function getAccessibilityTreeWebpageContent(tabId) {
+  try {
+    // Inject accessibility tree script
+    // File này nằm trong public/, WXT sẽ copy nó vào root của extension output
+    await browser.scripting.executeScript({
+      target: { tabId },
+      files: ['accessibility-tree.js'],
+    })
+
+    // Execute and get content
+    const results = await browser.scripting.executeScript({
+      target: { tabId },
+      func: () => window.__getPageContent(),
+    })
+
+    const text = results[0]?.result || ''
+    if (text && text.length >= 50) {
+      return text
+    }
+
+    // Fallback nếu accessibility tree không lấy được gì (hiếm khi xảy ra)
+    console.warn(
+      '[contentService] Accessibility Tree returned insufficient content, falling back to innerText'
+    )
+    const fallbackResult = await browser.scripting.executeScript({
+      target: { tabId },
+      func: () => document.body?.innerText?.trim() || '',
+    })
+
+    return fallbackResult[0]?.result || ''
+  } catch (error) {
+    console.error('[contentService] Accessibility Tree extraction error:', error)
+    // Fallback cuối cùng nếu injection fail
+    const fallbackResult = await browser.scripting.executeScript({
+      target: { tabId },
+      func: () => document.body?.innerText?.trim() || '',
+    })
+    return fallbackResult[0]?.result || ''
   }
-  console.log('innerText không đủ dài hoặc không có, thử textContent...')
-  content = document.body?.textContent?.trim()
-  if (content && content.length >= minLength) {
-    return content
-  }
-  console.warn('Không thể lấy đủ nội dung text từ trang web.')
-  return null
 }
 
 /**
@@ -118,13 +150,12 @@ export async function getPageContent(
     )
 
     if (contentType === 'webpageText') {
-      const pageText = await browser.scripting.executeScript({
-        target: { tabId: tab.id },
-        func: getWebpageText,
-      })
-      if (pageText && pageText[0] && pageText[0].result)
-        return { type: actualPageType, content: pageText[0].result }
-      if (pageText) return { type: actualPageType, content: pageText }
+      const pageText = await getAccessibilityTreeWebpageContent(tab.id)
+
+      if (pageText && pageText.length >= 50) {
+        return { type: actualPageType, content: pageText }
+      }
+
       throw new Error(
         'Failed to retrieve sufficient text content from the webpage.'
       )

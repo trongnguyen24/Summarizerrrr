@@ -467,6 +467,16 @@
       "title": "バージョン2.7.0がリリースされました",
       "description": "設定 → 情報 → 新機能で新機能をご覧ください",
       "cta_label": "設定を開く"
+    },
+    "intro_video": {
+      "title": "動画: 100秒でわかる Summarizerrrr",
+      "description": "拡張機能のクイック紹介動画。",
+      "cta_label": "今すぐ見る"
+    },
+    "gemini_flash_update": {
+      "title": "Gemini 3.0 Flash を試す",
+      "description": "最新モデルを今すぐ体験してください。",
+      "cta_label": "設定を開く"
     }
   }
 }

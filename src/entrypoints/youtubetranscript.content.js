@@ -17,7 +17,7 @@ export default defineContentScript({
     // Setup message listener (registered once, handles all navigation states)
     chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       // Only handle messages when on watch page
-      if (!location.href.includes('/watch')) {
+      if (!location.href.includes('/watch') && !location.href.includes('/live/')) {
         return false
       }
 

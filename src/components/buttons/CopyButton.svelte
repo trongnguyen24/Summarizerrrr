@@ -40,14 +40,6 @@
     // Clone element để không ảnh hưởng đến original
     const cleanElement = element.cloneNode(true)
 
-    // Always remove timestamps
-    // Remove timestamp links (both specific class and href pattern)
-    cleanElement
-      .querySelectorAll('.timestamp-link, a[href^="timestamp:"]')
-      .forEach((el) => {
-        el.remove()
-      })
-
     // Force reset màu mặc định cho element gốc
     cleanElement.style.cssText = `
       color: black !important;
@@ -234,8 +226,6 @@
       if (text != null) {
         // Nếu có text được truyền trực tiếp, chỉ copy plain text
         content = asString(text)
-        // Always remove timestamps
-        content = content.replace(/\[\d{1,2}:\d{2}(?::\d{2})?\]/g, '')
         await writeToClipboard(content)
       } else {
         const sel = normalizeId(targetId)
@@ -253,8 +243,6 @@
         ) {
           // Input/textarea chỉ có plain text
           content = asString(el.value)
-          // Always remove timestamps
-          content = content.replace(/\[\d{1,2}:\d{2}(?::\d{2})?\]/g, '')
           await writeToClipboard(content)
         } else {
           // Element khác: thử copy với Selection API trước (giữ HTML format)
@@ -271,8 +259,6 @@
               console.warn('Không có nội dung để copy')
               return
             }
-            // Always remove timestamps
-            content = content.replace(/\[\d{1,2}:\d{2}(?::\d{2})?\]/g, '')
             await writeToClipboard(content)
           }
         }

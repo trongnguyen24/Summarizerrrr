@@ -70,8 +70,15 @@ export class MessageBasedTranscriptExtractor {
    */
   getVideoId() {
     const url = window.location.href
-    const match = url.match(/[?&]v=([^&]+)/)
-    return match ? match[1] : null
+    // Normal watch URL: ?v=videoId
+    const watchMatch = url.match(/[?&]v=([^&]+)/)
+    if (watchMatch) return watchMatch[1]
+
+    // Live URL: /live/videoId
+    const liveMatch = url.match(/\/live\/([^/?#&]+)/)
+    if (liveMatch) return liveMatch[1]
+
+    return null
   }
 
   /**

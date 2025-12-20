@@ -63,6 +63,10 @@ https://github.com/user-attachments/assets/84fbfe13-528b-4c17-adc2-e586466b3b9f
 
 ---
 
+![settings](https://github.com/user-attachments/assets/090b8856-ee05-48f9-80f3-934bd946887e)
+
+---
+
 ## 🚀 Installation
 
 ### Official Stores

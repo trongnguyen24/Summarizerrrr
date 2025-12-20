@@ -26,7 +26,10 @@ Summarizerrrr isn't just another wrapper. It's a fully-featured productivity too
 
 
 
-https://github.com/user-attachments/assets/7cfb4190-f640-42c2-8e49-5a783173e745
+
+https://github.com/user-attachments/assets/84fbfe13-528b-4c17-adc2-e586466b3b9f
+
+
 
 
 

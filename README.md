@@ -1,8 +1,9 @@
 <div align="center">
-  <img width="200px" src="public/Sumarizzerrrr.png" alt="Summarizerrrr Logo"/>
+  <img width="700px" src="public/Sumarizzerrrr.png" alt="Summarizerrrr Logo"/>
   <h1>Summarizerrrr</h1>
-  <p><strong>Summarize everything in 1 click. Save time. Learn faster.</strong></p>
-  <p>The ultimate AI-powered browser extension for YouTube, Web Pages, Udemy, Coursera, and more. <br/> Built with privacy, customization, and a premium UI/UX in mind.</p>
+
+  <p><strong>Summarizerrrr everything save your time everyday.</strong></p>
+  <p>Summarizerrrr is a free browser extension AI wrapper summaries for YouTube, Udemy, Coursera, and any website. Crafted with superior UI/UX design.</p>
   
   <p>
     <a href="https://chromewebstore.google.com/detail/summarizerrrr/ahfjndakflcegianjdojpldllodpkkpc">
@@ -15,22 +16,28 @@
       <img src="https://img.shields.io/badge/Edge-Install%20Now-0078D7?style=for-the-badge&logo=microsoftedge&logoColor=white" alt="Edge Add-ons"/>
     </a>
   </p>
+  
 </div>
 
 ---
 
 ## ✨ Why Summarizerrrr?
 
-Summarizerrrr isn't just another wrapper. It's a fully-featured productivity tool designed to help you consume content more efficiently. Whether you're researching, learning a new skill, or just trying to get the gist of a long video, Summarizerrrr has you covered.
+Summarizerrrr isn't just another wrapper. It's a fully-featured productivity tool designed to help you consume content more efficiently. Whether you're researching, learning a new skill, or just trying to get the gist of a long video, Summarizerrrr has you covered. The UI is designed for comfortable reading and easy navigation through long content.
 
-### 🧠 Smart Summarization
-- **YouTube Intelligence**: Get concise summaries of videos with **clickable timestamps** that take you directly to the key moments.
-- **Comment Insights**: Don't just watch the video; understand the community sentiment by summarizing the top comments.
-- **Universal Support**: Works on **Any Website**, plus specialized support for learning platforms like **Udemy** and **Coursera**.
+<br/>
+  <video src="demo.mp4" controls width="100%"></video>
+
+### 🧠 Summarization
+- YouTube, Comments.
+- Udemy, Coursera.
+- Web pages.
+- Selected text.
 
 ### 🤖 AI Your Way
-- **Multi-Model Support**: Choose your brain. We support **Google Gemini**, **OpenAI (ChatGPT)**, **DeepSeek**, and more.
-- **Local Privacy**: Run **Ollama** locally to summarize content without your data ever leaving your machine. Your keys, your data.
+- **Google Gemini**, **OpenAI (ChatGPT)**, **DeepSeek**, **Groq**, **Cerebras**, **OpenRouter**... 
+- **Local Privacy**: Run **Ollama** or  **LM Studio** locally to summarize content without your data ever leaving your machine. Your keys, your data.
+- **Custom Prompt**: You can customize the prompt to get the best summary for your needs.
 
 ### ⚡ Powerful Modes
 - **Side Panel**: Supported on Firefox, Chrome, and Edge. Watch YouTube while keeping the summary side-by-side for easy reference.
@@ -38,14 +45,16 @@ Summarizerrrr isn't just another wrapper. It's a fully-featured productivity too
 - **Mobile Sheet**: Optimized for mobile devices. Open the summary with a single tap.
 
 ### 🛠️ Interactive Tools
-- **Deep Dive**: Not satisfied with the summary? Ask follow-up questions to the AI directly about the content.
+- **Deep Dive**: Ask follow-up questions to the AI directly about the content.
 - **Custom Actions**: One-click tools to **Analyze**, **Explain**, or **Debate** the content you're viewing.
 - **Transcript**: Copy transcript of the video or download transcript as a .srt file.
+- **Export/Import**: Easily backup and restore your settings and custom prompts.
 
 ### 🎨 Premium Experience
 - **Beautiful UI**: Built with **Svelte 5** and **Tailwind CSS 4** for a smooth, modern, and responsive experience.
 - **Dark/Light Mode**: Automatically syncs with your system or can be toggled manually.
 - **Internationalization (i18n)**: Fully localized in **English, Vietnamese, Spanish, Chinese, German, French, Japanese, and Korean**.
+- **Typography Control**: Customize font size and font family for the perfect reading experience.
 
 ---
 
@@ -70,12 +79,19 @@ If you want to try the latest features before they are released:
     npm install
     ```
 3.  Build the project:
+    - Chrome
     ```bash
     npm run build
     ```
+    - Firefox
+    ```bash
+    npm run build:firefox
+    ```
 4.  Load the extension:
-    - **Chrome/Edge**: Go to `chrome://extensions`, enable "Developer mode", click "Load unpacked", and select the `.output/chrome-mv3` folder.
-    - **Firefox**: Go to `about:debugging#/runtime/this-firefox`, click "Load Temporary Add-on", and select the `manifest.json` file in `.output/firefox-mv2`.
+
+     Chrome/Edge: Go to `chrome://extensions`, enable "Developer mode", click "Load unpacked", and select the `.output/chrome-mv3` folder.
+
+     Firefox: Go to `about:debugging#/runtime/this-firefox`, click "Load Temporary Add-on", and select the `manifest.json` file in `.output/firefox-mv2`.
 
 ---
 
@@ -116,8 +132,7 @@ npm run zip
 
 ## 💬 Community & Support
 
-- 🐛 **Found a bug?** [Open an Issue](https://github.com/trongnguyen24/Summarizerrrr/issues)
-- 💡 **Have an idea?** [Start a Discussion](https://github.com/trongnguyen24/Summarizerrrr/discussions)
+- 🐛 **Found a bug? & Have an idea?**  [Open an Issue](https://github.com/trongnguyen24/Summarizerrrr/issues)
 - ⭐ **Enjoying the app?** Please leave a review on the store and star the repo!
 
 ---

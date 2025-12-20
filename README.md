@@ -1,11 +1,11 @@
 <div align="center">
   <img width="700px" src="public/Sumarizzerrrr.png" alt="Summarizerrrr Logo"/>
-  <h1>Summarizerrrr</h1>
-
+ <br/>
+  <br/>
   <p><strong>Summarizerrrr everything save your time everyday.</strong></p>
-  <p>Summarizerrrr is a free browser extension AI wrapper summaries for YouTube, Udemy, Coursera, and any website. Crafted with superior UI/UX design.</p>
-  
-  <p>
+  <p>Summarizerrrr is a free browser extension AI wrapper summaries for YouTube, Udemy, Coursera, and any website. Crafted with superior UI/UX design.
+    <br/>
+    <br/>
     <a href="https://chromewebstore.google.com/detail/summarizerrrr/ahfjndakflcegianjdojpldllodpkkpc">
       <img src="https://img.shields.io/badge/Chrome-Install%20Now-4285F4?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Chrome Web Store"/>
     </a>
@@ -19,14 +19,10 @@
   
 </div>
 
----
-
 ## ✨ Why Summarizerrrr?
 
 Summarizerrrr isn't just another wrapper. It's a fully-featured productivity tool designed to help you consume content more efficiently. Whether you're researching, learning a new skill, or just trying to get the gist of a long video, Summarizerrrr has you covered. The UI is designed for comfortable reading and easy navigation through long content.
 
-<br/>
-  <video src="demo.mp4" controls width="100%"></video>
 
 ### 🧠 Summarization
 - YouTube, Comments.

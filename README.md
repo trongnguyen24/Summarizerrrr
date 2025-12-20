@@ -24,6 +24,12 @@
 Summarizerrrr isn't just another wrapper. It's a fully-featured productivity tool designed to help you consume content more efficiently. Whether you're researching, learning a new skill, or just trying to get the gist of a long video, Summarizerrrr has you covered. The UI is designed for comfortable reading and easy navigation through long content.
 
 
+
+
+https://github.com/user-attachments/assets/7cfb4190-f640-42c2-8e49-5a783173e745
+
+
+
 ### 🧠 Summarization
 - YouTube, Comments.
 - Udemy, Coursera.

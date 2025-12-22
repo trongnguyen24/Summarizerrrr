@@ -13,6 +13,7 @@
   import packageJson from '../../../package.json'
   import ButtonSupport from '../buttons/ButtonSupport.svelte'
   import ButtonRate from '../buttons/ButtonRate.svelte'
+  import CloudSyncSettings from './CloudSyncSettings.svelte'
 
   function handleUpdateSetting(key, value) {
     updateSettings({ [key]: value })
@@ -163,6 +164,9 @@
       </li>
     </ul>
   </div>
+
+  <!-- Cloud Sync -->
+  <CloudSyncSettings />
 
   <!-- Developer -->
   <div class="border-t border-border pt-4">

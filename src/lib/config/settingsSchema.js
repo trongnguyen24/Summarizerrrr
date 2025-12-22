@@ -126,6 +126,9 @@ export const VALID_SETTING_KEYS = [
 
   // Tools Configuration
   'tools',
+  
+  // Metadata
+  'lastModified',
 ]
 
 /**

@@ -128,6 +128,9 @@ const DEFAULT_SETTINGS = {
       defaultChatProvider: 'gemini',
     },
   },
+
+  // Metadata
+  lastModified: 0,
 }
 
 // --- State ---
@@ -422,6 +425,11 @@ export async function updateSettings(newSettings) {
 
   // ✅ FIX: Sanitize input để loại bỏ invalid keys (metadata, theme, nested settings)
   const cleanNewSettings = sanitizeSettings(newSettings)
+
+  // Update lastModified timestamp if not explicitly provided (e.g. by sync)
+  if (!cleanNewSettings.lastModified) {
+    cleanNewSettings.lastModified = Date.now()
+  }
 
   // Create a new object with the updates applied
   // ✅ FIX: Sanitize current settings để đảm bảo không có invalid keys

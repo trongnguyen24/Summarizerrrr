@@ -457,6 +457,26 @@
     "replace_warning_title": "Warning: Replace Mode",
     "confirm_replace": "Yes, Replace"
   },
+  "cloudSync": {
+    "title": "Cloud Sync",
+    "description": "Sync your settings, summaries, and history across all your devices using Google Drive.",
+    "signInWithGoogle": "Sign in with Google",
+    "signingIn": "Signing in...",
+    "signOut": "Sign Out",
+    "lastSync": "Last sync",
+    "never": "Never",
+    "justNow": "Just now",
+    "minutesAgo": "{count} minutes ago",
+    "hoursAgo": "{count} hours ago",
+    "syncing": "Syncing...",
+    "syncFailed": "Sync failed",
+    "syncNow": "Sync Now",
+    "autoSync": "Auto-sync",
+    "autoSyncPromptTitle": "Enable Auto-Sync?",
+    "autoSyncPromptDescription": "Auto-sync will automatically keep your data synchronized across devices. You can change this setting anytime.",
+    "manualSync": "Manual",
+    "enableAutoSync": "Enable Auto"
+  },
   "notifications": {
     "no_notifications": "No notifications",
     "api_limits": {

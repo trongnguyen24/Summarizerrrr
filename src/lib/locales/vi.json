@@ -457,6 +457,26 @@
     "replace_warning_title": "Cảnh báo: Chế độ Thay thế",
     "confirm_replace": "Đồng ý thay thế"
   },
+  "cloudSync": {
+    "title": "Đồng bộ Cloud",
+    "description": "Đồng bộ cài đặt, tóm tắt và lịch sử trên tất cả thiết bị của bạn qua Google Drive.",
+    "signInWithGoogle": "Đăng nhập với Google",
+    "signingIn": "Đang đăng nhập...",
+    "signOut": "Đăng xuất",
+    "lastSync": "Đồng bộ cuối",
+    "never": "Chưa bao giờ",
+    "justNow": "Vừa xong",
+    "minutesAgo": "{count} phút trước",
+    "hoursAgo": "{count} giờ trước",
+    "syncing": "Đang đồng bộ...",
+    "syncFailed": "Đồng bộ thất bại",
+    "syncNow": "Đồng bộ ngay",
+    "autoSync": "Tự động đồng bộ",
+    "autoSyncPromptTitle": "Bật tự động đồng bộ?",
+    "autoSyncPromptDescription": "Tự động đồng bộ sẽ giữ dữ liệu của bạn đồng bộ giữa các thiết bị. Bạn có thể thay đổi cài đặt này bất cứ lúc nào.",
+    "manualSync": "Thủ công",
+    "enableAutoSync": "Bật tự động"
+  },
   "notifications": {
     "no_notifications": "Không có thông báo",
     "api_limits": {

@@ -89,17 +89,13 @@
   }
 </script>
 
-<div
-  class="flex flex-col gap-4 p-4 border border-border rounded-md bg-surface-1"
->
-  <div class="flex items-center gap-2">
-    <Icon icon="heroicons:cloud-arrow-up" class="size-5 text-primary" />
+<div class="flex flex-col gap-4">
+  <div class="">
     <h3 class="font-semibold text-text-primary">{$t('cloudSync.title')}</h3>
+    <p class="text-xs mt-1 text-muted">
+      {$t('cloudSync.description')}
+    </p>
   </div>
-
-  <p class="text-xs text-muted">
-    {$t('cloudSync.description')}
-  </p>
 
   {#if !cloudSyncStore.isLoggedIn}
     <!-- Not logged in state -->
@@ -230,7 +226,7 @@
       {/if}
 
       <!-- Debug Logs (Temporary for debugging) -->
-      <div class="mt-4 border-t border-border pt-2">
+      <!-- <div class="mt-4 border-t border-border pt-2">
         <div class="flex items-center justify-between mb-1">
           <div class="text-[10px] uppercase font-bold text-muted">
             Debug Logs
@@ -261,7 +257,7 @@
             </div>
           {/if}
         </div>
-      </div>
+      </div> -->
     </div>
   {/if}
 </div>

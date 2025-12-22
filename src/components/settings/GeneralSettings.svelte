@@ -18,6 +18,7 @@
     // updateThemeSettings as updateThemeStoreSettings, // Không còn cần thiết, dùng setTheme thay thế
   } from '../../stores/themeStore.svelte' // Import themeSettings và updateThemeSettings
   import UILanguageSelect from '../inputs/UILanguageSelect.svelte'
+  import CloudSyncSettings from './CloudSyncSettings.svelte'
   import { t } from 'svelte-i18n'
 
   // Import Firefox permission service
@@ -331,6 +332,7 @@
       </ButtonIcon>
     </div>
   </div>
+  <div class="px-5"><CloudSyncSettings /></div>
 
   <ExportImport />
   {#if !browserCompatibility.isMobile}

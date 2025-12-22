@@ -164,6 +164,82 @@ export function mergeItemsById(localItems = [], cloudItems = [], deletedIds = ne
 }
 
 /**
+ * Merge tags arrays by name (tags use name as unique constraint, not ID)
+ * @param {Array} localTags - Local tags array
+ * @param {Array} cloudTags - Cloud tags array
+ * @param {Set<string>} deletedTagNames - Set of soft-deleted tag names
+ * @returns {{merged: Array, conflicts: Array, newFromCloud: number, newFromLocal: number}}
+ */
+export function mergeTagsByName(localTags = [], cloudTags = [], deletedTagNames = new Set()) {
+  const result = new Map()
+  const conflicts = []
+  let newFromCloud = 0
+  let newFromLocal = 0
+  
+  // Index cloud tags by name
+  const cloudMap = new Map()
+  for (const tag of cloudTags) {
+    if (!deletedTagNames.has(tag.name)) {
+      cloudMap.set(tag.name, tag)
+    }
+  }
+  
+  // Process local tags
+  for (const localTag of localTags) {
+    if (deletedTagNames.has(localTag.name)) {
+      // Tag was deleted on another device - skip it
+      continue
+    }
+    
+    const cloudTag = cloudMap.get(localTag.name)
+    
+    if (!cloudTag) {
+      // Only exists locally - keep it
+      result.set(localTag.name, localTag)
+      newFromLocal++
+    } else {
+      // Exists in both - compare timestamps
+      const localTime = localTag.updatedAt || localTag.createdAt
+      const cloudTime = cloudTag.updatedAt || cloudTag.createdAt
+      
+      const comparison = compareTimestamps(localTime, cloudTime)
+      
+      if (comparison >= 0) {
+        // Local is newer or equal
+        result.set(localTag.name, localTag)
+      } else {
+        // Cloud is newer
+        result.set(cloudTag.name, cloudTag)
+        conflicts.push({
+          name: localTag.name,
+          resolution: 'cloud',
+          localTime,
+          cloudTime,
+        })
+      }
+      
+      // Remove from cloudMap since we've processed it
+      cloudMap.delete(localTag.name)
+    }
+  }
+  
+  // Add remaining cloud tags (not in local)
+  for (const [name, cloudTag] of cloudMap) {
+    if (!deletedTagNames.has(name)) {
+      result.set(name, cloudTag)
+      newFromCloud++
+    }
+  }
+  
+  return {
+    merged: Array.from(result.values()),
+    conflicts,
+    newFromCloud,
+    newFromLocal,
+  }
+}
+
+/**
  * Merge complete sync data from local and cloud
  * @param {object} localData - Complete local data
  * @param {object} cloudData - Complete cloud data
@@ -171,6 +247,7 @@ export function mergeItemsById(localItems = [], cloudItems = [], deletedIds = ne
  *   settings: object,
  *   summaries: Array,
  *   history: Array,
+ *   tags: Array,
  *   deletedIds: Array,
  *   stats: {
  *     settingsSource: 'local'|'cloud',
@@ -178,6 +255,8 @@ export function mergeItemsById(localItems = [], cloudItems = [], deletedIds = ne
  *     summariesFromLocal: number,
  *     historyFromCloud: number,
  *     historyFromLocal: number,
+ *     tagsFromCloud: number,
+ *     tagsFromLocal: number,
  *     conflicts: number
  *   }
  * }}
@@ -188,13 +267,17 @@ export function mergeAllData(localData, cloudData) {
       settings: localData.settings,
       summaries: localData.summaries || [],
       history: localData.history || [],
+      tags: localData.tags || [],
       deletedIds: localData.deletedIds || [],
+      deletedTagNames: localData.deletedTagNames || [],
       stats: {
         settingsSource: 'local',
         summariesFromCloud: 0,
         summariesFromLocal: localData.summaries?.length || 0,
         historyFromCloud: 0,
         historyFromLocal: localData.history?.length || 0,
+        tagsFromCloud: 0,
+        tagsFromLocal: localData.tags?.length || 0,
         conflicts: 0,
       },
     }
@@ -205,13 +288,17 @@ export function mergeAllData(localData, cloudData) {
       settings: cloudData.settings,
       summaries: cloudData.summaries || [],
       history: cloudData.history || [],
+      tags: cloudData.tags || [],
       deletedIds: cloudData.deletedIds || [],
+      deletedTagNames: cloudData.deletedTagNames || [],
       stats: {
         settingsSource: 'cloud',
         summariesFromCloud: cloudData.summaries?.length || 0,
         summariesFromLocal: 0,
         historyFromCloud: cloudData.history?.length || 0,
         historyFromLocal: 0,
+        tagsFromCloud: cloudData.tags?.length || 0,
+        tagsFromLocal: 0,
         conflicts: 0,
       },
     }
@@ -221,6 +308,12 @@ export function mergeAllData(localData, cloudData) {
   const deletedIds = new Set([
     ...(localData.deletedIds || []),
     ...(cloudData.deletedIds || []),
+  ])
+  
+  // Combine deleted tag names from both sources
+  const deletedTagNames = new Set([
+    ...(localData.deletedTagNames || []),
+    ...(cloudData.deletedTagNames || []),
   ])
   
   // Merge settings
@@ -245,18 +338,29 @@ export function mergeAllData(localData, cloudData) {
     deletedIds
   )
   
+  // Merge tags by name (tags use name as unique constraint)
+  const tagsResult = mergeTagsByName(
+    localData.tags || [],
+    cloudData.tags || [],
+    deletedTagNames
+  )
+  
   return {
     settings: mergedSettings,
     summaries: summariesResult.merged,
     history: historyResult.merged,
+    tags: tagsResult.merged,
     deletedIds: Array.from(deletedIds),
+    deletedTagNames: Array.from(deletedTagNames),
     stats: {
       settingsSource,
       summariesFromCloud: summariesResult.newFromCloud,
       summariesFromLocal: summariesResult.newFromLocal,
       historyFromCloud: historyResult.newFromCloud,
       historyFromLocal: historyResult.newFromLocal,
-      conflicts: summariesResult.conflicts.length + historyResult.conflicts.length,
+      tagsFromCloud: tagsResult.newFromCloud,
+      tagsFromLocal: tagsResult.newFromLocal,
+      conflicts: summariesResult.conflicts.length + historyResult.conflicts.length + tagsResult.conflicts.length,
     },
   }
 }
@@ -266,11 +370,13 @@ export function mergeAllData(localData, cloudData) {
  * @param {object} settings - Local settings
  * @param {Array} summaries - Local summaries
  * @param {Array} history - Local history
+ * @param {Array} tags - Local tags
  * @param {string} deviceId - Current device ID
  * @param {Array} deletedIds - List of deleted item IDs
+ * @param {Array} deletedTagNames - List of deleted tag names
  * @returns {object} Formatted sync data
  */
-export function prepareSyncData(settings, summaries, history, deviceId, deletedIds = []) {
+export function prepareSyncData(settings, summaries, history, tags, deviceId, deletedIds = [], deletedTagNames = []) {
   return {
     version: 1,
     lastModified: new Date().toISOString(),
@@ -284,6 +390,11 @@ export function prepareSyncData(settings, summaries, history, deviceId, deletedI
       ...h,
       deleted: false,
     })),
+    tags: tags.map((t) => ({
+      ...t,
+      deleted: false,
+    })),
     deletedIds,
+    deletedTagNames,
   }
 }

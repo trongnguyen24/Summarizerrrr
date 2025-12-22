@@ -189,6 +189,16 @@
         activeTab === 'archive'
           ? await updateSummary(item)
           : await updateHistory(item)
+
+        // Trigger cloud sync after updating summary/history
+        try {
+          const { triggerSync } = await import(
+            '@/services/cloudSync/cloudSyncService.svelte.js'
+          )
+          triggerSync()
+        } catch (syncError) {
+          console.warn('Failed to trigger sync after rename:', syncError)
+        }
       }
       await refreshSummaries()
       resetDialogState()
@@ -202,6 +212,7 @@
       activeTab === 'archive'
         ? await deleteSummary(id)
         : await deleteHistory(id)
+
       await refreshSummaries()
 
       // Invalidate tags cache khi xóa item để cập nhật tag counts
@@ -226,6 +237,19 @@
 
       // Chuyển item từ history sang archive
       await moveHistoryItemToArchive(item.id)
+
+      // Trigger cloud sync after moving to archive
+      try {
+        const { triggerSync } = await import(
+          '@/services/cloudSync/cloudSyncService.svelte.js'
+        )
+        triggerSync()
+      } catch (syncError) {
+        console.warn(
+          'Failed to trigger sync after moving to archive:',
+          syncError,
+        )
+      }
 
       // Làm mới danh sách
       await refreshSummaries()

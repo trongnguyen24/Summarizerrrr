@@ -411,6 +411,10 @@ async function updateHistory(historyData) {
   return new Promise((resolve, reject) => {
     const transaction = db.transaction([HISTORY_STORE_NAME], 'readwrite')
     const objectStore = transaction.objectStore(HISTORY_STORE_NAME)
+    
+    // Ensure updatedAt is set
+    historyData.updatedAt = historyData.updatedAt || new Date().toISOString()
+    
     const request = objectStore.put(historyData)
     request.onsuccess = () => resolve(request.result)
     request.onerror = (event) => reject(event.target.error)
@@ -427,6 +431,7 @@ async function updateHistoryArchivedStatus(id, isArchivedStatus) {
       const historyItem = getRequest.result
       if (historyItem) {
         historyItem.isArchived = isArchivedStatus
+        historyItem.updatedAt = new Date().toISOString() // Update timestamp
         const putRequest = objectStore.put(historyItem)
         putRequest.onsuccess = () => resolve(historyItem.id)
         putRequest.onerror = (event) => reject(event.target.error)
@@ -462,15 +467,23 @@ async function moveHistoryItemToArchive(historyId) {
 }
 
 // --- Tag Functions (New) ---
-async function addTag(name) {
+/**
+ * Add a new tag
+ * @param {string} name - Tag name
+ * @param {string} [id] - Optional tag ID (for cloud sync)
+ * @param {string} [createdAt] - Optional creation timestamp (for cloud sync)
+ */
+async function addTag(name, id = null, createdAt = null) {
   if (!db) db = await openDatabase()
   return new Promise((resolve, reject) => {
     const transaction = db.transaction([TAGS_STORE_NAME], 'readwrite')
     const objectStore = transaction.objectStore(TAGS_STORE_NAME)
+    const now = new Date().toISOString()
     const newTag = {
-      id: generateUUID(),
+      id: id || generateUUID(), // Use provided ID or generate new one
       name: name.trim(),
-      createdAt: new Date().toISOString(),
+      createdAt: createdAt || now, // Use provided timestamp or current time
+      updatedAt: createdAt || now, // Initialize updatedAt
     }
     const request = objectStore.add(newTag)
     request.onsuccess = () => resolve(newTag)
@@ -528,6 +541,10 @@ async function updateTag(tag) {
   return new Promise((resolve, reject) => {
     const transaction = db.transaction([TAGS_STORE_NAME], 'readwrite')
     const objectStore = transaction.objectStore(TAGS_STORE_NAME)
+    
+    // Update timestamp
+    tag.updatedAt = new Date().toISOString()
+    
     const request = objectStore.put(tag)
     request.onsuccess = () => resolve(request.result)
     request.onerror = (event) => reject(event.target.error)
@@ -611,6 +628,8 @@ async function updateSummaryTags(summaryId, tags) {
       const summary = getRequest.result
       if (summary) {
         summary.tags = tags
+        // Update timestamp to ensure this change is synced
+        summary.updatedAt = new Date().toISOString()
         const putRequest = objectStore.put(summary)
         putRequest.onsuccess = () => resolve(summary)
         putRequest.onerror = (event) => reject(event.target.error)
@@ -779,8 +798,49 @@ export {
   updateSummaryTags,
   getTagCounts,
   getDataCounts,
-  // Clear/Delete All exports
   clearAllSummaries,
   clearAllHistory,
   clearAllTags,
+  replaceTagsStore,
+}
+
+// --- Sync Helper Functions ---
+async function replaceTagsStore(tags) {
+  if (!db) db = await openDatabase()
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction([TAGS_STORE_NAME], 'readwrite')
+    const objectStore = transaction.objectStore(TAGS_STORE_NAME)
+    
+    // 1. Clear the store
+    const clearRequest = objectStore.clear()
+    
+    clearRequest.onsuccess = () => {
+      // 2. Add all tags
+      if (!tags || tags.length === 0) {
+        resolve(true)
+        return
+      }
+      
+      let count = 0
+      tags.forEach((tag) => {
+        // Ensure valid tag object
+        if (!tag.id || !tag.name) return
+        
+        const request = objectStore.put(tag)
+        request.onsuccess = () => {
+          count++
+          if (count === tags.length) resolve(true)
+        }
+        request.onerror = (e) => {
+          console.error('Error adding tag during replace:', e)
+          // Continue despite error? Or fail?
+          // For sync, best to continue
+          count++
+          if (count === tags.length) resolve(true)
+        }
+      })
+    }
+    
+    clearRequest.onerror = (event) => reject(event.target.error)
+  })
 }

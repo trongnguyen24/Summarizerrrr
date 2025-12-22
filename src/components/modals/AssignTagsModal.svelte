@@ -19,7 +19,7 @@
         a.name.localeCompare(b.name, settings.uiLang, {
           numeric: true,
           sensitivity: 'base',
-        })
+        }),
       ) || []
   }
 
@@ -37,6 +37,16 @@
     try {
       await updateSummaryTags(summary.id, Array.from(selectedTagIds))
       if (onUpdate) onUpdate()
+
+      // Trigger cloud sync after updating summary tags
+      try {
+        const { triggerSync } = await import(
+          '@/services/cloudSync/cloudSyncService.svelte.js'
+        )
+        triggerSync()
+      } catch (syncError) {
+        console.warn('Failed to trigger sync after updating tags:', syncError)
+      }
     } catch (error) {
       console.error('Error updating summary tags:', error)
     }

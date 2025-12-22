@@ -108,6 +108,17 @@
     try {
       await addTag(validation.name)
       closeCreateTagDialog()
+
+      // Trigger cloud sync after creating tag
+      try {
+        const { triggerSync } = await import(
+          '@/services/cloudSync/cloudSyncService.svelte.js'
+        )
+        triggerSync()
+      } catch (syncError) {
+        console.warn('Failed to trigger sync after creating tag:', syncError)
+      }
+
       // Invalidate cache and reload
       await refreshTagsCache()
     } catch (error) {
@@ -168,6 +179,17 @@
       const updatedTag = { ...tag, name: validation.name }
       await updateTag(updatedTag)
       closeRenameDialog()
+
+      // Trigger cloud sync after renaming tag
+      try {
+        const { triggerSync } = await import(
+          '@/services/cloudSync/cloudSyncService.svelte.js'
+        )
+        triggerSync()
+      } catch (syncError) {
+        console.warn('Failed to trigger sync after renaming tag:', syncError)
+      }
+
       // Invalidate cache and reload
       await refreshTagsCache()
     } catch (error) {

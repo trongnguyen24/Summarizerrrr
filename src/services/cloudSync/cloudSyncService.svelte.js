@@ -9,21 +9,39 @@ import {
   authenticate,
   refreshAccessToken,
   revokeToken,
-  getSyncData,
-  saveSyncData,
+  getFile,
+  saveFile,
   getUserProfile,
 } from './googleDriveAdapter.js'
-import { mergeAllData, prepareSyncData } from './conflictResolver.js'
 import {
   getAllSummaries,
   getAllHistory,
+  addSummary,
+  updateSummary,
+  deleteSummary,
+  addHistory,
+  updateHistory,
+  deleteHistory,
   addMultipleSummaries,
   addMultipleHistory,
   clearAllSummaries,
   clearAllHistory,
+  getAllTags,
+  addTag,
+  updateTag,
+  deleteTag,
+  clearAllTags,
+  replaceTagsStore,
 } from '@/lib/db/indexedDBService.js'
 import { settings, loadSettings, updateSettings } from '@/stores/settingsStore.svelte.js'
 import { generateUUID } from '@/lib/utils/utils.js'
+
+const FILES = {
+  SETTINGS: 'summarizerrrr-settings.json',
+  SUMMARIES: 'summarizerrrr-summaries.json',
+  HISTORY: 'summarizerrrr-history.json',
+  TAGS: 'summarizerrrr-tags.json',
+}
 
 // --- Storage Definition ---
 export const syncStorage = storage.defineItem('local:syncState', {
@@ -38,7 +56,6 @@ export const syncStorage = storage.defineItem('local:syncState', {
     userEmail: null,
     userName: null,
     userPicture: null,
-    deletedIds: [], // Track soft-deleted items
   },
 })
 
@@ -64,9 +81,16 @@ function logToUI(msg, type = 'info') {
 }
 
 let syncInterval = null
-const AUTO_SYNC_INTERVAL = 5 * 60 * 1000 // 5 minutes
-const DEBOUNCE_DELAY = 30 * 1000 // 30 seconds
+const AUTO_SYNC_INTERVAL = 2 * 60 * 1000 // 2 minutes (optimized from 5)
+const DEBOUNCE_DELAY = 7 * 1000 // 7 seconds - sync shortly after user actions
 let debounceTimer = null
+
+// Token cache to avoid reading from storage every time
+let tokenCache = {
+  accessToken: null,
+  tokenExpiry: null,
+  lastUpdated: 0
+}
 
 // --- Initialization ---
 
@@ -145,19 +169,38 @@ async function refreshToken() {
 
 /**
  * Get valid access token (refresh if needed)
+ * Uses in-memory cache to avoid storage reads
  */
 async function getValidAccessToken() {
+  // Check cache first
+  if (tokenCache.accessToken && !isTokenExpired(tokenCache.tokenExpiry)) {
+    return tokenCache.accessToken
+  }
+  
   const stored = await syncStorage.getValue()
   
   if (!stored.accessToken) {
+    tokenCache = { accessToken: null, tokenExpiry: null, lastUpdated: 0 }
     throw new Error('Not logged in')
   }
   
-  if (isTokenExpired(stored.tokenExpiry)) {
-    return await refreshToken()
+  let token = stored.accessToken
+  let expiry = stored.tokenExpiry
+  
+  if (isTokenExpired(expiry)) {
+    token = await refreshToken()
+    const updatedStored = await syncStorage.getValue()
+    expiry = updatedStored.tokenExpiry
   }
   
-  return stored.accessToken
+  // Update cache
+  tokenCache = {
+    accessToken: token,
+    tokenExpiry: expiry,
+    lastUpdated: Date.now()
+  }
+  
+  return token
 }
 
 // --- Auth Functions ---
@@ -222,6 +265,9 @@ export async function logout(revokeAccess = true) {
   
   stopAutoSync()
   
+  // Clear token cache on logout
+  tokenCache = { accessToken: null, tokenExpiry: null, lastUpdated: 0 }
+  
   const stored = await syncStorage.getValue()
   
   await syncStorage.setValue({
@@ -243,74 +289,125 @@ export async function logout(revokeAccess = true) {
   syncState.lastSyncTime = null
 }
 
+
 // --- Sync Functions ---
 
 /**
- * Pull data from cloud and merge with local
+ * Pull data from cloud and sync with local (simplified last-write-wins)
  */
 export async function pullData() {
   if (syncState.isSyncing) return
   
   syncState.isSyncing = true
   syncState.syncError = null
-  logToUI('Starting pullData...')
+  logToUI('Starting sync...')
   
   try {
     const accessToken = await getValidAccessToken()
-    const cloudData = await getSyncData(accessToken)
+    const stored = await syncStorage.getValue()
     
-    if (!cloudData) {
-      // No cloud data - push local data
+    // Fetch all cloud files in parallel
+    logToUI('Fetching cloud data...')
+    const [settingsFile, summariesFile, historyFile, tagsFile] = await Promise.all([
+      getFile(accessToken, FILES.SETTINGS),
+      getFile(accessToken, FILES.SUMMARIES),
+      getFile(accessToken, FILES.HISTORY),
+      getFile(accessToken, FILES.TAGS),
+    ])
+
+    const hasCloudData = settingsFile || summariesFile || historyFile || tagsFile
+    
+    if (!hasCloudData) {
+      // No cloud data - push local data for first time
       logToUI('No cloud data found, pushing local data...')
-      await internalPushData(accessToken)
+      await pushAllData(accessToken, stored.deviceId)
       return
     }
-    
+
     // Get local data
     await loadSettings()
     const localSummaries = await getAllSummaries()
     const localHistory = await getAllHistory()
-    const stored = await syncStorage.getValue()
-    
-    const localData = prepareSyncData(
-      { ...settings },
-      localSummaries,
-      localHistory,
-      stored.deviceId,
-      stored.deletedIds || []
+    const localTags = await getAllTags()
+
+    // Normalize Settings structure (support "settings" key from legacy/current format)
+    if (settingsFile && !settingsFile.data && settingsFile.settings) {
+      settingsFile.data = settingsFile.settings
+    }
+
+    // Sync each data type independently
+    await syncDataType('Settings', settingsFile, { ...settings }, 
+      (data) => updateSettings(data),
+      async (dataToPush) => {
+        await saveFile(accessToken, FILES.SETTINGS, {
+          version: 1,
+          lastModified: new Date().toISOString(),
+          data: dataToPush || { ...settings },
+        })
+      }
     )
     
-    // Merge data
-    const merged = mergeAllData(localData, cloudData)
-    
-    // Apply merged data locally
-    await applyMergedData(merged)
-    
-    // Push merged data back to cloud
-    const syncData = prepareSyncData(
-      merged.settings,
-      merged.summaries,
-      merged.history,
-      stored.deviceId,
-      merged.deletedIds
+    await syncDataType('Summaries', summariesFile, localSummaries,
+      async (data) => {
+        await clearAllSummaries()
+        if (data && data.length > 0) await addMultipleSummaries(data)
+      },
+      async (dataToPush) => {
+        await saveFile(accessToken, FILES.SUMMARIES, {
+          version: 1,
+          lastModified: new Date().toISOString(),
+          data: dataToPush || localSummaries,
+        })
+      }
     )
     
-    await saveSyncData(accessToken, syncData)
+    await syncDataType('History', historyFile, localHistory,
+      async (data) => {
+        await clearAllHistory()
+        if (data && data.length > 0) await addMultipleHistory(data)
+      },
+      async (dataToPush) => {
+        await saveFile(accessToken, FILES.HISTORY, {
+          version: 1,
+          lastModified: new Date().toISOString(),
+          data: dataToPush || localHistory,
+        })
+      }
+    )
+    
+    await syncDataType('Tags', tagsFile, localTags,
+      async (data) => {
+        if (data && data.length > 0) {
+          // Use safer replaceTagsStore which doesn't wipe summary references
+          await replaceTagsStore(data)
+        } else {
+          // If cloud data is empty, we might want to clear local tags?
+          // Or just merged result is empty.
+          // If merging returned empty, we should clear.
+          await replaceTagsStore([])
+        }
+      },
+      async (dataToPush) => {
+        await saveFile(accessToken, FILES.TAGS, {
+          version: 1,
+          lastModified: new Date().toISOString(),
+          data: dataToPush || localTags,
+        })
+      }
+    )
     
     // Update last sync time
     const now = new Date().toISOString()
     await syncStorage.setValue({
       ...stored,
       lastSyncTime: now,
-      deletedIds: merged.deletedIds,
     })
     
     syncState.lastSyncTime = now
-    
-    logToUI(`Sync completed. Stats: ${JSON.stringify(merged.stats)}`, 'success')
+    logToUI('Sync completed successfully', 'success')
   } catch (error) {
-    console.error('Pull data failed:', error)
-    logToUI(`Pull data failed: ${error.message}`, 'error')
+    console.error('Sync failed:', error)
+    logToUI(`Sync failed: ${error.message}`, 'error')
     syncState.syncError = error.message
   } finally {
     syncState.isSyncing = false
@@ -318,83 +415,176 @@ export async function pullData() {
 }
 
 /**
- * Push local data to cloud
+ * Helper: Sync a single data type using Item-Level Merge
  */
+async function syncDataType(name, cloudFile, localData, applyCloud, pushLocal) {
+  if (!cloudFile || !cloudFile.data) {
+    // No cloud data, push local
+    logToUI(`No cloud ${name}, pushing local...`)
+    await pushLocal(localData)
+    return
+  }
+  
+  // Use Merge Strategy for Arrays (Summaries, History, Tags)
+  if (Array.isArray(localData) && Array.isArray(cloudFile.data)) {
+    logToUI(`Merging ${name}...`)
+    const mergedData = mergeData(cloudFile.data, localData)
+    
+    // Always apply merged data locally to ensure we have the latest items from cloud
+    await applyCloud(mergedData)
+    
+    // Push if merged data is different/newer than cloud
+    const cloudTime = new Date(cloudFile.lastModified).getTime()
+    const mergedTime = getLatestTimestamp(mergedData)
+    
+    // Heuristic: If merged result has newer items or different count, push to cloud
+    if (mergedTime > cloudTime || mergedData.length !== cloudFile.data.length) {
+      logToUI(`Pushing merged ${name}...`)
+      await pushLocal(mergedData)
+    } else {
+      logToUI(`${name} in sync.`)
+    }
+    
+  } else {
+    // Fallback for Objects (Settings) - Last Write Wins based on file timestamp
+    const cloudTime = new Date(cloudFile.lastModified).getTime()
+    
+    // For object sync (Settings), we assume Cloud wins if it exists, unless we implemented granular timestamp tracking.
+    // In current architecture, Settings change updates the store but no explicit timestamp is passed here.
+    // However, if the user changed settings locally, we want that to persist.
+    // But since we can't compare timestamps of object content easily without metadata,
+    // and pullData happens primarily on startup/auto-sync...
+    // If we simply rely on cloudTime > 0, we imply Cloud always overwrites Local on sync.
+    // This is "Server Authoritative".
+    // If user changes settings offline, and then syncs?
+    // User changes settings -> triggers `triggerSync()` -> `pullData()`.
+    // If cloud is older, we should push.
+    // But we don't know local timestamp.
+    // Ideally we should track `lastSettingsUpdate` time in storage.
+    // For now, to be safe and consistent with previous behavior (mostly), we can stick to "Cloud wins if newer file".
+    // But "newer" than what? We don't have local time.
+    // PREVIOUS LOGIC FLAW: `localTime` was 0. So Cloud ALWAYS won.
+    // If I change settings locally, `pushLocal` is never called if cloud exists?
+    // Wait, `debouncedPush` calls `pullData`.
+    // If I change settings, I want to Push.
+    // If `pullData` sees existing cloud file, and I compare 0 vs CloudTime. Cloud Wins.
+    // My local changes are OVERWRITTEN.
+    // THIS IS A BUG FOR SETTINGS TOO.
+    //
+    // FIX: We should fetch LastSyncTime.
+    // If CloudFile.lastModified > LastSyncTime -> Cloud has updates since we last synced -> Apply Cloud.
+    // Else -> We have updates (or no changes) -> Push Local.
+    
+    const lastSyncTime = syncState.lastSyncTime ? new Date(syncState.lastSyncTime).getTime() : 0
+    
+    if (cloudTime > lastSyncTime) {
+       logToUI(`Cloud ${name} is newer, applying...`)
+       await applyCloud(cloudFile.data)
+    } else {
+       // Cloud is old, or we updated locally since last sync
+       // BUT, be careful. usage of lastSyncTime assumes we successfully synced previously.
+       // If I login fresh, lastSyncTime is null (0). CloudTime > 0.
+       // So fresh login -> Pull Cloud Settings. Correct.
+       // If I am synced. I change settings. 
+       // Trigger Sync. CloudTime (old) < LastSyncTime (recent).
+       // We Push Local. Correct.
+       
+       // What if CloudTime == LastSyncTime (approx)?
+       // If CloudTime <= LastSyncTime, it means cloud hasn't changed since we last synced.
+       // So our local state is either same or newer. Push to be safe.
+       logToUI(`Pushing local ${name}...`)
+       await pushLocal(localData)
+    }
+  }
+}
+
 /**
- * Internal push data logic (no state/error handling wrapper)
+ * Helper: Merge Cloud and Local items based on ID and Timestamp
  */
-async function internalPushData(accessToken) {
-  // Get local data
+function mergeData(cloudItems, localItems) {
+  const merged = new Map()
+  
+  // 1. Add all Cloud items initially
+  cloudItems.forEach(item => {
+    if (item && item.id) merged.set(item.id, item)
+  })
+  
+  // 2. Merge Local items
+  localItems.forEach(localItem => {
+    if (!localItem || !localItem.id) return
+    
+    const cloudItem = merged.get(localItem.id)
+    if (cloudItem) {
+      // Conflict: Pick newer
+      const localTime = getItemTimestamp(localItem)
+      const cloudTime = getItemTimestamp(cloudItem)
+      
+      if (localTime >= cloudTime) {
+        merged.set(localItem.id, localItem)
+      }
+      // Else keep cloudItem
+    } else {
+      // Unique to local
+      merged.set(localItem.id, localItem)
+    }
+  })
+  
+  return Array.from(merged.values())
+}
+
+/**
+ * Helper: Get timestamp of a specific item
+ */
+function getItemTimestamp(item) {
+  return new Date(item.updatedAt || item.createdAt || item.date || 0).getTime()
+}
+
+/**
+ * Helper: Get latest timestamp from array of items
+ */
+function getLatestTimestamp(items) {
+  if (!items || !Array.isArray(items) || items.length === 0) return 0
+  
+  const timestamps = items.map(getItemTimestamp)
+  
+  return Math.max(...timestamps, 0)
+}
+
+/**
+ * Helper: Push all local data to cloud
+ */
+async function pushAllData(accessToken, deviceId) {
   await loadSettings()
   const localSummaries = await getAllSummaries()
   const localHistory = await getAllHistory()
-  const stored = await syncStorage.getValue()
+  const localTags = await getAllTags()
   
-  const syncData = prepareSyncData(
-    { ...settings },
-    localSummaries,
-    localHistory,
-    stored.deviceId,
-    stored.deletedIds || []
-  )
-  
-  await saveSyncData(accessToken, syncData)
-  
-  // Update last sync time
   const now = new Date().toISOString()
-  await syncStorage.setValue({
-    ...stored,
-    lastSyncTime: now,
-  })
   
-  syncState.lastSyncTime = now
+  await Promise.all([
+    saveFile(accessToken, FILES.SETTINGS, {
+      version: 1,
+      lastModified: now,
+      settings: { ...settings },
+    }),
+    saveFile(accessToken, FILES.SUMMARIES, {
+      version: 1,
+      lastModified: now,
+      data: localSummaries,
+    }),
+    saveFile(accessToken, FILES.HISTORY, {
+      version: 1,
+      lastModified: now,
+      data: localHistory,
+    }),
+    saveFile(accessToken, FILES.TAGS, {
+      version: 1,
+      lastModified: now,
+      data: localTags,
+    }),
+  ])
   
-  logToUI('Push completed successfully', 'success')
-}
-
-/**
- * Push local data to cloud
- */
-export async function pushData() {
-  if (syncState.isSyncing) return
-  
-  syncState.isSyncing = true
-  syncState.syncError = null
-  logToUI('Starting pushData...')
-  
-  try {
-    const accessToken = await getValidAccessToken()
-    await internalPushData(accessToken)
-  } catch (error) {
-    console.error('Push data failed:', error)
-    logToUI(`Push data failed: ${error.message}`, 'error')
-    syncState.syncError = error.message
-  } finally {
-    syncState.isSyncing = false
-  }
-}
-
-/**
- * Apply merged data to local storage
- */
-async function applyMergedData(merged) {
-  // Update settings
-  if (merged.settings) {
-    await updateSettings(merged.settings)
-  }
-  
-  // Clear and re-add summaries (simplest approach for now)
-  // In future, could optimize to only update changed items
-  if (merged.summaries && merged.summaries.length > 0) {
-    await clearAllSummaries()
-    await addMultipleSummaries(merged.summaries)
-  }
-  
-  // Clear and re-add history
-  if (merged.history && merged.history.length > 0) {
-    await clearAllHistory()
-    await addMultipleHistory(merged.history)
-  }
+  logToUI('Initial push completed')
 }
 
 /**
@@ -405,27 +595,8 @@ export async function syncNow() {
 }
 
 /**
- * Track deleted item for sync
- * @param {string} itemId - ID of deleted item
- */
-export async function trackDeletedItem(itemId) {
-  const stored = await syncStorage.getValue()
-  const deletedIds = stored.deletedIds || []
-  
-  if (!deletedIds.includes(itemId)) {
-    deletedIds.push(itemId)
-    await syncStorage.setValue({
-      ...stored,
-      deletedIds,
-    })
-  }
-  
-  // Trigger debounced sync
-  debouncedPush()
-}
-
-/**
- * Debounced push to avoid too frequent syncs
+ * Debounced sync to avoid too frequent syncs
+ * Changed to call pullData() instead of pushData() to avoid overwriting cloud changes
  */
 function debouncedPush() {
   if (!syncState.isLoggedIn || !syncState.autoSyncEnabled) return
@@ -435,8 +606,16 @@ function debouncedPush() {
   }
   
   debounceTimer = setTimeout(() => {
-    pushData()
+    pullData() // Changed from pushData() to merge before pushing
   }, DEBOUNCE_DELAY)
+}
+
+/**
+ * Trigger sync after data changes (add/update/delete)
+ * Public wrapper for debouncedPush to be called by other components
+ */
+export function triggerSync() {
+  debouncedPush()
 }
 
 // --- Auto Sync ---

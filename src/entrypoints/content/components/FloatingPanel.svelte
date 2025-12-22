@@ -31,7 +31,7 @@
   let panelElement = $state()
   let isResizing = $state(false)
   let currentWidthPx = $state(0) // Will be set in loadWidth()
-  let showElement = $state(false) // Internal state để control DOM rendering
+  let showElement = $state(false) // Still used for backdrop/animation logic
   const { needsApiKeySetup } = useApiKeyValidation()
 
   // Toast state
@@ -292,17 +292,18 @@
     if (visible) {
       // Show element first, then animate in
       showElement = true
-      setTimeout(() => {
+      // Use double requestAnimationFrame for smoother animation start (optional, but good practice)
+      requestAnimationFrame(() => {
         if (panelElement && currentWidthPx > 0) {
           panelElement.style.width = `${currentWidthPx}px`
           panelElement.classList.add('visible')
         }
-      }, 10)
+      })
     } else {
-      // Animate out first, then hide element
+      // Animate out first, then hiding is handled by CSS/transition
       if (panelElement) {
         panelElement.classList.remove('visible')
-        // Wait for animation to complete before hiding DOM
+        // Wait for animation to complete before hiding "interactions"
         setTimeout(() => {
           showElement = false
         }, 410) // Match CSS transition duration
@@ -328,223 +329,223 @@
   })
 </script>
 
-{#if showElement}
-  <!-- svelte-ignore a11y_click_events_have_key_events -->
-  <!-- svelte-ignore a11y_no_static_element_interactions -->
+<!-- svelte-ignore a11y_click_events_have_key_events -->
+<!-- svelte-ignore a11y_no_static_element_interactions -->
+<div
+  class="backdrop"
+  class:visible
+  onclick={() => {
+    if (settings.closePanelOnOutsideClick) {
+      onclose?.()
+    }
+  }}
+></div>
+<!-- Sidepanel container -->
+<div
+  class="floating-panel pt-8"
+  class:left={panelPosition === 'left'}
+  class:right={panelPosition === 'right'}
+  class:invisible={!showElement}
+  bind:this={panelElement}
+  role="dialog"
+  aria-modal="true"
+  style="width: {currentWidthPx}px"
+>
+  {#if !settings.hasCompletedOnboarding}
+    <div
+      class="absolute z-[10001] inset-0"
+      in:fade={{ duration: 300 }}
+      out:fade={{ duration: 300 }}
+    >
+      {#await import('@/components/welcome/WelcomeFlow.svelte')}
+        <div
+          class="welcome-loading-container absolute z-50 bg-surface-1 inset-0 flex items-center justify-center"
+        ></div>
+      {:then { default: WelcomeFlow }}
+        <div
+          class="absolute max-h-svh z-[99] inset-0 flex items-center justify-center"
+        >
+          <WelcomeFlow shadow={true} />
+        </div>
+      {:catch error}
+        <div
+          class="welcome-error-container absolute z-50 bg-surface-1 inset-0 flex items-center justify-center"
+        >
+          <p class="text-red-500">
+            Error loading welcome flow: {error.message}
+          </p>
+        </div>
+      {/await}
+    </div>
+  {/if}
+  <!-- Resize handle -->
+  <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
   <div
-    class="backdrop"
-    onclick={() => {
-      if (settings.closePanelOnOutsideClick) {
-        onclose?.()
-      }
-    }}
-  ></div>
-  <!-- Sidepanel container -->
-  <div
-    class="floating-panel pt-8"
+    class="resize-handle bg-transparent transition-colors flex justify-center items-center"
     class:left={panelPosition === 'left'}
     class:right={panelPosition === 'right'}
-    bind:this={panelElement}
-    role="dialog"
-    aria-modal="true"
-    style="width: {currentWidthPx}px"
+    class:resizing={isResizing}
+    onmousedown={handleResizeStart}
+    ontouchstart={handleResizeStart}
+    role="separator"
+    aria-orientation="vertical"
+    aria-label="Resize panel"
+    title="Drag to resize panel width"
   >
-    {#if !settings.hasCompletedOnboarding}
-      <div
-        class="absolute z-[10001] inset-0"
-        in:fade={{ duration: 300 }}
-        out:fade={{ duration: 300 }}
-      >
-        {#await import('@/components/welcome/WelcomeFlow.svelte')}
-          <div
-            class="welcome-loading-container absolute z-50 bg-surface-1 inset-0 flex items-center justify-center"
-          ></div>
-        {:then { default: WelcomeFlow }}
-          <div
-            class="absolute max-h-svh z-[99] inset-0 flex items-center justify-center"
-          >
-            <WelcomeFlow shadow={true} />
-          </div>
-        {:catch error}
-          <div
-            class="welcome-error-container absolute z-50 bg-surface-1 inset-0 flex items-center justify-center"
-          >
-            <p class="text-red-500">
-              Error loading welcome flow: {error.message}
-            </p>
-          </div>
-        {/await}
-      </div>
-    {/if}
-    <!-- Resize handle -->
-    <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-    <div
-      class="resize-handle bg-transparent transition-colors flex justify-center items-center"
-      class:left={panelPosition === 'left'}
-      class:right={panelPosition === 'right'}
-      class:resizing={isResizing}
-      onmousedown={handleResizeStart}
-      ontouchstart={handleResizeStart}
-      role="separator"
-      aria-orientation="vertical"
-      aria-label="Resize panel"
-      title="Drag to resize panel width"
-    >
-      <span class="w-2.5 h-12 text-white dark:text-border">
-        <svg
-          viewBox="0 0 10 48"
-          fill="currentColor"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            class=" stroke-border"
-            d="M9.5 5.20703V42.793L5 47.293L0.5 42.793V5.20703L5 0.707031L9.5 5.20703Z"
-            fill="currentColor"
-            stroke="black"
-          />
-        </svg>
-      </span>
-    </div>
-    <!-- svelte-ignore a11y_consider_explicit_label -->
-    <button
-      onclick={togglePanelPosition}
-      class="close-button absolute text-muted z-[99] border-r border-border hover:text-text-primary transition-colors w-14 duration-200 cursor-pointer h-8 top-0 left-0 flex justify-center items-center"
-    >
+    <span class="w-2.5 h-12 text-white dark:text-border">
       <svg
+        viewBox="0 0 10 48"
+        fill="currentColor"
         xmlns="http://www.w3.org/2000/svg"
-        width="20"
-        viewBox="0 0 24 24"
-        class="{panelPosition === 'left'
-          ? '-scale-x-100'
-          : ''} delay-200 transition-transform duration-300"
       >
-        <g fill="none" stroke="currentColor" stroke-width="2">
-          <path
-            d="M2 11c0-3.771 0-5.657 1.172-6.828S6.229 3 10 3h4c3.771 0 5.657 0 6.828 1.172S22 7.229 22 11v2c0 3.771 0 5.657-1.172 6.828S17.771 21 14 21h-4c-3.771 0-5.657 0-6.828-1.172S2 16.771 2 13z"
-          />
-          <path stroke-linecap="round" d="M5.5 10h6m-5 4h4m4.5 7V3" />
-        </g>
+        <path
+          class=" stroke-border"
+          d="M9.5 5.20703V42.793L5 47.293L0.5 42.793V5.20703L5 0.707031L9.5 5.20703Z"
+          fill="currentColor"
+          stroke="black"
+        />
       </svg>
-    </button>
-    <button
-      onclick={() => onclose?.()}
-      class="close-button absolute text-muted z-[98] border-b border-border bg-blackwhite-10 dark:bg-surface-2 hover:text-text-primary transition-colors duration-200 cursor-pointer h-8 top-0 right-0 left-0 flex justify-center items-center"
-      aria-label="Close"
-      ><Icon
-        icon="heroicons:arrow-long-right"
-        class=" {panelPosition === 'left' ? '-scale-x-100' : ''}"
-        width="24"
-        height="24"
-      /></button
+    </span>
+  </div>
+  <!-- svelte-ignore a11y_consider_explicit_label -->
+  <button
+    onclick={togglePanelPosition}
+    class="close-button absolute text-muted z-[99] border-r border-border hover:text-text-primary transition-colors w-14 duration-200 cursor-pointer h-8 top-0 left-0 flex justify-center items-center"
+  >
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="20"
+      viewBox="0 0 24 24"
+      class="{panelPosition === 'left'
+        ? '-scale-x-100'
+        : ''} delay-200 transition-transform duration-300"
     >
-    <div
-      id="shadow-scroll"
-      class="w-full h-full overflow-y-auto pb-32 outline-none"
-      tabindex="-1"
-    >
-      <div class="grid grid-rows-[10px_200px_10px_1fr] relative">
-        <div
-          class="top-stripes border-b border-border flex justify-center items-center w-full h-full"
-        ></div>
-        <div class="w-full flex items-center justify-center my-8">
-          <div class="size-10 absolute z-10 top-4 left-2">
-            <ShadowTooltip content={$t('archive.open_archive')} side="right">
-              <button
-                class="size-10 cursor-pointer text-text-secondary hover:text-text-primary transition-colors flex justify-center items-center"
-                onclick={openArchive}
-              >
-                <Icon icon="solar:history-linear" width="24" height="24" />
-              </button>
-            </ShadowTooltip>
-          </div>
-          <div class="size-10 absolute z-10 top-4 right-2">
-            <ShadowTooltip content={$t('settings.open_settings')} side="left">
-              <button
-                class="size-10 cursor-pointer text-text-secondary hover:text-text-primary transition-colors flex justify-center items-center"
-                onclick={openSettings}
-              >
-                <Icon width={24} icon="heroicons:cog-6-tooth" />
-              </button>
-            </ShadowTooltip>
-          </div>
-          {#if !needsApiKeySetup()()}
-            <SummarizeButton
-              isLoading={summarization.localSummaryState().isLoading}
-              onStop={handleStopSummarization}
-              onClick={handleSummarizeClick}
-            />
-          {/if}
-          {#if summaryToDisplay || summarization.localSummaryState().error}
-            <ActionButtonsMiniFP
-              onActionClick={handleCustomAction}
-              isYouTubeActive={isYouTubeActive()}
-              isCourseActive={isCourseActive()}
-            />
-          {/if}
+      <g fill="none" stroke="currentColor" stroke-width="2">
+        <path
+          d="M2 11c0-3.771 0-5.657 1.172-6.828S6.229 3 10 3h4c3.771 0 5.657 0 6.828 1.172S22 7.229 22 11v2c0 3.771 0 5.657-1.172 6.828S17.771 21 14 21h-4c-3.771 0-5.657 0-6.828-1.172S2 16.771 2 13z"
+        />
+        <path stroke-linecap="round" d="M5.5 10h6m-5 4h4m4.5 7V3" />
+      </g>
+    </svg>
+  </button>
+  <button
+    onclick={() => onclose?.()}
+    class="close-button absolute text-muted z-[98] border-b border-border bg-blackwhite-10 dark:bg-surface-2 hover:text-text-primary transition-colors duration-200 cursor-pointer h-8 top-0 right-0 left-0 flex justify-center items-center"
+    aria-label="Close"
+    ><Icon
+      icon="heroicons:arrow-long-right"
+      class=" {panelPosition === 'left' ? '-scale-x-100' : ''}"
+      width="24"
+      height="24"
+    /></button
+  >
+  <div
+    id="shadow-scroll"
+    class="w-full h-full overflow-y-auto pb-32 outline-none"
+    tabindex="-1"
+  >
+    <div class="grid grid-rows-[10px_200px_10px_1fr] relative">
+      <div
+        class="top-stripes border-b border-border flex justify-center items-center w-full h-full"
+      ></div>
+      <div class="w-full flex items-center justify-center my-8">
+        <div class="size-10 absolute z-10 top-4 left-2">
+          <ShadowTooltip content={$t('archive.open_archive')} side="right">
+            <button
+              class="size-10 cursor-pointer text-text-secondary hover:text-text-primary transition-colors flex justify-center items-center"
+              onclick={openArchive}
+            >
+              <Icon icon="solar:history-linear" width="24" height="24" />
+            </button>
+          </ShadowTooltip>
         </div>
-        <div
-          class="top-stripes border-t border-b border-border flex justify-center items-center w-full h-full"
-        ></div>
-      </div>
-      <div class=" py-14">
-        {#if needsApiKeySetup()()}
-          <div class="px-4 pt-4">
-            <ApiKeySetupPrompt />
-          </div>
-        {:else}
-          <FloatingPanelContent
-            status={statusToDisplay}
-            summary={summaryToDisplay}
-            error={summarization.localSummaryState().error}
-            contentType={summarization.localSummaryState().contentType}
-            courseConcepts={summarization.localSummaryState().courseConcepts}
-            isCourseSummaryLoading={summarization.localSummaryState().isLoading}
-            isCourseConceptsLoading={summarization.localSummaryState()
-              .isCourseConceptsLoading}
-            activeYouTubeTab={panelState.activeYouTubeTab()}
-            activeCourseTab={panelState.activeCourseTab()}
-            onSelectYouTubeTab={panelState.setActiveYouTubeTab}
-            onSelectCourseTab={panelState.setActiveCourseTab}
-            {summarization}
+        <div class="size-10 absolute z-10 top-4 right-2">
+          <ShadowTooltip content={$t('settings.open_settings')} side="left">
+            <button
+              class="size-10 cursor-pointer text-text-secondary hover:text-text-primary transition-colors flex justify-center items-center"
+              onclick={openSettings}
+            >
+              <Icon width={24} icon="heroicons:cog-6-tooth" />
+            </button>
+          </ShadowTooltip>
+        </div>
+        {#if !needsApiKeySetup()()}
+          <SummarizeButton
+            isLoading={summarization.localSummaryState().isLoading}
+            onStop={handleStopSummarization}
+            onClick={handleSummarizeClick}
           />
         {/if}
-
-        {#if !summaryToDisplay && !summarization.localSummaryState().isLoading && !needsApiKeySetup()()}
-          <ActionButtonsFP
+        {#if summaryToDisplay || summarization.localSummaryState().error}
+          <ActionButtonsMiniFP
             onActionClick={handleCustomAction}
             isYouTubeActive={isYouTubeActive()}
             isCourseActive={isCourseActive()}
           />
         {/if}
-
-        {#if children?.settingsMini}
-          {@render children.settingsMini()}
-        {/if}
-
-        <!-- Deep Dive Panel -->
-        {#if showDeepDive}
-          <DeepDivePanelFP
-            summaryContent={summaryToDisplay}
-            pageTitle={summarization.localSummaryState().pageTitle || 'Summary'}
-            pageUrl={summarization.localSummaryState().pageUrl ||
-              window.location.href}
-            summaryLang={settings.summaryLang || 'English'}
-            isVisible={true}
-          />
-        {/if}
-
-        <!-- Toast Notification -->
-        <ShadowToast
-          visible={toastVisible}
-          title={toastProps.title}
-          message={toastProps.message}
-          icon={toastProps.icon}
-          onClose={closeToast}
-        />
       </div>
+      <div
+        class="top-stripes border-t border-b border-border flex justify-center items-center w-full h-full"
+      ></div>
+    </div>
+    <div class=" py-14">
+      {#if needsApiKeySetup()()}
+        <div class="px-4 pt-4">
+          <ApiKeySetupPrompt />
+        </div>
+      {:else}
+        <FloatingPanelContent
+          status={statusToDisplay}
+          summary={summaryToDisplay}
+          error={summarization.localSummaryState().error}
+          contentType={summarization.localSummaryState().contentType}
+          courseConcepts={summarization.localSummaryState().courseConcepts}
+          isCourseSummaryLoading={summarization.localSummaryState().isLoading}
+          isCourseConceptsLoading={summarization.localSummaryState()
+            .isCourseConceptsLoading}
+          activeYouTubeTab={panelState.activeYouTubeTab()}
+          activeCourseTab={panelState.activeCourseTab()}
+          onSelectYouTubeTab={panelState.setActiveYouTubeTab}
+          onSelectCourseTab={panelState.setActiveCourseTab}
+          {summarization}
+        />
+      {/if}
+
+      {#if !summaryToDisplay && !summarization.localSummaryState().isLoading && !needsApiKeySetup()()}
+        <ActionButtonsFP
+          onActionClick={handleCustomAction}
+          isYouTubeActive={isYouTubeActive()}
+          isCourseActive={isCourseActive()}
+        />
+      {/if}
+
+      {#if children?.settingsMini}
+        {@render children.settingsMini()}
+      {/if}
+
+      <!-- Deep Dive Panel -->
+      {#if showDeepDive}
+        <DeepDivePanelFP
+          summaryContent={summaryToDisplay}
+          pageTitle={summarization.localSummaryState().pageTitle || 'Summary'}
+          pageUrl={summarization.localSummaryState().pageUrl ||
+            window.location.href}
+          summaryLang={settings.summaryLang || 'English'}
+          isVisible={true}
+        />
+      {/if}
+
+      <!-- Toast Notification -->
+      <ShadowToast
+        visible={toastVisible}
+        title={toastProps.title}
+        message={toastProps.message}
+        icon={toastProps.icon}
+        onClose={closeToast}
+      />
     </div>
   </div>
-{/if}
+</div>
 
 <style>
   /* Sidepanel Main Container */
@@ -610,17 +611,13 @@
     height: 100vh;
     background-color: transparent;
     z-index: 2147483640;
+    pointer-events: none; /* Allow pass through when hidden */
+    opacity: 0;
+    transition: opacity 0.4s ease;
   }
-  .resize-handle.resizing {
-    background-color: oklch(50% 0 0 / 0.175) !important;
-  }
-  .backdrop {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background-color: transparent;
-    z-index: 2147483640;
+
+  .backdrop.visible {
+    pointer-events: auto;
+    opacity: 1;
   }
 </style>

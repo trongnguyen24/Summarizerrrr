@@ -196,6 +196,7 @@ export default defineConfig({
           'activeTab',
           'scripting',
           'contextMenus',
+          'identity',
         ],
         optional_permissions: ['<all_urls>'],
         host_permissions: [

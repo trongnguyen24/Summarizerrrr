@@ -48,8 +48,16 @@
   let showAutoSyncPrompt = $state(false)
   let loginError = $state(null)
 
+  let now = $state(Date.now())
+
   onMount(async () => {
     await initSync()
+
+    const interval = setInterval(() => {
+      now = Date.now()
+    }, 30000) // Update every 30 seconds for better responsiveness
+
+    return () => clearInterval(interval)
   })
 
   async function handleLogin() {
@@ -94,12 +102,11 @@
     await setSyncPreferences({ [type]: enabled })
   }
 
-  function formatLastSyncTime(isoString) {
+  function formatLastSyncTime(isoString, currentNow) {
     if (!isoString) return 'Never'
 
     const date = new Date(isoString)
-    const now = new Date()
-    const diffMs = now - date
+    const diffMs = currentNow - date
     const diffMins = Math.floor(diffMs / 60000)
 
     if (diffMins < 1) return 'Just now'
@@ -168,28 +175,30 @@
       <div class="flex flex-col gap-4">
         <!-- User info -->
         <div
-          class="flex items-center gap-3 overflow-hidden bg-background border border-border p-px"
+          class="flex relative items-center gap-3 overflow-hidden bg-surface-2 border border-border p-0.5"
         >
           {#if cloudSyncStore.userPicture}
             <img
               src={cloudSyncStore.userPicture}
               alt={cloudSyncStore.userName}
-              class="size-12"
+              class="size-14"
             />
           {:else}
-            <div class="size-12 flex items-center justify-center">
+            <div class="size-14 flex items-center justify-center">
               <Icon icon="heroicons:user" class="size-6 text-primary" />
             </div>
           {/if}
           <div class="flex-1 min-w-0">
-            <!-- <p class="font-medium text-text-primary truncate">
+            <p class="font-medium text-text-primary truncate">
               {cloudSyncStore.userName}
-            </p> -->
-            <p class="text-xs text-text-primary truncate">
+            </p>
+            <p class="text-xs text-muted truncate">
               {cloudSyncStore.userEmail}
             </p>
-            <p class="text-xs text-muted">
-              Synced {formatLastSyncTime(cloudSyncStore.lastSyncTime)}
+            <p
+              class="text-[0.625rem] absolute py-1 pl-3 pr-2 border-b border-l rounded-bl-2xl bg-blackwhite-5 border-border top-0 right-0 text-muted"
+            >
+              Synced {formatLastSyncTime(cloudSyncStore.lastSyncTime, now)}
             </p>
           </div>
         </div>
@@ -217,7 +226,7 @@
                 icon="heroicons:check-circle"
                 class="size-4 text-green-500"
               />
-              <span>{formatLastSyncTime(cloudSyncStore.lastSyncTime)}</span>
+              <span>{formatLastSyncTime(cloudSyncStore.lastSyncTime, now)}</span>
             {/if}
           </div>
         </div> -->

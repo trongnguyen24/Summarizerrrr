@@ -3,6 +3,7 @@
   import Icon, { loadIcons } from '@iconify/svelte'
   import ToolIcon96 from '@/components/ui/ToolIcon96.svelte'
   import ToolEnableToggle from '@/components/inputs/ToolEnableToggle.svelte'
+  import EnableToggle from '@/components/inputs/EnableToggle.svelte'
   import { onMount } from 'svelte'
   import { settings, updateSettings } from '@/stores/settingsStore.svelte.js'
   import {
@@ -167,33 +168,34 @@
       <div class="flex flex-col gap-4">
         <!-- User info -->
         <div
-          class="flex items-center gap-3 p-3 bg-background rounded-md border border-border/50"
+          class="flex items-center gap-3 overflow-hidden bg-background border border-border p-px"
         >
           {#if cloudSyncStore.userPicture}
             <img
               src={cloudSyncStore.userPicture}
               alt={cloudSyncStore.userName}
-              class="size-10 rounded-full"
+              class="size-12"
             />
           {:else}
-            <div
-              class="size-10 rounded-full bg-primary/20 flex items-center justify-center"
-            >
+            <div class="size-12 flex items-center justify-center">
               <Icon icon="heroicons:user" class="size-6 text-primary" />
             </div>
           {/if}
           <div class="flex-1 min-w-0">
-            <p class="font-medium text-text-primary truncate">
+            <!-- <p class="font-medium text-text-primary truncate">
               {cloudSyncStore.userName}
-            </p>
-            <p class="text-xs text-muted truncate">
+            </p> -->
+            <p class="text-xs text-text-primary truncate">
               {cloudSyncStore.userEmail}
+            </p>
+            <p class="text-xs text-muted">
+              Synced {formatLastSyncTime(cloudSyncStore.lastSyncTime)}
             </p>
           </div>
         </div>
 
         <!-- Sync status -->
-        <div class="flex items-center justify-between text-xs">
+        <!-- <div class="flex items-center justify-between text-xs">
           <span class="text-muted">Last sync:</span>
           <div class="flex items-center gap-1">
             {#if cloudSyncStore.isSyncing}
@@ -218,10 +220,10 @@
               <span>{formatLastSyncTime(cloudSyncStore.lastSyncTime)}</span>
             {/if}
           </div>
-        </div>
+        </div> -->
 
         <!-- Auto-sync toggle -->
-        <div class="flex items-center justify-between">
+        <!-- <div class="flex items-center justify-between">
           <span class="text-xs text-text-secondary">Auto sync</span>
           <button
             onclick={() => setAutoSync(!cloudSyncStore.autoSyncEnabled)}
@@ -236,10 +238,10 @@
                 : 'translate-x-0'}"
             ></span>
           </button>
-        </div>
+        </div> -->
 
         <!-- Sync Preferences -->
-        <div class="border-t border-border pt-4 mt-2">
+        <div class="">
           <div class="mb-3">
             <h4 class="text-sm font-medium text-text-primary">
               Sync Preferences
@@ -249,55 +251,36 @@
             </p>
           </div>
 
-          <!-- Settings Checkbox -->
-          <label class="flex items-start gap-3 py-2 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={cloudSyncStore.syncPreferences.settings}
-              onchange={(e) =>
-                handleSyncPreferenceChange('settings', e.target.checked)}
-              disabled={cloudSyncStore.isSyncing}
-              class="mt-0.5 size-4 rounded border-gray-300 text-primary focus:ring-primary disabled:opacity-50"
+          <div class="grid mt-3 grid-cols-3 gap-2">
+            <EnableToggle
+              id="sync-settings"
+              bind:checked={cloudSyncStore.syncPreferences.settings}
+              onCheckedChange={(value) =>
+                handleSyncPreferenceChange('settings', value)}
+              text="Settings"
+              useAnimation={false}
             />
-            <div class="flex-1">
-              <div class="text-sm text-text-primary">Settings</div>
-              <div class="text-xs text-muted">
-                Sync app settings and preferences
-              </div>
-            </div>
-          </label>
 
-          <!-- History Checkbox -->
-          <label class="flex items-start gap-3 py-2 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={cloudSyncStore.syncPreferences.history}
-              onchange={(e) =>
-                handleSyncPreferenceChange('history', e.target.checked)}
-              disabled={cloudSyncStore.isSyncing}
-              class="mt-0.5 size-4 rounded border-gray-300 text-primary focus:ring-primary disabled:opacity-50"
+            <EnableToggle
+              id="sync-history"
+              bind:checked={cloudSyncStore.syncPreferences.history}
+              onCheckedChange={(value) =>
+                handleSyncPreferenceChange('history', value)}
+              text="History"
+              useAnimation={false}
             />
-            <div class="flex-1">
-              <div class="text-sm text-text-primary">History</div>
-              <div class="text-xs text-muted">Sync summary history</div>
-            </div>
-          </label>
 
-          <!-- Archive + Tags Checkbox -->
-          <label class="flex items-start gap-3 py-2 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={cloudSyncStore.syncPreferences.archive}
-              onchange={(e) =>
-                handleSyncPreferenceChange('archive', e.target.checked)}
-              disabled={cloudSyncStore.isSyncing}
-              class="mt-0.5 size-4 rounded border-gray-300 text-primary focus:ring-primary disabled:opacity-50"
+            <!-- Archive + Tags Toggle -->
+
+            <EnableToggle
+              id="sync-archive"
+              bind:checked={cloudSyncStore.syncPreferences.archive}
+              onCheckedChange={(value) =>
+                handleSyncPreferenceChange('archive', value)}
+              text="Archive"
+              useAnimation={false}
             />
-            <div class="flex-1">
-              <div class="text-sm text-text-primary">Archive & Tags</div>
-              <div class="text-xs text-muted">Sync archived items and tags</div>
-            </div>
-          </label>
+          </div>
         </div>
 
         <!-- Action buttons -->

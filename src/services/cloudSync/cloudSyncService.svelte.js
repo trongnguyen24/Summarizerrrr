@@ -56,6 +56,11 @@ export const syncStorage = storage.defineItem('local:syncState', {
     userEmail: null,
     userName: null,
     userPicture: null,
+    syncPreferences: {
+      settings: true,
+      history: true,
+      archive: true, // includes tags
+    },
   },
 })
 
@@ -69,6 +74,11 @@ let syncState = $state({
   userEmail: null,
   userName: null,
   userPicture: null,
+  syncPreferences: {
+    settings: true,
+    history: true,
+    archive: true,
+  },
 })
 
 // Debug logs store
@@ -113,6 +123,11 @@ export async function initSync() {
     syncState.userEmail = stored.userEmail
     syncState.userName = stored.userName
     syncState.userPicture = stored.userPicture
+    syncState.syncPreferences = stored.syncPreferences || {
+      settings: true,
+      history: true,
+      archive: true,
+    }
     
     // If logged in, check token validity and start auto-sync
     if (stored.isLoggedIn && stored.accessToken) {
@@ -129,9 +144,6 @@ export async function initSync() {
       if (stored.autoSyncEnabled) {
         startAutoSync()
       }
-      
-      // Perform initial sync on startup
-      await pullData()
     }
   } catch (error) {
     console.error('Failed to initialize sync:', error)
@@ -335,66 +347,81 @@ export async function pullData() {
       settingsFile.data = settingsFile.settings
     }
 
-    // Sync each data type independently
-    await syncDataType('Settings', settingsFile, { ...settings }, 
-      (data) => updateSettings(data),
-      async (dataToPush) => {
-        await saveFile(accessToken, FILES.SETTINGS, {
-          version: 1,
-          lastModified: new Date().toISOString(),
-          data: dataToPush || { ...settings },
-        })
-      }
-    )
-    
-    await syncDataType('Summaries', summariesFile, localSummaries,
-      async (data) => {
-        await clearAllSummaries()
-        if (data && data.length > 0) await addMultipleSummaries(data)
-      },
-      async (dataToPush) => {
-        await saveFile(accessToken, FILES.SUMMARIES, {
-          version: 1,
-          lastModified: new Date().toISOString(),
-          data: dataToPush || localSummaries,
-        })
-      }
-    )
-    
-    await syncDataType('History', historyFile, localHistory,
-      async (data) => {
-        await clearAllHistory()
-        if (data && data.length > 0) await addMultipleHistory(data)
-      },
-      async (dataToPush) => {
-        await saveFile(accessToken, FILES.HISTORY, {
-          version: 1,
-          lastModified: new Date().toISOString(),
-          data: dataToPush || localHistory,
-        })
-      }
-    )
-    
-    await syncDataType('Tags', tagsFile, localTags,
-      async (data) => {
-        if (data && data.length > 0) {
-          // Use safer replaceTagsStore which doesn't wipe summary references
-          await replaceTagsStore(data)
-        } else {
-          // If cloud data is empty, we might want to clear local tags?
-          // Or just merged result is empty.
-          // If merging returned empty, we should clear.
-          await replaceTagsStore([])
+    // Get sync preferences
+    const prefs = syncState.syncPreferences
+
+    // Sync each data type independently based on preferences
+    if (prefs.settings) {
+      await syncDataType('Settings', settingsFile, { ...settings }, 
+        (data) => updateSettings(data),
+        async (dataToPush) => {
+          await saveFile(accessToken, FILES.SETTINGS, {
+            version: 1,
+            lastModified: new Date().toISOString(),
+            data: dataToPush || { ...settings },
+          })
         }
-      },
-      async (dataToPush) => {
-        await saveFile(accessToken, FILES.TAGS, {
-          version: 1,
-          lastModified: new Date().toISOString(),
-          data: dataToPush || localTags,
-        })
-      }
-    )
+      )
+    } else {
+      logToUI('Skipping Settings sync (disabled in preferences)')
+    }
+    
+    if (prefs.history) {
+      await syncDataType('Summaries', summariesFile, localSummaries,
+        async (data) => {
+          await clearAllSummaries()
+          if (data && data.length > 0) await addMultipleSummaries(data)
+        },
+        async (dataToPush) => {
+          await saveFile(accessToken, FILES.SUMMARIES, {
+            version: 1,
+            lastModified: new Date().toISOString(),
+            data: dataToPush || localSummaries,
+          })
+        }
+      )
+      
+      await syncDataType('History', historyFile, localHistory,
+        async (data) => {
+          await clearAllHistory()
+          if (data && data.length > 0) await addMultipleHistory(data)
+        },
+        async (dataToPush) => {
+          await saveFile(accessToken, FILES.HISTORY, {
+            version: 1,
+            lastModified: new Date().toISOString(),
+            data: dataToPush || localHistory,
+          })
+        }
+      )
+    } else {
+      logToUI('Skipping History sync (disabled in preferences)')
+    }
+    
+    if (prefs.archive) {
+      await syncDataType('Tags', tagsFile, localTags,
+        async (data) => {
+          if (data && data.length > 0) {
+            // Use safer replaceTagsStore which doesn't wipe summary references
+            await replaceTagsStore(data)
+          } else {
+            // If cloud data is empty, we might want to clear local tags?
+            // Or just merged result is empty.
+            // If merging returned empty, we should clear.
+            await replaceTagsStore([])
+          }
+        },
+        async (dataToPush) => {
+          await saveFile(accessToken, FILES.TAGS, {
+            version: 1,
+            lastModified: new Date().toISOString(),
+            data: dataToPush || localTags,
+          })
+        }
+      )
+    } else {
+      logToUI('Skipping Archive/Tags sync (disabled in preferences)')
+    }
     
     // Update last sync time
     const now = new Date().toISOString()
@@ -560,29 +587,48 @@ async function pushAllData(accessToken, deviceId) {
   const localTags = await getAllTags()
   
   const now = new Date().toISOString()
+  const prefs = syncState.syncPreferences
   
-  await Promise.all([
-    saveFile(accessToken, FILES.SETTINGS, {
-      version: 1,
-      lastModified: now,
-      settings: { ...settings },
-    }),
-    saveFile(accessToken, FILES.SUMMARIES, {
-      version: 1,
-      lastModified: now,
-      data: localSummaries,
-    }),
-    saveFile(accessToken, FILES.HISTORY, {
-      version: 1,
-      lastModified: now,
-      data: localHistory,
-    }),
-    saveFile(accessToken, FILES.TAGS, {
-      version: 1,
-      lastModified: now,
-      data: localTags,
-    }),
-  ])
+  const pushPromises = []
+  
+  if (prefs.settings) {
+    pushPromises.push(
+      saveFile(accessToken, FILES.SETTINGS, {
+        version: 1,
+        lastModified: now,
+        settings: { ...settings },
+      })
+    )
+  }
+  
+  if (prefs.history) {
+    pushPromises.push(
+      saveFile(accessToken, FILES.SUMMARIES, {
+        version: 1,
+        lastModified: now,
+        data: localSummaries,
+      })
+    )
+    pushPromises.push(
+      saveFile(accessToken, FILES.HISTORY, {
+        version: 1,
+        lastModified: now,
+        data: localHistory,
+      })
+    )
+  }
+  
+  if (prefs.archive) {
+    pushPromises.push(
+      saveFile(accessToken, FILES.TAGS, {
+        version: 1,
+        lastModified: now,
+        data: localTags,
+      })
+    )
+  }
+  
+  await Promise.all(pushPromises)
   
   logToUI('Initial push completed')
 }
@@ -644,6 +690,26 @@ export async function setAutoSync(enabled) {
 }
 
 /**
+ * Update sync preferences
+ * @param {Object} preferences - { settings: boolean, history: boolean, archive: boolean }
+ */
+export async function setSyncPreferences(preferences) {
+  const stored = await syncStorage.getValue()
+  
+  const updatedPreferences = {
+    ...stored.syncPreferences,
+    ...preferences,
+  }
+  
+  await syncStorage.setValue({
+    ...stored,
+    syncPreferences: updatedPreferences,
+  })
+  
+  syncState.syncPreferences = updatedPreferences
+}
+
+/**
  * Start auto-sync interval
  */
 function startAutoSync() {
@@ -700,5 +766,8 @@ export const cloudSyncStore = {
   },
   get debugLogs() {
     return debugLogs
+  },
+  get syncPreferences() {
+    return syncState.syncPreferences
   }
 }

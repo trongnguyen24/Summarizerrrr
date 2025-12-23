@@ -106,7 +106,7 @@
   }
 </script>
 
-<div class="flex flex-col gap-8 p-6">
+<div class="flex flex-col gap-6 py-5">
   <!-- Tool Header/Introduction -->
   <div class="flex gap-4">
     <div class="size-24 bg-background shrink-0 overflow-hidden relative">

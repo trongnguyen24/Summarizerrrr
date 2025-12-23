@@ -127,6 +127,9 @@ const DEFAULT_SETTINGS = {
       autoGenerate: true,
       defaultChatProvider: 'gemini',
     },
+    cloudSync: {
+      enabled: true, // Default enabled for backward compatibility
+    },
   },
 
   // Metadata

@@ -19,6 +19,7 @@ import {
   isQuotaError,
   getNextFallbackModel,
   shouldEnableAutoFallback,
+  shouldEnableApiKeyRetry,
   getCurrentGeminiModel,
 } from '@/lib/utils/geminiAutoFallback.js'
 import { updateModelStatus } from '@/stores/summaryStore.svelte.js'
@@ -248,6 +249,9 @@ export async function generateContent(
 ) {
   // Check if auto-fallback is enabled (Gemini Basic only)
   const autoFallbackEnabled = shouldEnableAutoFallback(providerId, settings)
+  // Check if API key retry is enabled (Both Gemini Basic and Advanced)
+  const apiKeyRetryEnabled = shouldEnableApiKeyRetry(providerId, settings)
+  
   let currentModel = autoFallbackEnabled
     ? getCurrentGeminiModel(settings)
     : null
@@ -260,14 +264,20 @@ export async function generateContent(
   while (true) {
     try {
       // Create settings with current model & key
-      // If autoFallbackEnabled (Gemini Basic), explicit key management is needed
-      if (autoFallbackEnabled && !currentApiKey) {
-           const allKeys = [
-             settings.geminiApiKey,
-             ...(settings.geminiAdditionalApiKeys || [])
-           ].filter(k => k && k.trim() !== '') || []
+      // If apiKeyRetryEnabled (Gemini Basic or Advanced), explicit key management is needed
+      if (apiKeyRetryEnabled && !currentApiKey) {
+           const allKeys = settings.isAdvancedMode 
+             ? [
+                 settings.geminiAdvancedApiKey,
+                 ...(settings.geminiAdvancedAdditionalApiKeys || [])
+               ]
+             : [
+                 settings.geminiApiKey,
+                 ...(settings.geminiAdditionalApiKeys || [])
+               ]
+           const validKeys = allKeys.filter(k => k && k.trim() !== '')
            
-           if (allKeys.length > 0) {
+           if (validKeys.length > 0) {
                // Use the next sequential key
                currentApiKey = getGeminiApiKey(settings)
            }
@@ -364,38 +374,38 @@ export async function generateContent(
         throw error // Re-throw abort error so caller knows it was aborted
       }
 
-        // Check if we should try fallback
-      if (autoFallbackEnabled) {
-          // 1. Check for Quota Error (429) -> Try different KEY
-          if (isQuotaError(error)) {
-             console.log(`[aiSdkAdapter] ⚠️ Quota exceeded for key ending in ...${currentApiKey?.slice(-4)}`)
-             failedKeys.add(currentApiKey)
-             
-             // Find a key that hasn't failed yet
-             const allKeys = [
-                 settings.geminiApiKey,
-                 ...(settings.geminiAdditionalApiKeys || [])
-             ].filter(k => k && k.trim() !== '')
-             
-             const availableKeys = allKeys.filter(k => !failedKeys.has(k))
-             
-             if (availableKeys.length > 0) {
-                 // Pick next available key
-                 currentApiKey = availableKeys[0]
-                 console.log(`[aiSdkAdapter] 🔄 Switching to fresh API key ending in ...${currentApiKey.slice(-4)}`)
-                 continue // Retry loop with new key
-             } else {
-                 console.log('[aiSdkAdapter] ❌ All API keys exhausted (Quota)')
-                 // If all keys exhausted, logic could potentially fall through to model fallback 
-                 // BUT usually quota means quota. Let's see if IS_OVERLOAD is also true?
-                 // If we want to switch model after ALL keys fail, we can proceed.
-                 // For now, let's treat "All Keys Quota" as a potential reason to switch model (maybe lighter model has different quota tracking? unlikely for same account, but maybe).
-                 // Actually, usually quota is per project/account.
-                 // Let's try model fallback as last resort if quota fails on all keys.
-             }
-          }
+        // 1. Check for Quota Error (429) -> Try different KEY (for both Basic and Advanced)
+      if (apiKeyRetryEnabled && isQuotaError(error)) {
+         console.log(`[aiSdkAdapter] ⚠️ Quota exceeded for key ending in ...${currentApiKey?.slice(-4)}`)
+         failedKeys.add(currentApiKey)
+         
+         // Find a key that hasn't failed yet
+         const allKeys = settings.isAdvancedMode
+           ? [
+               settings.geminiAdvancedApiKey,
+               ...(settings.geminiAdvancedAdditionalApiKeys || [])
+             ]
+           : [
+               settings.geminiApiKey,
+               ...(settings.geminiAdditionalApiKeys || [])
+             ]
+         const validKeys = allKeys.filter(k => k && k.trim() !== '')
+         const availableKeys = validKeys.filter(k => !failedKeys.has(k))
+         
+         if (availableKeys.length > 0) {
+             // Pick next available key
+             currentApiKey = availableKeys[0]
+             console.log(`[aiSdkAdapter] 🔄 Switching to fresh API key ending in ...${currentApiKey.slice(-4)}`)
+             continue // Retry loop with new key
+         } else {
+             console.log('[aiSdkAdapter] ❌ All API keys exhausted (Quota)')
+             // If all keys exhausted for Advanced mode, throw error
+             // For Basic mode, try model fallback as last resort
+         }
+      }
 
-          // 2. Check for Overload Error (503) OR (All keys failed quota) -> Try different MODEL
+      // 2. Check for Overload Error (503) OR (All keys failed quota) -> Try different MODEL (Basic mode only)
+      if (autoFallbackEnabled) {
           if (isOverloadError(error) || (isQuotaError(error) && failedKeys.size >= ([settings.geminiApiKey, ...(settings.geminiAdditionalApiKeys||[])].filter(k => k && k.trim() !== '').length || 1))) {
                const nextModel = getNextFallbackModel(currentModel)
 
@@ -433,13 +443,6 @@ export async function generateContent(
                   )
                 }
           }
-      } else {
-        // Log why fallback was not triggered
-        if (autoFallbackEnabled) {
-          console.log(
-            '[aiSdkAdapter] ℹ️ Fallback not triggered - error not detected as overload'
-          )
-        }
       }
 
       // No fallback available or not an overload error, throw
@@ -470,6 +473,9 @@ export async function* generateContentStream(
 ) {
   // Check if auto-fallback is enabled (Gemini Basic only)
   const autoFallbackEnabled = shouldEnableAutoFallback(providerId, settings)
+  // Check if API key retry is enabled (Both Gemini Basic and Advanced)
+  const apiKeyRetryEnabled = shouldEnableApiKeyRetry(providerId, settings)
+  
   let currentModel = autoFallbackEnabled
     ? getCurrentGeminiModel(settings)
     : null
@@ -485,14 +491,20 @@ export async function* generateContentStream(
   while (true) {
     try {
       // Create settings with current model & key
-      // If autoFallbackEnabled (Gemini Basic), explicit key management is needed
-      if (autoFallbackEnabled && !currentApiKey) {
-           const allKeys = [
-             settings.geminiApiKey,
-             ...(settings.geminiAdditionalApiKeys || [])
-           ].filter(k => k && k.trim() !== '') || []
+      // If apiKeyRetryEnabled (Gemini Basic or Advanced), explicit key management is needed
+      if (apiKeyRetryEnabled && !currentApiKey) {
+           const allKeys = settings.isAdvancedMode 
+             ? [
+                 settings.geminiAdvancedApiKey,
+                 ...(settings.geminiAdvancedAdditionalApiKeys || [])
+               ]
+             : [
+                 settings.geminiApiKey,
+                 ...(settings.geminiAdditionalApiKeys || [])
+               ]
+           const validKeys = allKeys.filter(k => k && k.trim() !== '')
            
-           if (allKeys.length > 0) {
+           if (validKeys.length > 0) {
                // Use the next sequential key
                currentApiKey = getGeminiApiKey(settings)
            }
@@ -632,30 +644,38 @@ export async function* generateContentStream(
         error.isFirefoxMobileStreamingError = true
       }
 
-        // Check if we should try fallback
-      if (autoFallbackEnabled) {
-          // 1. Check for Quota Error (429) -> Try different KEY
-          if (isQuotaError(error)) {
-             console.log(`[aiSdkAdapter] ⚠️ Stream Quota exceeded for key ending in ...${currentApiKey?.slice(-4)}`)
-             failedKeys.add(currentApiKey)
-             
-             // Find a key that hasn't failed yet
-             const allKeys = [
-                 settings.geminiApiKey,
-                 ...(settings.geminiAdditionalApiKeys || [])
-             ].filter(k => k && k.trim() !== '')
-             
-             const availableKeys = allKeys.filter(k => !failedKeys.has(k))
-             
-             if (availableKeys.length > 0) {
-                 // Pick next available key
-                 currentApiKey = availableKeys[0]
-                 console.log(`[aiSdkAdapter] 🔄 Stream switching to fresh API key ending in ...${currentApiKey.slice(-4)}`)
-                 continue // Retry loop with new key
-             }
-          }
+        // 1. Check for Quota Error (429) -> Try different KEY (for both Basic and Advanced)
+      if (apiKeyRetryEnabled && isQuotaError(error)) {
+         console.log(`[aiSdkAdapter] ⚠️ Stream Quota exceeded for key ending in ...${currentApiKey?.slice(-4)}`)
+         failedKeys.add(currentApiKey)
+         
+         // Find a key that hasn't failed yet
+         const allKeys = settings.isAdvancedMode
+           ? [
+               settings.geminiAdvancedApiKey,
+               ...(settings.geminiAdvancedAdditionalApiKeys || [])
+             ]
+           : [
+               settings.geminiApiKey,
+               ...(settings.geminiAdditionalApiKeys || [])
+             ]
+         const validKeys = allKeys.filter(k => k && k.trim() !== '')
+         const availableKeys = validKeys.filter(k => !failedKeys.has(k))
+         
+         if (availableKeys.length > 0) {
+             // Pick next available key
+             currentApiKey = availableKeys[0]
+             console.log(`[aiSdkAdapter] 🔄 Stream switching to fresh API key ending in ...${currentApiKey.slice(-4)}`)
+             continue // Retry loop with new key
+         } else {
+             console.log('[aiSdkAdapter] ❌ All API keys exhausted (Quota) for streaming')
+             // If all keys exhausted for Advanced mode, throw error
+             // For Basic mode, try model fallback as last resort
+         }
+      }
 
-          // 2. Check for Overload Error (503) OR (All keys failed quota) -> Try different MODEL
+      // 2. Check for Overload Error (503) OR (All keys failed quota) -> Try different MODEL (Basic mode only)
+      if (autoFallbackEnabled) {
           if (isOverloadError(error) || (isQuotaError(error) && failedKeys.size >= ([settings.geminiApiKey, ...(settings.geminiAdditionalApiKeys||[])].filter(k => k && k.trim() !== '').length || 1))) {
                 const nextModel = getNextFallbackModel(currentModel)
         
@@ -683,13 +703,6 @@ export async function* generateContentStream(
                   )
                 }
           }
-      } else {
-        // Log why fallback was not triggered
-        if (autoFallbackEnabled) {
-          console.log(
-            '[aiSdkAdapter] ℹ️ Fallback not triggered - error not detected as overload'
-          )
-        }
       }
 
       // No fallback available or not an overload error, throw

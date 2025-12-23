@@ -142,6 +142,23 @@ export function getNextFallbackModel(currentModel) {
 }
 
 /**
+ * Checks if API key retry should be enabled
+ * Enable for both Gemini Basic and Advanced modes
+ * @param {string} providerId - Provider ID
+ * @param {object} settings - User settings
+ * @returns {boolean} True if API key retry should be enabled
+ */
+export function shouldEnableApiKeyRetry(providerId, settings) {
+  // Only for Gemini provider
+  if (providerId !== 'gemini') {
+    return false
+  }
+
+  // Enable for both Basic and Advanced modes
+  return true
+}
+
+/**
  * Checks if auto-fallback should be enabled for current settings
  * Only enable for Gemini Basic mode (not Advanced)
  * @param {string} providerId - Provider ID

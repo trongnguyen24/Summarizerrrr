@@ -66,14 +66,12 @@ export default defineContentScript({
         
         // Check if key elements are loaded
         if (videoTitle && videoDescription) {
-          console.log('[YouTube Copy Transcript] DOM ready - video metadata loaded')
           return true
         }
         
-        await new Promise(resolve => setTimeout(resolve, 200))
+        await new Promise(resolve => setTimeout(resolve, 1200))
       }
       
-      console.log('[YouTube Copy Transcript] DOM ready timeout')
       return false
     }
 
@@ -94,25 +92,20 @@ export default defineContentScript({
         // Check using YouTube's standard transcript button selector (language-independent)
         let showButton = document.querySelector('ytd-video-description-transcript-section-renderer button')
         
-        console.log('[YouTube Copy Transcript] Initial button check:', !!showButton)
-        
         // If not found, try expanding description
         if (!showButton) {
           const expandButton = document.querySelector('#expand')
           if (expandButton && expandButton.offsetParent !== null) {
-            console.log('[YouTube Copy Transcript] Expanding description...')
             expandButton.click()
             await new Promise(resolve => setTimeout(resolve, 800))
             
             // Try again after expanding
             showButton = document.querySelector('ytd-video-description-transcript-section-renderer button')
-            console.log('[YouTube Copy Transcript] After expand:', !!showButton)
           }
         }
         
         // Fallback to old selectors
         if (!showButton) {
-          console.log('[YouTube Copy Transcript] Trying fallback selectors...')
           showButton = document.querySelector('button[aria-label="Show transcript"]')
           
           if (!showButton) {
@@ -121,12 +114,9 @@ export default defineContentScript({
               btn.textContent.toLowerCase().includes('transcript')
             )
           }
-          console.log('[YouTube Copy Transcript] Fallback result:', !!showButton)
         }
         
         const hasTranscript = !!showButton
-        
-        console.log('[YouTube Copy Transcript] Final transcript availability:', hasTranscript)
         return { hasTranscript, videoTitle }
       } catch (error) {
         console.log(

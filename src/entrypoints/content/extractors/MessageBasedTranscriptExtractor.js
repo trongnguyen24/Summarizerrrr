@@ -299,9 +299,6 @@ export class MessageBasedTranscriptExtractor {
       }
 
 
-      console.log('[MessageBasedTranscriptExtractor] API fetching disabled for DOM testing')
-
-
       // Try DOM scraping as last resort
       try {
         console.log('[MessageBasedTranscriptExtractor] Trying DOM scraping...')
@@ -367,11 +364,9 @@ export class MessageBasedTranscriptExtractor {
       
       // If not found, try expanding description first
       if (!showButton) {
-        console.log('[DOM] Button not found, trying to expand description...')
         const expandButton = document.querySelector('#expand')
         
         if (expandButton && expandButton.offsetParent !== null) {
-          console.log('[DOM] Expanding description...')
           expandButton.click()
           await new Promise(resolve => setTimeout(resolve, 500))
           
@@ -382,7 +377,6 @@ export class MessageBasedTranscriptExtractor {
       
       // Fallback to old selectors if still not found
       if (!showButton) {
-        console.log('[DOM] Trying fallback selectors...')
         showButton = document.querySelector('button[aria-label="Show transcript"]')
         
         if (!showButton) {

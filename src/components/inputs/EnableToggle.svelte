@@ -28,7 +28,7 @@
     {id}
     bind:checked
     {onCheckedChange}
-    class="focus-visible:ring-primary group min-w-32 overflow-hidden w-full relative  text-text-secondary flex items-center focus-visible:ring-offset-background   transition-colors focus-visible:outline-hidden pr-4 h-9 pl-8 cursor-pointer  focus-visible:ring-1 focus-visible:ring-offset-1 data-[state=checked]:border-border data-[state=checked]:text-white"
+    class="focus-visible:ring-primary group overflow-hidden w-full relative  text-text-secondary flex items-center focus-visible:ring-offset-background   transition-colors focus-visible:outline-hidden pr-4 h-9 pl-8 cursor-pointer  focus-visible:ring-1 focus-visible:ring-offset-1 data-[state=checked]:border-border data-[state=checked]:text-white"
   >
     <div
       class=" absolute inset-0 bg-muted/5 border border-blackwhite/10 hover:border-blackwhite/15 transition-colors

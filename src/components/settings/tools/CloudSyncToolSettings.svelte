@@ -4,6 +4,7 @@
   import ToolIcon96 from '@/components/ui/ToolIcon96.svelte'
   import ToolEnableToggle from '@/components/inputs/ToolEnableToggle.svelte'
   import EnableToggle from '@/components/inputs/EnableToggle.svelte'
+  import ButtonSet from '@/components/buttons/ButtonSet.svelte'
   import { onMount } from 'svelte'
   import { settings, updateSettings } from '@/stores/settingsStore.svelte.js'
   import {
@@ -112,15 +113,18 @@
     if (diffMins < 1) return 'Just now'
     if (diffMins < 60) return `${diffMins} minute${diffMins > 1 ? 's' : ''} ago`
 
-    const diffHours = Math.floor(diffMins / 60)
-    if (diffHours < 24)
-      return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`
-
-    return date.toLocaleDateString()
+    // After 1 hour, show full date and time
+    return date.toLocaleString('vi-VN', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    })
   }
 </script>
 
-<div class="flex flex-col gap-6 py-5">
+<div class="flex flex-col gap-8 py-5">
   <div class="flex gap-4">
     <div class="size-24 bg-background shrink-0 overflow-hidden relative">
       <ToolIcon96 animated={cloudSyncEnabled} />
@@ -172,87 +176,40 @@
       {/if}
     {:else}
       <!-- Logged in state -->
-      <div class="flex flex-col gap-4">
-        <!-- User info -->
-        <div
-          class="flex relative items-center gap-3 overflow-hidden bg-surface-2 border border-border p-0.5"
-        >
-          {#if cloudSyncStore.userPicture}
-            <img
-              src={cloudSyncStore.userPicture}
-              alt={cloudSyncStore.userName}
-              class="size-14"
-            />
-          {:else}
-            <div class="size-14 flex items-center justify-center">
-              <Icon icon="heroicons:user" class="size-6 text-primary" />
-            </div>
-          {/if}
-          <div class="flex-1 min-w-0">
-            <p class="font-medium text-text-primary truncate">
-              {cloudSyncStore.userName}
-            </p>
-            <p class="text-xs text-muted truncate">
-              {cloudSyncStore.userEmail}
-            </p>
-            <p
-              class="text-[0.625rem] absolute py-1 pl-3 pr-2 border-b border-l rounded-bl-2xl bg-blackwhite-5 border-border top-0 right-0 text-muted"
+      <div class="flex flex-col gap-6">
+        <div>
+          <label class="text-text-primary">Sync Mode</label>
+          <p class="mt-1 text-muted text-xs">
+            Choose how your data syncs with Google Drive
+          </p>
+          <div class="grid mt-3 grid-cols-2 gap-2">
+            <ButtonSet
+              title="Manual"
+              class="setting-btn {!cloudSyncStore.autoSyncEnabled
+                ? 'active'
+                : ''}"
+              onclick={() => setAutoSync(false)}
+              Description="Sync only when you click Sync Now"
             >
-              Synced {formatLastSyncTime(cloudSyncStore.lastSyncTime, now)}
-            </p>
+              <Icon icon="heroicons:hand-raised" width="16" height="16" />
+            </ButtonSet>
+            <ButtonSet
+              title="Auto"
+              class="setting-btn {cloudSyncStore.autoSyncEnabled
+                ? 'active'
+                : ''}"
+              onclick={() => setAutoSync(true)}
+              Description="Sync automatically in the background"
+            >
+              <Icon icon="heroicons:bolt" width="16" height="16" />
+            </ButtonSet>
           </div>
         </div>
-
-        <!-- Sync status -->
-        <!-- <div class="flex items-center justify-between text-xs">
-          <span class="text-muted">Last sync:</span>
-          <div class="flex items-center gap-1">
-            {#if cloudSyncStore.isSyncing}
-              <Icon
-                icon="heroicons:arrow-path"
-                class="size-4 animate-spin text-primary"
-              />
-              <span class="text-primary">Syncing...</span>
-            {:else if cloudSyncStore.syncError}
-              <Icon
-                icon="heroicons:exclamation-circle"
-                class="size-4 text-red-500"
-              />
-              <span class="text-red-500" title={cloudSyncStore.syncError}>
-                Sync failed
-              </span>
-            {:else}
-              <Icon
-                icon="heroicons:check-circle"
-                class="size-4 text-green-500"
-              />
-              <span>{formatLastSyncTime(cloudSyncStore.lastSyncTime, now)}</span>
-            {/if}
-          </div>
-        </div> -->
-
-        <!-- Auto-sync toggle -->
-        <!-- <div class="flex items-center justify-between">
-          <span class="text-xs text-text-secondary">Auto sync</span>
-          <button
-            onclick={() => setAutoSync(!cloudSyncStore.autoSyncEnabled)}
-            aria-label="Auto sync"
-            class="relative w-10 h-5 rounded-full transition-colors {cloudSyncStore.autoSyncEnabled
-              ? 'bg-primary'
-              : 'bg-gray-300 dark:bg-surface-3'}"
-          >
-            <span
-              class="absolute top-0.5 left-0.5 size-4 rounded-full bg-white shadow transition-transform {cloudSyncStore.autoSyncEnabled
-                ? 'translate-x-5'
-                : 'translate-x-0'}"
-            ></span>
-          </button>
-        </div> -->
 
         <!-- Sync Preferences -->
         <div class="">
           <div class="mb-3">
-            <h4 class="text-sm font-medium text-text-primary">
+            <h4 class="text-xs font-medium text-text-primary">
               Sync Preferences
             </h4>
             <p class="text-xs text-muted mt-1">
@@ -293,7 +250,7 @@
         </div>
 
         <!-- Action buttons -->
-        <div class="flex gap-2">
+        <!-- <div class="flex gap-2">
           <button
             onclick={handleSyncNow}
             disabled={cloudSyncStore.isSyncing}
@@ -313,7 +270,7 @@
             <Icon icon="heroicons:arrow-right-on-rectangle" class="size-4" />
             <span class="text-xs">Sign Out</span>
           </button>
-        </div>
+        </div> -->
 
         <!-- Error Display -->
         {#if cloudSyncStore.syncError}
@@ -326,17 +283,70 @@
         {/if}
 
         <!-- Debug Logs (Temporary for debugging) -->
-        <div class="mt-4 border-t border-border pt-2">
-          <div class="flex items-center justify-between mb-1">
-            <div class="text-[10px] uppercase font-bold text-muted">
-              Debug Logs
-            </div>
-            <div class="text-[10px] text-muted">
-              {cloudSyncStore.debugLogs?.length || 0} events
-            </div>
-          </div>
+
+        <div class="relative bg-background overflow-hidden">
+          <span
+            class="absolute z-50 size-6 rotate-45 bg-surface-1 border border-border bottom-px left-px -translate-x-1/2 translate-y-1/2"
+          ></span>
+          <span
+            class="absolute z-[2] size-6 rotate-45 bg-surface-1 top-px border border-border right-px translate-x-1/2 -translate-y-1/2"
+          ></span>
+          <span
+            class="absolute z-[5] size-4 rotate-45 bg-text-primary top-px right-px translate-x-1/2 -translate-y-1/2"
+          ></span>
           <div
-            class="bg-background border border-border rounded p-2 h-32 overflow-y-auto font-mono text-[10px] space-y-1"
+            class="z-[1] absolute inset-0 border border-border pointer-events-none"
+          ></div>
+          <!-- User info -->
+          <div class="flex relative items-center overflow-hidden text-xs">
+            <div
+              class="overflow-hidden relative p-2 flex items-center justify-center"
+            >
+              <div
+                class="z-40 absolute inset-2 border border-muted pointer-events-none"
+              ></div>
+              {#if cloudSyncStore.userPicture}
+                <img
+                  src={cloudSyncStore.userPicture}
+                  alt={cloudSyncStore.userName}
+                  class="size-16"
+                />
+              {:else}
+                <Icon icon="heroicons:user" class="size-6 text-primary" />
+              {/if}
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-text-primary text-sm font-bold truncate">
+                {cloudSyncStore.userName}
+              </p>
+              <p class=" text-text-secondary truncate">
+                {cloudSyncStore.userEmail}
+              </p>
+              <p class=" text-muted">
+                Synced {formatLastSyncTime(cloudSyncStore.lastSyncTime, now)}
+              </p>
+            </div>
+            <button
+              onclick={handleSyncNow}
+              disabled={cloudSyncStore.isSyncing}
+              class="flex items-center justify-center gap-2 size-9 rounded-full text-text-primary border border-border hover:bg-blackwhite/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Icon
+                icon="heroicons:arrow-path"
+                class="size-4 {cloudSyncStore.isSyncing ? 'animate-spin' : ''}"
+              />
+              <!-- <span class="text-xs">Sync Now</span> -->
+            </button>
+            <button
+              onclick={handleLogout}
+              class="flex items-center justify-center gap-2 size-9 rounded-full text-text-primary border border-border hover:bg-blackwhite/10 transition-colors"
+            >
+              <Icon icon="heroicons:arrow-right-on-rectangle" class="size-4" />
+            </button>
+          </div>
+          <!-- Debug Logs -->
+          <div
+            class="bg-background border thin-scroll border-border rounded p-2 h-32 overflow-y-auto font-mono text-[10px] space-y-1"
           >
             {#if cloudSyncStore.debugLogs && cloudSyncStore.debugLogs.length > 0}
               {#each cloudSyncStore.debugLogs as log}

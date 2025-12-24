@@ -6,6 +6,10 @@
 
 <div class="setting-block flex gap-6 px-5 py-1 flex-col">
   <DeepDiveToolSettings />
-  <hr class="border-border/50" />
+  <div>
+    <hr class="border-border/50" />
+    <hr class="border-border/50" />
+  </div>
+
   <CloudSyncToolSettings />
 </div>

@@ -584,73 +584,71 @@
       onclick={(e) => e.stopPropagation()}
     >
       <div class="summarizerrrr-background">
-        <!-- Full menu when transcript is available -->
-        <button
-          class="summarizerrrr-btn-item"
-          title="Download as SRT"
-          aria-label="Download as SRT"
-          onclick={handleDownloadSRT}
-          disabled={loadingStates.downloadSRT}
-        >
-          {#if loadingStates.downloadSRT}
-            {@render spinner()}
-          {:else}
-            <svg class="copy-transcript-icon" viewBox="0 0 24 24" fill="none">
-              <path
-                d="M19 12v7H5v-7H3v7c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-7h-2z"
-                fill="currentColor"
-              />
-              <path
-                d="M13 12.67l2.59-2.58L17 11.5l-5 5-5-5 1.41-1.41L11 12.67V3h2v9.67z"
-                fill="currentColor"
-              />
-            </svg>
-          {/if}
-          Download as SRT
-        </button>
-        <button
-          class="copy-transcript-btn summarizerrrr-btn-item"
-          title="Copy Transcript"
-          aria-label="Copy Transcript"
-          onclick={handleCopyTranscript}
-          disabled={isLoading}
-        >
-          {#if isLoading}
-            {@render spinner()}
-          {:else}
-            <svg class="copy-transcript-icon" viewBox="0 0 24 24" fill="none">
-              <path
-                d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"
-                fill="currentColor"
-              />
-            </svg>
-          {/if}
-          Copy transcript
-        </button>
-
-        <button
-          class="summarizerrrr-btn-item"
-          title="Copy Transcript with Timestamp"
-          aria-label="Copy Transcript with Timestamp"
-          onclick={handleCopyTranscriptWithTimestamp}
-          disabled={loadingStates.copyWithTimestamp}
-        >
-          {#if loadingStates.copyWithTimestamp}
-            {@render spinner()}
-          {:else}
-            <svg class="copy-transcript-icon" viewBox="0 0 24 24" fill="none">
-              <path
-                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"
-                fill="currentColor"
-              />
-              <path
-                d="M12.5 7H11v6l5.25 3.15.75-1.23-4.5-2.67z"
-                fill="currentColor"
-              />
-            </svg>
-          {/if}
-          Copy transcript with timestamp
-        </button>
+        <!-- Transcript toolbar - icon-only buttons in horizontal row -->
+        <div class="transcript-toolbar">
+          <button
+            class="transcript-toolbar-btn"
+            title="Download as SRT"
+            aria-label="Download as SRT"
+            onclick={handleDownloadSRT}
+            disabled={loadingStates.downloadSRT}
+          >
+            {#if loadingStates.downloadSRT}
+              {@render spinner()}
+            {:else}
+              <svg viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M19 12v7H5v-7H3v7c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-7h-2z"
+                  fill="currentColor"
+                />
+                <path
+                  d="M13 12.67l2.59-2.58L17 11.5l-5 5-5-5 1.41-1.41L11 12.67V3h2v9.67z"
+                  fill="currentColor"
+                />
+              </svg>
+            {/if}
+          </button>
+          <button
+            class="transcript-toolbar-btn"
+            title="Copy transcript"
+            aria-label="Copy transcript"
+            onclick={handleCopyTranscript}
+            disabled={isLoading}
+          >
+            {#if isLoading}
+              {@render spinner()}
+            {:else}
+              <svg viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"
+                  fill="currentColor"
+                />
+              </svg>
+            {/if}
+          </button>
+          <button
+            class="transcript-toolbar-btn"
+            title="Copy transcript with timestamp"
+            aria-label="Copy transcript with timestamp"
+            onclick={handleCopyTranscriptWithTimestamp}
+            disabled={loadingStates.copyWithTimestamp}
+          >
+            {#if loadingStates.copyWithTimestamp}
+              {@render spinner()}
+            {:else}
+              <svg viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"
+                  fill="currentColor"
+                />
+                <path
+                  d="M12.5 7H11v6l5.25 3.15.75-1.23-4.5-2.67z"
+                  fill="currentColor"
+                />
+              </svg>
+            {/if}
+          </button>
+        </div>
 
         <button
           class="summarizerrrr-btn-item"

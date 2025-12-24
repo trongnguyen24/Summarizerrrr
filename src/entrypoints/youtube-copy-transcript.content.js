@@ -55,16 +55,78 @@ export default defineContentScript({
       })
     }
 
+    // Helper function to wait for DOM to be fully ready
+    const waitForDOMReady = async (timeout = 10000) => {
+      const startTime = Date.now()
+      
+      // Wait for video metadata to be loaded
+      while (Date.now() - startTime < timeout) {
+        const videoTitle = document.querySelector('h1.ytd-watch-metadata')
+        const videoDescription = document.querySelector('ytd-text-inline-expander')
+        
+        // Check if key elements are loaded
+        if (videoTitle && videoDescription) {
+          console.log('[YouTube Copy Transcript] DOM ready - video metadata loaded')
+          return true
+        }
+        
+        await new Promise(resolve => setTimeout(resolve, 200))
+      }
+      
+      console.log('[YouTube Copy Transcript] DOM ready timeout')
+      return false
+    }
+
     // Check if transcript is available
     const checkTranscriptAvailability = async () => {
       try {
+        // Wait for DOM to be fully ready
+        await waitForDOMReady()
+        
+        // Additional delay to ensure description is rendered
+        await new Promise(resolve => setTimeout(resolve, 500))
+        
         const videoTitle =
           document
             .querySelector('h1.ytd-watch-metadata')
             ?.textContent?.trim() || document.title
-        const transcriptExtractor = new MessageBasedTranscriptExtractor('en')
-        const transcript = await transcriptExtractor.getPlainTranscript()
-        const hasTranscript = transcript && transcript.trim().length > 0
+        
+        // Check using YouTube's standard transcript button selector (language-independent)
+        let showButton = document.querySelector('ytd-video-description-transcript-section-renderer button')
+        
+        console.log('[YouTube Copy Transcript] Initial button check:', !!showButton)
+        
+        // If not found, try expanding description
+        if (!showButton) {
+          const expandButton = document.querySelector('#expand')
+          if (expandButton && expandButton.offsetParent !== null) {
+            console.log('[YouTube Copy Transcript] Expanding description...')
+            expandButton.click()
+            await new Promise(resolve => setTimeout(resolve, 800))
+            
+            // Try again after expanding
+            showButton = document.querySelector('ytd-video-description-transcript-section-renderer button')
+            console.log('[YouTube Copy Transcript] After expand:', !!showButton)
+          }
+        }
+        
+        // Fallback to old selectors
+        if (!showButton) {
+          console.log('[YouTube Copy Transcript] Trying fallback selectors...')
+          showButton = document.querySelector('button[aria-label="Show transcript"]')
+          
+          if (!showButton) {
+            const buttons = Array.from(document.querySelectorAll('button'))
+            showButton = buttons.find(btn => 
+              btn.textContent.toLowerCase().includes('transcript')
+            )
+          }
+          console.log('[YouTube Copy Transcript] Fallback result:', !!showButton)
+        }
+        
+        const hasTranscript = !!showButton
+        
+        console.log('[YouTube Copy Transcript] Final transcript availability:', hasTranscript)
         return { hasTranscript, videoTitle }
       } catch (error) {
         console.log(

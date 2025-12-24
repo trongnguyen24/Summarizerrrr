@@ -187,8 +187,11 @@ export class MessageBasedTranscriptExtractor {
         )
       }
 
-      // Prioritize the preferred language, then fall back to others
-      const languageCodes = [preferredLang, 'en', 'vi']
+      // Prioritize the preferred language, then 'en', then auto-generated
+      const languageCodes = [preferredLang]
+      if (preferredLang !== 'en') {
+        languageCodes.push('en')
+      }
       const uniqueLanguageCodes = [...new Set(languageCodes)]
 
       for (const langCode of uniqueLanguageCodes) {
@@ -295,8 +298,28 @@ export class MessageBasedTranscriptExtractor {
         )
       }
 
+
+      console.log('[MessageBasedTranscriptExtractor] API fetching disabled for DOM testing')
+
+
+      // Try DOM scraping as last resort
+      try {
+        console.log('[MessageBasedTranscriptExtractor] Trying DOM scraping...')
+        const domTranscript = await this.fetchTranscriptFromDOM(includeTimestamps)
+        
+        if (domTranscript) {
+          console.log('[MessageBasedTranscriptExtractor] DOM transcript found')
+          this.transcriptCache.set(cacheKey, domTranscript)
+          return domTranscript
+        }
+      } catch (error) {
+        console.log(
+          `[MessageBasedTranscriptExtractor] DOM scraping failed: ${error.message}`
+        )
+      }
+
       console.log(
-        '[MessageBasedTranscriptExtractor] No transcript found for any attempted language.'
+        '[MessageBasedTranscriptExtractor] No transcript found for any attempted method.'
       )
       return null
     } catch (error) {
@@ -309,6 +332,141 @@ export class MessageBasedTranscriptExtractor {
   }
 
   /**
+   * Helper method to wait for an element to appear in the DOM
+   * @param {string} selector - CSS selector
+   * @param {number} timeout - Timeout in milliseconds
+   * @returns {Promise<Element>} - The found element
+   */
+  async waitForElement(selector, timeout = 5000) {
+    const startTime = Date.now()
+    
+    while (Date.now() - startTime < timeout) {
+      const element = document.querySelector(selector)
+      if (element) {
+        console.log(`[DOM] Element found: ${selector}`)
+        return element
+      }
+      
+      await new Promise(resolve => setTimeout(resolve, 100))
+    }
+    
+    throw new Error(`Element ${selector} not found within ${timeout}ms`)
+  }
+
+  /**
+   * Fetch transcript by scraping the DOM (fallback method)
+   * @param {boolean} includeTimestamps - Include timestamps in output
+   * @returns {Promise<string|null>} - Transcript or null
+   */
+  async fetchTranscriptFromDOM(includeTimestamps = false) {
+    try {
+      console.log('[DOM] Starting DOM scraping for transcript...')
+      
+      // 1. Find transcript button using YouTube's standard tag (language-independent)
+      let showButton = document.querySelector('ytd-video-description-transcript-section-renderer button')
+      
+      // If not found, try expanding description first
+      if (!showButton) {
+        console.log('[DOM] Button not found, trying to expand description...')
+        const expandButton = document.querySelector('#expand')
+        
+        if (expandButton && expandButton.offsetParent !== null) {
+          console.log('[DOM] Expanding description...')
+          expandButton.click()
+          await new Promise(resolve => setTimeout(resolve, 500))
+          
+          // Try finding button again
+          showButton = document.querySelector('ytd-video-description-transcript-section-renderer button')
+        }
+      }
+      
+      // Fallback to old selectors if still not found
+      if (!showButton) {
+        console.log('[DOM] Trying fallback selectors...')
+        showButton = document.querySelector('button[aria-label="Show transcript"]')
+        
+        if (!showButton) {
+          const buttons = Array.from(document.querySelectorAll('button'))
+          showButton = buttons.find(btn => 
+            btn.textContent.toLowerCase().includes('transcript')
+          )
+        }
+      }
+      
+      if (!showButton) {
+        console.log('[DOM] Show transcript button not found after all attempts')
+        return null
+      }
+      
+      console.log('[DOM] Found transcript button, clicking...')
+      showButton.click()
+      
+      // 2. Wait for transcript panel to appear
+      await this.waitForElement(
+        'ytd-engagement-panel-section-list-renderer[target-id="engagement-panel-searchable-transcript"]',
+        5000
+      )
+      
+      // Small delay to ensure content is loaded
+      await new Promise(resolve => setTimeout(resolve, 500))
+      
+      // 3. Get all transcript segments
+      const segments = document.querySelectorAll('ytd-transcript-segment-renderer')
+      
+      if (!segments || segments.length === 0) {
+        console.log('[DOM] No transcript segments found')
+        return null
+      }
+      
+      console.log(`[DOM] Found ${segments.length} transcript segments`)
+      
+      // 4. Parse segments with correct selectors
+      const transcriptData = []
+      segments.forEach(segment => {
+        // Correct selectors based on inspection
+        const timeElement = segment.querySelector('div.segment-start-offset')
+        const textElement = segment.querySelector('yt-formatted-string.segment-text')
+        
+        if (textElement) {
+          const text = textElement.textContent.trim()
+          const timestamp = timeElement?.textContent?.trim() || '00:00'
+          
+          transcriptData.push({ text, timestamp })
+        }
+      })
+      
+      if (transcriptData.length === 0) {
+        console.log('[DOM] No valid transcript data extracted')
+        return null
+      }
+      
+      console.log(`[DOM] Successfully parsed ${transcriptData.length} segments`)
+      
+      // 5. Format result
+      let result
+      if (includeTimestamps) {
+        const videoTitle = this.getVideoTitle()
+        const content = transcriptData
+          .map(s => `[${s.timestamp}] ${s.text}`)
+          .join('\n')
+        
+        result = videoTitle ? `<title>${videoTitle}</title>\n\n${content}` : content
+      } else {
+        result = transcriptData.map(s => s.text).join(' ')
+      }
+      
+      console.log(`[DOM] Successfully extracted transcript (${result.length} characters)`)
+      return result
+      
+    } catch (error) {
+      console.error('[DOM] Error fetching transcript from DOM:', error)
+      return null
+    }
+  }
+
+
+  /**
+
    * Get raw transcript data (for SRT conversion, etc.)
    * @param {string} preferredLang - Preferred language code
    * @returns {Promise<Array|null>} - Raw transcript segments or null
@@ -318,7 +476,10 @@ export class MessageBasedTranscriptExtractor {
       const videoId = this.getVideoId()
       if (!videoId) return null
 
-      const languageCodes = [preferredLang, 'en', 'vi']
+      const languageCodes = [preferredLang]
+      if (preferredLang !== 'en') {
+        languageCodes.push('en')
+      }
       const uniqueLanguageCodes = [...new Set(languageCodes)]
 
       for (const langCode of uniqueLanguageCodes) {

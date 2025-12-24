@@ -20,7 +20,7 @@ import {
 import { getAISDKModel, mapGenerationConfig } from '@/lib/api/aiSdkAdapter.js'
 import { generateText } from 'ai'
 import { aiConfig } from '../lib/config/aiConfig.js'
-import { generateAISummaryPrompt } from '../lib/prompts/templates/aiSummary.js'
+import { generateAISummaryPrompt, generateYouTubeAISummaryPrompt } from '../lib/prompts/templates/aiSummary.js'
 
 // --- Helper Functions ---
 
@@ -973,6 +973,10 @@ export default defineBackground(() => {
       handleAISummarization('gemini', message.transcript, sendResponse)
       return true
     }
+    if (message.type === 'SUMMARIZE_ON_GEMINI_WITH_URL') {
+      handleGeminiWithYouTubeURL(message.youtubeUrl, sendResponse)
+      return true
+    }
     if (message.type === 'SUMMARIZE_ON_CHATGPT') {
       handleAISummarization('chatgpt', message.transcript, sendResponse)
       return true
@@ -1415,6 +1419,51 @@ export default defineBackground(() => {
       }, 2000)
     } catch (error) {
       console.error(`[Background] Error processing ${service} request:`, error)
+      sendResponse({ success: false, error: error.message })
+    }
+  }
+
+  // --- Gemini with YouTube URL Handler ---
+  /**
+   * Handle Gemini summarization using YouTube URL directly (when no transcript is available)
+   * Gemini can process YouTube videos directly through the URL
+   * @param {string} youtubeUrl - The YouTube video URL
+   * @param {Function} sendResponse - The response callback function
+   */
+  async function handleGeminiWithYouTubeURL(youtubeUrl, sendResponse) {
+    try {
+      console.log('[Background] Processing Gemini with YouTube URL:', youtubeUrl)
+
+      const config = aiConfig['gemini']
+      if (!config) {
+        throw new Error('Gemini configuration not found')
+      }
+
+      // Load settings to get summary language
+      const settings = await loadSettingsWithReadiness()
+      const summaryLang = settings?.summaryLang || 'English'
+
+      // Create Gemini tab
+      const tab = await createAITab('gemini', config)
+
+      // Build prompt with YouTube URL
+      const prompt = generateYouTubeAISummaryPrompt(youtubeUrl, summaryLang)
+      console.log('[Background] Gemini YouTube URL prompt length:', prompt.length)
+
+      // Send content to tab with retry mechanism
+      setTimeout(() => {
+        sendContentToTab(
+          tab.id,
+          config.messageType,
+          prompt,
+          0,
+          15,
+          'gemini',
+          sendResponse
+        )
+      }, 2000)
+    } catch (error) {
+      console.error('[Background] Error processing Gemini with YouTube URL:', error)
       sendResponse({ success: false, error: error.message })
     }
   }

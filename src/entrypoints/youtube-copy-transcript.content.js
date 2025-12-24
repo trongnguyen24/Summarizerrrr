@@ -89,6 +89,9 @@ export default defineContentScript({
             .querySelector('h1.ytd-watch-metadata')
             ?.textContent?.trim() || document.title
         
+        // Get current video URL
+        const videoUrl = window.location.href
+        
         // Check using YouTube's standard transcript button selector (language-independent)
         let showButton = document.querySelector('ytd-video-description-transcript-section-renderer button')
         
@@ -117,13 +120,13 @@ export default defineContentScript({
         }
         
         const hasTranscript = !!showButton
-        return { hasTranscript, videoTitle }
+        return { hasTranscript, videoTitle, videoUrl }
       } catch (error) {
         console.log(
           '[YouTube Copy Transcript] Error checking transcript availability:',
           error
         )
-        return { hasTranscript: false, videoTitle: '' }
+        return { hasTranscript: false, videoTitle: '', videoUrl: window.location.href }
       }
     }
 
@@ -133,26 +136,16 @@ export default defineContentScript({
     // Insert copy transcript icon
     const insertCopyIcon = async (rightControls) => {
       try {
-        // Check if transcript is available before showing icon
-        const { hasTranscript, videoTitle } =
+        // Check transcript availability and get video info
+        const { hasTranscript, videoTitle, videoUrl } =
           await checkTranscriptAvailability()
-        if (!hasTranscript) {
-          console.log(
-            '[YouTube Copy Transcript] No transcript available, not showing icon'
-          )
-          // Remove existing icon if no transcript available
-          if (currentUI) {
-            currentUI.remove()
-            currentUI = null
-            const existingIcon = document.querySelector(
-              '.copy-transcript-container'
-            )
-            if (existingIcon) {
-              existingIcon.remove()
-            }
-          }
-          return
-        }
+        
+        // Always show icon - Gemini can process YouTube videos directly even without transcript
+        console.log(
+          '[YouTube Copy Transcript] Transcript available:',
+          hasTranscript,
+          '- Icon will always be shown'
+        )
 
         // Remove existing icon to create a fresh one with updated props
         if (currentUI) {
@@ -192,7 +185,7 @@ export default defineContentScript({
           onMount(container) {
             const app = mount(CopyTranscriptIcon, {
               target: container,
-              props: { videoTitle },
+              props: { videoTitle, hasTranscript, videoUrl },
             })
             return app
           },

@@ -136,3 +136,17 @@
     font-size: 1.2rem;
   }
 }
+
+/* No transcript notice */
+.no-transcript-notice {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.8rem 1.2rem;
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.67);
+}
+
+.no-transcript-notice svg {
+  flex-shrink: 0;
+}

@@ -114,6 +114,7 @@
   height: fit-content;
   transform: translateX(-105%) translateY(-50%);
   font-size: 1.2rem;
+  white-space: nowrap;
 }
 .summarizerrrr-btn:hover .summarizerrrr-tooltip {
   display: block;

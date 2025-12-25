@@ -26,17 +26,17 @@ export async function preloadTagsData() {
   tagsCache.error = null
 
   try {
-    // Load tags data
+    // Load tags data and filter out soft-deleted ones
     const tagsResult = await getAllTags().catch(() => [])
+    const activeTags = (tagsResult || []).filter(tag => !tag.deleted)
 
     // Sort tags theo tên (sử dụng ngôn ngữ UI hiện tại)
-    tagsCache.tags =
-      tagsResult?.sort((a, b) =>
-        a.name.localeCompare(b.name, settings.uiLang, {
-          numeric: true,
-          sensitivity: 'base',
-        })
-      ) || []
+    tagsCache.tags = activeTags.sort((a, b) =>
+      a.name.localeCompare(b.name, settings.uiLang, {
+        numeric: true,
+        sensitivity: 'base',
+      })
+    )
 
     tagsCache.isLoaded = true
     tagsCache.lastUpdated = Date.now()

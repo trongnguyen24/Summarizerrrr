@@ -4,7 +4,7 @@ import { generateUUID } from '../utils/utils'
 const DB_NAME = 'summarizer_db'
 const STORE_NAME = 'summaries'
 const TAGS_STORE_NAME = 'tags'
-const DB_VERSION = 8 // Version increased for backup store
+const DB_VERSION = 9 // Version increased for soft delete migration
 const HISTORY_STORE_NAME = 'history'
 const HISTORY_LIMIT = 100
 
@@ -77,8 +77,25 @@ function openDatabase() {
           const cursor = e.target.result
           if (cursor) {
             const value = cursor.value
+            let needsUpdate = false
+            
+            // Migration: tags array
             if (value.tags === undefined) {
               value.tags = []
+              needsUpdate = true
+            }
+            
+            // Migration: soft delete fields for cloud sync
+            if (value.deleted === undefined) {
+              value.deleted = false
+              needsUpdate = true
+            }
+            if (value.updatedAt === undefined) {
+              value.updatedAt = value.date || new Date().toISOString()
+              needsUpdate = true
+            }
+            
+            if (needsUpdate) {
               cursor.update(value)
             }
             cursor.continue()
@@ -86,7 +103,7 @@ function openDatabase() {
         }
       }
 
-      // Migration: Add contentType to existing history items
+      // Migration: Add contentType and soft delete fields to existing history items
       if (transaction.objectStoreNames.contains(HISTORY_STORE_NAME)) {
         const historyStore = transaction.objectStore(HISTORY_STORE_NAME)
 
@@ -105,16 +122,58 @@ function openDatabase() {
           const cursor = e.target.result
           if (cursor) {
             const value = cursor.value
+            let needsUpdate = false
+            
+            // Migration: contentType
             if (value.contentType === undefined) {
               try {
-                const detectedType = detectContentTypeSync(value.url)
-                value.contentType = detectedType
-                cursor.update(value)
+                value.contentType = detectContentTypeSync(value.url)
               } catch (error) {
-                // Fallback to 'website' if detection fails
                 value.contentType = 'website'
-                cursor.update(value)
               }
+              needsUpdate = true
+            }
+            
+            // Migration: soft delete fields for cloud sync
+            if (value.deleted === undefined) {
+              value.deleted = false
+              needsUpdate = true
+            }
+            if (value.updatedAt === undefined) {
+              value.updatedAt = value.date || new Date().toISOString()
+              needsUpdate = true
+            }
+            
+            if (needsUpdate) {
+              cursor.update(value)
+            }
+            cursor.continue()
+          }
+        }
+      }
+
+      // Migration: Add soft delete fields to existing tags
+      if (transaction.objectStoreNames.contains(TAGS_STORE_NAME)) {
+        const tagStore = transaction.objectStore(TAGS_STORE_NAME)
+        
+        tagStore.openCursor().onsuccess = (e) => {
+          const cursor = e.target.result
+          if (cursor) {
+            const value = cursor.value
+            let needsUpdate = false
+            
+            // Migration: soft delete fields for cloud sync
+            if (value.deleted === undefined) {
+              value.deleted = false
+              needsUpdate = true
+            }
+            if (value.updatedAt === undefined) {
+              value.updatedAt = value.createdAt || new Date().toISOString()
+              needsUpdate = true
+            }
+            
+            if (needsUpdate) {
+              cursor.update(value)
             }
             cursor.continue()
           }
@@ -802,6 +861,96 @@ export {
   clearAllHistory,
   clearAllTags,
   replaceTagsStore,
+  // Soft delete exports for cloud sync
+  softDeleteSummary,
+  softDeleteTag,
+  softDeleteHistory,
+}
+
+// --- Soft Delete Functions for Cloud Sync ---
+
+/**
+ * Soft delete a summary (mark as deleted instead of removing)
+ * Used for cloud sync to propagate deletions across devices
+ * @param {string} id - Summary ID to soft delete
+ */
+async function softDeleteSummary(id) {
+  if (!db) db = await openDatabase()
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction([STORE_NAME], 'readwrite')
+    const objectStore = transaction.objectStore(STORE_NAME)
+    const getRequest = objectStore.get(id)
+    
+    getRequest.onsuccess = () => {
+      const summary = getRequest.result
+      if (summary) {
+        summary.deleted = true
+        summary.updatedAt = new Date().toISOString()
+        const putRequest = objectStore.put(summary)
+        putRequest.onsuccess = () => resolve(summary)
+        putRequest.onerror = (event) => reject(event.target.error)
+      } else {
+        reject(new Error('Summary not found'))
+      }
+    }
+    getRequest.onerror = (event) => reject(event.target.error)
+  })
+}
+
+/**
+ * Soft delete a tag (mark as deleted instead of removing)
+ * Used for cloud sync to propagate deletions across devices
+ * @param {string} id - Tag ID to soft delete
+ */
+async function softDeleteTag(id) {
+  if (!db) db = await openDatabase()
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction([TAGS_STORE_NAME], 'readwrite')
+    const objectStore = transaction.objectStore(TAGS_STORE_NAME)
+    const getRequest = objectStore.get(id)
+    
+    getRequest.onsuccess = () => {
+      const tag = getRequest.result
+      if (tag) {
+        tag.deleted = true
+        tag.updatedAt = new Date().toISOString()
+        const putRequest = objectStore.put(tag)
+        putRequest.onsuccess = () => resolve(tag)
+        putRequest.onerror = (event) => reject(event.target.error)
+      } else {
+        reject(new Error('Tag not found'))
+      }
+    }
+    getRequest.onerror = (event) => reject(event.target.error)
+  })
+}
+
+/**
+ * Soft delete a history item (mark as deleted instead of removing)
+ * Used for cloud sync to propagate deletions across devices
+ * @param {string} id - History ID to soft delete
+ */
+async function softDeleteHistory(id) {
+  if (!db) db = await openDatabase()
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction([HISTORY_STORE_NAME], 'readwrite')
+    const objectStore = transaction.objectStore(HISTORY_STORE_NAME)
+    const getRequest = objectStore.get(id)
+    
+    getRequest.onsuccess = () => {
+      const historyItem = getRequest.result
+      if (historyItem) {
+        historyItem.deleted = true
+        historyItem.updatedAt = new Date().toISOString()
+        const putRequest = objectStore.put(historyItem)
+        putRequest.onsuccess = () => resolve(historyItem)
+        putRequest.onerror = (event) => reject(event.target.error)
+      } else {
+        reject(new Error('History item not found'))
+      }
+    }
+    getRequest.onerror = (event) => reject(event.target.error)
+  })
 }
 
 // --- Sync Helper Functions ---

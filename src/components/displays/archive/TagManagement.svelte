@@ -5,6 +5,7 @@
     addTag,
     deleteTag,
     updateTag,
+    softDeleteTag,
   } from '@/lib/db/indexedDBService'
   import Icon from '@iconify/svelte'
   import { slideScaleFade } from '@/lib/ui/slideScaleFade.js'
@@ -223,7 +224,18 @@
 
   async function performDelete(id) {
     try {
-      await deleteTag(id)
+      // Use soft delete for cloud sync compatibility
+      await softDeleteTag(id)
+
+      // Trigger cloud sync after deleting tag
+      try {
+        const { triggerSync } = await import(
+          '@/services/cloudSync/cloudSyncService.svelte.js'
+        )
+        triggerSync()
+      } catch (syncError) {
+        console.warn('Failed to trigger sync after deleting tag:', syncError)
+      }
 
       // Remove from active filters if selected
       if (isTagSelected(id)) {

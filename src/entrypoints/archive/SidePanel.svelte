@@ -17,6 +17,8 @@
     updateHistory,
     getSummaryById,
     getHistoryById,
+    softDeleteSummary,
+    softDeleteHistory,
   } from '@/lib/db/indexedDBService'
   import TabArchive from '@/components/navigation/TabArchive.svelte'
   import TagManagement from '@/components/displays/archive/TagManagement.svelte'
@@ -209,9 +211,20 @@
 
   async function handleDelete(id) {
     try {
+      // Use soft delete for cloud sync compatibility
       activeTab === 'archive'
-        ? await deleteSummary(id)
-        : await deleteHistory(id)
+        ? await softDeleteSummary(id)
+        : await softDeleteHistory(id)
+
+      // Trigger cloud sync after delete
+      try {
+        const { triggerSync } = await import(
+          '@/services/cloudSync/cloudSyncService.svelte.js'
+        )
+        triggerSync()
+      } catch (syncError) {
+        console.warn('Failed to trigger sync after delete:', syncError)
+      }
 
       await refreshSummaries()
 

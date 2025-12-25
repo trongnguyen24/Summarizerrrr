@@ -1,7 +1,10 @@
 // @ts-nocheck
 /**
- * Cloud Sync Service
- * Main service for syncing data between local storage and Google Drive
+ * Cloud Sync Service v2
+ * Architecture: 3 files (settings.json, history.json, library.json)
+ * - Settings: Last Write Wins
+ * - History: Append-only Map Merge
+ * - Library (Archive + Tags): Smart Merge with Soft Delete
  */
 
 import { storage } from '@wxt-dev/storage'
@@ -16,32 +19,25 @@ import {
 import {
   getAllSummaries,
   getAllHistory,
-  addSummary,
-  updateSummary,
-  deleteSummary,
-  addHistory,
-  updateHistory,
-  deleteHistory,
+  getAllTags,
   addMultipleSummaries,
   addMultipleHistory,
   clearAllSummaries,
   clearAllHistory,
-  getAllTags,
-  addTag,
-  updateTag,
-  deleteTag,
-  clearAllTags,
   replaceTagsStore,
 } from '@/lib/db/indexedDBService.js'
 import { settings, loadSettings, updateSettings } from '@/stores/settingsStore.svelte.js'
 import { generateUUID } from '@/lib/utils/utils.js'
 
+// File names on Google Drive - 3 file architecture
 const FILES = {
   SETTINGS: 'summarizerrrr-settings.json',
-  SUMMARIES: 'summarizerrrr-summaries.json',
   HISTORY: 'summarizerrrr-history.json',
-  TAGS: 'summarizerrrr-tags.json',
+  LIBRARY: 'summarizerrrr-library.json', // Archive + Tags combined for atomic sync
 }
+
+// Soft delete cleanup threshold (30 days in ms)
+const SOFT_DELETE_CLEANUP_MS = 30 * 24 * 60 * 60 * 1000
 
 // --- Storage Definition ---
 export const syncStorage = storage.defineItem('local:syncState', {
@@ -59,7 +55,7 @@ export const syncStorage = storage.defineItem('local:syncState', {
     syncPreferences: {
       settings: true,
       history: true,
-      archive: true, // includes tags
+      library: true, // Archive + Tags combined
     },
   },
 })
@@ -77,7 +73,7 @@ let syncState = $state({
   syncPreferences: {
     settings: true,
     history: true,
-    archive: true,
+    library: true,
   },
 })
 
@@ -91,8 +87,8 @@ function logToUI(msg, type = 'info') {
 }
 
 let syncInterval = null
-const AUTO_SYNC_INTERVAL = 2 * 60 * 1000 // 2 minutes (optimized from 5)
-const DEBOUNCE_DELAY = 7 * 1000 // 7 seconds - sync shortly after user actions
+const AUTO_SYNC_INTERVAL = 2 * 60 * 1000 // 2 minutes
+const DEBOUNCE_DELAY = 7 * 1000 // 7 seconds
 let debounceTimer = null
 
 // Token cache to avoid reading from storage every time
@@ -123,21 +119,30 @@ export async function initSync() {
     syncState.userEmail = stored.userEmail
     syncState.userName = stored.userName
     syncState.userPicture = stored.userPicture
+    
+    // Migrate old preferences format if needed
+    if (stored.syncPreferences?.archive !== undefined && stored.syncPreferences?.library === undefined) {
+      stored.syncPreferences.library = stored.syncPreferences.archive
+      delete stored.syncPreferences.archive
+      await syncStorage.setValue(stored)
+    }
+    
     syncState.syncPreferences = stored.syncPreferences || {
       settings: true,
       history: true,
-      archive: true,
+      library: true,
     }
     
     // If logged in, check token validity and start auto-sync
     if (stored.isLoggedIn && stored.accessToken) {
       if (isTokenExpired(stored.tokenExpiry)) {
-        if (stored.refreshToken) {
-          await refreshToken()
-        } else {
-          // Token expired and no refresh token - need re-login
-          await logout(false)
-          return
+        // Try silent re-auth with Implicit Flow
+        try {
+          await silentRefreshToken()
+        } catch (error) {
+          console.warn('Silent refresh failed, user needs to re-login:', error)
+          // Don't logout immediately - let them manually try again
+          // await logout(false)
         }
       }
       
@@ -159,24 +164,32 @@ function isTokenExpired(expiryTime) {
 }
 
 /**
- * Refresh access token
+ * Silent refresh token using Implicit Flow
+ * This uses prompt:none to get a new token without user interaction
  */
-async function refreshToken() {
-  const stored = await syncStorage.getValue()
-  
-  if (!stored.refreshToken) {
-    throw new Error('No refresh token available')
+async function silentRefreshToken() {
+  try {
+    const { accessToken, expiresAt } = await refreshAccessToken()
+    
+    const stored = await syncStorage.getValue()
+    await syncStorage.setValue({
+      ...stored,
+      accessToken,
+      tokenExpiry: expiresAt,
+    })
+    
+    // Update cache
+    tokenCache = {
+      accessToken,
+      tokenExpiry: expiresAt,
+      lastUpdated: Date.now()
+    }
+    
+    return accessToken
+  } catch (error) {
+    console.error('Silent refresh failed:', error)
+    throw error
   }
-  
-  const { accessToken, expiresAt } = await refreshAccessToken(stored.refreshToken)
-  
-  await syncStorage.setValue({
-    ...stored,
-    accessToken,
-    tokenExpiry: expiresAt,
-  })
-  
-  return accessToken
 }
 
 /**
@@ -200,7 +213,8 @@ async function getValidAccessToken() {
   let expiry = stored.tokenExpiry
   
   if (isTokenExpired(expiry)) {
-    token = await refreshToken()
+    // Try silent refresh with Implicit Flow
+    token = await silentRefreshToken()
     const updatedStored = await syncStorage.getValue()
     expiry = updatedStored.tokenExpiry
   }
@@ -291,7 +305,6 @@ export async function logout(revokeAccess = true) {
     userEmail: null,
     userName: null,
     userPicture: null,
-    // Keep deviceId and deletedIds
   })
   
   syncState.isLoggedIn = false
@@ -302,10 +315,64 @@ export async function logout(revokeAccess = true) {
 }
 
 
+// --- Utility Functions ---
+
+/**
+ * Convert array to map by ID
+ */
+function arrayToMap(arr) {
+  const map = {}
+  if (!arr || !Array.isArray(arr)) return map
+  arr.forEach(item => {
+    if (item && item.id) {
+      map[item.id] = item
+    }
+  })
+  return map
+}
+
+/**
+ * Convert map to array
+ */
+function mapToArray(map) {
+  if (!map || typeof map !== 'object') return []
+  return Object.values(map)
+}
+
+/**
+ * Get item timestamp for comparison
+ */
+function getItemTimestamp(item) {
+  return new Date(item.updatedAt || item.createdAt || item.date || 0).getTime()
+}
+
+/**
+ * Clean up soft-deleted items older than threshold
+ */
+function cleanupSoftDeleted(itemsMap) {
+  const now = Date.now()
+  const cleaned = {}
+  
+  for (const [id, item] of Object.entries(itemsMap)) {
+    if (item.deleted) {
+      const deletedTime = getItemTimestamp(item)
+      if (now - deletedTime < SOFT_DELETE_CLEANUP_MS) {
+        // Keep soft-deleted items within 30 days
+        cleaned[id] = item
+      }
+      // Else: Hard delete (don't include in cleaned map)
+    } else {
+      cleaned[id] = item
+    }
+  }
+  
+  return cleaned
+}
+
 // --- Sync Functions ---
 
 /**
- * Pull data from cloud and sync with local (simplified last-write-wins)
+ * Main sync function - Pull and merge data from cloud
  */
 export async function pullData() {
   if (syncState.isSyncing) return
@@ -317,110 +384,43 @@ export async function pullData() {
   try {
     const accessToken = await getValidAccessToken()
     const stored = await syncStorage.getValue()
+    const prefs = syncState.syncPreferences
     
-    // Fetch all cloud files in parallel
+    // Fetch cloud files in parallel based on preferences
     logToUI('Fetching cloud data...')
-    const [settingsFile, summariesFile, historyFile, tagsFile] = await Promise.all([
-      getFile(accessToken, FILES.SETTINGS),
-      getFile(accessToken, FILES.SUMMARIES),
-      getFile(accessToken, FILES.HISTORY),
-      getFile(accessToken, FILES.TAGS),
-    ])
+    const fetchPromises = []
+    
+    if (prefs.settings) fetchPromises.push(getFile(accessToken, FILES.SETTINGS))
+    else fetchPromises.push(Promise.resolve(null))
+    
+    if (prefs.history) fetchPromises.push(getFile(accessToken, FILES.HISTORY))
+    else fetchPromises.push(Promise.resolve(null))
+    
+    if (prefs.library) fetchPromises.push(getFile(accessToken, FILES.LIBRARY))
+    else fetchPromises.push(Promise.resolve(null))
+    
+    const [settingsFile, historyFile, libraryFile] = await Promise.all(fetchPromises)
 
-    const hasCloudData = settingsFile || summariesFile || historyFile || tagsFile
+    const hasCloudData = settingsFile || historyFile || libraryFile
     
     if (!hasCloudData) {
       // No cloud data - push local data for first time
       logToUI('No cloud data found, pushing local data...')
-      await pushAllData(accessToken, stored.deviceId)
+      await pushAllData(accessToken)
       return
     }
 
-    // Get local data
-    await loadSettings()
-    const localSummaries = await getAllSummaries()
-    const localHistory = await getAllHistory()
-    const localTags = await getAllTags()
-
-    // Normalize Settings structure (support "settings" key from legacy/current format)
-    if (settingsFile && !settingsFile.data && settingsFile.settings) {
-      settingsFile.data = settingsFile.settings
-    }
-
-    // Get sync preferences
-    const prefs = syncState.syncPreferences
-
-    // Sync each data type independently based on preferences
+    // Sync each data type
     if (prefs.settings) {
-      await syncDataType('Settings', settingsFile, { ...settings }, 
-        (data) => updateSettings(data),
-        async (dataToPush) => {
-          await saveFile(accessToken, FILES.SETTINGS, {
-            version: 1,
-            lastModified: new Date().toISOString(),
-            data: dataToPush || { ...settings },
-          })
-        }
-      )
-    } else {
-      logToUI('Skipping Settings sync (disabled in preferences)')
+      await syncSettings(accessToken, settingsFile, stored)
     }
     
     if (prefs.history) {
-      await syncDataType('Summaries', summariesFile, localSummaries,
-        async (data) => {
-          await clearAllSummaries()
-          if (data && data.length > 0) await addMultipleSummaries(data)
-        },
-        async (dataToPush) => {
-          await saveFile(accessToken, FILES.SUMMARIES, {
-            version: 1,
-            lastModified: new Date().toISOString(),
-            data: dataToPush || localSummaries,
-          })
-        }
-      )
-      
-      await syncDataType('History', historyFile, localHistory,
-        async (data) => {
-          await clearAllHistory()
-          if (data && data.length > 0) await addMultipleHistory(data)
-        },
-        async (dataToPush) => {
-          await saveFile(accessToken, FILES.HISTORY, {
-            version: 1,
-            lastModified: new Date().toISOString(),
-            data: dataToPush || localHistory,
-          })
-        }
-      )
-    } else {
-      logToUI('Skipping History sync (disabled in preferences)')
+      await syncHistory(accessToken, historyFile)
     }
     
-    if (prefs.archive) {
-      await syncDataType('Tags', tagsFile, localTags,
-        async (data) => {
-          if (data && data.length > 0) {
-            // Use safer replaceTagsStore which doesn't wipe summary references
-            await replaceTagsStore(data)
-          } else {
-            // If cloud data is empty, we might want to clear local tags?
-            // Or just merged result is empty.
-            // If merging returned empty, we should clear.
-            await replaceTagsStore([])
-          }
-        },
-        async (dataToPush) => {
-          await saveFile(accessToken, FILES.TAGS, {
-            version: 1,
-            lastModified: new Date().toISOString(),
-            data: dataToPush || localTags,
-          })
-        }
-      )
-    } else {
-      logToUI('Skipping Archive/Tags sync (disabled in preferences)')
+    if (prefs.library) {
+      await syncLibrary(accessToken, libraryFile)
     }
     
     // Update last sync time
@@ -442,151 +442,293 @@ export async function pullData() {
 }
 
 /**
- * Helper: Sync a single data type using Item-Level Merge
+ * Sync Settings - Last Write Wins strategy
+ * Only push if local settings actually differ from cloud
  */
-async function syncDataType(name, cloudFile, localData, applyCloud, pushLocal) {
+async function syncSettings(accessToken, cloudFile, stored) {
+  await loadSettings()
+  const localSettings = { ...settings }
+  
   if (!cloudFile || !cloudFile.data) {
-    // No cloud data, push local
-    logToUI(`No cloud ${name}, pushing local...`)
-    await pushLocal(localData)
+    // No cloud settings, push local
+    logToUI('No cloud Settings, pushing local...')
+    await saveFile(accessToken, FILES.SETTINGS, {
+      version: 2,
+      updatedAt: Date.now(),
+      data: localSettings,
+    })
     return
   }
   
-  // Use Merge Strategy for Arrays (Summaries, History, Tags)
-  if (Array.isArray(localData) && Array.isArray(cloudFile.data)) {
-    logToUI(`Merging ${name}...`)
-    const mergedData = mergeData(cloudFile.data, localData)
-    
-    // Always apply merged data locally to ensure we have the latest items from cloud
-    await applyCloud(mergedData)
-    
-    // Push if merged data is different/newer than cloud
-    const cloudTime = new Date(cloudFile.lastModified).getTime()
-    const mergedTime = getLatestTimestamp(mergedData)
-    
-    // Heuristic: If merged result has newer items or different count, push to cloud
-    if (mergedTime > cloudTime || mergedData.length !== cloudFile.data.length) {
-      logToUI(`Pushing merged ${name}...`)
-      await pushLocal(mergedData)
-    } else {
-      logToUI(`${name} in sync.`)
-    }
-    
+  // Compare settings content to determine if sync needed
+  const cloudSettings = cloudFile.data
+  const localStr = JSON.stringify(localSettings)
+  const cloudStr = JSON.stringify(cloudSettings)
+  
+  if (localStr === cloudStr) {
+    // Settings are identical, no action needed
+    logToUI('Settings in sync.')
+    return
+  }
+  
+  // Settings differ - use timestamp to decide direction
+  const cloudTime = cloudFile.updatedAt || 0
+  const localTime = stored.lastSyncTime ? new Date(stored.lastSyncTime).getTime() : 0
+  
+  if (cloudTime > localTime) {
+    // Cloud is newer, apply to local
+    logToUI('Cloud Settings is newer, applying...')
+    await updateSettings(cloudSettings)
   } else {
-    // Fallback for Objects (Settings) - Last Write Wins based on file timestamp
-    const cloudTime = new Date(cloudFile.lastModified).getTime()
-    
-    // For object sync (Settings), we assume Cloud wins if it exists, unless we implemented granular timestamp tracking.
-    // In current architecture, Settings change updates the store but no explicit timestamp is passed here.
-    // However, if the user changed settings locally, we want that to persist.
-    // But since we can't compare timestamps of object content easily without metadata,
-    // and pullData happens primarily on startup/auto-sync...
-    // If we simply rely on cloudTime > 0, we imply Cloud always overwrites Local on sync.
-    // This is "Server Authoritative".
-    // If user changes settings offline, and then syncs?
-    // User changes settings -> triggers `triggerSync()` -> `pullData()`.
-    // If cloud is older, we should push.
-    // But we don't know local timestamp.
-    // Ideally we should track `lastSettingsUpdate` time in storage.
-    // For now, to be safe and consistent with previous behavior (mostly), we can stick to "Cloud wins if newer file".
-    // But "newer" than what? We don't have local time.
-    // PREVIOUS LOGIC FLAW: `localTime` was 0. So Cloud ALWAYS won.
-    // If I change settings locally, `pushLocal` is never called if cloud exists?
-    // Wait, `debouncedPush` calls `pullData`.
-    // If I change settings, I want to Push.
-    // If `pullData` sees existing cloud file, and I compare 0 vs CloudTime. Cloud Wins.
-    // My local changes are OVERWRITTEN.
-    // THIS IS A BUG FOR SETTINGS TOO.
-    //
-    // FIX: We should fetch LastSyncTime.
-    // If CloudFile.lastModified > LastSyncTime -> Cloud has updates since we last synced -> Apply Cloud.
-    // Else -> We have updates (or no changes) -> Push Local.
-    
-    const lastSyncTime = syncState.lastSyncTime ? new Date(syncState.lastSyncTime).getTime() : 0
-    
-    if (cloudTime > lastSyncTime) {
-       logToUI(`Cloud ${name} is newer, applying...`)
-       await applyCloud(cloudFile.data)
-    } else {
-       // Cloud is old, or we updated locally since last sync
-       // BUT, be careful. usage of lastSyncTime assumes we successfully synced previously.
-       // If I login fresh, lastSyncTime is null (0). CloudTime > 0.
-       // So fresh login -> Pull Cloud Settings. Correct.
-       // If I am synced. I change settings. 
-       // Trigger Sync. CloudTime (old) < LastSyncTime (recent).
-       // We Push Local. Correct.
-       
-       // What if CloudTime == LastSyncTime (approx)?
-       // If CloudTime <= LastSyncTime, it means cloud hasn't changed since we last synced.
-       // So our local state is either same or newer. Push to be safe.
-       logToUI(`Pushing local ${name}...`)
-       await pushLocal(localData)
-    }
+    // Local is different and cloud hasn't updated since last sync
+    logToUI('Pushing local Settings...')
+    await saveFile(accessToken, FILES.SETTINGS, {
+      version: 2,
+      updatedAt: Date.now(),
+      data: localSettings,
+    })
   }
 }
 
 /**
- * Helper: Merge Cloud and Local items based on ID and Timestamp
+ * Sync History - Smart Merge with Soft Delete
+ * Similar to Library sync but for history items
  */
-function mergeData(cloudItems, localItems) {
-  const merged = new Map()
+async function syncHistory(accessToken, cloudFile) {
+  const localHistory = await getAllHistory()
+  const localMap = arrayToMap(localHistory)
   
-  // 1. Add all Cloud items initially
-  cloudItems.forEach(item => {
-    if (item && item.id) merged.set(item.id, item)
-  })
+  if (!cloudFile || !cloudFile.items) {
+    // No cloud history, push local
+    logToUI('No cloud History, pushing local...')
+    await saveFile(accessToken, FILES.HISTORY, {
+      version: 2,
+      updatedAt: Date.now(),
+      items: localMap,
+    })
+    return
+  }
   
-  // 2. Merge Local items
-  localItems.forEach(localItem => {
-    if (!localItem || !localItem.id) return
+  const cloudMap = cloudFile.items || {}
+  
+  // Merge using timestamp-based strategy (like Library)
+  logToUI('Merging History...')
+  const mergedHistory = mergeItemsMap(cloudMap, localMap)
+  const cleanedHistory = cleanupSoftDeleted(mergedHistory)
+  
+  // Apply merged data to local (filter out deleted items for display)
+  const historyArray = mapToArray(cleanedHistory).filter(h => !h.deleted)
+  
+  await clearAllHistory()
+  if (historyArray.length > 0) {
+    await addMultipleHistory(historyArray)
+  }
+  
+  // Check if merged data differs from cloud
+  const hasChanges = detectMapChanges(cloudMap, cleanedHistory)
+  
+  if (hasChanges) {
+    logToUI('Pushing merged History...')
+    await saveFile(accessToken, FILES.HISTORY, {
+      version: 2,
+      updatedAt: Date.now(),
+      items: cleanedHistory,
+    })
+  } else {
+    logToUI('History in sync.')
+  }
+}
+
+/**
+ * Sync Library (Archive + Tags) - Smart Merge with Soft Delete
+ * This ensures atomic sync of related data
+ */
+async function syncLibrary(accessToken, cloudFile) {
+  // Get local data
+  const localArchives = await getAllSummaries()
+  const localTags = await getAllTags()
+  
+  const localArchivesMap = arrayToMap(localArchives)
+  const localTagsMap = arrayToMap(localTags)
+  
+  if (!cloudFile || (!cloudFile.archives && !cloudFile.tags)) {
+    // No cloud library, push local
+    logToUI('No cloud Library, pushing local...')
+    await saveFile(accessToken, FILES.LIBRARY, {
+      version: 2,
+      updatedAt: Date.now(),
+      archives: localArchivesMap,
+      tags: localTagsMap,
+    })
+    return
+  }
+  
+  const cloudArchivesMap = cloudFile.archives || {}
+  const cloudTagsMap = cloudFile.tags || {}
+  
+  // Step 1: Merge Tags first (to ensure tag IDs exist for archives)
+  logToUI('Merging Tags...')
+  const mergedTags = mergeItemsMap(cloudTagsMap, localTagsMap)
+  const cleanedTags = cleanupSoftDeleted(mergedTags)
+  
+  // Step 2: Merge Archives
+  logToUI('Merging Archives...')
+  const mergedArchives = mergeItemsMap(cloudArchivesMap, localArchivesMap)
+  const cleanedArchives = cleanupSoftDeleted(mergedArchives)
+  
+  // Step 3: Validate tagIds in archives (remove invalid references)
+  for (const archive of Object.values(cleanedArchives)) {
+    if (archive.tags && Array.isArray(archive.tags)) {
+      archive.tags = archive.tags.filter(tagId => {
+        const tag = cleanedTags[tagId]
+        return tag && !tag.deleted
+      })
+    }
+  }
+  
+  // Apply merged data to local
+  const tagsArray = mapToArray(cleanedTags).filter(t => !t.deleted)
+  const archivesArray = mapToArray(cleanedArchives).filter(a => !a.deleted)
+  
+  // Clear and replace (atomic operation)
+  await clearAllSummaries()
+  if (archivesArray.length > 0) {
+    await addMultipleSummaries(archivesArray)
+  }
+  
+  await replaceTagsStore(tagsArray)
+  
+  // Check if merged data differs from cloud data
+  const hasChanges = detectLibraryChanges(cloudArchivesMap, cloudTagsMap, cleanedArchives, cleanedTags)
+  
+  if (hasChanges) {
+    // Push merged data back to cloud (include soft-deleted for sync)
+    logToUI('Pushing merged Library...')
+    await saveFile(accessToken, FILES.LIBRARY, {
+      version: 2,
+      updatedAt: Date.now(),
+      archives: cleanedArchives,
+      tags: cleanedTags,
+    })
+  } else {
+    logToUI('Library in sync.')
+  }
+  
+  logToUI('Library sync complete.')
+}
+
+/**
+ * Merge two item maps based on updatedAt timestamp
+ * Handles soft-delete propagation
+ */
+function mergeItemsMap(cloudMap, localMap) {
+  const merged = {}
+  
+  // Start with all cloud items
+  for (const [id, cloudItem] of Object.entries(cloudMap)) {
+    merged[id] = cloudItem
+  }
+  
+  // Merge local items
+  for (const [id, localItem] of Object.entries(localMap)) {
+    const cloudItem = merged[id]
     
-    const cloudItem = merged.get(localItem.id)
-    if (cloudItem) {
-      // Conflict: Pick newer
+    if (!cloudItem) {
+      // Local only - add to merged
+      merged[id] = localItem
+    } else {
+      // Conflict - pick newer by updatedAt
       const localTime = getItemTimestamp(localItem)
       const cloudTime = getItemTimestamp(cloudItem)
       
       if (localTime >= cloudTime) {
-        merged.set(localItem.id, localItem)
+        merged[id] = localItem
       }
-      // Else keep cloudItem
-    } else {
-      // Unique to local
-      merged.set(localItem.id, localItem)
+      // Else keep cloudItem (already in merged)
     }
-  })
+  }
   
-  return Array.from(merged.values())
+  return merged
 }
 
 /**
- * Helper: Get timestamp of a specific item
+ * Detect if library data has changed after merge
+ * Returns true if merged data differs from cloud data
  */
-function getItemTimestamp(item) {
-  return new Date(item.updatedAt || item.createdAt || item.date || 0).getTime()
+function detectLibraryChanges(cloudArchives, cloudTags, mergedArchives, mergedTags) {
+  // Quick check: different number of keys
+  const cloudArchiveIds = Object.keys(cloudArchives)
+  const mergedArchiveIds = Object.keys(mergedArchives)
+  const cloudTagIds = Object.keys(cloudTags)
+  const mergedTagIds = Object.keys(mergedTags)
+  
+  if (cloudArchiveIds.length !== mergedArchiveIds.length) return true
+  if (cloudTagIds.length !== mergedTagIds.length) return true
+  
+  // Check if any merged archive differs from cloud
+  for (const [id, mergedItem] of Object.entries(mergedArchives)) {
+    const cloudItem = cloudArchives[id]
+    if (!cloudItem) return true // New item
+    
+    // Compare by updatedAt - if merged has newer timestamp, there's a change
+    const mergedTime = getItemTimestamp(mergedItem)
+    const cloudTime = getItemTimestamp(cloudItem)
+    if (mergedTime > cloudTime) return true
+    
+    // Also check deleted status
+    if (mergedItem.deleted !== cloudItem.deleted) return true
+  }
+  
+  // Check if any merged tag differs from cloud
+  for (const [id, mergedItem] of Object.entries(mergedTags)) {
+    const cloudItem = cloudTags[id]
+    if (!cloudItem) return true // New item
+    
+    const mergedTime = getItemTimestamp(mergedItem)
+    const cloudTime = getItemTimestamp(cloudItem)
+    if (mergedTime > cloudTime) return true
+    
+    if (mergedItem.deleted !== cloudItem.deleted) return true
+  }
+  
+  return false
 }
 
 /**
- * Helper: Get latest timestamp from array of items
+ * Detect if a merged map differs from cloud map
+ * Generic version for single map comparison (used for History)
  */
-function getLatestTimestamp(items) {
-  if (!items || !Array.isArray(items) || items.length === 0) return 0
+function detectMapChanges(cloudMap, mergedMap) {
+  const cloudIds = Object.keys(cloudMap)
+  const mergedIds = Object.keys(mergedMap)
   
-  const timestamps = items.map(getItemTimestamp)
+  if (cloudIds.length !== mergedIds.length) return true
   
-  return Math.max(...timestamps, 0)
+  for (const [id, mergedItem] of Object.entries(mergedMap)) {
+    const cloudItem = cloudMap[id]
+    if (!cloudItem) return true // New item
+    
+    const mergedTime = getItemTimestamp(mergedItem)
+    const cloudTime = getItemTimestamp(cloudItem)
+    if (mergedTime > cloudTime) return true
+    
+    if (mergedItem.deleted !== cloudItem.deleted) return true
+  }
+  
+  return false
 }
 
 /**
- * Helper: Push all local data to cloud
+ * Push all local data to cloud (initial sync)
  */
-async function pushAllData(accessToken, deviceId) {
+async function pushAllData(accessToken) {
   await loadSettings()
-  const localSummaries = await getAllSummaries()
+  const localSettings = { ...settings }
   const localHistory = await getAllHistory()
+  const localArchives = await getAllSummaries()
   const localTags = await getAllTags()
   
-  const now = new Date().toISOString()
+  const now = Date.now()
   const prefs = syncState.syncPreferences
   
   const pushPromises = []
@@ -594,36 +736,30 @@ async function pushAllData(accessToken, deviceId) {
   if (prefs.settings) {
     pushPromises.push(
       saveFile(accessToken, FILES.SETTINGS, {
-        version: 1,
-        lastModified: now,
-        settings: { ...settings },
+        version: 2,
+        updatedAt: now,
+        data: localSettings,
       })
     )
   }
   
   if (prefs.history) {
     pushPromises.push(
-      saveFile(accessToken, FILES.SUMMARIES, {
-        version: 1,
-        lastModified: now,
-        data: localSummaries,
-      })
-    )
-    pushPromises.push(
       saveFile(accessToken, FILES.HISTORY, {
-        version: 1,
-        lastModified: now,
-        data: localHistory,
+        version: 2,
+        updatedAt: now,
+        items: arrayToMap(localHistory),
       })
     )
   }
   
-  if (prefs.archive) {
+  if (prefs.library) {
     pushPromises.push(
-      saveFile(accessToken, FILES.TAGS, {
-        version: 1,
-        lastModified: now,
-        data: localTags,
+      saveFile(accessToken, FILES.LIBRARY, {
+        version: 2,
+        updatedAt: now,
+        archives: arrayToMap(localArchives),
+        tags: arrayToMap(localTags),
       })
     )
   }
@@ -642,7 +778,6 @@ export async function syncNow() {
 
 /**
  * Debounced sync to avoid too frequent syncs
- * Changed to call pullData() instead of pushData() to avoid overwriting cloud changes
  */
 function debouncedPush() {
   if (!syncState.isLoggedIn || !syncState.autoSyncEnabled) return
@@ -652,13 +787,12 @@ function debouncedPush() {
   }
   
   debounceTimer = setTimeout(() => {
-    pullData() // Changed from pushData() to merge before pushing
+    pullData()
   }, DEBOUNCE_DELAY)
 }
 
 /**
- * Trigger sync after data changes (add/update/delete)
- * Public wrapper for debouncedPush to be called by other components
+ * Trigger sync after data changes
  */
 export function triggerSync() {
   debouncedPush()
@@ -691,10 +825,16 @@ export async function setAutoSync(enabled) {
 
 /**
  * Update sync preferences
- * @param {Object} preferences - { settings: boolean, history: boolean, archive: boolean }
+ * @param {Object} preferences - { settings: boolean, history: boolean, library: boolean }
  */
 export async function setSyncPreferences(preferences) {
   const stored = await syncStorage.getValue()
+  
+  // Handle legacy 'archive' key
+  if (preferences.archive !== undefined) {
+    preferences.library = preferences.archive
+    delete preferences.archive
+  }
   
   const updatedPreferences = {
     ...stored.syncPreferences,

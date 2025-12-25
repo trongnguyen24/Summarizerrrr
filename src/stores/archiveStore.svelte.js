@@ -30,8 +30,9 @@ async function loadData() {
   let scrollPosition = window.scrollY
   try {
     await openDatabase()
-    archiveList = [...(await getAllSummaries())]
-    historyList = [...(await getAllHistory())]
+    // Filter out soft-deleted items (deleted: true)
+    archiveList = [...(await getAllSummaries())].filter(item => !item.deleted)
+    historyList = [...(await getAllHistory())].filter(item => !item.deleted)
 
     const { tab, summaryId } = getUrlParams()
     const result = await initializeFromUrl(tab, summaryId)

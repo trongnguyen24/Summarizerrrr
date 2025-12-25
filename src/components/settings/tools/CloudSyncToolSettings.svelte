@@ -236,14 +236,14 @@
               useAnimation={false}
             />
 
-            <!-- Archive + Tags Toggle -->
+            <!-- Library (Archive + Tags) Toggle -->
 
             <EnableToggle
-              id="sync-archive"
-              bind:checked={cloudSyncStore.syncPreferences.archive}
+              id="sync-library"
+              bind:checked={cloudSyncStore.syncPreferences.library}
               onCheckedChange={(value) =>
-                handleSyncPreferenceChange('archive', value)}
-              text="Archive"
+                handleSyncPreferenceChange('library', value)}
+              text="Library"
               useAnimation={false}
             />
           </div>

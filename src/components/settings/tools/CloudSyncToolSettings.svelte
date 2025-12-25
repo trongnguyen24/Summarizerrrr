@@ -328,52 +328,6 @@
                 Synced {formatLastSyncTime(cloudSyncStore.lastSyncTime, now)}
               </p>
             </div>
-            <!-- <div class=" w-fit justify-center items-end flex shrink-0 relative">
-              <div
-                class="flex justify-center items-center size-10 w-16 border-l border-dashed border-border"
-              >
-                <Icon
-                  icon="heroicons:cog-6-tooth"
-                  class="size-4 shrink-0 transition-colors {cloudSyncStore
-                    .syncPreferences.settings
-                    ? 'text-text-secondary'
-                    : 'text-border'}"
-                />
-              </div>
-              <div
-                class="flex justify-center items-center size-10 w-16 border-l border-dashed border-border"
-              >
-                <Icon
-                  icon="heroicons:clock"
-                  class="size-4 shrink-0 transition-colors {cloudSyncStore
-                    .syncPreferences.history
-                    ? 'text-text-secondary'
-                    : 'text-border'}"
-                />
-              </div>
-              <div
-                class="flex justify-center items-center size-10 w-16 border-l border-dashed border-border"
-              >
-                <Icon
-                  icon="heroicons:archive-box"
-                  class="size-4 shrink-0 transition-colors {cloudSyncStore
-                    .syncPreferences.archive
-                    ? 'text-text-secondary'
-                    : 'text-border'}"
-                />
-              </div>
-              <div
-                class="flex justify-center items-center size-10 w-16 border-l border-dashed border-border"
-              >
-                <Icon
-                  icon="tabler:tag"
-                  class="size-4 shrink-0 transition-colors {cloudSyncStore
-                    .syncPreferences.archive
-                    ? 'text-text-secondary'
-                    : 'text-border'}"
-                />
-              </div>
-            </div> -->
           </div>
 
           <div

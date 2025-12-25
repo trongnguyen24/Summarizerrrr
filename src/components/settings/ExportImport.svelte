@@ -71,7 +71,7 @@
 
   let fileInputRef = $state(null)
   let messageTimeoutId = null
-  let scrollContainerEl // Reference to the scroll container element
+  let scrollContainerEl = $state(null)
 
   let animatedRefs = $state({
     exportedLabel: null,
@@ -465,7 +465,14 @@
         console.log(
           `[Import] Adding ${importedData.history.length} history items...`,
         )
-        const cleanHistory = JSON.parse(JSON.stringify(importedData.history))
+        // ✅ MIGRATION: Thêm các trường soft delete nếu thiếu (cho backup cũ)
+        const cleanHistory = importedData.history.map((item) => {
+          const cleaned = JSON.parse(JSON.stringify(item))
+          if (cleaned.deleted === undefined) cleaned.deleted = false
+          if (cleaned.updatedAt === undefined)
+            cleaned.updatedAt = cleaned.date || new Date().toISOString()
+          return cleaned
+        })
         await addMultipleHistory(cleanHistory)
       } else {
         console.log('[Import] No history data to import')
@@ -484,9 +491,15 @@
         console.log(
           `[Import] Adding ${importedData.summaries.length} summaries...`,
         )
-        const cleanSummaries = JSON.parse(
-          JSON.stringify(importedData.summaries),
-        )
+        // ✅ MIGRATION: Thêm các trường soft delete nếu thiếu (cho backup cũ)
+        const cleanSummaries = importedData.summaries.map((item) => {
+          const cleaned = JSON.parse(JSON.stringify(item))
+          if (cleaned.deleted === undefined) cleaned.deleted = false
+          if (cleaned.updatedAt === undefined)
+            cleaned.updatedAt = cleaned.date || new Date().toISOString()
+          if (cleaned.tags === undefined) cleaned.tags = []
+          return cleaned
+        })
         await addMultipleSummaries(cleanSummaries)
       } else {
         console.log('[Import] No summaries data to import')
@@ -503,7 +516,14 @@
       // Chỉ add nếu có data
       if (importedData.tags && importedData.tags.length > 0) {
         console.log(`[Import] Adding ${importedData.tags.length} tags...`)
-        const cleanTags = JSON.parse(JSON.stringify(importedData.tags))
+        // ✅ MIGRATION: Thêm các trường soft delete nếu thiếu (cho backup cũ)
+        const cleanTags = importedData.tags.map((tag) => {
+          const cleaned = JSON.parse(JSON.stringify(tag))
+          if (cleaned.deleted === undefined) cleaned.deleted = false
+          if (cleaned.updatedAt === undefined)
+            cleaned.updatedAt = cleaned.createdAt || new Date().toISOString()
+          return cleaned
+        })
         await addMultipleTags(cleanTags)
       } else {
         console.log('[Import] No tags data to import')

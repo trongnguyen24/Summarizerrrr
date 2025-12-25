@@ -138,7 +138,7 @@ export async function initSync() {
       if (isTokenExpired(stored.tokenExpiry)) {
         // Try silent re-auth with Implicit Flow
         try {
-          await silentRefreshToken()
+          await doRefreshToken()
         } catch (error) {
           console.warn('Silent refresh failed, user needs to re-login:', error)
           // Don't logout immediately - let them manually try again
@@ -164,14 +164,19 @@ function isTokenExpired(expiryTime) {
 }
 
 /**
- * Silent refresh token using Implicit Flow
- * This uses prompt:none to get a new token without user interaction
+ * Refresh access token using stored refresh_token
+ * This enables persistent sessions across browser restarts
  */
-async function silentRefreshToken() {
+async function doRefreshToken() {
+  const stored = await syncStorage.getValue()
+  
+  if (!stored.refreshToken) {
+    throw new Error('No refresh token available. Please sign in again.')
+  }
+  
   try {
-    const { accessToken, expiresAt } = await refreshAccessToken()
+    const { accessToken, expiresAt } = await refreshAccessToken(stored.refreshToken)
     
-    const stored = await syncStorage.getValue()
     await syncStorage.setValue({
       ...stored,
       accessToken,
@@ -187,7 +192,11 @@ async function silentRefreshToken() {
     
     return accessToken
   } catch (error) {
-    console.error('Silent refresh failed:', error)
+    console.error('Token refresh failed:', error)
+    // If refresh token is invalid, clear login state
+    if (error.message.includes('Session expired')) {
+      await logout(false)
+    }
     throw error
   }
 }
@@ -214,7 +223,7 @@ async function getValidAccessToken() {
   
   if (isTokenExpired(expiry)) {
     // Try silent refresh with Implicit Flow
-    token = await silentRefreshToken()
+    token = await doRefreshToken()
     const updatedStored = await syncStorage.getValue()
     expiry = updatedStored.tokenExpiry
   }

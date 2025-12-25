@@ -1,136 +1,205 @@
 // @ts-nocheck
 /**
  * Google Drive Adapter for Cloud Sync
- * Handles OAuth2 authentication and Google Drive API operations
+ * Uses OAuth2 Authorization Code Flow with PKCE
+ * Token exchange via secure proxy server (Cloudflare Worker)
+ * 
+ * Architecture:
+ * 1. Extension gets authorization code from Google
+ * 2. Extension sends code to proxy server
+ * 3. Proxy server (with client_secret) exchanges for tokens
+ * 4. Proxy returns tokens to extension
  */
 
 import { browser } from 'wxt/browser'
 
-// OAuth2 Configuration - Implicit Flow (No Client Secret needed)
-const WEB_CLIENT_ID = '1045816330790-n9u8unuthqvdqvlmce7d3j779uprv26k.apps.googleusercontent.com'
-// Scopes needed: Drive app data + user profile
+// OAuth2 Configuration
+const CLIENT_ID = '1045816330790-n9u8unuthqvdqvlmce7d3j779uprv26k.apps.googleusercontent.com'
 const SCOPES = 'https://www.googleapis.com/auth/drive.appdata https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email'
 
-/**
- * Authenticate with Google using OAuth2 Implicit Flow
- * Safe for client-side extensions (no Client Secret required)
- * @returns {Promise<{accessToken: string, expiresAt: number}>}
- */
-export async function authenticate() {
-  // Ensure trailing slash is present to match Google Console config
+// Token proxy server URL (Cloudflare Worker with custom domain)
+const TOKEN_PROXY_URL = 'https://oauth.summarizerrrr.com'
+
+// --- PKCE Helpers ---
+
+function generateCodeVerifier() {
+  const array = new Uint8Array(32)
+  crypto.getRandomValues(array)
+  return base64UrlEncode(array)
+}
+
+async function generateCodeChallenge(codeVerifier) {
+  const encoder = new TextEncoder()
+  const data = encoder.encode(codeVerifier)
+  const digest = await crypto.subtle.digest('SHA-256', data)
+  return base64UrlEncode(new Uint8Array(digest))
+}
+
+function base64UrlEncode(buffer) {
+  const base64 = btoa(String.fromCharCode(...buffer))
+  return base64
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '')
+}
+
+function getRedirectUri() {
   let redirectUrl = browser.identity.getRedirectURL()
   if (!redirectUrl.endsWith('/')) {
     redirectUrl += '/'
   }
+  return redirectUrl
+}
+
+// --- Authentication ---
+
+/**
+ * Authenticate with Google using OAuth2 PKCE flow
+ * Token exchange happens via secure proxy server
+ */
+export async function authenticate() {
+  const redirectUri = getRedirectUri()
+  const codeVerifier = generateCodeVerifier()
+  const codeChallenge = await generateCodeChallenge(codeVerifier)
   
+  console.log('[CloudSync] Redirect URI:', redirectUri)
+  
+  // Build authorization URL with PKCE
   const authUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth')
-  authUrl.searchParams.set('client_id', WEB_CLIENT_ID)
-  authUrl.searchParams.set('redirect_uri', redirectUrl)
-  authUrl.searchParams.set('response_type', 'token') // Implicit flow
+  authUrl.searchParams.set('client_id', CLIENT_ID)
+  authUrl.searchParams.set('redirect_uri', redirectUri)
+  authUrl.searchParams.set('response_type', 'code')
   authUrl.searchParams.set('scope', SCOPES)
-  authUrl.searchParams.set('prompt', 'consent')
+  authUrl.searchParams.set('access_type', 'offline') // Get refresh token
+  authUrl.searchParams.set('prompt', 'consent') // Force consent for refresh token
+  authUrl.searchParams.set('code_challenge', codeChallenge)
+  authUrl.searchParams.set('code_challenge_method', 'S256')
   
   try {
+    // Step 1: Get authorization code from Google
     const responseUrl = await browser.identity.launchWebAuthFlow({
       url: authUrl.toString(),
       interactive: true,
     })
     
-    return parseAuthResponse(responseUrl)
+    const authCode = parseAuthorizationCode(responseUrl)
+    
+    // Step 2: Exchange code for tokens via proxy server
+    return await exchangeCodeViaProxy(authCode, codeVerifier, redirectUri)
   } catch (error) {
     console.error('Authentication failed:', error)
     throw error
   }
 }
 
-/**
- * Parse the response URL from Implicit Flow (contains access_token in hash)
- */
-function parseAuthResponse(responseUrl) {
+function parseAuthorizationCode(responseUrl) {
   const url = new URL(responseUrl)
-  // Implicit flow returns params in the hash (fragment)
-  const params = new URLSearchParams(url.hash.substring(1)) // remove '#'
+  const code = url.searchParams.get('code')
+  const error = url.searchParams.get('error')
   
-  const accessToken = params.get('access_token')
-  const expiresIn = params.get('expires_in')
-  
-  if (!accessToken) {
-    throw new Error('No access token received')
+  if (error) {
+    throw new Error(`Auth error: ${error}`)
   }
   
+  if (!code) {
+    throw new Error('No authorization code received')
+  }
+  
+  return code
+}
+
+/**
+ * Exchange authorization code via proxy server
+ * Proxy server holds client_secret securely
+ */
+async function exchangeCodeViaProxy(code, codeVerifier, redirectUri) {
+  const response = await fetch(`${TOKEN_PROXY_URL}/exchange`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      code,
+      code_verifier: codeVerifier,
+      redirect_uri: redirectUri,
+    }),
+  })
+  
+  if (!response.ok) {
+    const error = await response.json()
+    console.error('Token exchange failed:', error)
+    throw new Error(error.error_description || error.error || 'Failed to exchange code')
+  }
+  
+  const data = await response.json()
+  
   return {
-    accessToken,
-    // refresh_token is NOT returned in Implicit Flow
-    // expires_in is in seconds
-    expiresAt: Date.now() + (Number(expiresIn) || 3600) * 1000,
+    accessToken: data.access_token,
+    refreshToken: data.refresh_token,
+    expiresAt: Date.now() + (data.expires_in || 3600) * 1000,
   }
 }
 
 /**
- * Refresh access token
- * For Implicit Flow, this means running the auth flow again silently (interactive: false)
- * @returns {Promise<{accessToken: string, expiresAt: number}>}
+ * Refresh access token via proxy server
  */
-export async function refreshAccessToken() {
-  // Ensure trailing slash is present to match Google Console config
-  let redirectUrl = browser.identity.getRedirectURL()
-  if (!redirectUrl.endsWith('/')) {
-    redirectUrl += '/'
+export async function refreshAccessToken(refreshToken) {
+  if (!refreshToken) {
+    throw new Error('No refresh token available')
   }
   
-  const authUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth')
-  authUrl.searchParams.set('client_id', WEB_CLIENT_ID)
-  authUrl.searchParams.set('redirect_uri', redirectUrl)
-  authUrl.searchParams.set('response_type', 'token')
-  authUrl.searchParams.set('scope', SCOPES)
-  authUrl.searchParams.set('prompt', 'none') // Silent refresh
+  const response = await fetch(`${TOKEN_PROXY_URL}/refresh`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ refresh_token: refreshToken }),
+  })
   
-  try {
-    const responseUrl = await browser.identity.launchWebAuthFlow({
-      url: authUrl.toString(),
-      interactive: false,
-    })
+  if (!response.ok) {
+    const error = await response.json()
+    console.error('Token refresh failed:', error)
     
-    return parseAuthResponse(responseUrl)
-  } catch (error) {
-    console.error('Silent refresh failed:', error)
-    throw new Error('Session expired. Please sign in again.')
+    if (error.error === 'invalid_grant') {
+      throw new Error('Session expired. Please sign in again.')
+    }
+    
+    throw new Error(error.error_description || 'Failed to refresh token')
+  }
+  
+  const data = await response.json()
+  
+  return {
+    accessToken: data.access_token,
+    expiresAt: Date.now() + (data.expires_in || 3600) * 1000,
   }
 }
 
 /**
  * Revoke access token (logout)
- * @param {string} accessToken
  */
 export async function revokeToken(accessToken) {
   if (!accessToken) return
   
   try {
     await fetch(`https://accounts.google.com/o/oauth2/revoke?token=${accessToken}`, {
-      method: 'GET', // Google's revoke endpoint supports GET or POST
+      method: 'GET',
     })
   } catch (err) {
     console.warn('Revoke token failed (ignoring):', err)
   }
 }
 
-/**
- * Find a file by name in appDataFolder
- * @param {string} accessToken
- * @param {string} filename
- * @returns {Promise<string|null>} File ID or null
- */
+// --- Google Drive API Operations ---
+
 async function findFile(accessToken, filename) {
   const response = await fetch(
     `https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=name='${filename}'&fields=files(id,modifiedTime)`,
     {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
+      headers: { Authorization: `Bearer ${accessToken}` },
     }
   )
   
   if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error('TOKEN_EXPIRED')
+    }
     throw new Error(`Failed to search file ${filename}`)
   }
   
@@ -138,23 +207,18 @@ async function findFile(accessToken, filename) {
   return data.files?.[0]?.id || null
 }
 
-/**
- * List files in appDataFolder matching query
- * @param {string} accessToken
- * @param {string} query
- * @returns {Promise<Array<{id: string, name: string}>>}
- */
 export async function listFiles(accessToken, query = "trashed = false") {
   const response = await fetch(
     `https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=${encodeURIComponent(query)}&fields=files(id,name,modifiedTime)`,
     {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
+      headers: { Authorization: `Bearer ${accessToken}` },
     }
   )
   
   if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error('TOKEN_EXPIRED')
+    }
     throw new Error('Failed to list files')
   }
   
@@ -162,12 +226,6 @@ export async function listFiles(accessToken, query = "trashed = false") {
   return data.files || []
 }
 
-/**
- * Get file content from Google Drive
- * @param {string} accessToken
- * @param {string} filename
- * @returns {Promise<object|null>} File content or null if not exists
- */
 export async function getFile(accessToken, filename) {
   const fileId = await findFile(accessToken, filename)
   
@@ -178,41 +236,28 @@ export async function getFile(accessToken, filename) {
   const response = await fetch(
     `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`,
     {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
+      headers: { Authorization: `Bearer ${accessToken}` },
     }
   )
   
   if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error('TOKEN_EXPIRED')
+    }
     if (response.status === 404) {
       return null
     }
     const err = await response.json()
-    console.error(`Get file ${filename} failed:`, err)
     throw new Error(err.error?.message || `Failed to get ${filename}`)
   }
   
   return await response.json()
 }
 
-/**
- * Save file to Google Drive
- * @param {string} accessToken
- * @param {string} filename
- * @param {object} data
- * @returns {Promise<void>}
- */
 export async function saveFile(accessToken, filename, data) {
   const fileId = await findFile(accessToken, filename)
   
-  const metadata = {
-    name: filename,
-    mimeType: 'application/json',
-  }
-  
   if (fileId) {
-    // Update existing file
     const res = await fetch(
       `https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`,
       {
@@ -225,16 +270,17 @@ export async function saveFile(accessToken, filename, data) {
       }
     )
     if (!res.ok) {
+      if (res.status === 401) {
+        throw new Error('TOKEN_EXPIRED')
+      }
       const err = await res.json()
-      console.error(`Update file ${filename} failed:`, err)
       throw new Error(err.error?.message || `Update ${filename} failed`)
     }
   } else {
-    // Create new file in appDataFolder
     const form = new FormData()
     form.append(
       'metadata',
-      new Blob([JSON.stringify({ ...metadata, parents: ['appDataFolder'] })], {
+      new Blob([JSON.stringify({ name: filename, mimeType: 'application/json', parents: ['appDataFolder'] })], {
         type: 'application/json',
       })
     )
@@ -244,73 +290,54 @@ export async function saveFile(accessToken, filename, data) {
       'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',
       {
         method: 'POST',
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
+        headers: { Authorization: `Bearer ${accessToken}` },
         body: form,
       }
     )
     if (!res.ok) {
+      if (res.status === 401) {
+        throw new Error('TOKEN_EXPIRED')
+      }
       const err = await res.json()
-      console.error(`Create file ${filename} failed:`, err)
       throw new Error(err.error?.message || `Create ${filename} failed`)
     }
   }
 }
 
-/**
- * Delete file from Google Drive
- * @param {string} accessToken
- * @param {string} filename
- * @returns {Promise<void>}
- */
 export async function deleteFile(accessToken, filename) {
   const fileId = await findFile(accessToken, filename)
   
   if (fileId) {
     await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}`, {
       method: 'DELETE',
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
+      headers: { Authorization: `Bearer ${accessToken}` },
     })
   }
 }
 
-/**
- * Delete file by ID
- * @param {string} accessToken
- * @param {string} fileId
- */
 export async function deleteFileById(accessToken, fileId) {
   const response = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}`, {
     method: 'DELETE',
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
+    headers: { Authorization: `Bearer ${accessToken}` },
   })
   
   if (!response.ok && response.status !== 404) {
-     throw new Error(`Failed to delete file ${fileId}`)
+    throw new Error(`Failed to delete file ${fileId}`)
   }
 }
 
-/**
- * Get user profile info
- * @param {string} accessToken
- * @returns {Promise<{email: string, name: string, picture: string}>}
- */
 export async function getUserProfile(accessToken) {
   const response = await fetch(
     'https://www.googleapis.com/oauth2/v2/userinfo',
     {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
+      headers: { Authorization: `Bearer ${accessToken}` },
     }
   )
   
   if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error('TOKEN_EXPIRED')
+    }
     throw new Error('Failed to get user profile')
   }
   

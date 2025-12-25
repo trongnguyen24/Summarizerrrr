@@ -298,7 +298,9 @@
             class="z-[1] absolute inset-0 border border-border pointer-events-none"
           ></div>
           <!-- User info -->
-          <div class="flex relative items-center overflow-hidden text-xs">
+          <div
+            class="flex relative pr-2 gap-2 items-center bg-blackwhite-5 overflow-hidden text-xs"
+          >
             <div
               class="overflow-hidden relative p-2 flex items-center justify-center"
             >
@@ -309,39 +311,93 @@
                 <img
                   src={cloudSyncStore.userPicture}
                   alt={cloudSyncStore.userName}
-                  class="size-16"
+                  class="size-12"
                 />
               {:else}
                 <Icon icon="heroicons:user" class="size-6 text-primary" />
               {/if}
             </div>
             <div class="flex-1 min-w-0">
-              <p class="text-text-primary text-sm font-bold truncate">
+              <!-- <p class="text-text-primary font-bold truncate">
                 {cloudSyncStore.userName}
-              </p>
-              <p class=" text-text-secondary truncate">
+              </p> -->
+              <p class=" text-text-primary font-bold truncate">
                 {cloudSyncStore.userEmail}
               </p>
-              <p class=" text-muted">
+              <p class="mt-1 text-text-secondary">
                 Synced {formatLastSyncTime(cloudSyncStore.lastSyncTime, now)}
               </p>
             </div>
+            <!-- <div class=" w-fit justify-center items-end flex shrink-0 relative">
+              <div
+                class="flex justify-center items-center size-10 w-16 border-l border-dashed border-border"
+              >
+                <Icon
+                  icon="heroicons:cog-6-tooth"
+                  class="size-4 shrink-0 transition-colors {cloudSyncStore
+                    .syncPreferences.settings
+                    ? 'text-text-secondary'
+                    : 'text-border'}"
+                />
+              </div>
+              <div
+                class="flex justify-center items-center size-10 w-16 border-l border-dashed border-border"
+              >
+                <Icon
+                  icon="heroicons:clock"
+                  class="size-4 shrink-0 transition-colors {cloudSyncStore
+                    .syncPreferences.history
+                    ? 'text-text-secondary'
+                    : 'text-border'}"
+                />
+              </div>
+              <div
+                class="flex justify-center items-center size-10 w-16 border-l border-dashed border-border"
+              >
+                <Icon
+                  icon="heroicons:archive-box"
+                  class="size-4 shrink-0 transition-colors {cloudSyncStore
+                    .syncPreferences.archive
+                    ? 'text-text-secondary'
+                    : 'text-border'}"
+                />
+              </div>
+              <div
+                class="flex justify-center items-center size-10 w-16 border-l border-dashed border-border"
+              >
+                <Icon
+                  icon="tabler:tag"
+                  class="size-4 shrink-0 transition-colors {cloudSyncStore
+                    .syncPreferences.archive
+                    ? 'text-text-secondary'
+                    : 'text-border'}"
+                />
+              </div>
+            </div> -->
+          </div>
+
+          <div
+            class="flex gap-0 justify-center items-center border-t border-border"
+          >
             <button
               onclick={handleSyncNow}
               disabled={cloudSyncStore.isSyncing}
-              class="flex items-center justify-center gap-2 size-9 rounded-full text-text-primary border border-border hover:bg-blackwhite/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              class="flex flex-1 items-center justify-center gap-2 py-3 px-4 text-text-primary hover:bg-blackwhite/10 transition-colors duration-100 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Icon
                 icon="heroicons:arrow-path"
                 class="size-4 {cloudSyncStore.isSyncing ? 'animate-spin' : ''}"
               />
-              <!-- <span class="text-xs">Sync Now</span> -->
+              Sync Now
             </button>
             <button
               onclick={handleLogout}
-              class="flex items-center justify-center gap-2 size-9 rounded-full text-text-primary border border-border hover:bg-blackwhite/10 transition-colors"
+              class="flex w-fit items-center justify-center gap-2 py-3 px-4 border-l border-border text-text-primary hover:bg-blackwhite/10 duration-100 transition-colors"
             >
-              <Icon icon="heroicons:arrow-right-on-rectangle" class="size-4" />
+              <Icon
+                icon="heroicons:arrow-right-on-rectangle"
+                class="size-4"
+              />Sign Out
             </button>
           </div>
           <!-- Debug Logs -->

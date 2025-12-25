@@ -124,7 +124,7 @@
   }
 </script>
 
-<div class="flex flex-col gap-8 py-5">
+<div class="flex flex-col gap-6 py-5">
   <div class="flex gap-4">
     <div class="size-24 bg-background shrink-0 overflow-hidden relative">
       <ToolIcon96 animated={cloudSyncEnabled} />
@@ -177,6 +177,103 @@
     {:else}
       <!-- Logged in state -->
       <div class="flex flex-col gap-6">
+        <!-- Debug Logs (Temporary for debugging) -->
+
+        <div class="relative bg-background overflow-hidden">
+          <span
+            class="absolute z-50 size-6 rotate-45 bg-surface-1 border border-border bottom-px left-px -translate-x-1/2 translate-y-1/2"
+          ></span>
+          <span
+            class="absolute z-[2] size-6 rotate-45 bg-surface-1 top-px border border-border right-px translate-x-1/2 -translate-y-1/2"
+          ></span>
+          <span
+            class="absolute z-[5] size-4 rotate-45 bg-text-primary top-px right-px translate-x-1/2 -translate-y-1/2"
+          ></span>
+          <div
+            class="z-[1] absolute inset-0 border border-border pointer-events-none"
+          ></div>
+          <!-- User info -->
+          <div
+            class="flex relative gap-6 items-center bg-dot overflow-hidden text-xs"
+          >
+            <div
+              class="overflow-hidden relative p-3 flex items-center justify-center"
+            >
+              <div
+                class="z-40 absolute inset-2 border border-muted pointer-events-none"
+              ></div>
+              {#if cloudSyncStore.userPicture}
+                <img
+                  src={cloudSyncStore.userPicture}
+                  alt={cloudSyncStore.userName}
+                  class="size-18"
+                />
+              {:else}
+                <Icon icon="heroicons:user" class="size-6 text-primary" />
+              {/if}
+            </div>
+            <div class="flex flex-col gap-1 min-w-0">
+              <p class="text-text-primary font-bold truncate">
+                {cloudSyncStore.userName}
+              </p>
+              <p class=" text-text-primary font-bold truncate">
+                {cloudSyncStore.userEmail}
+              </p>
+              <p class=" text-text-secondary">
+                Synced {formatLastSyncTime(cloudSyncStore.lastSyncTime, now)}
+              </p>
+            </div>
+          </div>
+
+          <div
+            class="flex gap-0 justify-center items-center border-t border-border"
+          >
+            <button
+              onclick={handleSyncNow}
+              disabled={cloudSyncStore.isSyncing}
+              class="flex flex-1 items-center justify-center gap-2 py-3 px-4 text-text-primary hover:bg-blackwhite/10 transition-colors duration-100 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Icon
+                icon="heroicons:arrow-path"
+                class="size-4 {cloudSyncStore.isSyncing ? 'animate-spin' : ''}"
+              />
+              Sync Now
+            </button>
+            <button
+              onclick={handleLogout}
+              class="flex w-fit items-center justify-center gap-2 py-3 px-4 border-l border-border text-text-primary hover:bg-blackwhite/10 duration-100 transition-colors"
+            >
+              <Icon
+                icon="heroicons:arrow-right-on-rectangle"
+                class="size-4"
+              />Sign Out
+            </button>
+          </div>
+          <!-- Debug Logs -->
+          <!-- <div class="w-full h-1 border-t border-border"></div> -->
+          <!-- <div
+            class="bg-background border thin-scroll border-border rounded p-2 h-32 overflow-y-auto font-mono text-[10px] space-y-1"
+          >
+            {#if cloudSyncStore.debugLogs && cloudSyncStore.debugLogs.length > 0}
+              {#each cloudSyncStore.debugLogs as log}
+                <div
+                  class={log.type === 'error'
+                    ? 'text-red-500'
+                    : log.type === 'success'
+                      ? 'text-green-500'
+                      : 'text-text-secondary'}
+                >
+                  <span class="opacity-50">[{log.time}]</span>
+                  {log.msg}
+                </div>
+              {/each}
+            {:else}
+              <div class="text-muted italic">
+                No logs yet... Try clicking Sync Now.
+              </div>
+            {/if}
+          </div> -->
+        </div>
         <div>
           <label class="text-text-primary">Sync Mode</label>
           <p class="mt-1 text-muted text-xs">
@@ -281,103 +378,6 @@
             {cloudSyncStore.syncError}
           </div>
         {/if}
-
-        <!-- Debug Logs (Temporary for debugging) -->
-
-        <div class="relative bg-background overflow-hidden">
-          <span
-            class="absolute z-50 size-6 rotate-45 bg-surface-1 border border-border bottom-px left-px -translate-x-1/2 translate-y-1/2"
-          ></span>
-          <span
-            class="absolute z-[2] size-6 rotate-45 bg-surface-1 top-px border border-border right-px translate-x-1/2 -translate-y-1/2"
-          ></span>
-          <span
-            class="absolute z-[5] size-4 rotate-45 bg-text-primary top-px right-px translate-x-1/2 -translate-y-1/2"
-          ></span>
-          <div
-            class="z-[1] absolute inset-0 border border-border pointer-events-none"
-          ></div>
-          <!-- User info -->
-          <div
-            class="flex relative pr-2 gap-2 items-center bg-blackwhite-5 overflow-hidden text-xs"
-          >
-            <div
-              class="overflow-hidden relative p-2 flex items-center justify-center"
-            >
-              <div
-                class="z-40 absolute inset-2 border border-muted pointer-events-none"
-              ></div>
-              {#if cloudSyncStore.userPicture}
-                <img
-                  src={cloudSyncStore.userPicture}
-                  alt={cloudSyncStore.userName}
-                  class="size-12"
-                />
-              {:else}
-                <Icon icon="heroicons:user" class="size-6 text-primary" />
-              {/if}
-            </div>
-            <div class="flex-1 min-w-0">
-              <!-- <p class="text-text-primary font-bold truncate">
-                {cloudSyncStore.userName}
-              </p> -->
-              <p class=" text-text-primary font-bold truncate">
-                {cloudSyncStore.userEmail}
-              </p>
-              <p class="mt-1 text-text-secondary">
-                Synced {formatLastSyncTime(cloudSyncStore.lastSyncTime, now)}
-              </p>
-            </div>
-          </div>
-
-          <div
-            class="flex gap-0 justify-center items-center border-t border-border"
-          >
-            <button
-              onclick={handleSyncNow}
-              disabled={cloudSyncStore.isSyncing}
-              class="flex flex-1 items-center justify-center gap-2 py-3 px-4 text-text-primary hover:bg-blackwhite/10 transition-colors duration-100 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <Icon
-                icon="heroicons:arrow-path"
-                class="size-4 {cloudSyncStore.isSyncing ? 'animate-spin' : ''}"
-              />
-              Sync Now
-            </button>
-            <button
-              onclick={handleLogout}
-              class="flex w-fit items-center justify-center gap-2 py-3 px-4 border-l border-border text-text-primary hover:bg-blackwhite/10 duration-100 transition-colors"
-            >
-              <Icon
-                icon="heroicons:arrow-right-on-rectangle"
-                class="size-4"
-              />Sign Out
-            </button>
-          </div>
-          <!-- Debug Logs -->
-          <div
-            class="bg-background border thin-scroll border-border rounded p-2 h-32 overflow-y-auto font-mono text-[10px] space-y-1"
-          >
-            {#if cloudSyncStore.debugLogs && cloudSyncStore.debugLogs.length > 0}
-              {#each cloudSyncStore.debugLogs as log}
-                <div
-                  class={log.type === 'error'
-                    ? 'text-red-500'
-                    : log.type === 'success'
-                      ? 'text-green-500'
-                      : 'text-text-secondary'}
-                >
-                  <span class="opacity-50">[{log.time}]</span>
-                  {log.msg}
-                </div>
-              {/each}
-            {:else}
-              <div class="text-muted italic">
-                No logs yet... Try clicking Sync Now.
-              </div>
-            {/if}
-          </div>
-        </div>
       </div>
     {/if}
 

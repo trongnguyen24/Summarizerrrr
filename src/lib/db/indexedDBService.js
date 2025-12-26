@@ -860,11 +860,12 @@ export {
   clearAllSummaries,
   clearAllHistory,
   clearAllTags,
-  replaceTagsStore,
-  // Soft delete exports for cloud sync
   softDeleteSummary,
   softDeleteTag,
   softDeleteHistory,
+  replaceSummariesStore,
+  replaceHistoryStore,
+  replaceTagsStore,
 }
 
 // --- Soft Delete Functions for Cloud Sync ---
@@ -960,36 +961,69 @@ async function replaceTagsStore(tags) {
     const transaction = db.transaction([TAGS_STORE_NAME], 'readwrite')
     const objectStore = transaction.objectStore(TAGS_STORE_NAME)
     
+    transaction.oncomplete = () => resolve(true)
+    transaction.onerror = (event) => reject(event.target.error)
+
     // 1. Clear the store
-    const clearRequest = objectStore.clear()
+    objectStore.clear()
     
-    clearRequest.onsuccess = () => {
-      // 2. Add all tags
-      if (!tags || tags.length === 0) {
-        resolve(true)
-        return
-      }
-      
-      let count = 0
+    // 2. Add all tags
+    if (tags && tags.length > 0) {
       tags.forEach((tag) => {
-        // Ensure valid tag object
-        if (!tag.id || !tag.name) return
-        
-        const request = objectStore.put(tag)
-        request.onsuccess = () => {
-          count++
-          if (count === tags.length) resolve(true)
-        }
-        request.onerror = (e) => {
-          console.error('Error adding tag during replace:', e)
-          // Continue despite error? Or fail?
-          // For sync, best to continue
-          count++
-          if (count === tags.length) resolve(true)
+        if (tag.id && tag.name) {
+          objectStore.put(tag)
         }
       })
     }
+  })
+}
+
+/**
+ * Atomic replacement of all summaries
+ * @param {Array} summaries 
+ */
+async function replaceSummariesStore(summaries) {
+  if (!db) db = await openDatabase()
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction([STORE_NAME], 'readwrite')
+    const objectStore = transaction.objectStore(STORE_NAME)
     
-    clearRequest.onerror = (event) => reject(event.target.error)
+    transaction.oncomplete = () => resolve(true)
+    transaction.onerror = (event) => reject(event.target.error)
+
+    objectStore.clear()
+    
+    if (summaries && summaries.length > 0) {
+      summaries.forEach((item) => {
+        if (item.id) {
+          objectStore.put(item)
+        }
+      })
+    }
+  })
+}
+
+/**
+ * Atomic replacement of all history items
+ * @param {Array} historyItems 
+ */
+async function replaceHistoryStore(historyItems) {
+  if (!db) db = await openDatabase()
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction([HISTORY_STORE_NAME], 'readwrite')
+    const objectStore = transaction.objectStore(HISTORY_STORE_NAME)
+    
+    transaction.oncomplete = () => resolve(true)
+    transaction.onerror = (event) => reject(event.target.error)
+
+    objectStore.clear()
+    
+    if (historyItems && historyItems.length > 0) {
+      historyItems.forEach((item) => {
+        if (item.id) {
+          objectStore.put(item)
+        }
+      })
+    }
   })
 }

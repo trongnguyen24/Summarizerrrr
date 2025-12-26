@@ -21,6 +21,7 @@ import { getAISDKModel, mapGenerationConfig } from '@/lib/api/aiSdkAdapter.js'
 import { generateText } from 'ai'
 import { aiConfig } from '../lib/config/aiConfig.js'
 import { generateAISummaryPrompt, generateYouTubeAISummaryPrompt } from '../lib/prompts/templates/aiSummary.js'
+import { initSync } from '../services/cloudSync/cloudSyncService.svelte.js'
 
 // --- Helper Functions ---
 
@@ -625,6 +626,18 @@ export default defineBackground(() => {
         '[Background] Failed to initialize Ollama CORS service:',
         error
       )
+    }
+  })()
+
+  // Initialize Cloud Sync service (auto-sync if enabled)
+  ;(async () => {
+    try {
+      // Wait for storage to be ready
+      await new Promise((resolve) => setTimeout(resolve, 2000))
+      await initSync()
+      console.log('[Background] Cloud Sync service initialized')
+    } catch (error) {
+      console.error('[Background] Failed to initialize Cloud Sync:', error)
     }
   })()
 

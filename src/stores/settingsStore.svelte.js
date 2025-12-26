@@ -451,6 +451,16 @@ export async function updateSettings(newSettings) {
     // Save the entire updated settings object back to storage
     // Convert Svelte Proxy to a plain JS object before saving to prevent DataCloneError
     await settingsStorage.setValue(JSON.parse(JSON.stringify(updatedSettings)))
+    
+    // Trigger cloud sync after settings change
+    try {
+      const { triggerSync } = await import(
+        '@/services/cloudSync/cloudSyncService.svelte.js'
+      )
+      triggerSync()
+    } catch (syncError) {
+      // Silently ignore sync errors - settings are already saved locally
+    }
   } catch (error) {
     console.error('[settingsStore] Error saving settings:', error)
   }

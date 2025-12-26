@@ -22,11 +22,14 @@ import {
   getAllTags,
   addMultipleSummaries,
   addMultipleHistory,
-  clearAllSummaries,
-  clearAllHistory,
+  softDeleteSummary,
+  softDeleteTag,
+  softDeleteHistory,
+  replaceSummariesStore,
+  replaceHistoryStore,
   replaceTagsStore,
 } from '@/lib/db/indexedDBService.js'
-import { settings, loadSettings, updateSettings } from '@/stores/settingsStore.svelte.js'
+import { settings, loadSettings, updateSettings, isToolEnabled } from '@/stores/settingsStore.svelte.js'
 import { generateUUID } from '@/lib/utils/utils.js'
 
 // File names on Google Drive - 3 file architecture
@@ -92,9 +95,10 @@ function logToUI(msg, type = 'info') {
 }
 
 let syncInterval = null
-const AUTO_SYNC_INTERVAL = 2 * 60 * 1000 // 2 minutes
-const DEBOUNCE_DELAY = 7 * 1000 // 7 seconds
+const AUTO_SYNC_INTERVAL = 10 * 60 * 1000 // 10 minutes
+const DEBOUNCE_DELAY = 30 * 1000 // 30 seconds
 let debounceTimer = null
+let pendingSync = false // Track if there are pending changes while syncing
 
 // Token cache to avoid reading from storage every time
 let tokenCache = {
@@ -109,6 +113,8 @@ let tokenCache = {
  * Initialize sync service on extension load
  */
 export async function initSync() {
+  if (!isToolEnabled('cloudSync')) return
+  
   try {
     const stored = await syncStorage.getValue()
     
@@ -259,8 +265,10 @@ export async function login() {
     const profile = await getUserProfile(accessToken)
     
     const stored = await syncStorage.getValue()
+    const isFirstLogin = stored.autoSyncEnabled === null
     
-    await syncStorage.setValue({
+    // Update storage with profile and auth info
+    const updatedState = {
       ...stored,
       isLoggedIn: true,
       accessToken,
@@ -269,34 +277,25 @@ export async function login() {
       userEmail: profile.email,
       userName: profile.name,
       userPicture: profile.picture,
-    })
+    }
+    
+    // Set default sync mode on first login
+    if (isFirstLogin) {
+      updatedState.autoSyncEnabled = false
+    }
+    
+    await syncStorage.setValue(updatedState)
     
     syncState.isLoggedIn = true
     syncState.userEmail = profile.email
     syncState.userName = profile.name
     syncState.userPicture = profile.picture
-    syncState.lastSyncTime = stored.lastSyncTime
-    syncState.autoSyncEnabled = stored.autoSyncEnabled
+    syncState.lastSyncTime = (await syncStorage.getValue()).lastSyncTime
+    syncState.autoSyncEnabled = updatedState.autoSyncEnabled
     syncState.syncPreferences = stored.syncPreferences || {
       settings: true,
       history: true,
       library: true,
-    }
-    
-    // Set default sync mode to Manual (autoSyncEnabled = false) on first login
-    if (stored.autoSyncEnabled === null) {
-      await syncStorage.setValue({
-        ...stored,
-        isLoggedIn: true,
-        accessToken,
-        refreshToken: newRefreshToken,
-        tokenExpiry: expiresAt,
-        userEmail: profile.email,
-        userName: profile.name,
-        userPicture: profile.picture,
-        autoSyncEnabled: false,
-      })
-      syncState.autoSyncEnabled = false
     }
     
     return {}
@@ -414,6 +413,7 @@ function cleanupSoftDeleted(itemsMap) {
  * Main sync function - Pull and merge data from cloud
  */
 export async function pullData() {
+  if (!isToolEnabled('cloudSync')) return
   if (syncState.isSyncing) return
   
   syncState.isSyncing = true
@@ -482,6 +482,13 @@ export async function pullData() {
     syncState.syncError = error.message
   } finally {
     syncState.isSyncing = false
+    
+    // Check if there were changes during sync, trigger another sync
+    if (pendingSync) {
+      pendingSync = false
+      logToUI('Pending changes detected, scheduling sync...', 'info')
+      debouncedPush()
+    }
   }
 }
 
@@ -515,7 +522,6 @@ async function syncSettings(accessToken, cloudFile, stored) {
     return
   }
   
-  // First-time sync detection: show conflict dialog
   // Use needsSettingsConflictCheck flag instead of lastSyncTime (so lastSyncTime can still show in UI)
   const needsConflictCheck = stored.needsSettingsConflictCheck !== false
   
@@ -593,10 +599,7 @@ async function syncHistory(accessToken, cloudFile) {
   // Apply merged data to local (filter out deleted items for display)
   const historyArray = mapToArray(cleanedHistory).filter(h => !h.deleted)
   
-  await clearAllHistory()
-  if (historyArray.length > 0) {
-    await addMultipleHistory(historyArray)
-  }
+  await replaceHistoryStore(historyArray)
   
   // Check if merged data differs from cloud
   const hasChanges = detectMapChanges(cloudMap, cleanedHistory)
@@ -664,12 +667,8 @@ async function syncLibrary(accessToken, cloudFile) {
   const tagsArray = mapToArray(cleanedTags).filter(t => !t.deleted)
   const archivesArray = mapToArray(cleanedArchives).filter(a => !a.deleted)
   
-  // Clear and replace (atomic operation)
-  await clearAllSummaries()
-  if (archivesArray.length > 0) {
-    await addMultipleSummaries(archivesArray)
-  }
-  
+  // Clear and replace in atomic operations
+  await replaceSummariesStore(archivesArray)
   await replaceTagsStore(tagsArray)
   
   // Check if merged data differs from cloud data
@@ -847,6 +846,7 @@ async function pushAllData(accessToken) {
  * Manual sync trigger
  */
 export async function syncNow() {
+  if (!isToolEnabled('cloudSync')) return
   await pullData()
 }
 
@@ -854,7 +854,15 @@ export async function syncNow() {
  * Debounced sync to avoid too frequent syncs
  */
 function debouncedPush() {
+  if (!isToolEnabled('cloudSync')) return
   if (!syncState.isLoggedIn || !syncState.autoSyncEnabled) return
+  
+  // If currently syncing, mark as pending to sync again after current sync completes
+  if (syncState.isSyncing) {
+    pendingSync = true
+    logToUI('Sync in progress, changes will be synced after current sync completes', 'info')
+    return
+  }
   
   if (debounceTimer) {
     clearTimeout(debounceTimer)
@@ -869,6 +877,7 @@ function debouncedPush() {
  * Trigger sync after data changes
  */
 export function triggerSync() {
+  if (!isToolEnabled('cloudSync')) return
   debouncedPush()
 }
 

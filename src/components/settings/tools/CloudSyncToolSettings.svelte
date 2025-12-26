@@ -15,6 +15,7 @@
     syncNow,
     setAutoSync,
     setSyncPreferences,
+    resolveSettingsConflict,
   } from '@/services/cloudSync/cloudSyncService.svelte.js'
 
   // Load icons
@@ -46,7 +47,6 @@
   }
 
   let isLoggingIn = $state(false)
-  let showAutoSyncPrompt = $state(false)
   let loginError = $state(null)
 
   let now = $state(Date.now())
@@ -66,11 +66,7 @@
     loginError = null
 
     try {
-      const result = await login()
-
-      if (result.needsAutoSyncChoice) {
-        showAutoSyncPrompt = true
-      }
+      await login()
     } catch (error) {
       loginError = error.message
     } finally {
@@ -92,11 +88,6 @@
     } catch (error) {
       console.error('Sync failed:', error)
     }
-  }
-
-  async function handleAutoSyncChoice(enabled) {
-    await setAutoSync(enabled)
-    showAutoSyncPrompt = false
   }
 
   async function handleSyncPreferenceChange(type, enabled) {
@@ -121,6 +112,86 @@
       hour: '2-digit',
       minute: '2-digit',
     })
+  }
+
+  // Helper functions for conflict dialog
+
+  // Check if settings has any API key configured
+  function getApiKeyStatus(settings) {
+    if (!settings) return 'No API keys'
+
+    const apiKeyFields = [
+      'geminiApiKey',
+      'geminiAdvancedApiKey',
+      'chatgptApiKey',
+      'deepseekApiKey',
+      'groqApiKey',
+      'cerebrasApiKey',
+      'openrouterApiKey',
+      'openaiCompatibleApiKey',
+    ]
+
+    const hasKey = apiKeyFields.some(
+      (field) => settings[field] && settings[field].trim() !== '',
+    )
+    return hasKey ? '✓ Has API keys' : 'No API keys'
+  }
+
+  // Default prompt value to compare against
+  const DEFAULT_PROMPT = 'Summarize content, format by ## and ###: __CONTENT__'
+
+  // Check if settings has any custom prompts
+  function getPromptStatus(settings) {
+    if (!settings) return 'Default'
+
+    const promptFields = [
+      'youtubeCustomPromptContent',
+      'webCustomPromptContent',
+      'chapterCustomPromptContent',
+      'courseSummaryCustomPromptContent',
+      'courseConceptsCustomPromptContent',
+      'selectedTextCustomPromptContent',
+      'analyzeCustomPromptContent',
+      'explainCustomPromptContent',
+      'debateCustomPromptContent',
+      'commentCustomPromptContent',
+    ]
+
+    const hasCustom = promptFields.some((field) => {
+      const value = settings[field]
+      return value && value.trim() !== '' && value !== DEFAULT_PROMPT
+    })
+
+    return hasCustom ? '✓ Has custom prompts' : 'Default'
+  }
+
+  function formatRelativeTimestamp(timestamp) {
+    if (!timestamp) return 'Unknown'
+    const now = Date.now()
+    const diffMs = now - timestamp
+    const diffMins = Math.floor(diffMs / 60000)
+    const diffHours = Math.floor(diffMins / 60)
+    const diffDays = Math.floor(diffHours / 24)
+
+    if (diffMins < 1) return 'Just now'
+    if (diffMins < 60) return `${diffMins} min ago`
+    if (diffHours < 24)
+      return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`
+    return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`
+  }
+
+  // Handle conflict resolution
+  let isResolvingConflict = $state(false)
+
+  async function handleConflictChoice(choice) {
+    isResolvingConflict = true
+    try {
+      await resolveSettingsConflict(choice)
+    } catch (error) {
+      console.error('Failed to resolve conflict:', error)
+    } finally {
+      isResolvingConflict = false
+    }
   }
 </script>
 
@@ -381,38 +452,122 @@
       </div>
     {/if}
 
-    <!-- Auto-sync prompt modal -->
-    {#if showAutoSyncPrompt}
+    <!-- Settings Conflict Dialog -->
+    {#if cloudSyncStore.pendingSettingsConflict}
+      {@const conflict = cloudSyncStore.pendingSettingsConflict}
       <div
         class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
       >
         <div
-          class="bg-surface-1 border border-border rounded-lg p-6 max-w-sm mx-4 shadow-xl"
+          class="bg-surface-1 border border-border rounded-lg p-5 max-w-md mx-4 shadow-xl"
         >
+          <!-- Header -->
           <div class="flex items-center gap-3 mb-4">
-            <Icon icon="heroicons:cloud-arrow-up" class="size-8 text-primary" />
-            <h3 class="font-semibold text-text-primary">Enable Auto Sync?</h3>
+            <Icon
+              icon="heroicons:exclamation-triangle"
+              class="size-6 text-yellow-500"
+            />
+            <h3 class="font-semibold text-text-primary">Settings Sync</h3>
           </div>
 
-          <p class="text-xs text-muted mb-6">
-            Auto sync will keep your data synchronized across devices. You can
-            change this setting anytime.
+          <p class="text-xs text-muted mb-4">
+            Your local settings differ from cloud. Choose which settings to
+            keep:
           </p>
 
-          <div class="flex gap-3">
+          <!-- Local Settings Card -->
+          <div
+            class="border border-border rounded-lg p-3 mb-3 hover:border-primary/50 transition-colors"
+          >
+            <div class="flex justify-between items-center mb-2">
+              <div class="flex items-center gap-2">
+                <Icon
+                  icon="heroicons:device-phone-mobile"
+                  class="size-4 text-primary"
+                />
+                <span class="text-xs font-medium text-text-primary"
+                  >This Device</span
+                >
+              </div>
+              <span class="text-[10px] text-muted">
+                {formatRelativeTimestamp(conflict.localTimestamp)}
+              </span>
+            </div>
+            <div class="text-[11px] text-text-secondary space-y-1 mb-3">
+              <div class="flex gap-2">
+                <span class="text-muted w-16">API Keys:</span>
+                <span
+                  class={getApiKeyStatus(conflict.localSettings).includes('✓')
+                    ? 'text-green-500'
+                    : ''}>{getApiKeyStatus(conflict.localSettings)}</span
+                >
+              </div>
+              <div class="flex gap-2">
+                <span class="text-muted w-16">Prompts:</span>
+                <span
+                  class={getPromptStatus(conflict.localSettings).includes('✓')
+                    ? 'text-green-500'
+                    : ''}>{getPromptStatus(conflict.localSettings)}</span
+                >
+              </div>
+            </div>
             <button
-              onclick={() => handleAutoSyncChoice(false)}
-              class="flex-1 px-4 py-2 text-xs border border-border rounded-md hover:bg-surface-2 transition-colors"
+              onclick={() => handleConflictChoice('local')}
+              disabled={isResolvingConflict}
+              class="w-full px-3 py-1.5 text-xs bg-primary/10 text-primary border border-primary/20 rounded-md hover:bg-primary/20 transition-colors disabled:opacity-50"
             >
-              Manual Sync
-            </button>
-            <button
-              onclick={() => handleAutoSyncChoice(true)}
-              class="flex-1 px-4 py-2 text-xs bg-primary text-white rounded-md hover:bg-primary/90 transition-colors"
-            >
-              Enable Auto Sync
+              {isResolvingConflict ? 'Processing...' : 'Use Local'}
             </button>
           </div>
+
+          <!-- Cloud Settings Card -->
+          <div
+            class="border border-border rounded-lg p-3 mb-4 hover:border-blue-500/50 transition-colors"
+          >
+            <div class="flex justify-between items-center mb-2">
+              <div class="flex items-center gap-2">
+                <Icon icon="heroicons:cloud" class="size-4 text-blue-500" />
+                <span class="text-xs font-medium text-text-primary">Cloud</span>
+              </div>
+              <span class="text-[10px] text-muted">
+                {formatRelativeTimestamp(conflict.cloudTimestamp)}
+              </span>
+            </div>
+            <div class="text-[11px] text-text-secondary space-y-1 mb-3">
+              <div class="flex gap-2">
+                <span class="text-muted w-16">API Keys:</span>
+                <span
+                  class={getApiKeyStatus(conflict.cloudSettings).includes('✓')
+                    ? 'text-green-500'
+                    : ''}>{getApiKeyStatus(conflict.cloudSettings)}</span
+                >
+              </div>
+              <div class="flex gap-2">
+                <span class="text-muted w-16">Prompts:</span>
+                <span
+                  class={getPromptStatus(conflict.cloudSettings).includes('✓')
+                    ? 'text-green-500'
+                    : ''}>{getPromptStatus(conflict.cloudSettings)}</span
+                >
+              </div>
+            </div>
+            <button
+              onclick={() => handleConflictChoice('cloud')}
+              disabled={isResolvingConflict}
+              class="w-full px-3 py-1.5 text-xs bg-blue-500/10 text-blue-500 border border-blue-500/20 rounded-md hover:bg-blue-500/20 transition-colors disabled:opacity-50"
+            >
+              {isResolvingConflict ? 'Processing...' : 'Use Cloud'}
+            </button>
+          </div>
+
+          <!-- Cancel Button -->
+          <button
+            onclick={() => handleConflictChoice('cancel')}
+            disabled={isResolvingConflict}
+            class="w-full px-3 py-2 text-xs text-muted border border-border rounded-md hover:bg-surface-2 transition-colors disabled:opacity-50"
+          >
+            Cancel - Don't sync settings now
+          </button>
         </div>
       </div>
     {/if}

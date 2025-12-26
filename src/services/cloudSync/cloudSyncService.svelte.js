@@ -45,6 +45,7 @@ export const syncStorage = storage.defineItem('local:syncState', {
     isLoggedIn: false,
     autoSyncEnabled: null, // null = chưa hỏi, true/false = user đã chọn
     lastSyncTime: null,
+    needsSettingsConflictCheck: true, // Flag to show settings conflict dialog on first sync after login
     accessToken: null,
     refreshToken: null,
     tokenExpiry: null,
@@ -79,6 +80,10 @@ let syncState = $state({
 
 // Debug logs store
 let debugLogs = $state([])
+
+// Pending settings conflict for first-time sync
+let pendingSettingsConflict = $state(null)
+// Structure: { localSettings, cloudSettings, localTimestamp, cloudTimestamp }
 
 function logToUI(msg, type = 'info') {
   console.log(`[CloudSync] ${msg}`)
@@ -270,11 +275,31 @@ export async function login() {
     syncState.userEmail = profile.email
     syncState.userName = profile.name
     syncState.userPicture = profile.picture
+    syncState.lastSyncTime = stored.lastSyncTime
+    syncState.autoSyncEnabled = stored.autoSyncEnabled
+    syncState.syncPreferences = stored.syncPreferences || {
+      settings: true,
+      history: true,
+      library: true,
+    }
     
-    // Check if user needs to choose auto-sync preference
-    const needsAutoSyncChoice = stored.autoSyncEnabled === null
+    // Set default sync mode to Manual (autoSyncEnabled = false) on first login
+    if (stored.autoSyncEnabled === null) {
+      await syncStorage.setValue({
+        ...stored,
+        isLoggedIn: true,
+        accessToken,
+        refreshToken: newRefreshToken,
+        tokenExpiry: expiresAt,
+        userEmail: profile.email,
+        userName: profile.name,
+        userPicture: profile.picture,
+        autoSyncEnabled: false,
+      })
+      syncState.autoSyncEnabled = false
+    }
     
-    return { needsAutoSyncChoice }
+    return {}
   } catch (error) {
     console.error('Login failed:', error)
     syncState.syncError = error.message
@@ -314,13 +339,18 @@ export async function logout(revokeAccess = true) {
     userEmail: null,
     userName: null,
     userPicture: null,
+    needsSettingsConflictCheck: true, // Trigger conflict dialog on next login (important for multiple profiles)
+    // Note: Keep lastSyncTime so UI can still show last sync time
   })
   
   syncState.isLoggedIn = false
   syncState.userEmail = null
   syncState.userName = null
   syncState.userPicture = null
-  syncState.lastSyncTime = null
+  // Note: Don't reset syncState.lastSyncTime so it can still be displayed in UI
+  
+  // Clear any pending conflict
+  pendingSettingsConflict = null
 }
 
 
@@ -432,15 +462,20 @@ export async function pullData() {
       await syncLibrary(accessToken, libraryFile)
     }
     
-    // Update last sync time
-    const now = new Date().toISOString()
-    await syncStorage.setValue({
-      ...stored,
-      lastSyncTime: now,
-    })
-    
-    syncState.lastSyncTime = now
-    logToUI('Sync completed successfully', 'success')
+    // Update last sync time ONLY if there's no pending settings conflict
+    // If there's a pending conflict, we need to wait for user to resolve it
+    if (!pendingSettingsConflict) {
+      const now = new Date().toISOString()
+      await syncStorage.setValue({
+        ...stored,
+        lastSyncTime: now,
+      })
+      
+      syncState.lastSyncTime = now
+      logToUI('Sync completed successfully', 'success')
+    } else {
+      logToUI('Sync paused - waiting for settings conflict resolution', 'info')
+    }
   } catch (error) {
     console.error('Sync failed:', error)
     logToUI(`Sync failed: ${error.message}`, 'error')
@@ -451,8 +486,8 @@ export async function pullData() {
 }
 
 /**
- * Sync Settings - Last Write Wins strategy
- * Only push if local settings actually differ from cloud
+ * Sync Settings - Last Write Wins strategy with first-time conflict detection
+ * Uses settings.lastModified for comparison instead of lastSyncTime
  */
 async function syncSettings(accessToken, cloudFile, stored) {
   await loadSettings()
@@ -480,17 +515,47 @@ async function syncSettings(accessToken, cloudFile, stored) {
     return
   }
   
-  // Settings differ - use timestamp to decide direction
+  // First-time sync detection: show conflict dialog
+  // Use needsSettingsConflictCheck flag instead of lastSyncTime (so lastSyncTime can still show in UI)
+  const needsConflictCheck = stored.needsSettingsConflictCheck !== false
+  
+  if (needsConflictCheck) {
+    // First sync after login with existing cloud data - let user choose
+    logToUI('Settings conflict detected, showing dialog...')
+    
+    const localTime = localSettings.lastModified || 0
+    const cloudTime = cloudFile.updatedAt || 0
+    
+    pendingSettingsConflict = {
+      localSettings,
+      cloudSettings,
+      localTimestamp: localTime,
+      cloudTimestamp: cloudTime,
+    }
+    
+    // Don't auto-resolve, wait for user choice
+    return
+  }
+  
+  // Normal sync: use lastModified to decide direction
   const cloudTime = cloudFile.updatedAt || 0
-  const localTime = stored.lastSyncTime ? new Date(stored.lastSyncTime).getTime() : 0
+  const localTime = localSettings.lastModified || 0
   
   if (cloudTime > localTime) {
     // Cloud is newer, apply to local
     logToUI('Cloud Settings is newer, applying...')
     await updateSettings(cloudSettings)
-  } else {
-    // Local is different and cloud hasn't updated since last sync
+  } else if (localTime > cloudTime) {
+    // Local is newer, push to cloud
     logToUI('Pushing local Settings...')
+    await saveFile(accessToken, FILES.SETTINGS, {
+      version: 2,
+      updatedAt: Date.now(),
+      data: localSettings,
+    })
+  } else {
+    // Same timestamp but different content - push local as it's the current device
+    logToUI('Timestamps equal but content differs, pushing local Settings...')
     await saveFile(accessToken, FILES.SETTINGS, {
       version: 2,
       updatedAt: Date.now(),
@@ -807,6 +872,81 @@ export function triggerSync() {
   debouncedPush()
 }
 
+/**
+ * Resolve settings conflict when user makes a choice
+ * @param {'local' | 'cloud' | 'cancel'} choice
+ */
+export async function resolveSettingsConflict(choice) {
+  if (!pendingSettingsConflict) {
+    console.warn('[CloudSync] No pending settings conflict to resolve')
+    return
+  }
+  
+  const { localSettings, cloudSettings } = pendingSettingsConflict
+  
+  try {
+    if (choice === 'cancel') {
+      // User cancelled - don't set lastSyncTime so dialog will show again next sync
+      // Also switch back to Manual mode to prevent auto-sync without resolution
+      logToUI('User cancelled settings sync - switching to Manual mode')
+      pendingSettingsConflict = null
+      
+      // Switch back to Manual mode
+      const stored = await syncStorage.getValue()
+      await syncStorage.setValue({
+        ...stored,
+        autoSyncEnabled: false,
+      })
+      syncState.autoSyncEnabled = false
+      stopAutoSync()
+      
+      return
+    }
+    
+    const accessToken = await getValidAccessToken()
+    
+    if (choice === 'local') {
+      // User chose local settings - push to cloud
+      logToUI('User chose local settings, pushing to cloud...')
+      await saveFile(accessToken, FILES.SETTINGS, {
+        version: 2,
+        updatedAt: Date.now(),
+        data: localSettings,
+      })
+    } else if (choice === 'cloud') {
+      // User chose cloud settings - apply to local
+      logToUI('User chose cloud settings, applying to local...')
+      await updateSettings(cloudSettings)
+    }
+    
+    // Clear the pending conflict
+    pendingSettingsConflict = null
+    
+    // Update lastSyncTime and mark conflict as resolved
+    const stored = await syncStorage.getValue()
+    const now = new Date().toISOString()
+    await syncStorage.setValue({
+      ...stored,
+      lastSyncTime: now,
+      needsSettingsConflictCheck: false, // User made a choice, don't show dialog again until logout
+    })
+    syncState.lastSyncTime = now
+    
+    logToUI('Settings conflict resolved', 'success')
+  } catch (error) {
+    console.error('Failed to resolve settings conflict:', error)
+    logToUI(`Failed to resolve conflict: ${error.message}`, 'error')
+    throw error
+  }
+}
+
+/**
+ * Clear pending settings conflict (e.g., when user cancels)
+ */
+export function clearPendingSettingsConflict() {
+  pendingSettingsConflict = null
+}
+
 // --- Auto Sync ---
 
 /**
@@ -918,5 +1058,8 @@ export const cloudSyncStore = {
   },
   get syncPreferences() {
     return syncState.syncPreferences
+  },
+  get pendingSettingsConflict() {
+    return pendingSettingsConflict
   }
 }

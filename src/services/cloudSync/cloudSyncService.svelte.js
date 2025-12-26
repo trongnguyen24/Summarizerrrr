@@ -412,8 +412,9 @@ function cleanupSoftDeleted(itemsMap) {
 
 /**
  * Main sync function - Pull and merge data from cloud
+ * @param {boolean} _isRetry - Internal flag to prevent infinite retry loops (do not use externally)
  */
-export async function pullData() {
+export async function pullData(_isRetry = false) {
   if (!isToolEnabled('cloudSync')) return
   if (syncState.isSyncing) return
   
@@ -479,8 +480,33 @@ export async function pullData() {
     }
   } catch (error) {
     console.error('Sync failed:', error)
-    logToUI(`Sync failed: ${error.message}`, 'error')
-    syncState.syncError = error.message
+    
+    // Auto-retry on TOKEN_EXPIRED (only once to prevent infinite loops)
+    // This handles the case where token expires mid-sync during background alarm
+    if (error.message === 'TOKEN_EXPIRED' && !_isRetry) {
+      logToUI('Token expired mid-sync, refreshing and retrying...', 'info')
+      
+      // Clear token cache to force refresh
+      tokenCache = { accessToken: null, tokenExpiry: null, lastUpdated: 0 }
+      
+      try {
+        await doRefreshToken()
+        logToUI('Token refreshed successfully, retrying sync...', 'info')
+        
+        // Reset syncing state before retry
+        syncState.isSyncing = false
+        
+        // Retry sync with _isRetry flag to prevent infinite loops
+        return pullData(true)
+      } catch (refreshError) {
+        console.error('Token refresh failed:', refreshError)
+        logToUI(`Token refresh failed: ${refreshError.message}`, 'error')
+        syncState.syncError = `Token refresh failed: ${refreshError.message}`
+      }
+    } else {
+      logToUI(`Sync failed: ${error.message}`, 'error')
+      syncState.syncError = error.message
+    }
   } finally {
     syncState.isSyncing = false
     

@@ -14,7 +14,9 @@
     updateSettings,
   } from '../../stores/settingsStore.svelte.js'
 
-  updateSettings({ [key]: value })
+  function handleUpdateSetting(key, value) {
+    updateSettings({ [key]: value })
+  }
 
   let wittyClickCount = $state(0)
 

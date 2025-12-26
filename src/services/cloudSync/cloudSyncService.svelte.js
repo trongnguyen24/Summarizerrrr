@@ -8,6 +8,7 @@
  */
 
 import { storage } from '@wxt-dev/storage'
+import { browser } from 'wxt/browser'
 import {
   authenticate,
   refreshAccessToken,
@@ -29,7 +30,7 @@ import {
   replaceHistoryStore,
   replaceTagsStore,
 } from '@/lib/db/indexedDBService.js'
-import { settings, loadSettings, updateSettings, isToolEnabled } from '@/stores/settingsStore.svelte.js'
+import { settings, loadSettings, updateSettings, updateSettingsFromCloud, isToolEnabled } from '@/stores/settingsStore.svelte.js'
 import { generateUUID } from '@/lib/utils/utils.js'
 
 // File names on Google Drive - 3 file architecture
@@ -95,8 +96,8 @@ function logToUI(msg, type = 'info') {
 }
 
 let syncInterval = null
-const AUTO_SYNC_INTERVAL = 10 * 60 * 1000 // 10 minutes
-const DEBOUNCE_DELAY = 30 * 1000 // 30 seconds
+const AUTO_SYNC_INTERVAL = 3 * 60 * 1000 // 3 minutes
+const DEBOUNCE_DELAY = 10 * 1000 // 10 seconds
 let debounceTimer = null
 let pendingSync = false // Track if there are pending changes while syncing
 
@@ -548,9 +549,9 @@ async function syncSettings(accessToken, cloudFile, stored) {
   const localTime = localSettings.lastModified || 0
   
   if (cloudTime > localTime) {
-    // Cloud is newer, apply to local
+    // Cloud is newer, apply to local (using updateSettingsFromCloud to prevent sync loop)
     logToUI('Cloud Settings is newer, applying...')
-    await updateSettings(cloudSettings)
+    await updateSettingsFromCloud(cloudSettings)
   } else if (localTime > cloudTime) {
     // Local is newer, push to cloud
     logToUI('Pushing local Settings...')
@@ -852,10 +853,29 @@ export async function syncNow() {
 
 /**
  * Debounced sync to avoid too frequent syncs
+ * Note: This function reads directly from storage to ensure correct state
+ * even when called from different contexts (popup, settings page, etc.)
  */
-function debouncedPush() {
-  if (!isToolEnabled('cloudSync')) return
-  if (!syncState.isLoggedIn || !syncState.autoSyncEnabled) return
+async function debouncedPush() {
+  // Read directly from storage to ensure we have the latest state
+  // This is necessary because syncState may not be initialized in all contexts
+  const stored = await syncStorage.getValue()
+  
+  console.log('[CloudSync] debouncedPush called', {
+    isToolEnabled: isToolEnabled('cloudSync'),
+    isLoggedIn: stored.isLoggedIn,
+    autoSyncEnabled: stored.autoSyncEnabled,
+    isSyncing: syncState.isSyncing
+  })
+  
+  if (!isToolEnabled('cloudSync')) {
+    console.log('[CloudSync] Sync skipped: cloudSync tool is disabled')
+    return
+  }
+  if (!stored.isLoggedIn || !stored.autoSyncEnabled) {
+    console.log('[CloudSync] Sync skipped: not logged in or auto sync disabled')
+    return
+  }
   
   // If currently syncing, mark as pending to sync again after current sync completes
   if (syncState.isSyncing) {
@@ -868,6 +888,7 @@ function debouncedPush() {
     clearTimeout(debounceTimer)
   }
   
+  console.log(`[CloudSync] Scheduling sync in ${DEBOUNCE_DELAY / 1000}s...`)
   debounceTimer = setTimeout(() => {
     pullData()
   }, DEBOUNCE_DELAY)
@@ -877,7 +898,11 @@ function debouncedPush() {
  * Trigger sync after data changes
  */
 export function triggerSync() {
-  if (!isToolEnabled('cloudSync')) return
+  console.log('[CloudSync] triggerSync called')
+  if (!isToolEnabled('cloudSync')) {
+    console.log('[CloudSync] triggerSync skipped: cloudSync tool is disabled')
+    return
+  }
   debouncedPush()
 }
 
@@ -923,9 +948,9 @@ export async function resolveSettingsConflict(choice) {
         data: localSettings,
       })
     } else if (choice === 'cloud') {
-      // User chose cloud settings - apply to local
+      // User chose cloud settings - apply to local (using updateSettingsFromCloud to prevent sync loop)
       logToUI('User chose cloud settings, applying to local...')
-      await updateSettings(cloudSettings)
+      await updateSettingsFromCloud(cloudSettings)
     }
     
     // Clear the pending conflict
@@ -1008,22 +1033,36 @@ export async function setSyncPreferences(preferences) {
 }
 
 /**
- * Start auto-sync interval
+ * Start auto-sync - Delegates to background.js via message
+ * Background.js manages the actual Chrome Alarms
  */
-function startAutoSync() {
-  if (syncInterval) return
+async function startAutoSync() {
+  console.log('[CloudSync] Auto-sync enabled, notifying background...')
   
-  syncInterval = setInterval(() => {
-    if (syncState.isLoggedIn && syncState.autoSyncEnabled) {
-      pullData()
-    }
-  }, AUTO_SYNC_INTERVAL)
+  // Notify background.js to setup alarm
+  try {
+    await browser.runtime.sendMessage({ type: 'SETUP_AUTO_SYNC_ALARM' })
+    console.log('[CloudSync] Background notified to setup auto-sync alarm')
+  } catch (error) {
+    console.warn('[CloudSync] Failed to notify background:', error)
+  }
 }
 
 /**
- * Stop auto-sync interval
+ * Stop auto-sync - Delegates to background.js via message
  */
-function stopAutoSync() {
+async function stopAutoSync() {
+  console.log('[CloudSync] Auto-sync disabled, notifying background...')
+  
+  // Notify background.js to clear alarm
+  try {
+    await browser.runtime.sendMessage({ type: 'CLEAR_AUTO_SYNC_ALARM' })
+    console.log('[CloudSync] Background notified to clear auto-sync alarm')
+  } catch (error) {
+    console.warn('[CloudSync] Failed to notify background:', error)
+  }
+  
+  // Also clear local interval fallback if exists
   if (syncInterval) {
     clearInterval(syncInterval)
     syncInterval = null

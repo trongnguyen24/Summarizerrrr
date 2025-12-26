@@ -629,13 +629,100 @@ export default defineBackground(() => {
     }
   })()
 
-  // Initialize Cloud Sync service (auto-sync if enabled)
+  // ============================================
+  // CLOUD SYNC AUTO-SYNC SETUP (Industry Standard)
+  // Uses WXT browser.alarms API for cross-browser support
+  // ============================================
+  
+  const AUTO_SYNC_ALARM_NAME = 'cloudAutoSync'
+  const AUTO_SYNC_PERIOD_MINUTES = 3 // Sync every 3 minutes
+  
+  /**
+   * Setup auto-sync alarm if user has enabled it
+   * This is called on install, startup, and when settings change
+   */
+  async function setupAutoSyncAlarm() {
+    try {
+      const { syncStorage } = await import('../services/cloudSync/cloudSyncService.svelte.js')
+      const stored = await syncStorage.getValue()
+      
+      if (stored.isLoggedIn && stored.autoSyncEnabled) {
+        // Check if alarm already exists
+        const existingAlarm = await browser.alarms.get(AUTO_SYNC_ALARM_NAME)
+        if (!existingAlarm) {
+          await browser.alarms.create(AUTO_SYNC_ALARM_NAME, {
+            periodInMinutes: AUTO_SYNC_PERIOD_MINUTES
+          })
+          console.log(`[Background] Auto-sync alarm created: every ${AUTO_SYNC_PERIOD_MINUTES} minutes`)
+        } else {
+          console.log('[Background] Auto-sync alarm already exists')
+        }
+      } else {
+        // Clear alarm if not logged in or auto-sync disabled
+        await browser.alarms.clear(AUTO_SYNC_ALARM_NAME)
+        console.log('[Background] Auto-sync alarm cleared (disabled or not logged in)')
+      }
+    } catch (error) {
+      console.error('[Background] Failed to setup auto-sync alarm:', error)
+    }
+  }
+  
+  // Setup alarm on extension install
+  browser.runtime.onInstalled.addListener(async () => {
+    console.log('[Background] Extension installed, checking auto-sync...')
+    await new Promise(resolve => setTimeout(resolve, 2000)) // Wait for storage
+    await setupAutoSyncAlarm()
+  })
+  
+  // Setup alarm on browser startup
+  browser.runtime.onStartup.addListener(async () => {
+    console.log('[Background] Browser started, ensuring auto-sync alarm exists...')
+    await new Promise(resolve => setTimeout(resolve, 2000)) // Wait for storage
+    await setupAutoSyncAlarm()
+  })
+  
+  // Listen for alarm trigger
+  browser.alarms.onAlarm.addListener(async (alarm) => {
+    if (alarm.name === AUTO_SYNC_ALARM_NAME) {
+      const now = new Date().toLocaleString()
+      console.log(`[Background] ⏰ AUTO-SYNC ALARM TRIGGERED at ${now}`)
+      
+      try {
+        const { pullData, syncStorage, isToolEnabled } = await import('../services/cloudSync/cloudSyncService.svelte.js')
+        const { isToolEnabled: checkToolEnabled } = await import('../stores/settingsStore.svelte.js')
+        const stored = await syncStorage.getValue()
+        
+        // Check if cloud sync is enabled and user is logged in
+        if (!checkToolEnabled('cloudSync')) {
+          console.log('[Background] Auto-sync skipped: cloudSync tool is disabled')
+          return
+        }
+        
+        if (!stored.isLoggedIn || !stored.autoSyncEnabled) {
+          console.log('[Background] Auto-sync skipped: not logged in or disabled')
+          // Clear alarm since auto-sync is disabled
+          await browser.alarms.clear(AUTO_SYNC_ALARM_NAME)
+          return
+        }
+        
+        await pullData()
+        console.log('[Background] Auto-sync completed successfully')
+      } catch (error) {
+        console.error('[Background] Auto-sync failed:', error)
+      }
+    }
+  })
+  
+  // Initialize Cloud Sync service (one-time init on load)
   ;(async () => {
     try {
       // Wait for storage to be ready
       await new Promise((resolve) => setTimeout(resolve, 2000))
       await initSync()
       console.log('[Background] Cloud Sync service initialized')
+      
+      // Also ensure alarm is setup (for cases where extension is already installed)
+      await setupAutoSyncAlarm()
     } catch (error) {
       console.error('[Background] Failed to initialize Cloud Sync:', error)
     }
@@ -756,6 +843,34 @@ export default defineBackground(() => {
   // --- Consolidated Message Listener ---
   browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
     // Async handlers that need `return true`
+
+    // Auto-sync alarm control messages from cloudSyncService
+    if (message.type === 'SETUP_AUTO_SYNC_ALARM') {
+      ;(async () => {
+        try {
+          await setupAutoSyncAlarm()
+          sendResponse({ success: true })
+        } catch (error) {
+          console.error('[Background] Failed to setup auto-sync alarm:', error)
+          sendResponse({ success: false, error: error.message })
+        }
+      })()
+      return true
+    }
+    
+    if (message.type === 'CLEAR_AUTO_SYNC_ALARM') {
+      ;(async () => {
+        try {
+          await browser.alarms.clear(AUTO_SYNC_ALARM_NAME)
+          console.log('[Background] Auto-sync alarm cleared by request')
+          sendResponse({ success: true })
+        } catch (error) {
+          console.error('[Background] Failed to clear auto-sync alarm:', error)
+          sendResponse({ success: false, error: error.message })
+        }
+      })()
+      return true
+    }
 
     // YouTube Comments Fetch - Forward to content script in same tab
     if (message.action === 'fetchYouTubeComments') {

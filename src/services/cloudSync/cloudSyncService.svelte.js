@@ -96,7 +96,7 @@ function logToUI(msg, type = 'info') {
 }
 
 let syncInterval = null
-const AUTO_SYNC_INTERVAL = 3 * 60 * 1000 // 3 minutes
+const AUTO_SYNC_INTERVAL = 10 * 60 * 1000 // 10 minutes
 const DEBOUNCE_DELAY = 10 * 1000 // 10 seconds
 let debounceTimer = null
 let pendingSync = false // Track if there are pending changes while syncing

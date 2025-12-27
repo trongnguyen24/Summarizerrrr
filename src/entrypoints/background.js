@@ -634,6 +634,11 @@ export default defineBackground(() => {
   // Uses WXT browser.alarms API for cross-browser support
   // ============================================
   
+  // ============================================
+  // CLOUD SYNC AUTO-SYNC SETUP (Industry Standard)
+  // Uses WXT browser.alarms API for cross-browser support
+  // ============================================
+  
   const AUTO_SYNC_ALARM_NAME = 'cloudAutoSync'
   const AUTO_SYNC_PERIOD_MINUTES = 3 // Sync every 3 minutes
   
@@ -643,6 +648,17 @@ export default defineBackground(() => {
    */
   async function setupAutoSyncAlarm() {
     try {
+      // Check if Cloud Sync tool is enabled in settings
+      const settings = await settingsStorage.getValue()
+      // Default to true if not set (backward compatibility)
+      const isCloudSyncEnabled = settings?.tools?.cloudSync?.enabled ?? true
+      
+      if (!isCloudSyncEnabled) {
+        console.log('[Background] Cloud Sync tool is disabled, clearing alarm...')
+        await browser.alarms.clear(AUTO_SYNC_ALARM_NAME)
+        return
+      }
+
       const { syncStorage } = await import('../services/cloudSync/cloudSyncService.svelte.js')
       const stored = await syncStorage.getValue()
       
@@ -667,6 +683,19 @@ export default defineBackground(() => {
     }
   }
   
+  // Watch for Cloud Sync settings changes (Cross-browser)
+  // This ensures the alarm is cleared immediately when the user disables the tool
+  settingsStorage.watch(async (newValue, oldValue) => {
+    // Check if Cloud Sync enabled state changed
+    const newEnabled = newValue?.tools?.cloudSync?.enabled
+    const oldEnabled = oldValue?.tools?.cloudSync?.enabled
+    
+    if (newEnabled !== oldEnabled) {
+      console.log(`[Background] Cloud Sync enabled state changed to: ${newEnabled}, updating alarm...`)
+      await setupAutoSyncAlarm()
+    }
+  })
+  
   // Setup alarm on extension install
   browser.runtime.onInstalled.addListener(async () => {
     console.log('[Background] Extension installed, checking auto-sync...')
@@ -688,15 +717,20 @@ export default defineBackground(() => {
       console.log(`[Background] ⏰ AUTO-SYNC ALARM TRIGGERED at ${now}`)
       
       try {
-        const { pullData, syncStorage, isToolEnabled } = await import('../services/cloudSync/cloudSyncService.svelte.js')
-        const { isToolEnabled: checkToolEnabled } = await import('../stores/settingsStore.svelte.js')
-        const stored = await syncStorage.getValue()
+        const { pullData, syncStorage } = await import('../services/cloudSync/cloudSyncService.svelte.js')
         
-        // Check if cloud sync is enabled and user is logged in
-        if (!checkToolEnabled('cloudSync')) {
+        // Check settings first
+        const settings = await settingsStorage.getValue()
+        const isCloudSyncEnabled = settings?.tools?.cloudSync?.enabled ?? true
+        
+        if (!isCloudSyncEnabled) {
           console.log('[Background] Auto-sync skipped: cloudSync tool is disabled')
+          // Self-heal: clear the alarm if it shouldn't be running
+          await browser.alarms.clear(AUTO_SYNC_ALARM_NAME)
           return
         }
+        
+        const stored = await syncStorage.getValue()
         
         if (!stored.isLoggedIn || !stored.autoSyncEnabled) {
           console.log('[Background] Auto-sync skipped: not logged in or disabled')

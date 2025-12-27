@@ -640,7 +640,7 @@ export default defineBackground(() => {
   // ============================================
   
   const AUTO_SYNC_ALARM_NAME = 'cloudAutoSync'
-  const AUTO_SYNC_PERIOD_MINUTES = 3 // Sync every 3 minutes
+  const AUTO_SYNC_PERIOD_MINUTES = 10 // Sync every 10 minutes
   
   /**
    * Setup auto-sync alarm if user has enabled it

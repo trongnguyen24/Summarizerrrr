@@ -182,7 +182,7 @@
 
 <div
   id="toc"
-  class="fixed z-20 right-0 sm:right-4 md:right-8 bottom-16 md:bottom-8 group origin-bottom-right"
+  class="fixed z-20 right-0 sm:right-4 md:right-8 bottom-16 md:bottom-8 group origin-bottom-right md:hidden"
 >
   <button
     class="flex items-end transition-all py-2 px-4 flex-col gap-2 {isTouchDevice()

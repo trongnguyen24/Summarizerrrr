@@ -268,25 +268,27 @@
           ></div>
           <!-- User info -->
           <div
-            class="flex relative gap-6 items-center bg-dot overflow-hidden text-xs"
+            class="flex relative items-center bg-dot overflow-hidden text-xs"
           >
             <div
               class="overflow-hidden relative p-3 flex items-center justify-center"
             >
               <div
-                class="z-40 absolute inset-2 border border-muted pointer-events-none"
+                class="z-40 absolute inset-3 border border-blackwhite/20 overflow-hidden rounded-sm pointer-events-none"
               ></div>
               {#if cloudSyncStore.userPicture}
-                <img
-                  src={cloudSyncStore.userPicture}
-                  alt={cloudSyncStore.userName}
-                  class="size-18"
-                />
+                <div class="crt-avatar rounded-sm overflow-hidden">
+                  <img
+                    src={cloudSyncStore.userPicture}
+                    alt={cloudSyncStore.userName}
+                    class="size-18"
+                  />
+                </div>
               {:else}
                 <Icon icon="heroicons:user" class="size-6 text-primary" />
               {/if}
             </div>
-            <div class="flex flex-col gap-1 min-w-0">
+            <div class="flex flex-col gap-0.5 min-w-0">
               <p class="text-text-primary font-bold truncate">
                 {cloudSyncStore.userName}
               </p>
@@ -576,3 +578,132 @@
     {/if}
   {/if}
 </div>
+
+<style>
+  /* CRT Avatar Effect */
+  .crt-avatar {
+    position: relative;
+    display: block;
+    box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.5);
+    filter: blur(0.5px) hue-rotate(8deg);
+  }
+
+  .crt-avatar img {
+    display: block;
+    width: 100%;
+    animation: crt-distort 20s infinite;
+  }
+
+  .crt-avatar::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0) 50%,
+      rgba(0, 0, 0, 0.15) 50%
+    );
+    background-size: 100% 4px;
+    animation: crt-scanlines 0.25s linear infinite;
+    z-index: 10;
+    pointer-events: none;
+  }
+
+  .crt-avatar::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(18, 16, 16, 0.1);
+    animation: crt-flicker 2s infinite;
+    pointer-events: none;
+  }
+
+  @keyframes crt-scanlines {
+    0% {
+      background-position: 0 0;
+    }
+    100% {
+      background-position: 0 4px;
+    }
+  }
+
+  @keyframes crt-flicker {
+    0% {
+      opacity: 0.27861;
+    }
+    5% {
+      opacity: 0.34769;
+    }
+    10% {
+      opacity: 0.23604;
+    }
+    15% {
+      opacity: 0.90626;
+    }
+    20% {
+      opacity: 0.18128;
+    }
+    25% {
+      opacity: 0.83891;
+    }
+    30% {
+      opacity: 0.65583;
+    }
+    35% {
+      opacity: 0.67807;
+    }
+    40% {
+      opacity: 0.26559;
+    }
+    45% {
+      opacity: 0.84693;
+    }
+    50% {
+      opacity: 0.96019;
+    }
+    55% {
+      opacity: 0.08594;
+    }
+    60% {
+      opacity: 0.20313;
+    }
+    65% {
+      opacity: 0.71988;
+    }
+    70% {
+      opacity: 0.53455;
+    }
+    75% {
+      opacity: 0.37288;
+    }
+    80% {
+      opacity: 0.71428;
+    }
+    85% {
+      opacity: 0.70419;
+    }
+    90% {
+      opacity: 0.7003;
+    }
+    95% {
+      opacity: 0.36108;
+    }
+    100% {
+      opacity: 0.24387;
+    }
+  }
+
+  @keyframes crt-distort {
+    0%,
+    100% {
+      filter: brightness(1);
+    }
+    50% {
+      filter: brightness(1.02);
+    }
+  }
+</style>

@@ -590,7 +590,8 @@ export async function updateFirefoxPermission(permissionKey, value) {
     timestamp: Date.now(),
   })
 
-  await updateSettings({ firefoxPermissions: newPermissions })
+  // Use updateSettingsFromCloud to avoid triggering sync - this is internal caching, not user-initiated change
+  await updateSettingsFromCloud({ firefoxPermissions: newPermissions })
 }
 
 /**

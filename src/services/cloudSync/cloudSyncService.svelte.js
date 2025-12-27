@@ -168,6 +168,32 @@ export async function initSync() {
 }
 
 /**
+ * Refresh sync state from storage (for UI updates only, no auto-sync setup)
+ * Use this for periodic UI refresh to avoid spamming alarm setup
+ */
+export async function refreshSyncState() {
+  if (!isToolEnabled('cloudSync')) return
+  
+  try {
+    const stored = await syncStorage.getValue()
+    
+    syncState.isLoggedIn = stored.isLoggedIn
+    syncState.autoSyncEnabled = stored.autoSyncEnabled
+    syncState.lastSyncTime = stored.lastSyncTime
+    syncState.userEmail = stored.userEmail
+    syncState.userName = stored.userName
+    syncState.userPicture = stored.userPicture
+    syncState.syncPreferences = stored.syncPreferences || {
+      settings: true,
+      history: true,
+      library: true,
+    }
+  } catch (error) {
+    console.error('Failed to refresh sync state:', error)
+  }
+}
+
+/**
  * Check if access token is expired
  */
 function isTokenExpired(expiryTime) {

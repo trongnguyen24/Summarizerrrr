@@ -10,6 +10,7 @@
   import {
     cloudSyncStore,
     initSync,
+    refreshSyncState,
     login,
     logout,
     syncNow,
@@ -54,7 +55,9 @@
   onMount(async () => {
     await initSync()
 
-    const interval = setInterval(() => {
+    const interval = setInterval(async () => {
+      // Use refreshSyncState instead of initSync to avoid spamming alarm setup
+      await refreshSyncState()
       now = Date.now()
     }, 30000) // Update every 30 seconds for better responsiveness
 

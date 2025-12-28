@@ -99,9 +99,20 @@
       if (text.endsWith(':')) {
         text = text.slice(0, -1)
       }
-      const id = heading.id || generateId(text)
+
+      // Strip emojis and icons for cleaner TOC
+      const cleanText = text
+        .replace(/\p{Extended_Pictographic}/gu, '')
+        .replace(/\s+/g, ' ')
+        .trim()
+
+      const id = heading.id || generateId(cleanText || text)
       heading.id = id // Ensure heading has an ID
-      return { text, id, level: parseInt(heading.tagName.substring(1)) }
+      return {
+        text: cleanText || text,
+        id,
+        level: parseInt(heading.tagName.substring(1)),
+      }
     })
     highlight() // Highlight after updating TOC
   }

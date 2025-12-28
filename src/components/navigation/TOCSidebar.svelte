@@ -97,9 +97,20 @@
       if (text.endsWith(':')) {
         text = text.slice(0, -1)
       }
-      const id = heading.id || generateId(text)
+
+      // Strip emojis and icons for cleaner TOC
+      const cleanText = text
+        .replace(/\p{Extended_Pictographic}/gu, '')
+        .replace(/\s+/g, ' ')
+        .trim()
+
+      const id = heading.id || generateId(cleanText || text)
       heading.id = id
-      return { text, id, level: parseInt(heading.tagName.substring(1)) }
+      return {
+        text: cleanText || text,
+        id,
+        level: parseInt(heading.tagName.substring(1)),
+      }
     })
     highlight()
   }
@@ -194,14 +205,14 @@
   {#if isPinned}
     <aside
       id="toc-sidebar"
-      class="sticky z-20 font-mono right-2 sm:right-5 md:right-8 top-8 h-lvh flex transform-gpu pt-2 duration-150 ease-in-out transition-all flex-col items-end"
+      class="sticky z-20 right-2 sm:right-5 md:right-8 top-8 h-lvh flex transform-gpu pt-2 duration-150 ease-in-out transition-all flex-col items-end"
       style="margin-top: {sidebarMarginTop}px;"
     >
       <div class="fle flex-col px-2 h-full">
         <!-- Header -->
         <div>
           <h3
-            class="text-xs font-semibold text-text-secondary uppercase tracking-wider"
+            class="text-sm font-semibold text-text-secondary uppercase tracking-wider"
           >
             On this page
           </h3>
@@ -214,9 +225,9 @@
               <a
                 href="#{heading.id}"
                 onclick={() => scrollToHeading(heading.id)}
-                class="px-6 py-1.5 text-xs/4 no-underline transition-colors
+                class="px-6 py-1.5 text-sm/4.5 no-underline transition-colors
                 {heading.id === activeHeadingId
-                  ? 'text-text-primary font-bold '
+                  ? 'text-text-primary underline underline-offset-2'
                   : 'text-text-secondary hover:text-text-primary '}
                 lv{heading.level}"
               >

@@ -4,8 +4,16 @@
   import 'overlayscrollbars/overlayscrollbars.css'
   import { animate, stagger, onScroll } from 'animejs'
   import { useOverlayScrollbars } from 'overlayscrollbars-svelte'
+  import { getTocMode, toggleTocMode } from '@/stores/tocModeStore.svelte.js'
 
   const { targetDivId } = $props()
+
+  // Reactive check for toc mode and window width
+  let tocMode = $derived(getTocMode())
+  let windowWidth = $state(
+    typeof window !== 'undefined' ? window.innerWidth : 1024,
+  )
+  let isDesktop = $derived(windowWidth >= 1280)
 
   let headings = $state([])
   let observer
@@ -119,6 +127,10 @@
   const throttledHighlight = throttle(highlight, 80)
 
   // Sử dụng $effect để thay thế onMount và onDestroy
+  function handleResize() {
+    windowWidth = window.innerWidth
+  }
+
   $effect(() => {
     const init = async () => {
       await delay(100) // Thêm delay để đảm bảo DOM đã render
@@ -127,7 +139,10 @@
 
       // Gắn sự kiện cuộn và thay đổi kích thước với hàm đã được throttle
       window.addEventListener('scroll', throttledHighlight)
-      window.addEventListener('resize', throttledHighlight)
+      window.addEventListener('resize', () => {
+        throttledHighlight()
+        handleResize()
+      })
 
       // Optional: Observe changes in the target div to update TOC dynamically
       const targetDiv = document.getElementById(targetDivId)
@@ -152,7 +167,7 @@
     // Cleanup function for $effect
     return () => {
       window.removeEventListener('scroll', throttledHighlight)
-      window.removeEventListener('resize', throttledHighlight)
+      window.removeEventListener('resize', handleResize)
       if (observer) {
         observer.disconnect()
       }
@@ -180,116 +195,127 @@
   }
 </script>
 
-<div
-  id="toc"
-  class="fixed z-20 right-0 sm:right-4 md:right-8 bottom-16 md:bottom-8 group origin-bottom-right xl:hidden"
->
-  <button
-    class="flex items-end transition-all py-2 px-4 flex-col gap-2 {isTouchDevice()
-      ? ''
-      : 'group-hover:opacity-0'}"
-    onclick={() => {
-      if (isTouchDevice()) {
-        toggleNav()
-      }
-    }}
+<!-- Show TOCArchive: on mobile always, on desktop only in archive mode -->
+{#if !isDesktop || tocMode === 'archive'}
+  <div
+    id="toc"
+    class="fixed z-20 right-0 sm:right-4 md:right-8 bottom-16 md:bottom-8 group origin-bottom-right"
   >
-    {#each headings as heading}
-      <span
-        class="w-2 flex h-px dark:bg-white {heading.id === activeHeadingId
-          ? 'opacity-100 bg-primary'
-          : 'opacity-50 bg-text-secondary'} lvs{heading.level}"
-      >
-        <span
-          class="block blur-[1px] h-px rounded-full bg-text-secondary dark:bg-white"
-        >
-        </span>
-      </span>
-    {/each}
-    <span
-      class=" w-1.25 sm:w-1.5 text-[0.65rem] mt-0.5 select-none flex justify-center items-center h-px text-primary dark:text-white"
+    <button
+      class="flex items-end transition-all py-2 px-4 flex-col gap-2 {isTouchDevice()
+        ? ''
+        : 'group-hover:opacity-0'}"
+      onclick={() => {
+        if (isTouchDevice()) {
+          toggleNav()
+        }
+      }}
     >
-      ^
-    </span>
-  </button>
-  <nav
-    class="fixed bottom-14 md:bottom-8 z-20 pt-4 px-3 left-0 sm:left-auto right-0 sm:right-6 md:right-8 {isTouchDevice()
-      ? isNavOpen
-        ? 'block opacity-100'
-        : 'hidden opacity-0'
-      : 'hidden group-hover:block opacity-0 group-hover:opacity-100'}"
-  >
-    <div class="relative">
-      <div
-        id="toc-scroll"
-        class="w-full xs:w-108 overflow-auto max-h-[calc(100vh-200px)] border rounded-t-lg border-border bg-background"
-      >
-        <div
-          class="flex flex-col divide-y divide-border/50 dark:divide-border/70"
+      {#each headings as heading}
+        <span
+          class="w-2 flex h-px dark:bg-white {heading.id === activeHeadingId
+            ? 'opacity-100 bg-primary'
+            : 'opacity-50 bg-text-secondary'} lvs{heading.level}"
         >
-          {#each headings as heading}
-            <a
-              href="#{heading.id}"
-              onclick={() => {
-                scrollToHeading(heading.id)
-                if (isTouchDevice()) {
-                  isNavOpen = false
-                }
-              }}
-              class="px-3 py-2 font-mono text-sm/5 no-underline transition-colors
+          <span
+            class="block blur-[1px] h-px rounded-full bg-text-secondary dark:bg-white"
+          >
+          </span>
+        </span>
+      {/each}
+      <span
+        class=" w-1.25 sm:w-1.5 text-[0.65rem] mt-0.5 select-none flex justify-center items-center h-px text-primary dark:text-white"
+      >
+        ^
+      </span>
+    </button>
+    <nav
+      class="fixed bottom-14 md:bottom-8 z-20 pt-4 px-3 left-0 sm:left-auto right-0 sm:right-6 md:right-8 {isTouchDevice()
+        ? isNavOpen
+          ? 'block opacity-100'
+          : 'hidden opacity-0'
+        : 'hidden group-hover:block opacity-0 group-hover:opacity-100'}"
+    >
+      <div class="relative">
+        <div
+          id="toc-scroll"
+          class="w-full xs:w-108 overflow-auto max-h-[calc(100vh-200px)] border rounded-t-lg border-border bg-background"
+        >
+          <div
+            class="flex flex-col divide-y divide-border/50 dark:divide-border/70"
+          >
+            {#each headings as heading}
+              <a
+                href="#{heading.id}"
+                onclick={() => {
+                  scrollToHeading(heading.id)
+                  if (isTouchDevice()) {
+                    isNavOpen = false
+                  }
+                }}
+                class="px-3 py-2 font-mono text-sm/5 no-underline transition-colors
           {heading.id === activeHeadingId
-                ? 'text-text-primary bg-black/5 dark:bg-white/5'
-                : 'text-text-secondary hover:text-text-primary'}
+                  ? 'text-text-primary bg-black/5 dark:bg-white/5'
+                  : 'text-text-secondary hover:text-text-primary'}
           lv{heading.level}"
+              >
+                <span class="line-clamp-2">
+                  {heading.text}
+                </span>
+              </a>
+            {/each}
+          </div>
+        </div>
+        <div
+          class="bg-background flex border border-border overflow-hidden border-t-0 rounded-b-lg"
+        >
+          <a
+            href="#footer"
+            class="px-3 flex-1 border-border border-r flex justify-center items-center py-3 font-mono text-xs/4 no-underline transition-colors"
+            title="Go to bottom"
+            onclick={() => {
+              if (isTouchDevice()) {
+                isNavOpen = false
+              }
+            }}><Icon class="rotate-180" width="16" icon="carbon:up-to-top" /></a
+          >
+          <a
+            href="#top"
+            class="px-3 flex-1 flex justify-center items-center py-3 font-mono text-xs/4 no-underline transition-colors"
+            title="Go to top"
+            onclick={() => {
+              if (isTouchDevice()) {
+                isNavOpen = false
+              }
+            }}><Icon width="16" icon="carbon:up-to-top" /></a
+          >
+          {#if isDesktop}
+            <button
+              class="px-3 flex-1 border-border border-l flex justify-center items-center py-3 font-mono text-xs/4 transition-colors"
+              title="Switch to sidebar TOC"
+              onclick={toggleTocMode}
             >
-              <span class="line-clamp-2">
-                {heading.text}
-              </span>
-            </a>
-          {/each}
+              <Icon width="16" icon="lucide:panel-right-open" />
+            </button>
+          {/if}
+          {#if isTouchDevice()}
+            <button
+              class="p-3 flex-1 border-border border-l flex justify-center items-center font-mono text-xs/4 no-underline transition-colors"
+              onclick={() => (isNavOpen = false)}
+            >
+              <Icon width="16" icon="carbon:close" />
+            </button>
+          {/if}
         </div>
       </div>
-      <div
-        class="bg-background flex border border-border overflow-hidden border-t-0 rounded-b-lg"
-      >
-        <a
-          href="#footer"
-          class="px-3 w-1/2 border-border border-r flex justify-center items-center gap-1 py-3 font-mono text-xs/4 no-underline transition-colors"
-          onclick={() => {
-            if (isTouchDevice()) {
-              isNavOpen = false
-            }
-          }}><Icon class=" rotate-180" width="16" icon="carbon:up-to-top" /></a
-        >
-        <a
-          href="#top"
-          class="px-3 w-1/2 flex justify-center items-center gap-1 py-3 font-mono text-xs/4 no-underline transition-colors"
-          onclick={() => {
-            if (isTouchDevice()) {
-              isNavOpen = false
-            }
-          }}
-          ><Icon width="16" icon="carbon:up-to-top" />
-          {#if !isTouchDevice()}Go to top
-          {/if}</a
-        >
-        {#if isTouchDevice()}
-          <button
-            class="p-3 w-1/2 border-border border-l flex justify-center items-center gap-1 font-mono text-xs/4 no-underline transition-colors"
-            onclick={() => (isNavOpen = false)}
-          >
-            <Icon width="16" icon="carbon:close" />
-          </button>
-        {/if}
-      </div>
-    </div>
-  </nav>
-  {#if isTouchDevice() && isNavOpen}
-    <!-- svelte-ignore a11y_click_events_have_key_events -->
-    <!-- svelte-ignore a11y_no_static_element_interactions -->
-    <div class="fixed inset-0 z-10" onclick={() => (isNavOpen = false)}></div>
-  {/if}
-</div>
+    </nav>
+    {#if isTouchDevice() && isNavOpen}
+      <!-- svelte-ignore a11y_click_events_have_key_events -->
+      <!-- svelte-ignore a11y_no_static_element_interactions -->
+      <div class="fixed inset-0 z-10" onclick={() => (isNavOpen = false)}></div>
+    {/if}
+  </div>
+{/if}
 
 <style>
   .lv4 {

@@ -3,8 +3,12 @@
   import Icon from '@iconify/svelte'
   import 'overlayscrollbars/overlayscrollbars.css'
   import { useOverlayScrollbars } from 'overlayscrollbars-svelte'
+  import { getTocMode, toggleTocMode } from '@/stores/tocModeStore.svelte.js'
 
   const { targetDivId } = $props()
+
+  // Reactive check for toc mode
+  let tocMode = $derived(getTocMode())
 
   let headings = $state([])
   let observer
@@ -119,7 +123,7 @@
     windowWidth = window.innerWidth
   }
 
-  const throttledHighlight = throttle(highlight, 80)
+  const throttledHighlight = throttle(highlight, 40)
 
   $effect(() => {
     const init = async () => {
@@ -185,24 +189,7 @@
   }
 </script>
 
-{#if shouldShow}
-  <!-- Pin/Unpin Button (always visible on desktop) -->
-  <button
-    onclick={togglePin}
-    class="fixed z-30 top-3 right-2 sm:right-5 md:right-8 p-2 rounded-lg hover:bg-blackwhite/5 transition-colors
-    {!isPinned
-      ? 'bg-surface-1/80 backdrop-blur-sm border border-border/50'
-      : ''}"
-    title={isPinned ? 'Unpin sidebar' : 'Pin sidebar'}
-  >
-    <Icon
-      icon={isPinned ? 'lucide:panel-right-close' : 'lucide:panel-right-open'}
-      width="20"
-      height="20"
-      class="text-text-secondary hover:text-text-primary transition-colors"
-    />
-  </button>
-
+{#if shouldShow && tocMode === 'sidebar'}
   <!-- Sidebar TOC -->
   {#if isPinned}
     <aside
@@ -210,11 +197,11 @@
       class="sticky z-20 font-mono right-2 sm:right-5 md:right-8 top-8 h-lvh flex transform-gpu pt-2 duration-150 ease-in-out transition-all flex-col items-end"
       style="margin-top: {sidebarMarginTop}px;"
     >
-      <div class="fle flex-col h-full">
+      <div class="fle flex-col px-2 h-full">
         <!-- Header -->
         <div>
           <h3
-            class="text-xs font-semibold text-text-muted uppercase tracking-wider"
+            class="text-xs font-semibold text-text-secondary uppercase tracking-wider"
           >
             On this page
           </h3>
@@ -229,8 +216,8 @@
                 onclick={() => scrollToHeading(heading.id)}
                 class="px-6 py-1.5 text-xs/4 no-underline transition-colors
                 {heading.id === activeHeadingId
-                  ? 'text-text-primary  '
-                  : 'text-muted hover:text-text-primary '}
+                  ? 'text-text-primary font-bold '
+                  : 'text-text-secondary hover:text-text-primary '}
                 lv{heading.level}"
               >
                 <span class="line-clamp-2">
@@ -242,21 +229,28 @@
         </div>
 
         <!-- Footer Actions -->
-        <div class="px-3 pt-2 border-t border-border/50 flex gap-2">
+        <div class="pt-2 border-t border-border/50 flex gap-1">
           <a
             href="#top"
-            class="flex-1 flex items-center justify-center gap-1 py-2 text-xs text-text-secondary hover:text-text-primary transition-colors rounded hover:bg-blackwhite/5"
+            class="flex-1 flex items-center justify-center py-2 text-text-secondary hover:text-text-primary transition-colors rounded hover:bg-blackwhite/5"
+            title="Go to top"
           >
-            <Icon width="14" icon="carbon:up-to-top" />
-            Top
+            <Icon width="16" icon="carbon:up-to-top" />
           </a>
           <a
             href="#footer"
-            class="flex-1 flex items-center justify-center gap-1 py-2 text-xs text-text-secondary hover:text-text-primary transition-colors rounded hover:bg-blackwhite/5"
+            class="flex-1 flex items-center justify-center py-2 text-text-secondary hover:text-text-primary transition-colors rounded hover:bg-blackwhite/5"
+            title="Go to bottom"
           >
-            <Icon width="14" icon="carbon:up-to-top" class="rotate-180" />
-            Bottom
+            <Icon width="16" icon="carbon:up-to-top" class="rotate-180" />
           </a>
+          <button
+            onclick={toggleTocMode}
+            class="flex-1 flex items-center justify-center py-2 text-text-secondary hover:text-text-primary transition-colors rounded hover:bg-blackwhite/5"
+            title="Switch to floating TOC"
+          >
+            <Icon width="16" icon="lucide:panel-right-close" />
+          </button>
         </div>
       </div>
     </aside>

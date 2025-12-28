@@ -14,9 +14,20 @@
     typeof window !== 'undefined' ? window.innerWidth : 1024,
   )
 
-  let shouldShow = $derived(windowWidth >= 768)
+  let shouldShow = $derived(windowWidth >= 1280)
+  let sidebarMarginTop = $state(208) // default mt-52 = 13rem = 208px
 
   const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
+
+  function updateSidebarPosition() {
+    const markdownContainer = document.querySelector('.markdown-container-v2')
+    if (markdownContainer) {
+      const rect = markdownContainer.getBoundingClientRect()
+      const scrollTop = window.scrollY || document.documentElement.scrollTop
+      // Tính vị trí top của markdown container so với document
+      sidebarMarginTop = rect.top + scrollTop
+    }
+  }
 
   function throttle(func, limit) {
     let inThrottle
@@ -114,6 +125,7 @@
     const init = async () => {
       await delay(100)
       updateTOC()
+      updateSidebarPosition()
 
       window.addEventListener('scroll', throttledHighlight)
       window.addEventListener('resize', () => {
@@ -123,7 +135,12 @@
 
       const targetDiv = document.getElementById(targetDivId)
       if (targetDiv) {
-        observer = new MutationObserver(updateTOC)
+        observer = new MutationObserver(async () => {
+          updateTOC()
+          // Delay để DOM render xong trước khi tính toán vị trí
+          await delay(50)
+          updateSidebarPosition()
+        })
         observer.observe(targetDiv, {
           childList: true,
           subtree: true,
@@ -170,7 +187,7 @@
 
 {#if shouldShow}
   <!-- Pin/Unpin Button (always visible on desktop) -->
-  <!-- <button
+  <button
     onclick={togglePin}
     class="fixed z-30 top-3 right-2 sm:right-5 md:right-8 p-2 rounded-lg hover:bg-blackwhite/5 transition-colors
     {!isPinned
@@ -184,17 +201,18 @@
       height="20"
       class="text-text-secondary hover:text-text-primary transition-colors"
     />
-  </button> -->
+  </button>
 
   <!-- Sidebar TOC -->
   {#if isPinned}
     <aside
       id="toc-sidebar"
-      class="sticky z-20 top-0 right-2 sm:right-5 md:right-8 h-screen flex flex-col pt-14 pb-8 w-56 xl:w-64"
+      class="sticky z-20 font-mono right-2 sm:right-5 md:right-8 top-8 h-lvh flex transform-gpu pt-2 duration-150 ease-in-out transition-all flex-col items-end"
+      style="margin-top: {sidebarMarginTop}px;"
     >
-      <div class="flex flex-col h-full">
+      <div class="fle flex-col h-full">
         <!-- Header -->
-        <div class="px-3 pb-3 border-b border-border/50">
+        <div>
           <h3
             class="text-xs font-semibold text-text-muted uppercase tracking-wider"
           >
@@ -209,10 +227,10 @@
               <a
                 href="#{heading.id}"
                 onclick={() => scrollToHeading(heading.id)}
-                class="px-3 py-1.5 text-sm/5 no-underline transition-colors border-l-2
+                class="px-6 py-1.5 text-xs/4 no-underline transition-colors
                 {heading.id === activeHeadingId
-                  ? 'text-primary border-primary bg-primary/5'
-                  : 'text-text-secondary hover:text-text-primary border-transparent hover:border-border'}
+                  ? 'text-text-primary  '
+                  : 'text-muted hover:text-text-primary '}
                 lv{heading.level}"
               >
                 <span class="line-clamp-2">
@@ -246,10 +264,13 @@
 {/if}
 
 <style>
+  .lv2 {
+    padding-left: 0em;
+  }
   .lv3 {
-    padding-left: 0.75em;
+    padding-left: 1em;
   }
   .lv4 {
-    padding-left: 1.5em;
+    padding-left: 1.75em;
   }
 </style>

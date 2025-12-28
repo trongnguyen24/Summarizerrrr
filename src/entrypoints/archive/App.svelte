@@ -211,8 +211,7 @@
   <!-- Right Column -->
   <div
     class="flex-1 w-full wrap-break-word relative bg-surface-1 z-20 flex flex-col gap-2
-    {isSidePanelVisible ? 'sm:pl-80' : ''}
-    {isMobile && !isSidePanelVisible ? 'pl-0' : ''}"
+   pl-0"
   >
     <SummaryDisplay
       selectedSummary={archiveStore.selectedSummary}

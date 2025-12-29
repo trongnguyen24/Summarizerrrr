@@ -20,6 +20,7 @@
   import {
     settings, // Giữ lại vì vẫn dùng để tính toán class cho prose
   } from '@/stores/settingsStore.svelte.js'
+  import { getTocMode, toggleTocMode } from '@/stores/tocModeStore.svelte.js'
 
   const { selectedSummary, formatDate, activeTab } = $props()
 
@@ -197,10 +198,12 @@
   class="relative grid xl:grid-cols-[minmax(20rem,20rem)_1fr_minmax(20rem,20rem)]"
 >
   <div
-    class="sticky hidden xl:flex flex-auto z-20 top-0 right-left sm:left-5 md:left-8 h-screen flex-col pt-14 pb-8"
+    class="sticky {getTocMode() === 'sidebar'
+      ? 'hidden xl:flex'
+      : 'hidden'} flex-auto z-20 top-0 right-left sm:left-5 md:left-8 h-screen flex-col pt-14 pb-8"
   ></div>
   {#if selectedSummary}
-    <div>
+    <div class=" {getTocMode() === 'sidebar' ? 'col-span-1' : 'col-span-3'}">
       <div
         class="prose px-8 md:px-16 {widthClasses[
           settings.widthIndex
@@ -208,7 +211,13 @@
           settings.selectedFont
         ]} pt-12 pb-[35vh] summary-content"
       >
-        <DisplaySettingsControls />
+        <div
+          class=" top-0 right-0 absolute {getTocMode() === 'sidebar'
+            ? '-translate-x-80'
+            : 'translate-x-0'} "
+        >
+          <DisplaySettingsControls />
+        </div>
         <div class="flex flex-col gap-2">
           <div
             class="font-mono text-text-muted text-xs flex md:flex-row flex-col gap-2 py-8 md:gap-8 justify-center items-center"

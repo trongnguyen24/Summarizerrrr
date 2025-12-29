@@ -19,19 +19,8 @@
   )
 
   let shouldShow = $derived(windowWidth >= 1280)
-  let sidebarMarginTop = $state(208) // default mt-52 = 13rem = 208px
 
   const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
-
-  function updateSidebarPosition() {
-    const markdownContainer = document.querySelector('.markdown-container-v2')
-    if (markdownContainer) {
-      const rect = markdownContainer.getBoundingClientRect()
-      const scrollTop = window.scrollY || document.documentElement.scrollTop
-      // Tính vị trí top của markdown container so với document
-      sidebarMarginTop = rect.top + scrollTop
-    }
-  }
 
   function throttle(func, limit) {
     let inThrottle
@@ -134,13 +123,12 @@
     windowWidth = window.innerWidth
   }
 
-  const throttledHighlight = throttle(highlight, 40)
+  const throttledHighlight = throttle(highlight, 100)
 
   $effect(() => {
     const init = async () => {
       await delay(100)
       updateTOC()
-      updateSidebarPosition()
 
       window.addEventListener('scroll', throttledHighlight)
       window.addEventListener('resize', () => {
@@ -150,11 +138,8 @@
 
       const targetDiv = document.getElementById(targetDivId)
       if (targetDiv) {
-        observer = new MutationObserver(async () => {
+        observer = new MutationObserver(() => {
           updateTOC()
-          // Delay để DOM render xong trước khi tính toán vị trí
-          await delay(50)
-          updateSidebarPosition()
         })
         observer.observe(targetDiv, {
           childList: true,
@@ -185,11 +170,34 @@
 
   const options = {
     scrollbars: {
-      autoHide: 'never',
+      autoHide: 'true',
       theme: 'os-theme-custom-app',
     },
   }
   const [initialize, instance] = useOverlayScrollbars({ options, defer: true })
+
+  // Effect để reinitialize OverlayScrollbars khi tocMode thay đổi
+  $effect(() => {
+    // Theo dõi tocMode để trigger effect khi thay đổi
+    const currentMode = tocMode
+
+    if (currentMode === 'sidebar' && shouldShow && !isTouchDevice()) {
+      // Delay để đợi DOM render xong
+      const timer = setTimeout(() => {
+        const tocElement = document.getElementById('toc-sidebar-scroll')
+        if (tocElement) {
+          // Destroy instance cũ nếu có
+          if (instance()) {
+            instance().destroy()
+          }
+          // Initialize lại
+          initialize(tocElement)
+        }
+      }, 150)
+
+      return () => clearTimeout(timer)
+    }
+  })
 
   function isTouchDevice() {
     return (
@@ -205,30 +213,29 @@
   {#if isPinned}
     <aside
       id="toc-sidebar"
-      class="sticky z-20 right-2 sm:right-5 md:right-8 top-8 h-lvh flex transform-gpu pt-2 duration-150 ease-in-out transition-all flex-col items-end"
-      style="margin-top: {sidebarMarginTop}px;"
+      class="fixed w-80 z-20 font-mono right-2 bg-surface-1 border-l border-dashed border-border/70 sm:right-5 md:right-8 top-0 h-lvh flex transform-gpu duration-150 ease-in-out transition-all flex-col"
     >
-      <div class="fle flex-col px-2 h-full">
-        <!-- Header -->
-        <div>
-          <h3
-            class="text-sm font-semibold text-text-secondary uppercase tracking-wider"
-          >
-            On this page
-          </h3>
-        </div>
-
+      <!-- style="margin-top: {sidebarMarginTop}px;" -->
+      <div class="flex flex-col h-full">
         <!-- TOC List -->
-        <div id="toc-sidebar-scroll" class="flex-1 overflow-y-auto py-2">
+        <div
+          id="toc-sidebar-scroll"
+          class="flex-1 h-[calc(100vh-128px)] overflow-y-hidden py-6 px-4"
+        >
           <div class="flex flex-col">
+            <h3
+              class="text-sm font-semibold text-text-secondary uppercase tracking-wider"
+            >
+              On this page
+            </h3>
             {#each headings as heading}
               <a
                 href="#{heading.id}"
                 onclick={() => scrollToHeading(heading.id)}
                 class="px-6 py-1.5 text-sm/4.5 no-underline transition-colors
                 {heading.id === activeHeadingId
-                  ? 'text-text-primary underline underline-offset-2'
-                  : 'text-text-secondary hover:text-text-primary '}
+                  ? 'text-text-primary font-bold'
+                  : 'text-text-secondary dark:text-muted hover:text-text-primary '}
                 lv{heading.level}"
               >
                 <span class="line-clamp-2">
@@ -238,30 +245,35 @@
             {/each}
           </div>
         </div>
-
         <!-- Footer Actions -->
-        <div class="pt-2 border-t border-border/50 flex gap-1">
-          <a
-            href="#top"
-            class="flex-1 flex items-center justify-center py-2 text-text-secondary hover:text-text-primary transition-colors rounded hover:bg-blackwhite/5"
-            title="Go to top"
+        <div
+          class="py-2 sm:right-5 md:right-8 z-20 border-t border-dashed border-border flex gap-1"
+        >
+          <button
+            onclick={toggleTocMode}
+            class="flex-1 flex items-center justify-center py-2 text-text-secondary hover:text-text-primary transition-colors"
+            title="Switch to floating TOC"
           >
-            <Icon width="16" icon="carbon:up-to-top" />
-          </a>
+            <Icon
+              icon="heroicons:arrow-down-right-16-solid"
+              width="16"
+              height="16"
+            />
+          </button>
           <a
             href="#footer"
-            class="flex-1 flex items-center justify-center py-2 text-text-secondary hover:text-text-primary transition-colors rounded hover:bg-blackwhite/5"
+            class="flex-1 flex items-center justify-center py-2 text-text-secondary hover:text-text-primary transition-colors"
             title="Go to bottom"
           >
             <Icon width="16" icon="carbon:up-to-top" class="rotate-180" />
           </a>
-          <button
-            onclick={toggleTocMode}
-            class="flex-1 flex items-center justify-center py-2 text-text-secondary hover:text-text-primary transition-colors rounded hover:bg-blackwhite/5"
-            title="Switch to floating TOC"
+          <a
+            href="#top"
+            class="flex-1 flex items-center justify-center py-2 text-text-secondary hover:text-text-primary transition-colors"
+            title="Go to top"
           >
-            <Icon width="16" icon="lucide:panel-right-close" />
-          </button>
+            <Icon width="16" icon="carbon:up-to-top" />
+          </a>
         </div>
       </div>
     </aside>

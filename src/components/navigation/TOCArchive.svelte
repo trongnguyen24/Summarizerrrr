@@ -196,6 +196,33 @@
   }
   const [initialize, instance] = useOverlayScrollbars({ options, defer: true })
 
+  // Effect để reinitialize OverlayScrollbars khi tocMode thay đổi
+  $effect(() => {
+    // Theo dõi tocMode và isDesktop để trigger effect khi thay đổi
+    const currentMode = tocMode
+    const desktop = isDesktop
+
+    // Hiển thị TOCArchive: trên mobile luôn, trên desktop chỉ khi archive mode
+    const shouldShowArchive = !desktop || currentMode === 'archive'
+
+    if (shouldShowArchive && !isTouchDevice()) {
+      // Delay để đợi DOM render xong
+      const timer = setTimeout(() => {
+        const tocElement = document.getElementById('toc-scroll')
+        if (tocElement) {
+          // Destroy instance cũ nếu có
+          if (instance()) {
+            instance().destroy()
+          }
+          // Initialize lại
+          initialize(tocElement)
+        }
+      }, 150)
+
+      return () => clearTimeout(timer)
+    }
+  })
+
   // Utility function to detect touch devices
   function isTouchDevice() {
     return (
@@ -280,6 +307,19 @@
         <div
           class="bg-background flex border border-border overflow-hidden border-t-0 rounded-b-lg"
         >
+          {#if isDesktop}
+            <button
+              class="px-3 flex-1 border-border border-r flex justify-center items-center py-3 font-mono text-xs/4 transition-colors"
+              title="Switch to sidebar TOC"
+              onclick={toggleTocMode}
+            >
+              <Icon
+                icon="heroicons:arrow-up-left-16-solid"
+                width="16"
+                height="16"
+              />
+            </button>
+          {/if}
           <a
             href="#footer"
             class="px-3 flex-1 border-border border-r flex justify-center items-center py-3 font-mono text-xs/4 no-underline transition-colors"
@@ -300,15 +340,7 @@
               }
             }}><Icon width="16" icon="carbon:up-to-top" /></a
           >
-          {#if isDesktop}
-            <button
-              class="px-3 flex-1 border-border border-l flex justify-center items-center py-3 font-mono text-xs/4 transition-colors"
-              title="Switch to sidebar TOC"
-              onclick={toggleTocMode}
-            >
-              <Icon width="16" icon="lucide:panel-right-open" />
-            </button>
-          {/if}
+
           {#if isTouchDevice()}
             <button
               class="p-3 flex-1 border-border border-l flex justify-center items-center font-mono text-xs/4 no-underline transition-colors"

@@ -226,7 +226,7 @@
       >
         <div
           class=" top-0 right-0 absolute {getTocMode() === 'sidebar'
-            ? '-translate-x-80'
+            ? 'xl:-translate-x-80'
             : 'translate-x-0'} "
         >
           <DisplaySettingsControls />

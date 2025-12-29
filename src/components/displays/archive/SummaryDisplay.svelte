@@ -22,7 +22,12 @@
   } from '@/stores/settingsStore.svelte.js'
   import { getTocMode, toggleTocMode } from '@/stores/tocModeStore.svelte.js'
 
-  const { selectedSummary, formatDate, activeTab } = $props()
+  const {
+    selectedSummary,
+    formatDate,
+    activeTab,
+    isSidePanelVisible = true,
+  } = $props()
 
   let activeTabId = $state(null)
   let tabs = $state([])
@@ -195,15 +200,23 @@
 </script>
 
 <div
-  class="relative grid xl:grid-cols-[minmax(20rem,20rem)_1fr_minmax(20rem,20rem)]"
+  class="relative grid md:grid-cols-[minmax(20rem,20rem)_1fr] xl:grid-cols-[minmax(20rem,20rem)_1fr_minmax(20rem,20rem)]"
 >
   <div
-    class="sticky {getTocMode() === 'sidebar'
-      ? 'hidden xl:flex'
-      : 'hidden'} flex-auto z-20 top-0 right-left sm:left-5 md:left-8 h-screen flex-col pt-14 pb-8"
+    class="sticky {isSidePanelVisible && getTocMode() === 'sidebar'
+      ? 'hidden md:flex'
+      : 'hidden '}  {isSidePanelVisible
+      ? 'md:flex'
+      : ''} flex-auto z-20 top-0 right-left sm:left-5 md:left-8 h-screen flex-col pt-14 pb-8"
   ></div>
   {#if selectedSummary}
-    <div class=" {getTocMode() === 'sidebar' ? 'col-span-1' : 'col-span-3'}">
+    <div
+      class=" {isSidePanelVisible && getTocMode() === 'sidebar'
+        ? 'md:col-span-1'
+        : 'md:col-span-2'} {getTocMode() === 'archive' && !isSidePanelVisible
+        ? 'md:!col-span-3'
+        : ''} "
+    >
       <div
         class="prose px-8 md:px-16 {widthClasses[
           settings.widthIndex

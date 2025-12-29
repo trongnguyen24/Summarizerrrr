@@ -247,7 +247,7 @@
       {isSidePanelVisible}
     />
     <div
-      class="sticky bg-linear-to-t from-surface-1 to-surface-1/40 bottom-0 mask-t-from-50% h-16 backdrop-blur-[2px] w-full z-10 pointer-events-none"
+      class="sticky bg-linear-to-t from-surface-1 to-surface-1/40 bottom-8 md:bottom-0 mask-t-from-50% h-16 backdrop-blur-[2px] w-full z-10 pointer-events-none"
     ></div>
   </div>
 

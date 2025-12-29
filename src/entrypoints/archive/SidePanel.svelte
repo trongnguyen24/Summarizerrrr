@@ -597,7 +597,7 @@
   </div>
 
   <div
-    class="absolute bg-linear-to-t from-background to-background/40 mask-t-from-50% left-0 right-3 bottom-0 h-4 backdrop-blur-[2px] z-30 pointer-events-none"
+    class="absolute bg-linear-to-t from-background to-background/40 mask-t-from-50% left-0 right-2 bottom-0 h-4 backdrop-blur-[2px] z-30 pointer-events-none"
   ></div>
 </div>
 

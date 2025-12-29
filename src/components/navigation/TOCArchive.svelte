@@ -370,12 +370,12 @@
   </div>
   <!-- Fixed Navigation Buttons -->
   <div
-    class="fixed z-20 left-0 sm:left-4 md:left-auto md:right-8 bottom-0 border border-border border-r-0 flex gap-1"
+    class="fixed right-2 z-20 left-2 sm:left-5 border-l-0 sm:right-5 md:left-auto md:right-8 bottom-0 border border-border bg-surface-1 md:border-l border-r-0 flex gap-1"
   >
     <button
       onclick={handleNavigatePrev}
       disabled={!canGoPrev}
-      class="p-2 transition-colors
+      class="p-2 flex-1 flex justify-center items-center transition-colors
           {canGoPrev
         ? 'text-text-secondary hover:text-text-primary hover:bg-surface-1'
         : 'text-muted/50  cursor-not-allowed'}"
@@ -386,7 +386,7 @@
     <button
       onclick={handleNavigateNext}
       disabled={!canGoNext}
-      class="p-2 transition-colors border-border border-l border-dashed
+      class="p-2 flex-1 flex justify-center items-center transition-colors border-border border-l border-dashed
           {canGoNext
         ? 'text-text-secondary hover:text-text-primary hover:bg-surface-1'
         : 'text-muted/50 cursor-not-allowed'}"

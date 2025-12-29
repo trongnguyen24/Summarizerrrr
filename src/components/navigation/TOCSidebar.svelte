@@ -41,13 +41,17 @@
 
     const headingElements = targetDiv.querySelectorAll('h2,h3,h4')
     let currentActiveHeadingId = null
+    const threshold = 40 // pixels từ top của viewport
 
-    for (let i = headingElements.length - 1; i >= 0; i--) {
+    // Tìm heading đầu tiên (từ trên xuống) đã đi qua threshold
+    for (let i = 0; i < headingElements.length; i++) {
       const heading = headingElements[i]
       const rect = heading.getBoundingClientRect()
 
-      if (rect.top <= window.innerHeight * 0.1) {
+      if (rect.top <= threshold) {
         currentActiveHeadingId = heading.id
+      } else {
+        // Heading này chưa đi qua threshold, dừng lại
         break
       }
     }
@@ -106,7 +110,7 @@
 
   function scrollToHeading(id) {
     const element = document.getElementById(id)
-    activeHeadingId = id
+    // Không set activeHeadingId ở đây, để scroll handler tự highlight khi content cuộn đến
     if (element) {
       element.classList.add('animate-pulse')
       setTimeout(() => {

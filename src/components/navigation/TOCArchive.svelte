@@ -44,25 +44,21 @@
 
     const headingElements = targetDiv.querySelectorAll('h2,h3,h4')
     let currentActiveHeadingId = null
+    const threshold = 100 // pixels từ top của viewport
 
-    for (let i = headingElements.length - 1; i >= 0; i--) {
+    // Tìm heading đầu tiên (từ trên xuống) đã đi qua threshold
+    for (let i = 0; i < headingElements.length; i++) {
       const heading = headingElements[i]
       const rect = heading.getBoundingClientRect()
 
-      // Check if the heading is in or just above the viewport
-      if (rect.top <= window.innerHeight * 0.1) {
-        // Highlight when 20% from top
+      if (rect.top <= threshold) {
         currentActiveHeadingId = heading.id
+      } else {
+        // Heading này chưa đi qua threshold, dừng lại
         break
       }
     }
     activeHeadingId = currentActiveHeadingId
-    const newHash = activeHeadingId
-      ? `#${activeHeadingId}`
-      : window.location.pathname
-    // if (newHash !== window.location.hash) {
-    //   window.history.replaceState(null, null, newHash)
-    // }
   }
 
   function generateRandomString(length = 4) {
@@ -119,7 +115,7 @@
 
   function scrollToHeading(id) {
     const element = document.getElementById(id)
-    activeHeadingId = id // Update active heading when clicking
+    // Không set activeHeadingId ở đây, để scroll handler tự highlight khi content cuộn đến
     if (element) {
       // element.scrollIntoView({ behavior: 'smooth' })
       // Add animate-pulse class and remove after 3 seconds

@@ -5,8 +5,25 @@
   import { animate, stagger, onScroll } from 'animejs'
   import { useOverlayScrollbars } from 'overlayscrollbars-svelte'
   import { getTocMode, toggleTocMode } from '@/stores/tocModeStore.svelte.js'
+  import { archiveStore } from '@/stores/archiveStore.svelte.js'
 
-  const { targetDivId } = $props()
+  const { targetDivId, activeTab = 'history' } = $props()
+
+  // Navigation state
+  let canGoPrev = $derived(archiveStore.canNavigatePrevious(activeTab))
+  let canGoNext = $derived(archiveStore.canNavigateNext(activeTab))
+
+  function handleNavigatePrev() {
+    if (archiveStore.navigatePrevious(activeTab)) {
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+  }
+
+  function handleNavigateNext() {
+    if (archiveStore.navigateNext(activeTab)) {
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+  }
 
   // Reactive check for toc mode and window width
   let tocMode = $derived(getTocMode())
@@ -233,7 +250,7 @@
 {#if !isDesktop || tocMode === 'archive'}
   <div
     id="toc"
-    class="fixed z-20 right-0 sm:right-4 md:right-8 bottom-16 md:bottom-8 group origin-bottom-right"
+    class="fixed z-20 right-0 sm:right-4 md:right-8 bottom-16 md:bottom-14 group origin-bottom-right"
   >
     <button
       class="flex items-end transition-all py-2 px-4 flex-col gap-2 {isTouchDevice()
@@ -263,8 +280,9 @@
         ^
       </span>
     </button>
+
     <nav
-      class="fixed bottom-14 md:bottom-8 z-20 pt-4 px-3 left-0 sm:left-auto right-0 sm:right-6 md:right-8 {isTouchDevice()
+      class="fixed bottom-14 md:bottom-16 z-20 pt-4 px-3 left-0 sm:left-auto right-0 sm:right-6 md:right-8 {isTouchDevice()
         ? isNavOpen
           ? 'block opacity-100'
           : 'hidden opacity-0'
@@ -309,11 +327,7 @@
               title="Switch to sidebar TOC"
               onclick={toggleTocMode}
             >
-              <Icon
-                icon="heroicons:arrow-up-left-16-solid"
-                width="16"
-                height="16"
-              />
+              <Icon icon="carbon:maximize" width="16" height="16" />
             </button>
           {/if}
           <a
@@ -353,6 +367,33 @@
       <!-- svelte-ignore a11y_no_static_element_interactions -->
       <div class="fixed inset-0 z-10" onclick={() => (isNavOpen = false)}></div>
     {/if}
+  </div>
+  <!-- Fixed Navigation Buttons -->
+  <div
+    class="fixed z-20 left-0 sm:left-4 md:left-auto md:right-8 bottom-0 border border-border border-r-0 flex gap-1"
+  >
+    <button
+      onclick={handleNavigatePrev}
+      disabled={!canGoPrev}
+      class="p-2 transition-colors
+          {canGoPrev
+        ? 'text-text-secondary hover:text-text-primary hover:bg-surface-1'
+        : 'text-muted/50  cursor-not-allowed'}"
+      title="Previous item (←)"
+    >
+      <Icon icon="carbon:chevron-left" width="24" height="24" />
+    </button>
+    <button
+      onclick={handleNavigateNext}
+      disabled={!canGoNext}
+      class="p-2 transition-colors border-border border-l border-dashed
+          {canGoNext
+        ? 'text-text-secondary hover:text-text-primary hover:bg-surface-1'
+        : 'text-muted/50 cursor-not-allowed'}"
+      title="Next item (→)"
+    >
+      <Icon icon="carbon:chevron-right" width="24" height="24" />
+    </button>
   </div>
 {/if}
 

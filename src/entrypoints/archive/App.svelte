@@ -108,10 +108,36 @@
     handleResize()
     window.addEventListener('resize', handleResize)
 
+    // Keyboard navigation for arrow keys
+    function handleKeydown(e) {
+      // Don't navigate if user is typing in an input/textarea
+      const activeElement = document.activeElement
+      const isTyping =
+        activeElement?.tagName === 'INPUT' ||
+        activeElement?.tagName === 'TEXTAREA' ||
+        activeElement?.isContentEditable
+
+      if (isTyping) return
+
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault()
+        if (archiveStore.navigatePrevious(activeTab)) {
+          window.scrollTo({ top: 0, behavior: 'smooth' })
+        }
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault()
+        if (archiveStore.navigateNext(activeTab)) {
+          window.scrollTo({ top: 0, behavior: 'smooth' })
+        }
+      }
+    }
+    window.addEventListener('keydown', handleKeydown)
+
     // Return cleanup function
     return () => {
       unsubscribe()
       window.removeEventListener('resize', handleResize)
+      window.removeEventListener('keydown', handleKeydown)
     }
   })
 

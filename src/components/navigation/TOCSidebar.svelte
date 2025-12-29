@@ -4,8 +4,25 @@
   import 'overlayscrollbars/overlayscrollbars.css'
   import { useOverlayScrollbars } from 'overlayscrollbars-svelte'
   import { getTocMode, toggleTocMode } from '@/stores/tocModeStore.svelte.js'
+  import { archiveStore } from '@/stores/archiveStore.svelte.js'
 
-  const { targetDivId } = $props()
+  const { targetDivId, activeTab = 'history' } = $props()
+
+  // Navigation state
+  let canGoPrev = $derived(archiveStore.canNavigatePrevious(activeTab))
+  let canGoNext = $derived(archiveStore.canNavigateNext(activeTab))
+
+  function handleNavigatePrev() {
+    if (archiveStore.navigatePrevious(activeTab)) {
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+  }
+
+  function handleNavigateNext() {
+    if (archiveStore.navigateNext(activeTab)) {
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+  }
 
   // Reactive check for toc mode
   let tocMode = $derived(getTocMode())
@@ -258,12 +275,31 @@
             class="flex-1 flex items-center justify-center py-2 text-text-secondary hover:text-text-primary transition-colors"
             title="Switch to floating TOC"
           >
-            <Icon
-              icon="heroicons:arrow-down-right-16-solid"
-              width="16"
-              height="16"
-            />
+            <Icon icon="carbon:minimize" width="16" height="16" />
           </button>
+          <button
+            onclick={handleNavigatePrev}
+            disabled={!canGoPrev}
+            class="flex-1 flex items-center justify-center py-2 transition-colors
+              {canGoPrev
+              ? 'text-text-secondary hover:text-text-primary cursor-pointer'
+              : 'text-text-tertiary/40 opacity-50 cursor-not-allowed'}"
+            title="Previous item"
+          >
+            <Icon icon="carbon:chevron-left" width="16" height="16" />
+          </button>
+          <button
+            onclick={handleNavigateNext}
+            disabled={!canGoNext}
+            class="flex-1 flex items-center justify-center py-2 transition-colors
+              {canGoNext
+              ? 'text-text-secondary hover:text-text-primary cursor-pointer'
+              : 'text-text-tertiary/40 cursor-not-allowed'}"
+            title="Next item"
+          >
+            <Icon icon="carbon:chevron-right" width="16" height="16" />
+          </button>
+
           <a
             href="#footer"
             class="flex-1 flex items-center justify-center py-2 text-text-secondary hover:text-text-primary transition-colors"

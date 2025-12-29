@@ -343,8 +343,8 @@
         </div>
       </div>
     </div>
-    <TOC targetDivId="summary-content" />
-    <TOCSidebar targetDivId="summary-content" />
+    <TOC targetDivId="summary-content" {activeTab} />
+    <TOCSidebar targetDivId="summary-content" {activeTab} />
 
     {@const currentSummary = selectedSummary.summaries.find(
       (_, index) => `summary-tab-${index}` === activeTabId,

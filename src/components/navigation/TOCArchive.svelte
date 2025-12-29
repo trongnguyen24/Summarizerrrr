@@ -250,7 +250,7 @@
 {#if !isDesktop || tocMode === 'archive'}
   <div
     id="toc"
-    class="fixed z-20 right-0 sm:right-4 md:right-8 bottom-16 md:bottom-14 group origin-bottom-right"
+    class="fixed z-20 right-0 sm:right-4 md:right-8 bottom-18 md:bottom-14 group origin-bottom-right"
   >
     <button
       class="flex items-end transition-all py-2 px-4 flex-col gap-2 {isTouchDevice()
@@ -282,7 +282,7 @@
     </button>
 
     <nav
-      class="fixed bottom-14 md:bottom-16 z-20 pt-4 px-3 left-0 sm:left-auto right-0 sm:right-6 md:right-8 {isTouchDevice()
+      class="fixed bottom-18 md:bottom-16 z-20 pt-4 px-3 left-0 sm:left-auto right-0 sm:right-6 md:right-8 {isTouchDevice()
         ? isNavOpen
           ? 'block opacity-100'
           : 'hidden opacity-0'

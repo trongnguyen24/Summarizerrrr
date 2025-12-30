@@ -374,15 +374,24 @@
 </div>
 
 <style>
-  .lv4 {
-    padding-left: 2em;
+  .lv2 {
+    padding-left: 0.5rem;
   }
-  .lvs2,
+  .lv3 {
+    padding-left: 1.25rem;
+  }
+  .lv4 {
+    padding-left: 2rem;
+  }
+
+  .lvs2 {
+    width: 0.25rem;
+  }
   .lvs3 {
-    width: 0.25em;
+    width: 0.175rem;
   }
   .lvs4 {
-    width: 0.125em;
+    width: 0.1rem;
   }
 
   nav {

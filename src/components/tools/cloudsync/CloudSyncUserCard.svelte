@@ -60,12 +60,14 @@
 
   <!-- User info -->
   <div class="flex relative items-center bg-dot overflow-hidden text-xs">
-    <div class="overflow-hidden relative p-3 flex items-center justify-center">
+    <div
+      class="overflow-hidden grayscale-50 relative p-3 flex items-center justify-center"
+    >
       <div
         class="z-40 absolute inset-2.5 border-2 border-blackwhite/20 overflow-hidden pointer-events-none"
       ></div>
       {#if userPicture}
-        <div class="crt-avatar overflow-hidden">
+        <div class="crt-avatar">
           <img src={userPicture} alt={userName} class="size-18" />
         </div>
       {:else}

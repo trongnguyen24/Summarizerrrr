@@ -18,6 +18,7 @@ declare module "wxt/browser" {
     | "/_locales/zh_CN/messages.json"
     | "/accessibility-tree.js"
     | "/archive.html"
+    | "/avatar.png"
     | "/background.js"
     | "/content-script.js"
     | "/content-scripts/chatgpt.js"

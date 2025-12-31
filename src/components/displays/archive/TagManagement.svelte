@@ -5,10 +5,10 @@
     addTag,
     deleteTag,
     updateTag,
+    softDeleteTag,
   } from '@/lib/db/indexedDBService'
   import Icon from '@iconify/svelte'
-  import { slideScaleFade } from '@/lib/ui/slideScaleFade.js'
-  import { fade } from 'svelte/transition'
+  import { slideScaleFade, fadeOnly } from '@/lib/ui/slideScaleFade.js'
   import { t } from 'svelte-i18n'
   import {
     archiveFilterStore,
@@ -108,6 +108,17 @@
     try {
       await addTag(validation.name)
       closeCreateTagDialog()
+
+      // Trigger cloud sync after creating tag
+      try {
+        const { triggerSync } = await import(
+          '@/services/cloudSync/cloudSyncService.svelte.js'
+        )
+        triggerSync()
+      } catch (syncError) {
+        console.warn('Failed to trigger sync after creating tag:', syncError)
+      }
+
       // Invalidate cache and reload
       await refreshTagsCache()
     } catch (error) {
@@ -168,6 +179,17 @@
       const updatedTag = { ...tag, name: validation.name }
       await updateTag(updatedTag)
       closeRenameDialog()
+
+      // Trigger cloud sync after renaming tag
+      try {
+        const { triggerSync } = await import(
+          '@/services/cloudSync/cloudSyncService.svelte.js'
+        )
+        triggerSync()
+      } catch (syncError) {
+        console.warn('Failed to trigger sync after renaming tag:', syncError)
+      }
+
       // Invalidate cache and reload
       await refreshTagsCache()
     } catch (error) {
@@ -201,7 +223,18 @@
 
   async function performDelete(id) {
     try {
-      await deleteTag(id)
+      // Use soft delete for cloud sync compatibility
+      await softDeleteTag(id)
+
+      // Trigger cloud sync after deleting tag
+      try {
+        const { triggerSync } = await import(
+          '@/services/cloudSync/cloudSyncService.svelte.js'
+        )
+        triggerSync()
+      } catch (syncError) {
+        console.warn('Failed to trigger sync after deleting tag:', syncError)
+      }
 
       // Remove from active filters if selected
       if (isTagSelected(id)) {
@@ -315,14 +348,14 @@
           <div class="size-5 relative">
             {#if !hasAnyTagsSelected()}
               <span
-                transition:fade={{ duration: 100 }}
+                transition:fadeOnly={{ duration: 100 }}
                 class="text-text-primary absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2"
               >
                 <Icon icon="tabler:tag-filled" width="20" height="20" />
               </span>
             {:else}
               <span
-                transition:fade={{ duration: 100 }}
+                transition:fadeOnly={{ duration: 100 }}
                 class="text-text-primary absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2"
               >
                 <Icon icon="tabler:x" width="20" height="20" />
@@ -350,14 +383,14 @@
             <div class="size-5 relative">
               {#if isTagSelected(tag.id)}
                 <span
-                  transition:fade={{ duration: 100 }}
+                  transition:fadeOnly={{ duration: 100 }}
                   class="text-text-primary absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2"
                 >
                   <Icon icon="tabler:tag-filled" width="20" height="20" />
                 </span>
               {:else}
                 <span
-                  transition:fade={{ duration: 100 }}
+                  transition:fadeOnly={{ duration: 100 }}
                   class="text-text-primary absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2"
                 >
                   <Icon icon="tabler:tag" width="20" height="20" />

@@ -21,6 +21,17 @@ button {
   font-size: 16px; /* Đảm bảo các đơn vị rem dựa trên 16px */
 }
 
+/* Reduce Motion - Disable all animations in shadow DOM */
+.floating-ui-root[data-reduce-motion='true'] *,
+.floating-ui-root[data-reduce-motion='true'] *::before,
+.floating-ui-root[data-reduce-motion='true'] *::after {
+  animation-duration: 0ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0ms !important;
+  scroll-behavior: auto !important;
+  animation-delay: 0s !important;
+}
+
 .floating-panel.visible {
   transform: translateX(0) !important;
 }

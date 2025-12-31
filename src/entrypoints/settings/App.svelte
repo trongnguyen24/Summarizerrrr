@@ -31,6 +31,16 @@
     }
   })
 
+  // Apply reduce motion setting to DOM
+  $effect(() => {
+    const _reduceMotion = settings.reduceMotion
+    import('@/services/animationService.js').then(
+      ({ applyReduceMotionToDOM }) => {
+        applyReduceMotionToDOM()
+      },
+    )
+  })
+
   loadSettings().then(() => {
     subscribeToSettingsChanges()
   })

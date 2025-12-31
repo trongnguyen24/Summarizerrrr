@@ -1083,6 +1083,17 @@ export async function saveAllGeneratedSummariesToArchive() {
 
     await addSummary(archiveEntry)
     summaryState.isArchived = true
+
+    // Trigger cloud sync after adding new summary
+    try {
+      const { triggerSync } = await import(
+        '@/services/cloudSync/cloudSyncService.svelte.js'
+      )
+      triggerSync()
+    } catch (syncError) {
+      console.warn('Failed to trigger sync after adding summary:', syncError)
+    }
+
     // Notify other components that the data has been updated
     await appStateStorage.setValue({ data_updated_at: new Date().getTime() })
   } catch (error) {}
@@ -1121,6 +1132,17 @@ export async function logSingleSummaryToHistory(content, title, url, typeLabel) 
     }
 
     await addHistory(historyEntry)
+
+    // Trigger cloud sync after adding new history entry
+    try {
+      const { triggerSync } = await import(
+        '@/services/cloudSync/cloudSyncService.svelte.js'
+      )
+      triggerSync()
+    } catch (syncError) {
+      console.warn('Failed to trigger sync after adding history:', syncError)
+    }
+
     document.dispatchEvent(
       new CustomEvent('saveSummarySuccess', {
         detail: { message: `Logged ${typeLabel} to History successfully!` },

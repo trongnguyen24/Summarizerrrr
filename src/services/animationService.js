@@ -1,5 +1,22 @@
 // @ts-nocheck
 import { animate, createSpring } from 'animejs'
+import { settings } from '@/stores/settingsStore.svelte.js'
+
+/**
+ * Check if animations should be disabled based on user settings
+ * @returns {boolean} true if animations should be skipped
+ */
+export function isReduceMotionEnabled() {
+  return settings.reduceMotion ?? false
+}
+
+/**
+ * Check if animations should run (inverse of isReduceMotionEnabled for readability)
+ * @returns {boolean} true if animations should run
+ */
+export function shouldAnimate() {
+  return !isReduceMotionEnabled()
+}
 
 // Utility functions
 function random(min, max, precision = 0) {
@@ -69,6 +86,8 @@ export function createParticleAnimation({
   pointerY,
   particleColor,
 }) {
+  // Skip particle animation if reduce motion is enabled
+  if (isReduceMotionEnabled()) return
   if (!svgElement || !buttonElement) return
 
   const spread = 16
@@ -109,6 +128,11 @@ export function clamp(value, min, max) {
 export const animationService = {
   show(element) {
     if (!element) return
+    // Skip animation if reduce motion is enabled - apply final state immediately
+    if (isReduceMotionEnabled()) {
+      element.style.width = '20rem'
+      return
+    }
     animate(element, {
       width: ['20rem'],
       duration: 200,
@@ -119,6 +143,11 @@ export const animationService = {
 
   hide(element) {
     if (!element) return
+    // Skip animation if reduce motion is enabled - apply final state immediately
+    if (isReduceMotionEnabled()) {
+      element.style.width = '0'
+      return
+    }
     animate(element, {
       width: [0],
       duration: 300,
@@ -126,4 +155,15 @@ export const animationService = {
       alternate: false,
     })
   },
+}
+
+/**
+ * Apply reduce motion data attribute to document root
+ * Call this function reactively when settings change
+ * This will disable CSS transitions/animations via CSS rules
+ */
+export function applyReduceMotionToDOM() {
+  if (typeof document !== 'undefined') {
+    document.documentElement.dataset.reduceMotion = isReduceMotionEnabled() ? 'true' : 'false'
+  }
 }

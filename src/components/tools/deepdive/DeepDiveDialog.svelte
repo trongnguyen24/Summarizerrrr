@@ -1,8 +1,7 @@
 <script>
   // @ts-nocheck
   import { Dialog } from 'bits-ui'
-  import { fade } from 'svelte/transition'
-  import { slideScaleFade } from '@/lib/ui/slideScaleFade.js'
+  import { slideScaleFade, fadeOnly } from '@/lib/ui/slideScaleFade.js'
   import {
     deepDiveState,
     toggleDeepDive,
@@ -29,7 +28,7 @@
     <Dialog.Overlay class="fixed inset-0 z-40 bg-surface-1" forceMount>
       {#snippet child({ props, open })}
         {#if open}
-          <div {...props} transition:fade={{ duration: 200 }}></div>
+          <div {...props} transition:fadeOnly={{ duration: 200 }}></div>
         {/if}
       {/snippet}
     </Dialog.Overlay>

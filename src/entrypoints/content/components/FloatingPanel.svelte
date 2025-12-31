@@ -11,7 +11,7 @@
   import { settings, updateSettings } from '@/stores/settingsStore.svelte.js'
   import { useApiKeyValidation } from '../composables/useApiKeyValidation.svelte.js'
   import ApiKeySetupPrompt from '@/components/ui/ApiKeySetupPrompt.svelte'
-  import { fade } from 'svelte/transition'
+  import { fadeOnly } from '@/lib/ui/slideScaleFade.js'
   import FloatingPanelContent from '@/components/displays/floating-panel/FloatingPanelContent.svelte'
   import ActionButtonsFP from '@/components/buttons/ActionButtonsFP.svelte'
   import ActionButtonsMiniFP from '@/components/buttons/ActionButtonsMiniFP.svelte'
@@ -354,8 +354,8 @@
   {#if !settings.hasCompletedOnboarding}
     <div
       class="absolute z-[10001] inset-0"
-      in:fade={{ duration: 300 }}
-      out:fade={{ duration: 300 }}
+      in:fadeOnly={{ duration: 300 }}
+      out:fadeOnly={{ duration: 300 }}
     >
       {#await import('@/components/welcome/WelcomeFlow.svelte')}
         <div

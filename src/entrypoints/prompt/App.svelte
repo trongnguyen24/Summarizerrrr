@@ -27,8 +27,7 @@
   } from '@/stores/themeStore.svelte.js'
   import '@fontsource-variable/geist-mono'
   import { Dialog } from 'bits-ui'
-  import { fade } from 'svelte/transition'
-  import { slideScaleFade } from '@/lib/ui/slideScaleFade.js'
+  import { slideScaleFade, fadeOnly } from '@/lib/ui/slideScaleFade.js'
   import { enhancePrompt } from '@/lib/api/api.js'
   import aiPrompt from '@/lib/prompts/templates/promptEnhance.js'
 
@@ -94,6 +93,16 @@
     return () => {
       unsubscribeTheme()
     }
+  })
+
+  // Apply reduce motion setting to DOM
+  $effect(() => {
+    const _reduceMotion = settings.reduceMotion
+    import('@/services/animationService.js').then(
+      ({ applyReduceMotionToDOM }) => {
+        applyReduceMotionToDOM()
+      },
+    )
   })
 
   let promptKey = $state('')
@@ -479,7 +488,7 @@
     <Dialog.Overlay class="fixed inset-0 z-40 bg-black/80" forceMount>
       {#snippet child({ props, open })}
         {#if open}
-          <div {...props} transition:fade></div>
+          <div {...props} transition:fadeOnly></div>
         {/if}
       {/snippet}
     </Dialog.Overlay>
@@ -542,7 +551,7 @@
                       </div>
                     {:else}
                       <textarea
-                        transition:fade
+                        transition:fadeOnly
                         disabled
                         class="resize-none px-4 text-sm pt-6 pb-12 leading-normal outline-0 h-full overflow-auto w-full"
                         >{dataget}</textarea

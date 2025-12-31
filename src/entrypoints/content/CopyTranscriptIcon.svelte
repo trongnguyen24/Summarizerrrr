@@ -3,8 +3,10 @@
   import './styles/copy-transcript-button.css'
   import { onMount, onDestroy } from 'svelte'
 
-  let { videoTitle = '' } = $props()
+  let { videoTitle = '', hasTranscript = true, videoUrl = '' } = $props()
   let currentVideoTitle = $state(videoTitle) // Reactive state for video title
+  let currentHasTranscript = $state(hasTranscript) // Track transcript availability
+  let currentVideoUrl = $state(videoUrl) // Track video URL
   let isLoading = $state(false)
   let loadingStates = $state({
     gemini: false,
@@ -18,6 +20,57 @@
   let wrapElement = $state()
   let currentVideoId = $state('')
   let currentTranscriptExtractor = $state(null)
+
+  // Function to check if transcript is available for current video
+  const checkTranscriptAvailability = async () => {
+    try {
+      // Wait for DOM to be ready
+      await new Promise((resolve) => setTimeout(resolve, 1000))
+
+      // Check using YouTube's standard transcript button selector (language-independent)
+      let showButton = document.querySelector(
+        'ytd-video-description-transcript-section-renderer button',
+      )
+
+      // If not found, try expanding description
+      if (!showButton) {
+        const expandButton = document.querySelector('#expand')
+        if (expandButton && expandButton.offsetParent !== null) {
+          expandButton.click()
+          await new Promise((resolve) => setTimeout(resolve, 800))
+
+          // Try again after expanding
+          showButton = document.querySelector(
+            'ytd-video-description-transcript-section-renderer button',
+          )
+        }
+      }
+
+      // Fallback to old selectors
+      if (!showButton) {
+        showButton = document.querySelector(
+          'button[aria-label="Show transcript"]',
+        )
+
+        if (!showButton) {
+          const buttons = Array.from(document.querySelectorAll('button'))
+          showButton = buttons.find((btn) =>
+            btn.textContent.toLowerCase().includes('transcript'),
+          )
+        }
+      }
+
+      const hasTranscriptResult = !!showButton
+      console.log(
+        '[CopyTranscriptIcon] Transcript availability check:',
+        hasTranscriptResult,
+      )
+      return hasTranscriptResult
+    } catch (error) {
+      console.error('[CopyTranscriptIcon] Error checking transcript:', error)
+      return false
+    }
+  }
 
   // Reactive video tracking
   $effect(() => {
@@ -34,8 +87,18 @@
       // Update video title from DOM
       currentVideoTitle = getVideoTitleFromDOM()
 
+      // Update video URL
+      currentVideoUrl = window.location.href
+
       // Reset transcript extractor to clear any cached data
       currentTranscriptExtractor = new MessageBasedTranscriptExtractor('en')
+
+      // Re-check transcript availability for new video
+      checkTranscriptAvailability().then((result) => {
+        currentHasTranscript = result
+        console.log('[CopyTranscriptIcon] Updated hasTranscript:', result)
+      })
+
       // Close popover if open when video changes
       showPopover = false
     }
@@ -66,6 +129,12 @@
   const handleCopyTranscript = async () => {
     if (isLoading) return
 
+    // Check if transcript is available (fallback, UI should prevent this)
+    if (!currentHasTranscript) {
+      console.log('[CopyTranscriptIcon] No transcript available to copy')
+      return
+    }
+
     isLoading = true
     try {
       // Ensure we use fresh extractor instance
@@ -90,6 +159,12 @@
 
   const handleCopyTranscriptWithTimestamp = async () => {
     if (loadingStates.copyWithTimestamp) return
+
+    // Check if transcript is available (fallback, UI should prevent this)
+    if (!currentHasTranscript) {
+      console.log('[CopyTranscriptIcon] No transcript available to copy')
+      return
+    }
 
     loadingStates.copyWithTimestamp = true
     try {
@@ -205,6 +280,14 @@
   const handleDownloadSRT = async () => {
     if (loadingStates.downloadSRT) return
 
+    // Check if transcript is available (fallback, UI should prevent this)
+    if (!currentHasTranscript) {
+      console.log(
+        '[CopyTranscriptIcon] No transcript available for SRT download',
+      )
+      return
+    }
+
     loadingStates.downloadSRT = true
     try {
       const srtContent = await convertToSRT()
@@ -285,7 +368,51 @@
     loadingStates[provider] = true
     try {
       console.log(`[CopyTranscriptIcon] Starting ${provider} summarization...`)
+      console.log(
+        `[CopyTranscriptIcon] Has transcript: ${currentHasTranscript}`,
+      )
 
+      // Special handling for Gemini when no transcript is available
+      if (!currentHasTranscript) {
+        if (provider === 'gemini') {
+          // Gemini can process YouTube videos directly via URL
+          console.log(
+            '[CopyTranscriptIcon] No transcript, using YouTube URL for Gemini',
+          )
+
+          const videoUrlToSend = currentVideoUrl || window.location.href
+
+          chrome.runtime.sendMessage(
+            {
+              type: 'SUMMARIZE_ON_GEMINI_WITH_URL',
+              youtubeUrl: videoUrlToSend,
+            },
+            (response) => {
+              if (response && response.success) {
+                console.log(
+                  '[CopyTranscriptIcon] Gemini tab opened successfully with URL',
+                )
+                showPopover = false
+              } else {
+                console.error(
+                  '[CopyTranscriptIcon] Failed to open Gemini:',
+                  response?.error,
+                )
+              }
+            },
+          )
+          return
+        } else {
+          // Other providers cannot process YouTube videos without transcript
+          console.log(`[CopyTranscriptIcon] ${provider} requires transcript`)
+          alert(
+            `No transcript available for this video. Only Gemini can process YouTube videos directly. Please use "Summarize on Gemini" instead.`,
+          )
+          return
+        }
+      }
+
+      // Normal flow when transcript is available
       // Ensure we use fresh extractor instance
       if (!currentTranscriptExtractor) {
         currentTranscriptExtractor = new MessageBasedTranscriptExtractor('en')
@@ -297,6 +424,37 @@
 
       if (!transcript || transcript.trim().length === 0) {
         console.warn('[CopyTranscriptIcon] No transcript available')
+
+        // Fallback to URL for Gemini
+        if (provider === 'gemini') {
+          console.log(
+            '[CopyTranscriptIcon] Transcript extraction failed, falling back to URL for Gemini',
+          )
+          const videoUrlToSend = currentVideoUrl || window.location.href
+
+          chrome.runtime.sendMessage(
+            {
+              type: 'SUMMARIZE_ON_GEMINI_WITH_URL',
+              youtubeUrl: videoUrlToSend,
+            },
+            (response) => {
+              if (response && response.success) {
+                console.log(
+                  '[CopyTranscriptIcon] Gemini tab opened successfully with URL (fallback)',
+                )
+                showPopover = false
+              } else {
+                console.error(
+                  '[CopyTranscriptIcon] Failed to open Gemini:',
+                  response?.error,
+                )
+              }
+            },
+          )
+          return
+        }
+
+        alert('Failed to extract transcript. Please try again.')
         return
       }
 
@@ -386,19 +544,37 @@
 
 <div class="summarizerrrr-wrap" bind:this={wrapElement}>
   <button
-    class="summarizerrrr-btn"
-    onclick={handleTogglePopover}
-    aria-label="summarizerrrr"
+    class="summarizerrrr-btn {!currentHasTranscript ? 'gemini-mode' : ''}"
+    onclick={!currentHasTranscript
+      ? () => handleSummarizeOnAI('gemini')
+      : handleTogglePopover}
+    aria-label={!currentHasTranscript ? 'Summarize on Gemini' : 'summarizerrrr'}
   >
     <span class="summarizerrrr-tooltip {showPopover ? 'hidden-tooltip' : ''}"
-      >Summarizerrrr</span
+      >{!currentHasTranscript ? 'Summarize on Gemini' : 'Summarizerrrr'}</span
     >
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none"
-      ><circle cx="10" cy="10" r="9.5" stroke="#fff" /><path
-        fill="#fff"
-        d="m10 17 .483-1.932a6.3 6.3 0 0 1 4.585-4.585L17 10l-1.932-.483a6.3 6.3 0 0 1-4.585-4.585L10 3l-.483 1.932a6.3 6.3 0 0 1-4.583 4.585L3 10l1.934.483a6.3 6.3 0 0 1 4.583 4.585L10 17Z"
-      /></svg
-    >
+    {#if !currentHasTranscript}
+      <!-- Gemini icon when no transcript -->
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+      >
+        <path
+          fill="#fff"
+          d="M21.996 12.018a10.65 10.65 0 0 0-9.98 9.98h-.04c-.32-5.364-4.613-9.656-9.976-9.98v-.04c5.363-.32 9.656-4.613 9.98-9.976h.04c.324 5.363 4.617 9.656 9.98 9.98v.036z"
+        />
+      </svg>
+    {:else}
+      <!-- Normal Summarizerrrr icon -->
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none"
+        ><circle cx="10" cy="10" r="9.5" stroke="#fff" /><path
+          fill="#fff"
+          d="m10 17 .483-1.932a6.3 6.3 0 0 1 4.585-4.585L17 10l-1.932-.483a6.3 6.3 0 0 1-4.585-4.585L10 3l-.483 1.932a6.3 6.3 0 0 1-4.583 4.585L3 10l1.934.483a6.3 6.3 0 0 1 4.583 4.585L10 17Z"
+        /></svg
+      >
+    {/if}
   </button>
   {#if showPopover}
     <!-- svelte-ignore a11y_click_events_have_key_events -->
@@ -408,72 +584,71 @@
       onclick={(e) => e.stopPropagation()}
     >
       <div class="summarizerrrr-background">
-        <button
-          class="summarizerrrr-btn-item"
-          title="Download as SRT"
-          aria-label="Download as SRT"
-          onclick={handleDownloadSRT}
-          disabled={loadingStates.downloadSRT}
-        >
-          {#if loadingStates.downloadSRT}
-            {@render spinner()}
-          {:else}
-            <svg class="copy-transcript-icon" viewBox="0 0 24 24" fill="none">
-              <path
-                d="M19 12v7H5v-7H3v7c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-7h-2z"
-                fill="currentColor"
-              />
-              <path
-                d="M13 12.67l2.59-2.58L17 11.5l-5 5-5-5 1.41-1.41L11 12.67V3h2v9.67z"
-                fill="currentColor"
-              />
-            </svg>
-          {/if}
-          Download as SRT
-        </button>
-        <button
-          class="copy-transcript-btn summarizerrrr-btn-item"
-          title="Copy Transcript"
-          aria-label="Copy Transcript"
-          onclick={handleCopyTranscript}
-          disabled={isLoading}
-        >
-          {#if isLoading}
-            {@render spinner()}
-          {:else}
-            <svg class="copy-transcript-icon" viewBox="0 0 24 24" fill="none">
-              <path
-                d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"
-                fill="currentColor"
-              />
-            </svg>
-          {/if}
-          Copy transcript
-        </button>
-
-        <button
-          class="summarizerrrr-btn-item"
-          title="Copy Transcript with Timestamp"
-          aria-label="Copy Transcript with Timestamp"
-          onclick={handleCopyTranscriptWithTimestamp}
-          disabled={loadingStates.copyWithTimestamp}
-        >
-          {#if loadingStates.copyWithTimestamp}
-            {@render spinner()}
-          {:else}
-            <svg class="copy-transcript-icon" viewBox="0 0 24 24" fill="none">
-              <path
-                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"
-                fill="currentColor"
-              />
-              <path
-                d="M12.5 7H11v6l5.25 3.15.75-1.23-4.5-2.67z"
-                fill="currentColor"
-              />
-            </svg>
-          {/if}
-          Copy transcript with timestamp
-        </button>
+        <!-- Transcript toolbar - icon-only buttons in horizontal row -->
+        <div class="transcript-toolbar">
+          <button
+            class="transcript-toolbar-btn"
+            title="Download as SRT"
+            aria-label="Download as SRT"
+            onclick={handleDownloadSRT}
+            disabled={loadingStates.downloadSRT}
+          >
+            {#if loadingStates.downloadSRT}
+              {@render spinner()}
+            {:else}
+              <svg viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M19 12v7H5v-7H3v7c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-7h-2z"
+                  fill="currentColor"
+                />
+                <path
+                  d="M13 12.67l2.59-2.58L17 11.5l-5 5-5-5 1.41-1.41L11 12.67V3h2v9.67z"
+                  fill="currentColor"
+                />
+              </svg>
+            {/if}
+          </button>
+          <button
+            class="transcript-toolbar-btn"
+            title="Copy transcript"
+            aria-label="Copy transcript"
+            onclick={handleCopyTranscript}
+            disabled={isLoading}
+          >
+            {#if isLoading}
+              {@render spinner()}
+            {:else}
+              <svg viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"
+                  fill="currentColor"
+                />
+              </svg>
+            {/if}
+          </button>
+          <button
+            class="transcript-toolbar-btn"
+            title="Copy transcript with timestamp"
+            aria-label="Copy transcript with timestamp"
+            onclick={handleCopyTranscriptWithTimestamp}
+            disabled={loadingStates.copyWithTimestamp}
+          >
+            {#if loadingStates.copyWithTimestamp}
+              {@render spinner()}
+            {:else}
+              <svg viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"
+                  fill="currentColor"
+                />
+                <path
+                  d="M12.5 7H11v6l5.25 3.15.75-1.23-4.5-2.67z"
+                  fill="currentColor"
+                />
+              </svg>
+            {/if}
+          </button>
+        </div>
 
         <button
           class="summarizerrrr-btn-item"

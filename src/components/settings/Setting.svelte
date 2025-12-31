@@ -1,6 +1,5 @@
 <script>
   // @ts-nocheck
-  import { fade } from 'svelte/transition'
   import Icon, { loadIcons } from '@iconify/svelte'
   import { Dialog } from 'bits-ui'
   import { t } from 'svelte-i18n'

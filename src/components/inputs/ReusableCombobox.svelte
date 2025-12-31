@@ -1,7 +1,7 @@
 <!-- @ts-nocheck -->
 <script>
   import { Combobox } from 'bits-ui'
-  import { fly } from 'svelte/transition'
+  import { flyOnly } from '@/lib/ui/slideScaleFade.js'
 
   let {
     items = [],
@@ -93,7 +93,7 @@
       {#snippet child({ wrapperProps, props, open })}
         {#if open}
           <div {...wrapperProps}>
-            <div {...props} transition:fly={{ duration: 300 }}>
+            <div {...props} transition:flyOnly={{ duration: 300 }}>
               <Combobox.ScrollUpButton
                 class="flex w-full py-1 items-center justify-center"
               >

@@ -478,5 +478,37 @@
       "description": "最新モデルを今すぐ体験してください。",
       "cta_label": "設定を開く"
     }
+  },
+  "cloudSync": {
+    "title": "クラウド同期",
+    "description": "Google Driveを使用して、すべてのデバイス間で設定、要約、履歴を同期します。",
+    "signInWithGoogle": "Googleでログイン",
+    "signingIn": "ログイン中...",
+    "signOut": "サインアウト",
+    "lastSync": "最終同期",
+    "never": "なし",
+    "justNow": "たった今",
+    "minutesAgo": "{count}分前",
+    "hoursAgo": "{count}時間前",
+    "syncing": "同期中...",
+    "syncFailed": "同期に失敗しました",
+    "syncNow": "今すぐ同期",
+    "autoSync": "自動同期",
+    "autoSyncPromptTitle": "自動同期を有効にしますか？",
+    "autoSyncPromptDescription": "自動同期は、すべてのデバイス間でデータを自動的に同期させます。この設定はいつでも変更できます。",
+    "manualSync": "手動",
+    "enableAutoSync": "自動を有効化",
+    "beta_description": "Google Drive経由でデータを同期します。(ベータ版 - 100枠限定)",
+    "syncMode": "同期モード",
+    "syncModeDescription": "Google Driveとのデータ同期方法を選択",
+    "manualDescription": "「今すぐ同期」をクリックしたときのみ同期",
+    "autoDescription": "バックグラウンドで自動的に同期",
+    "auto": "自動",
+    "syncPreferences": "同期設定",
+    "syncPreferencesDescription": "クラウドと同期するデータタイプを選択",
+    "library": "アーカイブ",
+    "error": "エラー",
+    "enabled": "有効",
+    "disabled": "無効"
   }
 }

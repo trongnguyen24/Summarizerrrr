@@ -16,7 +16,7 @@
   import ApiKeySetupPrompt from '@/components/ui/ApiKeySetupPrompt.svelte'
   import { settings } from '@/stores/settingsStore.svelte.js'
   import { useApiKeyValidation } from '../composables/useApiKeyValidation.svelte.js'
-  import { fade } from 'svelte/transition'
+  import { fadeOnly } from '@/lib/ui/slideScaleFade.js'
   import ActionButtonsFP from '@/components/buttons/ActionButtonsFP.svelte'
   import ActionButtonsMiniFP from '@/components/buttons/ActionButtonsMiniFP.svelte'
   import ShadowToast from '@/components/feedback/ShadowToast.svelte'
@@ -500,8 +500,8 @@
       {#if !settings.hasCompletedOnboarding}
         <div
           class="absolute z-[10001] inset-0"
-          in:fade={{ duration: 300 }}
-          out:fade={{ duration: 300 }}
+          in:fadeOnly={{ duration: 300 }}
+          out:fadeOnly={{ duration: 300 }}
         >
           {#await import('@/components/welcome/WelcomeFlow.svelte')}
             <div
@@ -627,8 +627,8 @@
 
 {#if safariHackVisible && isSafari}
   <div
-    in:fade={{ delay: 0, duration: 300 }}
-    out:fade={{ delay: 500, duration: 200 }}
+    in:fadeOnly={{ delay: 0, duration: 300 }}
+    out:fadeOnly={{ delay: 500, duration: 200 }}
     class="fixed top-[79.9svh] h-[48px] w-full z-[100000] pointer-events-none"
   >
     <div

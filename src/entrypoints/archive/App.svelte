@@ -7,7 +7,7 @@
   import { useOverlayScrollbars } from 'overlayscrollbars-svelte'
   import { appStateStorage } from '@/services/wxtStorageService.js'
   import SidePanel from './SidePanel.svelte'
-  import { fade } from 'svelte/transition'
+  import { fadeOnly } from '@/lib/ui/slideScaleFade.js'
   import {
     settings,
     loadSettings,
@@ -108,10 +108,36 @@
     handleResize()
     window.addEventListener('resize', handleResize)
 
+    // Keyboard navigation for arrow keys
+    function handleKeydown(e) {
+      // Don't navigate if user is typing in an input/textarea
+      const activeElement = document.activeElement
+      const isTyping =
+        activeElement?.tagName === 'INPUT' ||
+        activeElement?.tagName === 'TEXTAREA' ||
+        activeElement?.isContentEditable
+
+      if (isTyping) return
+
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault()
+        if (archiveStore.navigatePrevious(activeTab)) {
+          window.scrollTo({ top: 0, behavior: 'smooth' })
+        }
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault()
+        if (archiveStore.navigateNext(activeTab)) {
+          window.scrollTo({ top: 0, behavior: 'smooth' })
+        }
+      }
+    }
+    window.addEventListener('keydown', handleKeydown)
+
     // Return cleanup function
     return () => {
       unsubscribe()
       window.removeEventListener('resize', handleResize)
+      window.removeEventListener('keydown', handleKeydown)
     }
   })
 
@@ -120,6 +146,17 @@
     const unsubscribeTheme = subscribeToSystemThemeChanges()
 
     return unsubscribeTheme
+  })
+
+  // Apply reduce motion setting to DOM
+  $effect(() => {
+    // Track the setting value to make this effect reactive
+    const _reduceMotion = settings.reduceMotion
+    import('@/services/animationService.js').then(
+      ({ applyReduceMotionToDOM }) => {
+        applyReduceMotionToDOM()
+      },
+    )
   })
 
   $effect(() => {
@@ -150,7 +187,7 @@
     <!-- svelte-ignore a11y_click_events_have_key_events -->
     <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div
-      transition:fade
+      transition:fadeOnly
       class="fixed top-0 bottom-0 left-2 right-2 sm:left-5 sm:right-5 bg-black/40 z-30"
       onclick={handleOverlayClick}
     ></div>
@@ -211,17 +248,17 @@
   <!-- Right Column -->
   <div
     class="flex-1 w-full wrap-break-word relative bg-surface-1 z-20 flex flex-col gap-2
-    {isSidePanelVisible ? 'sm:pl-80' : ''}
-    {isMobile && !isSidePanelVisible ? 'pl-0' : ''}"
+   pl-0"
   >
     <SummaryDisplay
       selectedSummary={archiveStore.selectedSummary}
       {formatDate}
       {activeTab}
       archiveList={archiveStore.archiveList}
+      {isSidePanelVisible}
     />
     <div
-      class="sticky bg-linear-to-t from-surface-1 to-surface-1/40 bottom-0 mask-t-from-50% h-16 backdrop-blur-[2px] w-full z-10 pointer-events-none"
+      class="sticky bg-linear-to-t from-surface-1 to-surface-1/40 bottom-8 md:bottom-0 mask-t-from-50% h-16 backdrop-blur-[2px] w-full z-10 pointer-events-none"
     ></div>
   </div>
 

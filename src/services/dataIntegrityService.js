@@ -38,7 +38,7 @@ class DataIntegrityService {
 
       // Open with higher version to trigger upgrade
       return new Promise((resolve, reject) => {
-        const request = indexedDB.open(DB_NAME, 8) // Increase version
+        const request = indexedDB.open(DB_NAME, 9) // Sync with indexedDBService version
 
         request.onupgradeneeded = (event) => {
           const upgradedDb = event.target.result

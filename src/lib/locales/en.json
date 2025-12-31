@@ -47,6 +47,14 @@
         "open_sidepanel": "Open the sidepanel",
         "open_popup": "Open a popup settings",
         "open_floating": "Open a floating panel on the page"
+      },
+      "reduce_motion": {
+        "title": "Reduce Motion",
+        "description": "Disable all animations across the extension for accessibility or performance.",
+        "enabled": "Enabled",
+        "enabled_desc": "All animations disabled",
+        "disabled": "Disabled",
+        "disabled_desc": "Animations enabled (default)"
       }
     },
     "fab": {
@@ -456,6 +464,38 @@
     "replace_mode_description": "• Selected data types are completely deleted first<br />• Then replaced with imported data only<br />• Unselected data types are not affected",
     "replace_warning_title": "Warning: Replace Mode",
     "confirm_replace": "Yes, Replace"
+  },
+  "cloudSync": {
+    "title": "Cloud Sync",
+    "description": "Sync your settings, summaries, and history across all your devices using Google Drive.",
+    "signInWithGoogle": "Sign in with Google",
+    "signingIn": "Signing in...",
+    "signOut": "Sign Out",
+    "lastSync": "Last sync",
+    "never": "Never",
+    "justNow": "Just now",
+    "minutesAgo": "{count} minutes ago",
+    "hoursAgo": "{count} hours ago",
+    "syncing": "Syncing...",
+    "syncFailed": "Sync failed",
+    "syncNow": "Sync Now",
+    "autoSync": "Auto-sync",
+    "autoSyncPromptTitle": "Enable Auto-Sync?",
+    "autoSyncPromptDescription": "Auto-sync will automatically keep your data synchronized across devices. You can change this setting anytime.",
+    "manualSync": "Manual",
+    "enableAutoSync": "Enable Auto",
+    "beta_description": "Sync your data via Google Drive. (Beta - Limited to 100 slots)",
+    "syncMode": "Sync Mode",
+    "syncModeDescription": "Choose how your data syncs with Google Drive",
+    "manualDescription": "Sync only when you click Sync Now",
+    "autoDescription": "Sync automatically in the background",
+    "auto": "Auto",
+    "syncPreferences": "Sync Preferences",
+    "syncPreferencesDescription": "Choose which data types to sync with cloud",
+    "library": "Archive",
+    "error": "Error",
+    "enabled": "Enabled",
+    "disabled": "Disabled"
   },
   "notifications": {
     "no_notifications": "No notifications",

@@ -471,5 +471,37 @@
       "description": "立即体验最新模型。",
       "cta_label": "打开设置"
     }
+  },
+  "cloudSync": {
+    "title": "云同步",
+    "description": "使用 Google Drive 在所有设备上同步您的设置、摘要和历史记录。",
+    "signInWithGoogle": "通过 Google 登录",
+    "signingIn": "正在登录...",
+    "signOut": "退出登录",
+    "lastSync": "上次同步",
+    "never": "从未",
+    "justNow": "刚刚",
+    "minutesAgo": "{count} 分钟前",
+    "hoursAgo": "{count} 小时前",
+    "syncing": "正在同步...",
+    "syncFailed": "同步失败",
+    "syncNow": "立即同步",
+    "autoSync": "自动同步",
+    "autoSyncPromptTitle": "启用自动同步？",
+    "autoSyncPromptDescription": "自动同步将自动保持您的数据在所有设备上同步。您可以随时更改此设置。",
+    "manualSync": "手动",
+    "enableAutoSync": "启用自动",
+    "beta_description": "通过 Google Drive 同步您的数据。（Beta - 仅限 100 个名额）",
+    "syncMode": "同步模式",
+    "syncModeDescription": "选择数据与 Google Drive 的同步方式",
+    "manualDescription": "仅在点击立即同步时同步",
+    "autoDescription": "在后台自动同步",
+    "auto": "自动",
+    "syncPreferences": "同步偏好",
+    "syncPreferencesDescription": "选择要与云端同步的数据类型",
+    "library": "归档",
+    "error": "错误",
+    "enabled": "已启用",
+    "disabled": "已禁用"
   }
 }

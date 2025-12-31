@@ -1,6 +1,6 @@
 <script>
   import { onMount, onDestroy } from 'svelte'
-  import { fade } from 'svelte/transition'
+  import { fadeOnly } from '@/lib/ui/slideScaleFade.js'
   import { t } from 'svelte-i18n'
   import Cat from './cat.svelte'
 
@@ -137,7 +137,7 @@
         {#key currentIndex}
           <div
             class="text-xs truncate col-start-1 row-start-1 text-left"
-            transition:fade={{ duration: 300 }}
+            transition:fadeOnly={{ duration: 300 }}
           >
             {$t(currentNotification?.titleKey)}
           </div>

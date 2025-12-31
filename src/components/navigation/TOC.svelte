@@ -97,9 +97,20 @@
       if (text.endsWith(':')) {
         text = text.slice(0, -1)
       }
+
+      // Strip emojis and icons for cleaner TOC
+      const cleanText = text
+        .replace(/\p{Extended_Pictographic}/gu, '')
+        .replace(/\s+/g, ' ')
+        .trim()
+
       const id = heading.id || generateId()
       heading.id = id // Ensure heading has an ID
-      return { text, id, level: parseInt(heading.tagName.substring(1)) }
+      return {
+        text: cleanText || text,
+        id,
+        level: parseInt(heading.tagName.substring(1)),
+      }
     })
     highlight() // Highlight after updating TOC
   }
@@ -255,14 +266,34 @@
 </div>
 
 <style>
+  .lv2 {
+    padding-left: 0.5rem;
+  }
+  .lv3 {
+    padding-left: 1.25rem;
+  }
   .lv4 {
     padding-left: 2rem;
   }
-  .lvs2,
+
+  .lvs2 {
+    width: 0.4em;
+  }
   .lvs3 {
-    width: 0.25rem;
+    width: 0.3em;
   }
   .lvs4 {
-    width: 0.125rem;
+    width: 0.2em;
+  }
+  @media (width <= 40rem /* 640px */) {
+    .lvs2 {
+      width: 0.25rem;
+    }
+    .lvs3 {
+      width: 0.175rem;
+    }
+    .lvs4 {
+      width: 0.1rem;
+    }
   }
 </style>

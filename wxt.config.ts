@@ -59,6 +59,8 @@ export default defineConfig({
           'tabs',
           'contextMenus',
           'declarativeNetRequest',
+          'identity',
+          'alarms',
         ],
         action: {
           default_title: '__MSG_actionTitle__',
@@ -138,6 +140,7 @@ export default defineConfig({
           'tabs',
           'contextMenus',
           'declarativeNetRequest',
+          'alarms',
         ],
         browser_action: {
           default_title: 'Summarizerrrr',
@@ -195,6 +198,8 @@ export default defineConfig({
           'activeTab',
           'scripting',
           'contextMenus',
+          'identity',
+          'alarms',
         ],
         optional_permissions: ['<all_urls>'],
         host_permissions: [

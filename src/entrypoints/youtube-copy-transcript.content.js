@@ -55,23 +55,78 @@ export default defineContentScript({
       })
     }
 
+    // Helper function to wait for DOM to be fully ready
+    const waitForDOMReady = async (timeout = 10000) => {
+      const startTime = Date.now()
+      
+      // Wait for video metadata to be loaded
+      while (Date.now() - startTime < timeout) {
+        const videoTitle = document.querySelector('h1.ytd-watch-metadata')
+        const videoDescription = document.querySelector('ytd-text-inline-expander')
+        
+        // Check if key elements are loaded
+        if (videoTitle && videoDescription) {
+          return true
+        }
+        
+        await new Promise(resolve => setTimeout(resolve, 1200))
+      }
+      
+      return false
+    }
+
     // Check if transcript is available
     const checkTranscriptAvailability = async () => {
       try {
+        // Wait for DOM to be fully ready
+        await waitForDOMReady()
+        
+        // Additional delay to ensure description is rendered
+        await new Promise(resolve => setTimeout(resolve, 500))
+        
         const videoTitle =
           document
             .querySelector('h1.ytd-watch-metadata')
             ?.textContent?.trim() || document.title
-        const transcriptExtractor = new MessageBasedTranscriptExtractor('en')
-        const transcript = await transcriptExtractor.getPlainTranscript()
-        const hasTranscript = transcript && transcript.trim().length > 0
-        return { hasTranscript, videoTitle }
+        
+        // Get current video URL
+        const videoUrl = window.location.href
+        
+        // Check using YouTube's standard transcript button selector (language-independent)
+        let showButton = document.querySelector('ytd-video-description-transcript-section-renderer button')
+        
+        // If not found, try expanding description
+        if (!showButton) {
+          const expandButton = document.querySelector('#expand')
+          if (expandButton && expandButton.offsetParent !== null) {
+            expandButton.click()
+            await new Promise(resolve => setTimeout(resolve, 800))
+            
+            // Try again after expanding
+            showButton = document.querySelector('ytd-video-description-transcript-section-renderer button')
+          }
+        }
+        
+        // Fallback to old selectors
+        if (!showButton) {
+          showButton = document.querySelector('button[aria-label="Show transcript"]')
+          
+          if (!showButton) {
+            const buttons = Array.from(document.querySelectorAll('button'))
+            showButton = buttons.find(btn => 
+              btn.textContent.toLowerCase().includes('transcript')
+            )
+          }
+        }
+        
+        const hasTranscript = !!showButton
+        return { hasTranscript, videoTitle, videoUrl }
       } catch (error) {
         console.log(
           '[YouTube Copy Transcript] Error checking transcript availability:',
           error
         )
-        return { hasTranscript: false, videoTitle: '' }
+        return { hasTranscript: false, videoTitle: '', videoUrl: window.location.href }
       }
     }
 
@@ -81,26 +136,16 @@ export default defineContentScript({
     // Insert copy transcript icon
     const insertCopyIcon = async (rightControls) => {
       try {
-        // Check if transcript is available before showing icon
-        const { hasTranscript, videoTitle } =
+        // Check transcript availability and get video info
+        const { hasTranscript, videoTitle, videoUrl } =
           await checkTranscriptAvailability()
-        if (!hasTranscript) {
-          console.log(
-            '[YouTube Copy Transcript] No transcript available, not showing icon'
-          )
-          // Remove existing icon if no transcript available
-          if (currentUI) {
-            currentUI.remove()
-            currentUI = null
-            const existingIcon = document.querySelector(
-              '.copy-transcript-container'
-            )
-            if (existingIcon) {
-              existingIcon.remove()
-            }
-          }
-          return
-        }
+        
+        // Always show icon - Gemini can process YouTube videos directly even without transcript
+        console.log(
+          '[YouTube Copy Transcript] Transcript available:',
+          hasTranscript,
+          '- Icon will always be shown'
+        )
 
         // Remove existing icon to create a fresh one with updated props
         if (currentUI) {
@@ -140,7 +185,7 @@ export default defineContentScript({
           onMount(container) {
             const app = mount(CopyTranscriptIcon, {
               target: container,
-              props: { videoTitle },
+              props: { videoTitle, hasTranscript, videoUrl },
             })
             return app
           },

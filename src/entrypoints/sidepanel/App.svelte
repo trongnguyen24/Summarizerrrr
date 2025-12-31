@@ -41,7 +41,7 @@
   import '@fontsource-variable/noto-serif'
   import '@fontsource/opendyslexic'
   import '@fontsource/mali'
-  import { fade, slide } from 'svelte/transition'
+  import { fadeOnly, slideScaleFade } from '@/lib/ui/slideScaleFade.js'
   import ActionButtonsMini from '@/components/buttons/ActionButtonsMini.svelte'
   import { debounce } from '@/lib/utils/utils.js'
   import Tooltip from '@/components/ui/Tooltip.svelte'
@@ -92,6 +92,27 @@
     const unsubscribeTheme = subscribeToSystemThemeChanges()
 
     return unsubscribeTheme
+  })
+
+  // Apply reduce motion setting to DOM
+  $effect(() => {
+    // Import dynamically to avoid circular dependency issues
+    import('@/services/animationService.js').then(
+      ({ applyReduceMotionToDOM }) => {
+        applyReduceMotionToDOM()
+      },
+    )
+  })
+
+  // Re-apply when settings.reduceMotion changes
+  $effect(() => {
+    // Track the setting value to make this effect reactive
+    const _reduceMotion = settings.reduceMotion
+    import('@/services/animationService.js').then(
+      ({ applyReduceMotionToDOM }) => {
+        applyReduceMotionToDOM()
+      },
+    )
   })
 
   // Apply font family based on settings
@@ -388,18 +409,18 @@
 {#if !settings.hasCompletedOnboarding}
   <div
     class=" absolute z-[50] inset-0"
-    out:fade={{
+    out:fadeOnly={{
       duration: 400,
     }}
   >
     {#await import('@/components/welcome/WelcomeFlow.svelte')}
       <div
-        out:fade={{ delay: 1000 }}
+        out:fadeOnly={{ delay: 1000 }}
         class="welcome-loading-container absolute z-50 bg-surface-1 inset-0 flex items-center justify-center"
       ></div>
     {:then { default: WelcomeFlow }}
       <div
-        in:fade={{ delay: 500, duration: 600 }}
+        in:slideScaleFade={{ delay: 500, duration: 600 }}
         class="absolute max-h-svh z-[99] inset-0 flex items-center justify-center"
       >
         <WelcomeFlow />
@@ -600,7 +621,7 @@
   {:catch error}
     <div
       class="fixed bottom-6 left-4 z-40 p-3 bg-red-500/10 border border-red-500/30 rounded-lg max-w-xs"
-      transition:slide={{ duration: 300 }}
+      transition:slideScaleFade={{ duration: 300, slideFrom: 'bottom' }}
     >
       <p class="text-xs text-red-400">
         DeepDive error: {error.message || 'Unknown error'}

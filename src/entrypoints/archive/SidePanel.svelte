@@ -17,6 +17,8 @@
     updateHistory,
     getSummaryById,
     getHistoryById,
+    softDeleteSummary,
+    softDeleteHistory,
   } from '@/lib/db/indexedDBService'
   import TabArchive from '@/components/navigation/TabArchive.svelte'
   import TagManagement from '@/components/displays/archive/TagManagement.svelte'
@@ -189,6 +191,16 @@
         activeTab === 'archive'
           ? await updateSummary(item)
           : await updateHistory(item)
+
+        // Trigger cloud sync after updating summary/history
+        try {
+          const { triggerSync } = await import(
+            '@/services/cloudSync/cloudSyncService.svelte.js'
+          )
+          triggerSync()
+        } catch (syncError) {
+          console.warn('Failed to trigger sync after rename:', syncError)
+        }
       }
       await refreshSummaries()
       resetDialogState()
@@ -199,9 +211,21 @@
 
   async function handleDelete(id) {
     try {
+      // Use soft delete for cloud sync compatibility
       activeTab === 'archive'
-        ? await deleteSummary(id)
-        : await deleteHistory(id)
+        ? await softDeleteSummary(id)
+        : await softDeleteHistory(id)
+
+      // Trigger cloud sync after delete
+      try {
+        const { triggerSync } = await import(
+          '@/services/cloudSync/cloudSyncService.svelte.js'
+        )
+        triggerSync()
+      } catch (syncError) {
+        console.warn('Failed to trigger sync after delete:', syncError)
+      }
+
       await refreshSummaries()
 
       // Invalidate tags cache khi xóa item để cập nhật tag counts
@@ -226,6 +250,19 @@
 
       // Chuyển item từ history sang archive
       await moveHistoryItemToArchive(item.id)
+
+      // Trigger cloud sync after moving to archive
+      try {
+        const { triggerSync } = await import(
+          '@/services/cloudSync/cloudSyncService.svelte.js'
+        )
+        triggerSync()
+      } catch (syncError) {
+        console.warn(
+          'Failed to trigger sync after moving to archive:',
+          syncError,
+        )
+      }
 
       // Làm mới danh sách
       await refreshSummaries()
@@ -560,7 +597,7 @@
   </div>
 
   <div
-    class="absolute bg-linear-to-t from-background to-background/40 mask-t-from-50% left-0 right-3 bottom-0 h-4 backdrop-blur-[2px] z-30 pointer-events-none"
+    class="absolute bg-linear-to-t from-background to-background/40 mask-t-from-50% left-0 right-2 bottom-0 h-4 backdrop-blur-[2px] z-30 pointer-events-none"
   ></div>
 </div>
 

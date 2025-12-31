@@ -478,5 +478,37 @@
       "description": "Prueba el modelo más reciente ahora.",
       "cta_label": "Abrir ajustes"
     }
+  },
+  "cloudSync": {
+    "title": "Sincronización en la Nube",
+    "description": "Sincroniza tus configuraciones, resúmenes e historial en todos tus dispositivos usando Google Drive.",
+    "signInWithGoogle": "Iniciar sesión con Google",
+    "signingIn": "Iniciando sesión...",
+    "signOut": "Cerrar sesión",
+    "lastSync": "Última sincronización",
+    "never": "Nunca",
+    "justNow": "Justo ahora",
+    "minutesAgo": "Hace {count} minutos",
+    "hoursAgo": "Hace {count} horas",
+    "syncing": "Sincronizando...",
+    "syncFailed": "Sincronización fallida",
+    "syncNow": "Sincronizar ahora",
+    "autoSync": "Sincronización automática",
+    "autoSyncPromptTitle": "¿Activar sincronización automática?",
+    "autoSyncPromptDescription": "La sincronización automática mantendrá tus datos actualizados en todos tus dispositivos. Puedes cambiar esto en cualquier momento.",
+    "manualSync": "Manual",
+    "enableAutoSync": "Activar Auto",
+    "beta_description": "Sincroniza tus datos a través de Google Drive. (Beta - Limitado a 100 plazas)",
+    "syncMode": "Modo de sincronización",
+    "syncModeDescription": "Elige cómo se sincronizan tus datos con Google Drive",
+    "manualDescription": "Sincronizar solo al hacer clic en Sincronizar ahora",
+    "autoDescription": "Sincronizar automáticamente en segundo plano",
+    "auto": "Auto",
+    "syncPreferences": "Preferencias de sincronización",
+    "syncPreferencesDescription": "Elige qué tipos de datos sincronizar con la nube",
+    "library": "Archivo",
+    "error": "Error",
+    "enabled": "Habilitado",
+    "disabled": "Deshabilitado"
   }
 }

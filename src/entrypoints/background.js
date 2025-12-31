@@ -20,7 +20,8 @@ import {
 import { getAISDKModel, mapGenerationConfig } from '@/lib/api/aiSdkAdapter.js'
 import { generateText } from 'ai'
 import { aiConfig } from '../lib/config/aiConfig.js'
-import { generateAISummaryPrompt } from '../lib/prompts/templates/aiSummary.js'
+import { generateAISummaryPrompt, generateYouTubeAISummaryPrompt } from '../lib/prompts/templates/aiSummary.js'
+import { initSync } from '../services/cloudSync/cloudSyncService.svelte.js'
 
 // --- Helper Functions ---
 
@@ -628,6 +629,139 @@ export default defineBackground(() => {
     }
   })()
 
+  // ============================================
+  // CLOUD SYNC AUTO-SYNC SETUP (Industry Standard)
+  // Uses WXT browser.alarms API for cross-browser support
+  // ============================================
+  
+  // ============================================
+  // CLOUD SYNC AUTO-SYNC SETUP (Industry Standard)
+  // Uses WXT browser.alarms API for cross-browser support
+  // ============================================
+  
+  const AUTO_SYNC_ALARM_NAME = 'cloudAutoSync'
+  const AUTO_SYNC_PERIOD_MINUTES = 10 // Sync every 10 minutes
+  
+  /**
+   * Setup auto-sync alarm if user has enabled it
+   * This is called on install, startup, and when settings change
+   */
+  async function setupAutoSyncAlarm() {
+    try {
+      // Check if Cloud Sync tool is enabled in settings
+      const settings = await settingsStorage.getValue()
+      // Default to true if not set (backward compatibility)
+      const isCloudSyncEnabled = settings?.tools?.cloudSync?.enabled ?? true
+      
+      if (!isCloudSyncEnabled) {
+        console.log('[Background] Cloud Sync tool is disabled, clearing alarm...')
+        await browser.alarms.clear(AUTO_SYNC_ALARM_NAME)
+        return
+      }
+
+      const { syncStorage } = await import('../services/cloudSync/cloudSyncService.svelte.js')
+      const stored = await syncStorage.getValue()
+      
+      if (stored.isLoggedIn && stored.autoSyncEnabled) {
+        // Check if alarm already exists
+        const existingAlarm = await browser.alarms.get(AUTO_SYNC_ALARM_NAME)
+        if (!existingAlarm) {
+          await browser.alarms.create(AUTO_SYNC_ALARM_NAME, {
+            periodInMinutes: AUTO_SYNC_PERIOD_MINUTES
+          })
+          console.log(`[Background] Auto-sync alarm created: every ${AUTO_SYNC_PERIOD_MINUTES} minutes`)
+        } else {
+          console.log('[Background] Auto-sync alarm already exists')
+        }
+      } else {
+        // Clear alarm if not logged in or auto-sync disabled
+        await browser.alarms.clear(AUTO_SYNC_ALARM_NAME)
+        console.log('[Background] Auto-sync alarm cleared (disabled or not logged in)')
+      }
+    } catch (error) {
+      console.error('[Background] Failed to setup auto-sync alarm:', error)
+    }
+  }
+  
+  // Watch for Cloud Sync settings changes (Cross-browser)
+  // This ensures the alarm is cleared immediately when the user disables the tool
+  settingsStorage.watch(async (newValue, oldValue) => {
+    // Check if Cloud Sync enabled state changed
+    const newEnabled = newValue?.tools?.cloudSync?.enabled
+    const oldEnabled = oldValue?.tools?.cloudSync?.enabled
+    
+    if (newEnabled !== oldEnabled) {
+      console.log(`[Background] Cloud Sync enabled state changed to: ${newEnabled}, updating alarm...`)
+      await setupAutoSyncAlarm()
+    }
+  })
+  
+  // Setup alarm on extension install
+  browser.runtime.onInstalled.addListener(async () => {
+    console.log('[Background] Extension installed, checking auto-sync...')
+    await new Promise(resolve => setTimeout(resolve, 2000)) // Wait for storage
+    await setupAutoSyncAlarm()
+  })
+  
+  // Setup alarm on browser startup
+  browser.runtime.onStartup.addListener(async () => {
+    console.log('[Background] Browser started, ensuring auto-sync alarm exists...')
+    await new Promise(resolve => setTimeout(resolve, 2000)) // Wait for storage
+    await setupAutoSyncAlarm()
+  })
+  
+  // Listen for alarm trigger
+  browser.alarms.onAlarm.addListener(async (alarm) => {
+    if (alarm.name === AUTO_SYNC_ALARM_NAME) {
+      const now = new Date().toLocaleString()
+      console.log(`[Background] ⏰ AUTO-SYNC ALARM TRIGGERED at ${now}`)
+      
+      try {
+        const { pullData, syncStorage } = await import('../services/cloudSync/cloudSyncService.svelte.js')
+        
+        // Check settings first
+        const settings = await settingsStorage.getValue()
+        const isCloudSyncEnabled = settings?.tools?.cloudSync?.enabled ?? true
+        
+        if (!isCloudSyncEnabled) {
+          console.log('[Background] Auto-sync skipped: cloudSync tool is disabled')
+          // Self-heal: clear the alarm if it shouldn't be running
+          await browser.alarms.clear(AUTO_SYNC_ALARM_NAME)
+          return
+        }
+        
+        const stored = await syncStorage.getValue()
+        
+        if (!stored.isLoggedIn || !stored.autoSyncEnabled) {
+          console.log('[Background] Auto-sync skipped: not logged in or disabled')
+          // Clear alarm since auto-sync is disabled
+          await browser.alarms.clear(AUTO_SYNC_ALARM_NAME)
+          return
+        }
+        
+        await pullData()
+        console.log('[Background] Auto-sync completed successfully')
+      } catch (error) {
+        console.error('[Background] Auto-sync failed:', error)
+      }
+    }
+  })
+  
+  // Initialize Cloud Sync service (one-time init on load)
+  ;(async () => {
+    try {
+      // Wait for storage to be ready
+      await new Promise((resolve) => setTimeout(resolve, 2000))
+      await initSync()
+      console.log('[Background] Cloud Sync service initialized')
+      
+      // Also ensure alarm is setup (for cases where extension is already installed)
+      await setupAutoSyncAlarm()
+    } catch (error) {
+      console.error('[Background] Failed to initialize Cloud Sync:', error)
+    }
+  })()
+
   function initializeContextMenu() {
     try {
       if (browser.contextMenus) {
@@ -743,6 +877,34 @@ export default defineBackground(() => {
   // --- Consolidated Message Listener ---
   browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
     // Async handlers that need `return true`
+
+    // Auto-sync alarm control messages from cloudSyncService
+    if (message.type === 'SETUP_AUTO_SYNC_ALARM') {
+      ;(async () => {
+        try {
+          await setupAutoSyncAlarm()
+          sendResponse({ success: true })
+        } catch (error) {
+          console.error('[Background] Failed to setup auto-sync alarm:', error)
+          sendResponse({ success: false, error: error.message })
+        }
+      })()
+      return true
+    }
+    
+    if (message.type === 'CLEAR_AUTO_SYNC_ALARM') {
+      ;(async () => {
+        try {
+          await browser.alarms.clear(AUTO_SYNC_ALARM_NAME)
+          console.log('[Background] Auto-sync alarm cleared by request')
+          sendResponse({ success: true })
+        } catch (error) {
+          console.error('[Background] Failed to clear auto-sync alarm:', error)
+          sendResponse({ success: false, error: error.message })
+        }
+      })()
+      return true
+    }
 
     // YouTube Comments Fetch - Forward to content script in same tab
     if (message.action === 'fetchYouTubeComments') {
@@ -971,6 +1133,10 @@ export default defineBackground(() => {
     }
     if (message.type === 'SUMMARIZE_ON_GEMINI') {
       handleAISummarization('gemini', message.transcript, sendResponse)
+      return true
+    }
+    if (message.type === 'SUMMARIZE_ON_GEMINI_WITH_URL') {
+      handleGeminiWithYouTubeURL(message.youtubeUrl, sendResponse)
       return true
     }
     if (message.type === 'SUMMARIZE_ON_CHATGPT') {
@@ -1415,6 +1581,51 @@ export default defineBackground(() => {
       }, 2000)
     } catch (error) {
       console.error(`[Background] Error processing ${service} request:`, error)
+      sendResponse({ success: false, error: error.message })
+    }
+  }
+
+  // --- Gemini with YouTube URL Handler ---
+  /**
+   * Handle Gemini summarization using YouTube URL directly (when no transcript is available)
+   * Gemini can process YouTube videos directly through the URL
+   * @param {string} youtubeUrl - The YouTube video URL
+   * @param {Function} sendResponse - The response callback function
+   */
+  async function handleGeminiWithYouTubeURL(youtubeUrl, sendResponse) {
+    try {
+      console.log('[Background] Processing Gemini with YouTube URL:', youtubeUrl)
+
+      const config = aiConfig['gemini']
+      if (!config) {
+        throw new Error('Gemini configuration not found')
+      }
+
+      // Load settings to get summary language
+      const settings = await loadSettingsWithReadiness()
+      const summaryLang = settings?.summaryLang || 'English'
+
+      // Create Gemini tab
+      const tab = await createAITab('gemini', config)
+
+      // Build prompt with YouTube URL
+      const prompt = generateYouTubeAISummaryPrompt(youtubeUrl, summaryLang)
+      console.log('[Background] Gemini YouTube URL prompt length:', prompt.length)
+
+      // Send content to tab with retry mechanism
+      setTimeout(() => {
+        sendContentToTab(
+          tab.id,
+          config.messageType,
+          prompt,
+          0,
+          15,
+          'gemini',
+          sendResponse
+        )
+      }, 2000)
+    } catch (error) {
+      console.error('[Background] Error processing Gemini with YouTube URL:', error)
       sendResponse({ success: false, error: error.message })
     }
   }

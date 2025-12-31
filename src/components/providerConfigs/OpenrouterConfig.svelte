@@ -3,7 +3,6 @@
   import { updateSettings } from '../../stores/settingsStore.svelte.js'
   import ApiKeyInput from '../inputs/ApiKeyInput.svelte'
   import ReusableCombobox from '../inputs/ReusableCombobox.svelte'
-  import { fade } from 'svelte/transition'
   import Icon from '@iconify/svelte'
   import { t } from 'svelte-i18n'
   import { onMount } from 'svelte'

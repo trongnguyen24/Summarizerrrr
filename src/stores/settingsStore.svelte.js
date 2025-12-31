@@ -47,6 +47,7 @@ const DEFAULT_SETTINGS = {
   widthIndex: 1, // Default to max-w-3xl
   sidePanelDefaultWidth: 25, // Default width for side panel in em units
   oneClickSummarize: false, // Enable 1-click summarization on FAB
+  reduceMotion: false, // Disable all animations across the extension
   iconClickAction: 'sidepanel', // 'sidepanel', 'popup', or 'floating'
   fabDomainControl: {
     mode: 'all', // 'all' | 'whitelist' | 'blacklist'
@@ -127,12 +128,19 @@ const DEFAULT_SETTINGS = {
       autoGenerate: true,
       defaultChatProvider: 'gemini',
     },
+    cloudSync: {
+      enabled: true, // Default enabled for backward compatibility
+    },
   },
+
+  // Metadata
+  lastModified: 0,
 }
 
 // --- State ---
 export let settings = $state({ ...DEFAULT_SETTINGS })
 let _isInitializedPromise = null
+let _isSyncingFromCloud = false // Flag to prevent sync loop when applying cloud settings
 
 // --- Helper Functions ---
 
@@ -423,6 +431,30 @@ export async function updateSettings(newSettings) {
   // ✅ FIX: Sanitize input để loại bỏ invalid keys (metadata, theme, nested settings)
   const cleanNewSettings = sanitizeSettings(newSettings)
 
+  // Read current values from storage to compare (settings object may already be mutated by bind:value)
+  const storedSettings = await settingsStorage.getValue()
+
+  // Check if any setting actually changed (excluding lastModified)
+  let hasActualChanges = false
+  for (const [key, newValue] of Object.entries(cleanNewSettings)) {
+    if (key === 'lastModified') continue
+    const storedValue = storedSettings?.[key]
+    if (JSON.stringify(storedValue) !== JSON.stringify(newValue)) {
+      hasActualChanges = true
+      break
+    }
+  }
+
+  // If no actual changes, skip saving and syncing
+  if (!hasActualChanges) {
+    return
+  }
+
+  // Update lastModified timestamp if not explicitly provided (e.g. by sync)
+  if (!cleanNewSettings.lastModified) {
+    cleanNewSettings.lastModified = Date.now()
+  }
+
   // Create a new object with the updates applied
   // ✅ FIX: Sanitize current settings để đảm bảo không có invalid keys
   const cleanCurrentSettings = sanitizeSettings(settings)
@@ -440,8 +472,34 @@ export async function updateSettings(newSettings) {
     // Save the entire updated settings object back to storage
     // Convert Svelte Proxy to a plain JS object before saving to prevent DataCloneError
     await settingsStorage.setValue(JSON.parse(JSON.stringify(updatedSettings)))
+    
+    // Trigger cloud sync after settings change (unless syncing from cloud)
+    if (!_isSyncingFromCloud) {
+      try {
+        const { triggerSync } = await import(
+          '@/services/cloudSync/cloudSyncService.svelte.js'
+        )
+        triggerSync()
+      } catch (syncError) {
+        // Silently ignore sync errors - settings are already saved locally
+      }
+    }
   } catch (error) {
     console.error('[settingsStore] Error saving settings:', error)
+  }
+}
+
+/**
+ * Updates settings from cloud sync without triggering another sync.
+ * This prevents the sync loop problem.
+ * @param {Partial<typeof DEFAULT_SETTINGS>} newSettings
+ */
+export async function updateSettingsFromCloud(newSettings) {
+  _isSyncingFromCloud = true
+  try {
+    await updateSettings(newSettings)
+  } finally {
+    _isSyncingFromCloud = false
   }
 }
 
@@ -533,7 +591,8 @@ export async function updateFirefoxPermission(permissionKey, value) {
     timestamp: Date.now(),
   })
 
-  await updateSettings({ firefoxPermissions: newPermissions })
+  // Use updateSettingsFromCloud to avoid triggering sync - this is internal caching, not user-initiated change
+  await updateSettingsFromCloud({ firefoxPermissions: newPermissions })
 }
 
 /**

@@ -1,7 +1,6 @@
 <script>
   // @ts-nocheck
   import Icon from '@iconify/svelte'
-  import { fade } from 'svelte/transition'
   import {
     historyFilterStore,
     setContentTypeFilter,
@@ -51,7 +50,7 @@
     {#each contentTypes as contentType (contentType.type)}
       <button
         class="flex-1 flex flex-col items-center gap-1 p-2 rounded-md transition-colors duration-200 {isContentTypeSelected(
-          contentType.type
+          contentType.type,
         )
           ? 'bg-surface-2 text-text-primary'
           : 'hover:bg-blackwhite/5 text-text-secondary'}"

@@ -30,8 +30,9 @@ async function loadData() {
   let scrollPosition = window.scrollY
   try {
     await openDatabase()
-    archiveList = [...(await getAllSummaries())]
-    historyList = [...(await getAllHistory())]
+    // Filter out soft-deleted items (deleted: true)
+    archiveList = [...(await getAllSummaries())].filter(item => !item.deleted)
+    historyList = [...(await getAllHistory())].filter(item => !item.deleted)
 
     const { tab, summaryId } = getUrlParams()
     const result = await initializeFromUrl(tab, summaryId)
@@ -109,6 +110,50 @@ function selectTab(tabName) {
   }
 }
 
+function navigatePrevious(activeTab) {
+  const currentList = activeTab === 'archive' ? archiveList : historyList
+  if (currentList.length === 0 || !selectedSummaryId) return false
+
+  const currentIndex = currentList.findIndex((s) => s.id === selectedSummaryId)
+  if (currentIndex > 0) {
+    const prevItem = currentList[currentIndex - 1]
+    selectedSummary = prevItem
+    selectedSummaryId = prevItem.id
+    pushUrl(activeTab, prevItem.id)
+    return true
+  }
+  return false
+}
+
+function navigateNext(activeTab) {
+  const currentList = activeTab === 'archive' ? archiveList : historyList
+  if (currentList.length === 0 || !selectedSummaryId) return false
+
+  const currentIndex = currentList.findIndex((s) => s.id === selectedSummaryId)
+  if (currentIndex < currentList.length - 1) {
+    const nextItem = currentList[currentIndex + 1]
+    selectedSummary = nextItem
+    selectedSummaryId = nextItem.id
+    pushUrl(activeTab, nextItem.id)
+    return true
+  }
+  return false
+}
+
+function canNavigatePrevious(activeTab) {
+  const currentList = activeTab === 'archive' ? archiveList : historyList
+  if (currentList.length === 0 || !selectedSummaryId) return false
+  const currentIndex = currentList.findIndex((s) => s.id === selectedSummaryId)
+  return currentIndex > 0
+}
+
+function canNavigateNext(activeTab) {
+  const currentList = activeTab === 'archive' ? archiveList : historyList
+  if (currentList.length === 0 || !selectedSummaryId) return false
+  const currentIndex = currentList.findIndex((s) => s.id === selectedSummaryId)
+  return currentIndex < currentList.length - 1
+}
+
 export const archiveStore = {
   get archiveList() {
     return archiveList
@@ -126,4 +171,8 @@ export const archiveStore = {
   selectSummary,
   selectTab,
   validateSelectedItem,
+  navigatePrevious,
+  navigateNext,
+  canNavigatePrevious,
+  canNavigateNext,
 }

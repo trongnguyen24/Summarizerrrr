@@ -8,7 +8,7 @@ Summarize YouTube video content from <INPUT_CONTENT>. Focus on main points, spec
 </TASK>
 
 <REQUIREMENTS>
-✅ **Timestamps Location**: **CRITICAL RULE**: Timestamps MUST ONLY appear at the very beginning of the H3 headers (###).
+✅ **Timestamps Location**: **CRITICAL RULE**: Timestamps MUST ONLY appear at the very end of the H3 headers (###).
 ✅ **Visuals**: Use relevant emojis (e.g., 💡, 🚀, ⚠️, 📉) to make the summary visually appealing.
 ✅ **Content**: Main topics, important points, specific examples/data, steps/instructions.
 ✅ **Clear separation**: Use headings, bullet points, or paragraphs.
@@ -21,20 +21,23 @@ Summarize YouTube video content from <INPUT_CONTENT>. Focus on main points, spec
 ## Growth Mindset vs Fixed Mindset
 
 ## 🔑 Key Takeaways
-- [Key point 1 - concise sentence include emojis for key concepts]
-- [Key point 2 - concise sentence include emojis for key concepts]
-- [Key point 3 - concise sentence include emojis for key concepts]
-- [Key point ...]
+- Key point 1 - concise sentence include emojis for key concepts
+- Key point 2 - concise sentence include emojis for key concepts
+- Key point 3 - concise sentence include emojis for key concepts
+- Key point n...
 
 ## 📝 Details of the video
-### [00:00] Introduction to Growth Mindset
+### Introduction to Growth Mindset [00:00]
 [Structured summary using #### and bullets, tables, include emojis for key concepts]
 
-### [03:45] Research in Education
-#### 📚 Key Studies
+### Research in Education [03:45]
+#### Key Studies 📚
 [Structured summary using #### and bullets, tables, include emojis for key concepts]
 
-### [08:20] Application in the Workplace
+#### Example of Michael Jordan 🏀
+Cut from high school basketball team but didn't give up, practiced hard and became an NBA legend.
+
+### Application in the Workplace [08:20]
 [Structured summary using #### and bullets, tables, include emojis for key concepts]
 </EXAMPLE>
 
@@ -56,10 +59,10 @@ Provide a structured summary (100-300 words) of this YouTube video content, cove
 [Brief overview of what the video covers]
 
 ## Main Points
-- [Key point 1 - concise sentence include emojis for key concepts]
-- [Key point 2 - concise sentence include emojis for key concepts]
-- [Key point 3 - concise sentence include emojis for key concepts]
-- [Additional points if necessary, max 8 total]
+- Key point 1 - concise sentence include emojis for key concepts [emoji] [00:12]
+- Key point 2 - concise sentence include emojis for key concepts [emoji] [03:23]
+- Key point 3 - concise sentence include emojis for key concepts [emoji] [06:34]
+- Additional points if necessary, max 8 total
 
 ## Key Takeaways
 [Most important conclusions or actionable insights]
@@ -67,6 +70,7 @@ Provide a structured summary (100-300 words) of this YouTube video content, cove
 
 <REQUIREMENTS>
 ✅ **Focused**: Main topics and important points only
+✅ **Timestamps**: Include timestamps for each point
 ✅ **Visuals**: Use relevant emojis (e.g., 💡, 🚀, ⚠️, 📉) to make the summary visually appealing.
 ✅ **Actionable**: Include practical takeaways when present
 ❌ **Avoid**: Detailed step-by-step instructions, minor examples
@@ -120,6 +124,7 @@ Analyze <INPUT_CONTENT> and create detailed chapter-by-chapter summaries with es
 ✅ **Clearly separate** using paragraphs, headings and bullet points
 ✅ **Preserve proper names and numbers** for accuracy
 ✅ **Link examples to main arguments** - explain what each example illustrates
+✅ **Timestamps**: Include timestamps for each point
 ❌ Don't write long continuous paragraphs
 ❌ Don't mix different types of information together
 ❌ Don't skip important illustrative examples

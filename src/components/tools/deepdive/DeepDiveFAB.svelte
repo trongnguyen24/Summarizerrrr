@@ -1,8 +1,7 @@
 <script>
   // @ts-nocheck
   import Icon from '@iconify/svelte'
-  import { slideScaleFade } from '@/lib/ui/slideScaleFade.js'
-  import { fade } from 'svelte/transition'
+  import { slideScaleFade, fadeOnly } from '@/lib/ui/slideScaleFade.js'
   import { t } from 'svelte-i18n'
   import {
     deepDiveState,
@@ -62,7 +61,7 @@
         summaryContent,
         pageTitle,
         pageUrl,
-        summaryLang
+        summaryLang,
       )
 
       setQuestions(questions)
@@ -148,7 +147,7 @@
 {#if isPreloading}
   <div
     class="tooltip-container fixed bottom-7.5 left-12 bg-surface-2/50 backdrop-blur-md px-3 rounded-sm py-1 font-mono text-xs z-30"
-    transition:fade={{ duration: 150 }}
+    transition:fadeOnly={{ duration: 150 }}
   >
     <div class="tooltip">
       <span class="tooltip-text"

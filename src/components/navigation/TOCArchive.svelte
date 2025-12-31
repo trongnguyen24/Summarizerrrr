@@ -398,24 +398,35 @@
 {/if}
 
 <style>
+  .lv2 {
+    padding-left: 0.5rem;
+  }
+  .lv3 {
+    padding-left: 1.25rem;
+  }
   .lv4 {
-    padding-left: 2em;
+    padding-left: 2rem;
+    position: relative;
   }
 
-  .lvs2,
+  .lvs2 {
+    width: 0.4em;
+  }
   .lvs3 {
-    width: 0.35em;
+    width: 0.3em;
   }
   .lvs4 {
-    width: 0.25em;
+    width: 0.2em;
   }
   @media (width <= 40rem /* 640px */) {
-    .lvs2,
+    .lvs2 {
+      width: 0.25rem;
+    }
     .lvs3 {
-      width: 0.25em;
+      width: 0.175rem;
     }
     .lvs4 {
-      width: 0.125em;
+      width: 0.1rem;
     }
   }
 </style>

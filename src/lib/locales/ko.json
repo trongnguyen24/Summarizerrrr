@@ -47,6 +47,14 @@
         "open_sidepanel": "사이드 패널 열기",
         "open_popup": "팝업 설정 열기",
         "open_floating": "페이지에서 플로팅 패널 열기"
+      },
+      "reduce_motion": {
+        "title": "모션 줄이기",
+        "description": "접근성 또는 성능을 위해 확장 프로그램 전체의 모든 애니메이션을 비활성화합니다.",
+        "enabled": "정적",
+        "enabled_desc": "모든 애니메이션 비활성화",
+        "disabled": "애니메이션",
+        "disabled_desc": "애니메이션 활성화 (기본값)"
       }
     },
     "fab": {
@@ -458,25 +466,20 @@
   },
   "notifications": {
     "no_notifications": "알림이 없습니다",
-    "api_limits": {
+    "noti_1": {
       "title": "Gemini API 제한이 감소했습니다",
       "description": "일일 요청 제한을 늘리려면 3-5개의 API 키를 추가하세요.",
       "cta_label": "가이드 보기"
     },
-    "version_update": {
-      "title": "버전 2.7.0이 출시되었습니다",
+    "noti_2": {
+      "title": "버전 2.8.0이 출시되었습니다",
       "description": "설정 → 정보 → 새로운 기능에서 새 기능을 확인하세요",
       "cta_label": "설정 열기"
     },
-    "intro_video": {
+    "noti_3": {
       "title": "비디오: 100초 만에 보는 Summarizerrrr",
       "description": "확장 프로그램에 대한 빠른 소개 비디오.",
       "cta_label": "지금 시청하기"
-    },
-    "gemini_flash_update": {
-      "title": "Gemini 3.0 Flash 사용해 보기",
-      "description": "지금 최신 모델을 경험해 보세요.",
-      "cta_label": "설정 열기"
     }
   },
   "cloudSync": {

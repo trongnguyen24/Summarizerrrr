@@ -40,6 +40,14 @@
         "open_sidepanel": "打开侧边栏",
         "open_popup": "打开弹出设置",
         "open_floating": "在页面上打开浮动面板"
+      },
+      "reduce_motion": {
+        "title": "减少动画",
+        "description": "为了辅助功能或性能，禁用扩展程序中的所有动画。",
+        "enabled": "静态",
+        "enabled_desc": "所有动画已禁用",
+        "disabled": "动态",
+        "disabled_desc": "动画已启用（默认）"
       }
     },
     "ai_model": {
@@ -451,25 +459,20 @@
   },
   "notifications": {
     "no_notifications": "暂无通知",
-    "api_limits": {
+    "noti_1": {
       "title": "Gemini API 限制已减少",
       "description": "添加 3-5 个 API 密钥以增加每日请求限制。",
       "cta_label": "观看指南"
     },
-    "version_update": {
-      "title": "版本 2.7.0 已发布",
+    "noti_2": {
+      "title": "版本 2.8.0 已发布",
       "description": "在设置 → 关于 → 新功能中查看新功能",
       "cta_label": "打开设置"
     },
-    "intro_video": {
+    "noti_3": {
       "title": "视频：100秒了解 Summarizerrrr",
       "description": "扩展功能快速介绍视频。",
       "cta_label": "立即观看"
-    },
-    "gemini_flash_update": {
-      "title": "体验 Gemini 3.0 Flash",
-      "description": "立即体验最新模型。",
-      "cta_label": "打开设置"
     }
   },
   "cloudSync": {

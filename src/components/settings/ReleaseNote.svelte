@@ -89,6 +89,50 @@
     <div class="p-6 prose prose-sm w-full max-w-full">
       <h2>Release note</h2>
 
+      <b class="font-mono">2.8.0</b>
+      <ul class="mt-0">
+        {@render note(
+          'Cloud Sync via Google Drive:',
+          'Sync settings, history, archive, and tags across devices using your Google Account. Includes conflict resolution and privacy-focused design.',
+          [
+            {
+              label: 'arendon1',
+              url: 'https://github.com/trongnguyen24/Summarizerrrr/issues/38',
+            },
+          ],
+        )}
+        {@render note(
+          'Reduce Motion Setting:',
+          'New accessibility option to disable animations for users who prefer a calmer experience or better performance.',
+          [
+            {
+              label: 'KZ-info',
+              url: 'https://github.com/trongnguyen24/Summarizerrrr/issues/41',
+            },
+          ],
+        )}
+        {@render note(
+          'Enhanced YouTube Summarization:',
+          'More reliable transcript extraction with fallback methods. Gemini can now summarize directly from video URL when no transcript is available.',
+          [
+            {
+              label: 'sojusnik',
+              url: 'https://github.com/trongnguyen24/Summarizerrrr/issues/27',
+            },
+          ],
+        )}
+        {@render note(
+          'Improved Archive/History Navigation:',
+          'Navigate between summaries using arrow keys. New sidebar Table of Contents for easier content browsing.',
+          [
+            {
+              label: 'sojusnik',
+              url: 'https://github.com/trongnguyen24/Summarizerrrr/issues/40',
+            },
+          ],
+        )}
+      </ul>
+
       <b class="font-mono">2.7.0</b>
       <ul class="mt-0">
         {@render note(

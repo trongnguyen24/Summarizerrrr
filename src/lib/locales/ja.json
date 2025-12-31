@@ -47,6 +47,14 @@
         "open_sidepanel": "サイドパネルを開く",
         "open_popup": "ポップアップ設定を開く",
         "open_floating": "ページ上でフローティングパネルを開く"
+      },
+      "reduce_motion": {
+        "title": "モーションを減らす",
+        "description": "アクセシビリティまたはパフォーマンスのために、拡張機能全体のアニメーションを無効にします。",
+        "enabled": "静的",
+        "enabled_desc": "すべてのアニメーションが無効",
+        "disabled": "アニメーション",
+        "disabled_desc": "アニメーションが有効（デフォルト）"
       }
     },
     "fab": {
@@ -458,25 +466,20 @@
   },
   "notifications": {
     "no_notifications": "通知はありません",
-    "api_limits": {
+    "noti_1": {
       "title": "Gemini APIの制限が減少しました",
       "description": "3〜5個のAPIキーを追加して、1日のリクエスト制限を増やしましょう。",
       "cta_label": "ガイドを見る"
     },
-    "version_update": {
-      "title": "バージョン2.7.0がリリースされました",
+    "noti_2": {
+      "title": "バージョン2.8.0がリリースされました",
       "description": "設定 → 情報 → 新機能で新機能をご覧ください",
       "cta_label": "設定を開く"
     },
-    "intro_video": {
+    "noti_3": {
       "title": "動画: 100秒でわかる Summarizerrrr",
       "description": "拡張機能のクイック紹介動画。",
       "cta_label": "今すぐ見る"
-    },
-    "gemini_flash_update": {
-      "title": "Gemini 3.0 Flash を試す",
-      "description": "最新モデルを今すぐ体験してください。",
-      "cta_label": "設定を開く"
     }
   },
   "cloudSync": {

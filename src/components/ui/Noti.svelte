@@ -4,42 +4,33 @@
   import { t } from 'svelte-i18n'
   import Cat from './cat.svelte'
 
-  // Notification data with i18n keys
+  // Notification data with i18n keys (noti_1, noti_2, noti_3... for easy future changes)
   let notifications = $state([
     {
       id: 1,
-      titleKey: 'notifications.api_limits.title',
-      descriptionKey: 'notifications.api_limits.description',
+      titleKey: 'notifications.noti_1.title',
+      descriptionKey: 'notifications.noti_1.description',
       cta: {
-        labelKey: 'notifications.api_limits.cta_label',
+        labelKey: 'notifications.noti_1.cta_label',
         link: 'https://www.youtube.com/watch?v=ZLiRcFxzPBI',
       },
     },
     {
       id: 2,
-      titleKey: 'notifications.gemini_flash_update.title',
-      descriptionKey: 'notifications.gemini_flash_update.description',
+      titleKey: 'notifications.noti_2.title',
+      descriptionKey: 'notifications.noti_2.description',
       cta: {
-        labelKey: 'notifications.gemini_flash_update.cta_label',
-        link: 'settings.html?tab=aimodels',
+        labelKey: 'notifications.noti_2.cta_label',
+        link: 'settings.html?tab=about',
       },
     },
     {
       id: 3,
-      titleKey: 'notifications.intro_video.title',
-      descriptionKey: 'notifications.intro_video.description',
+      titleKey: 'notifications.noti_3.title',
+      descriptionKey: 'notifications.noti_3.description',
       cta: {
-        labelKey: 'notifications.intro_video.cta_label',
+        labelKey: 'notifications.noti_3.cta_label',
         link: 'https://www.youtube.com/watch?v=pRZvPWjbJ4c',
-      },
-    },
-    {
-      id: 4,
-      titleKey: 'notifications.version_update.title',
-      descriptionKey: 'notifications.version_update.description',
-      cta: {
-        labelKey: 'notifications.version_update.cta_label',
-        link: 'settings.html?tab=about',
       },
     },
   ])
@@ -178,7 +169,7 @@
     class="fixed bottom-0 max-w-100 w-full left-1/2 -translate-x-1/2 z-[101] flex justify-center"
   >
     <div
-      class="relative w-full bg-surface-2 rounded-t-3xl border-t border-x border-surface-2 dark:border-border shadow-2xl py-2 flex flex-col"
+      class="relative w-full bg-surface-2 rounded-t-3xl border-t border-x border-surface-2 dark:border-border shadow-2xl py-3 flex flex-col"
       class:sheet-open={!isClosing}
       class:sheet-close={isClosing}
       style="height: max(40vh, 320px);"
@@ -188,7 +179,7 @@
       <div class="relative flex-1 flex flex-col min-h-0">
         <!-- Scroll Gradient Overlays -->
         <div
-          class="absolute top-0 left-0 right-0 h-8 bg-gradient-to-b from-surface-2 to-transparent z-10 pointer-events-none"
+          class="absolute top-0 left-2 right-2 h-8 bg-gradient-to-b from-surface-2 to-transparent z-10 pointer-events-none"
         ></div>
 
         <div

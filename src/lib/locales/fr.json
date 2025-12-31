@@ -47,6 +47,14 @@
         "open_sidepanel": "Ouvrir le panneau latéral",
         "open_popup": "Ouvrir les paramètres en popup",
         "open_floating": "Ouvrir un panneau flottant sur la page"
+      },
+      "reduce_motion": {
+        "title": "Réduire les animations",
+        "description": "Désactiver toutes les animations de l'extension pour l'accessibilité ou les performances.",
+        "enabled": "Statique",
+        "enabled_desc": "Toutes les animations désactivées",
+        "disabled": "Animé",
+        "disabled_desc": "Animations activées (par défaut)"
       }
     },
     "fab": {
@@ -458,25 +466,20 @@
   },
   "notifications": {
     "no_notifications": "Aucune notification",
-    "api_limits": {
+    "noti_1": {
       "title": "Limites de l'API Gemini réduites",
       "description": "Ajoutez 3 à 5 clés API pour augmenter votre limite de requêtes quotidiennes.",
       "cta_label": "Voir le guide"
     },
-    "version_update": {
-      "title": "Version 2.7.0 publiée",
+    "noti_2": {
+      "title": "Version 2.8.0 publiée",
       "description": "Découvrez les nouvelles fonctionnalités dans Paramètres → À propos → Quoi de neuf ?",
       "cta_label": "Ouvrir les paramètres"
     },
-    "intro_video": {
+    "noti_3": {
       "title": "Vidéo: Summarizerrrr en 100 secondes",
       "description": "Une introduction rapide à l'extension.",
       "cta_label": "Regarder maintenant"
-    },
-    "gemini_flash_update": {
-      "title": "Essayez Gemini 3.0 Flash",
-      "description": "Découvrez le dernier modèle maintenant.",
-      "cta_label": "Ouvrir les paramètres"
     }
   },
   "cloudSync": {

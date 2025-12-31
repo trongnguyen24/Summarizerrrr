@@ -51,9 +51,9 @@
       "reduce_motion": {
         "title": "Reduce Motion",
         "description": "Disable all animations across the extension for accessibility or performance.",
-        "enabled": "Enabled",
+        "enabled": "Static",
         "enabled_desc": "All animations disabled",
-        "disabled": "Disabled",
+        "disabled": "Animated",
         "disabled_desc": "Animations enabled (default)"
       }
     },
@@ -499,25 +499,20 @@
   },
   "notifications": {
     "no_notifications": "No notifications",
-    "api_limits": {
+    "noti_1": {
       "title": "Gemini API limits reduced",
       "description": "Add 3-5 API keys to increase your daily request limit.",
       "cta_label": "Watch guide"
     },
-    "version_update": {
-      "title": "Version 2.7.0 released",
+    "noti_2": {
+      "title": "Version 2.8.0 released",
       "description": "Check out the new features in Settings → About → What's new?",
       "cta_label": "Open Settings"
     },
-    "intro_video": {
+    "noti_3": {
       "title": "Video: Summarizerrrr in 100 Seconds",
       "description": "A quick introduction to the extension.",
       "cta_label": "Watch Now"
-    },
-    "gemini_flash_update": {
-      "title": "Try Gemini 3.0 Flash",
-      "description": "Experience the newest model now.",
-      "cta_label": "Open Settings"
     }
   }
 }

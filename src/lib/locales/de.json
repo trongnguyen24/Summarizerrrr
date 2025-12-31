@@ -47,6 +47,14 @@
         "open_sidepanel": "Seitenbereich öffnen",
         "open_popup": "Popup-Einstellungen öffnen",
         "open_floating": "Schwebendes Panel auf der Seite öffnen"
+      },
+      "reduce_motion": {
+        "title": "Bewegung reduzieren",
+        "description": "Alle Animationen in der Erweiterung für Barrierefreiheit oder Leistung deaktivieren.",
+        "enabled": "Statisch",
+        "enabled_desc": "Alle Animationen deaktiviert",
+        "disabled": "Animiert",
+        "disabled_desc": "Animationen aktiviert (Standard)"
       }
     },
     "fab": {
@@ -458,25 +466,20 @@
   },
   "notifications": {
     "no_notifications": "Keine Benachrichtigungen",
-    "api_limits": {
+    "noti_1": {
       "title": "Gemini API-Limits reduziert",
       "description": "Fügen Sie 3-5 API-Schlüssel hinzu, um Ihr tägliches Anfragelimit zu erhöhen.",
       "cta_label": "Anleitung ansehen"
     },
-    "version_update": {
-      "title": "Version 2.7.0 veröffentlicht",
+    "noti_2": {
+      "title": "Version 2.8.0 veröffentlicht",
       "description": "Entdecken Sie die neuen Funktionen unter Einstellungen → Info → Was ist neu?",
       "cta_label": "Einstellungen öffnen"
     },
-    "intro_video": {
+    "noti_3": {
       "title": "Video: Summarizerrrr in 100 Sekunden",
       "description": "Eine kurze Einführung in die Erweiterung.",
       "cta_label": "Jetzt ansehen"
-    },
-    "gemini_flash_update": {
-      "title": "Probiere Gemini 3.0 Flash",
-      "description": "Erlebe jetzt das neueste Modell.",
-      "cta_label": "Einstellungen öffnen"
     }
   },
   "cloudSync": {

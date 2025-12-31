@@ -51,9 +51,9 @@
       "reduce_motion": {
         "title": "Giảm chuyển động",
         "description": "Tắt tất cả hiệu ứng động trên extension để cải thiện khả năng truy cập hoặc hiệu suất.",
-        "enabled": "Bật",
+        "enabled": "Tĩnh",
         "enabled_desc": "Tất cả hiệu ứng động bị tắt",
-        "disabled": "Tắt",
+        "disabled": "Động",
         "disabled_desc": "Hiệu ứng động được bật (mặc định)"
       }
     },
@@ -499,25 +499,20 @@
   },
   "notifications": {
     "no_notifications": "Không có thông báo",
-    "api_limits": {
+    "noti_1": {
       "title": "Giới hạn API Gemini đã giảm",
       "description": "Thêm 3-5 API key để tăng giới hạn yêu cầu hàng ngày.",
       "cta_label": "Xem hướng dẫn"
     },
-    "version_update": {
-      "title": "Phiên bản 2.7.0 đã phát hành",
+    "noti_2": {
+      "title": "Phiên bản 2.8.0 đã phát hành",
       "description": "Xem các tính năng mới trong Cài đặt → Giới thiệu → Có gì mới?",
       "cta_label": "Mở Cài đặt"
     },
-    "intro_video": {
+    "noti_3": {
       "title": "Video: Summarizerrrr trong 100 giây",
       "description": "Video giới thiệu nhanh về extension.",
       "cta_label": "Xem ngay"
-    },
-    "gemini_flash_update": {
-      "title": "Thử Gemini 3.0 Flash",
-      "description": "Trải nghiệm ngay mô hình mới nhất.",
-      "cta_label": "Mở Cài đặt"
     }
   }
 }

@@ -4,6 +4,7 @@
   import { animate, stagger } from 'animejs'
   import { onMount } from 'svelte'
   import { slideScaleFade } from '@/lib/ui/slideScaleFade.js'
+  import { isReduceMotionEnabled } from '@/services/animationService.js'
   import {
     stopStreaming,
     fetchAndSummarize,
@@ -21,6 +22,7 @@
   // State for hover and stopping
   let isHovered = $state(false)
   let isDebouncing = $state(false)
+  let reduceMotion = $derived(isReduceMotionEnabled())
 
   // Event dispatcher
   const dispatch = () => {
@@ -118,12 +120,15 @@
   // Effect to handle animations and style changes based on state
   $effect(() => {
     if (buttonElement && backgroundElement) {
+      const duration = isReduceMotionEnabled() ? 0 : 300
+      const durationShort = isReduceMotionEnabled() ? 0 : 200
+
       if (isLoading) {
         if (isHovered) {
           // Loading + Hover = Stop State (Red)
           animate(buttonElement, {
             color: 'var(--color-blackwhite)',
-            duration: 200,
+            duration: durationShort,
             easing: 'easeInOutQuad',
           })
           animate(backgroundElement, {
@@ -131,14 +136,14 @@
             left: 16,
             width: '24px',
             height: 4,
-            duration: 300,
+            duration: duration,
             easing: 'easeInOutQuad',
           })
         } else {
           // Loading + No Hover = Loading State (Spinner)
           animate(buttonElement, {
             color: 'var(--color-blackwhite)',
-            duration: 300,
+            duration: duration,
             easing: 'easeInOutQuad',
           })
           animate(backgroundElement, {
@@ -147,7 +152,7 @@
             width: '24px',
             height: 4,
             backgroundColor: '#ffffff', // Reset to white
-            duration: 300,
+            duration: duration,
             easing: 'easeInOutQuad',
           })
         }
@@ -155,7 +160,7 @@
         // Idle State (Summarize)
         animate(buttonElement, {
           color: 'var(--color-summarize)',
-          duration: 300,
+          duration: duration,
           easing: 'easeInOutQuad',
         })
         animate(backgroundElement, {
@@ -164,7 +169,7 @@
           width: '100%',
           height: '100%',
           backgroundColor: '#ffffff', // Reset to white
-          duration: 300,
+          duration: duration,
           easing: 'easeInOutQuad',
         })
       }
@@ -173,17 +178,20 @@
 
   // Animation function for text
   onMount(() => {
+    // Skip loop text animations if reduce motion is enabled
+    if (isReduceMotionEnabled()) return
+
     if (animaeTextElements.length > 0) {
       animate(animaeTextElements, {
         ...textAnimationKeyframes,
-        loop: true,
+        loop: false,
       })
     }
 
     if (animaeText2Elements.length > 0) {
       animate(animaeText2Elements, {
         ...text2AnimationKeyframes,
-        loop: true,
+        loop: false,
       })
     }
   })
@@ -229,7 +237,11 @@
         }}
         class="absolute inset-0 text-primary"
       >
-        <Icon width={24} icon="svg-spinners:bouncing-ball" />
+        {#if reduceMotion}
+          <Icon width={24} icon="heroicons:stop-solid" />
+        {:else}
+          <Icon width={24} icon="svg-spinners:bouncing-ball" />
+        {/if}
       </span>
     {:else}
       <!-- Sparkle Icon -->

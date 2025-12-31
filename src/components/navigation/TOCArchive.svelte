@@ -156,6 +156,12 @@
   }
 
   $effect(() => {
+    // Store resize listener in variable so it can be properly removed in cleanup
+    const resizeListener = () => {
+      throttledHighlight()
+      handleResize()
+    }
+
     const init = async () => {
       await delay(100) // Thêm delay để đảm bảo DOM đã render
 
@@ -163,10 +169,7 @@
 
       // Gắn sự kiện cuộn và thay đổi kích thước với hàm đã được throttle
       window.addEventListener('scroll', throttledHighlight)
-      window.addEventListener('resize', () => {
-        throttledHighlight()
-        handleResize()
-      })
+      window.addEventListener('resize', resizeListener)
 
       // Optional: Observe changes in the target div to update TOC dynamically
       const targetDiv = document.getElementById(targetDivId)
@@ -191,7 +194,7 @@
     // Cleanup function for $effect
     return () => {
       window.removeEventListener('scroll', throttledHighlight)
-      window.removeEventListener('resize', handleResize)
+      window.removeEventListener('resize', resizeListener)
       if (observer) {
         observer.disconnect()
       }

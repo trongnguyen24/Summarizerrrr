@@ -23,31 +23,90 @@ const ALLOWED_REDIRECT_PATTERNS = [
   /^safari-web-extension:\/\/[A-Z0-9-]+\/?$/i,
 ];
 
+// Allowed origin patterns for CORS (extension runtime origins)
+const ALLOWED_ORIGIN_PATTERNS = [
+  // Chrome extensions: chrome-extension://{32-char-id}
+  /^chrome-extension:\/\/[a-z]{32}$/,
+  // Firefox extensions: moz-extension://{uuid}
+  /^moz-extension:\/\/[a-f0-9-]{36}$/,
+  // Safari extensions
+  /^safari-web-extension:\/\/[A-Z0-9-]+$/i,
+];
+
 // Optional: Specific extension IDs whitelist (more secure)
 // Set as environment variable ALLOWED_EXTENSION_IDS as comma-separated values
 // Example: "abcdefghijklmnopqrstuvwxyz123456,your-firefox-id"
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type',
-};
+/**
+ * Validate Origin header against allowed extension origins
+ */
+function isValidOrigin(origin, env) {
+  if (!origin) return false;
+
+  // Check specific extension IDs whitelist (if configured)
+  if (env.ALLOWED_EXTENSION_IDS) {
+    const allowedIds = env.ALLOWED_EXTENSION_IDS.split(',').map(id => id.trim());
+    for (const id of allowedIds) {
+      // Chrome: chrome-extension://{extension_id}
+      // Firefox: moz-extension://{extension_id}
+      const chromeOrigin = `chrome-extension://${id}`;
+      const firefoxOrigin = `moz-extension://${id}`;
+      
+      if (origin === chromeOrigin || origin === firefoxOrigin) {
+        return true;
+      }
+    }
+    // If whitelist is configured but origin doesn't match, reject
+    return false;
+  }
+
+  // Fallback: Check against general patterns
+  return ALLOWED_ORIGIN_PATTERNS.some(pattern => pattern.test(origin));
+}
+
+/**
+ * Get CORS headers with validated origin
+ */
+function getCorsHeaders(origin, env) {
+  const validOrigin = isValidOrigin(origin, env) ? origin : null;
+  
+  return {
+    'Access-Control-Allow-Origin': validOrigin || '',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
+    // Vary header is important for proper caching with dynamic origins
+    'Vary': 'Origin',
+  };
+}
 
 export default {
   async fetch(request, env) {
+    const origin = request.headers.get('Origin');
+    const corsHeaders = getCorsHeaders(origin, env);
+
+    // Handle CORS preflight
     if (request.method === 'OPTIONS') {
+      // For preflight, validate origin but still respond to allow browser to proceed
       return new Response(null, { headers: corsHeaders });
+    }
+
+    // Reject requests from invalid origins (except for non-browser clients without Origin)
+    if (origin && !isValidOrigin(origin, env)) {
+      return new Response(JSON.stringify({ error: 'Origin not allowed' }), {
+        status: 403,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
     const url = new URL(request.url);
 
     try {
       if (url.pathname === '/exchange' && request.method === 'POST') {
-        return await handleExchange(request, env);
+        return await handleExchange(request, env, corsHeaders);
       }
 
       if (url.pathname === '/refresh' && request.method === 'POST') {
-        return await handleRefresh(request, env);
+        return await handleRefresh(request, env, corsHeaders);
       }
 
       return new Response('Not Found', { status: 404 });
@@ -71,7 +130,13 @@ function isValidRedirectUri(redirectUri, env) {
   if (env.ALLOWED_EXTENSION_IDS) {
     const allowedIds = env.ALLOWED_EXTENSION_IDS.split(',').map(id => id.trim());
     for (const id of allowedIds) {
-      if (redirectUri.includes(id)) {
+      // Build expected URL patterns for each extension ID
+      // Chrome: https://{extension_id}.chromiumapp.org/
+      // Firefox: https://{extension_id}.extensions.allizom.org/
+      const chromePattern = `https://${id}.chromiumapp.org`;
+      const firefoxPattern = `https://${id}.extensions.allizom.org`;
+      
+      if (redirectUri.startsWith(chromePattern) || redirectUri.startsWith(firefoxPattern)) {
         return true;
       }
     }
@@ -86,7 +151,7 @@ function isValidRedirectUri(redirectUri, env) {
 /**
  * Exchange authorization code for tokens
  */
-async function handleExchange(request, env) {
+async function handleExchange(request, env, corsHeaders) {
   const { code, code_verifier, redirect_uri } = await request.json();
 
   if (!code || !code_verifier || !redirect_uri) {
@@ -139,7 +204,7 @@ async function handleExchange(request, env) {
 /**
  * Refresh access token
  */
-async function handleRefresh(request, env) {
+async function handleRefresh(request, env, corsHeaders) {
   const { refresh_token } = await request.json();
 
   if (!refresh_token) {

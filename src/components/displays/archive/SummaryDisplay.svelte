@@ -32,7 +32,19 @@
   let activeTabId = $state(null)
   let tabs = $state([])
   let parsedContent = $state('')
+
   let markdownContainer = $state()
+
+  let isTocSidebar = $derived(getTocMode() === 'sidebar')
+  let contentGridClass = $derived.by(() => {
+    const start = isSidePanelVisible ? '!col-start-2' : 'col-start-1'
+    const mdSpan = isSidePanelVisible ? 'md:col-span-1' : 'md:col-span-2'
+    let xlSpan = 'xl:col-span-3'
+    if (isSidePanelVisible && isTocSidebar) xlSpan = 'xl:col-span-1'
+    else if (!isSidePanelVisible && isTocSidebar) xlSpan = 'xl:col-span-2'
+    else if (isSidePanelVisible && !isTocSidebar) xlSpan = 'xl:col-span-2'
+    return `${start} ${mdSpan} ${xlSpan}`
+  })
 
   // @ts-nocheck
   const fontSizeClasses = [
@@ -202,21 +214,8 @@
 <div
   class="relative grid md:grid-cols-[minmax(20rem,20rem)_1fr] xl:grid-cols-[minmax(20rem,20rem)_1fr_minmax(20rem,20rem)]"
 >
-  <div
-    class="sticky {isSidePanelVisible && getTocMode() === 'sidebar'
-      ? 'hidden md:flex'
-      : 'hidden '}  {isSidePanelVisible
-      ? 'md:flex'
-      : ''} flex-auto z-20 top-0 right-left sm:left-5 md:left-8 h-screen flex-col pt-14 pb-8"
-  ></div>
   {#if selectedSummary}
-    <div
-      class=" {isSidePanelVisible && getTocMode() === 'sidebar'
-        ? 'md:col-span-1'
-        : 'md:col-span-2'} {getTocMode() === 'archive' && !isSidePanelVisible
-        ? 'md:!col-span-3'
-        : ''} "
-    >
+    <div class={contentGridClass}>
       <div
         class="prose px-8 md:px-16 {widthClasses[
           settings.widthIndex

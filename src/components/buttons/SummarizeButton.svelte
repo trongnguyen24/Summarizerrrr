@@ -178,7 +178,7 @@
 
   // Animation function for text
   onMount(() => {
-    // Skip loop text animations if reduce motion is enabled
+    // Skip text animations if reduce motion is enabled
     if (isReduceMotionEnabled()) return
 
     if (animaeTextElements.length > 0) {

@@ -220,6 +220,7 @@ export default defineConfig({
           '*://openrouter.ai/*',
           '*://api.cerebras.ai/*',
           '*://api.deepseek.com/*',
+          '*://oauth.summarizerrrr.com/*',
         ],
         action: {
           default_icon: 'icon/48.png',

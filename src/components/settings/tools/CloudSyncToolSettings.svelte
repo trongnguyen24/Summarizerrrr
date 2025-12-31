@@ -6,6 +6,7 @@
   import EnableToggle from '@/components/inputs/EnableToggle.svelte'
   import ButtonSet from '@/components/buttons/ButtonSet.svelte'
   import { onMount } from 'svelte'
+  import { t } from 'svelte-i18n'
   import { settings, updateSettings } from '@/stores/settingsStore.svelte.js'
   import {
     cloudSyncStore,
@@ -124,9 +125,11 @@
     </div>
 
     <div class="text-left">
-      <div class="font-bold text-text-primary text-xs">Cloud Sync</div>
+      <div class="font-bold text-text-primary text-xs">
+        {$t('cloudSync.title')}
+      </div>
       <div class="text-xs mt-2 pb-3 text-text-secondary text-pretty">
-        Sync your data via Google Drive. (Beta - Limited to 100 slots)
+        {$t('cloudSync.beta_description')}
       </div>
       <!-- Enable Cloud Sync Toggle -->
       <ToolEnableToggle
@@ -134,8 +137,8 @@
         bind:checked={cloudSyncEnabled}
         onCheckedChange={(value) => updateCloudSyncEnabled(value)}
         icon="heroicons:cloud"
-        enabledText="Enabled"
-        disabledText="Disabled"
+        enabledText={$t('cloudSync.enabled')}
+        disabledText={$t('cloudSync.disabled')}
       />
     </div>
   </div>
@@ -147,7 +150,7 @@
         onclick={handleLogin}
         disabled={isLoggingIn}
         class="relative group disabled:opacity-50 disabled:cursor-not-allowed"
-        title="Sign in with Google"
+        title={$t('cloudSync.signInWithGoogle')}
       >
         <div
           class=" relative flex items-center font-bold justify-center gap-1 px-3 py-2.25 font-mono text-xs text-red-500 inset-0 overflow-hidden"
@@ -157,10 +160,10 @@
           >
             {#if isLoggingIn}
               <Icon icon="heroicons:arrow-path" class="size-4 animate-spin" />
-              <span>Signing in...</span>
+              <span>{$t('cloudSync.signingIn')}</span>
             {:else}
               <Icon icon="logos:google-icon" class="size-4" />
-              <span>Sign in with Google</span>
+              <span>{$t('cloudSync.signInWithGoogle')}</span>
             {/if}
           </div>
           <span
@@ -195,28 +198,30 @@
 
         <!-- Sync Mode -->
         <div>
-          <label class="text-text-primary">Sync Mode</label>
+          <h4 class="text-text-primary font-medium text-xs">
+            {$t('cloudSync.syncMode')}
+          </h4>
           <p class="mt-1 text-muted text-xs">
-            Choose how your data syncs with Google Drive
+            {$t('cloudSync.syncModeDescription')}
           </p>
           <div class="grid mt-3 grid-cols-2 gap-2">
             <ButtonSet
-              title="Manual"
+              title={$t('cloudSync.manualSync')}
               class="setting-btn {!cloudSyncStore.autoSyncEnabled
                 ? 'active'
                 : ''}"
               onclick={() => setAutoSync(false)}
-              Description="Sync only when you click Sync Now"
+              Description={$t('cloudSync.manualDescription')}
             >
               <Icon icon="heroicons:hand-raised" width="16" height="16" />
             </ButtonSet>
             <ButtonSet
-              title="Auto"
+              title={$t('cloudSync.auto')}
               class="setting-btn {cloudSyncStore.autoSyncEnabled
                 ? 'active'
                 : ''}"
               onclick={() => setAutoSync(true)}
-              Description="Sync automatically in the background"
+              Description={$t('cloudSync.autoDescription')}
             >
               <Icon icon="heroicons:bolt" width="16" height="16" />
             </ButtonSet>
@@ -227,10 +232,10 @@
         <div class="">
           <div class="mb-3">
             <h4 class="text-xs font-medium text-text-primary">
-              Sync Preferences
+              {$t('cloudSync.syncPreferences')}
             </h4>
             <p class="text-xs text-muted mt-1">
-              Choose which data types to sync with cloud
+              {$t('cloudSync.syncPreferencesDescription')}
             </p>
           </div>
 
@@ -240,7 +245,7 @@
               bind:checked={cloudSyncStore.syncPreferences.settings}
               onCheckedChange={(value) =>
                 handleSyncPreferenceChange('settings', value)}
-              text="Settings"
+              text={$t('exportImport.settings')}
               useAnimation={false}
             />
 
@@ -249,7 +254,7 @@
               bind:checked={cloudSyncStore.syncPreferences.history}
               onCheckedChange={(value) =>
                 handleSyncPreferenceChange('history', value)}
-              text="History"
+              text={$t('exportImport.history')}
               useAnimation={false}
             />
 
@@ -259,7 +264,7 @@
               bind:checked={cloudSyncStore.syncPreferences.library}
               onCheckedChange={(value) =>
                 handleSyncPreferenceChange('library', value)}
-              text="Library"
+              text={$t('cloudSync.library')}
               useAnimation={false}
             />
           </div>
@@ -270,7 +275,7 @@
           <div
             class="mt-2 p-2 text-xs text-red-600 bg-red-500/10 border border-red-500/20 rounded-md break-all"
           >
-            <span class="font-bold">Error:</span>
+            <span class="font-bold">{$t('cloudSync.error')}:</span>
             {cloudSyncStore.syncError}
           </div>
         {/if}

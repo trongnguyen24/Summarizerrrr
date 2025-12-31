@@ -475,7 +475,19 @@
     "autoSyncPromptTitle": "Bật tự động đồng bộ?",
     "autoSyncPromptDescription": "Tự động đồng bộ sẽ giữ dữ liệu của bạn đồng bộ giữa các thiết bị. Bạn có thể thay đổi cài đặt này bất cứ lúc nào.",
     "manualSync": "Thủ công",
-    "enableAutoSync": "Bật tự động"
+    "enableAutoSync": "Bật tự động",
+    "beta_description": "Đồng bộ dữ liệu của bạn qua Google Drive. (Beta - Giới hạn 100 slot)",
+    "syncMode": "Chế độ đồng bộ",
+    "syncModeDescription": "Chọn cách dữ liệu của bạn được đồng bộ với Google Drive",
+    "manualDescription": "Chỉ đồng bộ khi bạn nhấp vào Đồng bộ ngay",
+    "autoDescription": "Tự động đồng bộ trong nền",
+    "auto": "Tự động",
+    "syncPreferences": "Tùy chọn đồng bộ",
+    "syncPreferencesDescription": "Chọn loại dữ liệu cần đồng bộ với cloud",
+    "library": "Lưu trữ",
+    "error": "Lỗi",
+    "enabled": "Đang bật",
+    "disabled": "Đang tắt"
   },
   "notifications": {
     "no_notifications": "Không có thông báo",

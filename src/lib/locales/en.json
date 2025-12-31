@@ -475,7 +475,19 @@
     "autoSyncPromptTitle": "Enable Auto-Sync?",
     "autoSyncPromptDescription": "Auto-sync will automatically keep your data synchronized across devices. You can change this setting anytime.",
     "manualSync": "Manual",
-    "enableAutoSync": "Enable Auto"
+    "enableAutoSync": "Enable Auto",
+    "beta_description": "Sync your data via Google Drive. (Beta - Limited to 100 slots)",
+    "syncMode": "Sync Mode",
+    "syncModeDescription": "Choose how your data syncs with Google Drive",
+    "manualDescription": "Sync only when you click Sync Now",
+    "autoDescription": "Sync automatically in the background",
+    "auto": "Auto",
+    "syncPreferences": "Sync Preferences",
+    "syncPreferencesDescription": "Choose which data types to sync with cloud",
+    "library": "Archive",
+    "error": "Error",
+    "enabled": "Enabled",
+    "disabled": "Disabled"
   },
   "notifications": {
     "no_notifications": "No notifications",

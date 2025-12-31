@@ -478,5 +478,37 @@
       "description": "지금 최신 모델을 경험해 보세요.",
       "cta_label": "설정 열기"
     }
+  },
+  "cloudSync": {
+    "title": "클라우드 동기화",
+    "description": "Google Drive를 사용하여 모든 기기에서 설정, 요약 및 기록을 동기화하세요.",
+    "signInWithGoogle": "Google로 로그인",
+    "signingIn": "로그인 중...",
+    "signOut": "로그아웃",
+    "lastSync": "최근 동기화",
+    "never": "없음",
+    "justNow": "방금 전",
+    "minutesAgo": "{count}분 전",
+    "hoursAgo": "{count}시간 전",
+    "syncing": "동기화 중...",
+    "syncFailed": "동기화 실패",
+    "syncNow": "지금 동기화",
+    "autoSync": "자동 동기화",
+    "autoSyncPromptTitle": "자동 동기화를 활성화하시겠습니까?",
+    "autoSyncPromptDescription": "자동 동기화는 모든 기기에서 데이터를 자동으로 동기화 상태로 유지합니다. 이 설정은 언제든지 변경할 수 있습니다.",
+    "manualSync": "수동",
+    "enableAutoSync": "자동 활성화",
+    "beta_description": "Google Drive를 통해 데이터를 동기화합니다. (베타 - 100명 한정)",
+    "syncMode": "동기화 모드",
+    "syncModeDescription": "Google Drive와 데이터를 동기화하는 방법 선택",
+    "manualDescription": "지금 동기화를 클릭할 때만 동기화",
+    "autoDescription": "백그라운드에서 자동으로 동기화",
+    "auto": "자동",
+    "syncPreferences": "동기화 환경설정",
+    "syncPreferencesDescription": "클라우드와 동기화할 데이터 유형 선택",
+    "library": "아카이브",
+    "error": "오류",
+    "enabled": "활성화됨",
+    "disabled": "비활성화됨"
   }
 }

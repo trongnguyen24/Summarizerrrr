@@ -9,8 +9,7 @@
     createParticleAnimation,
     clamp,
   } from '../../services/animationService.js'
-  import { fade } from 'svelte/transition'
-  import { slideScaleFade } from '@/lib/ui/slideScaleFade.js'
+  import { slideScaleFade, fadeOnly } from '@/lib/ui/slideScaleFade.js'
 
   let buttonElement
   let heartsAnimation = null
@@ -193,7 +192,7 @@
     <Dialog.Overlay class="fixed inset-0 z-40 bg-black/80" forceMount>
       {#snippet child({ props, open })}
         {#if open}
-          <div {...props} transition:fade></div>
+          <div {...props} transition:fadeOnly></div>
         {/if}
       {/snippet}
     </Dialog.Overlay>

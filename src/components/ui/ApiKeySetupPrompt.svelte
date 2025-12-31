@@ -1,7 +1,7 @@
 <script>
   // @ts-nocheck
   import Icon from '@iconify/svelte'
-  import { fade } from 'svelte/transition'
+  import { fadeOnly } from '@/lib/ui/slideScaleFade.js'
   import { t } from 'svelte-i18n'
 
   const handleOpenSettings = () => {
@@ -11,8 +11,8 @@
 
 <div
   class="flex font-mono min-w-[18rem] flex-col text-center w-full justify-center items-center gap-4"
-  in:fade={{ duration: 300 }}
-  out:fade={{ duration: 200 }}
+  in:fadeOnly={{ duration: 300 }}
+  out:fadeOnly={{ duration: 200 }}
 >
   <div class="flex flex-col gap-3 items-center">
     <div

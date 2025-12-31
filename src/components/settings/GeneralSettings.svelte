@@ -332,6 +332,30 @@
     </div>
   </div>
 
+  <div class="flex flex-col gap-2 px-5">
+    <!-- svelte-ignore a11y_label_has_associated_control -->
+    <label class="block text-text-primary font-bold"
+      >{$t('settings.general.reduce_motion.title')}</label
+    >
+    <p class="text-xs text-muted">
+      {$t('settings.general.reduce_motion.description')}
+    </p>
+    <div class="flex w-full gap-1">
+      <ButtonSet
+        title={$t('settings.general.reduce_motion.disabled')}
+        class={`setting-btn ${!settings.reduceMotion ? 'active' : ''}`}
+        onclick={() => handleUpdateSetting('reduceMotion', false)}
+        Description={$t('settings.general.reduce_motion.disabled_desc')}
+      />
+      <ButtonSet
+        title={$t('settings.general.reduce_motion.enabled')}
+        class={`setting-btn ${settings.reduceMotion ? 'active' : ''}`}
+        onclick={() => handleUpdateSetting('reduceMotion', true)}
+        Description={$t('settings.general.reduce_motion.enabled_desc')}
+      />
+    </div>
+  </div>
+
   <ExportImport />
   {#if !browserCompatibility.isMobile}
     {#if !browserCompatibility.isMobile}

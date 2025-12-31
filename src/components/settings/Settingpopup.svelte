@@ -1,7 +1,7 @@
 <script>
   import { Dialog } from 'bits-ui'
   import Setting from './Setting.svelte'
-  import { fade, fly } from 'svelte/transition'
+  import { fadeOnly, flyOnly } from '@/lib/ui/slideScaleFade.js'
 
   let { open = $bindable() } = $props()
 </script>
@@ -11,7 +11,7 @@
     <Dialog.Overlay class="fixed inset-0 bg-black/80" forceMount>
       {#snippet child({ props, open })}
         {#if open}
-          <div {...props} transition:fade></div>
+          <div {...props} transition:fadeOnly></div>
         {/if}
       {/snippet}
     </Dialog.Overlay>
@@ -20,7 +20,7 @@
     >
       {#snippet child({ props, open })}
         {#if open}
-          <div {...props} transition:fly>
+          <div {...props} transition:flyOnly>
             <Setting />
           </div>
         {/if}

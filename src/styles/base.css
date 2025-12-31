@@ -20,6 +20,20 @@
   --font-mali: 'Mali', cursive;
 }
 
+/* ========================================
+   Reduce Motion - Disable all animations
+   Global rule for accessibility
+   ======================================== */
+:root[data-reduce-motion='true'] *,
+:root[data-reduce-motion='true'] *::before,
+:root[data-reduce-motion='true'] *::after {
+  animation-duration: 0ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0ms !important;
+  scroll-behavior: auto !important;
+  animation-delay: 0s !important;
+}
+
 /* Font Classes */
 .font-default {
   font-family: var(--font-default);

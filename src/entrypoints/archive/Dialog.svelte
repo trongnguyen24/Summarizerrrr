@@ -1,7 +1,6 @@
 <script>
   import { Dialog } from 'bits-ui'
-  import { fade } from 'svelte/transition'
-  import { slideScaleFade } from '@/lib/ui/slideScaleFade.js'
+  import { slideScaleFade, fadeOnly } from '@/lib/ui/slideScaleFade.js'
 
   let {
     open = $bindable(false),
@@ -27,7 +26,7 @@
     <Dialog.Overlay class={finalOverlayClass} forceMount>
       {#snippet child({ props, open })}
         {#if open}
-          <div {...props} transition:fade></div>
+          <div {...props} transition:fadeOnly></div>
         {/if}
       {/snippet}
     </Dialog.Overlay>

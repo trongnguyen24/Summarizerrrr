@@ -1,6 +1,6 @@
 <script>
   import Icon from '@iconify/svelte'
-  import { fade, fly } from 'svelte/transition'
+  import { fadeOnly, flyOnly } from '@/lib/ui/slideScaleFade.js'
 
   let {
     title = 'Notification',
@@ -17,8 +17,8 @@
 {#if visible}
   <div
     class="absolute bottom-4 left-1/2 -translate-x-1/2 z-[10002] w-max max-w-[90%]"
-    in:fly={{ y: 20, duration: 300 }}
-    out:fade={{ duration: 200 }}
+    in:flyOnly={{ y: 20, duration: 300 }}
+    out:fadeOnly={{ duration: 200 }}
   >
     <div
       class="font-mono flex items-center gap-2 text-xs rounded-4xl justify-between pl-4 pr-1 py-1 border bg-surface-2 border-blackwhite/10 shadow-lg"

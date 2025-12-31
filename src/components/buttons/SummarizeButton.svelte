@@ -8,7 +8,6 @@
     stopStreaming,
     fetchAndSummarize,
   } from '@/stores/summaryStore.svelte.js'
-  import { fade, scale } from 'svelte/transition'
 
   // Props received from App.svelte
   let { isLoading, disabled = false, onStop = null, onClick = null } = $props()

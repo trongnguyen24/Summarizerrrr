@@ -47,6 +47,7 @@ const DEFAULT_SETTINGS = {
   widthIndex: 1, // Default to max-w-3xl
   sidePanelDefaultWidth: 25, // Default width for side panel in em units
   oneClickSummarize: false, // Enable 1-click summarization on FAB
+  reduceMotion: false, // Disable all animations across the extension
   iconClickAction: 'sidepanel', // 'sidepanel', 'popup', or 'floating'
   fabDomainControl: {
     mode: 'all', // 'all' | 'whitelist' | 'blacklist'

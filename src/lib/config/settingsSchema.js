@@ -53,6 +53,7 @@ export const VALID_SETTING_KEYS = [
   'widthIndex',
   'sidePanelDefaultWidth',
   'oneClickSummarize',
+  'reduceMotion',
   'iconClickAction',
   'fabDomainControl',
   'firefoxPermissions',

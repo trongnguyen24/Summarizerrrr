@@ -1,5 +1,6 @@
 // @ts-nocheck
 import { cubicOut } from 'svelte/easing'
+import { isReduceMotionEnabled } from '@/services/animationService.js'
 
 /**
  * @typedef {Object} SlideScaleFadeParams
@@ -16,6 +17,7 @@ import { cubicOut } from 'svelte/easing'
 /**
  * Svelte 5 transition kết hợp slide, scale, và fade.
  * Hoạt động tốt cho cả `in:` và `out:`.
+ * Respects reduce motion setting - khi bật sẽ skip animation.
  * @param {Element} node - Phần tử DOM (không dùng trực tiếp trong Svelte 5 css function nhưng là một phần của signature)
  * @param {SlideScaleFadeParams} [params] - Các tham số tùy chỉnh
  * @returns {import('svelte/transition').TransitionConfig}
@@ -32,13 +34,17 @@ export function slideScaleFade(node, params = {}) {
     startBlur = 0,
   } = params
 
+  // Respect reduce motion setting - skip animation
+  const actualDuration = isReduceMotionEnabled() ? 0 : duration
+  const actualDelay = isReduceMotionEnabled() ? 0 : delay
+
   // Tách giá trị số và đơn vị từ slideDistance
   const distanceValue = parseFloat(slideDistance)
   const distanceUnit = slideDistance.replace(/[\d.-]/g, '') || 'px' // Mặc định là px nếu không có đơn vị
 
   return {
-    delay,
-    duration,
+    delay: actualDelay,
+    duration: actualDuration,
     easing,
     css: (progress, u) => {
       // progress: tiến trình từ 0 đến 1 (cho 'in')
@@ -119,3 +125,78 @@ export function slideScaleFade(node, params = {}) {
  *      </div>
  *    {/if}
  */
+
+/**
+ * @typedef {Object} FadeOnlyParams
+ * @property {number} [delay=0] - Thời gian trễ (ms)
+ * @property {number} [duration=200] - Thời gian thực hiện transition (ms)
+ * @property {(progress: number) => number} [easing=cubicOut] - Easing function
+ */
+
+/**
+ * Simple fade transition that respects reduce motion setting.
+ * Use for overlays, backdrops, and simple opacity changes.
+ * @param {Element} node - DOM element
+ * @param {FadeOnlyParams} [params] - Custom parameters
+ * @returns {import('svelte/transition').TransitionConfig}
+ */
+export function fadeOnly(node, params = {}) {
+  const {
+    delay = 0,
+    duration = 200,
+    easing = cubicOut,
+  } = params
+
+  // Respect reduce motion setting
+  const actualDuration = isReduceMotionEnabled() ? 0 : duration
+  const actualDelay = isReduceMotionEnabled() ? 0 : delay
+
+  return {
+    delay: actualDelay,
+    duration: actualDuration,
+    easing,
+    css: (progress) => `opacity: ${progress}`,
+  }
+}
+
+/**
+ * @typedef {Object} FlyOnlyParams
+ * @property {number} [delay=0] - Thời gian trễ (ms)
+ * @property {number} [duration=300] - Thời gian thực hiện transition (ms)
+ * @property {(progress: number) => number} [easing=cubicOut] - Easing function
+ * @property {number} [x=0] - X offset
+ * @property {number} [y=-20] - Y offset (default: fly from above)
+ * @property {number} [opacity=0] - Starting opacity
+ */
+
+/**
+ * Fly transition that respects reduce motion setting.
+ * Use for dropdowns, tooltips, and popover content.
+ * @param {Element} node - DOM element
+ * @param {FlyOnlyParams} [params] - Custom parameters
+ * @returns {import('svelte/transition').TransitionConfig}
+ */
+export function flyOnly(node, params = {}) {
+  const {
+    delay = 0,
+    duration = 300,
+    easing = cubicOut,
+    x = 0,
+    y = -20,
+    opacity = 0,
+  } = params
+
+  // Respect reduce motion setting
+  const actualDuration = isReduceMotionEnabled() ? 0 : duration
+  const actualDelay = isReduceMotionEnabled() ? 0 : delay
+
+  return {
+    delay: actualDelay,
+    duration: actualDuration,
+    easing,
+    css: (progress, u) => `
+      transform: translate(${u * x}px, ${u * y}px);
+      opacity: ${opacity + (1 - opacity) * progress};
+    `,
+  }
+}

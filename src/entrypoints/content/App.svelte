@@ -105,6 +105,15 @@
     }
   })
 
+  // Apply reduce motion setting to shadow DOM
+  $effect(() => {
+    if (shadowContainer && settings.reduceMotion !== undefined) {
+      shadowContainer.dataset.reduceMotion = settings.reduceMotion
+        ? 'true'
+        : 'false'
+    }
+  })
+
   onMount(() => {
     const checkMobile = () => {
       // Đặt threshold thấp hơn để ưu tiên sidepanel trên desktop/tablet

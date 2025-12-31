@@ -2,7 +2,6 @@
   // @ts-nocheck
   import Icon from '@iconify/svelte'
   import { t } from 'svelte-i18n'
-  import { fade, slide } from 'svelte/transition'
   import {
     checkPermission,
     requestPermission,

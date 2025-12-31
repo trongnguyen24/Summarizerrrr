@@ -1,6 +1,6 @@
 <script>
   // @ts-nocheck
-  import { fade } from 'svelte/transition'
+  import { fadeOnly } from '@/lib/ui/slideScaleFade.js'
   import Icon from '@iconify/svelte'
 
   let {
@@ -43,7 +43,7 @@
       {label}
     </label>
     {#if finalStatus}
-      <p id="save-status" transition:fade class="text-success flex mr-auto">
+      <p id="save-status" transition:fadeOnly class="text-success flex mr-auto">
         {finalStatus === 'saved!' ? 'Saved!' : finalStatus}
       </p>
     {/if}

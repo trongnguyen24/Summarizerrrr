@@ -6,7 +6,7 @@
   import { t } from 'svelte-i18n'
   import { ShadowTooltipState } from '@/components/ui/shadowTooltipState.svelte.js'
   import { setContext } from 'svelte'
-  import { fade } from 'svelte/transition'
+  import { fadeOnly } from '@/lib/ui/slideScaleFade.js'
 
   let {
     onActionClick,
@@ -46,8 +46,8 @@
     {#if tooltipState.activeContent}
       <div
         class="z-50 px-2 py-1 text-xs text-muted whitespace-nowrap mb-2"
-        in:fade={{ duration: 200 }}
-        out:fade={{ duration: 0 }}
+        in:fadeOnly={{ duration: 200 }}
+        out:fadeOnly={{ duration: 0 }}
       >
         {tooltipState.activeContent}
       </div>

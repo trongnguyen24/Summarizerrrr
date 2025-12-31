@@ -7,7 +7,7 @@
   import { useOverlayScrollbars } from 'overlayscrollbars-svelte'
   import { appStateStorage } from '@/services/wxtStorageService.js'
   import SidePanel from './SidePanel.svelte'
-  import { fade } from 'svelte/transition'
+  import { fadeOnly } from '@/lib/ui/slideScaleFade.js'
   import {
     settings,
     loadSettings,
@@ -148,6 +148,17 @@
     return unsubscribeTheme
   })
 
+  // Apply reduce motion setting to DOM
+  $effect(() => {
+    // Track the setting value to make this effect reactive
+    const _reduceMotion = settings.reduceMotion
+    import('@/services/animationService.js').then(
+      ({ applyReduceMotionToDOM }) => {
+        applyReduceMotionToDOM()
+      },
+    )
+  })
+
   $effect(() => {
     archiveStore.validateSelectedItem(activeTab)
   })
@@ -176,7 +187,7 @@
     <!-- svelte-ignore a11y_click_events_have_key_events -->
     <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div
-      transition:fade
+      transition:fadeOnly
       class="fixed top-0 bottom-0 left-2 right-2 sm:left-5 sm:right-5 bg-black/40 z-30"
       onclick={handleOverlayClick}
     ></div>

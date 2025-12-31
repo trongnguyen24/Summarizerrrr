@@ -1,5 +1,5 @@
 <script>
-  import { fade, fly } from 'svelte/transition'
+  import { fadeOnly } from '@/lib/ui/slideScaleFade.js'
   import { getContext } from 'svelte'
 
   let { children, content, side = 'top', delay = 500 } = $props()
@@ -57,8 +57,8 @@
   {#if !tooltipState && isVisible}
     <div
       class={tooltipClasses}
-      in:fade={{ duration: 150 }}
-      out:fade={{ duration: 0 }}
+      in:fadeOnly={{ duration: 150 }}
+      out:fadeOnly={{ duration: 0 }}
     >
       {content}
     </div>

@@ -36,8 +36,7 @@
   import SwitchPermission from '../inputs/SwitchPermission.svelte'
   import ButtonSet from '../buttons/ButtonSet.svelte'
   import { Dialog } from 'bits-ui'
-  import { fade } from 'svelte/transition'
-  import { slideScaleFade } from '@/lib/ui/slideScaleFade.js'
+  import { slideScaleFade, fadeOnly } from '@/lib/ui/slideScaleFade.js'
   import Icon from '@iconify/svelte'
   import TextScramble from '../../lib/ui/textScramble.js'
   import PreviewData from '../ui/PreviewData.svelte'
@@ -919,7 +918,7 @@
     <Dialog.Overlay class="fixed inset-0 z-[99] bg-black/80" forceMount>
       {#snippet child({ props, open })}
         {#if open}
-          <div {...props} transition:fade></div>
+          <div {...props} transition:fadeOnly></div>
         {/if}
       {/snippet}
     </Dialog.Overlay>

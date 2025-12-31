@@ -8,8 +8,7 @@
     softDeleteTag,
   } from '@/lib/db/indexedDBService'
   import Icon from '@iconify/svelte'
-  import { slideScaleFade } from '@/lib/ui/slideScaleFade.js'
-  import { fade } from 'svelte/transition'
+  import { slideScaleFade, fadeOnly } from '@/lib/ui/slideScaleFade.js'
   import { t } from 'svelte-i18n'
   import {
     archiveFilterStore,
@@ -349,14 +348,14 @@
           <div class="size-5 relative">
             {#if !hasAnyTagsSelected()}
               <span
-                transition:fade={{ duration: 100 }}
+                transition:fadeOnly={{ duration: 100 }}
                 class="text-text-primary absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2"
               >
                 <Icon icon="tabler:tag-filled" width="20" height="20" />
               </span>
             {:else}
               <span
-                transition:fade={{ duration: 100 }}
+                transition:fadeOnly={{ duration: 100 }}
                 class="text-text-primary absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2"
               >
                 <Icon icon="tabler:x" width="20" height="20" />
@@ -384,14 +383,14 @@
             <div class="size-5 relative">
               {#if isTagSelected(tag.id)}
                 <span
-                  transition:fade={{ duration: 100 }}
+                  transition:fadeOnly={{ duration: 100 }}
                   class="text-text-primary absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2"
                 >
                   <Icon icon="tabler:tag-filled" width="20" height="20" />
                 </span>
               {:else}
                 <span
-                  transition:fade={{ duration: 100 }}
+                  transition:fadeOnly={{ duration: 100 }}
                   class="text-text-primary absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2"
                 >
                   <Icon icon="tabler:tag" width="20" height="20" />

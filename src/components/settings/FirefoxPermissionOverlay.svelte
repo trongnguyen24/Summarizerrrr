@@ -1,6 +1,6 @@
 <script>
   import { t } from 'svelte-i18n'
-  import { fade } from 'svelte/transition'
+  import { fadeOnly } from '@/lib/ui/slideScaleFade.js'
   import {
     getFirefoxPermission,
     updateFirefoxPermission,
@@ -47,7 +47,7 @@
 
 {#if import.meta.env.BROWSER === 'firefox' && !httpsPermission && isTouchDevice()}
   <div
-    transition:fade
+    transition:fadeOnly
     class="absolute bottom-17.5 sm:bottom-0 left-0 right-0 z-[51] flex items-center justify-center pointer-events-none"
   >
     <div

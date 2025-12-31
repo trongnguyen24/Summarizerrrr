@@ -47,6 +47,14 @@
         "open_sidepanel": "Open the sidepanel",
         "open_popup": "Open a popup settings",
         "open_floating": "Open a floating panel on the page"
+      },
+      "reduce_motion": {
+        "title": "Reduce Motion",
+        "description": "Disable all animations across the extension for accessibility or performance.",
+        "enabled": "Enabled",
+        "enabled_desc": "All animations disabled",
+        "disabled": "Disabled",
+        "disabled_desc": "Animations enabled (default)"
       }
     },
     "fab": {

@@ -15,6 +15,7 @@
   } = $props()
 
   let now = $state(Date.now())
+  let showDebugLogs = $state(false)
 
   $effect(() => {
     const interval = setInterval(() => {
@@ -71,7 +72,11 @@
           <img src={userPicture} alt={userName} class="size-18" />
         </div>
       {:else}
-        <Icon icon="heroicons:user" class="size-6 text-primary" />
+        <div class="crt-avatar">
+          <div class="size-18 flex items-center justify-center bg-surface-2">
+            <img src="/avatar.png" alt={userName} class="size-18" />
+          </div>
+        </div>
       {/if}
     </div>
     <div class="flex flex-col gap-0.5 min-w-0">
@@ -85,6 +90,16 @@
         Synced {formatLastSyncTime(lastSyncTime, now)}
       </p>
     </div>
+    <button
+      class="absolute top-3 right-3 text-text-secondary hover:text-text-primary transition-colors"
+      onclick={() => (showDebugLogs = !showDebugLogs)}
+      title="Toggle Debug Logs"
+    >
+      <Icon
+        icon="heroicons:exclamation-circle"
+        class="size-6 {showDebugLogs ? 'text-warning' : ''}"
+      />
+    </button>
   </div>
 
   <!-- Action buttons -->
@@ -109,7 +124,9 @@
   </div>
 
   <!-- Debug Logs -->
-  <SyncDebugLogs {debugLogs} />
+  {#if showDebugLogs}
+    <SyncDebugLogs {debugLogs} />
+  {/if}
 </div>
 
 <style>

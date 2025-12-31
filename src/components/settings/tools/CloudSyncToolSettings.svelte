@@ -126,7 +126,7 @@
     <div class="text-left">
       <div class="font-bold text-text-primary text-xs">Cloud Sync</div>
       <div class="text-xs mt-2 pb-3 text-text-secondary text-pretty">
-        Sync your data across all your devices via Google Drive.
+        Sync your data via Google Drive. (Beta - Limited to 100 slots)
       </div>
       <!-- Enable Cloud Sync Toggle -->
       <ToolEnableToggle
@@ -146,15 +146,30 @@
       <button
         onclick={handleLogin}
         disabled={isLoggingIn}
-        class="flex items-center justify-center gap-2 px-4 py-2.5 bg-white dark:bg-surface-2 border border-border rounded-md hover:bg-gray-50 dark:hover:bg-surface-3 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        class="relative group disabled:opacity-50 disabled:cursor-not-allowed"
+        title="Sign in with Google"
       >
-        {#if isLoggingIn}
-          <Icon icon="heroicons:arrow-path" class="size-5 animate-spin" />
-          <span>Signing in...</span>
-        {:else}
-          <Icon icon="logos:google-icon" class="size-5" />
-          <span>Sign in with Google</span>
-        {/if}
+        <div
+          class=" relative flex items-center font-bold justify-center gap-1 px-3 py-2.25 font-mono text-xs text-red-500 inset-0 overflow-hidden"
+        >
+          <div
+            class="relative z-20 flex gap-2 text-text-primary justify-center items-center"
+          >
+            {#if isLoggingIn}
+              <Icon icon="heroicons:arrow-path" class="size-4 animate-spin" />
+              <span>Signing in...</span>
+            {:else}
+              <Icon icon="logos:google-icon" class="size-4" />
+              <span>Sign in with Google</span>
+            {/if}
+          </div>
+          <span
+            class="absolute z-50 size-4 border border-transparent group-hover:border-blackwhite/15 rotate-45 bg-surface-1 -bottom-px -left-px -translate-x-1/2 translate-y-1/2 duration-150"
+          ></span>
+          <div
+            class="absolute z-40 inset-0 text-text-secondary py-2 font-mono bg-blackwhite/5 dark:bg-blackwhite/5 border border-transparent hover:border-blackwhite/15 focus:border-blackwhite/30 dark:focus:border-blackwhite/10 focus:outline-none focus:ring-0 transition-colors duration-150"
+          ></div>
+        </div>
       </button>
 
       {#if loginError}

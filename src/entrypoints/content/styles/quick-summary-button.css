@@ -1,0 +1,90 @@
+/* Quick Summary Button Styles */
+
+/* ===== DEFAULT STYLES (Home, Search pages) ===== */
+.qs-icon-wrapper {
+  position: absolute;
+  top: 18px;
+  left: 16px;
+  z-index: 2147483647;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  pointer-events: none;
+}
+
+/* Show on hover of parent - all YouTube thumbnail types */
+ytd-thumbnail:hover .qs-icon-wrapper,
+ytd-video-preview:hover .qs-icon-wrapper,
+yt-thumbnail-view-model:hover .qs-icon-wrapper,
+yt-lockup-view-model:hover .qs-icon-wrapper,
+.qs-icon-wrapper:hover {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Always visible in preview - with delay to prevent flicker */
+ytd-video-preview .qs-icon-wrapper {
+  opacity: 0.9;
+  pointer-events: auto;
+
+}
+
+.qs-icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50px;
+  background: rgba(0, 0, 0, 0.5);
+  border: none;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.qs-icon-btn:hover {
+  background: rgba(0, 0, 0, 0.7);
+  transform: scale(1);
+}
+
+.qs-icon-btn svg {
+  width: 28px;
+  height: 28px;
+}
+
+.qs-icon-btn.qs-loading {
+  pointer-events: none;
+  animation: qs-pulse 1s infinite;
+}
+
+.qs-icon-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+@keyframes qs-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+/* ===== WATCH PAGE SIDEBAR STYLES ===== */
+/* Smaller thumbnails need smaller button and different positioning */
+
+yt-lockup-view-model .qs-icon-wrapper,
+yt-thumbnail-view-model .qs-icon-wrapper {
+  top: 4px;
+  left: 4px;
+}
+
+yt-lockup-view-model .qs-icon-btn,
+yt-thumbnail-view-model .qs-icon-btn {
+  width: 32px;
+  height: 32px;
+}
+
+yt-lockup-view-model .qs-icon-btn svg,
+yt-thumbnail-view-model .qs-icon-btn svg {
+  width: 20px;
+  height: 20px;
+}

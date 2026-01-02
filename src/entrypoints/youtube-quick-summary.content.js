@@ -5,29 +5,50 @@
  * 1. Static: Inject into ytd-thumbnail when hovering
  * 2. Dynamic: Inject into ytd-video-preview when it appears
  */
+import { mount, unmount } from 'svelte'
+import QuickSummaryButton from './content/QuickSummaryButton.svelte'
 
 export default defineContentScript({
   matches: ['*://*.youtube.com/*'],
   runAt: 'document_end',
   
   main() {
-    const THUMBNAIL_SELECTOR = 'ytd-thumbnail'
+    // Multiple selectors for different YouTube layouts
+    const THUMBNAIL_SELECTORS = [
+      'ytd-thumbnail',                    // Home, Search, Channel pages
+      'yt-thumbnail-view-model',          // Watch page sidebar (new layout)
+      'yt-lockup-view-model',             // Watch page sidebar (container)
+    ].join(', ')
+    
     const PREVIEW_SELECTOR = 'ytd-video-preview'
     const INJECTED_MARKER = 'data-qs-injected'
-    
-    // Inject styles
-    injectStyles()
     
     // Current video ID being tracked
     let currentVideoId = null
     
+    // Store mounted components for cleanup
+    const mountedComponents = new WeakMap()
+    
     // ===== STATIC INJECTION: Into thumbnails =====
     document.body.addEventListener('mouseover', (e) => {
-      const thumbnail = e.target.closest(THUMBNAIL_SELECTOR)
+      // Try to find the thumbnail container - prioritize larger containers
+      let thumbnail = e.target.closest('yt-lockup-view-model')  // Watch page sidebar
+      if (!thumbnail) {
+        thumbnail = e.target.closest('ytd-thumbnail')  // Home, Search pages
+      }
+      if (!thumbnail) {
+        thumbnail = e.target.closest('yt-thumbnail-view-model')  // Fallback
+      }
       if (!thumbnail) return
       
-      // Get video link and ID
-      const link = thumbnail.querySelector('a#thumbnail')
+      // Skip if already injected
+      if (thumbnail.hasAttribute(INJECTED_MARKER)) return
+      
+      // Get video link and ID - different selectors for different layouts
+      let link = thumbnail.querySelector('a#thumbnail')  // Old layout
+      if (!link) {
+        link = thumbnail.querySelector('a[href*="/watch"]')  // New layout
+      }
       if (!link) return
       
       const videoId = extractVideoId(link.href)
@@ -36,11 +57,24 @@ export default defineContentScript({
       // Track current video ID for preview injection
       currentVideoId = videoId
       
-      // Inject icon if not already
-      if (!thumbnail.hasAttribute(INJECTED_MARKER)) {
-        thumbnail.setAttribute(INJECTED_MARKER, 'true')
-        injectIcon(thumbnail, videoId)
+      // Mark as injected
+      thumbnail.setAttribute(INJECTED_MARKER, 'true')
+      
+      // Find the actual thumbnail image container to inject into
+      let targetContainer = thumbnail
+      
+      // For watch page sidebar, inject into the thumbnail image container
+      const thumbnailImage = thumbnail.querySelector('yt-thumbnail-view-model')
+      if (thumbnailImage) {
+        targetContainer = thumbnailImage
+        // Ensure relative positioning
+        const style = window.getComputedStyle(targetContainer)
+        if (style.position === 'static') {
+          targetContainer.style.position = 'relative'
+        }
       }
+      
+      injectButton(targetContainer, videoId)
     }, { passive: true })
     
     // ===== DYNAMIC INJECTION: Into video preview =====
@@ -55,7 +89,7 @@ export default defineContentScript({
         }
         
         // Check for attribute changes on video-preview
-        if (mutation.type === 'attributes' && mutation.target.matches(PREVIEW_SELECTOR)) {
+        if (mutation.type === 'attributes' && mutation.target.matches?.(PREVIEW_SELECTOR)) {
           checkAndInjectPreview(mutation.target)
         }
       }
@@ -70,12 +104,12 @@ export default defineContentScript({
     })
     
     /**
-     * Check if element is/contains video-preview and inject icon
+     * Check if element is/contains video-preview and inject button
      */
     function checkAndInjectPreview(element) {
-      const preview = element.matches(PREVIEW_SELECTOR) 
+      const preview = element.matches?.(PREVIEW_SELECTOR) 
         ? element 
-        : element.querySelector(PREVIEW_SELECTOR)
+        : element.querySelector?.(PREVIEW_SELECTOR)
       
       if (!preview) return
       
@@ -84,10 +118,15 @@ export default defineContentScript({
         return
       }
       
-      // Remove old injected icon if any (will re-inject with correct position)
-      const existingIcon = preview.querySelector('.qs-icon-wrapper')
-      if (existingIcon) {
-        existingIcon.remove()
+      // Remove old injected button if any
+      const existingWrapper = preview.querySelector('.qs-button-wrapper')
+      if (existingWrapper) {
+        const comp = mountedComponents.get(existingWrapper)
+        if (comp) {
+          unmount(comp)
+          mountedComponents.delete(existingWrapper)
+        }
+        existingWrapper.remove()
       }
       
       // Try to get video ID from preview's video element or current tracked ID
@@ -107,146 +146,45 @@ export default defineContentScript({
       if (!videoId) return
       
       // Inject into preview
-      injectIcon(preview, videoId)
+      injectButton(preview, videoId)
     }
     
     // Also periodically check for visible preview (fallback)
     setInterval(() => {
       const preview = document.querySelector(`${PREVIEW_SELECTOR}:not([hidden])`)
-      if (preview && !preview.querySelector('.qs-icon-wrapper') && currentVideoId) {
-        injectIcon(preview, currentVideoId)
+      if (preview && !preview.querySelector('.qs-button-wrapper') && currentVideoId) {
+        injectButton(preview, currentVideoId)
       }
     }, 500)
     
-    console.log('[Quick Summary] Content script initialized (Double Injection)')
+    /**
+     * Inject Svelte button component into container
+     */
+    function injectButton(container, videoId) {
+      // Create wrapper element
+      const wrapper = document.createElement('div')
+      wrapper.className = 'qs-button-wrapper'
+      
+      // Ensure container has relative positioning
+      const computedStyle = window.getComputedStyle(container)
+      if (computedStyle.position === 'static') {
+        container.style.position = 'relative'
+      }
+      
+      container.appendChild(wrapper)
+      
+      // Mount Svelte component
+      const component = mount(QuickSummaryButton, {
+        target: wrapper,
+        props: { videoId }
+      })
+      
+      mountedComponents.set(wrapper, component)
+    }
+    
+    console.log('[Quick Summary] Content script initialized (Svelte component)')
   }
 })
-
-/**
- * Inject icon into a container
- */
-function injectIcon(container, videoId) {
-  const wrapper = document.createElement('div')
-  wrapper.className = 'qs-icon-wrapper'
-  
-  const button = document.createElement('button')
-  button.className = 'qs-icon-btn'
-  button.title = 'Quick Summary (opens in background)'
-  
-  button.innerHTML = `
-    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-      <path d="M13 2L4.09 12.26c-.53.59-.03 1.5.75 1.5h6.18l-.82 5.76c-.12.86.96 1.36 1.48.68L20.83 9.38c.53-.59.03-1.5-.75-1.5h-6.18l.82-5.76c.12-.86-.96-1.36-1.48-.68z"/>
-    </svg>
-  `
-  
-  button.addEventListener('click', async (e) => {
-    e.preventDefault()
-    e.stopPropagation()
-    
-    console.log('[Quick Summary] Button clicked, videoId:', videoId)
-    
-    if (!videoId) {
-      console.error('[Quick Summary] No videoId!')
-      return
-    }
-    
-    button.classList.add('qs-loading')
-    
-    try {
-      const response = await browser.runtime.sendMessage({
-        type: 'QUICK_SUMMARY_OPEN_TAB',
-        videoId
-      })
-      console.log('[Quick Summary] Response:', response)
-      
-      setTimeout(() => {
-        button.classList.remove('qs-loading')
-      }, 1000)
-    } catch (error) {
-      console.error('[Quick Summary] Failed to send message:', error)
-      button.classList.remove('qs-loading')
-    }
-  })
-  
-  wrapper.appendChild(button)
-  
-  // Ensure container has relative positioning
-  const computedStyle = window.getComputedStyle(container)
-  if (computedStyle.position === 'static') {
-    container.style.position = 'relative'
-  }
-  
-  container.appendChild(wrapper)
-}
-
-/**
- * Injects CSS styles
- */
-function injectStyles() {
-  const style = document.createElement('style')
-  style.textContent = `
-    .qs-icon-wrapper {
-      position: absolute;
-      top: 20px;
-      left: 16px;
-      z-index: 2147483647;
-      opacity: 0;
-      transition: opacity 0.15s ease;
-      pointer-events: none;
-    }
-    
-    /* Show on hover of parent */
-    ytd-thumbnail:hover .qs-icon-wrapper,
-    ytd-video-preview:hover .qs-icon-wrapper,
-    .qs-icon-wrapper:hover {
-      opacity: 1;
-      pointer-events: auto;
-    }
-    
-    /* Always visible in preview (since user is actively hovering) */
-    ytd-video-preview .qs-icon-wrapper {
-      opacity: 0.9;
-      pointer-events: auto;
-    }
-    
-    .qs-icon-btn {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 40px;
-      height: 40px;
-      border-radius: 50px;
-      background: rgba(0, 0, 0, 0.5);
-      border: none;
-      cursor: pointer;
-    }
-    
-    .qs-icon-btn:hover {
-      transform: scale(1);
-    }
-    
-    .qs-icon-btn:active {
-      transform: scale(1);
-    }
-    
-    .qs-icon-btn svg {
-      width: 18px;
-      height: 18px;
-      fill: white;
-    }
-    
-    .qs-icon-btn.qs-loading {
-      pointer-events: none;
-      animation: qs-pulse 1s infinite;
-    }
-    
-    @keyframes qs-pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.6; }
-    }
-  `
-  document.head.appendChild(style)
-}
 
 /**
  * Extracts video ID from YouTube URL

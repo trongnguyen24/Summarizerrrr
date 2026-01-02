@@ -225,7 +225,10 @@ async function getAllSummaries() {
     request.onsuccess = (event) => {
       const cursor = event.target.result
       if (cursor) {
-        summaries.push(cursor.value)
+        // Only include non-deleted records
+        if (cursor.value.deleted !== true) {
+          summaries.push(cursor.value)
+        }
         cursor.continue()
       } else {
         resolve(summaries)
@@ -240,8 +243,20 @@ async function getSummaryCount() {
   return new Promise((resolve, reject) => {
     const transaction = db.transaction([STORE_NAME], 'readonly')
     const objectStore = transaction.objectStore(STORE_NAME)
-    const request = objectStore.count()
-    request.onsuccess = () => resolve(request.result)
+    const request = objectStore.openCursor()
+    let count = 0
+    request.onsuccess = (event) => {
+      const cursor = event.target.result
+      if (cursor) {
+        // Only count non-deleted records
+        if (cursor.value.deleted !== true) {
+          count++
+        }
+        cursor.continue()
+      } else {
+        resolve(count)
+      }
+    }
     request.onerror = (event) => reject(event.target.error)
   })
 }
@@ -360,20 +375,31 @@ async function addHistory(historyData) {
     const request = objectStore.add(historyData)
 
     request.onsuccess = () => {
-      const countRequest = objectStore.count()
-      countRequest.onsuccess = () => {
-        let count = countRequest.result
-        if (count > HISTORY_LIMIT) {
-          const overage = count - HISTORY_LIMIT
-          const cursorRequest = objectStore.index('date').openCursor()
-          let deletedCount = 0
-          cursorRequest.onsuccess = (event) => {
-            const cursor = event.target.result
-            if (cursor && deletedCount < overage) {
-              cursor.delete()
-              deletedCount++
-              cursor.continue()
-            }
+      // Count only non-deleted items for the limit check
+      const cursorRequest = objectStore.openCursor()
+      let activeCount = 0
+      const activeItems = [] // Store {id, date} of active items for potential deletion
+      
+      cursorRequest.onsuccess = (event) => {
+        const cursor = event.target.result
+        if (cursor) {
+          if (cursor.value.deleted !== true) {
+            activeCount++
+            activeItems.push({ id: cursor.value.id, date: cursor.value.date })
+          }
+          cursor.continue()
+        } else {
+          // After counting, check if we need to delete old items
+          if (activeCount > HISTORY_LIMIT) {
+            // Sort by date ascending (oldest first)
+            activeItems.sort((a, b) => new Date(a.date) - new Date(b.date))
+            const overage = activeCount - HISTORY_LIMIT
+            const itemsToDelete = activeItems.slice(0, overage)
+            
+            // Hard delete the oldest active items
+            itemsToDelete.forEach((item) => {
+              objectStore.delete(item.id)
+            })
           }
         }
       }
@@ -405,7 +431,10 @@ async function getAllHistory() {
     request.onsuccess = (event) => {
       const cursor = event.target.result
       if (cursor) {
-        history.push(cursor.value)
+        // Only include non-deleted records
+        if (cursor.value.deleted !== true) {
+          history.push(cursor.value)
+        }
         cursor.continue()
       } else {
         resolve(history)
@@ -424,8 +453,20 @@ async function getHistoryCount() {
   return new Promise((resolve, reject) => {
     const transaction = db.transaction([HISTORY_STORE_NAME], 'readonly')
     const objectStore = transaction.objectStore(HISTORY_STORE_NAME)
-    const request = objectStore.count()
-    request.onsuccess = () => resolve(request.result)
+    const request = objectStore.openCursor()
+    let count = 0
+    request.onsuccess = (event) => {
+      const cursor = event.target.result
+      if (cursor) {
+        // Only count non-deleted records
+        if (cursor.value.deleted !== true) {
+          count++
+        }
+        cursor.continue()
+      } else {
+        resolve(count)
+      }
+    }
     request.onerror = (event) => reject(event.target.error)
   })
 }
@@ -563,7 +604,10 @@ async function getAllTags() {
     request.onsuccess = (event) => {
       const cursor = event.target.result
       if (cursor) {
-        tags.push(cursor.value)
+        // Only include non-deleted records
+        if (cursor.value.deleted !== true) {
+          tags.push(cursor.value)
+        }
         cursor.continue()
       } else {
         resolve(tags)
@@ -578,8 +622,20 @@ async function getTagsCount() {
   return new Promise((resolve, reject) => {
     const transaction = db.transaction([TAGS_STORE_NAME], 'readonly')
     const objectStore = transaction.objectStore(TAGS_STORE_NAME)
-    const request = objectStore.count()
-    request.onsuccess = () => resolve(request.result)
+    const request = objectStore.openCursor()
+    let count = 0
+    request.onsuccess = (event) => {
+      const cursor = event.target.result
+      if (cursor) {
+        // Only count non-deleted records
+        if (cursor.value.deleted !== true) {
+          count++
+        }
+        cursor.continue()
+      } else {
+        resolve(count)
+      }
+    }
     request.onerror = (event) => reject(event.target.error)
   })
 }
@@ -828,6 +884,62 @@ async function clearAllTags() {
   })
 }
 
+// --- Local Soft Delete Cleanup ---
+const CLEANUP_THRESHOLD_MS = 30 * 24 * 60 * 60 * 1000 // 30 days
+
+/**
+ * Cleanup soft-deleted items older than 30 days
+ * Call once per day when extension opens
+ * @returns {Promise<number>} Total items cleaned up
+ */
+async function cleanupSoftDeletedItems() {
+  console.log('[IndexedDB] 🧹 Starting soft delete cleanup...')
+  const now = Date.now()
+  let totalCleaned = 0
+  
+  for (const storeName of [STORE_NAME, HISTORY_STORE_NAME, TAGS_STORE_NAME]) {
+    const cleaned = await cleanupStore(storeName, now)
+    if (cleaned > 0) {
+      console.log(`[IndexedDB]   └─ ${storeName}: removed ${cleaned} items`)
+    }
+    totalCleaned += cleaned
+  }
+  
+  console.log(`[IndexedDB] ✅ Cleanup complete. Total removed: ${totalCleaned}`)
+  
+  return totalCleaned
+}
+
+async function cleanupStore(storeName, now) {
+  if (!db) db = await openDatabase()
+  
+  return new Promise((resolve) => {
+    const transaction = db.transaction([storeName], 'readwrite')
+    const objectStore = transaction.objectStore(storeName)
+    const request = objectStore.openCursor()
+    let deleted = 0
+    
+    request.onsuccess = (event) => {
+      const cursor = event.target.result
+      if (cursor) {
+        const item = cursor.value
+        if (item.deleted === true) {
+          const deletedTime = new Date(item.updatedAt || item.date || 0).getTime()
+          if (now - deletedTime >= CLEANUP_THRESHOLD_MS) {
+            cursor.delete()
+            deleted++
+          }
+        }
+        cursor.continue()
+      } else {
+        resolve(deleted)
+      }
+    }
+    
+    request.onerror = () => resolve(0) // Fail silently
+  })
+}
+
 export {
   openDatabase,
   addSummary,
@@ -866,6 +978,8 @@ export {
   replaceSummariesStore,
   replaceHistoryStore,
   replaceTagsStore,
+  // Cleanup
+  cleanupSoftDeletedItems,
 }
 
 // --- Soft Delete Functions for Cloud Sync ---

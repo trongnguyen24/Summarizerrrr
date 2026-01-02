@@ -701,6 +701,7 @@ export default defineBackground(() => {
     console.log('[Background] Extension installed, checking auto-sync...')
     await new Promise(resolve => setTimeout(resolve, 2000)) // Wait for storage
     await setupAutoSyncAlarm()
+    await runSoftDeleteCleanup() // Run cleanup on install
   })
   
   // Setup alarm on browser startup
@@ -708,7 +709,32 @@ export default defineBackground(() => {
     console.log('[Background] Browser started, ensuring auto-sync alarm exists...')
     await new Promise(resolve => setTimeout(resolve, 2000)) // Wait for storage
     await setupAutoSyncAlarm()
+    await runSoftDeleteCleanup() // Run cleanup on startup
   })
+  
+  // Soft delete cleanup - runs once per day
+  async function runSoftDeleteCleanup() {
+    try {
+      console.log('[Background] 🧹 Checking soft delete cleanup...')
+      const { cleanupStorage } = await import('../services/wxtStorageService.js')
+      const lastCleanup = await cleanupStorage.getValue()
+      const today = new Date().toDateString()
+      
+      console.log(`[Background] Last cleanup: ${lastCleanup || 'never'}, Today: ${today}`)
+      
+      if (lastCleanup !== today) {
+        console.log('[Background] Running soft delete cleanup...')
+        const { cleanupSoftDeletedItems } = await import('../lib/db/indexedDBService.js')
+        const cleaned = await cleanupSoftDeletedItems()
+        await cleanupStorage.setValue(today)
+        console.log(`[Background] ✅ Cleanup complete. Removed ${cleaned} items older than 30 days.`)
+      } else {
+        console.log('[Background] ⏭️ Cleanup already done today, skipping.')
+      }
+    } catch (e) {
+      console.warn('[Background] ❌ Soft delete cleanup failed:', e)
+    }
+  }
   
   // Listen for alarm trigger
   browser.alarms.onAlarm.addListener(async (alarm) => {

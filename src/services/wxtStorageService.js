@@ -21,3 +21,7 @@ export const themeStorage = storage.defineItem('local:theme', {
 export const appStateStorage = storage.defineItem('local:appState', {
   defaultValue: {},
 })
+
+export const cleanupStorage = storage.defineItem('local:lastCleanupDate', {
+  defaultValue: null,
+})

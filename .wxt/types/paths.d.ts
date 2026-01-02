@@ -40,6 +40,7 @@ declare module "wxt/browser" {
     | "/icon/96.png"
     | "/libs/protobuf.min.js"
     | "/logo.svg"
+    | "/oauth-callback.html"
     | "/pearl.webp"
     | "/popop.html"
     | "/prompt.html"

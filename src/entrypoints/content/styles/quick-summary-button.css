@@ -20,6 +20,21 @@ yt-lockup-view-model:hover .qs-icon-wrapper,
   opacity: 1;
   pointer-events: auto;
 }
+ytd-thumbnail:hover .qs-icon-wrapper,
+yt-thumbnail-view-model:hover .qs-icon-wrapper {
+    display: none !important;
+}
+
+#secondary ytd-thumbnail:hover .qs-icon-wrapper,
+
+#secondary yt-thumbnail-view-model:hover .qs-icon-wrapper {
+    display: block !important;
+}
+
+#secondary .qs-icon-btn {
+    width: 32px !important;
+    height: 32px !important;
+}
 
 /* Always visible in preview - with delay to prevent flicker */
 ytd-video-preview .qs-icon-wrapper {
@@ -32,14 +47,12 @@ ytd-video-preview .qs-icon-wrapper {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   border-radius: 50px;
   background: rgba(0, 0, 0, 0.5);
   border: none;
   cursor: pointer;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
   transition: transform 0.15s ease, background 0.15s ease;
 }
 
@@ -73,18 +86,15 @@ ytd-video-preview .qs-icon-wrapper {
 
 yt-lockup-view-model .qs-icon-wrapper,
 yt-thumbnail-view-model .qs-icon-wrapper {
-  top: 4px;
+  top: 6px;
   left: 4px;
+  
 }
 
-yt-lockup-view-model .qs-icon-btn,
-yt-thumbnail-view-model .qs-icon-btn {
-  width: 32px;
-  height: 32px;
+/* ===== HIDE ON HOME PAGE ===== */
+/* Hide quick summary button on YouTube home page (inside rich-item-renderer) */
+ytd-rich-item-renderer yt-lockup-view-model .qs-icon-wrapper,
+ytd-rich-item-renderer yt-thumbnail-view-model .qs-icon-wrapper {
+  display: none !important;
 }
 
-yt-lockup-view-model .qs-icon-btn svg,
-yt-thumbnail-view-model .qs-icon-btn svg {
-  width: 20px;
-  height: 20px;
-}

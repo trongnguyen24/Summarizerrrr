@@ -39,6 +39,9 @@
   // One-click summarization
   let oneClickSummarization = useOneClickSummarization()
 
+  // Quick Summary mode (triggered by qs=1 URL param from background tab)
+  let isQuickSummaryMode = $state(false)
+
   let isFabAllowedOnDomain = $derived.by(() => {
     // Use the same matching logic as main.js for consistency
     return shouldShowFab(window.location.href, settings.fabDomainControl)
@@ -143,6 +146,37 @@
     browser.runtime.onMessage.addListener((message) => {
       if (message.type === 'TOGGLE_FLOATING_PANEL') {
         togglePanel()
+      }
+
+      // Quick Summary mode: triggered by background script after opening tab
+      if (message.type === 'QUICK_SUMMARY_TRIGGER') {
+        // Only trigger once - ignore retry messages
+        if (isQuickSummaryMode) {
+          console.log('[App] Quick Summary already triggered, ignoring')
+          return
+        }
+
+        console.log('[App] Quick Summary trigger received:', message.videoId)
+
+        // Set Quick Summary mode (prevents re-triggering)
+        isQuickSummaryMode = true
+
+        // Auto-trigger summarization
+        isPanelVisible = true
+        oneClickSummarization.summarizePageContent().then(() => {
+          // Update title with ✅ prefix when done
+          const originalTitle = document.title
+          const checkSummaryDone = setInterval(() => {
+            const status = oneClickSummarization.statusToDisplay()
+            if (!status.isLoading && !originalTitle.startsWith('✅')) {
+              document.title = `✅ ${originalTitle}`
+              clearInterval(checkSummaryDone)
+            }
+          }, 500)
+
+          // Cleanup after 60s max
+          setTimeout(() => clearInterval(checkSummaryDone), 60000)
+        })
       }
     })
 

@@ -932,6 +932,57 @@ export default defineBackground(() => {
       return true
     }
 
+    // Quick Summary - Open YouTube video in background tab
+    if (message.type === 'QUICK_SUMMARY_OPEN_TAB') {
+      ;(async () => {
+        try {
+          console.log('[Background] QUICK_SUMMARY_OPEN_TAB received:', message)
+          const { videoId } = message
+          console.log('[Background] videoId extracted:', videoId)
+          
+          // Don't use qs=1 param - YouTube strips it
+          // Instead, we'll send a message to the tab after it loads
+          const url = `https://www.youtube.com/watch?v=${videoId}`
+          console.log('[Background] Opening URL:', url)
+          
+          // Open tab in background (active: false = no focus switch)
+          const tab = await browser.tabs.create({ 
+            url, 
+            active: false 
+          })
+          
+          console.log(`[Background] Quick Summary tab opened: ${tab.id}`)
+          
+          // Wait for tab to load, then send message to trigger summarization
+          const sendQuickSummaryTrigger = async (tabId, retries = 5) => {
+            for (let i = 0; i < retries; i++) {
+              try {
+                await new Promise(r => setTimeout(r, 2000)) // Wait 2s between attempts
+                await browser.tabs.sendMessage(tabId, { 
+                  type: 'QUICK_SUMMARY_TRIGGER',
+                  videoId 
+                })
+                console.log(`[Background] QUICK_SUMMARY_TRIGGER sent to tab ${tabId}`)
+                return
+              } catch (e) {
+                console.log(`[Background] Retry ${i + 1}/${retries} - content script not ready`)
+              }
+            }
+            console.error('[Background] Failed to send QUICK_SUMMARY_TRIGGER after retries')
+          }
+          
+          // Fire and forget - don't block response
+          sendQuickSummaryTrigger(tab.id)
+          
+          sendResponse({ success: true, tabId: tab.id })
+        } catch (error) {
+          console.error('[Background] Failed to open Quick Summary tab:', error)
+          sendResponse({ success: false, error: error.message })
+        }
+      })()
+      return true
+    }
+
     // YouTube Comments Fetch - Forward to content script in same tab
     if (message.action === 'fetchYouTubeComments') {
       ;(async () => {

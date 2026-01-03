@@ -8,6 +8,7 @@ let archiveList = $state([])
 let historyList = $state([])
 let selectedSummary = $state(null)
 let selectedSummaryId = $state(null)
+let isDataLoaded = $state(false)
 
 function getUrlParams() {
   const params = new URLSearchParams(window.location.search)
@@ -36,9 +37,14 @@ async function loadData() {
 
     const { tab, summaryId } = getUrlParams()
     const result = await initializeFromUrl(tab, summaryId)
+    
+    // Mark data as loaded AFTER initialization is complete
+    isDataLoaded = true
+    
     return result
   } catch (error) {
     console.error('Failed to initialize DB or load data:', error)
+    isDataLoaded = true // Still mark as loaded to prevent blocking
     return { activeTab: 'history' }
   } finally {
     window.scrollTo({ top: scrollPosition, behavior: 'instant' })
@@ -72,7 +78,20 @@ async function initializeFromUrl(urlTab, urlSummaryId) {
 }
 
 function validateSelectedItem(activeTab) {
+  // Don't validate until data is loaded
+  if (!isDataLoaded) return
   if (!selectedSummaryId) return
+
+  // IMPORTANT: Check if activeTab matches URL to avoid stale value issue
+  // When isDataLoaded becomes true, effect may run with stale activeTab value
+  // before App.svelte updates activeTab from loadData result
+  const urlTab = getUrlParams().tab
+  const expectedTab = urlTab === 'archive' ? 'archive' : 'history'
+  
+  // Skip if activeTab doesn't match URL - this means activeTab hasn't been updated yet
+  if (activeTab !== expectedTab) {
+    return
+  }
 
   const currentList = activeTab === 'archive' ? archiveList : historyList
   const found = currentList.find((s) => s.id === selectedSummaryId)

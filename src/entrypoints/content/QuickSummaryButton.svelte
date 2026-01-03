@@ -44,7 +44,7 @@
   <button
     class="qs-icon-btn"
     class:qs-loading={isLoading}
-    title="Quick Summary (opens in background)"
+    title="Quick Summary"
     onclick={handleClick}
     disabled={isLoading}
   >

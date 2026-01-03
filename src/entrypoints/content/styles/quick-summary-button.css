@@ -26,8 +26,8 @@ yt-thumbnail-view-model:hover .qs-icon-wrapper {
 }
 
 #secondary ytd-thumbnail:hover .qs-icon-wrapper,
-
-#secondary yt-thumbnail-view-model:hover .qs-icon-wrapper {
+#secondary yt-thumbnail-view-model:hover .qs-icon-wrapper,
+ytd-playlist-video-renderer:hover .qs-icon-wrapper {
     display: block !important;
 }
 
@@ -98,3 +98,7 @@ ytd-rich-item-renderer yt-thumbnail-view-model .qs-icon-wrapper {
   display: none !important;
 }
 
+yt-horizontal-list-renderer ytd-thumbnail:hover .qs-icon-wrapper,
+yt-horizontal-list-renderer yt-thumbnail-view-model:hover .qs-icon-wrapper {
+  display: block !important;
+}

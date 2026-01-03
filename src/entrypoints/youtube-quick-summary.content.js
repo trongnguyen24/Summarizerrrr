@@ -1,9 +1,8 @@
 // @ts-nocheck
 /**
  * YouTube Quick Summary Content Script
- * Double Injection Strategy:
- * 1. Static: Inject into ytd-thumbnail when hovering
- * 2. Dynamic: Inject into ytd-video-preview when it appears
+ * Component Renderer Targeting Strategy:
+ * Target parent Component Renderers for consistent behavior across all YouTube layouts
  */
 import { mount, unmount } from 'svelte'
 import QuickSummaryButton from './content/QuickSummaryButton.svelte'
@@ -13,89 +12,80 @@ export default defineContentScript({
   runAt: 'document_end',
   
   main() {
-    // Multiple selectors for different YouTube layouts
-    const THUMBNAIL_SELECTORS = [
-      'ytd-thumbnail',                    // Home, Search, Channel pages
-      'yt-thumbnail-view-model',          // Watch page sidebar (new layout)
-      'yt-lockup-view-model',             // Watch page sidebar (container)
-    ].join(', ')
+    // ===== COMPONENT RENDERER CONFIGURATION =====
+    
+    // Allowed Component Renderers where the button should appear
+    const ALLOWED_RENDERERS = [
+      'ytd-rich-item-renderer',       // Home, Channel Home (new layout)
+      'ytd-video-renderer',           // Search results
+      'ytd-compact-video-renderer',   // Watch Sidebar (old layout)
+      'yt-lockup-view-model',         // Watch Sidebar (new layout)
+      'ytd-grid-video-renderer',      // Channel Videos (old layout)
+      'ytd-playlist-video-renderer',  // Playlist items
+    ]
+    
+    // Excluded Component Renderers (Shorts, Ads, etc.)
+    const EXCLUDED_RENDERERS = [
+      'ytd-reel-item-renderer',       // Shorts
+      'ytd-ad-slot-renderer',         // Ads
+    ]
     
     const PREVIEW_SELECTOR = 'ytd-video-preview'
-    const INJECTED_MARKER = 'data-qs-injected'
-    
-    // Current video ID being tracked
-    let currentVideoId = null
+    const ACTIVE_MARKER = 'data-qs-active'
     
     // Store mounted components for cleanup
     const mountedComponents = new WeakMap()
     
-    // ===== STATIC INJECTION: Into thumbnails =====
+    // ===== STATIC INJECTION: Into Component Renderers =====
     document.body.addEventListener('mouseover', (e) => {
-      // Try to find the thumbnail container - prioritize larger containers
-      let thumbnail = e.target.closest('yt-lockup-view-model')  // Watch page sidebar
-      if (!thumbnail) {
-        thumbnail = e.target.closest('ytd-thumbnail')  // Home, Search pages
-      }
-      if (!thumbnail) {
-        thumbnail = e.target.closest('yt-thumbnail-view-model')  // Fallback
-      }
-      if (!thumbnail) return
+      // 1. Find the nearest allowed Component Renderer
+      const container = e.target.closest(ALLOWED_RENDERERS.join(','))
       
-      // Skip if already injected
-      if (thumbnail.hasAttribute(INJECTED_MARKER)) return
+      // 2. Validate Container
+      if (!container) return
+      if (container.hasAttribute(ACTIVE_MARKER)) return
       
-      // Get video link and ID - different selectors for different layouts
-      let link = thumbnail.querySelector('a#thumbnail')  // Old layout
-      if (!link) {
-        link = thumbnail.querySelector('a[href*="/watch"]')  // New layout
+      // 3. Check exclusions (Shorts, Ads, etc.)
+      if (container.closest(EXCLUDED_RENDERERS.join(','))) return
+      
+      // 4. Find thumbnail and link within the container
+      // Support both old (ytd-thumbnail) and new (yt-thumbnail-view-model) layouts
+      let thumbnailNode = container.querySelector('ytd-thumbnail')
+      if (!thumbnailNode) {
+        thumbnailNode = container.querySelector('yt-thumbnail-view-model')
       }
-      if (!link) return
+      const linkNode = container.querySelector('a#thumbnail') || container.querySelector('a[href*="/watch"]')
       
-      const videoId = extractVideoId(link.href)
+      if (!thumbnailNode || !linkNode) return
+      
+      // 5. Validate link (must be a watch URL)
+      if (!linkNode.href.includes('/watch?v=')) return
+      
+      // 6. Extract video ID
+      const videoId = extractVideoId(linkNode.href)
       if (!videoId) return
       
-      // Track current video ID for preview injection
-      currentVideoId = videoId
+      // 7. Mark container as active and inject button into thumbnail
+      container.setAttribute(ACTIVE_MARKER, 'true')
+      injectButton(thumbnailNode, videoId)
       
-      // Mark as injected
-      thumbnail.setAttribute(INJECTED_MARKER, 'true')
-      
-      // Find the actual thumbnail image container to inject into
-      let targetContainer = thumbnail
-      
-      // For watch page sidebar, inject into the thumbnail image container
-      const thumbnailImage = thumbnail.querySelector('yt-thumbnail-view-model')
-      if (thumbnailImage) {
-        targetContainer = thumbnailImage
-        // Ensure relative positioning
-        const style = window.getComputedStyle(targetContainer)
-        if (style.position === 'static') {
-          targetContainer.style.position = 'relative'
-        }
-      }
-      
-      injectButton(targetContainer, videoId)
     }, { passive: true })
     
     // ===== DYNAMIC INJECTION: Into video preview =====
-    // Watch for ytd-video-preview appearing or changing
     const observer = new MutationObserver((mutations) => {
       for (const mutation of mutations) {
-        // Check for added nodes
         for (const node of mutation.addedNodes) {
           if (node.nodeType === Node.ELEMENT_NODE) {
             checkAndInjectPreview(node)
           }
         }
         
-        // Check for attribute changes on video-preview
         if (mutation.type === 'attributes' && mutation.target.matches?.(PREVIEW_SELECTOR)) {
           checkAndInjectPreview(mutation.target)
         }
       }
     })
     
-    // Start observing
     observer.observe(document.body, {
       childList: true,
       subtree: true,
@@ -103,57 +93,35 @@ export default defineContentScript({
       attributeFilter: ['class', 'style', 'hidden']
     })
     
-    /**
-     * Check if element is/contains video-preview and inject button
-     */
     function checkAndInjectPreview(element) {
       const preview = element.matches?.(PREVIEW_SELECTOR) 
         ? element 
         : element.querySelector?.(PREVIEW_SELECTOR)
       
       if (!preview) return
+      if (preview.hasAttribute('hidden') || preview.style.display === 'none') return
+      if (preview.querySelector('.qs-button-wrapper')) return
       
-      // Check if preview is visible (not hidden)
-      if (preview.hasAttribute('hidden') || preview.style.display === 'none') {
-        return
-      }
-      
-      // Remove old injected button if any
-      const existingWrapper = preview.querySelector('.qs-button-wrapper')
-      if (existingWrapper) {
-        const comp = mountedComponents.get(existingWrapper)
-        if (comp) {
-          unmount(comp)
-          mountedComponents.delete(existingWrapper)
-        }
-        existingWrapper.remove()
-      }
-      
-      // Try to get video ID from preview's video element or current tracked ID
-      let videoId = null
-      
-      // Method 1: Try to get from preview's internal link
       const previewLink = preview.querySelector('a[href*="watch"]')
-      if (previewLink) {
-        videoId = extractVideoId(previewLink.href)
-      }
+      if (!previewLink) return
       
-      // Method 2: Use tracked video ID from thumbnail hover
-      if (!videoId && currentVideoId) {
-        videoId = currentVideoId
-      }
-      
+      const videoId = extractVideoId(previewLink.href)
       if (!videoId) return
       
-      // Inject into preview
       injectButton(preview, videoId)
     }
     
-    // Also periodically check for visible preview (fallback)
+    // Periodically check for visible preview (fallback)
     setInterval(() => {
       const preview = document.querySelector(`${PREVIEW_SELECTOR}:not([hidden])`)
-      if (preview && !preview.querySelector('.qs-button-wrapper') && currentVideoId) {
-        injectButton(preview, currentVideoId)
+      if (preview && !preview.querySelector('.qs-button-wrapper')) {
+        const previewLink = preview.querySelector('a[href*="watch"]')
+        if (previewLink) {
+          const videoId = extractVideoId(previewLink.href)
+          if (videoId) {
+            injectButton(preview, videoId)
+          }
+        }
       }
     }, 500)
     
@@ -161,11 +129,9 @@ export default defineContentScript({
      * Inject Svelte button component into container
      */
     function injectButton(container, videoId) {
-      // Create wrapper element
       const wrapper = document.createElement('div')
       wrapper.className = 'qs-button-wrapper'
       
-      // Ensure container has relative positioning
       const computedStyle = window.getComputedStyle(container)
       if (computedStyle.position === 'static') {
         container.style.position = 'relative'
@@ -173,7 +139,6 @@ export default defineContentScript({
       
       container.appendChild(wrapper)
       
-      // Mount Svelte component
       const component = mount(QuickSummaryButton, {
         target: wrapper,
         props: { videoId }
@@ -182,7 +147,7 @@ export default defineContentScript({
       mountedComponents.set(wrapper, component)
     }
     
-    console.log('[Quick Summary] Content script initialized (Svelte component)')
+    console.log('[Quick Summary] Content script initialized (Component Renderer strategy)')
   }
 })
 

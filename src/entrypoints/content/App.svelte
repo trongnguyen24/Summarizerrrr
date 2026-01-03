@@ -161,22 +161,69 @@
         // Set Quick Summary mode (prevents re-triggering)
         isQuickSummaryMode = true
 
+        // Track current emoji state and base title (without emoji)
+        let currentEmoji = '⏳'
+        // Regex with alternation for multi-byte emoji characters
+        const emojiPattern = /^(⏳|🎉|🤯)\s*/
+        let baseTitle = document.title.replace(emojiPattern, '') // Remove any existing emoji
+
+        // Function to ensure emoji is present in title
+        const ensureEmojiInTitle = () => {
+          const currentTitle = document.title
+          // Check if title doesn't start with our emoji
+          if (!currentTitle.startsWith(currentEmoji)) {
+            // Get base title (remove any emoji prefix if exists)
+            baseTitle = currentTitle.replace(emojiPattern, '')
+            document.title = `${currentEmoji} ${baseTitle}`
+          }
+        }
+
+        // Apply emoji immediately
+        ensureEmojiInTitle()
+
+        // Watch for title changes using MutationObserver
+        const titleElement = document.querySelector('title')
+        let titleObserver = null
+
+        if (titleElement) {
+          titleObserver = new MutationObserver(() => {
+            ensureEmojiInTitle()
+          })
+
+          titleObserver.observe(titleElement, {
+            childList: true,
+            characterData: true,
+            subtree: true,
+          })
+        }
+
+        // Also use interval as fallback (some SPAs don't trigger mutations)
+        const emojiInterval = setInterval(ensureEmojiInTitle, 1000)
+
         // Auto-trigger summarization
         isPanelVisible = true
-        oneClickSummarization.summarizePageContent().then(() => {
-          // Update title with ✅ prefix when done
-          const originalTitle = document.title
-          const checkSummaryDone = setInterval(() => {
-            const status = oneClickSummarization.statusToDisplay()
-            if (!status.isLoading && !originalTitle.startsWith('✅')) {
-              document.title = `✅ ${originalTitle}`
-              clearInterval(checkSummaryDone)
-            }
-          }, 500)
+        oneClickSummarization
+          .summarizePageContent()
+          .then(() => {
+            // Update emoji to success when done
+            const checkSummaryDone = setInterval(() => {
+              const status = oneClickSummarization.statusToDisplay()
+              if (!status.isLoading) {
+                currentEmoji = '🎉'
+                ensureEmojiInTitle()
+                clearInterval(checkSummaryDone)
+              }
+            }, 500)
 
-          // Cleanup after 60s max
-          setTimeout(() => clearInterval(checkSummaryDone), 60000)
-        })
+            // Cleanup after 60s max
+            setTimeout(() => clearInterval(checkSummaryDone), 60000)
+          })
+          .catch((error) => {
+            // Show error emoji on failure
+            console.error('[App] Quick Summary failed:', error)
+            currentEmoji = '🤯'
+            ensureEmojiInTitle()
+          })
       }
     })
 

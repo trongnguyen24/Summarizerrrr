@@ -19,6 +19,7 @@
     getHistoryById,
     softDeleteSummary,
     softDeleteHistory,
+    removeFromArchiveByHistoryId,
   } from '@/lib/db/indexedDBService'
   import TabArchive from '@/components/navigation/TabArchive.svelte'
   import TagManagement from '@/components/displays/archive/TagManagement.svelte'
@@ -279,6 +280,39 @@
     }
   }
 
+  async function handleRemoveFromArchive(item) {
+    try {
+      // Xóa item khỏi archive
+      await removeFromArchiveByHistoryId(item.id)
+
+      // Trigger cloud sync after removing from archive
+      try {
+        const { triggerSync } = await import(
+          '@/services/cloudSync/cloudSyncService.svelte.js'
+        )
+        triggerSync()
+      } catch (syncError) {
+        console.warn(
+          'Failed to trigger sync after removing from archive:',
+          syncError,
+        )
+      }
+
+      // Làm mới danh sách
+      await refreshSummaries()
+
+      // Invalidate tags cache
+      const { invalidateTagsCache } = await import(
+        '@/stores/tagsCacheStore.svelte.js'
+      )
+      invalidateTagsCache()
+
+      console.log('Item removed from archive successfully')
+    } catch (error) {
+      console.error('Error removing item from archive:', error)
+    }
+  }
+
   function handleDeleteClick(id) {
     if (isConfirmingDelete && deleteCandidateId === id) {
       clearTimeout(deleteTimeoutId)
@@ -411,9 +445,9 @@
               {#if activeTab === 'history'}
                 {#if item.isArchived}
                   <button
-                    class="p-1 cursor-not-allowed"
-                    title={$t('tags.archived')}
-                    disabled
+                    onclick={() => handleRemoveFromArchive(item)}
+                    class="p-1 hover:text-text-primary"
+                    title={$t('tags.remove_from_archive')}
                   >
                     <Icon
                       icon="heroicons:archive-box-solid"
@@ -522,9 +556,9 @@
               {#if activeTab === 'history'}
                 {#if item.isArchived}
                   <button
-                    class="p-1 opacity-50 cursor-not-allowed"
-                    title={$t('tags.archived')}
-                    disabled
+                    onclick={() => handleRemoveFromArchive(item)}
+                    class="p-1 hover:text-text-primary"
+                    title={$t('tags.remove_from_archive')}
                   >
                     <Icon
                       icon="heroicons:archive-box-solid"

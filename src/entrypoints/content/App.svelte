@@ -42,6 +42,22 @@
   // Quick Summary mode (triggered by qs=1 URL param from background tab)
   let isQuickSummaryMode = $state(false)
 
+  // Quick Summary cleanup references (for memory leak prevention)
+  let emojiInterval = null
+  let titleObserver = null
+
+  // Cleanup function for emoji tracking
+  function cleanupEmojiTracking() {
+    if (emojiInterval) {
+      clearInterval(emojiInterval)
+      emojiInterval = null
+    }
+    if (titleObserver) {
+      titleObserver.disconnect()
+      titleObserver = null
+    }
+  }
+
   let isFabAllowedOnDomain = $derived.by(() => {
     // Use the same matching logic as main.js for consistency
     return shouldShowFab(window.location.href, settings.fabDomainControl)
@@ -183,7 +199,9 @@
 
         // Watch for title changes using MutationObserver
         const titleElement = document.querySelector('title')
-        let titleObserver = null
+
+        // Cleanup any existing observers/intervals before creating new ones
+        cleanupEmojiTracking()
 
         if (titleElement) {
           titleObserver = new MutationObserver(() => {
@@ -198,7 +216,7 @@
         }
 
         // Also use interval as fallback (some SPAs don't trigger mutations)
-        const emojiInterval = setInterval(ensureEmojiInTitle, 1000)
+        emojiInterval = setInterval(ensureEmojiInTitle, 1000)
 
         // Auto-trigger summarization
         isPanelVisible = true
@@ -212,6 +230,8 @@
                 currentEmoji = '🎉'
                 ensureEmojiInTitle()
                 clearInterval(checkSummaryDone)
+                // Cleanup emoji tracking after success
+                cleanupEmojiTracking()
               }
             }, 500)
 
@@ -223,6 +243,8 @@
             console.error('[App] Quick Summary failed:', error)
             currentEmoji = '🤯'
             ensureEmojiInTitle()
+            // Cleanup emoji tracking after error
+            cleanupEmojiTracking()
           })
       }
     })
@@ -289,6 +311,9 @@
     if (themeUnsubscribe) {
       themeUnsubscribe()
     }
+
+    // Cleanup Quick Summary emoji tracking
+    cleanupEmojiTracking()
   })
 </script>
 

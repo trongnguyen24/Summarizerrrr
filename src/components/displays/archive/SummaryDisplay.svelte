@@ -174,6 +174,9 @@
     }
   })
 
+  // State to track scroll preservation
+  let lastScrollInfo = $state({ summaryId: null, tabId: null })
+
   // Effect để highlight code và cuộn trang khi selectedSummary hoặc activeTabId thay đổi
   $effect(() => {
     if (selectedSummary && activeTabId && parsedContent) {
@@ -193,8 +196,19 @@
             })
         }
 
-        // Cuộn lên đầu trang khi tab thay đổi
-        window.scrollTo({ top: 0, behavior: 'instant' })
+        // Chỉ cuộn lên đầu trang NẾU ID của tóm tắt hoặc tab thay đổi thực sự
+        const shouldScroll =
+          selectedSummary.id !== lastScrollInfo.summaryId ||
+          activeTabId !== lastScrollInfo.tabId
+
+        if (shouldScroll) {
+          window.scrollTo({ top: 0, behavior: 'instant' })
+          // Cập nhật thông tin scroll mới
+          lastScrollInfo = {
+            summaryId: selectedSummary.id,
+            tabId: activeTabId,
+          }
+        }
       })
     }
   })

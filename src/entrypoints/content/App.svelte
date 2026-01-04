@@ -177,6 +177,50 @@
         // Set Quick Summary mode (prevents re-triggering)
         isQuickSummaryMode = true
 
+        // ===== PAUSE YOUTUBE VIDEO =====
+        // Pause video immediately to prevent autoplay in background tab
+        const pauseVideo = () => {
+          const video = document.querySelector('video.html5-main-video')
+          if (video && !video.paused) {
+            video.pause()
+            console.log('[App] Quick Summary: Video paused')
+            return true
+          }
+          return false
+        }
+
+        // Try to pause immediately
+        pauseVideo()
+
+        // Watch for video element appearing (YouTube loads video async)
+        const videoObserver = new MutationObserver(() => {
+          if (pauseVideo()) {
+            videoObserver.disconnect()
+          }
+        })
+
+        videoObserver.observe(document.body, {
+          childList: true,
+          subtree: true,
+        })
+
+        // Also try pausing every 100ms for first 3 seconds (reliable fallback)
+        let pauseAttempts = 0
+        const pauseInterval = setInterval(() => {
+          pauseAttempts++
+          if (pauseVideo() || pauseAttempts >= 30) {
+            clearInterval(pauseInterval)
+            videoObserver.disconnect()
+          }
+        }, 100)
+
+        // Cleanup observer after 5s max
+        setTimeout(() => {
+          videoObserver.disconnect()
+          clearInterval(pauseInterval)
+        }, 5000)
+        // ===== END PAUSE YOUTUBE VIDEO =====
+
         // Track current emoji state and base title (without emoji)
         let currentEmoji = '⏳'
         // Regex with alternation for multi-byte emoji characters

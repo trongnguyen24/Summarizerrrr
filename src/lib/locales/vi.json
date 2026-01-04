@@ -495,7 +495,11 @@
     "library": "Lưu trữ",
     "error": "Lỗi",
     "enabled": "Đang bật",
-    "disabled": "Đang tắt"
+    "disabled": "Đang tắt",
+    "permissionRequired": "Yêu cầu quyền truy cập",
+    "permissionDescription": "Firefox yêu cầu quyền truy cập máy chủ Cloud Sync. Vui lòng cấp quyền để bật Cloud Sync.",
+    "grantPermission": "Cấp quyền",
+    "requesting": "Đang yêu cầu..."
   },
   "notifications": {
     "no_notifications": "Không có thông báo",

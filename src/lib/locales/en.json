@@ -495,7 +495,11 @@
     "library": "Archive",
     "error": "Error",
     "enabled": "Enabled",
-    "disabled": "Disabled"
+    "disabled": "Disabled",
+    "permissionRequired": "Permission Required",
+    "permissionDescription": "Firefox requires permission to access the Cloud Sync server. Please grant permission to enable Cloud Sync.",
+    "grantPermission": "Grant Permission",
+    "requesting": "Requesting..."
   },
   "notifications": {
     "no_notifications": "No notifications",

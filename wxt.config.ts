@@ -201,7 +201,7 @@ export default defineConfig({
           'identity',
           'alarms',
         ],
-        optional_permissions: ['<all_urls>'],
+        optional_permissions: ['<all_urls>', '*://oauth.summarizerrrr.com/*'],
         host_permissions: [
           'http://127.0.0.1:11434/*',
           'http://localhost:11434/*',
@@ -220,7 +220,6 @@ export default defineConfig({
           '*://openrouter.ai/*',
           '*://api.cerebras.ai/*',
           '*://api.deepseek.com/*',
-          '*://oauth.summarizerrrr.com/*',
         ],
         action: {
           default_icon: 'icon/48.png',

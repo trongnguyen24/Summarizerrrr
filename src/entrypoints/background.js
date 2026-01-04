@@ -940,6 +940,11 @@ export default defineBackground(() => {
           const { videoId } = message
           console.log('[Background] videoId extracted:', videoId)
           
+          // Get Quick Summary autoplay setting
+          const currentSettings = await settingsStorage.getValue()
+          const autoplayMode = currentSettings?.quickSummaryAutoplay || 'pause'
+          console.log('[Background] Quick Summary autoplay mode:', autoplayMode)
+          
           // Don't use qs=1 param - YouTube strips it
           // Instead, we'll send a message to the tab after it loads
           const url = `https://www.youtube.com/watch?v=${videoId}`
@@ -960,7 +965,8 @@ export default defineBackground(() => {
                 await new Promise(r => setTimeout(r, 2000)) // Wait 2s between attempts
                 await browser.tabs.sendMessage(tabId, { 
                   type: 'QUICK_SUMMARY_TRIGGER',
-                  videoId 
+                  videoId,
+                  autoplayMode // Send autoplay mode to content script
                 })
                 console.log(`[Background] QUICK_SUMMARY_TRIGGER sent to tab ${tabId}`)
                 return

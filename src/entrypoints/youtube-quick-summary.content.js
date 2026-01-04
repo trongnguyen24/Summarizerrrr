@@ -7,12 +7,20 @@
  */
 import { mount, unmount } from 'svelte'
 import QuickSummaryButton from './content/QuickSummaryButton.svelte'
+import { settingsStorage } from '@/services/wxtStorageService.js'
 
 export default defineContentScript({
   matches: ['*://*.youtube.com/*'],
   runAt: 'document_end',
   
-  main() {
+  async main() {
+    // Check if Quick Summary feature is enabled
+    const storedSettings = await settingsStorage.getValue()
+    if (storedSettings?.quickSummaryEnabled === false) {
+      console.log('[Quick Summary] Feature disabled in settings')
+      return
+    }
+
     // Multiple selectors for different YouTube layouts
     const THUMBNAIL_SELECTORS = [
       'ytd-thumbnail',                    // Home, Search, Channel pages

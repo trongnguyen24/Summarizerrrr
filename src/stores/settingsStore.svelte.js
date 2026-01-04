@@ -55,6 +55,10 @@ const DEFAULT_SETTINGS = {
     blacklist: [],
   },
 
+  // Quick Summary (YouTube thumbnail hover)
+  quickSummaryEnabled: true, // Enable/disable quick summary feature
+  quickSummaryAutoplay: 'pause', // 'auto' | 'pause' - YouTube autoplay behavior
+
   // Firefox Permissions - Persist permission states across tab switches
   firefoxPermissions: {
     httpsPermission: false,

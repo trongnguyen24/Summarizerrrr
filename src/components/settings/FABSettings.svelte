@@ -259,6 +259,124 @@
       </div>
     </div>
   </div>
+  <!-- Quick Summary Settings Section -->
+  <div class="flex flex-col gap-1 mt-2 px-5">
+    <label for="fab-settings-toggle" class="block font-bold text-text-primary"
+      >Quick Summary</label
+    >
+    <p class="flex text-muted">
+      Summarize YouTube videos by hovering over thumbnails
+    </p>
+  </div>
+
+  <div class="px-5 py-4 flex flex-col sm:flex-row gap-4">
+    <Preview
+      title={$t('settings.fab.preview')}
+      class=" w-full sm:w-60 h-40 shrink-0 mx-auto"
+    >
+      <div
+        class="w-44 flex justify-center items-center z-30 border border-surface-2 absolute h-26 top-1/2 -translate-y-1/2 left-1/2 rounded-md -translate-x-1/2 bg-surface-1"
+      >
+        <div
+          class="absolute top-1 left-1 flex items-center justify-center h-7 w-7 text-gray-500/50 overflow-hidden rounded-4xl ease-in-out duration-800 transition-all
+          {settings.quickSummaryEnabled
+            ? 'opacity-100 scale-100'
+            : 'opacity-0 scale-85'}"
+        >
+          <div
+            class=" bg-[hsl(224,35%,96%)] dark:bg-[#2D303E] flex justify-center items-center size-16"
+          >
+            <div
+              class="rounded-4xl size-6 flex justify-center items-center border border-slate-500/10"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="14"
+                height="14"
+                viewBox="0 0 16 16"
+              >
+                <path
+                  fill="currentColor"
+                  d="M7.53 1.282a.5.5 0 0 1 .94 0l.478 1.306a7.5 7.5 0 0 0 4.464 4.464l1.305.478a.5.5 0 0 1 0 .94l-1.305.478a7.5 7.5 0 0 0-4.464 4.464l-.478 1.305a.5.5 0 0 1-.94 0l-.478-1.305a7.5 7.5 0 0 0-4.464-4.464L1.282 8.47a.5.5 0 0 1 0-.94l1.306-.478a7.5 7.5 0 0 0 4.464-4.464Z"
+                />
+              </svg>
+            </div>
+          </div>
+        </div>
+        <Icon
+          class="text-text-primary/5"
+          icon="mdi:youtube"
+          width="80"
+          height="80"
+        />
+      </div>
+    </Preview>
+    <div class="flex-auto">
+      <div class="flex flex-col gap-4">
+        <!-- Enable/Disable Quick Summary -->
+        <div class="flex flex-col gap-2">
+          <!-- svelte-ignore a11y_label_has_associated_control -->
+          <label class="block text-text-secondary">Enable Feature</label>
+          <div class="grid w-full grid-cols-2 gap-1">
+            <ButtonSet
+              title="Disabled"
+              class="setting-btn {!settings.quickSummaryEnabled
+                ? 'active'
+                : ''}"
+              onclick={() => handleUpdateSetting('quickSummaryEnabled', false)}
+              Description="Hide quick summary button on thumbnails"
+            >
+              <Icon
+                icon="heroicons:eye-slash-20-solid"
+                width="20"
+                height="20"
+              />
+            </ButtonSet>
+            <ButtonSet
+              title="Enabled"
+              class="setting-btn {settings.quickSummaryEnabled ? 'active' : ''}"
+              onclick={() => handleUpdateSetting('quickSummaryEnabled', true)}
+              Description="Show quick summary button when hovering"
+            >
+              <Icon icon="heroicons:eye-20-solid" width="20" height="20" />
+            </ButtonSet>
+          </div>
+        </div>
+
+        <!-- Autoplay Mode -->
+        {#if settings.quickSummaryEnabled}
+          <div class="flex flex-col gap-2">
+            <!-- svelte-ignore a11y_label_has_associated_control -->
+            <label class="block text-text-secondary">YouTube Autoplay</label>
+            <div class="grid w-full grid-cols-2 gap-1">
+              <ButtonSet
+                title="Pause"
+                class="setting-btn {settings.quickSummaryAutoplay === 'pause'
+                  ? 'active'
+                  : ''}"
+                onclick={() =>
+                  handleUpdateSetting('quickSummaryAutoplay', 'pause')}
+                Description="Pause video before generating summary"
+              >
+                <Icon icon="heroicons:pause-20-solid" width="20" height="20" />
+              </ButtonSet>
+              <ButtonSet
+                title="Auto"
+                class="setting-btn {settings.quickSummaryAutoplay === 'auto'
+                  ? 'active'
+                  : ''}"
+                onclick={() =>
+                  handleUpdateSetting('quickSummaryAutoplay', 'auto')}
+                Description="Keep video playing while summarizing"
+              >
+                <Icon icon="heroicons:play-20-solid" width="20" height="20" />
+              </ButtonSet>
+            </div>
+          </div>
+        {/if}
+      </div>
+    </div>
+  </div>
 
   <div class="flex flex-col gap-1 mt-2 px-5">
     <label for="fab-settings-toggle" class="block font-bold text-text-primary"

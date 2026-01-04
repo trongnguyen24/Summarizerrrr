@@ -177,48 +177,56 @@
         // Set Quick Summary mode (prevents re-triggering)
         isQuickSummaryMode = true
 
-        // ===== PAUSE YOUTUBE VIDEO =====
-        // Pause video immediately to prevent autoplay in background tab
-        const pauseVideo = () => {
-          const video = document.querySelector('video.html5-main-video')
-          if (video && !video.paused) {
-            video.pause()
-            console.log('[App] Quick Summary: Video paused')
-            return true
+        // ===== PAUSE YOUTUBE VIDEO (only if autoplayMode is 'pause') =====
+        // Get autoplay mode from message (default to 'pause' for backward compatibility)
+        const autoplayMode = message.autoplayMode || 'pause'
+        console.log('[App] Quick Summary autoplay mode:', autoplayMode)
+
+        if (autoplayMode === 'pause') {
+          // Pause video immediately to prevent autoplay in background tab
+          const pauseVideo = () => {
+            const video = document.querySelector('video.html5-main-video')
+            if (video && !video.paused) {
+              video.pause()
+              console.log('[App] Quick Summary: Video paused')
+              return true
+            }
+            return false
           }
-          return false
-        }
 
-        // Try to pause immediately
-        pauseVideo()
+          // Try to pause immediately
+          pauseVideo()
 
-        // Watch for video element appearing (YouTube loads video async)
-        const videoObserver = new MutationObserver(() => {
-          if (pauseVideo()) {
+          // Watch for video element appearing (YouTube loads video async)
+          const videoObserver = new MutationObserver(() => {
+            if (pauseVideo()) {
+              videoObserver.disconnect()
+            }
+          })
+
+          videoObserver.observe(document.body, {
+            childList: true,
+            subtree: true,
+          })
+
+          // Also try pausing every 100ms for first 3 seconds (reliable fallback)
+          let pauseAttempts = 0
+          const pauseInterval = setInterval(() => {
+            pauseAttempts++
+            if (pauseVideo() || pauseAttempts >= 30) {
+              clearInterval(pauseInterval)
+              videoObserver.disconnect()
+            }
+          }, 100)
+
+          // Cleanup observer after 5s max
+          setTimeout(() => {
             videoObserver.disconnect()
-          }
-        })
-
-        videoObserver.observe(document.body, {
-          childList: true,
-          subtree: true,
-        })
-
-        // Also try pausing every 100ms for first 3 seconds (reliable fallback)
-        let pauseAttempts = 0
-        const pauseInterval = setInterval(() => {
-          pauseAttempts++
-          if (pauseVideo() || pauseAttempts >= 30) {
             clearInterval(pauseInterval)
-            videoObserver.disconnect()
-          }
-        }, 100)
-
-        // Cleanup observer after 5s max
-        setTimeout(() => {
-          videoObserver.disconnect()
-          clearInterval(pauseInterval)
-        }, 5000)
+          }, 5000)
+        } else {
+          console.log('[App] Quick Summary: Video autoplay kept (auto mode)')
+        }
         // ===== END PAUSE YOUTUBE VIDEO =====
 
         // Track current emoji state and base title (without emoji)

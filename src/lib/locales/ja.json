@@ -339,6 +339,7 @@
   },
   "button": {
     "copy": "クリップボードにコピー",
+    "copyMarkdown": "Markdownとしてコピー",
     "copied": "コピー完了！",
     "download": "Markdownでダウンロード",
     "downloaded": "ダウンロード完了！",

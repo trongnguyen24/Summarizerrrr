@@ -339,6 +339,7 @@
   },
   "button": {
     "copy": "Sao chép vào bộ nhớ đệm",
+    "copyMarkdown": "Sao chép Markdown",
     "copied": "Đã sao chép!",
     "download": "Tải xuống dạng Markdown",
     "downloaded": "Đã tải xuống!",

@@ -339,6 +339,7 @@
   },
   "button": {
     "copy": "Copier dans le presse-papiers",
+    "copyMarkdown": "Copier en Markdown",
     "copied": "Copié !",
     "download": "Télécharger en Markdown",
     "downloaded": "Téléchargé !",

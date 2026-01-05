@@ -339,6 +339,7 @@
   },
   "button": {
     "copy": "复制到剪贴板",
+    "copyMarkdown": "复制为 Markdown",
     "copied": "已复制！",
     "download": "下载为 Markdown",
     "downloaded": "已下载！",

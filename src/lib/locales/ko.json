@@ -339,6 +339,7 @@
   },
   "button": {
     "copy": "클립보드에 복사",
+    "copyMarkdown": "마크다운으로 복사",
     "copied": "복사됨!",
     "download": "마크다운으로 다운로드",
     "downloaded": "다운로드됨!",

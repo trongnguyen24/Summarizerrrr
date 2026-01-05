@@ -339,6 +339,7 @@
   },
   "button": {
     "copy": "In Zwischenablage kopieren",
+    "copyMarkdown": "Als Markdown kopieren",
     "copied": "Kopiert!",
     "download": "Als Markdown herunterladen",
     "downloaded": "Heruntergeladen!",

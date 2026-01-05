@@ -339,6 +339,7 @@
   },
   "button": {
     "copy": "Copy to clipboard",
+    "copyMarkdown": "Copy as Markdown",
     "copied": "Copied!",
     "download": "Download as Markdown",
     "downloaded": "Downloaded!",

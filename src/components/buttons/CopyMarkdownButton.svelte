@@ -26,20 +26,20 @@
   function buildTimestampUrl(sourceUrl, seconds) {
     try {
       const url = new URL(sourceUrl)
-      // Handle YouTube URLs
-      if (
+      const isYouTube =
         url.hostname.includes('youtube.com') ||
         url.hostname.includes('youtu.be')
-      ) {
-        if (url.searchParams.has('v')) {
-          url.searchParams.set('t', seconds)
-          return url.toString()
-        } else if (url.hostname === 'youtu.be') {
+
+      if (isYouTube) {
+        // YouTube video page: has ?v= param or is youtu.be short link
+        if (url.searchParams.has('v') || url.hostname === 'youtu.be') {
           url.searchParams.set('t', seconds)
           return url.toString()
         }
+        // YouTube non-video page - don't modify
+        return null
       }
-      // Default: append #t=seconds
+      // Non-YouTube URLs: append #t=seconds
       return `${sourceUrl}#t=${seconds}`
     } catch (e) {
       console.error('Invalid URL:', sourceUrl)

@@ -4,7 +4,7 @@
   import { slideScaleFade } from '../../lib/ui/slideScaleFade.js'
   import ShadowTooltip from '../../lib/components/ShadowTooltip.svelte'
 
-  let { targetId = 'copy-cat', text = null } = $props()
+  let { targetId = 'copy-cat', text = null, pageUrl = null } = $props()
 
   let isCopied = $state(false)
   let btn // bind tới nút để xác định đúng root
@@ -36,9 +36,46 @@
     )
   }
 
+  function convertTimestampLinks(element, sourceUrl) {
+    if (!sourceUrl) return
+
+    // Tìm tất cả các link có href bắt đầu bằng "timestamp:"
+    element.querySelectorAll('a[href^="timestamp:"]').forEach((link) => {
+      const href = link.getAttribute('href')
+      const seconds = href.split(':')[1]
+
+      try {
+        const url = new URL(sourceUrl)
+        // Handle YouTube URLs
+        if (
+          url.hostname.includes('youtube.com') ||
+          url.hostname.includes('youtu.be')
+        ) {
+          if (url.searchParams.has('v')) {
+            url.searchParams.set('t', seconds)
+            link.setAttribute('href', url.toString())
+          } else if (url.hostname === 'youtu.be') {
+            url.searchParams.set('t', seconds)
+            link.setAttribute('href', url.toString())
+          }
+        } else {
+          // Default: append #t=seconds
+          link.setAttribute('href', `${sourceUrl}#t=${seconds}`)
+        }
+      } catch (e) {
+        console.error('Invalid URL:', sourceUrl)
+      }
+    })
+  }
+
   function cleanElementStyles(element) {
     // Clone element để không ảnh hưởng đến original
     const cleanElement = element.cloneNode(true)
+
+    // Chuyển đổi timestamp links thành YouTube links nếu có pageUrl
+    if (pageUrl) {
+      convertTimestampLinks(cleanElement, pageUrl)
+    }
 
     // Force reset màu mặc định cho element gốc
     cleanElement.style.cssText = `

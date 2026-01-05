@@ -318,7 +318,10 @@
 
             {#if currentSummary}
               <CopyButton />
-              <CopyMarkdownButton text={currentSummary.content} />
+              <CopyMarkdownButton
+                text={currentSummary.content}
+                pageUrl={selectedSummary.url}
+              />
               <DownloadButton
                 content={currentSummary.content}
                 title={selectedSummary.title}

@@ -4,11 +4,75 @@
   import { slideScaleFade } from '../../lib/ui/slideScaleFade.js'
   import ShadowTooltip from '../../lib/components/ShadowTooltip.svelte'
 
-  let { text = '' } = $props()
+  let { text = '', pageUrl = null } = $props()
 
   let isCopied = $state(false)
 
   loadIcons(['heroicons:check-circle-solid', 'heroicons:document-text'])
+
+  function parseTimestampToSeconds(timestamp) {
+    const parts = timestamp.split(':').map(Number)
+    let seconds = 0
+    if (parts.length === 3) {
+      // HH:MM:SS
+      seconds = parts[0] * 3600 + parts[1] * 60 + parts[2]
+    } else if (parts.length === 2) {
+      // MM:SS
+      seconds = parts[0] * 60 + parts[1]
+    }
+    return seconds
+  }
+
+  function buildTimestampUrl(sourceUrl, seconds) {
+    try {
+      const url = new URL(sourceUrl)
+      // Handle YouTube URLs
+      if (
+        url.hostname.includes('youtube.com') ||
+        url.hostname.includes('youtu.be')
+      ) {
+        if (url.searchParams.has('v')) {
+          url.searchParams.set('t', seconds)
+          return url.toString()
+        } else if (url.hostname === 'youtu.be') {
+          url.searchParams.set('t', seconds)
+          return url.toString()
+        }
+      }
+      // Default: append #t=seconds
+      return `${sourceUrl}#t=${seconds}`
+    } catch (e) {
+      console.error('Invalid URL:', sourceUrl)
+      return null
+    }
+  }
+
+  function convertTimestampLinksInMarkdown(markdown, sourceUrl) {
+    if (!sourceUrl || !markdown) return markdown
+
+    let result = markdown
+
+    // Pattern 1: [text](timestamp:seconds) - đã được process thành link
+    result = result.replace(
+      /\[([^\]]+)\]\(timestamp:(\d+)\)/g,
+      (match, text, seconds) => {
+        const url = buildTimestampUrl(sourceUrl, seconds)
+        return url ? `[${text}](${url})` : match
+      },
+    )
+
+    // Pattern 2: [MM:SS] hoặc [HH:MM:SS] - timestamp text thuần (chưa được process)
+    result = result.replace(
+      /\[(\d{1,2}:\d{2}(?::\d{2})?)\](?!\()/g,
+      (match, timestamp) => {
+        const seconds = parseTimestampToSeconds(timestamp)
+        const url = buildTimestampUrl(sourceUrl, seconds)
+        return url ? `[${timestamp}](${url})` : match
+      },
+    )
+
+    return result
+  }
 
   async function copyMarkdown() {
     try {
@@ -17,13 +81,18 @@
         return
       }
 
+      // Chuyển đổi timestamp links thành URL thực nếu có pageUrl
+      const processedText = pageUrl
+        ? convertTimestampLinksInMarkdown(text, pageUrl)
+        : text
+
       // Sử dụng Clipboard API nếu có
       if (navigator.clipboard && navigator.clipboard.writeText) {
-        await navigator.clipboard.writeText(text)
+        await navigator.clipboard.writeText(processedText)
       } else {
         // Fallback: textarea ẩn
         const ta = document.createElement('textarea')
-        ta.value = text
+        ta.value = processedText
         ta.setAttribute('readonly', '')
         Object.assign(ta.style, {
           position: 'fixed',

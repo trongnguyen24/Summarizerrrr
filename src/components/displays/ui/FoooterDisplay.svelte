@@ -22,8 +22,8 @@
   </div>
   <span class="h-px w-16 bg-border/70"></span>
   <SaveToArchiveButton />
-  <CopyButton {targetId} />
-  <CopyMarkdownButton text={summaryContent} />
+  <CopyButton {targetId} pageUrl={summaryState.pageUrl} />
+  <CopyMarkdownButton text={summaryContent} pageUrl={summaryState.pageUrl} />
   <DownloadButton
     content={summaryContent}
     title={summaryTitle}

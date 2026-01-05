@@ -22,8 +22,11 @@
   </div>
   <span class="h-px w-16 bg-border/70"></span>
   <SaveToArchiveButtonFP {localSummaryState} {onSave} />
-  <CopyButtonFP {targetId} />
-  <CopyMarkdownButton text={summaryContent} />
+  <CopyButtonFP {targetId} pageUrl={localSummaryState.pageUrl} />
+  <CopyMarkdownButton
+    text={summaryContent}
+    pageUrl={localSummaryState.pageUrl}
+  />
   <DownloadButtonFP
     content={summaryContent}
     title={summaryTitle}

@@ -89,6 +89,44 @@
     <div class="p-6 prose prose-sm w-full max-w-full">
       <h2>Release note</h2>
 
+      <b class="font-mono">2.9.0</b>
+      <ul class="mt-0">
+        {@render note(
+          'YouTube Quick Summary:',
+          'Click icon on thumbnails to quick summarize YouTube video in new tab. can be disabled in FAB settings.',
+          [
+            {
+              label: 'sojusnik',
+              url: 'https://github.com/trongnguyen24/Summarizerrrr/issues/39',
+            },
+          ],
+        )}
+        {@render note(
+          'Copy as Markdown:',
+          'New Markdown copy button to copy summary content with clickable timestamp links.',
+          [
+            {
+              label: 'avinashkanaujiya',
+              url: 'https://github.com/trongnguyen24/Summarizerrrr/issues/43',
+            },
+          ],
+        )}
+        {@render note(
+          'Flexible Archive Management:',
+          'The "Save to Archive" button now works as a toggle, making it easy to save or unsave items from Archive.',
+          [
+            {
+              label: 'sojusnik',
+              url: 'https://github.com/trongnguyen24/Summarizerrrr/issues/45',
+            },
+          ],
+        )}
+        {@render note(
+          'Firefox Cloud Sync Improvement:',
+          'Enhanced permission granting flow for the Cloud Sync feature on Firefox.',
+        )}
+      </ul>
+
       <b class="font-mono">2.8.0</b>
       <ul class="mt-0">
         {@render note(

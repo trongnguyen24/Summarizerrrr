@@ -116,6 +116,20 @@
         "reenable_hint": "Can be re-enabled in",
         "cancel": "Cancel",
         "confirm": "Confirm"
+      },
+      "quick_summary": {
+        "title": "Quick Summary",
+        "description": "Click icon on thumbnails to quick summarize YouTube video",
+        "icon_on_thumbnails": "Icon on thumbnails",
+        "hide": "Hide",
+        "hide_desc": "Hide icon on thumbnails",
+        "show": "Show",
+        "show_desc": "Show icon on thumbnails",
+        "youtube_autoplay": "YouTube Autoplay",
+        "auto": "Auto",
+        "auto_desc": "Keep video playing while summarizing",
+        "pause": "Pause",
+        "pause_desc": "Pause video before generating summary"
       }
     },
     "ai_model": {
@@ -497,7 +511,7 @@
     "enabled": "Enabled",
     "disabled": "Disabled",
     "permissionRequired": "Permission Required",
-    "permissionDescription": "Firefox requires permission to access the Cloud Sync server. Please grant permission to enable Cloud Sync.",
+    "permissionDescription": "Please grant permission to access the Cloud Sync server.",
     "grantPermission": "Grant Permission",
     "requesting": "Requesting..."
   },

@@ -116,6 +116,20 @@
         "reenable_hint": "다음에서 다시 활성화할 수 있습니다",
         "cancel": "취소",
         "confirm": "확인"
+      },
+      "quick_summary": {
+        "title": "빠른 요약",
+        "description": "썸네일의 아이콘을 클릭하여 YouTube 동영상을 빠르게 요약",
+        "icon_on_thumbnails": "썸네일의 아이콘",
+        "hide": "숨기기",
+        "hide_desc": "썸네일의 아이콘 숨기기",
+        "show": "표시",
+        "show_desc": "썸네일의 아이콘 표시",
+        "youtube_autoplay": "YouTube 자동 재생",
+        "auto": "자동",
+        "auto_desc": "요약 중에도 동영상 계속 재생",
+        "pause": "일시 정지",
+        "pause_desc": "요약 생성 전 동영상 일시 정지"
       }
     },
     "ai_model": {
@@ -512,6 +526,10 @@
     "library": "아카이브",
     "error": "오류",
     "enabled": "활성화됨",
-    "disabled": "비활성화됨"
+    "disabled": "비활성화됨",
+    "permissionRequired": "권한 필요",
+    "permissionDescription": "Cloud Sync 서버에 접근할 수 있는 권한을 부여해 주세요.",
+    "grantPermission": "권한 부여",
+    "requesting": "요청 중..."
   }
 }

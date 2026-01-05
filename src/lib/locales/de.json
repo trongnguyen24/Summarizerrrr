@@ -116,6 +116,20 @@
         "reenable_hint": "Kann wieder aktiviert werden in",
         "cancel": "Abbrechen",
         "confirm": "Bestätigen"
+      },
+      "quick_summary": {
+        "title": "Schnellzusammenfassung",
+        "description": "Klicken Sie auf das Symbol auf Thumbnails, um YouTube-Videos schnell zusammenzufassen",
+        "icon_on_thumbnails": "Symbol auf Thumbnails",
+        "hide": "Ausblenden",
+        "hide_desc": "Symbol auf Thumbnails ausblenden",
+        "show": "Anzeigen",
+        "show_desc": "Symbol auf Thumbnails anzeigen",
+        "youtube_autoplay": "YouTube Autoplay",
+        "auto": "Auto",
+        "auto_desc": "Video während der Zusammenfassung weiterspielen",
+        "pause": "Pause",
+        "pause_desc": "Video vor der Zusammenfassung pausieren"
       }
     },
     "ai_model": {
@@ -512,6 +526,10 @@
     "library": "Archiv",
     "error": "Fehler",
     "enabled": "Aktiviert",
-    "disabled": "Deaktiviert"
+    "disabled": "Deaktiviert",
+    "permissionRequired": "Berechtigung erforderlich",
+    "permissionDescription": "Bitte erteilen Sie die Berechtigung für den Zugriff auf den Cloud-Sync-Server.",
+    "grantPermission": "Berechtigung erteilen",
+    "requesting": "Anfrage läuft..."
   }
 }

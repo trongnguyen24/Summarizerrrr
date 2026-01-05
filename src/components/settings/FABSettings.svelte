@@ -262,10 +262,10 @@
   <!-- Quick Summary Settings Section -->
   <div class="flex flex-col gap-1 mt-2 px-5">
     <label for="fab-settings-toggle" class="block font-bold text-text-primary"
-      >Quick Summary</label
+      >{$t('settings.fab.quick_summary.title')}</label
     >
     <p class="flex text-muted">
-      Summarize YouTube videos by hovering over thumbnails
+      {$t('settings.fab.quick_summary.description')}
     </p>
   </div>
 
@@ -316,15 +316,17 @@
         <!-- Enable/Disable Quick Summary -->
         <div class="flex flex-col gap-2">
           <!-- svelte-ignore a11y_label_has_associated_control -->
-          <label class="block text-text-secondary">Enable Feature</label>
+          <label class="block text-text-secondary"
+            >{$t('settings.fab.quick_summary.icon_on_thumbnails')}</label
+          >
           <div class="grid w-full grid-cols-2 gap-1">
             <ButtonSet
-              title="Disabled"
+              title={$t('settings.fab.quick_summary.hide')}
               class="setting-btn {!settings.quickSummaryEnabled
                 ? 'active'
                 : ''}"
               onclick={() => handleUpdateSetting('quickSummaryEnabled', false)}
-              Description="Hide quick summary button on thumbnails"
+              Description={$t('settings.fab.quick_summary.hide_desc')}
             >
               <Icon
                 icon="heroicons:eye-slash-20-solid"
@@ -333,10 +335,10 @@
               />
             </ButtonSet>
             <ButtonSet
-              title="Enabled"
+              title={$t('settings.fab.quick_summary.show')}
               class="setting-btn {settings.quickSummaryEnabled ? 'active' : ''}"
               onclick={() => handleUpdateSetting('quickSummaryEnabled', true)}
-              Description="Show quick summary button when hovering"
+              Description={$t('settings.fab.quick_summary.show_desc')}
             >
               <Icon icon="heroicons:eye-20-solid" width="20" height="20" />
             </ButtonSet>
@@ -344,36 +346,41 @@
         </div>
 
         <!-- Autoplay Mode -->
-        {#if settings.quickSummaryEnabled}
-          <div class="flex flex-col gap-2">
-            <!-- svelte-ignore a11y_label_has_associated_control -->
-            <label class="block text-text-secondary">YouTube Autoplay</label>
-            <div class="grid w-full grid-cols-2 gap-1">
-              <ButtonSet
-                title="Pause"
-                class="setting-btn {settings.quickSummaryAutoplay === 'pause'
-                  ? 'active'
-                  : ''}"
-                onclick={() =>
-                  handleUpdateSetting('quickSummaryAutoplay', 'pause')}
-                Description="Pause video before generating summary"
-              >
-                <Icon icon="heroicons:pause-20-solid" width="20" height="20" />
-              </ButtonSet>
-              <ButtonSet
-                title="Auto"
-                class="setting-btn {settings.quickSummaryAutoplay === 'auto'
-                  ? 'active'
-                  : ''}"
-                onclick={() =>
-                  handleUpdateSetting('quickSummaryAutoplay', 'auto')}
-                Description="Keep video playing while summarizing"
-              >
-                <Icon icon="heroicons:play-20-solid" width="20" height="20" />
-              </ButtonSet>
-            </div>
+
+        <div
+          class="flex flex-col gap-2 {settings.quickSummaryEnabled
+            ? ''
+            : 'opacity-50 pointer-events-none'}"
+        >
+          <!-- svelte-ignore a11y_label_has_associated_control -->
+          <label class="block text-text-secondary"
+            >{$t('settings.fab.quick_summary.youtube_autoplay')}</label
+          >
+          <div class="grid w-full grid-cols-2 gap-1">
+            <ButtonSet
+              title={$t('settings.fab.quick_summary.auto')}
+              class="setting-btn {settings.quickSummaryAutoplay === 'auto'
+                ? 'active'
+                : ''}"
+              onclick={() =>
+                handleUpdateSetting('quickSummaryAutoplay', 'auto')}
+              Description={$t('settings.fab.quick_summary.auto_desc')}
+            >
+              <Icon icon="heroicons:play-20-solid" width="20" height="20" />
+            </ButtonSet>
+            <ButtonSet
+              title={$t('settings.fab.quick_summary.pause')}
+              class="setting-btn {settings.quickSummaryAutoplay === 'pause'
+                ? 'active'
+                : ''}"
+              onclick={() =>
+                handleUpdateSetting('quickSummaryAutoplay', 'pause')}
+              Description={$t('settings.fab.quick_summary.pause_desc')}
+            >
+              <Icon icon="heroicons:pause-20-solid" width="20" height="20" />
+            </ButtonSet>
           </div>
-        {/if}
+        </div>
       </div>
     </div>
   </div>

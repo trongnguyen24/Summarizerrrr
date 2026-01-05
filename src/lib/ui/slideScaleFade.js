@@ -8,8 +8,8 @@ import { isReduceMotionEnabled } from '@/services/animationService.js'
  * @property {number} [duration=400] - Thời gian thực hiện transition (ms)
  * @property {(progress: number) => number} [easing=cubicOut] - Easing function
  * @property {'left' | 'right' | 'top' | 'bottom'} [slideFrom='top'] - Hướng trượt vào/ra
- * @property {string} [slideDistance='30px'] - Khoảng cách trượt (ví dụ: '50px', '100%')
- * @property {number} [startScale=0.95] - Tỷ lệ scale ban đầu (ví dụ: 0.8 cho nhỏ hơn, 1.2 cho lớn hơn)
+ * @property {string} [slideDistance='px'] - Khoảng cách trượt (ví dụ: '50px', '100%')
+ * @property {number} [startScale=1] - Tỷ lệ scale ban đầu (ví dụ: 0.8 cho nhỏ hơn, 1.2 cho lớn hơn)
  * @property {number} [startOpacity=0] - Độ mờ ban đầu (thường là 0 cho 'in')
  * @property {number} [startBlur=0] - Độ blur ban đầu (px), mặc định = 0
  */
@@ -28,8 +28,8 @@ export function slideScaleFade(node, params = {}) {
     duration = 500, // Giảm duration mặc định một chút
     easing = cubicOut,
     slideFrom = 'top',
-    slideDistance = '2rem',
-    startScale = 0.9,
+    slideDistance = '0rem',
+    startScale = 1,
     startOpacity = 0,
     startBlur = 0,
   } = params
@@ -182,7 +182,7 @@ export function flyOnly(node, params = {}) {
     duration = 300,
     easing = cubicOut,
     x = 0,
-    y = -20,
+    y = 0,
     opacity = 0,
   } = params
 

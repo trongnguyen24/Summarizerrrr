@@ -116,6 +116,20 @@
         "reenable_hint": "Se puede reactivar en",
         "cancel": "Cancelar",
         "confirm": "Confirmar"
+      },
+      "quick_summary": {
+        "title": "Resumen Rápido",
+        "description": "Haga clic en el icono en las miniaturas para resumir rápidamente videos de YouTube",
+        "icon_on_thumbnails": "Icono en miniaturas",
+        "hide": "Ocultar",
+        "hide_desc": "Ocultar icono en miniaturas",
+        "show": "Mostrar",
+        "show_desc": "Mostrar icono en miniaturas",
+        "youtube_autoplay": "Reproducción automática de YouTube",
+        "auto": "Auto",
+        "auto_desc": "Mantener el video reproduciéndose mientras se resume",
+        "pause": "Pausar",
+        "pause_desc": "Pausar el video antes de generar el resumen"
       }
     },
     "ai_model": {
@@ -325,6 +339,7 @@
   },
   "button": {
     "copy": "Copiar al portapapeles",
+    "copyMarkdown": "Copiar como Markdown",
     "copied": "¡Copiado!",
     "download": "Descargar como Markdown",
     "downloaded": "¡Descargado!",
@@ -512,6 +527,10 @@
     "library": "Archivo",
     "error": "Error",
     "enabled": "Habilitado",
-    "disabled": "Deshabilitado"
+    "disabled": "Deshabilitado",
+    "permissionRequired": "Permiso requerido",
+    "permissionDescription": "Por favor, conceda permiso para acceder al servidor de Cloud Sync.",
+    "grantPermission": "Conceder permiso",
+    "requesting": "Solicitando..."
   }
 }

@@ -322,12 +322,22 @@
 
 <style>
   .lv2 {
-    padding-left: 0em;
+    padding-left: 0.5rem;
   }
   .lv3 {
-    padding-left: 1em;
+    padding-left: 1.25rem;
   }
   .lv4 {
-    padding-left: 1.75em;
+    padding-left: 2rem;
+  }
+
+  .lvs2 {
+    width: 0.25rem;
+  }
+  .lvs3 {
+    width: 0.175rem;
+  }
+  .lvs4 {
+    width: 0.1rem;
   }
 </style>

@@ -56,6 +56,8 @@ export const VALID_SETTING_KEYS = [
   'reduceMotion',
   'iconClickAction',
   'fabDomainControl',
+  'quickSummaryEnabled',
+  'quickSummaryAutoplay',
   'firefoxPermissions',
 
   // Onboarding

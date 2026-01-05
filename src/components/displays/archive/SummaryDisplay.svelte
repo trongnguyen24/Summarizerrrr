@@ -14,6 +14,7 @@
   import FoooterDisplay from '@/components/displays/ui/FoooterDisplay.svelte'
   import SaveToArchiveFromHistoryButton from '@/components/buttons/SaveToArchiveFromHistoryButton.svelte'
   import CopyButton from '@/components/buttons/CopyButton.svelte'
+  import CopyMarkdownButton from '@/components/buttons/CopyMarkdownButton.svelte'
   import DownloadButton from '@/components/buttons/DownloadButton.svelte'
   import DisplaySettingsControls from '@/components/displays/ui/DisplaySettingsControls.svelte'
   import DeepDiveQuestionsArchive from '@/components/tools/deepdive/DeepDiveQuestionsArchive.svelte'
@@ -133,7 +134,7 @@
 
                 // Match the UI of TimestampLink.svelte but with target="_blank"
                 return `
-                  <a href="${targetUrl}" target="_blank" rel="noopener noreferrer" title="Open at ${text}" class="timestamp-link inline-flex text-muted w-fit group items-baseline font-normal rounded-md text-text-muted hover:text-primary font-mono transition-colors cursor-pointer no-underline">
+                  &nbsp;<a href="${targetUrl}" target="_blank" rel="noopener noreferrer" title="Open at ${text}" class="timestamp-link inline-flex text-muted w-fit group items-baseline font-normal rounded-md text-text-muted hover:text-primary font-mono transition-colors cursor-pointer no-underline">
                     <span class="flex relative rounded-full overflow-hidden self-center justify-center shrink-0 items-center w-6 h-6">
                       <span class="absolute top-0 left-0 h-full bg-blackwhite/5 w-full group-hover:translate-x-0 -translate-x-full group-hover:bg-primary/10 group-hover:rounded-full transition-all duration-300 ease-in-out"></span>
                       <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-play">
@@ -174,6 +175,9 @@
     }
   })
 
+  // State to track scroll preservation
+  let lastScrollInfo = $state({ summaryId: null, tabId: null })
+
   // Effect để highlight code và cuộn trang khi selectedSummary hoặc activeTabId thay đổi
   $effect(() => {
     if (selectedSummary && activeTabId && parsedContent) {
@@ -193,8 +197,19 @@
             })
         }
 
-        // Cuộn lên đầu trang khi tab thay đổi
-        window.scrollTo({ top: 0, behavior: 'instant' })
+        // Chỉ cuộn lên đầu trang NẾU ID của tóm tắt hoặc tab thay đổi thực sự
+        const shouldScroll =
+          selectedSummary.id !== lastScrollInfo.summaryId ||
+          activeTabId !== lastScrollInfo.tabId
+
+        if (shouldScroll) {
+          window.scrollTo({ top: 0, behavior: 'instant' })
+          // Cập nhật thông tin scroll mới
+          lastScrollInfo = {
+            summaryId: selectedSummary.id,
+            tabId: activeTabId,
+          }
+        }
       })
     }
   })
@@ -282,7 +297,7 @@
 
           <div
             id="footer"
-            class="w-fit mx-auto relative mt-12 flex justify-center items-center gap-2"
+            class="w-fit mx-auto relative mt-12 flex justify-center items-center gap-1.5"
           >
             <div class="absolute left-0">
               <svg
@@ -295,7 +310,7 @@
                 <path d="M9 4v1H0V4z" fill="currentColor" />
               </svg>
             </div>
-            <span class="h-px w-8 md:w-20 bg-border/70"></span>
+            <span class="h-px w-8 md:w-16 bg-border/70"></span>
 
             {#if currentSummary && activeTab !== 'archive'}
               <SaveToArchiveFromHistoryButton {selectedSummary} />
@@ -303,6 +318,10 @@
 
             {#if currentSummary}
               <CopyButton />
+              <CopyMarkdownButton
+                text={currentSummary.content}
+                pageUrl={selectedSummary.url}
+              />
               <DownloadButton
                 content={currentSummary.content}
                 title={selectedSummary.title}
@@ -311,7 +330,7 @@
               />
             {/if}
 
-            <span class="h-px w-8 md:w-20 bg-border/70"></span>
+            <span class="h-px w-8 md:w-16 bg-border/70"></span>
             <div class="absolute right-0">
               <svg
                 xmlns="http://www.w3.org/2000/svg"

@@ -116,6 +116,20 @@
         "reenable_hint": "Có thể bật lại trong",
         "cancel": "Hủy",
         "confirm": "Xác nhận"
+      },
+      "quick_summary": {
+        "title": "Tóm tắt nhanh",
+        "description": "Click vào icon trên thumbnails để tóm tắt nhanh video YouTube",
+        "icon_on_thumbnails": "Icon trên thumbnails",
+        "hide": "Ẩn",
+        "hide_desc": "Ẩn icon trên thumbnails",
+        "show": "Hiển thị",
+        "show_desc": "Hiển thị icon trên thumbnails",
+        "youtube_autoplay": "Tự động phát YouTube",
+        "auto": "Tự động",
+        "auto_desc": "Tiếp tục phát video trong khi tóm tắt",
+        "pause": "Tạm dừng",
+        "pause_desc": "Tạm dừng video trước khi tóm tắt"
       }
     },
     "ai_model": {
@@ -325,6 +339,7 @@
   },
   "button": {
     "copy": "Sao chép vào bộ nhớ đệm",
+    "copyMarkdown": "Sao chép Markdown",
     "copied": "Đã sao chép!",
     "download": "Tải xuống dạng Markdown",
     "downloaded": "Đã tải xuống!",
@@ -495,7 +510,11 @@
     "library": "Lưu trữ",
     "error": "Lỗi",
     "enabled": "Đang bật",
-    "disabled": "Đang tắt"
+    "disabled": "Đang tắt",
+    "permissionRequired": "Yêu cầu quyền truy cập",
+    "permissionDescription": "Vui lòng cấp quyền truy cập máy chủ Cloud Sync.",
+    "grantPermission": "Cấp quyền",
+    "requesting": "Đang yêu cầu..."
   },
   "notifications": {
     "no_notifications": "Không có thông báo",

@@ -238,6 +238,7 @@
         {activeTab}
         selectTab={(tabName) => {
           activeTab = tabName
+          archiveStore.selectTab(tabName) // Select first item of new tab
           clearAllTagFilters() // Reset filter when changing tabs
         }}
         onRefresh={archiveStore.loadData}

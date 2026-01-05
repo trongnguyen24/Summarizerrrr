@@ -32,6 +32,13 @@
         "non_streaming": "普通",
         "non_streaming_desc": "适用于网络较慢的情况，避免卡顿。"
       },
+      "floatingButton": "浮动按钮",
+      "floating_button": {
+        "show": "显示",
+        "show_desc": "在网页上显示浮动按钮。",
+        "hide": "隐藏",
+        "hide_desc": "从网页隐藏浮动按钮。"
+      },
       "shortcuts": "快捷键",
       "shortcuts_settings": "管理快捷键",
       "icon_click_action": {
@@ -249,6 +256,20 @@
         "reenable_hint": "可在设置中重新启用",
         "cancel": "取消",
         "confirm": "确认"
+      },
+      "quick_summary": {
+        "title": "快速摘要",
+        "description": "点击缩略图上的图标快速总结 YouTube 视频",
+        "icon_on_thumbnails": "缩略图上的图标",
+        "hide": "隐藏",
+        "hide_desc": "隐藏缩略图上的图标",
+        "show": "显示",
+        "show_desc": "显示缩略图上的图标",
+        "youtube_autoplay": "YouTube 自动播放",
+        "auto": "自动",
+        "auto_desc": "摘要时继续播放视频",
+        "pause": "暂停",
+        "pause_desc": "生成摘要前暂停视频"
       }
     },
     "tools": {
@@ -318,6 +339,7 @@
   },
   "button": {
     "copy": "复制到剪贴板",
+    "copyMarkdown": "复制为 Markdown",
     "copied": "已复制！",
     "download": "下载为 Markdown",
     "downloaded": "已下载！",
@@ -505,6 +527,10 @@
     "library": "归档",
     "error": "错误",
     "enabled": "已启用",
-    "disabled": "已禁用"
+    "disabled": "已禁用",
+    "permissionRequired": "需要权限",
+    "permissionDescription": "请授予访问云同步服务器的权限。",
+    "grantPermission": "授予权限",
+    "requesting": "请求中..."
   }
 }

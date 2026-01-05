@@ -7,6 +7,7 @@ import {
   saveToHistory,
   saveToArchive,
 } from '../services/FloatingPanelStorageService.js'
+import { extractPageTitle } from '@/lib/utils/titleExtractor.js'
 
 // Deep Dive imports
 import {
@@ -188,7 +189,7 @@ export function useSummarization() {
       localSummaryState.startTime = Date.now()
 
       // 2. Get Page Info directly from the document
-      localSummaryState.pageTitle = document.title || 'Unknown Title'
+      localSummaryState.pageTitle = extractPageTitle()
       localSummaryState.pageUrl = window.location.href
 
       // 3. Load settings
@@ -376,7 +377,7 @@ export function useSummarization() {
       console.log('[useSummarization] Starting chapter summarization...', requestId)
 
       // Set page info (QUAN TRỌNG: Cần có để autoSaveToHistory() không skip)
-      localSummaryState.pageTitle = document.title || 'Unknown Title'
+      localSummaryState.pageTitle = extractPageTitle()
       localSummaryState.pageUrl = window.location.href
 
       // Load settings
@@ -467,7 +468,7 @@ export function useSummarization() {
       console.log('[useSummarization] Starting course concepts summarization...', requestId)
 
       // Set page info (QUAN TRỌNG: Cần có để autoSaveToHistory() không skip)
-      localSummaryState.pageTitle = document.title || 'Unknown Title'
+      localSummaryState.pageTitle = extractPageTitle()
       localSummaryState.pageUrl = window.location.href
 
       // Load settings
@@ -556,7 +557,7 @@ export function useSummarization() {
       console.log('[useSummarization] Starting comment analysis...', requestId)
 
       // Set page info
-      localSummaryState.pageTitle = document.title || 'YouTube Comment Analysis'
+      localSummaryState.pageTitle = extractPageTitle()
       localSummaryState.pageUrl = window.location.href
 
       // Load settings

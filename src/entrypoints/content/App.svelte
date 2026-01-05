@@ -39,6 +39,25 @@
   // One-click summarization
   let oneClickSummarization = useOneClickSummarization()
 
+  // Quick Summary mode (triggered by qs=1 URL param from background tab)
+  let isQuickSummaryMode = $state(false)
+
+  // Quick Summary cleanup references (for memory leak prevention)
+  let emojiInterval = null
+  let titleObserver = null
+
+  // Cleanup function for emoji tracking
+  function cleanupEmojiTracking() {
+    if (emojiInterval) {
+      clearInterval(emojiInterval)
+      emojiInterval = null
+    }
+    if (titleObserver) {
+      titleObserver.disconnect()
+      titleObserver = null
+    }
+  }
+
   let isFabAllowedOnDomain = $derived.by(() => {
     // Use the same matching logic as main.js for consistency
     return shouldShowFab(window.location.href, settings.fabDomainControl)
@@ -144,6 +163,142 @@
       if (message.type === 'TOGGLE_FLOATING_PANEL') {
         togglePanel()
       }
+
+      // Quick Summary mode: triggered by background script after opening tab
+      if (message.type === 'QUICK_SUMMARY_TRIGGER') {
+        // Only trigger once - ignore retry messages
+        if (isQuickSummaryMode) {
+          console.log('[App] Quick Summary already triggered, ignoring')
+          return
+        }
+
+        console.log('[App] Quick Summary trigger received:', message.videoId)
+
+        // Set Quick Summary mode (prevents re-triggering)
+        isQuickSummaryMode = true
+
+        // ===== PAUSE YOUTUBE VIDEO (only if autoplayMode is 'pause') =====
+        // Get autoplay mode from message (default to 'pause' for backward compatibility)
+        const autoplayMode = message.autoplayMode || 'pause'
+        console.log('[App] Quick Summary autoplay mode:', autoplayMode)
+
+        if (autoplayMode === 'pause') {
+          // Pause video immediately to prevent autoplay in background tab
+          const pauseVideo = () => {
+            const video = document.querySelector('video.html5-main-video')
+            if (video && !video.paused) {
+              video.pause()
+              console.log('[App] Quick Summary: Video paused')
+              return true
+            }
+            return false
+          }
+
+          // Try to pause immediately
+          pauseVideo()
+
+          // Watch for video element appearing (YouTube loads video async)
+          const videoObserver = new MutationObserver(() => {
+            if (pauseVideo()) {
+              videoObserver.disconnect()
+            }
+          })
+
+          videoObserver.observe(document.body, {
+            childList: true,
+            subtree: true,
+          })
+
+          // Also try pausing every 100ms for first 3 seconds (reliable fallback)
+          let pauseAttempts = 0
+          const pauseInterval = setInterval(() => {
+            pauseAttempts++
+            if (pauseVideo() || pauseAttempts >= 30) {
+              clearInterval(pauseInterval)
+              videoObserver.disconnect()
+            }
+          }, 100)
+
+          // Cleanup observer after 5s max
+          setTimeout(() => {
+            videoObserver.disconnect()
+            clearInterval(pauseInterval)
+          }, 5000)
+        } else {
+          console.log('[App] Quick Summary: Video autoplay kept (auto mode)')
+        }
+        // ===== END PAUSE YOUTUBE VIDEO =====
+
+        // Track current emoji state and base title (without emoji)
+        let currentEmoji = '⏳'
+        // Regex with alternation for multi-byte emoji characters
+        const emojiPattern = /^(⏳|🎉|🤯)\s*/
+        let baseTitle = document.title.replace(emojiPattern, '') // Remove any existing emoji
+
+        // Function to ensure emoji is present in title
+        const ensureEmojiInTitle = () => {
+          const currentTitle = document.title
+          // Check if title doesn't start with our emoji
+          if (!currentTitle.startsWith(currentEmoji)) {
+            // Get base title (remove any emoji prefix if exists)
+            baseTitle = currentTitle.replace(emojiPattern, '')
+            document.title = `${currentEmoji} ${baseTitle}`
+          }
+        }
+
+        // Apply emoji immediately
+        ensureEmojiInTitle()
+
+        // Watch for title changes using MutationObserver
+        const titleElement = document.querySelector('title')
+
+        // Cleanup any existing observers/intervals before creating new ones
+        cleanupEmojiTracking()
+
+        if (titleElement) {
+          titleObserver = new MutationObserver(() => {
+            ensureEmojiInTitle()
+          })
+
+          titleObserver.observe(titleElement, {
+            childList: true,
+            characterData: true,
+            subtree: true,
+          })
+        }
+
+        // Also use interval as fallback (some SPAs don't trigger mutations)
+        emojiInterval = setInterval(ensureEmojiInTitle, 1000)
+
+        // Auto-trigger summarization
+        isPanelVisible = true
+        oneClickSummarization
+          .summarizePageContent()
+          .then(() => {
+            // Update emoji to success when done
+            const checkSummaryDone = setInterval(() => {
+              const status = oneClickSummarization.statusToDisplay()
+              if (!status.isLoading) {
+                currentEmoji = '🎉'
+                ensureEmojiInTitle()
+                clearInterval(checkSummaryDone)
+                // Cleanup emoji tracking after success
+                cleanupEmojiTracking()
+              }
+            }, 500)
+
+            // Cleanup after 60s max
+            setTimeout(() => clearInterval(checkSummaryDone), 60000)
+          })
+          .catch((error) => {
+            // Show error emoji on failure
+            console.error('[App] Quick Summary failed:', error)
+            currentEmoji = '🤯'
+            ensureEmojiInTitle()
+            // Cleanup emoji tracking after error
+            cleanupEmojiTracking()
+          })
+      }
     })
 
     return () => {
@@ -208,6 +363,9 @@
     if (themeUnsubscribe) {
       themeUnsubscribe()
     }
+
+    // Cleanup Quick Summary emoji tracking
+    cleanupEmojiTracking()
   })
 </script>
 

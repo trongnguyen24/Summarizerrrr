@@ -116,6 +116,20 @@
         "reenable_hint": "設定で再度有効にできます",
         "cancel": "キャンセル",
         "confirm": "確認"
+      },
+      "quick_summary": {
+        "title": "クイック要約",
+        "description": "サムネイル上のアイコンをクリックしてYouTube動画を素早く要約",
+        "icon_on_thumbnails": "サムネイル上のアイコン",
+        "hide": "非表示",
+        "hide_desc": "サムネイル上のアイコンを非表示",
+        "show": "表示",
+        "show_desc": "サムネイル上のアイコンを表示",
+        "youtube_autoplay": "YouTube自動再生",
+        "auto": "自動",
+        "auto_desc": "要約中も動画を再生し続ける",
+        "pause": "一時停止",
+        "pause_desc": "要約生成前に動画を一時停止"
       }
     },
     "ai_model": {
@@ -325,6 +339,7 @@
   },
   "button": {
     "copy": "クリップボードにコピー",
+    "copyMarkdown": "Markdownとしてコピー",
     "copied": "コピー完了！",
     "download": "Markdownでダウンロード",
     "downloaded": "ダウンロード完了！",
@@ -512,6 +527,10 @@
     "library": "アーカイブ",
     "error": "エラー",
     "enabled": "有効",
-    "disabled": "無効"
+    "disabled": "無効",
+    "permissionRequired": "権限が必要です",
+    "permissionDescription": "クラウド同期サーバーへのアクセス許可を付与してください。",
+    "grantPermission": "権限を付与",
+    "requesting": "リクエスト中..."
   }
 }

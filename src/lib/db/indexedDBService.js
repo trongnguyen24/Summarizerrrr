@@ -543,6 +543,56 @@ async function updateHistoryArchivedStatus(id, isArchivedStatus) {
   })
 }
 
+/**
+ * Get archive summary by history source ID
+ * @param {string} historyId - The ID of the history item
+ * @returns {Promise<Object|null>} The archive summary if found, null otherwise
+ */
+async function getSummaryByHistorySourceId(historyId) {
+  if (!db) db = await openDatabase()
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction([STORE_NAME], 'readonly')
+    const objectStore = transaction.objectStore(STORE_NAME)
+    const request = objectStore.openCursor()
+
+    request.onsuccess = (event) => {
+      const cursor = event.target.result
+      if (cursor) {
+        if (cursor.value.historySourceId === historyId && cursor.value.deleted !== true) {
+          resolve(cursor.value)
+          return
+        }
+        cursor.continue()
+      } else {
+        resolve(null)
+      }
+    }
+    request.onerror = (event) => reject(event.target.error)
+  })
+}
+
+/**
+ * Remove an archive item by its history source ID
+ * Also updates the history item's isArchived status to false
+ * @param {string} historyId - The ID of the history item
+ * @returns {Promise<boolean>} True if removed successfully
+ */
+async function removeFromArchiveByHistoryId(historyId) {
+  if (!db) db = await openDatabase()
+  
+  // Find the archive summary with this historySourceId
+  const archiveSummary = await getSummaryByHistorySourceId(historyId)
+  
+  if (!archiveSummary) {
+    throw new Error('Archive item not found for this history')
+  }
+  
+  // Soft delete the archive summary (this will also update history isArchived status via softDeleteSummary)
+  await softDeleteSummary(archiveSummary.id)
+  
+  return true
+}
+
 async function moveHistoryItemToArchive(historyId) {
   if (!db) db = await openDatabase()
   return new Promise(async (resolve, reject) => {
@@ -956,6 +1006,8 @@ export {
   updateHistory,
   updateHistoryArchivedStatus,
   moveHistoryItemToArchive,
+  getSummaryByHistorySourceId,
+  removeFromArchiveByHistoryId,
   addMultipleHistory,
   // Tag exports
   addTag,
@@ -991,24 +1043,41 @@ export {
  */
 async function softDeleteSummary(id) {
   if (!db) db = await openDatabase()
-  return new Promise((resolve, reject) => {
-    const transaction = db.transaction([STORE_NAME], 'readwrite')
-    const objectStore = transaction.objectStore(STORE_NAME)
-    const getRequest = objectStore.get(id)
-    
-    getRequest.onsuccess = () => {
-      const summary = getRequest.result
-      if (summary) {
-        summary.deleted = true
-        summary.updatedAt = new Date().toISOString()
-        const putRequest = objectStore.put(summary)
-        putRequest.onsuccess = () => resolve(summary)
-        putRequest.onerror = (event) => reject(event.target.error)
-      } else {
-        reject(new Error('Summary not found'))
+  return new Promise(async (resolve, reject) => {
+    try {
+      const transaction = db.transaction([STORE_NAME], 'readwrite')
+      const objectStore = transaction.objectStore(STORE_NAME)
+      const getRequest = objectStore.get(id)
+      
+      getRequest.onsuccess = async () => {
+        const summary = getRequest.result
+        if (summary) {
+          const historySourceId = summary.historySourceId
+          
+          summary.deleted = true
+          summary.updatedAt = new Date().toISOString()
+          const putRequest = objectStore.put(summary)
+          
+          putRequest.onsuccess = async () => {
+            // Update history item's isArchived status to false if historySourceId exists
+            if (historySourceId) {
+              try {
+                await updateHistoryArchivedStatus(historySourceId, false)
+              } catch (error) {
+                console.error('Error updating history status after soft deleting summary:', error)
+              }
+            }
+            resolve(summary)
+          }
+          putRequest.onerror = (event) => reject(event.target.error)
+        } else {
+          reject(new Error('Summary not found'))
+        }
       }
+      getRequest.onerror = (event) => reject(event.target.error)
+    } catch (error) {
+      reject(error)
     }
-    getRequest.onerror = (event) => reject(event.target.error)
   })
 }
 

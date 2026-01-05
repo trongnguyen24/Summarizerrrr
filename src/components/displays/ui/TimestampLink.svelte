@@ -32,7 +32,7 @@
 </script>
 
 {#if isTimestamp}
-  <a
+  &nbsp; <a
     {href}
     onclick={handleTimestampClick}
     class="timestamp-link inline-flex w-fit group items-center font-normal rounded-md text-muted hover:text-primary font-mono transition-colors cursor-pointer no-underline"

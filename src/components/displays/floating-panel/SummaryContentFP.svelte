@@ -7,8 +7,12 @@
   import { settings } from '@/stores/settingsStore.svelte.js'
   import { processThinkTags } from '@/lib/utils/thinkTagProcessor.js'
   import { processTimestamps } from '@/lib/utils/timestampProcessor.js'
+  import { isRTLLanguage } from '@/lib/utils/rtlUtils.js'
 
   let { summary, isLoading, targetId, showTOC = false, error } = $props()
+
+  // Detect RTL language
+  let isRTL = $derived(isRTLLanguage(settings.summaryLang))
 
   // Font size levels in em units for shadow DOM
   const fontSizeLevels = [0.875, 1, 1.125, 1.25] // 14px, 16px, 18px, 20px at base 16px
@@ -122,7 +126,10 @@
       id="fp-generic-summary"
       style="font-size: {fontSizeLevels[settings.fontSizeIndex]}em;"
       bind:this={container}
-      class="prose markdown-container-v2 {fontMap[settings.selectedFont]}"
+      dir={isRTL ? 'rtl' : 'ltr'}
+      class="prose markdown-container-v2 {fontMap[settings.selectedFont]} {isRTL
+        ? 'rtl-content'
+        : ''}"
       onclick={handleContentClick}
       role="presentation"
     >

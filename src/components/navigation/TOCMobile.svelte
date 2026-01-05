@@ -3,10 +3,14 @@
   import Icon from '@iconify/svelte'
   import { t } from 'svelte-i18n'
   import { settings, updateSettings } from '@/stores/settingsStore.svelte.js'
+  import { isRTLLanguage } from '@/lib/utils/rtlUtils.js'
 
   import { animate, stagger, onScroll } from 'animejs'
 
   const { targetDivId } = $props()
+
+  // RTL detection
+  let isRTL = $derived(isRTLLanguage(settings.summaryLang))
 
   // Font size levels in em units for shadow DOM
   const fontSizeLevels = [0.875, 1, 1.25, 1.5]
@@ -302,12 +306,14 @@
         class="w-full hide-scrollbar overflow-auto h-[calc(100%-4em)] xs:h-full xs:max-h-[calc(100vh-12em)] border rounded-t-3xl xs:rounded-t-lg border-border bg-surface-1"
       >
         <div
+          dir={isRTL ? 'rtl' : 'ltr'}
           class="flex flex-col divide-y divide-border/50 dark:divide-border/70"
         >
           {#each headings as heading}
             <button
-              class="p-4 font-mono text-sm/4 no-underline transition-colors text-left {heading.id ===
-              activeHeadingId
+              class="p-4 font-mono text-sm/4 no-underline transition-colors {isRTL
+                ? 'text-right'
+                : 'text-left'} {heading.id === activeHeadingId
                 ? 'text-text-primary bg-black/5 dark:bg-white/5'
                 : 'text-text-secondary hover:text-text-primary'}"
               onclick={() => {

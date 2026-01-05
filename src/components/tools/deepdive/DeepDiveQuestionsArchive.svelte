@@ -9,6 +9,7 @@
   } from '@/stores/settingsStore.svelte.js'
   import { generateFollowUpQuestions } from '@/services/tools/deepDiveService.js'
   import { openDeepDiveChat } from '@/services/tools/deepDiveService.js'
+  import { isRTLLanguage } from '@/lib/utils/rtlUtils.js'
 
   // Import provider icons
   import GeminiIcon from '@/components/icons/GeminiIcon.svelte'
@@ -18,6 +19,9 @@
 
   // Props
   let { summaryContent, pageTitle, pageUrl, summaryLang = 'English' } = $props()
+
+  // RTL detection
+  let isRTL = $derived(isRTLLanguage(summaryLang))
 
   // Local state (không dùng global deepDiveState)
   let questions = $state([])
@@ -328,7 +332,10 @@
     </div>
 
     <!-- Questions List -->
-    <div class="flex flex-col gap-6">
+    <div
+      dir={isRTL ? 'rtl' : 'ltr'}
+      class="flex flex-col gap-6 {isRTL ? 'rtl-content' : ''}"
+    >
       {#each questions as question, i (question)}
         <QuestionChip
           {question}

@@ -21,6 +21,7 @@
     onFinishTyping={handleMarkdownFinishTyping}
     enableCursor={settings.enableStreaming}
     enableHighlight={true}
+    summaryLang={settings.summaryLang}
     class="custom-markdown-style"
   />
 </div>

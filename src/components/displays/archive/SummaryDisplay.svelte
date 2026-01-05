@@ -8,6 +8,7 @@
   svelte(hljs)
   import { processThinkTags } from '@/lib/utils/thinkTagProcessor.js'
   import { processTimestamps } from '@/lib/utils/timestampProcessor.js'
+  import { isRTLLanguage } from '@/lib/utils/rtlUtils.js'
   import TOC from '@/components/navigation/TOCArchive.svelte'
   import TOCSidebar from '@/components/navigation/TOCSidebar.svelte'
   import TabNavigation from '@/components/navigation/TabNavigation.svelte'
@@ -35,6 +36,9 @@
   let parsedContent = $state('')
 
   let markdownContainer = $state()
+
+  // Detect RTL language
+  let isRTL = $derived(isRTLLanguage(settings.summaryLang))
 
   let isTocSidebar = $derived(getTocMode() === 'sidebar')
   let contentGridClass = $derived.by(() => {
@@ -287,7 +291,8 @@
             {#if currentSummary}
               <div
                 bind:this={markdownContainer}
-                class="markdown-container-v2"
+                dir={isRTL ? 'rtl' : 'ltr'}
+                class="markdown-container-v2 {isRTL ? 'rtl-content' : ''}"
                 id="copy-cat"
               >
                 {@html parsedContent}

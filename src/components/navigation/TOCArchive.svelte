@@ -6,8 +6,13 @@
   import { useOverlayScrollbars } from 'overlayscrollbars-svelte'
   import { getTocMode, toggleTocMode } from '@/stores/tocModeStore.svelte.js'
   import { archiveStore } from '@/stores/archiveStore.svelte.js'
+  import { settings } from '@/stores/settingsStore.svelte.js'
+  import { isRTLLanguage } from '@/lib/utils/rtlUtils.js'
 
   const { targetDivId, activeTab = 'history' } = $props()
+
+  // RTL detection
+  let isRTL = $derived(isRTLLanguage(settings.summaryLang))
 
   // Navigation state
   let canGoPrev = $derived(archiveStore.canNavigatePrevious(activeTab))
@@ -297,6 +302,7 @@
           class="w-full xs:w-108 overflow-auto max-h-[calc(100vh-200px)] border rounded-t-lg border-border bg-background"
         >
           <div
+            dir={isRTL ? 'rtl' : 'ltr'}
             class="flex flex-col divide-y divide-border/50 dark:divide-border/70"
           >
             {#each headings as heading}
@@ -312,7 +318,7 @@
           {heading.id === activeHeadingId
                   ? 'text-text-primary bg-black/5 dark:bg-white/5'
                   : 'text-text-secondary hover:text-text-primary'}
-          lv{heading.level}"
+          lv{heading.level} {isRTL ? 'text-right' : 'text-left'}"
               >
                 <span class="line-clamp-2">
                   {heading.text}

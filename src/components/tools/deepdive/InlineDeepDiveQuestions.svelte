@@ -21,6 +21,7 @@
     getTotalPages,
   } from '@/stores/deepDiveStore.svelte.js'
   import { generateFollowUpQuestions } from '@/services/tools/deepDiveService.js'
+  import { isRTLLanguage } from '@/lib/utils/rtlUtils.js'
 
   // Import provider icons
   import GeminiIcon from '@/components/icons/GeminiIcon.svelte'
@@ -31,13 +32,16 @@
   // Props
   let { summaryContent, pageTitle, pageUrl, summaryLang = 'English' } = $props()
 
+  // RTL detection
+  let isRTL = $derived(isRTLLanguage(summaryLang))
+
   // Derived states
   let questions = $derived(deepDiveState.questions)
   let isGenerating = $derived(deepDiveState.isGenerating)
   let hasQuestions = $derived(questions.length > 0)
   // Derived state for provider (sync with global settings)
   let chatProvider = $derived(
-    settings.tools?.deepDive?.defaultChatProvider || 'gemini'
+    settings.tools?.deepDive?.defaultChatProvider || 'gemini',
   )
 
   // Pagination derived states
@@ -45,7 +49,7 @@
   let hasPagination = $derived(totalPages > 1)
   let canGoBack = $derived(deepDiveState.currentPageIndex > 0 && !isGenerating)
   let canGoForward = $derived(
-    deepDiveState.currentPageIndex < totalPages - 1 && !isGenerating
+    deepDiveState.currentPageIndex < totalPages - 1 && !isGenerating,
   )
 
   // Provider configs
@@ -57,7 +61,7 @@
   ]
 
   const selectedProvider = $derived(
-    providers.find((p) => p.value === chatProvider) || providers[0]
+    providers.find((p) => p.value === chatProvider) || providers[0],
   )
 
   /**
@@ -78,7 +82,7 @@
       console.log(
         '[InlineDeepDiveQuestions] Using history:',
         deepDiveState.questionHistory.length,
-        'generations'
+        'generations',
       )
 
       const generated = await generateFollowUpQuestions(
@@ -86,7 +90,7 @@
         pageTitle,
         pageUrl,
         summaryLang,
-        deepDiveState.questionHistory
+        deepDiveState.questionHistory,
       )
 
       setQuestions(generated)
@@ -95,7 +99,7 @@
       console.log('[InlineDeepDiveQuestions] Regenerated questions:', generated)
       console.log(
         '[InlineDeepDiveQuestions] Total history:',
-        deepDiveState.questionHistory.length
+        deepDiveState.questionHistory.length,
       )
     } catch (err) {
       console.error('[InlineDeepDiveQuestions] Regeneration error:', err)
@@ -121,7 +125,7 @@
     try {
       console.log(
         '[InlineDeepDiveQuestions] Opening chat with question:',
-        question
+        question,
       )
       await openDeepDiveChat(
         question,
@@ -129,7 +133,7 @@
         pageTitle,
         pageUrl,
         summaryLang,
-        chatProvider
+        chatProvider,
       )
     } catch (error) {
       console.error('[InlineDeepDiveQuestions] Error opening chat:', error)
@@ -240,7 +244,10 @@
     </div>
 
     <!-- Questions List -->
-    <div class="flex flex-col gap-6">
+    <div
+      dir={isRTL ? 'rtl' : 'ltr'}
+      class="flex flex-col gap-6 {isRTL ? 'rtl-content' : ''}"
+    >
       {#each questions as question, i (question)}
         <QuestionChip
           {question}

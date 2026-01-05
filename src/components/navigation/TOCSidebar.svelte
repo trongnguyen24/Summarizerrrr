@@ -5,8 +5,13 @@
   import { useOverlayScrollbars } from 'overlayscrollbars-svelte'
   import { getTocMode, toggleTocMode } from '@/stores/tocModeStore.svelte.js'
   import { archiveStore } from '@/stores/archiveStore.svelte.js'
+  import { settings } from '@/stores/settingsStore.svelte.js'
+  import { isRTLLanguage } from '@/lib/utils/rtlUtils.js'
 
   const { targetDivId, activeTab = 'history' } = $props()
+
+  // RTL detection
+  let isRTL = $derived(isRTLLanguage(settings.summaryLang))
 
   // Navigation state
   let canGoPrev = $derived(archiveStore.canNavigatePrevious(activeTab))
@@ -243,7 +248,7 @@
           id="toc-sidebar-scroll"
           class="flex-1 h-[calc(100vh-128px)] overflow-y-hidden py-6 px-4"
         >
-          <div class="flex flex-col">
+          <div dir={isRTL ? 'rtl' : 'ltr'} class="flex flex-col">
             <h3
               class="text-sm font-semibold text-text-secondary uppercase tracking-wider"
             >
@@ -257,7 +262,7 @@
                 {heading.id === activeHeadingId
                   ? 'text-text-primary font-bold'
                   : 'text-text-secondary dark:text-muted hover:text-text-primary '}
-                lv{heading.level}"
+                lv{heading.level} {isRTL ? 'text-right' : 'text-left'}"
               >
                 <span class="line-clamp-2">
                   {heading.text}

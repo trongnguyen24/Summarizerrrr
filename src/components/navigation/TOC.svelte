@@ -4,8 +4,13 @@
   import 'overlayscrollbars/overlayscrollbars.css'
   import { animate, stagger, onScroll } from 'animejs'
   import { useOverlayScrollbars } from 'overlayscrollbars-svelte'
+  import { settings } from '@/stores/settingsStore.svelte.js'
+  import { isRTLLanguage } from '@/lib/utils/rtlUtils.js'
 
   const { targetDivId } = $props()
+
+  // RTL detection
+  let isRTL = $derived(isRTLLanguage(settings.summaryLang))
 
   let headings = $state([])
   let observer
@@ -228,6 +233,7 @@
         class="w-[clamp(280px,70vw,400px)] overflow-auto max-h-[calc(100vh-150px)] border rounded-t-lg border-border bg-surface-1"
       >
         <div
+          dir={isRTL ? 'rtl' : 'ltr'}
           class="flex flex-col divide-y divide-border/50 dark:divide-border/70"
         >
           {#each headings as heading}
@@ -238,7 +244,7 @@
           {heading.id === activeHeadingId
                 ? 'text-text-primary bg-black/5 dark:bg-white/5'
                 : 'text-text-secondary hover:text-text-primary'}
-          lv{heading.level}"
+          lv{heading.level} {isRTL ? 'text-right' : 'text-left'}"
             >
               <span class="line-clamp-2">
                 {heading.text}

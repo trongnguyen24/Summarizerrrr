@@ -23,6 +23,7 @@
     openDeepDiveChat,
     validateDeepDiveAvailability,
   } from '@/services/tools/deepDiveService.js'
+  import { isRTLLanguage } from '@/lib/utils/rtlUtils.js'
 
   // Import Shadow DOM compatible components
   import QuestionChip from '@/components/tools/deepdive/QuestionChip.svelte'
@@ -41,6 +42,9 @@
     summaryLang = 'English',
     isVisible = false,
   } = $props()
+
+  // RTL detection
+  let isRTL = $derived(isRTLLanguage(summaryLang))
 
   // State from store
   let questions = $derived(deepDiveState.questions)
@@ -383,7 +387,10 @@
               {/each}
             </div>
           </div>
-          <div class="flex flex-col gap-5">
+          <div
+            dir={isRTL ? 'rtl' : 'ltr'}
+            class="flex flex-col gap-5 {isRTL ? 'rtl-content' : ''}"
+          >
             {#each questions as question, i (question)}
               <QuestionChip
                 {question}

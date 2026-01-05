@@ -5,6 +5,7 @@
   import SvelteMarkdown from 'svelte-markdown'
   import { processThinkTags } from '@/lib/utils/thinkTagProcessor.js'
   import { processTimestamps } from '@/lib/utils/timestampProcessor.js'
+  import { isRTLLanguage } from '@/lib/utils/rtlUtils.js'
   import TimestampLink from './TimestampLink.svelte'
   import TableRenderer from './TableRenderer.svelte'
 
@@ -16,6 +17,7 @@
    *   class?: string;
    *   onFinishTyping?: () => void;
    *   enableCursor?: boolean;
+   *   summaryLang?: string;
    * }}
    */
   let {
@@ -23,7 +25,11 @@
     class: className = '', // TÙY CHỌN: CSS classes
     onFinishTyping, // Callback khi hoàn thành
     enableCursor = true, // TÙY CHỌN: Hiển thị cursor animation
+    summaryLang = 'English', // TÙY CHỌN: Ngôn ngữ summary để detect RTL
   } = $props()
+
+  // Detect RTL language
+  let isRTL = $derived(isRTLLanguage(summaryLang))
 
   // === State nội bộ ===
   let container = $state()
@@ -136,9 +142,10 @@
 
 <div
   bind:this={container}
+  dir={isRTL ? 'rtl' : 'ltr'}
   class="markdown-container-v2 {isStreaming && enableCursor
     ? 'blinking-cursor'
-    : ''} {className}"
+    : ''} {className} {isRTL ? 'rtl-content' : ''}"
 >
   <SvelteMarkdown
     source={!isStreaming

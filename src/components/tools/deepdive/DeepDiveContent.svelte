@@ -21,12 +21,16 @@
     openDeepDiveChat,
     validateDeepDiveAvailability,
   } from '@/services/tools/deepDiveService.js'
+  import { isRTLLanguage } from '@/lib/utils/rtlUtils.js'
   import QuestionChip from './QuestionChip.svelte'
   import CustomQuestionInput from './CustomQuestionInput.svelte'
   import ChatProviderSelect from './ChatProviderSelect.svelte'
 
   // Props
   let { summaryContent, pageTitle, pageUrl, summaryLang = 'English' } = $props()
+
+  // RTL detection
+  let isRTL = $derived(isRTLLanguage(summaryLang))
 
   // State from store
   let questions = $derived(deepDiveState.questions)
@@ -40,7 +44,7 @@
 
   // Local state - reactive to settings changes
   let chatProvider = $derived(
-    settings.tools?.deepDive?.defaultChatProvider || 'gemini'
+    settings.tools?.deepDive?.defaultChatProvider || 'gemini',
   )
 
   // Derived state
@@ -48,7 +52,7 @@
   let isToolEnabled = $derived(toolConfig.enabled ?? false)
   let availability = $derived(validateDeepDiveAvailability())
   let canGenerate = $derived(
-    isToolEnabled && availability.available && summaryContent && !isGenerating
+    isToolEnabled && availability.available && summaryContent && !isGenerating,
   )
   let hasQuestions = $derived(questions.length > 0)
   let activeQuestion = $derived(selectedQuestion || customQuestion)
@@ -58,11 +62,11 @@
   let hasPagination = $derived(totalPages > 1)
   let canGoBack = $derived(deepDiveState.currentPageIndex > 0 && !isGenerating)
   let canGoForward = $derived(
-    deepDiveState.currentPageIndex < totalPages - 1 && !isGenerating
+    deepDiveState.currentPageIndex < totalPages - 1 && !isGenerating,
   )
   // NEW: Separate logic for custom input only
   let canStartChatWithCustom = $derived(
-    customQuestion && customQuestion.trim() !== ''
+    customQuestion && customQuestion.trim() !== '',
   )
   // Compact mode for ChatProviderSelect when user types in CustomQuestionInput
   let isCompact = $derived(customQuestion.length > 4)
@@ -90,7 +94,7 @@
       console.log(
         '[DeepDiveContent] Using history:',
         deepDiveState.questionHistory.length,
-        'generations'
+        'generations',
       )
 
       const generated = await generateFollowUpQuestions(
@@ -98,7 +102,7 @@
         pageTitle,
         pageUrl,
         summaryLang,
-        deepDiveState.questionHistory
+        deepDiveState.questionHistory,
       )
 
       setQuestions(generated)
@@ -107,7 +111,7 @@
       console.log('[DeepDiveContent] Generated questions:', generated)
       console.log(
         '[DeepDiveContent] Total history:',
-        deepDiveState.questionHistory.length
+        deepDiveState.questionHistory.length,
       )
     } catch (err) {
       console.error('[DeepDiveContent] Generation error:', err)
@@ -136,7 +140,7 @@
       console.log(
         '[DeepDiveContent] Using history:',
         deepDiveState.questionHistory.length,
-        'generations'
+        'generations',
       )
 
       const generated = await generateFollowUpQuestions(
@@ -145,7 +149,7 @@
         pageUrl,
         summaryLang,
         deepDiveState.questionHistory,
-        true // ← isRegenerate = true for flexible prompt
+        true, // ← isRegenerate = true for flexible prompt
       )
 
       setQuestions(generated)
@@ -154,7 +158,7 @@
       console.log('[DeepDiveContent] Regenerated questions:', generated)
       console.log(
         '[DeepDiveContent] Total history:',
-        deepDiveState.questionHistory.length
+        deepDiveState.questionHistory.length,
       )
     } catch (err) {
       console.error('[DeepDiveContent] Regeneration error:', err)
@@ -203,7 +207,7 @@
     try {
       console.log(
         '[DeepDiveContent] Starting chat with question:',
-        activeQuestion
+        activeQuestion,
       )
       await openDeepDiveChat(
         activeQuestion,
@@ -211,7 +215,7 @@
         pageTitle,
         pageUrl,
         summaryLang,
-        chatProvider
+        chatProvider,
       )
     } catch (err) {
       console.error('[DeepDiveContent] Chat error:', err)
@@ -359,7 +363,10 @@
         </div>
 
         <div class="questions-section">
-          <div class="flex flex-col gap-5">
+          <div
+            dir={isRTL ? 'rtl' : 'ltr'}
+            class="flex flex-col gap-5 {isRTL ? 'rtl-content' : ''}"
+          >
             {#each questions as question, i (question)}
               <QuestionChip
                 {question}

@@ -4,6 +4,10 @@
  * Double Injection Strategy:
  * 1. Static: Inject into ytd-thumbnail when hovering
  * 2. Dynamic: Inject into ytd-video-preview when it appears
+ * 
+ * Performance Optimized:
+ * - All observers, listeners, and intervals are stopped when feature is disabled
+ * - Resources are re-initialized when feature is re-enabled
  */
 import { mount, unmount } from 'svelte'
 import QuickSummaryButton from './content/QuickSummaryButton.svelte'
@@ -14,31 +18,29 @@ export default defineContentScript({
   runAt: 'document_end',
   
   async main() {
-    // Check if Quick Summary feature is enabled
-    const storedSettings = await settingsStorage.getValue()
-    if (storedSettings?.quickSummaryEnabled === false) {
-      console.log('[Quick Summary] Feature disabled in settings')
-      return
-    }
-
-    // Multiple selectors for different YouTube layouts
+    // Constants
     const THUMBNAIL_SELECTORS = [
       'ytd-thumbnail',                    // Home, Search, Channel pages
       'yt-thumbnail-view-model',          // Watch page sidebar (new layout)
       'yt-lockup-view-model',             // Watch page sidebar (container)
     ].join(', ')
-    
     const PREVIEW_SELECTOR = 'ytd-video-preview'
     const INJECTED_MARKER = 'data-qs-injected'
     
-    // Current video ID being tracked
+    // State
+    let isEnabled = true
     let currentVideoId = null
+    let observer = null
+    let intervalId = null
     
     // Store mounted components for cleanup
     const mountedComponents = new WeakMap()
     
-    // ===== STATIC INJECTION: Into thumbnails =====
-    document.body.addEventListener('mouseover', (e) => {
+    // ===== MOUSEOVER HANDLER =====
+    function handleMouseOver(e) {
+      // Skip if feature is disabled
+      if (!isEnabled) return
+      
       // Try to find the thumbnail container - prioritize larger containers
       let thumbnail = e.target.closest('yt-lockup-view-model')  // Watch page sidebar
       if (!thumbnail) {
@@ -83,11 +85,12 @@ export default defineContentScript({
       }
       
       injectButton(targetContainer, videoId)
-    }, { passive: true })
+    }
     
-    // ===== DYNAMIC INJECTION: Into video preview =====
-    // Watch for ytd-video-preview appearing or changing
-    const observer = new MutationObserver((mutations) => {
+    // ===== MUTATION OBSERVER CALLBACK =====
+    function handleMutations(mutations) {
+      if (!isEnabled) return
+      
       for (const mutation of mutations) {
         // Check for added nodes
         for (const node of mutation.addedNodes) {
@@ -101,20 +104,14 @@ export default defineContentScript({
           checkAndInjectPreview(mutation.target)
         }
       }
-    })
-    
-    // Start observing
-    observer.observe(document.body, {
-      childList: true,
-      subtree: true,
-      attributes: true,
-      attributeFilter: ['class', 'style', 'hidden']
-    })
+    }
     
     /**
      * Check if element is/contains video-preview and inject button
      */
     function checkAndInjectPreview(element) {
+      if (!isEnabled) return
+      
       const preview = element.matches?.(PREVIEW_SELECTOR) 
         ? element 
         : element.querySelector?.(PREVIEW_SELECTOR)
@@ -157,18 +154,24 @@ export default defineContentScript({
       injectButton(preview, videoId)
     }
     
-    // Also periodically check for visible preview (fallback)
-    setInterval(() => {
+    /**
+     * Interval callback for fallback preview checking
+     */
+    function checkPreviewInterval() {
+      if (!isEnabled) return
+      
       const preview = document.querySelector(`${PREVIEW_SELECTOR}:not([hidden])`)
       if (preview && !preview.querySelector('.qs-button-wrapper') && currentVideoId) {
         injectButton(preview, currentVideoId)
       }
-    }, 500)
+    }
     
     /**
      * Inject Svelte button component into container
      */
     function injectButton(container, videoId) {
+      if (!isEnabled) return
+      
       // Create wrapper element
       const wrapper = document.createElement('div')
       wrapper.className = 'qs-button-wrapper'
@@ -190,7 +193,98 @@ export default defineContentScript({
       mountedComponents.set(wrapper, component)
     }
     
-    console.log('[Quick Summary] Content script initialized (Svelte component)')
+    /**
+     * Remove all injected buttons from the page
+     */
+    function removeAllButtons() {
+      const wrappers = document.querySelectorAll('.qs-button-wrapper')
+      wrappers.forEach(wrapper => {
+        const comp = mountedComponents.get(wrapper)
+        if (comp) {
+          unmount(comp)
+          mountedComponents.delete(wrapper)
+        }
+        wrapper.remove()
+      })
+      
+      // Remove injection markers so buttons can be re-injected when enabled
+      const markedElements = document.querySelectorAll(`[${INJECTED_MARKER}]`)
+      markedElements.forEach(el => el.removeAttribute(INJECTED_MARKER))
+    }
+    
+    /**
+     * Start all observers and listeners
+     */
+    function startFeature() {
+      if (isEnabled) return // Already enabled
+      
+      isEnabled = true
+      
+      // Start MutationObserver
+      observer = new MutationObserver(handleMutations)
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+        attributeFilter: ['class', 'style', 'hidden']
+      })
+      
+      // Start interval
+      intervalId = setInterval(checkPreviewInterval, 500)
+      
+      console.log('[Quick Summary] Feature enabled - observers started')
+    }
+    
+    /**
+     * Stop all observers and listeners, remove buttons
+     */
+    function stopFeature() {
+      if (!isEnabled) return // Already disabled
+      
+      isEnabled = false
+      
+      // Stop MutationObserver
+      if (observer) {
+        observer.disconnect()
+        observer = null
+      }
+      
+      // Stop interval
+      if (intervalId) {
+        clearInterval(intervalId)
+        intervalId = null
+      }
+      
+      // Remove all injected buttons
+      removeAllButtons()
+      
+      console.log('[Quick Summary] Feature disabled - observers stopped, buttons removed')
+    }
+    
+    // ===== INITIALIZATION =====
+    
+    // Add mouseover listener (always active, but checks isEnabled flag)
+    document.body.addEventListener('mouseover', handleMouseOver, { passive: true })
+    
+    // Check initial setting
+    const storedSettings = await settingsStorage.getValue()
+    if (storedSettings?.quickSummaryEnabled === false) {
+      isEnabled = false
+      console.log('[Quick Summary] Feature disabled in settings (not starting)')
+    } else {
+      // Start the feature
+      startFeature()
+      console.log('[Quick Summary] Content script initialized (Svelte component)')
+    }
+    
+    // Watch for settings changes to toggle feature without reload
+    settingsStorage.watch((newSettings) => {
+      if (newSettings?.quickSummaryEnabled === false) {
+        stopFeature()
+      } else {
+        startFeature()
+      }
+    })
   }
 })
 

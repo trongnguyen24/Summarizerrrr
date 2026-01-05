@@ -30,17 +30,24 @@ class NavigationManager {
 
   /**
    * Bắt đầu monitoring navigation changes
+   * 
+   * CẬP NHẬT: Không còn override History API để tránh conflict với
+   * scroll restoration của trình duyệt và SPA như Reddit.
    */
   startMonitoring() {
     if (this.isMonitoring) return
 
+    // Bind handlers một lần để có thể remove đúng cách
+    this.boundHandlePopState = this.handlePopState.bind(this)
+    
     // Listen for popstate events (back/forward navigation)
-    window.addEventListener('popstate', this.handlePopState.bind(this))
+    window.addEventListener('popstate', this.boundHandlePopState)
 
-    // Override history methods to catch programmatic navigation
-    this.overrideHistoryMethods()
+    // KHÔNG override history methods nữa - gây conflict với scroll restoration
+    // Thay vào đó, chỉ dựa vào popstate + periodic URL check
+    // this.overrideHistoryMethods() // DISABLED
 
-    // Fallback: Periodic URL checking
+    // Fallback: Periodic URL checking (đủ nhanh để catch SPA navigation)
     this.startPeriodicUrlCheck()
 
     this.isMonitoring = true
@@ -52,36 +59,32 @@ class NavigationManager {
   stopMonitoring() {
     if (!this.isMonitoring) return
 
-    window.removeEventListener('popstate', this.handlePopState.bind(this))
+    if (this.boundHandlePopState) {
+      window.removeEventListener('popstate', this.boundHandlePopState)
+    }
 
-    // Restore original history methods
-    window.history.pushState = this.originalPushState
-    window.history.replaceState = this.originalReplaceState
-
+    // Cleanup URL check interval
     if (this.urlCheckInterval) {
       clearInterval(this.urlCheckInterval)
+      this.urlCheckInterval = null
     }
 
     this.isMonitoring = false
   }
 
   /**
-   * Override history methods để bắt navigation changes
+   * [DEPRECATED] Override history methods để bắt navigation changes
+   * 
+   * CẢNH BÁO: Phương thức này đã bị vô hiệu hóa vì gây conflict với
+   * scroll restoration của trình duyệt, đặc biệt trên các SPA như Reddit.
+   * 
+   * Thay vào đó, sử dụng periodic URL checking đủ nhanh (500ms) để phát hiện
+   * navigation changes mà không can thiệp vào behavior gốc của trang.
    */
   overrideHistoryMethods() {
-    const self = this
-
-    window.history.pushState = function (...args) {
-      const result = self.originalPushState.apply(this, args)
-      self.handleUrlChange()
-      return result
-    }
-
-    window.history.replaceState = function (...args) {
-      const result = self.originalReplaceState.apply(this, args)
-      self.handleUrlChange()
-      return result
-    }
+    // DEPRECATED - không sử dụng
+    // Giữ lại method để backward compatibility nhưng không làm gì cả
+    console.warn('[NavigationManager] overrideHistoryMethods is deprecated and disabled')
   }
 
   /**
@@ -114,16 +117,19 @@ class NavigationManager {
   }
 
   /**
-   * Fallback: Periodic URL checking để bắt các trường hợp missed
+   * Fallback: Periodic URL checking để sync internal state
+   * 
+   * CHÚ Ý: KHÔNG notify callbacks từ periodic check vì gây scroll issue
+   * trên Reddit mobile. Callbacks chỉ được gọi từ popstate (back/forward).
    */
   startPeriodicUrlCheck() {
     this.urlCheckInterval = setInterval(() => {
       const newUrl = window.location.href
       if (newUrl !== this.currentUrl) {
+        // CHỈ update internal state, KHÔNG notify
         this.currentUrl = newUrl
-        this.notifyUrlChange(newUrl)
       }
-    }, 1000) // Check mỗi giây
+    }, 1000)
   }
 
   /**

@@ -142,6 +142,7 @@
     window.addEventListener('resize', checkMobile)
 
     // Bắt đầu monitoring navigation changes
+    // (Đã sửa: không override History API để tránh scroll issue trên Reddit)
     navigationManager.startMonitoring()
     unsubscribeNavigation = navigationManager.subscribe(handleUrlChange)
 
@@ -312,12 +313,31 @@
     }
   })
 
+  // Lazy URL check - reset content nếu URL đã thay đổi
+  function checkAndResetForCurrentUrl() {
+    const currentUrl = window.location.href
+    if (currentUrl !== currentUrlKey) {
+      console.log('[App] URL changed (lazy check):', currentUrl)
+      currentUrlKey = currentUrl
+      oneClickSummarization.resetDisplayStateOnly()
+      oneClickSummarization.initializeForUrl(currentUrl, () => {
+        isPanelVisible = true
+      })
+      return true // URL changed
+    }
+    return false // URL same
+  }
+
   function togglePanel() {
+    // Check URL trước khi toggle
+    checkAndResetForCurrentUrl()
     isPanelVisible = !isPanelVisible
   }
 
   // Handle one-click summarization
   async function handleOneClickSummarization() {
+    // Check URL trước khi summarize
+    checkAndResetForCurrentUrl()
     return await oneClickSummarization.handleFloatingButtonClick()
   }
 

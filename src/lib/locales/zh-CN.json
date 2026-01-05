@@ -32,6 +32,13 @@
         "non_streaming": "普通",
         "non_streaming_desc": "适用于网络较慢的情况，避免卡顿。"
       },
+      "floatingButton": "浮动按钮",
+      "floating_button": {
+        "show": "显示",
+        "show_desc": "在网页上显示浮动按钮。",
+        "hide": "隐藏",
+        "hide_desc": "从网页隐藏浮动按钮。"
+      },
       "shortcuts": "快捷键",
       "shortcuts_settings": "管理快捷键",
       "icon_click_action": {

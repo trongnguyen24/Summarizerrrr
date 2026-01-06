@@ -329,8 +329,16 @@
   }
 
   function togglePanel() {
-    // Check URL trước khi toggle
-    checkAndResetForCurrentUrl()
+    // LUÔN check URL và reset nếu cần trước khi toggle
+    // Quan trọng cho SPA navigation (YouTube) khi periodic check không notify
+    const urlChanged = checkAndResetForCurrentUrl()
+
+    // Nếu URL thay đổi và đang mở panel, giữ panel mở với nội dung mới
+    if (urlChanged && isPanelVisible) {
+      // Panel đã mở, chỉ cần refresh content (đã làm trong checkAndResetForCurrentUrl)
+      return
+    }
+
     isPanelVisible = !isPanelVisible
   }
 

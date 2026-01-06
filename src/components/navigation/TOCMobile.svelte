@@ -274,7 +274,7 @@
   style="bottom: calc(var(--toc-bottom-offset, 0vh) + 2vh)"
 >
   <button
-    class="flex items-end py-4 pl-6 pr-2 transition-all flex-col gap-1.5"
+    class="flex items-end py-5 pl-6 pr-2 transition-all flex-col gap-1.5"
     onclick={() => (isNavOpen = !isNavOpen)}
     onmouseenter={handleMouseEnter}
     onmouseleave={handleMouseLeave}
@@ -311,11 +311,11 @@
         >
           {#each headings as heading}
             <button
-              class="p-4 font-mono text-sm/4 no-underline transition-colors {isRTL
+              class="px-4 py-3 font-mono text-sm/6 no-underline transition-colors {isRTL
                 ? 'text-right'
                 : 'text-left'} {heading.id === activeHeadingId
                 ? 'text-text-primary bg-black/5 dark:bg-white/5'
-                : 'text-text-secondary hover:text-text-primary'}"
+                : 'text-text-secondary hover:text-text-primary'} lv{heading.level}"
               onclick={() => {
                 scrollToHeading(heading.id)
                 isNavOpen = false
@@ -381,23 +381,23 @@
 
 <style>
   .lv2 {
-    padding-left: 0.5rem;
+    padding-left: 0.5em;
   }
   .lv3 {
-    padding-left: 1.25rem;
+    padding-left: 1.25em;
   }
   .lv4 {
-    padding-left: 2rem;
+    padding-left: 2em;
   }
 
   .lvs2 {
-    width: 0.25rem;
+    width: 0.25em;
   }
   .lvs3 {
-    width: 0.175rem;
+    width: 0.175em;
   }
   .lvs4 {
-    width: 0.1rem;
+    width: 0.1em;
   }
 
   nav {

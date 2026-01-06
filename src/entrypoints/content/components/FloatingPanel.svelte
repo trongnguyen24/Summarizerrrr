@@ -30,7 +30,7 @@
 
   let panelElement = $state()
   let isResizing = $state(false)
-  let currentWidthPx = $state(0) // Will be set in loadWidth()
+  let currentWidthPx = $state(380) // Default to MIN_WIDTH_PX để đảm bảo animation hoạt động ngay
   let showElement = $state(false) // Still used for backdrop/animation logic
   const { needsApiKeySetup } = useApiKeyValidation()
 
@@ -310,6 +310,20 @@
       } else {
         showElement = false
       }
+    }
+  })
+
+  // Effect để handle case khi panelElement được bind SAU khi visible=true
+  // Quan trọng khi component được re-create bởi {#key currentUrlKey}
+  $effect(() => {
+    if (panelElement && visible && currentWidthPx > 0) {
+      // Đảm bảo class 'visible' được thêm khi element ready
+      requestAnimationFrame(() => {
+        if (panelElement && !panelElement.classList.contains('visible')) {
+          panelElement.style.width = `${currentWidthPx}px`
+          panelElement.classList.add('visible')
+        }
+      })
     }
   })
 

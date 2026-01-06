@@ -837,6 +837,31 @@ export default defineBackground(() => {
     }
   }
 
+  // Dynamic context menu visibility: hide "Summarize selected text" when clicking on links
+  // Uses onShown event (Firefox) or the handler approach (Chrome - onShown not available)
+  if (browser.contextMenus.onShown) {
+    // Firefox supports onShown for dynamic updates
+    browser.contextMenus.onShown.addListener((info, tab) => {
+      const isLinkContext = info.contexts.includes('link')
+      const hasSelection = info.contexts.includes('selection') && info.selectionText
+      
+      // Hide summarizeSelectedText when clicking on a link
+      if (isLinkContext) {
+        browser.contextMenus.update('summarizeSelectedText', { visible: false })
+        browser.contextMenus.refresh()
+      } else if (hasSelection) {
+        // Show it when there's only selection (no link)
+        browser.contextMenus.update('summarizeSelectedText', { visible: true })
+        browser.contextMenus.refresh()
+      }
+    })
+    
+    // Reset visibility when menu is hidden
+    browser.contextMenus.onHidden.addListener(() => {
+      browser.contextMenus.update('summarizeSelectedText', { visible: true })
+    })
+  }
+
   // --- Browser/Platform Specific Setup ---
   if (import.meta.env.BROWSER === 'chrome') {
     // Setup Chrome action behavior based on settings with enhanced retry and fallback
@@ -1434,7 +1459,9 @@ export default defineBackground(() => {
   }
 
   browser.contextMenus.onClicked.addListener(async (info, tab) => {
-    if (info.menuItemId === 'summarizeSelectedText' && info.selectionText) {
+    // Minimum 20 characters to avoid accidental triggers on very short selections
+    const MIN_SELECTION_LENGTH = 20
+    if (info.menuItemId === 'summarizeSelectedText' && info.selectionText && info.selectionText.trim().length >= MIN_SELECTION_LENGTH) {
       pendingSelectedText = info.selectionText
       console.log('[Background] Context menu: summarizeSelectedText clicked, sidePanelPort exists:', !!sidePanelPort)
       

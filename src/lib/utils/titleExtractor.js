@@ -56,5 +56,6 @@ function cleanTitle(title) {
   return title
     .replace(/\s*-\s*YouTube$/, '')
     .replace(/^\s*\([\d\+]+\)\s*/, '') // Remove notification count like (1) or (18) or (9+)
+    .replace(/^(⏳|🎉|🤯)\s*/, '') // Remove Quick Summary status emoji from title prefix
     .trim();
 }

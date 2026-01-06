@@ -20,10 +20,12 @@ yt-lockup-view-model:hover .qs-icon-wrapper,
   opacity: 1;
   pointer-events: auto;
 }
-ytd-thumbnail:hover .qs-icon-wrapper,
+
+/* DEBUG: Commented out - was hiding buttons on home/search */
+/* ytd-thumbnail:hover .qs-icon-wrapper,
 yt-thumbnail-view-model:hover .qs-icon-wrapper {
     display: none !important;
-}
+} */
 
 #secondary ytd-thumbnail:hover .qs-icon-wrapper,
 #secondary yt-thumbnail-view-model:hover .qs-icon-wrapper,
@@ -91,8 +93,7 @@ yt-thumbnail-view-model .qs-icon-wrapper {
   
 }
 
-/* ===== HIDE ON HOME PAGE ===== */
-/* Hide quick summary button on YouTube home page (inside rich-item-renderer) */
+/* DEBUG: Commented out - was hiding buttons on home page */
 ytd-rich-item-renderer yt-lockup-view-model .qs-icon-wrapper,
 ytd-rich-item-renderer yt-thumbnail-view-model .qs-icon-wrapper {
   display: none !important;

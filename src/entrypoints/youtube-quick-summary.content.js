@@ -28,7 +28,7 @@ export default defineContentScript({
     const INJECTED_MARKER = 'data-qs-injected'
     
     // State
-    let isEnabled = true
+    let isEnabled = false  // Start as false, will be set true by startFeature()
     let currentVideoId = null
     let observer = null
     let intervalId = null
@@ -161,9 +161,26 @@ export default defineContentScript({
       if (!isEnabled) return
       
       const preview = document.querySelector(`${PREVIEW_SELECTOR}:not([hidden])`)
-      if (preview && !preview.querySelector('.qs-button-wrapper') && currentVideoId) {
-        injectButton(preview, currentVideoId)
+      if (!preview) return
+      
+      // Skip if already has button
+      if (preview.querySelector('.qs-button-wrapper')) return
+      
+      // Try to get video ID from preview's own link first
+      let videoId = null
+      const previewLink = preview.querySelector('a[href*="watch"]')
+      if (previewLink) {
+        videoId = extractVideoId(previewLink.href)
       }
+      
+      // Fallback to tracked video ID
+      if (!videoId && currentVideoId) {
+        videoId = currentVideoId
+      }
+      
+      if (!videoId) return
+      
+      injectButton(preview, videoId)
     }
     
     /**
@@ -218,7 +235,7 @@ export default defineContentScript({
     function startFeature() {
       if (isEnabled) return // Already enabled
       
-      isEnabled = true
+       isEnabled = true
       
       // Start MutationObserver
       observer = new MutationObserver(handleMutations)

@@ -125,6 +125,10 @@
           'Firefox Cloud Sync Improvement:',
           'Enhanced permission granting flow for the Cloud Sync feature on Firefox.',
         )}
+        {@render note(
+          'Summarize in New Tab:',
+          'Right-click on any link to open it in a new tab and automatically trigger summarization via FAB.',
+        )}
       </ul>
 
       <b class="font-mono">2.8.0</b>

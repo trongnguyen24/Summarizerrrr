@@ -85,6 +85,46 @@
     )
   }
 
+  // Scroll to heading matching URL hash
+  function scrollToHashHeading(retryCount = 0) {
+    const hash = window.location.hash
+    if (!hash || hash.length <= 1) return
+
+    const targetId = hash.substring(1) // Remove the # character
+    // Extract base ID from hash (remove random suffix like "-604d")
+    const targetBaseId = targetId.replace(/-[a-z0-9]{4}$/, '')
+
+    // First try exact match
+    let element = document.getElementById(targetId)
+
+    // If not found, try to find heading with matching base ID
+    // (TOCArchive generates new random suffix each time)
+    if (!element) {
+      const headings = document.querySelectorAll('h2[id], h3[id], h4[id]')
+      for (const heading of headings) {
+        // Extract base ID from heading (remove random suffix)
+        const headingBaseId = heading.id.replace(/-[a-z0-9]{4}$/, '')
+        // Match base IDs
+        if (headingBaseId === targetBaseId) {
+          element = heading
+          break
+        }
+      }
+    }
+
+    if (element) {
+      element.scrollIntoView({ behavior: 'auto', block: 'start' })
+      // Add highlight effect
+      element.classList.add('animate-pulse')
+      setTimeout(() => {
+        element.classList.remove('animate-pulse')
+      }, 4000)
+    } else if (retryCount < 5) {
+      // Retry after delay if heading not found yet (TOC may not have generated IDs)
+      setTimeout(() => scrollToHashHeading(retryCount + 1), 300)
+    }
+  }
+
   // Effects
   $effect(() => {
     // Initialize OverlayScrollbars only on non-touch devices
@@ -95,6 +135,8 @@
       if (result && result.activeTab) {
         activeTab = result.activeTab // Set initial activeTab from URL
       }
+      // Scroll to hash after data is loaded
+      setTimeout(scrollToHashHeading, 100)
     })
 
     // Listen for archive updates

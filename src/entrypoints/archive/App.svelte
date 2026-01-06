@@ -136,7 +136,7 @@
         activeTab = result.activeTab // Set initial activeTab from URL
       }
       // Scroll to hash after data is loaded
-      setTimeout(scrollToHashHeading, 300)
+      setTimeout(scrollToHashHeading, 100)
     })
 
     // Listen for archive updates

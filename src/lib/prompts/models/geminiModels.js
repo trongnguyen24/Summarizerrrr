@@ -22,7 +22,7 @@ export const geminiBasicModels = [
     },
   },
   {
-    value: 'gemini-3-flash-preview',
+    value: 'gemini-3-flash',
     label: '3.0 Flash',
     description: 'Latest and fastest.',
     generationConfig: {

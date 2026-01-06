@@ -52,6 +52,8 @@ function handleBackgroundMessage(request) {
         '[messageHandler.js] Received summarizeSelectedText message:',
         request
       )
+      // Scroll to top to show loading state when re-summarizing
+      window.scrollTo({ top: 0, behavior: 'smooth' })
       resetDisplayState()
       summaryState.lastSummaryTypeDisplayed = 'selectedText'
       summarizeSelectedText(request.selectedText)
@@ -61,6 +63,8 @@ function handleBackgroundMessage(request) {
         '[messageHandler.js] Received summarizeCurrentPage message:',
         request
       )
+      // Scroll to top to show loading state when re-summarizing
+      window.scrollTo({ top: 0, behavior: 'smooth' })
       resetDisplayState()
       if (request.isYouTube) {
         summaryState.lastSummaryTypeDisplayed = 'youtube'

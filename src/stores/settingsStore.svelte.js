@@ -15,10 +15,10 @@ const DEFAULT_SETTINGS = {
   closePanelOnOutsideClick: true, // Close floating panel when clicking outside
   geminiApiKey: '',
   geminiAdditionalApiKeys: [], // New storage for extra keys
-  selectedGeminiModel: 'gemini-3-flash-preview',
+  selectedGeminiModel: 'gemini-3-flash',
   geminiAdvancedApiKey: '',
   geminiAdvancedAdditionalApiKeys: [], // Additional API keys for Gemini Advanced mode
-  selectedGeminiAdvancedModel: 'gemini-3-flash-preview',
+  selectedGeminiAdvancedModel: 'gemini-3-flash',
   openaiCompatibleApiKey: '',
   openaiCompatibleBaseUrl: '',
   selectedOpenAICompatibleModel: '',
@@ -180,6 +180,40 @@ function migrateDeprecatedGeminiModels(settings) {
 }
 
 /**
+ * Migrates gemini-3-flash-preview to gemini-3-flash
+ * @param {Object} settings - Settings object to migrate
+ * @returns {boolean} - True if any migration was performed
+ */
+function migrateGemini3FlashPreviewModel(settings) {
+  const OLD_MODEL = 'gemini-3-flash-preview'
+  const NEW_MODEL = 'gemini-3-flash'
+  let migrated = false
+
+  // Migrate selectedGeminiModel
+  if (settings.selectedGeminiModel === OLD_MODEL) {
+    console.log('[settingsStore] Migration: gemini-3-flash-preview -> gemini-3-flash (selectedGeminiModel)')
+    settings.selectedGeminiModel = NEW_MODEL
+    migrated = true
+  }
+
+  // Migrate selectedGeminiAdvancedModel
+  if (settings.selectedGeminiAdvancedModel === OLD_MODEL) {
+    console.log('[settingsStore] Migration: gemini-3-flash-preview -> gemini-3-flash (selectedGeminiAdvancedModel)')
+    settings.selectedGeminiAdvancedModel = NEW_MODEL
+    migrated = true
+  }
+
+  // Migrate tools.deepDive.customModel
+  if (settings.tools?.deepDive?.customModel === OLD_MODEL) {
+    console.log('[settingsStore] Migration: gemini-3-flash-preview -> gemini-3-flash (deepDive.customModel)')
+    settings.tools.deepDive.customModel = NEW_MODEL
+    migrated = true
+  }
+
+  return migrated
+}
+
+/**
  * Migrates deprecated 'alien' tone to 'witty'
  * @param {Object} settings - Settings object to migrate
  * @returns {boolean} - True if any migration was performed
@@ -267,6 +301,9 @@ export async function loadSettings() {
 
         // ✅ MIGRATION: Migrate deprecated Gemini model names
         migrateDeprecatedGeminiModels(cleanStoredSettings)
+        
+        // ✅ MIGRATION: Migrate gemini-3-flash-preview to gemini-3-flash
+        migrateGemini3FlashPreviewModel(cleanStoredSettings)
         
         // ✅ MIGRATION: Migrate 'alien' tone to 'witty'
         migrateDeprecatedTone(cleanStoredSettings)

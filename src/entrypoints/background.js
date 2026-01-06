@@ -798,6 +798,14 @@ export default defineBackground(() => {
           contexts: ['selection'],
         })
 
+        // Context menu for links - Quick Summary in new tab
+        browser.contextMenus.create({
+          id: 'quickSummaryLink',
+          title: 'Summarize in new tab',
+          type: 'normal',
+          contexts: ['link'],
+        })
+
         // Create context menu for Chrome (action) and Firefox (browser_action)
         const contexts = []
         if (browser.action) contexts.push('action')
@@ -1428,14 +1436,19 @@ export default defineBackground(() => {
   browser.contextMenus.onClicked.addListener(async (info, tab) => {
     if (info.menuItemId === 'summarizeSelectedText' && info.selectionText) {
       pendingSelectedText = info.selectionText
+      console.log('[Background] Context menu: summarizeSelectedText clicked, sidePanelPort exists:', !!sidePanelPort)
+      
       if (sidePanelPort) {
         try {
+          console.log('[Background] Sending summarizeSelectedText message to sidepanel...')
           sidePanelPort.postMessage({
             action: 'summarizeSelectedText',
             selectedText: pendingSelectedText,
           })
+          console.log('[Background] Message sent successfully to sidepanel')
           pendingSelectedText = null
         } catch (e) {
+          console.error('[Background] Failed to send message to sidepanel:', e)
           /* Port might have just closed */
         }
       }
@@ -1472,6 +1485,91 @@ export default defineBackground(() => {
         url: browser.runtime.getURL('prompt.html'),
         active: true,
       })
+    } else if (info.menuItemId === 'quickSummaryLink' && info.linkUrl) {
+      // Quick Summary for any link - open in background tab and trigger summarization
+      console.log('[Background] Quick Summary Link clicked:', info.linkUrl)
+      
+      // Helper function to extract YouTube video ID from URL
+      const extractVideoIdFromUrl = (url) => {
+        if (!url) return null
+        try {
+          const urlObj = new URL(url)
+          if (urlObj.hostname.includes('youtube.com')) {
+            if (urlObj.pathname === '/watch') {
+              return urlObj.searchParams.get('v')
+            }
+            if (urlObj.pathname.startsWith('/shorts/')) {
+              return urlObj.pathname.split('/')[2]
+            }
+          }
+          if (urlObj.hostname === 'youtu.be') {
+            return urlObj.pathname.slice(1)
+          }
+        } catch {
+          return null
+        }
+        return null
+      }
+      
+      const youtubeVideoId = extractVideoIdFromUrl(info.linkUrl)
+      
+      if (youtubeVideoId) {
+        // YouTube link - use existing Quick Summary logic
+        console.log('[Background] YouTube link detected, videoId:', youtubeVideoId)
+        
+        const currentSettings = await settingsStorage.getValue()
+        const autoplayMode = currentSettings?.quickSummaryAutoplay || 'pause'
+        
+        const newTab = await browser.tabs.create({
+          url: `https://www.youtube.com/watch?v=${youtubeVideoId}`,
+          active: false
+        })
+        
+        // Send QUICK_SUMMARY_TRIGGER after tab loads
+        const sendTrigger = async (tabId, retries = 5) => {
+          for (let i = 0; i < retries; i++) {
+            try {
+              await new Promise(r => setTimeout(r, 2000))
+              await browser.tabs.sendMessage(tabId, {
+                type: 'QUICK_SUMMARY_TRIGGER',
+                videoId: youtubeVideoId,
+                autoplayMode
+              })
+              console.log(`[Background] QUICK_SUMMARY_TRIGGER sent to tab ${tabId}`)
+              return
+            } catch (e) {
+              console.log(`[Background] Retry ${i + 1}/${retries} - content script not ready`)
+            }
+          }
+        }
+        sendTrigger(newTab.id)
+      } else {
+        // Generic website - open tab and trigger FAB summarization
+        console.log('[Background] Generic link, opening in new tab')
+        
+        const newTab = await browser.tabs.create({
+          url: info.linkUrl,
+          active: false
+        })
+        
+        // Send QUICK_SUMMARY_TRIGGER_GENERIC after tab loads
+        const sendGenericTrigger = async (tabId, retries = 8) => {
+          for (let i = 0; i < retries; i++) {
+            try {
+              await new Promise(r => setTimeout(r, 2000))
+              await browser.tabs.sendMessage(tabId, {
+                type: 'QUICK_SUMMARY_TRIGGER_GENERIC'
+              })
+              console.log(`[Background] QUICK_SUMMARY_TRIGGER_GENERIC sent to tab ${tabId}`)
+              return
+            } catch (e) {
+              console.log(`[Background] Retry ${i + 1}/${retries} - content script not ready`)
+            }
+          }
+          console.error('[Background] Failed to send QUICK_SUMMARY_TRIGGER_GENERIC after retries')
+        }
+        sendGenericTrigger(newTab.id)
+      }
     }
   })
 

@@ -58,6 +58,68 @@
     }
   }
 
+  /**
+   * Wait for page to be ready for summarization
+   * Handles SPA loading by waiting for:
+   * 1. Document ready state
+   * 2. Main content elements to appear
+   * 3. Network idle (no pending requests)
+   */
+  async function waitForPageReady(maxWaitMs = 10000) {
+    const startTime = Date.now()
+
+    // Wait for document ready state
+    if (document.readyState !== 'complete') {
+      await new Promise((resolve) => {
+        const handler = () => {
+          if (document.readyState === 'complete') {
+            window.removeEventListener('load', handler)
+            resolve()
+          }
+        }
+        window.addEventListener('load', handler)
+        // Fallback timeout
+        setTimeout(resolve, 3000)
+      })
+    }
+
+    // Wait for main content indicators (common patterns)
+    const contentSelectors = [
+      'article',
+      'main',
+      '[role="main"]',
+      '.content',
+      '#content',
+      '.post',
+      '.article',
+      '.entry-content',
+      '.post-content',
+    ]
+
+    const checkContent = () => {
+      for (const selector of contentSelectors) {
+        const el = document.querySelector(selector)
+        if (el && el.textContent.trim().length > 100) {
+          return true
+        }
+      }
+      // Fallback: check if body has substantial text
+      return document.body?.innerText?.length > 500
+    }
+
+    // Poll for content with timeout
+    while (!checkContent() && Date.now() - startTime < maxWaitMs) {
+      await new Promise((r) => setTimeout(r, 500))
+    }
+
+    // Additional short delay for any final rendering
+    await new Promise((r) => setTimeout(r, 500))
+
+    console.log(
+      `[App] Page ready check completed in ${Date.now() - startTime}ms`,
+    )
+  }
+
   let isFabAllowedOnDomain = $derived.by(() => {
     // Use the same matching logic as main.js for consistency
     return shouldShowFab(window.location.href, settings.fabDomainControl)
@@ -299,6 +361,79 @@
             // Cleanup emoji tracking after error
             cleanupEmojiTracking()
           })
+      }
+
+      // Generic Quick Summary mode: triggered by context menu on non-YouTube links
+      if (message.type === 'QUICK_SUMMARY_TRIGGER_GENERIC') {
+        // Wrap in async IIFE since message listeners don't support async directly
+        ;(async () => {
+          // Prevent duplicate triggers
+          if (isQuickSummaryMode) {
+            console.log('[App] Quick Summary already triggered, ignoring')
+            return
+          }
+
+          console.log('[App] Generic Quick Summary trigger received')
+          isQuickSummaryMode = true
+
+          // Track emoji state for title
+          let currentEmoji = '⏳'
+          const emojiPattern = /^(⏳|🎉|🤯)\s*/
+          let baseTitle = document.title.replace(emojiPattern, '')
+
+          const ensureEmojiInTitle = () => {
+            const currentTitle = document.title
+            if (!currentTitle.startsWith(currentEmoji)) {
+              baseTitle = currentTitle.replace(emojiPattern, '')
+              document.title = `${currentEmoji} ${baseTitle}`
+            }
+          }
+
+          ensureEmojiInTitle()
+
+          // Watch for title changes
+          const titleElement = document.querySelector('title')
+          cleanupEmojiTracking()
+
+          if (titleElement) {
+            titleObserver = new MutationObserver(() => {
+              ensureEmojiInTitle()
+            })
+            titleObserver.observe(titleElement, {
+              childList: true,
+              characterData: true,
+              subtree: true,
+            })
+          }
+
+          emojiInterval = setInterval(ensureEmojiInTitle, 1000)
+
+          // Wait for page content to be ready (handles SPA loading)
+          await waitForPageReady()
+
+          // Auto-trigger summarization
+          isPanelVisible = true
+          oneClickSummarization
+            .summarizePageContent()
+            .then(() => {
+              const checkSummaryDone = setInterval(() => {
+                const status = oneClickSummarization.statusToDisplay()
+                if (!status.isLoading) {
+                  currentEmoji = '🎉'
+                  ensureEmojiInTitle()
+                  clearInterval(checkSummaryDone)
+                  cleanupEmojiTracking()
+                }
+              }, 500)
+              setTimeout(() => clearInterval(checkSummaryDone), 60000)
+            })
+            .catch((error) => {
+              console.error('[App] Generic Quick Summary failed:', error)
+              currentEmoji = '🤯'
+              ensureEmojiInTitle()
+              cleanupEmojiTracking()
+            })
+        })()
       }
     })
 

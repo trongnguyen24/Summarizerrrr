@@ -550,6 +550,15 @@
           targetId="selected-text-summary-display"
           showTOC={true}
         />
+        <!-- Inline Deep Dive Questions for Selected Text -->
+        {#if shouldShowDeepDive() && settings.tools?.deepDive?.autoGenerate}
+          <InlineDeepDiveQuestions
+            summaryContent={getSummaryContent()}
+            pageTitle={summaryState.pageTitle}
+            pageUrl={summaryState.pageUrl}
+            summaryLang={settings.summaryLang || 'English'}
+          />
+        {/if}
       {:else if summaryState.lastSummaryTypeDisplayed === 'web'}
         <GenericSummaryDisplay
           summary={summaryState.summary}

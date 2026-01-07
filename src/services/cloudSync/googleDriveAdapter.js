@@ -20,7 +20,186 @@ const SCOPES = 'https://www.googleapis.com/auth/drive.appdata https://www.google
 // Token proxy server URL (Cloudflare Worker with custom domain)
 const TOKEN_PROXY_URL = 'https://oauth.summarizerrrr.com'
 
-// --- PKCE Helpers ---
+// --- BYOK (Bring Your Own Key) Mode ---
+// Allows users to use their own OAuth credentials instead of the default proxy
+
+/**
+ * Exchange authorization code directly with Google (BYOK mode)
+ * Used when user provides their own OAuth credentials
+ */
+async function exchangeCodeDirectInternal(code, codeVerifier, redirectUri, clientId, clientSecret) {
+  const response = await fetch('https://oauth2.googleapis.com/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      client_id: clientId,
+      client_secret: clientSecret,
+      code,
+      code_verifier: codeVerifier,
+      grant_type: 'authorization_code',
+      redirect_uri: redirectUri,
+    }),
+  })
+  
+  if (!response.ok) {
+    const error = await response.json()
+    console.error('Direct token exchange failed:', error)
+    throw new Error(error.error_description || error.error || 'Failed to exchange code')
+  }
+  
+  const data = await response.json()
+  
+  return {
+    accessToken: data.access_token,
+    refreshToken: data.refresh_token,
+    expiresAt: Date.now() + (data.expires_in || 3600) * 1000,
+  }
+}
+
+/**
+ * Refresh access token directly with Google (BYOK mode)
+ */
+export async function refreshAccessTokenDirect(refreshToken, clientId, clientSecret) {
+  if (!refreshToken) {
+    throw new Error('No refresh token available')
+  }
+  
+  const response = await fetch('https://oauth2.googleapis.com/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      client_id: clientId,
+      client_secret: clientSecret,
+      refresh_token: refreshToken,
+      grant_type: 'refresh_token',
+    }),
+  })
+  
+  if (!response.ok) {
+    const error = await response.json()
+    console.error('Direct token refresh failed:', error)
+    
+    if (error.error === 'invalid_grant') {
+      throw new Error('Session expired. Please sign in again.')
+    }
+    
+    throw new Error(error.error_description || 'Failed to refresh token')
+  }
+  
+  const data = await response.json()
+  
+  return {
+    accessToken: data.access_token,
+    expiresAt: Date.now() + (data.expires_in || 3600) * 1000,
+  }
+}
+
+/**
+ * Authenticate with BYOK mode (user's own credentials)
+ * @param {string} clientId - User's OAuth Client ID
+ * @param {string} clientSecret - User's OAuth Client Secret
+ */
+export async function authenticateWithCustomCredentials(clientId, clientSecret) {
+  const redirectUri = getRedirectUri()
+  const codeVerifier = generateCodeVerifier()
+  const codeChallenge = await generateCodeChallenge(codeVerifier)
+  
+  console.log('[CloudSync BYOK] Using custom credentials')
+  console.log('[CloudSync BYOK] Redirect URI:', redirectUri)
+  console.log('[CloudSync BYOK] Identity API available:', isIdentityApiAvailable())
+  
+  try {
+    let authCode
+    
+    if (isIdentityApiAvailable()) {
+      // Desktop flow
+      const authUrl = buildAuthUrlWithClientId(redirectUri, codeChallenge, clientId)
+      
+      const responseUrl = await browser.identity.launchWebAuthFlow({
+        url: authUrl.toString(),
+        interactive: true,
+      })
+      
+      authCode = parseAuthorizationCode(responseUrl)
+    } else {
+      // Mobile flow - similar to authenticateMobile but with custom client ID
+      const authUrl = buildAuthUrlWithClientId(redirectUri, codeChallenge, clientId)
+      
+      const authTab = await browser.tabs.create({ url: authUrl.toString() })
+      
+      authCode = await new Promise((resolve, reject) => {
+        const AUTH_TIMEOUT = 120000
+        
+        const timeoutId = setTimeout(() => {
+          cleanup()
+          reject(new Error('Authentication timeout. Please try again.'))
+        }, AUTH_TIMEOUT)
+        
+        const cleanup = () => {
+          clearTimeout(timeoutId)
+          browser.tabs.onUpdated.removeListener(tabListener)
+        }
+        
+        const tabListener = async (tabId, changeInfo, tab) => {
+          if (tabId !== authTab.id) return
+          if (!tab.url || !tab.url.startsWith(redirectUri)) return
+          
+          cleanup()
+          
+          try {
+            const url = new URL(tab.url)
+            const code = url.searchParams.get('code')
+            const error = url.searchParams.get('error')
+            
+            try {
+              await browser.tabs.remove(tabId)
+            } catch (e) {
+              console.warn('[CloudSync BYOK] Could not close auth tab:', e)
+            }
+            
+            if (error) {
+              reject(new Error(`Auth error: ${error}`))
+              return
+            }
+            
+            if (!code) {
+              reject(new Error('No authorization code received'))
+              return
+            }
+            
+            resolve(code)
+          } catch (err) {
+            reject(err)
+          }
+        }
+        
+        browser.tabs.onUpdated.addListener(tabListener)
+      })
+    }
+    
+    // Exchange code directly with Google (BYOK mode)
+    return await exchangeCodeDirectInternal(authCode, codeVerifier, redirectUri, clientId, clientSecret)
+  } catch (error) {
+    console.error('[CloudSync BYOK] Authentication failed:', error)
+    throw error
+  }
+}
+
+/**
+ * Build OAuth authorization URL with custom Client ID
+ */
+function buildAuthUrlWithClientId(redirectUri, codeChallenge, clientId) {
+  const authUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth')
+  authUrl.searchParams.set('client_id', clientId)
+  authUrl.searchParams.set('redirect_uri', redirectUri)
+  authUrl.searchParams.set('response_type', 'code')
+  authUrl.searchParams.set('scope', SCOPES)
+  authUrl.searchParams.set('access_type', 'offline')
+  authUrl.searchParams.set('prompt', 'consent')
+  authUrl.searchParams.set('code_challenge', codeChallenge)
+  authUrl.searchParams.set('code_challenge_method', 'S256')
+  return authUrl
+}
 
 function generateCodeVerifier() {
   const array = new Uint8Array(32)

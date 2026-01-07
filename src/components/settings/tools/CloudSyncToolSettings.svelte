@@ -18,22 +18,15 @@
     setAutoSync,
     setSyncPreferences,
     resolveSettingsConflict,
+    saveCustomCredentials,
+    getCustomCredentials,
   } from '@/services/cloudSync/cloudSyncService.svelte.js'
-  import {
-    checkSpecificPermission,
-    requestSpecificPermission,
-  } from '@/services/firefoxPermissionService.js'
 
   // Import refactored components
   import CloudSyncUserCard from '@/components/tools/cloudsync/CloudSyncUserCard.svelte'
   import SettingsConflictDialog from '@/components/tools/cloudsync/SettingsConflictDialog.svelte'
-
-  // OAuth permission pattern for Cloud Sync
-  const OAUTH_PERMISSION_PATTERN = '*://oauth.summarizerrrr.com/*'
-
-  // Firefox permission state
-  let hasOAuthPermission = $state(true) // Default to true for non-Firefox browsers
-  let isRequestingPermission = $state(false)
+  import TextInput from '@/components/inputs/TextInput.svelte'
+  import ApiKeyInput from '@/components/inputs/ApiKeyInput.svelte'
 
   // Load icons
   loadIcons([
@@ -45,6 +38,8 @@
     'heroicons:exclamation-circle',
     'heroicons:arrow-right-on-rectangle',
     'heroicons:shield-check',
+    'heroicons:key',
+    'heroicons:cog-6-tooth',
   ])
 
   // Cloud Sync enabled state
@@ -67,36 +62,29 @@
   let isLoggingIn = $state(false)
   let loginError = $state(null)
 
+  // BYOK OAuth credentials state
+  let customClientId = $state('')
+  let customClientSecret = $state('')
+  let credentialsSaved = $state(false)
+  let credentialsError = $state(null)
+
   onMount(async () => {
-    // Check OAuth permission for Firefox
-    if (import.meta.env.BROWSER === 'firefox') {
-      hasOAuthPermission = await checkSpecificPermission(
-        OAUTH_PERMISSION_PATTERN,
-      )
+    // Load existing custom credentials if any
+    const existingCreds = await getCustomCredentials()
+    if (existingCreds) {
+      customClientId = existingCreds.clientId
+      customClientSecret = existingCreds.clientSecret
+      credentialsSaved = true
     }
 
     await initSync()
 
     const interval = setInterval(async () => {
-      // Use refreshSyncState instead of initSync to avoid spamming alarm setup
       await refreshSyncState()
-    }, 30000) // Update every 30 seconds for better responsiveness
+    }, 30000)
 
     return () => clearInterval(interval)
   })
-
-  // Request OAuth permission for Firefox
-  async function handleRequestOAuthPermission() {
-    isRequestingPermission = true
-    try {
-      const granted = await requestSpecificPermission(OAUTH_PERMISSION_PATTERN)
-      hasOAuthPermission = granted
-    } catch (error) {
-      console.error('Failed to request OAuth permission:', error)
-    } finally {
-      isRequestingPermission = false
-    }
-  }
 
   async function handleLogin() {
     isLoggingIn = true
@@ -144,6 +132,34 @@
       isResolvingConflict = false
     }
   }
+
+  // --- BYOK (Bring Your Own Key) Handlers ---
+
+  async function handleSaveCredentials() {
+    credentialsError = null
+    credentialsSaved = false
+
+    // Validate inputs
+    if (!customClientId.trim() || !customClientSecret.trim()) {
+      credentialsError = 'Both Client ID and Client Secret are required'
+      return
+    }
+
+    // Basic format validation for Client ID
+    if (!customClientId.includes('.apps.googleusercontent.com')) {
+      credentialsError =
+        'Invalid Client ID format (should end with .apps.googleusercontent.com)'
+      return
+    }
+
+    try {
+      await saveCustomCredentials(customClientId, customClientSecret)
+      credentialsSaved = true
+    } catch (error) {
+      console.error('Failed to save credentials:', error)
+      credentialsError = error.message
+    }
+  }
 </script>
 
 <div class="flex flex-col gap-6 py-5">
@@ -177,55 +193,49 @@
 
   {#if cloudSyncEnabled}
     {#if !cloudSyncStore.isLoggedIn}
-      <!-- Not logged in state -->
-      {#if import.meta.env.BROWSER === 'firefox' && !hasOAuthPermission}
-        <!-- Firefox: Show permission request UI first -->
-        <div class="flex flex-col gap-3">
-          <div class="text-text-secondary text-xs">
-            {$t('cloudSync.permissionDescription')}
+      <!-- Not logged in state - BYOK Only Mode -->
+      <div class="flex flex-col gap-4">
+        <!-- OAuth Credentials Section -->
+
+        <p class="text-xs text-text-secondary">
+          Enter your Google Cloud OAuth credentials to sync data securely. Your
+          credentials are stored locally and never sent to any server.
+        </p>
+
+        <!-- Client ID Input -->
+        <TextInput
+          id="byok-client-id"
+          label="Client ID"
+          placeholder="xxxxx.apps.googleusercontent.com"
+          bind:value={customClientId}
+          onSave={handleSaveCredentials}
+        />
+
+        <!-- Client Secret Input -->
+        <ApiKeyInput
+          label="Client Secret"
+          placeholder="Your client secret"
+          bind:apiKey={customClientSecret}
+          onSave={handleSaveCredentials}
+        />
+
+        <!-- Error Message -->
+        {#if credentialsError}
+          <div class="flex items-center gap-2 text-red-500 text-xs">
+            <Icon icon="heroicons:exclamation-circle" class="size-4" />
+            <span>{credentialsError}</span>
           </div>
-          <button
-            onclick={handleRequestOAuthPermission}
-            disabled={isRequestingPermission}
-            class="relative group disabled:opacity-50 disabled:cursor-not-allowed"
-            title={$t('cloudSync.grantPermission')}
-          >
-            <div
-              class="relative flex items-center font-bold justify-center gap-1 px-3 py-2.25 font-mono text-xs inset-0 overflow-hidden"
-            >
-              <div
-                class="relative z-20 flex gap-2 text-text-primary justify-center items-center"
-              >
-                {#if isRequestingPermission}
-                  <Icon
-                    icon="heroicons:arrow-path"
-                    class="size-4 animate-spin"
-                  />
-                  <span>{$t('cloudSync.requesting')}</span>
-                {:else}
-                  <Icon icon="heroicons:shield-check" class="size-4" />
-                  <span>{$t('cloudSync.grantPermission')}</span>
-                {/if}
-              </div>
-              <span
-                class="absolute z-50 size-4 border border-transparent group-hover:border-blackwhite/15 rotate-45 bg-surface-1 -bottom-px -left-px -translate-x-1/2 translate-y-1/2 duration-150"
-              ></span>
-              <div
-                class="absolute z-40 inset-0 text-text-secondary py-2 font-mono bg-blackwhite/5 dark:bg-blackwhite/5 border border-transparent hover:border-blackwhite/15 focus:border-blackwhite/30 dark:focus:border-blackwhite/10 focus:outline-none focus:ring-0 transition-colors duration-150"
-              ></div>
-            </div>
-          </button>
-        </div>
-      {:else}
-        <!-- Chrome/Safari or Firefox with permission: Show login button -->
+        {/if}
+
+        <!-- Login Button -->
         <button
           onclick={handleLogin}
-          disabled={isLoggingIn}
+          disabled={isLoggingIn || !credentialsSaved}
           class="relative group disabled:opacity-50 disabled:cursor-not-allowed"
           title={$t('cloudSync.signInWithGoogle')}
         >
           <div
-            class=" relative flex items-center font-bold justify-center gap-1 px-3 py-2.25 font-mono text-xs inset-0 overflow-hidden"
+            class="relative flex items-center font-bold justify-center gap-1 px-3 py-2.25 font-mono text-xs inset-0 overflow-hidden"
           >
             <div
               class="relative z-20 flex gap-2 text-text-primary justify-center items-center"
@@ -253,9 +263,8 @@
             <span>{loginError}</span>
           </div>
         {/if}
-      {/if}
+      </div>
     {:else}
-      <!-- Logged in state -->
       <div class="flex flex-col gap-6">
         <!-- User Info Card Component -->
         <CloudSyncUserCard

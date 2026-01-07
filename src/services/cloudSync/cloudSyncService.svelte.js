@@ -10,8 +10,8 @@
 import { storage } from '@wxt-dev/storage'
 import { browser } from 'wxt/browser'
 import {
-  authenticate,
-  refreshAccessToken,
+  authenticateWithCustomCredentials,
+  refreshAccessTokenDirect,
   revokeToken,
   getFile,
   saveFile,
@@ -62,6 +62,8 @@ export const syncStorage = storage.defineItem('local:syncState', {
       history: true,
       library: true, // Archive + Tags combined
     },
+    // BYOK (Bring Your Own Key) Mode
+    customCredentials: null, // { clientId, clientSecret } or null for default proxy mode
   },
 })
 
@@ -203,7 +205,7 @@ function isTokenExpired(expiryTime) {
 
 /**
  * Refresh access token using stored refresh_token
- * This enables persistent sessions across browser restarts
+ * BYOK mode only - requires custom credentials
  */
 async function doRefreshToken() {
   const stored = await syncStorage.getValue()
@@ -212,8 +214,18 @@ async function doRefreshToken() {
     throw new Error('No refresh token available. Please sign in again.')
   }
   
+  // BYOK mode is required - no proxy fallback
+  if (!stored.customCredentials?.clientId || !stored.customCredentials?.clientSecret) {
+    throw new Error('OAuth credentials missing. Please sign in again.')
+  }
+  
   try {
-    const { accessToken, expiresAt } = await refreshAccessToken(stored.refreshToken)
+    console.log('[CloudSync] Refreshing token using BYOK mode')
+    const { accessToken, expiresAt } = await refreshAccessTokenDirect(
+      stored.refreshToken,
+      stored.customCredentials.clientId,
+      stored.customCredentials.clientSecret
+    )
     
     await syncStorage.setValue({
       ...stored,
@@ -280,23 +292,36 @@ async function getValidAccessToken() {
 
 /**
  * Login with Google
+ * BYOK mode only - requires custom credentials
  * @returns {Promise<{needsAutoSyncChoice: boolean}>}
  */
 export async function login() {
   syncState.syncError = null
   
   try {
-    const { accessToken, refreshToken: newRefreshToken, expiresAt } = await authenticate()
+    const stored = await syncStorage.getValue()
+    const customCreds = stored.customCredentials
+    
+    // BYOK mode is required - no proxy fallback
+    if (!customCreds?.clientId || !customCreds?.clientSecret) {
+      throw new Error('OAuth credentials required. Please save your Client ID and Client Secret first.')
+    }
+    
+    console.log('[CloudSync] Logging in using BYOK mode')
+    const { accessToken, refreshToken: newRefreshToken, expiresAt } = await authenticateWithCustomCredentials(
+      customCreds.clientId,
+      customCreds.clientSecret
+    )
     
     // Get user profile
     const profile = await getUserProfile(accessToken)
     
-    const stored = await syncStorage.getValue()
-    const isFirstLogin = stored.autoSyncEnabled === null
+    const freshStored = await syncStorage.getValue()
+    const isFirstLogin = freshStored.autoSyncEnabled === null
     
     // Update storage with profile and auth info
     const updatedState = {
-      ...stored,
+      ...freshStored,
       isLoggedIn: true,
       accessToken,
       refreshToken: newRefreshToken,
@@ -319,7 +344,7 @@ export async function login() {
     syncState.userPicture = profile.picture
     syncState.lastSyncTime = (await syncStorage.getValue()).lastSyncTime
     syncState.autoSyncEnabled = updatedState.autoSyncEnabled
-    syncState.syncPreferences = stored.syncPreferences || {
+    syncState.syncPreferences = freshStored.syncPreferences || {
       settings: true,
       history: true,
       library: true,
@@ -1124,6 +1149,59 @@ async function stopAutoSync() {
     clearTimeout(debounceTimer)
     debounceTimer = null
   }
+}
+
+// --- BYOK (Bring Your Own Key) Credentials Management ---
+
+/**
+ * Save custom OAuth credentials for BYOK mode
+ * @param {string} clientId - OAuth Client ID
+ * @param {string} clientSecret - OAuth Client Secret
+ */
+export async function saveCustomCredentials(clientId, clientSecret) {
+  const stored = await syncStorage.getValue()
+  
+  await syncStorage.setValue({
+    ...stored,
+    customCredentials: {
+      clientId: clientId.trim(),
+      clientSecret: clientSecret.trim(),
+    },
+  })
+  
+  console.log('[CloudSync] Custom credentials saved (BYOK mode enabled)')
+}
+
+/**
+ * Clear custom OAuth credentials (switch back to proxy mode)
+ */
+export async function clearCustomCredentials() {
+  const stored = await syncStorage.getValue()
+  
+  await syncStorage.setValue({
+    ...stored,
+    customCredentials: null,
+  })
+  
+  console.log('[CloudSync] Custom credentials cleared (proxy mode enabled)')
+}
+
+/**
+ * Get current custom credentials (if set)
+ * @returns {Promise<{clientId: string, clientSecret: string} | null>}
+ */
+export async function getCustomCredentials() {
+  const stored = await syncStorage.getValue()
+  return stored.customCredentials || null
+}
+
+/**
+ * Check if using BYOK mode (has custom credentials)
+ * @returns {Promise<boolean>}
+ */
+export async function isUsingCustomCredentials() {
+  const stored = await syncStorage.getValue()
+  return !!(stored.customCredentials?.clientId && stored.customCredentials?.clientSecret)
 }
 
 // --- Export State ---

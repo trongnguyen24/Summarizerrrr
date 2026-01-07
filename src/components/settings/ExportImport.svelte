@@ -625,6 +625,7 @@
 
   // Helper functions to get text values
   function getExportedDate() {
+    // metadata contains either old metadata or new _backup data
     return state.importData?.metadata?.exportedAt
       ? new Date(state.importData.metadata.exportedAt).toLocaleDateString()
       : $t('exportImport.unknown')

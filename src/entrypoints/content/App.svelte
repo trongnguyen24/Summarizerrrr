@@ -222,7 +222,7 @@
     }
     mediaQuery.addEventListener('change', handleSystemThemeChange)
 
-    browser.runtime.onMessage.addListener((message) => {
+    browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
       if (message.type === 'TOGGLE_FLOATING_PANEL') {
         togglePanel()
       }
@@ -232,6 +232,8 @@
         // Only trigger once - ignore retry messages
         if (isQuickSummaryMode) {
           console.log('[App] Quick Summary already triggered, ignoring')
+          if (sendResponse)
+            sendResponse({ success: true, alreadyTriggered: true })
           return
         }
 
@@ -361,6 +363,9 @@
             // Cleanup emoji tracking after error
             cleanupEmojiTracking()
           })
+        // Send response immediately to stop background retries
+        if (sendResponse)
+          sendResponse({ success: true, alreadyTriggered: false })
       }
 
       // Generic Quick Summary mode: triggered by context menu on non-YouTube links
@@ -370,11 +375,15 @@
           // Prevent duplicate triggers
           if (isQuickSummaryMode) {
             console.log('[App] Quick Summary already triggered, ignoring')
+            if (sendResponse)
+              sendResponse({ success: true, alreadyTriggered: true })
             return
           }
 
           console.log('[App] Generic Quick Summary trigger received')
           isQuickSummaryMode = true
+          if (sendResponse)
+            sendResponse({ success: true, alreadyTriggered: false })
 
           // Track emoji state for title
           let currentEmoji = '⏳'

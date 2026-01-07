@@ -995,16 +995,32 @@ export default defineBackground(() => {
           const sendQuickSummaryTrigger = async (tabId, retries = 5) => {
             for (let i = 0; i < retries; i++) {
               try {
-                await new Promise(r => setTimeout(r, 2000)) // Wait 2s between attempts
-                await browser.tabs.sendMessage(tabId, { 
+                // Wait between attempts (2s, 3s, 4s...)
+                const delay = 2000 + (i * 1000)
+                await new Promise(r => setTimeout(r, delay))
+                
+                const response = await browser.tabs.sendMessage(tabId, { 
                   type: 'QUICK_SUMMARY_TRIGGER',
                   videoId,
                   autoplayMode // Send autoplay mode to content script
                 })
-                console.log(`[Background] QUICK_SUMMARY_TRIGGER sent to tab ${tabId}`)
-                return
+                
+                if (response?.success) {
+                  console.log(`[Background] QUICK_SUMMARY_TRIGGER successful on tab ${tabId}${response.alreadyTriggered ? ' (already triggered)' : ''}`)
+                  return
+                }
+                
+                console.log(`[Background] Retry ${i + 1}/${retries} - content script received but returned failure:`, response?.error)
               } catch (e) {
-                console.log(`[Background] Retry ${i + 1}/${retries} - content script not ready`)
+                // Check if error is "Could not establish connection" (script not injected yet)
+                const isNotReady = e.message?.includes('Could not establish connection') || 
+                                  e.message?.includes('message port closed')
+                
+                if (isNotReady) {
+                  console.log(`[Background] Retry ${i + 1}/${retries} - content script not ready yet`)
+                } else {
+                  console.warn(`[Background] Retry ${i + 1}/${retries} - unexpected error:`, e.message)
+                }
               }
             }
             console.error('[Background] Failed to send QUICK_SUMMARY_TRIGGER after retries')

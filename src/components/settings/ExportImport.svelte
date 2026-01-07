@@ -30,7 +30,10 @@
     isZipFile,
     extractFilesFromZip,
   } from '../../lib/exportImport/zipService.js'
-  import { importFromJsonl } from '../../lib/exportImport/jsonlService.js'
+  import {
+    importFromJsonl,
+    parseJsonlWithMeta,
+  } from '../../lib/exportImport/jsonlService.js'
   import { sanitizeSettings } from '../../lib/config/settingsSchema.js'
 
   import SwitchPermission from '../inputs/SwitchPermission.svelte'
@@ -255,19 +258,6 @@
     try {
       const files = await extractFilesFromZip(file)
       const data = {}
-
-      // Helper to parse JSONL with optional metadata line
-      function parseJsonlWithMeta(content) {
-        const result = importFromJsonl(content)
-        // Filter out metadata line
-        const items = result.data.filter((item) => !item._meta)
-        // Remove _type field from items (internal use only)
-        const cleanItems = items.map((item) => {
-          const { _type, ...rest } = item
-          return rest
-        })
-        return { items: cleanItems, errors: result.errors }
-      }
 
       // Parse settings (support both old and new filenames)
       const settingsFile =

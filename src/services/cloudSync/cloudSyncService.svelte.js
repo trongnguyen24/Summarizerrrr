@@ -16,6 +16,7 @@ import {
   getFile,
   saveFile,
   getUserProfile,
+  clearSyncFolderCache,
 } from './googleDriveAdapter.js'
 import {
   getAllSummaries,
@@ -376,8 +377,9 @@ export async function logout(revokeAccess = true) {
   
   stopAutoSync()
   
-  // Clear token cache on logout
+  // Clear caches on logout (important for multi-account support)
   tokenCache = { accessToken: null, tokenExpiry: null, lastUpdated: 0 }
+  clearSyncFolderCache() // Clear folder ID cache to avoid using wrong account's folder
   
   const stored = await syncStorage.getValue()
   

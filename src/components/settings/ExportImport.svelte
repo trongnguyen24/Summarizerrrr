@@ -255,65 +255,126 @@
     try {
       const files = await extractFilesFromZip(file)
       const data = {}
-      if (files['settings.json']) {
+
+      // Helper to parse JSONL with optional metadata line
+      function parseJsonlWithMeta(content) {
+        const result = importFromJsonl(content)
+        // Filter out metadata line
+        const items = result.data.filter((item) => !item._meta)
+        // Remove _type field from items (internal use only)
+        const cleanItems = items.map((item) => {
+          const { _type, ...rest } = item
+          return rest
+        })
+        return { items: cleanItems, errors: result.errors }
+      }
+
+      // Parse settings (support both old and new filenames)
+      const settingsFile =
+        files['summarizerrrr-settings.json'] || files['settings.json']
+      if (settingsFile) {
         try {
-          const parsedSettingsFile = JSON.parse(files['settings.json'])
+          const parsedSettingsFile = JSON.parse(settingsFile)
 
-          if (parsedSettingsFile.metadata) {
-            data.metadata = parsedSettingsFile.metadata
+          // New format (Cloud Sync compatible)
+          if (parsedSettingsFile.data) {
+            data.settings = sanitizeSettings(parsedSettingsFile.data)
+            if (parsedSettingsFile._backup) {
+              data.metadata = parsedSettingsFile._backup
+            }
           }
-
-          if (parsedSettingsFile.settings) {
+          // Old format (metadata + settings)
+          else if (parsedSettingsFile.metadata && parsedSettingsFile.settings) {
+            data.metadata = parsedSettingsFile.metadata
             data.settings = sanitizeSettings(parsedSettingsFile.settings)
+          }
+          // Legacy format (just settings object)
+          else {
+            data.settings = sanitizeSettings(parsedSettingsFile)
           }
         } catch (error) {
           console.error(`Failed to parse settings: ${error.message}`)
         }
       }
 
-      if (files['summaries.jsonl']) {
+      // Parse library (new format: summarizerrrr-library.jsonl with archives + tags)
+      const libraryFile = files['summarizerrrr-library.jsonl']
+      if (libraryFile) {
         try {
-          const result = importFromJsonl(files['summaries.jsonl'])
-          data.summaries = result.data
+          const result = importFromJsonl(libraryFile)
+          const archives = []
+          const tags = []
+
+          for (const item of result.data) {
+            if (item._meta) continue // Skip metadata line
+
+            // Remove _type field and separate by type
+            const { _type, ...rest } = item
+            if (_type === 'archive') {
+              archives.push(rest)
+            } else if (_type === 'tag') {
+              tags.push(rest)
+            }
+          }
+
+          if (archives.length > 0) data.summaries = archives
+          if (tags.length > 0) data.tags = tags
+
           if (result.errors) {
             console.warn(
-              `Some summaries failed to parse: ${result.errorCount} errors`,
+              `Some library items failed to parse: ${result.errorCount} errors`,
             )
+          }
+        } catch (error) {
+          console.error(`Failed to parse library: ${error.message}`)
+        }
+      }
+
+      // Parse summaries (old format fallback)
+      if (!data.summaries && files['summaries.jsonl']) {
+        try {
+          const result = parseJsonlWithMeta(files['summaries.jsonl'])
+          data.summaries = result.items
+          if (result.errors) {
+            console.warn(`Some summaries failed to parse`)
           }
         } catch (error) {
           console.error(`Failed to parse summaries: ${error.message}`)
         }
       }
 
-      if (files['history.jsonl']) {
+      // Parse history (support both old and new filenames)
+      const historyFile =
+        files['summarizerrrr-history.jsonl'] || files['history.jsonl']
+      if (historyFile) {
         try {
-          const result = importFromJsonl(files['history.jsonl'])
-          data.history = result.data
+          const result = parseJsonlWithMeta(historyFile)
+          data.history = result.items
           if (result.errors) {
-            console.warn(
-              `Some history failed to parse: ${result.errorCount} errors`,
-            )
+            console.warn(`Some history failed to parse`)
           }
         } catch (error) {
           console.error(`Failed to parse history: ${error.message}`)
         }
       }
 
-      if (files['tags.jsonl']) {
+      // Parse tags (old format fallback, only if not already from library)
+      if (!data.tags && files['tags.jsonl']) {
         try {
-          const result = importFromJsonl(files['tags.jsonl'])
-          data.tags = result.data
+          const result = parseJsonlWithMeta(files['tags.jsonl'])
+          data.tags = result.items
           if (result.errors) {
-            console.warn(
-              `Some tags failed to parse: ${result.errorCount} errors`,
-            )
+            console.warn(`Some tags failed to parse`)
           }
         } catch (error) {
           console.error(`Failed to parse tags: ${error.message}`)
         }
       }
 
-      if (Object.keys(data).length === 0) {
+      if (
+        Object.keys(data).length === 0 ||
+        (!data.settings && !data.history && !data.summaries && !data.tags)
+      ) {
         throw new Error($t('exportImport.messages.no_valid_data'))
       }
 

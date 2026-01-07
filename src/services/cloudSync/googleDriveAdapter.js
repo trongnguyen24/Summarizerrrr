@@ -748,6 +748,171 @@ export async function saveFile(accessToken, filename, data) {
   }
 }
 
+/**
+ * Get file content as JSONL with metadata (JSON Lines format)
+ * Format: Line 1 is metadata with _meta:true, remaining lines are items
+ * @returns {Object|null} { meta: {version, updatedAt}, items: Map<id, item> } or null
+ */
+export async function getFileJsonl(accessToken, filename) {
+  const fileId = await findFile(accessToken, filename)
+  
+  if (!fileId) {
+    return null
+  }
+  
+  const response = await fetch(
+    `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`,
+    {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    }
+  )
+  
+  if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error('TOKEN_EXPIRED')
+    }
+    if (response.status === 404) {
+      return null
+    }
+    const err = await response.json()
+    throw new Error(err.error?.message || `Failed to get ${filename}`)
+  }
+  
+  const text = await response.text()
+  
+  // Parse JSONL: first line with _meta is metadata, rest are items
+  // For Library files: items have _type field ("archive" or "tag")
+  let meta = { version: 2, updatedAt: 0 }
+  const items = {}
+  const archives = {}
+  const tags = {}
+  
+  const lines = text.split('\n')
+  for (const line of lines) {
+    const trimmed = line.trim()
+    if (trimmed) {
+      try {
+        const obj = JSON.parse(trimmed)
+        if (obj._meta) {
+          // Metadata line
+          meta = { version: obj.version || 2, updatedAt: obj.updatedAt || 0 }
+        } else if (obj._type === 'archive' && obj.id) {
+          // Archive item (Library file)
+          archives[obj.id] = obj
+        } else if (obj._type === 'tag' && obj.id) {
+          // Tag item (Library file)
+          tags[obj.id] = obj
+        } else if (obj.id) {
+          // Generic item (History file) - use id as key
+          items[obj.id] = obj
+        }
+      } catch (e) {
+        console.warn(`[CloudSync] Skipping invalid JSONL line: ${trimmed.substring(0, 50)}...`)
+      }
+    }
+  }
+  
+  // Return appropriate structure based on content
+  if (Object.keys(archives).length > 0 || Object.keys(tags).length > 0) {
+    // Library file format
+    return { meta, archives, tags }
+  }
+  
+  // History file format
+  return { meta, items }
+}
+
+/**
+ * Save data as JSONL file with metadata (JSON Lines format)
+ * Format: Line 1 is metadata with _meta:true, remaining lines are items
+ * Supports both History format (items) and Library format (archives + tags)
+ * @param {string} accessToken
+ * @param {string} filename
+ * @param {Object} data - { meta, items } or { meta, archives, tags }
+ */
+export async function saveFileJsonl(accessToken, filename, data) {
+  // Build JSONL content: metadata line first, then items
+  const lines = []
+  
+  // Metadata line
+  lines.push(JSON.stringify({
+    _meta: true,
+    version: data.meta?.version || 2,
+    updatedAt: data.meta?.updatedAt || Date.now(),
+  }))
+  
+  // Check if this is Library format (archives + tags)
+  if (data.archives || data.tags) {
+    // Library format: add _type field to each item
+    const archives = data.archives || {}
+    for (const id of Object.keys(archives)) {
+      lines.push(JSON.stringify({ ...archives[id], _type: 'archive' }))
+    }
+    
+    const tags = data.tags || {}
+    for (const id of Object.keys(tags)) {
+      lines.push(JSON.stringify({ ...tags[id], _type: 'tag' }))
+    }
+  } else {
+    // History format: items without _type
+    const items = data.items || {}
+    for (const id of Object.keys(items)) {
+      lines.push(JSON.stringify(items[id]))
+    }
+  }
+  
+  const jsonlContent = lines.join('\n')
+  
+  const fileId = await findFile(accessToken, filename)
+  
+  if (fileId) {
+    const res = await fetch(
+      `https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`,
+      {
+        method: 'PATCH',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'text/plain',
+        },
+        body: jsonlContent,
+      }
+    )
+    if (!res.ok) {
+      if (res.status === 401) {
+        throw new Error('TOKEN_EXPIRED')
+      }
+      const err = await res.json()
+      throw new Error(err.error?.message || `Update ${filename} failed`)
+    }
+  } else {
+    const folderId = await getOrCreateSyncFolder(accessToken)
+    const form = new FormData()
+    form.append(
+      'metadata',
+      new Blob([JSON.stringify({ name: filename, mimeType: 'text/plain', parents: [folderId] })], {
+        type: 'application/json',
+      })
+    )
+    form.append('file', new Blob([jsonlContent], { type: 'text/plain' }))
+    
+    const res = await fetch(
+      'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',
+      {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${accessToken}` },
+        body: form,
+      }
+    )
+    if (!res.ok) {
+      if (res.status === 401) {
+        throw new Error('TOKEN_EXPIRED')
+      }
+      const err = await res.json()
+      throw new Error(err.error?.message || `Create ${filename} failed`)
+    }
+  }
+}
+
 export async function deleteFile(accessToken, filename) {
   const fileId = await findFile(accessToken, filename)
   

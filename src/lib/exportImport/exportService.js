@@ -56,11 +56,16 @@ export async function exportDataToZip(settings, onProgress) {
 
     // ✅ CRITICAL FIX: Sanitize settings trước khi export
     const cleanSettings = sanitizeSettings(settings)
+    const now = Date.now()
 
+    // Settings file format (matches Cloud Sync)
     const settingsData = {
-      metadata: {
-        version: '2.0.0',
-        format: 'zip-jsonl',
+      version: 2,
+      updatedAt: now,
+      data: cleanSettings,
+      // Metadata for backup info
+      _backup: {
+        format: 'zip-jsonl-v2',
         exportedAt: new Date().toISOString(),
         exportedBy: `v${chrome.runtime.getManifest().version}`,
         counts: {
@@ -68,13 +73,12 @@ export async function exportDataToZip(settings, onProgress) {
           history: history.length,
           tags: tags.length,
         },
-      },
-      settings: cleanSettings, // ✅ Use sanitized settings
+      }
     }
 
     const settingsJson = JSON.stringify(settingsData, null, 2)
 
-    // Step 3: Create JSONL files
+    // Step 3: Create JSONL files with metadata (matches Cloud Sync format)
     if (onProgress) {
       onProgress({
         stage: 'creating_jsonl',
@@ -83,11 +87,22 @@ export async function exportDataToZip(settings, onProgress) {
       })
     }
 
-    const summariesJsonl = exportToJsonl(summaries)
-    const historyJsonl = exportToJsonl(history)
-    const tagsJsonl = exportToJsonl(tags)
+    // History JSONL: metadata line + items
+    const historyLines = [
+      JSON.stringify({ _meta: true, version: 2, updatedAt: now }),
+      ...history.map(item => JSON.stringify(item))
+    ]
+    const historyJsonl = historyLines.join('\n')
 
-    // Step 4: Create ZIP
+    // Library JSONL: metadata line + archives (with _type) + tags (with _type)
+    const libraryLines = [
+      JSON.stringify({ _meta: true, version: 2, updatedAt: now }),
+      ...summaries.map(item => JSON.stringify({ ...item, _type: 'archive' })),
+      ...tags.map(item => JSON.stringify({ ...item, _type: 'tag' }))
+    ]
+    const libraryJsonl = libraryLines.join('\n')
+
+    // Step 4: Create ZIP with Cloud Sync compatible filenames
     if (onProgress) {
       onProgress({
         stage: 'creating_zip',
@@ -98,10 +113,9 @@ export async function exportDataToZip(settings, onProgress) {
 
     const zipBlob = await createZipFromFiles(
       {
-        'settings.json': settingsJson,
-        'summaries.jsonl': summariesJsonl,
-        'history.jsonl': historyJsonl,
-        'tags.jsonl': tagsJsonl,
+        'summarizerrrr-settings.json': settingsJson,
+        'summarizerrrr-history.jsonl': historyJsonl,
+        'summarizerrrr-library.jsonl': libraryJsonl,
       },
       (zipProgress) => {
         if (onProgress) {

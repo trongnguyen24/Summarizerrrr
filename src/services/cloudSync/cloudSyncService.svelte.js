@@ -15,6 +15,8 @@ import {
   revokeToken,
   getFile,
   saveFile,
+  getFileJsonl,
+  saveFileJsonl,
   getUserProfile,
   clearSyncFolderCache,
 } from './googleDriveAdapter.js'
@@ -37,8 +39,8 @@ import { generateUUID } from '@/lib/utils/utils.js'
 // File names on Google Drive - 3 file architecture
 const FILES = {
   SETTINGS: 'summarizerrrr-settings.json',
-  HISTORY: 'summarizerrrr-history.json',
-  LIBRARY: 'summarizerrrr-library.json', // Archive + Tags combined for atomic sync
+  HISTORY: 'summarizerrrr-history.jsonl',
+  LIBRARY: 'summarizerrrr-library.jsonl', // Archive + Tags combined for atomic sync
 }
 
 // Soft delete cleanup threshold (30 days in ms)
@@ -487,10 +489,11 @@ export async function pullData(_isRetry = false) {
     if (prefs.settings) fetchPromises.push(getFile(accessToken, FILES.SETTINGS))
     else fetchPromises.push(Promise.resolve(null))
     
-    if (prefs.history) fetchPromises.push(getFile(accessToken, FILES.HISTORY))
+    // Use JSONL format for history and library
+    if (prefs.history) fetchPromises.push(getFileJsonl(accessToken, FILES.HISTORY))
     else fetchPromises.push(Promise.resolve(null))
     
-    if (prefs.library) fetchPromises.push(getFile(accessToken, FILES.LIBRARY))
+    if (prefs.library) fetchPromises.push(getFileJsonl(accessToken, FILES.LIBRARY))
     else fetchPromises.push(Promise.resolve(null))
     
     const [settingsFile, historyFile, libraryFile] = await Promise.all(fetchPromises)
@@ -658,12 +661,11 @@ async function syncHistory(accessToken, cloudFile) {
   const localHistory = await getAllHistory()
   const localMap = arrayToMap(localHistory)
   
-  if (!cloudFile || !cloudFile.items) {
+  if (!cloudFile || !cloudFile.items || Object.keys(cloudFile.items).length === 0) {
     // No cloud history, push local
     logToUI('No cloud History, pushing local...')
-    await saveFile(accessToken, FILES.HISTORY, {
-      version: 2,
-      updatedAt: Date.now(),
+    await saveFileJsonl(accessToken, FILES.HISTORY, {
+      meta: { version: 2, updatedAt: Date.now() },
       items: localMap,
     })
     return
@@ -686,9 +688,8 @@ async function syncHistory(accessToken, cloudFile) {
   
   if (hasChanges) {
     logToUI('Pushing merged History...')
-    await saveFile(accessToken, FILES.HISTORY, {
-      version: 2,
-      updatedAt: Date.now(),
+    await saveFileJsonl(accessToken, FILES.HISTORY, {
+      meta: { version: 2, updatedAt: Date.now() },
       items: cleanedHistory,
     })
   } else {
@@ -708,12 +709,12 @@ async function syncLibrary(accessToken, cloudFile) {
   const localArchivesMap = arrayToMap(localArchives)
   const localTagsMap = arrayToMap(localTags)
   
-  if (!cloudFile || (!cloudFile.archives && !cloudFile.tags)) {
+  if (!cloudFile || (!cloudFile.archives && !cloudFile.tags) || 
+      (Object.keys(cloudFile.archives || {}).length === 0 && Object.keys(cloudFile.tags || {}).length === 0)) {
     // No cloud library, push local
     logToUI('No cloud Library, pushing local...')
-    await saveFile(accessToken, FILES.LIBRARY, {
-      version: 2,
-      updatedAt: Date.now(),
+    await saveFileJsonl(accessToken, FILES.LIBRARY, {
+      meta: { version: 2, updatedAt: Date.now() },
       archives: localArchivesMap,
       tags: localTagsMap,
     })
@@ -757,9 +758,8 @@ async function syncLibrary(accessToken, cloudFile) {
   if (hasChanges) {
     // Push merged data back to cloud (include soft-deleted for sync)
     logToUI('Pushing merged Library...')
-    await saveFile(accessToken, FILES.LIBRARY, {
-      version: 2,
-      updatedAt: Date.now(),
+    await saveFileJsonl(accessToken, FILES.LIBRARY, {
+      meta: { version: 2, updatedAt: Date.now() },
       archives: cleanedArchives,
       tags: cleanedTags,
     })
@@ -896,11 +896,11 @@ async function pushAllData(accessToken) {
     )
   }
   
+  // Use JSONL format for history and library
   if (prefs.history) {
     pushPromises.push(
-      saveFile(accessToken, FILES.HISTORY, {
-        version: 2,
-        updatedAt: now,
+      saveFileJsonl(accessToken, FILES.HISTORY, {
+        meta: { version: 2, updatedAt: now },
         items: arrayToMap(localHistory),
       })
     )
@@ -908,9 +908,8 @@ async function pushAllData(accessToken) {
   
   if (prefs.library) {
     pushPromises.push(
-      saveFile(accessToken, FILES.LIBRARY, {
-        version: 2,
-        updatedAt: now,
+      saveFileJsonl(accessToken, FILES.LIBRARY, {
+        meta: { version: 2, updatedAt: now },
         archives: arrayToMap(localArchives),
         tags: arrayToMap(localTags),
       })

@@ -880,7 +880,8 @@ export default defineBackground(() => {
 
   // Dynamic context menu visibility: hide "Summarize selected text" when clicking on links
   // Uses onShown event (Firefox) or the handler approach (Chrome - onShown not available)
-  if (browser.contextMenus.onShown) {
+  // Note: Firefox Mobile doesn't have contextMenus API at all, so we need to check for it first
+  if (browser.contextMenus?.onShown) {
     // Firefox supports onShown for dynamic updates
     browser.contextMenus.onShown.addListener((info, tab) => {
       const isLinkContext = info.contexts.includes('link')
@@ -1566,7 +1567,9 @@ export default defineBackground(() => {
     browser.runtime.onStartup.addListener(() => initializeContextMenu())
   }
 
-  browser.contextMenus.onClicked.addListener(async (info, tab) => {
+  // Firefox Mobile doesn't support contextMenus API, so check before using
+  if (browser.contextMenus) {
+    browser.contextMenus.onClicked.addListener(async (info, tab) => {
     // Minimum 20 characters to avoid accidental triggers on very short selections
     const MIN_SELECTION_LENGTH = 20
     if (info.menuItemId === 'summarizeSelectedText' && info.selectionText && info.selectionText.trim().length >= MIN_SELECTION_LENGTH) {
@@ -1706,7 +1709,8 @@ export default defineBackground(() => {
         sendGenericTrigger(newTab.id)
       }
     }
-  })
+    })
+  } // End of if (browser.contextMenus)
 
   // Tab change listeners
   const handleTabChange = async (tabId) => {

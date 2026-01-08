@@ -2,7 +2,7 @@
   "name": "Summarizerrrr",
   "description": "Extension helps you summarize for YouTube, Udemy, Coursera, any websites. Crafted with superior UI/UX design.",
   "private": true,
-  "version": "2.9.3",
+  "version": "2.10.0",
   "type": "module",
   "scripts": {
     "dev": "wxt",
@@ -37,7 +37,7 @@
     "@ai-sdk/deepseek": "^1.0.0",
     "@ai-sdk/google": "^2.0.0",
     "@ai-sdk/groq": "^2.0.0",
-    "@ai-sdk/openai": "^2.0.0",
+    "@ai-sdk/openai": "^3.0.7",
     "@ai-sdk/openai-compatible": "^1.0.0",
     "@fontsource-variable/geist-mono": "^5.2.6",
     "@fontsource-variable/noto-serif": "^5.2.7",

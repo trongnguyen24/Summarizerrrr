@@ -274,6 +274,8 @@
           lastSyncTime={cloudSyncStore.lastSyncTime}
           isSyncing={cloudSyncStore.isSyncing}
           debugLogs={cloudSyncStore.debugLogs}
+          clientId={customClientId}
+          clientSecret={customClientSecret}
           onSyncNow={handleSyncNow}
           onLogout={handleLogout}
         />

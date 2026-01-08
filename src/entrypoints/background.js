@@ -685,6 +685,7 @@ export default defineBackground(() => {
   
   // Watch for Cloud Sync settings changes (Cross-browser)
   // This ensures the alarm is cleared immediately when the user disables the tool
+  // Also triggers sync when any settings change (since bind:value bypasses updateSettings())
   settingsStorage.watch(async (newValue, oldValue) => {
     // Check if Cloud Sync enabled state changed
     const newEnabled = newValue?.tools?.cloudSync?.enabled
@@ -693,6 +694,46 @@ export default defineBackground(() => {
     if (newEnabled !== oldEnabled) {
       console.log(`[Background] Cloud Sync enabled state changed to: ${newEnabled}, updating alarm...`)
       await setupAutoSyncAlarm()
+    }
+    
+    // Trigger sync when settings change (handles bind:value which bypasses updateSettings)
+    // Only trigger if Cloud Sync is enabled and user is logged in
+    if (newEnabled !== false) { // Default is true
+      try {
+        const { syncStorage, pullData } = await import('../services/cloudSync/cloudSyncService.svelte.js')
+        const stored = await syncStorage.getValue()
+        
+        if (stored.isLoggedIn && stored.autoSyncEnabled) {
+          // Compare settings (excluding lastModified to avoid false positives)
+          const oldCopy = { ...oldValue }
+          const newCopy = { ...newValue }
+          delete oldCopy?.lastModified
+          delete newCopy?.lastModified
+          
+          if (JSON.stringify(oldCopy) !== JSON.stringify(newCopy)) {
+            console.log('[Background] Settings changed, triggering debounced sync...')
+            
+            // Clear existing debounce timer and set a new one
+            // Use globalThis instead of window (service worker doesn't have window)
+            if (globalThis.syncDebounceTimer) {
+              clearTimeout(globalThis.syncDebounceTimer)
+            }
+            
+            const DEBOUNCE_DELAY = 10 * 1000 // 10 seconds
+            globalThis.syncDebounceTimer = setTimeout(async () => {
+              try {
+                console.log('[Background] Executing debounced sync for settings change...')
+                await pullData()
+                console.log('[Background] Settings sync completed')
+              } catch (syncError) {
+                console.error('[Background] Settings sync failed:', syncError)
+              }
+            }, DEBOUNCE_DELAY)
+          }
+        }
+      } catch (error) {
+        console.warn('[Background] Failed to check sync status:', error)
+      }
     }
   })
   
@@ -959,6 +1000,57 @@ export default defineBackground(() => {
           sendResponse({ success: true })
         } catch (error) {
           console.error('[Background] Failed to clear auto-sync alarm:', error)
+          sendResponse({ success: false, error: error.message })
+        }
+      })()
+      return true
+    }
+
+    // Handle TRIGGER_SYNC from sidepanel/popup - debounce in background to survive closure
+    if (message.type === 'TRIGGER_SYNC') {
+      ;(async () => {
+        try {
+          const { syncStorage, pullData } = await import('../services/cloudSync/cloudSyncService.svelte.js')
+          const stored = await syncStorage.getValue()
+          
+          // Check settings first
+          const currentSettings = await settingsStorage.getValue()
+          const isCloudSyncEnabled = currentSettings?.tools?.cloudSync?.enabled ?? true
+          
+          if (!isCloudSyncEnabled) {
+            console.log('[Background] TRIGGER_SYNC skipped: cloudSync tool is disabled')
+            sendResponse({ success: false, reason: 'cloudSync_disabled' })
+            return
+          }
+          
+          if (!stored.isLoggedIn || !stored.autoSyncEnabled) {
+            console.log('[Background] TRIGGER_SYNC skipped: not logged in or auto sync disabled')
+            sendResponse({ success: false, reason: 'not_logged_in_or_auto_disabled' })
+            return
+          }
+          
+          // Clear existing debounce timer and set a new one
+          // Use globalThis instead of window (service worker doesn't have window)
+          if (globalThis.syncDebounceTimer) {
+            clearTimeout(globalThis.syncDebounceTimer)
+          }
+          
+          const DEBOUNCE_DELAY = 10 * 1000 // 10 seconds
+          console.log(`[Background] Scheduling sync in ${DEBOUNCE_DELAY / 1000}s...`)
+          
+          globalThis.syncDebounceTimer = setTimeout(async () => {
+            try {
+              console.log('[Background] Executing debounced sync...')
+              await pullData()
+              console.log('[Background] Debounced sync completed')
+            } catch (syncError) {
+              console.error('[Background] Debounced sync failed:', syncError)
+            }
+          }, DEBOUNCE_DELAY)
+          
+          sendResponse({ success: true, scheduled: true })
+        } catch (error) {
+          console.error('[Background] Failed to handle TRIGGER_SYNC:', error)
           sendResponse({ success: false, error: error.message })
         }
       })()

@@ -673,6 +673,16 @@ export function useSummarization() {
         console.log(
           `[useSummarization] Auto-saved to history with ID: ${newHistoryId}`
         )
+        
+        // Trigger cloud sync after saving to history
+        try {
+          const { triggerSync } = await import(
+            '@/services/cloudSync/cloudSyncService.svelte.js'
+          )
+          triggerSync()
+        } catch (syncError) {
+          console.warn('[useSummarization] Failed to trigger sync:', syncError)
+        }
       }
     } catch (error) {
       console.error('[useSummarization] Auto-save to history failed:', error)
@@ -697,6 +707,16 @@ export function useSummarization() {
       )
       localSummaryState.isSavedToArchive = true
       console.log('[useSummarization] Manual save to archive successful.')
+      
+      // Trigger cloud sync after saving to archive
+      try {
+        const { triggerSync } = await import(
+          '@/services/cloudSync/cloudSyncService.svelte.js'
+        )
+        triggerSync()
+      } catch (syncError) {
+        console.warn('[useSummarization] Failed to trigger sync:', syncError)
+      }
     } catch (error) {
       console.error('[useSummarization] Manual save to archive failed:', error)
       localSummaryState.saveError = error

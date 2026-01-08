@@ -974,6 +974,7 @@ async function debouncedPush() {
 
 /**
  * Trigger sync after data changes
+ * Delegates to background script to ensure timer survives sidepanel/popup closure
  */
 export function triggerSync() {
   console.log('[CloudSync] triggerSync called')
@@ -981,7 +982,14 @@ export function triggerSync() {
     console.log('[CloudSync] triggerSync skipped: cloudSync tool is disabled')
     return
   }
-  debouncedPush()
+  
+  // Send message to background script to handle debounced sync
+  // This ensures the sync happens even if sidepanel/popup is closed
+  browser.runtime.sendMessage({ type: 'TRIGGER_SYNC' }).catch(error => {
+    console.warn('[CloudSync] Failed to send TRIGGER_SYNC to background:', error)
+    // Fallback to local debouncedPush if message fails (e.g., background not ready)
+    debouncedPush()
+  })
 }
 
 /**

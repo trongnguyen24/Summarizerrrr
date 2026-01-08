@@ -479,14 +479,18 @@ export async function updateSettings(newSettings) {
     
     // Trigger cloud sync after settings change (unless syncing from cloud)
     if (!_isSyncingFromCloud) {
+      console.log('[settingsStore] Triggering cloud sync after settings change...')
       try {
         const { triggerSync } = await import(
           '@/services/cloudSync/cloudSyncService.svelte.js'
         )
+        console.log('[settingsStore] triggerSync imported, calling...')
         triggerSync()
       } catch (syncError) {
-        // Silently ignore sync errors - settings are already saved locally
+        console.warn('[settingsStore] Failed to trigger sync:', syncError)
       }
+    } else {
+      console.log('[settingsStore] Skipping sync - syncing from cloud')
     }
   } catch (error) {
     console.error('[settingsStore] Error saving settings:', error)

@@ -10,6 +10,8 @@
     lastSyncTime,
     isSyncing,
     debugLogs,
+    clientId = '',
+    clientSecret = '',
     onSyncNow,
     onLogout,
   } = $props()
@@ -125,6 +127,38 @@
 
   <!-- Debug Logs -->
   {#if showDebugLogs}
+    <div
+      class="w-full font-mono relative text-[10px] flex items-center text-muted px-3 py-1 border-t border-border"
+    >
+      <span class="w-24 shrink-0">Client ID:</span>
+      <span class="select-all truncate" title={clientId}
+        >{clientId || 'N/A'}</span
+      >
+      {#if clientId}
+        <button
+          class="ml-auto shrink-0 p-1 hover:text-text-primary transition-colors"
+          title="Copy Client ID"
+          onclick={() => navigator.clipboard.writeText(clientId)}
+        >
+          <Icon icon="heroicons:square-2-stack" class="size-4" />
+        </button>
+      {/if}
+    </div>
+    <div
+      class="w-full font-mono relative text-[10px] flex items-center text-muted px-3 py-1 border-t border-border"
+    >
+      <span class="w-24 shrink-0">Client Secret:</span>
+      <span class="select-all truncate">{clientSecret || 'N/A'}</span>
+      {#if clientSecret}
+        <button
+          class="ml-auto shrink-0 p-1 hover:text-text-primary transition-colors"
+          title="Copy Client Secret"
+          onclick={() => navigator.clipboard.writeText(clientSecret)}
+        >
+          <Icon icon="heroicons:square-2-stack" class="size-4" />
+        </button>
+      {/if}
+    </div>
     <SyncDebugLogs {debugLogs} />
   {/if}
 </div>

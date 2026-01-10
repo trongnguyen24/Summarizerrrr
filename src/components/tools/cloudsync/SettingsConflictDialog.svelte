@@ -346,11 +346,21 @@
                   disabled={!selectedOption || isResolving}
                 >
                   <div
-                    class=" font-medium py-2 px-4 w-full border transition-colors duration-200 {selectedOption
+                    class=" font-medium py-2 px-4 w-full border transition-colors duration-200 flex items-center justify-center gap-2 {selectedOption
                       ? 'bg-primary group-hover:bg-primary/95 dark:group-hover:bg-orange-500 text-orange-50 dark:text-orange-100/90 border-orange-400 hover:border-orange-300/75 hover:text-white'
-                      : ' bg-white dark:bg-surface-1 text-text-secondary border-border/40'}"
+                      : ' bg-white dark:bg-surface-1 text-text-secondary border-border/40'} {isResolving
+                      ? 'opacity-80 cursor-wait'
+                      : ''}"
                   >
-                    Sync
+                    {#if isResolving}
+                      <Icon
+                        icon="heroicons:arrow-path"
+                        class="size-4 animate-spin"
+                      />
+                      <span>Syncing...</span>
+                    {:else}
+                      Sync
+                    {/if}
                   </div>
                   <span
                     class="size-4 absolute z-10 -left-2 -bottom-2 border bg-white dark:bg-surface-1 rotate-45 transition-colors duration-200 {selectedOption

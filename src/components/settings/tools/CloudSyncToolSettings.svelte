@@ -301,7 +301,7 @@
           <a
             href="https://www.youtube.com/watch?v=6L579ori-0w"
             target="_blank"
-            class="text-primary underline underline-offset-2 w-fit flex items-center mt-1 gap-1"
+            class="text-text-secondary underline underline-offset-2 w-fit flex items-center mt-1 gap-1"
             >{$t('cloudSync.byok.setupTutorial')}
             <Icon width={12} icon="heroicons:arrow-up-right-16-solid" />
           </a>

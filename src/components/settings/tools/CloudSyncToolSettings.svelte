@@ -18,22 +18,17 @@
     setAutoSync,
     setSyncPreferences,
     resolveSettingsConflict,
+    saveCustomCredentials,
+    getCustomCredentials,
   } from '@/services/cloudSync/cloudSyncService.svelte.js'
-  import {
-    checkSpecificPermission,
-    requestSpecificPermission,
-  } from '@/services/firefoxPermissionService.js'
 
   // Import refactored components
   import CloudSyncUserCard from '@/components/tools/cloudsync/CloudSyncUserCard.svelte'
   import SettingsConflictDialog from '@/components/tools/cloudsync/SettingsConflictDialog.svelte'
-
-  // OAuth permission pattern for Cloud Sync
-  const OAUTH_PERMISSION_PATTERN = '*://oauth.summarizerrrr.com/*'
-
-  // Firefox permission state
-  let hasOAuthPermission = $state(true) // Default to true for non-Firefox browsers
-  let isRequestingPermission = $state(false)
+  import TextInput from '@/components/inputs/TextInput.svelte'
+  import ApiKeyInput from '@/components/inputs/ApiKeyInput.svelte'
+  import { Dialog } from 'bits-ui'
+  import { slideScaleFade, fadeOnly } from '@/lib/ui/slideScaleFade.js'
 
   // Load icons
   loadIcons([
@@ -45,6 +40,8 @@
     'heroicons:exclamation-circle',
     'heroicons:arrow-right-on-rectangle',
     'heroicons:shield-check',
+    'heroicons:key',
+    'heroicons:cog-6-tooth',
   ])
 
   // Cloud Sync enabled state
@@ -67,36 +64,52 @@
   let isLoggingIn = $state(false)
   let loginError = $state(null)
 
+  // BYOK OAuth credentials state
+  let customClientId = $state('')
+  let customClientSecret = $state('')
+  let credentialsSaved = $state(false)
+  let credentialsError = $state(null)
+  let showRedirectUrisDialog = $state(false)
+  let copiedUri = $state(null)
+
+  const redirectUris = [
+    {
+      browser: 'Chrome Extension',
+      url: 'https://ahfjndakflcegianjdojpldllodpkkpc.chromiumapp.org/',
+    },
+    {
+      browser: 'Firefox Addon',
+      url: 'https://5addcb3f-a5ee-4df3-b7e6-a30bf3445a6d.extensions.allizom.org/',
+    },
+    {
+      browser: 'Edge Extension',
+      url: 'https://kgoolaebmcbhbjokofmhdcjbljagaiif.chromiumapp.org/',
+    },
+  ]
+
+  async function copyToClipboard(url, browser) {
+    await navigator.clipboard.writeText(url)
+    copiedUri = browser
+    setTimeout(() => (copiedUri = null), 2000)
+  }
+
   onMount(async () => {
-    // Check OAuth permission for Firefox
-    if (import.meta.env.BROWSER === 'firefox') {
-      hasOAuthPermission = await checkSpecificPermission(
-        OAUTH_PERMISSION_PATTERN,
-      )
+    // Load existing custom credentials if any
+    const existingCreds = await getCustomCredentials()
+    if (existingCreds) {
+      customClientId = existingCreds.clientId
+      customClientSecret = existingCreds.clientSecret
+      credentialsSaved = true
     }
 
     await initSync()
 
     const interval = setInterval(async () => {
-      // Use refreshSyncState instead of initSync to avoid spamming alarm setup
       await refreshSyncState()
-    }, 30000) // Update every 30 seconds for better responsiveness
+    }, 30000)
 
     return () => clearInterval(interval)
   })
-
-  // Request OAuth permission for Firefox
-  async function handleRequestOAuthPermission() {
-    isRequestingPermission = true
-    try {
-      const granted = await requestSpecificPermission(OAUTH_PERMISSION_PATTERN)
-      hasOAuthPermission = granted
-    } catch (error) {
-      console.error('Failed to request OAuth permission:', error)
-    } finally {
-      isRequestingPermission = false
-    }
-  }
 
   async function handleLogin() {
     isLoggingIn = true
@@ -144,6 +157,49 @@
       isResolvingConflict = false
     }
   }
+
+  // --- BYOK (Bring Your Own Key) Handlers ---
+
+  async function handleSaveCredentials() {
+    credentialsError = null
+    credentialsSaved = false
+
+    const trimmedClientId = customClientId.trim()
+    const trimmedClientSecret = customClientSecret.trim()
+
+    // If both are empty, clear credentials
+    if (!trimmedClientId && !trimmedClientSecret) {
+      try {
+        await saveCustomCredentials('', '')
+        credentialsSaved = false // Not saved, just cleared
+        return
+      } catch (error) {
+        console.error('Failed to clear credentials:', error)
+        credentialsError = error.message
+        return
+      }
+    }
+
+    // Validate inputs - both required if one is provided
+    if (!trimmedClientId || !trimmedClientSecret) {
+      credentialsError = $t('cloudSync.byok.errors.bothRequired')
+      return
+    }
+
+    // Basic format validation for Client ID
+    if (!trimmedClientId.includes('.apps.googleusercontent.com')) {
+      credentialsError = $t('cloudSync.byok.errors.invalidClientId')
+      return
+    }
+
+    try {
+      await saveCustomCredentials(trimmedClientId, trimmedClientSecret)
+      credentialsSaved = true
+    } catch (error) {
+      console.error('Failed to save credentials:', error)
+      credentialsError = error.message
+    }
+  }
 </script>
 
 <div class="flex flex-col gap-6 py-5">
@@ -177,55 +233,50 @@
 
   {#if cloudSyncEnabled}
     {#if !cloudSyncStore.isLoggedIn}
-      <!-- Not logged in state -->
-      {#if import.meta.env.BROWSER === 'firefox' && !hasOAuthPermission}
-        <!-- Firefox: Show permission request UI first -->
-        <div class="flex flex-col gap-3">
-          <div class="text-text-secondary text-xs">
-            {$t('cloudSync.permissionDescription')}
+      <!-- Not logged in state - BYOK Only Mode -->
+      <div class="flex flex-col gap-4">
+        <!-- OAuth Credentials Section -->
+
+        <p class="text-xs text-muted">
+          {$t('cloudSync.byok.description')}
+        </p>
+
+        <!-- Client ID Input -->
+        <TextInput
+          id="byok-client-id"
+          label="Client ID"
+          placeholder={$t('cloudSync.byok.clientIdPlaceholder')}
+          bind:value={customClientId}
+          onSave={handleSaveCredentials}
+        />
+
+        <!-- Client Secret Input -->
+        <ApiKeyInput
+          label="Client Secret"
+          placeholder={$t('cloudSync.byok.clientSecretPlaceholder')}
+          bind:apiKey={customClientSecret}
+          onSave={handleSaveCredentials}
+          linkHref="https://console.cloud.google.com/projectselector2/auth"
+          linkText={$t('cloudSync.byok.getCredentials')}
+        />
+
+        <!-- Error Message -->
+        {#if credentialsError}
+          <div class="flex items-center gap-2 text-red-500 text-xs">
+            <Icon icon="heroicons:exclamation-circle" class="size-4" />
+            <span>{credentialsError}</span>
           </div>
-          <button
-            onclick={handleRequestOAuthPermission}
-            disabled={isRequestingPermission}
-            class="relative group disabled:opacity-50 disabled:cursor-not-allowed"
-            title={$t('cloudSync.grantPermission')}
-          >
-            <div
-              class="relative flex items-center font-bold justify-center gap-1 px-3 py-2.25 font-mono text-xs inset-0 overflow-hidden"
-            >
-              <div
-                class="relative z-20 flex gap-2 text-text-primary justify-center items-center"
-              >
-                {#if isRequestingPermission}
-                  <Icon
-                    icon="heroicons:arrow-path"
-                    class="size-4 animate-spin"
-                  />
-                  <span>{$t('cloudSync.requesting')}</span>
-                {:else}
-                  <Icon icon="heroicons:shield-check" class="size-4" />
-                  <span>{$t('cloudSync.grantPermission')}</span>
-                {/if}
-              </div>
-              <span
-                class="absolute z-50 size-4 border border-transparent group-hover:border-blackwhite/15 rotate-45 bg-surface-1 -bottom-px -left-px -translate-x-1/2 translate-y-1/2 duration-150"
-              ></span>
-              <div
-                class="absolute z-40 inset-0 text-text-secondary py-2 font-mono bg-blackwhite/5 dark:bg-blackwhite/5 border border-transparent hover:border-blackwhite/15 focus:border-blackwhite/30 dark:focus:border-blackwhite/10 focus:outline-none focus:ring-0 transition-colors duration-150"
-              ></div>
-            </div>
-          </button>
-        </div>
-      {:else}
-        <!-- Chrome/Safari or Firefox with permission: Show login button -->
+        {/if}
+
+        <!-- Login Button -->
         <button
           onclick={handleLogin}
-          disabled={isLoggingIn}
-          class="relative group disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={isLoggingIn || !credentialsSaved}
+          class="relative group mt-2 disabled:opacity-50 disabled:cursor-not-allowed"
           title={$t('cloudSync.signInWithGoogle')}
         >
           <div
-            class=" relative flex items-center font-bold justify-center gap-1 px-3 py-2.25 font-mono text-xs inset-0 overflow-hidden"
+            class="relative flex items-center font-bold justify-center gap-1 px-3 py-2.25 font-mono text-xs inset-0 overflow-hidden"
           >
             <div
               class="relative z-20 flex gap-2 text-text-primary justify-center items-center"
@@ -246,16 +297,33 @@
             ></div>
           </div>
         </button>
+        <div class="flex justify-center items-center gap-4">
+          <a
+            href="https://www.youtube.com/watch?v=6L579ori-0w"
+            target="_blank"
+            class="text-primary underline underline-offset-2 w-fit flex items-center mt-1 gap-1"
+            >{$t('cloudSync.byok.setupTutorial')}
+            <Icon width={12} icon="heroicons:arrow-up-right-16-solid" />
+          </a>
 
+          <button
+            onclick={() => (showRedirectUrisDialog = true)}
+            class="text-text-secondary underline underline-offset-2 w-fit flex items-center mt-1 gap-1"
+          >
+            {$t('cloudSync.byok.redirectUrisList')}<Icon
+              width={12}
+              icon="heroicons:information-circle-20-solid"
+            />
+          </button>
+        </div>
         {#if loginError}
           <div class="flex items-center gap-2 text-red-500 text-xs">
             <Icon icon="heroicons:exclamation-circle" class="size-4" />
             <span>{loginError}</span>
           </div>
         {/if}
-      {/if}
+      </div>
     {:else}
-      <!-- Logged in state -->
       <div class="flex flex-col gap-6">
         <!-- User Info Card Component -->
         <CloudSyncUserCard
@@ -265,6 +333,8 @@
           lastSyncTime={cloudSyncStore.lastSyncTime}
           isSyncing={cloudSyncStore.isSyncing}
           debugLogs={cloudSyncStore.debugLogs}
+          clientId={customClientId}
+          clientSecret={customClientSecret}
           onSyncNow={handleSyncNow}
           onLogout={handleLogout}
         />
@@ -363,3 +433,101 @@
     />
   {/if}
 </div>
+
+<!-- Redirect URIs Dialog -->
+<Dialog.Root bind:open={showRedirectUrisDialog}>
+  <Dialog.Portal>
+    <Dialog.Overlay class="fixed inset-0 z-[999] bg-black/80" forceMount>
+      {#snippet child({ props, open })}
+        {#if open}
+          <div {...props} transition:fadeOnly></div>
+        {/if}
+      {/snippet}
+    </Dialog.Overlay>
+    <Dialog.Content
+      forceMount
+      class="outline-hidden flex flex-col font-mono fixed left-[50%] top-1/2 w-[calc(100vw-32px)] max-w-xl z-[1000] -translate-y-1/2 rounded-lg overflow-hidden shadow-lg translate-x-[-50%]"
+    >
+      {#snippet child({ props, open })}
+        {#if open}
+          <div
+            {...props}
+            transition:slideScaleFade={{
+              duration: 300,
+              slideFrom: 'bottom',
+              slideDistance: '0rem',
+              startScale: 0.95,
+            }}
+          >
+            <div class="absolute z-10 right-3 top-2.5 group flex gap-2">
+              <span class="block size-3.5 bg-muted/15 rounded-full"></span>
+              <span class="block size-3.5 bg-muted/15 rounded-full"></span>
+              <!-- svelte-ignore a11y_consider_explicit_label -->
+              <button
+                class="block size-3.5 bg-error rounded-full"
+                onclick={() => (showRedirectUrisDialog = false)}
+              >
+                <Icon
+                  class="text-red-800 transition-opacity duration-150"
+                  width={14}
+                  icon="heroicons:x-mark-16-solid"
+                />
+              </button>
+            </div>
+            <div class="px-4 text-xs top-0 w-full bg-surface-2 py-2">
+              <p class="!text-center text-text-primary select-none font-bold">
+                {$t('cloudSync.redirectUris.title')}
+              </p>
+            </div>
+
+            <div class="bg-surface-1 flex flex-col p-4 gap-4">
+              <p class="text-text-primary text-xs">
+                {$t('cloudSync.redirectUris.description')}
+              </p>
+
+              {#each redirectUris as { browser, url }}
+                <div class="flex flex-col gap-0">
+                  <span class="text-xs text-muted font-medium">{browser}</span>
+                  <div class="flex items-center">
+                    <div
+                      class="relative flex w-full h-8 transition-colors duration-150 overflow-hidden"
+                    >
+                      <input
+                        type="text"
+                        id="api-key-input"
+                        value={url}
+                        readonly
+                        class="absolute top-0 left-0 w-[133.33%] h-[133.33%] pr-10 text-base text-text-secondary bg-transparent border-none focus:outline-none focus:ring-0 placeholder:text-muted truncate origin-top-left scale-75"
+                      />
+                      <button
+                        onclick={() => copyToClipboard(url, browser)}
+                        class="shrink-0 w-8 relative z-30 ml-auto hover:bg-muted/10 rounded transition-colors"
+                        title="Copy"
+                      >
+                        {#if copiedUri === browser}
+                          <span transition:fadeOnly>
+                            <Icon
+                              icon="heroicons:check"
+                              class="size-4 text-text-secondary absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+                            />
+                          </span>
+                        {:else}
+                          <span transition:fadeOnly>
+                            <Icon
+                              icon="heroicons:square-2-stack"
+                              class="size-4 text-text-secondary absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+                            />
+                          </span>
+                        {/if}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              {/each}
+            </div>
+          </div>
+        {/if}
+      {/snippet}
+    </Dialog.Content>
+  </Dialog.Portal>
+</Dialog.Root>

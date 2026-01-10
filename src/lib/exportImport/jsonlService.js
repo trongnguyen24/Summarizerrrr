@@ -105,3 +105,41 @@ export function validateJsonl(text) {
     validLineCount: result.successCount,
   }
 }
+
+/**
+ * Parse JSONL string with metadata handling and item cleaning
+ * Format: First line may be metadata with _meta:true
+ * 
+ * @param {string} text - JSONL formatted string
+ * @param {Object} options - Parsing options
+ * @param {boolean} options.cleanItems - Whether to remove internal _type field (default: true)
+ * @returns {Object} { items: Array<Object>, meta: Object|null, errors: Array<Object>|null }
+ */
+export function parseJsonlWithMeta(text, options = { cleanItems: true }) {
+  const result = importFromJsonl(text)
+  
+  // Find metadata line
+  const metaLine = result.data.find(item => item._meta)
+  let meta = null
+  if (metaLine) {
+    const { _meta, ...rest } = metaLine
+    meta = rest
+  }
+
+  // Filter out metadata and clean items
+  const items = result.data
+    .filter(item => !item._meta)
+    .map(item => {
+      if (options.cleanItems) {
+        const { _type, ...rest } = item
+        return rest
+      }
+      return item
+    })
+
+  return {
+    items,
+    meta,
+    errors: result.errors
+  }
+}

@@ -516,7 +516,7 @@
     "autoSyncPromptDescription": "自动同步将自动保持您的数据在所有设备上同步。您可以随时更改此设置。",
     "manualSync": "手动",
     "enableAutoSync": "启用自动",
-    "beta_description": "通过 Google Drive 同步您的数据。（Beta - 仅限 100 个名额）",
+    "beta_description": "通过 Google Drive 同步您的数据。",
     "syncMode": "同步模式",
     "syncModeDescription": "选择数据与 Google Drive 的同步方式",
     "manualDescription": "仅在点击立即同步时同步",
@@ -528,9 +528,21 @@
     "error": "错误",
     "enabled": "已启用",
     "disabled": "已禁用",
-    "permissionRequired": "需要权限",
-    "permissionDescription": "请授予访问云同步服务器的权限。",
-    "grantPermission": "授予权限",
-    "requesting": "请求中..."
+    "byok": {
+      "description": "从您的 Google Cloud Console 输入您自己的 OAuth 凭据，您的数据永远不会通过第三方服务器。",
+      "clientIdPlaceholder": "xxxxx.apps.googleusercontent.com",
+      "clientSecretPlaceholder": "您的客户端密钥",
+      "getCredentials": "获取凭据",
+      "setupTutorial": "设置教程",
+      "redirectUrisList": "重定向 URI 列表",
+      "errors": {
+        "bothRequired": "Client ID 和 Client Secret 都是必需的",
+        "invalidClientId": "Client ID 格式无效（应以 .apps.googleusercontent.com 结尾）"
+      }
+    },
+    "redirectUris": {
+      "title": "重定向 URI",
+      "description": "将这些 URI 添加到 Google Cloud OAuth 同意屏幕中的\"授权重定向 URI\"。"
+    }
   }
 }

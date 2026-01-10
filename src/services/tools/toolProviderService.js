@@ -33,8 +33,8 @@ export function resolveToolProvider(toolName) {
       return {
         provider: 'gemini',
         model: 'gemma-3-27b-it',
-        temperature: 0.7,
-        topP: 0.9,
+        temperature: settings.temperature ?? 0.7,
+        topP: settings.topP ?? 0.9,
       }
     }
 
@@ -75,8 +75,8 @@ export function resolveToolProvider(toolName) {
     return {
       provider: customProvider,
       model: customModel.trim(),
-      temperature: 0.7,
-      topP: 0.9,
+      temperature: settings.temperature ?? 0.7,
+      topP: settings.topP ?? 0.9,
     }
   }
 

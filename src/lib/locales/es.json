@@ -516,7 +516,7 @@
     "autoSyncPromptDescription": "La sincronización automática mantendrá tus datos actualizados en todos tus dispositivos. Puedes cambiar esto en cualquier momento.",
     "manualSync": "Manual",
     "enableAutoSync": "Activar Auto",
-    "beta_description": "Sincroniza tus datos a través de Google Drive. (Beta - Limitado a 100 plazas)",
+    "beta_description": "Sincroniza tus datos a través de Google Drive.",
     "syncMode": "Modo de sincronización",
     "syncModeDescription": "Elige cómo se sincronizan tus datos con Google Drive",
     "manualDescription": "Sincronizar solo al hacer clic en Sincronizar ahora",
@@ -528,9 +528,21 @@
     "error": "Error",
     "enabled": "Habilitado",
     "disabled": "Deshabilitado",
-    "permissionRequired": "Permiso requerido",
-    "permissionDescription": "Por favor, conceda permiso para acceder al servidor de Cloud Sync.",
-    "grantPermission": "Conceder permiso",
-    "requesting": "Solicitando..."
+    "byok": {
+      "description": "Ingrese sus propias credenciales OAuth desde su Google Cloud Console, sus datos nunca pasan por servidores de terceros.",
+      "clientIdPlaceholder": "xxxxx.apps.googleusercontent.com",
+      "clientSecretPlaceholder": "Su secreto de cliente",
+      "getCredentials": "Obtener credenciales",
+      "setupTutorial": "Tutorial de configuración",
+      "redirectUrisList": "Lista de URIs de redirección",
+      "errors": {
+        "bothRequired": "Se requieren tanto Client ID como Client Secret",
+        "invalidClientId": "Formato de Client ID inválido (debe terminar con .apps.googleusercontent.com)"
+      }
+    },
+    "redirectUris": {
+      "title": "URIs de redirección",
+      "description": "Agregue estos URIs a sus 'URIs de redirección autorizados' en la pantalla de consentimiento OAuth de Google Cloud."
+    }
   }
 }

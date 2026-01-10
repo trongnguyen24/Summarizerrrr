@@ -201,7 +201,7 @@ export default defineConfig({
           'identity',
           'alarms',
         ],
-        optional_permissions: ['<all_urls>', '*://oauth.summarizerrrr.com/*'],
+        optional_permissions: ['<all_urls>'],
         host_permissions: [
           'http://127.0.0.1:11434/*',
           'http://localhost:11434/*',

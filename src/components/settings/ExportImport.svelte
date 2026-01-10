@@ -30,7 +30,10 @@
     isZipFile,
     extractFilesFromZip,
   } from '../../lib/exportImport/zipService.js'
-  import { importFromJsonl } from '../../lib/exportImport/jsonlService.js'
+  import {
+    importFromJsonl,
+    parseJsonlWithMeta,
+  } from '../../lib/exportImport/jsonlService.js'
   import { sanitizeSettings } from '../../lib/config/settingsSchema.js'
 
   import SwitchPermission from '../inputs/SwitchPermission.svelte'
@@ -255,65 +258,130 @@
     try {
       const files = await extractFilesFromZip(file)
       const data = {}
-      if (files['settings.json']) {
+
+      // Parse settings (support both old and new filenames)
+      const settingsFile =
+        files['summarizerrrr-settings.json'] || files['settings.json']
+      if (settingsFile) {
         try {
-          const parsedSettingsFile = JSON.parse(files['settings.json'])
+          const parsedSettingsFile = JSON.parse(settingsFile)
 
-          if (parsedSettingsFile.metadata) {
-            data.metadata = parsedSettingsFile.metadata
+          // New format (Cloud Sync compatible)
+          if (parsedSettingsFile.data) {
+            data.settings = sanitizeSettings(parsedSettingsFile.data)
+            if (parsedSettingsFile._backup) {
+              data.metadata = parsedSettingsFile._backup
+            }
           }
-
-          if (parsedSettingsFile.settings) {
+          // Old format (metadata + settings)
+          else if (parsedSettingsFile.metadata && parsedSettingsFile.settings) {
+            data.metadata = parsedSettingsFile.metadata
             data.settings = sanitizeSettings(parsedSettingsFile.settings)
+          }
+          // Legacy format (just settings object)
+          else {
+            data.settings = sanitizeSettings(parsedSettingsFile)
           }
         } catch (error) {
           console.error(`Failed to parse settings: ${error.message}`)
         }
       }
 
-      if (files['summaries.jsonl']) {
+      // Parse library (new format: summarizerrrr-library.jsonl with archives + tags)
+      const libraryFile = files['summarizerrrr-library.jsonl']
+      if (libraryFile) {
         try {
-          const result = importFromJsonl(files['summaries.jsonl'])
-          data.summaries = result.data
+          const result = importFromJsonl(libraryFile)
+          const archives = []
+          const tags = []
+
+          for (const item of result.data) {
+            if (item._meta) continue // Skip metadata line
+
+            // Remove _type field and separate by type
+            const { _type, ...rest } = item
+            if (_type === 'archive') {
+              archives.push(rest)
+            } else if (_type === 'tag') {
+              tags.push(rest)
+            }
+          }
+
+          if (archives.length > 0) data.summaries = archives
+          if (tags.length > 0) data.tags = tags
+
           if (result.errors) {
             console.warn(
-              `Some summaries failed to parse: ${result.errorCount} errors`,
+              `Some library items failed to parse: ${result.errorCount} errors`,
             )
+          }
+        } catch (error) {
+          console.error(`Failed to parse library: ${error.message}`)
+        }
+      }
+
+      // Parse summaries (old format fallback)
+      if (!data.summaries && files['summaries.jsonl']) {
+        try {
+          const result = parseJsonlWithMeta(files['summaries.jsonl'])
+          data.summaries = result.items
+          if (result.errors) {
+            console.warn(`Some summaries failed to parse`)
           }
         } catch (error) {
           console.error(`Failed to parse summaries: ${error.message}`)
         }
       }
 
-      if (files['history.jsonl']) {
+      // Parse history (support both old and new filenames)
+      const historyFile =
+        files['summarizerrrr-history.jsonl'] || files['history.jsonl']
+      if (historyFile) {
         try {
-          const result = importFromJsonl(files['history.jsonl'])
-          data.history = result.data
+          const result = parseJsonlWithMeta(historyFile)
+          data.history = result.items
           if (result.errors) {
-            console.warn(
-              `Some history failed to parse: ${result.errorCount} errors`,
-            )
+            console.warn(`Some history failed to parse`)
           }
         } catch (error) {
           console.error(`Failed to parse history: ${error.message}`)
         }
       }
 
-      if (files['tags.jsonl']) {
+      // Parse tags (old format fallback, only if not already from library)
+      if (!data.tags && files['tags.jsonl']) {
         try {
-          const result = importFromJsonl(files['tags.jsonl'])
-          data.tags = result.data
+          const result = parseJsonlWithMeta(files['tags.jsonl'])
+          data.tags = result.items
           if (result.errors) {
-            console.warn(
-              `Some tags failed to parse: ${result.errorCount} errors`,
-            )
+            console.warn(`Some tags failed to parse`)
           }
         } catch (error) {
           console.error(`Failed to parse tags: ${error.message}`)
         }
       }
 
-      if (Object.keys(data).length === 0) {
+      // Parse sync credentials (new format: summarizerrrr-sync.json)
+      const syncFile = files['summarizerrrr-sync.json']
+      if (syncFile) {
+        try {
+          const parsedSync = JSON.parse(syncFile)
+          if (
+            parsedSync.credentials?.clientId &&
+            parsedSync.credentials?.clientSecret
+          ) {
+            data.syncCredentials = parsedSync.credentials
+            console.log('[Import] Found sync credentials in backup')
+          }
+        } catch (error) {
+          console.error(`Failed to parse sync credentials: ${error.message}`)
+        }
+      }
+
+      if (
+        Object.keys(data).length === 0 ||
+        (!data.settings && !data.history && !data.summaries && !data.tags)
+      ) {
         throw new Error($t('exportImport.messages.no_valid_data'))
       }
 
@@ -387,6 +455,11 @@
     if (importOptions.dataTypes.tags && state.importData.tags) {
       data.tags = state.importData.tags
     }
+
+    // Sync credentials go with settings
+    if (importOptions.dataTypes.settings && state.importData.syncCredentials) {
+      data.syncCredentials = state.importData.syncCredentials
+    }
     return data
   }
 
@@ -449,6 +522,25 @@
           ...cleanImportedSettings,
         }
         await updateSettings(mergedSettings)
+      }
+
+      // Import sync credentials if present (goes with settings)
+      if (importedData.syncCredentials) {
+        try {
+          const { saveCustomCredentials } = await import(
+            '../../services/cloudSync/cloudSyncService.svelte.js'
+          )
+          await saveCustomCredentials(
+            importedData.syncCredentials.clientId,
+            importedData.syncCredentials.clientSecret,
+          )
+          console.log('[Import] Sync credentials restored successfully')
+        } catch (error) {
+          console.error(
+            '[Import] Failed to restore sync credentials:',
+            error.message,
+          )
+        }
       }
     }
 
@@ -564,6 +656,7 @@
 
   // Helper functions to get text values
   function getExportedDate() {
+    // metadata contains either old metadata or new _backup data
     return state.importData?.metadata?.exportedAt
       ? new Date(state.importData.metadata.exportedAt).toLocaleDateString()
       : $t('exportImport.unknown')

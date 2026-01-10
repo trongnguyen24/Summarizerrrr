@@ -499,7 +499,7 @@
     "autoSyncPromptDescription": "Tự động đồng bộ sẽ giữ dữ liệu của bạn đồng bộ giữa các thiết bị. Bạn có thể thay đổi cài đặt này bất cứ lúc nào.",
     "manualSync": "Thủ công",
     "enableAutoSync": "Bật tự động",
-    "beta_description": "Đồng bộ dữ liệu của bạn qua Google Drive. (Beta - Giới hạn 100 slot)",
+    "beta_description": "Đồng bộ dữ liệu của bạn qua Google Drive.",
     "syncMode": "Chế độ đồng bộ",
     "syncModeDescription": "Chọn cách dữ liệu của bạn được đồng bộ với Google Drive",
     "manualDescription": "Chỉ đồng bộ khi bạn nhấp vào Đồng bộ ngay",
@@ -511,10 +511,22 @@
     "error": "Lỗi",
     "enabled": "Đang bật",
     "disabled": "Đang tắt",
-    "permissionRequired": "Yêu cầu quyền truy cập",
-    "permissionDescription": "Vui lòng cấp quyền truy cập máy chủ Cloud Sync.",
-    "grantPermission": "Cấp quyền",
-    "requesting": "Đang yêu cầu..."
+    "byok": {
+      "description": "Nhập thông tin xác thực OAuth của riêng bạn từ Google Cloud Console, dữ liệu của bạn không bao giờ đi qua máy chủ bên thứ ba.",
+      "clientIdPlaceholder": "xxxxx.apps.googleusercontent.com",
+      "clientSecretPlaceholder": "Client secret của bạn",
+      "getCredentials": "Lấy thông tin xác thực",
+      "setupTutorial": "Hướng dẫn thiết lập",
+      "redirectUrisList": "Danh sách Redirect URIs",
+      "errors": {
+        "bothRequired": "Cần cả Client ID và Client Secret",
+        "invalidClientId": "Định dạng Client ID không hợp lệ (phải kết thúc bằng .apps.googleusercontent.com)"
+      }
+    },
+    "redirectUris": {
+      "title": "Redirect URIs",
+      "description": "Thêm các URI này vào \"Authorized redirect URIs\" trong màn hình OAuth consent của Google Cloud."
+    }
   },
   "notifications": {
     "no_notifications": "Không có thông báo",

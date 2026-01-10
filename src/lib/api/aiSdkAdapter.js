@@ -132,10 +132,11 @@ export function getAISDKModel(providerId, settings) {
 
     case 'openai':
     case 'chatgpt':
-      return createOpenAI(settings.selectedChatgptModel || 'gpt-3.5-turbo', {
+      const openai = createOpenAI({
         apiKey: settings.chatgptApiKey,
         baseURL: settings.chatgptBaseUrl,
       })
+      return openai(settings.selectedChatgptModel || 'gpt-3.5-turbo')
 
     case 'groq':
       const groq = createOpenAICompatible({
@@ -201,6 +202,24 @@ export function getAISDKModel(providerId, settings) {
 }
 
 /**
+ * Checks if a model doesn't support temperature/topP parameters
+ * GPT-5.x and other newer OpenAI models only support default values (1.0)
+ * @param {string} modelName - The model name to check
+ * @returns {boolean} True if the model doesn't support temperature/topP
+ */
+function isModelWithoutTempSupport(modelName) {
+  if (!modelName) return false
+  const lowerModel = modelName.toLowerCase()
+  // GPT-5.x models don't support temperature/topP (only default value 1.0)
+  // Add more patterns here as needed for future models
+  return lowerModel.startsWith('gpt-5') || 
+         lowerModel.includes('gpt-5') ||
+         lowerModel.startsWith('o1') ||
+         lowerModel.startsWith('o3') ||
+         lowerModel.startsWith('o4')
+}
+
+/**
  * Maps user settings to AI SDK generation configuration
  * @param {object} settings - User settings object
  * @param {object} advancedModeSettings - Advanced mode settings
@@ -208,11 +227,36 @@ export function getAISDKModel(providerId, settings) {
  * @returns {object} Generation configuration for AI SDK
  */
 export function mapGenerationConfig(settings) {
-  return {
-    temperature: settings.temperature,
-    topP: settings.topP,
+  const config = {
     maxTokens: 4000, // Default max tokens
   }
+  
+  // Get the current model name from settings
+  const modelName = settings.selectedChatgptModel || 
+                    settings.selectedOpenAICompatibleModel ||
+                    settings.selectedGeminiModel ||
+                    ''
+  
+  // Only add temperature/topP if the model supports them
+  // GPT-5.x and similar models only support default value (1.0)
+  // If value is 1.0 (default), we can safely omit these parameters
+  const skipTempParams = isModelWithoutTempSupport(modelName)
+  
+  if (!skipTempParams) {
+    // Only include temperature if it's not the default (1.0) or if explicitly set
+    if (settings.temperature !== undefined && settings.temperature !== 1.0) {
+      config.temperature = settings.temperature
+    }
+    
+    // Only include topP if it's not the default (1.0) or if explicitly set
+    if (settings.topP !== undefined && settings.topP !== 1.0) {
+      config.topP = settings.topP
+    }
+  } else {
+    console.log(`[aiSdkAdapter] Skipping temperature/topP for model: ${modelName} (not supported)`)
+  }
+  
+  return config
 }
 
 /**

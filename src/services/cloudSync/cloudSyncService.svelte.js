@@ -10,12 +10,15 @@
 import { storage } from '@wxt-dev/storage'
 import { browser } from 'wxt/browser'
 import {
-  authenticate,
-  refreshAccessToken,
+  authenticateWithCustomCredentials,
+  refreshAccessTokenDirect,
   revokeToken,
   getFile,
   saveFile,
+  getFileJsonl,
+  saveFileJsonl,
   getUserProfile,
+  clearSyncFolderCache,
 } from './googleDriveAdapter.js'
 import {
   getAllSummaries,
@@ -36,8 +39,8 @@ import { generateUUID } from '@/lib/utils/utils.js'
 // File names on Google Drive - 3 file architecture
 const FILES = {
   SETTINGS: 'summarizerrrr-settings.json',
-  HISTORY: 'summarizerrrr-history.json',
-  LIBRARY: 'summarizerrrr-library.json', // Archive + Tags combined for atomic sync
+  HISTORY: 'summarizerrrr-history.jsonl',
+  LIBRARY: 'summarizerrrr-library.jsonl', // Archive + Tags combined for atomic sync
 }
 
 // Soft delete cleanup threshold (30 days in ms)
@@ -62,6 +65,8 @@ export const syncStorage = storage.defineItem('local:syncState', {
       history: true,
       library: true, // Archive + Tags combined
     },
+    // BYOK (Bring Your Own Key) Mode
+    customCredentials: null, // { clientId, clientSecret } or null for default proxy mode
   },
 })
 
@@ -203,7 +208,7 @@ function isTokenExpired(expiryTime) {
 
 /**
  * Refresh access token using stored refresh_token
- * This enables persistent sessions across browser restarts
+ * BYOK mode only - requires custom credentials
  */
 async function doRefreshToken() {
   const stored = await syncStorage.getValue()
@@ -212,8 +217,18 @@ async function doRefreshToken() {
     throw new Error('No refresh token available. Please sign in again.')
   }
   
+  // BYOK mode is required - no proxy fallback
+  if (!stored.customCredentials?.clientId || !stored.customCredentials?.clientSecret) {
+    throw new Error('OAuth credentials missing. Please sign in again.')
+  }
+  
   try {
-    const { accessToken, expiresAt } = await refreshAccessToken(stored.refreshToken)
+    console.log('[CloudSync] Refreshing token using BYOK mode')
+    const { accessToken, expiresAt } = await refreshAccessTokenDirect(
+      stored.refreshToken,
+      stored.customCredentials.clientId,
+      stored.customCredentials.clientSecret
+    )
     
     await syncStorage.setValue({
       ...stored,
@@ -280,23 +295,36 @@ async function getValidAccessToken() {
 
 /**
  * Login with Google
+ * BYOK mode only - requires custom credentials
  * @returns {Promise<{needsAutoSyncChoice: boolean}>}
  */
 export async function login() {
   syncState.syncError = null
   
   try {
-    const { accessToken, refreshToken: newRefreshToken, expiresAt } = await authenticate()
+    const stored = await syncStorage.getValue()
+    const customCreds = stored.customCredentials
+    
+    // BYOK mode is required - no proxy fallback
+    if (!customCreds?.clientId || !customCreds?.clientSecret) {
+      throw new Error('OAuth credentials required. Please save your Client ID and Client Secret first.')
+    }
+    
+    console.log('[CloudSync] Logging in using BYOK mode')
+    const { accessToken, refreshToken: newRefreshToken, expiresAt } = await authenticateWithCustomCredentials(
+      customCreds.clientId,
+      customCreds.clientSecret
+    )
     
     // Get user profile
     const profile = await getUserProfile(accessToken)
     
-    const stored = await syncStorage.getValue()
-    const isFirstLogin = stored.autoSyncEnabled === null
+    const freshStored = await syncStorage.getValue()
+    const isFirstLogin = freshStored.autoSyncEnabled === null
     
     // Update storage with profile and auth info
     const updatedState = {
-      ...stored,
+      ...freshStored,
       isLoggedIn: true,
       accessToken,
       refreshToken: newRefreshToken,
@@ -319,7 +347,7 @@ export async function login() {
     syncState.userPicture = profile.picture
     syncState.lastSyncTime = (await syncStorage.getValue()).lastSyncTime
     syncState.autoSyncEnabled = updatedState.autoSyncEnabled
-    syncState.syncPreferences = stored.syncPreferences || {
+    syncState.syncPreferences = freshStored.syncPreferences || {
       settings: true,
       history: true,
       library: true,
@@ -351,8 +379,9 @@ export async function logout(revokeAccess = true) {
   
   stopAutoSync()
   
-  // Clear token cache on logout
+  // Clear caches on logout (important for multi-account support)
   tokenCache = { accessToken: null, tokenExpiry: null, lastUpdated: 0 }
+  clearSyncFolderCache() // Clear folder ID cache to avoid using wrong account's folder
   
   const stored = await syncStorage.getValue()
   
@@ -460,10 +489,11 @@ export async function pullData(_isRetry = false) {
     if (prefs.settings) fetchPromises.push(getFile(accessToken, FILES.SETTINGS))
     else fetchPromises.push(Promise.resolve(null))
     
-    if (prefs.history) fetchPromises.push(getFile(accessToken, FILES.HISTORY))
+    // Use JSONL format for history and library
+    if (prefs.history) fetchPromises.push(getFileJsonl(accessToken, FILES.HISTORY))
     else fetchPromises.push(Promise.resolve(null))
     
-    if (prefs.library) fetchPromises.push(getFile(accessToken, FILES.LIBRARY))
+    if (prefs.library) fetchPromises.push(getFileJsonl(accessToken, FILES.LIBRARY))
     else fetchPromises.push(Promise.resolve(null))
     
     const [settingsFile, historyFile, libraryFile] = await Promise.all(fetchPromises)
@@ -631,12 +661,11 @@ async function syncHistory(accessToken, cloudFile) {
   const localHistory = await getAllHistory()
   const localMap = arrayToMap(localHistory)
   
-  if (!cloudFile || !cloudFile.items) {
+  if (!cloudFile || !cloudFile.items || Object.keys(cloudFile.items).length === 0) {
     // No cloud history, push local
     logToUI('No cloud History, pushing local...')
-    await saveFile(accessToken, FILES.HISTORY, {
-      version: 2,
-      updatedAt: Date.now(),
+    await saveFileJsonl(accessToken, FILES.HISTORY, {
+      meta: { version: 2, updatedAt: Date.now() },
       items: localMap,
     })
     return
@@ -659,9 +688,8 @@ async function syncHistory(accessToken, cloudFile) {
   
   if (hasChanges) {
     logToUI('Pushing merged History...')
-    await saveFile(accessToken, FILES.HISTORY, {
-      version: 2,
-      updatedAt: Date.now(),
+    await saveFileJsonl(accessToken, FILES.HISTORY, {
+      meta: { version: 2, updatedAt: Date.now() },
       items: cleanedHistory,
     })
   } else {
@@ -681,12 +709,12 @@ async function syncLibrary(accessToken, cloudFile) {
   const localArchivesMap = arrayToMap(localArchives)
   const localTagsMap = arrayToMap(localTags)
   
-  if (!cloudFile || (!cloudFile.archives && !cloudFile.tags)) {
+  if (!cloudFile || (!cloudFile.archives && !cloudFile.tags) || 
+      (Object.keys(cloudFile.archives || {}).length === 0 && Object.keys(cloudFile.tags || {}).length === 0)) {
     // No cloud library, push local
     logToUI('No cloud Library, pushing local...')
-    await saveFile(accessToken, FILES.LIBRARY, {
-      version: 2,
-      updatedAt: Date.now(),
+    await saveFileJsonl(accessToken, FILES.LIBRARY, {
+      meta: { version: 2, updatedAt: Date.now() },
       archives: localArchivesMap,
       tags: localTagsMap,
     })
@@ -730,9 +758,8 @@ async function syncLibrary(accessToken, cloudFile) {
   if (hasChanges) {
     // Push merged data back to cloud (include soft-deleted for sync)
     logToUI('Pushing merged Library...')
-    await saveFile(accessToken, FILES.LIBRARY, {
-      version: 2,
-      updatedAt: Date.now(),
+    await saveFileJsonl(accessToken, FILES.LIBRARY, {
+      meta: { version: 2, updatedAt: Date.now() },
       archives: cleanedArchives,
       tags: cleanedTags,
     })
@@ -869,11 +896,11 @@ async function pushAllData(accessToken) {
     )
   }
   
+  // Use JSONL format for history and library
   if (prefs.history) {
     pushPromises.push(
-      saveFile(accessToken, FILES.HISTORY, {
-        version: 2,
-        updatedAt: now,
+      saveFileJsonl(accessToken, FILES.HISTORY, {
+        meta: { version: 2, updatedAt: now },
         items: arrayToMap(localHistory),
       })
     )
@@ -881,9 +908,8 @@ async function pushAllData(accessToken) {
   
   if (prefs.library) {
     pushPromises.push(
-      saveFile(accessToken, FILES.LIBRARY, {
-        version: 2,
-        updatedAt: now,
+      saveFileJsonl(accessToken, FILES.LIBRARY, {
+        meta: { version: 2, updatedAt: now },
         archives: arrayToMap(localArchives),
         tags: arrayToMap(localTags),
       })
@@ -948,6 +974,7 @@ async function debouncedPush() {
 
 /**
  * Trigger sync after data changes
+ * Delegates to background script to ensure timer survives sidepanel/popup closure
  */
 export function triggerSync() {
   console.log('[CloudSync] triggerSync called')
@@ -955,7 +982,14 @@ export function triggerSync() {
     console.log('[CloudSync] triggerSync skipped: cloudSync tool is disabled')
     return
   }
-  debouncedPush()
+  
+  // Send message to background script to handle debounced sync
+  // This ensures the sync happens even if sidepanel/popup is closed
+  browser.runtime.sendMessage({ type: 'TRIGGER_SYNC' }).catch(error => {
+    console.warn('[CloudSync] Failed to send TRIGGER_SYNC to background:', error)
+    // Fallback to local debouncedPush if message fails (e.g., background not ready)
+    debouncedPush()
+  })
 }
 
 /**
@@ -1124,6 +1158,59 @@ async function stopAutoSync() {
     clearTimeout(debounceTimer)
     debounceTimer = null
   }
+}
+
+// --- BYOK (Bring Your Own Key) Credentials Management ---
+
+/**
+ * Save custom OAuth credentials for BYOK mode
+ * @param {string} clientId - OAuth Client ID
+ * @param {string} clientSecret - OAuth Client Secret
+ */
+export async function saveCustomCredentials(clientId, clientSecret) {
+  const stored = await syncStorage.getValue()
+  
+  await syncStorage.setValue({
+    ...stored,
+    customCredentials: {
+      clientId: clientId.trim(),
+      clientSecret: clientSecret.trim(),
+    },
+  })
+  
+  console.log('[CloudSync] Custom credentials saved (BYOK mode enabled)')
+}
+
+/**
+ * Clear custom OAuth credentials (switch back to proxy mode)
+ */
+export async function clearCustomCredentials() {
+  const stored = await syncStorage.getValue()
+  
+  await syncStorage.setValue({
+    ...stored,
+    customCredentials: null,
+  })
+  
+  console.log('[CloudSync] Custom credentials cleared (proxy mode enabled)')
+}
+
+/**
+ * Get current custom credentials (if set)
+ * @returns {Promise<{clientId: string, clientSecret: string} | null>}
+ */
+export async function getCustomCredentials() {
+  const stored = await syncStorage.getValue()
+  return stored.customCredentials || null
+}
+
+/**
+ * Check if using BYOK mode (has custom credentials)
+ * @returns {Promise<boolean>}
+ */
+export async function isUsingCustomCredentials() {
+  const stored = await syncStorage.getValue()
+  return !!(stored.customCredentials?.clientId && stored.customCredentials?.clientSecret)
 }
 
 // --- Export State ---

@@ -8,7 +8,7 @@ Summarize YouTube video content from <INPUT_CONTENT>. Focus on main points, spec
 </TASK>
 
 <REQUIREMENTS>
-✅ **Timestamps Location**: **CRITICAL RULE**: Timestamps MUST ONLY appear at the very end of the H3 headers (###).
+✅ **Timestamps Location**: **CRITICAL RULE**: Timestamps MUST ONLY appear at the after the H3 headers.
 ✅ **Visuals**: Use relevant emojis (e.g., 💡, 🚀, ⚠️, 📉) to make the summary visually appealing.
 ✅ **Content**: Main topics, important points, specific examples/data, steps/instructions.
 ✅ **Clear separation**: Use headings, bullet points, or paragraphs.

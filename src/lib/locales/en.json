@@ -499,7 +499,7 @@
     "autoSyncPromptDescription": "Auto-sync will automatically keep your data synchronized across devices. You can change this setting anytime.",
     "manualSync": "Manual",
     "enableAutoSync": "Enable Auto",
-    "beta_description": "Sync your data via Google Drive. (Beta - Limited to 100 slots)",
+    "beta_description": "Sync your data via Google Drive.",
     "syncMode": "Sync Mode",
     "syncModeDescription": "Choose how your data syncs with Google Drive",
     "manualDescription": "Sync only when you click Sync Now",
@@ -511,10 +511,22 @@
     "error": "Error",
     "enabled": "Enabled",
     "disabled": "Disabled",
-    "permissionRequired": "Permission Required",
-    "permissionDescription": "Please grant permission to access the Cloud Sync server.",
-    "grantPermission": "Grant Permission",
-    "requesting": "Requesting..."
+    "byok": {
+      "description": "Enter your own OAuth credentials from your Google Cloud Console, your data never through third-party servers.",
+      "clientIdPlaceholder": "xxxxx.apps.googleusercontent.com",
+      "clientSecretPlaceholder": "Your client secret",
+      "getCredentials": "Get credentials",
+      "setupTutorial": "Setup Tutorial",
+      "redirectUrisList": "Redirect URIs list",
+      "errors": {
+        "bothRequired": "Both Client ID and Client Secret are required",
+        "invalidClientId": "Invalid Client ID format (should end with .apps.googleusercontent.com)"
+      }
+    },
+    "redirectUris": {
+      "title": "Redirect URIs",
+      "description": "Add these URIs to your \"Authorized redirect URIs\" in Google Cloud OAuth consent screen."
+    }
   },
   "notifications": {
     "no_notifications": "No notifications",

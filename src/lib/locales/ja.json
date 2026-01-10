@@ -516,7 +516,7 @@
     "autoSyncPromptDescription": "自動同期は、すべてのデバイス間でデータを自動的に同期させます。この設定はいつでも変更できます。",
     "manualSync": "手動",
     "enableAutoSync": "自動を有効化",
-    "beta_description": "Google Drive経由でデータを同期します。(ベータ版 - 100枠限定)",
+    "beta_description": "Google Drive経由でデータを同期します。",
     "syncMode": "同期モード",
     "syncModeDescription": "Google Driveとのデータ同期方法を選択",
     "manualDescription": "「今すぐ同期」をクリックしたときのみ同期",
@@ -528,9 +528,21 @@
     "error": "エラー",
     "enabled": "有効",
     "disabled": "無効",
-    "permissionRequired": "権限が必要です",
-    "permissionDescription": "クラウド同期サーバーへのアクセス許可を付与してください。",
-    "grantPermission": "権限を付与",
-    "requesting": "リクエスト中..."
+    "byok": {
+      "description": "Google Cloud Consoleから独自のOAuth認証情報を入力してください。データがサードパーティのサーバーを経由することはありません。",
+      "clientIdPlaceholder": "xxxxx.apps.googleusercontent.com",
+      "clientSecretPlaceholder": "クライアントシークレット",
+      "getCredentials": "認証情報を取得",
+      "setupTutorial": "セットアップチュートリアル",
+      "redirectUrisList": "リダイレクトURIリスト",
+      "errors": {
+        "bothRequired": "Client IDとClient Secretの両方が必要です",
+        "invalidClientId": "Client IDの形式が無効です（.apps.googleusercontent.comで終わる必要があります）"
+      }
+    },
+    "redirectUris": {
+      "title": "リダイレクトURI",
+      "description": "これらのURIをGoogle Cloud OAuthの同意画面の「承認済みのリダイレクトURI」に追加してください。"
+    }
   }
 }

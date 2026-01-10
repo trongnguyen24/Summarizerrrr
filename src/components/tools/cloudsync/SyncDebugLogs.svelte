@@ -3,7 +3,7 @@
 </script>
 
 <div
-  class="bg-background border thin-scroll border-border rounded p-2 h-32 overflow-y-auto font-mono text-[10px] space-y-1"
+  class="bg-background border thin-scroll border-border p-3 h-32 overflow-y-auto font-mono text-[10px] space-y-1"
 >
   {#if debugLogs && debugLogs.length > 0}
     {#each debugLogs as log}

@@ -487,13 +487,18 @@
       "cta_label": "观看指南"
     },
     "noti_2": {
-      "title": "版本 2.9.0 已发布",
+      "title": "版本 2.10.0 已发布",
       "description": "在设置 → 关于 → 新功能中查看新功能",
       "cta_label": "打开设置"
     },
     "noti_3": {
       "title": "视频：100秒了解 Summarizerrrr",
       "description": "扩展功能快速介绍视频。",
+      "cta_label": "立即观看"
+    },
+    "noti_4": {
+      "title": "视频：通过 Google Drive 同步数据",
+      "description": "BYOK - 你的数据永远不会通过第三方服务器。",
       "cta_label": "立即观看"
     }
   },
@@ -542,7 +547,30 @@
     },
     "redirectUris": {
       "title": "重定向 URI",
-      "description": "将这些 URI 添加到 Google Cloud OAuth 同意屏幕中的\"授权重定向 URI\"。"
+      "description": "将这些 URI 添加到 Google Cloud OAuth 同意屏幕中的'授权重定向 URI'。"
+    },
+    "conflict": {
+      "title": "设置同步",
+      "description": "您的本地设置与云端不同。",
+      "selectToKeep": "选择要保留的设置：",
+      "thisDevice": "此设备",
+      "cloud": "云端",
+      "noApiKeys": "无 API 密钥",
+      "apiKeyCount": "✓ {count} 个 API 密钥",
+      "apiKeysCount": "✓ {count} 个 API 密钥",
+      "defaultPrompts": "默认",
+      "customPrompts": "✓ 自定义提示词",
+      "unknown": "未知",
+      "minAgo": "{count} 分钟前",
+      "hourAgo": "{count} 小时前",
+      "hoursAgo": "{count} 小时前",
+      "dayAgo": "{count} 天前",
+      "daysAgo": "{count} 天前",
+      "thisDeviceExplanation": "设置将从此设备覆盖到云端。",
+      "cloudExplanation": "设置将从云端覆盖到此设备。",
+      "mergeNote": "归档、标签和历史记录将从此设备和云端合并。",
+      "cancel": "取消",
+      "sync": "同步"
     }
   }
 }

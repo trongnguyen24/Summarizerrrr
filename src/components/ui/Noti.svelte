@@ -4,10 +4,12 @@
   import { t } from 'svelte-i18n'
   import Cat from './cat.svelte'
 
-  // Notification data with i18n keys (noti_1, noti_2, noti_3... for easy future changes)
-  let notifications = $state([
-    {
-      id: 1,
+  // Display order: change this array to reorder notifications (first = shown first)
+  const displayOrder = [4, 2, 1, 3]
+
+  // Notification data with i18n keys
+  const notificationData = {
+    1: {
       titleKey: 'notifications.noti_1.title',
       descriptionKey: 'notifications.noti_1.description',
       cta: {
@@ -15,8 +17,7 @@
         link: 'https://www.youtube.com/watch?v=ZLiRcFxzPBI',
       },
     },
-    {
-      id: 2,
+    2: {
       titleKey: 'notifications.noti_2.title',
       descriptionKey: 'notifications.noti_2.description',
       cta: {
@@ -24,8 +25,7 @@
         link: 'settings.html?tab=about',
       },
     },
-    {
-      id: 3,
+    3: {
       titleKey: 'notifications.noti_3.title',
       descriptionKey: 'notifications.noti_3.description',
       cta: {
@@ -33,7 +33,22 @@
         link: 'https://www.youtube.com/watch?v=pRZvPWjbJ4c',
       },
     },
-  ])
+    4: {
+      titleKey: 'notifications.noti_4.title',
+      descriptionKey: 'notifications.noti_4.description',
+      cta: {
+        labelKey: 'notifications.noti_4.cta_label',
+        link: 'https://www.youtube.com/watch?v=6L579ori-0w',
+      },
+    },
+  }
+
+  // Sorted notifications based on displayOrder
+  let notifications = $derived(
+    displayOrder
+      .filter((id) => notificationData[id])
+      .map((id) => ({ id, ...notificationData[id] })),
+  )
 
   let currentIndex = $state(0)
   let isSheetOpen = $state(false)

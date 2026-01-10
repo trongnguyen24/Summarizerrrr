@@ -3,6 +3,7 @@
   import Icon from '@iconify/svelte'
   import { Dialog } from 'bits-ui'
   import { slideScaleFade, fadeOnly } from '@/lib/ui/slideScaleFade.js'
+  import { t } from 'svelte-i18n'
 
   let { conflict, isResolving = false, onResolve } = $props()
 
@@ -28,8 +29,10 @@
       (field) => settings[field] && settings[field].trim() !== '',
     ).length
 
-    if (keyCount === 0) return 'No API keys'
-    return `✓ ${keyCount} API key${keyCount > 1 ? 's' : ''}`
+    if (keyCount === 0) return $t('cloudSync.conflict.noApiKeys')
+    return keyCount === 1
+      ? $t('cloudSync.conflict.apiKeyCount', { values: { count: keyCount } })
+      : $t('cloudSync.conflict.apiKeysCount', { values: { count: keyCount } })
   }
 
   // Default prompt value to compare against
@@ -37,7 +40,7 @@
 
   // Check if settings has any custom prompts
   function getPromptStatus(settings) {
-    if (!settings) return 'Default'
+    if (!settings) return $t('cloudSync.conflict.defaultPrompts')
 
     const promptFields = [
       'youtubeCustomPromptContent',
@@ -57,22 +60,29 @@
       return value && value.trim() !== '' && value !== DEFAULT_PROMPT
     })
 
-    return hasCustom ? '✓ Custom prompts' : 'Default'
+    return hasCustom
+      ? $t('cloudSync.conflict.customPrompts')
+      : $t('cloudSync.conflict.defaultPrompts')
   }
 
   function formatRelativeTimestamp(timestamp) {
-    if (!timestamp) return 'Unknown'
+    if (!timestamp) return $t('cloudSync.conflict.unknown')
     const now = Date.now()
     const diffMs = now - timestamp
     const diffMins = Math.floor(diffMs / 60000)
     const diffHours = Math.floor(diffMins / 60)
     const diffDays = Math.floor(diffHours / 24)
 
-    if (diffMins < 1) return 'Just now'
-    if (diffMins < 60) return `${diffMins} min ago`
+    if (diffMins < 1) return $t('cloudSync.justNow')
+    if (diffMins < 60)
+      return $t('cloudSync.conflict.minAgo', { values: { count: diffMins } })
     if (diffHours < 24)
-      return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`
-    return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`
+      return diffHours === 1
+        ? $t('cloudSync.conflict.hourAgo', { values: { count: diffHours } })
+        : $t('cloudSync.conflict.hoursAgo', { values: { count: diffHours } })
+    return diffDays === 1
+      ? $t('cloudSync.conflict.dayAgo', { values: { count: diffDays } })
+      : $t('cloudSync.conflict.daysAgo', { values: { count: diffDays } })
   }
 
   function handleSync() {
@@ -128,15 +138,15 @@
             </div>
             <div class="px-4 text-xs top-0 w-full bg-surface-2 py-2">
               <p class="!text-center text-text-primary select-none font-bold">
-                Settings Sync
+                {$t('cloudSync.conflict.title')}
               </p>
             </div>
 
             <div class="bg-surface-1 flex flex-col p-4 gap-4">
               <p class="text-text-secondary text-xs leading-relaxed">
-                Your local settings differ from cloud. <br />
+                {$t('cloudSync.conflict.description')} <br />
                 <span class="text-text-primary font-medium"
-                  >Select one to keep:</span
+                  >{$t('cloudSync.conflict.selectToKeep')}</span
                 >
               </p>
 
@@ -197,7 +207,7 @@
                   >
                     <div class="flex items-center gap-2">
                       <span class=" font-bold text-text-primary"
-                        >This Device •
+                        >{$t('cloudSync.conflict.thisDevice')} •
                       </span>
                       {formatRelativeTimestamp(conflict?.localTimestamp)}
                     </div>
@@ -280,7 +290,9 @@
                     class="flex text-xs text-text-secondary flex-col justify-center gap-1 w-full flex-1"
                   >
                     <div class="flex items-center gap-2">
-                      <span class="font-bold text-text-primary">Cloud • </span>
+                      <span class="font-bold text-text-primary"
+                        >{$t('cloudSync.conflict.cloud')} •
+                      </span>
                       {formatRelativeTimestamp(conflict?.cloudTimestamp)}
                     </div>
 
@@ -316,16 +328,16 @@
                 >
                   <p class="text-text-secondary leading-relaxed">
                     {#if selectedOption === 'local'}
-                      <strong>This Device:</strong><br />
-                      • Settings will be overwritten from this device to Cloud.
+                      <strong>{$t('cloudSync.conflict.thisDevice')}:</strong><br
+                      />
+                      • {$t('cloudSync.conflict.thisDeviceExplanation')}
                     {:else}
-                      <strong>Cloud:</strong><br />
-                      • Settings will be overwritten from Cloud to this device.
+                      <strong>{$t('cloudSync.conflict.cloud')}:</strong><br />
+                      • {$t('cloudSync.conflict.cloudExplanation')}
                     {/if}
                   </p>
                   <p class="text-text-secondary leading-relaxed">
-                    • Archive, Tags and History will be merged from both this
-                    device and Cloud.
+                    • {$t('cloudSync.conflict.mergeNote')}
                   </p>
                 </div>
               {/if}
@@ -337,7 +349,7 @@
                   disabled={isResolving}
                   class="flex-1 px-4 py-2.5 text-xs font-medium text-text-secondary disabled:opacity-50"
                 >
-                  Cancel
+                  {$t('cloudSync.conflict.cancel')}
                 </button>
 
                 <button
@@ -357,9 +369,9 @@
                         icon="heroicons:arrow-path"
                         class="size-4 animate-spin"
                       />
-                      <span>Syncing...</span>
+                      <span>{$t('cloudSync.syncing')}</span>
                     {:else}
-                      Sync
+                      {$t('cloudSync.conflict.sync')}
                     {/if}
                   </div>
                   <span
@@ -368,24 +380,6 @@
                       : ' border-border/40'}"
                   ></span>
                 </button>
-                <!-- <button
-                  onclick={handleSync}
-                  disabled={!selectedOption || isResolving}
-                  class="flex-1 px-4 py-2.5 text-xs font-medium rounded-lg transition-all duration-200 flex items-center justify-center gap-2 {selectedOption
-                    ? 'bg-primary text-white hover:bg-primary/90 shadow-sm'
-                    : 'bg-surface-2 text-muted cursor-not-allowed'}"
-                >
-                  {#if isResolving}
-                    <Icon
-                      icon="heroicons:arrow-path"
-                      class="size-4 animate-spin"
-                    />
-                    <span>Syncing...</span>
-                  {:else}
-                    <Icon icon="heroicons:arrow-path" class="size-4" />
-                    <span>Sync</span>
-                  {/if}
-                </button> -->
               </div>
             </div>
           </div>

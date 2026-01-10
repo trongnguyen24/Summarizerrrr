@@ -487,13 +487,18 @@
       "cta_label": "Anleitung ansehen"
     },
     "noti_2": {
-      "title": "Version 2.9.0 veröffentlicht",
+      "title": "Version 2.10.0 veröffentlicht",
       "description": "Entdecken Sie die neuen Funktionen unter Einstellungen → Info → Was ist neu?",
       "cta_label": "Einstellungen öffnen"
     },
     "noti_3": {
       "title": "Video: Summarizerrrr in 100 Sekunden",
       "description": "Eine kurze Einführung in die Erweiterung.",
+      "cta_label": "Jetzt ansehen"
+    },
+    "noti_4": {
+      "title": "Video: Daten über Google Drive synchronisieren",
+      "description": "BYOK - Ihre Daten werden nie über Drittanbieter-Server übertragen.",
       "cta_label": "Jetzt ansehen"
     }
   },
@@ -543,6 +548,29 @@
     "redirectUris": {
       "title": "Redirect-URIs",
       "description": "Fügen Sie diese URIs zu Ihren 'Autorisierten Redirect-URIs' in der Google Cloud OAuth-Zustimmungsseite hinzu."
+    },
+    "conflict": {
+      "title": "Einstellungen synchronisieren",
+      "description": "Ihre lokalen Einstellungen unterscheiden sich von der Cloud.",
+      "selectToKeep": "Wählen Sie eine zum Behalten:",
+      "thisDevice": "Dieses Gerät",
+      "cloud": "Cloud",
+      "noApiKeys": "Keine API-Schlüssel",
+      "apiKeyCount": "✓ {count} API-Schlüssel",
+      "apiKeysCount": "✓ {count} API-Schlüssel",
+      "defaultPrompts": "Standard",
+      "customPrompts": "✓ Benutzerdefinierte Prompts",
+      "unknown": "Unbekannt",
+      "minAgo": "vor {count} Min.",
+      "hourAgo": "vor {count} Stunde",
+      "hoursAgo": "vor {count} Stunden",
+      "dayAgo": "vor {count} Tag",
+      "daysAgo": "vor {count} Tagen",
+      "thisDeviceExplanation": "Einstellungen werden von diesem Gerät in die Cloud überschrieben.",
+      "cloudExplanation": "Einstellungen werden von der Cloud auf dieses Gerät überschrieben.",
+      "mergeNote": "Archiv, Tags und Verlauf werden von diesem Gerät und der Cloud zusammengeführt.",
+      "cancel": "Abbrechen",
+      "sync": "Synchronisieren"
     }
   }
 }

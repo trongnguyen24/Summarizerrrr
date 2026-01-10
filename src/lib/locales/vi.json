@@ -526,6 +526,29 @@
     "redirectUris": {
       "title": "Redirect URIs",
       "description": "Thêm các URI này vào \"Authorized redirect URIs\" trong màn hình OAuth consent của Google Cloud."
+    },
+    "conflict": {
+      "title": "Đồng bộ Cài đặt",
+      "description": "Cài đặt cục bộ của bạn khác với cloud.",
+      "selectToKeep": "Chọn một để giữ:",
+      "thisDevice": "Thiết bị này",
+      "cloud": "Cloud",
+      "noApiKeys": "Không có API key",
+      "apiKeyCount": "✓ {count} API key",
+      "apiKeysCount": "✓ {count} API keys",
+      "defaultPrompts": "Mặc định",
+      "customPrompts": "✓ Prompt tùy chỉnh",
+      "unknown": "Không rõ",
+      "minAgo": "{count} phút trước",
+      "hourAgo": "{count} giờ trước",
+      "hoursAgo": "{count} giờ trước",
+      "dayAgo": "{count} ngày trước",
+      "daysAgo": "{count} ngày trước",
+      "thisDeviceExplanation": "Cài đặt sẽ được ghi đè từ thiết bị này lên Cloud.",
+      "cloudExplanation": "Cài đặt sẽ được ghi đè từ Cloud xuống thiết bị này.",
+      "mergeNote": "Lưu trữ, Thẻ và Lịch sử sẽ được gộp từ cả thiết bị này và Cloud.",
+      "cancel": "Hủy",
+      "sync": "Đồng bộ"
     }
   },
   "notifications": {
@@ -536,13 +559,18 @@
       "cta_label": "Xem hướng dẫn"
     },
     "noti_2": {
-      "title": "Phiên bản 2.9.0 đã phát hành",
+      "title": "Phiên bản 2.10.0 đã phát hành",
       "description": "Xem các tính năng mới trong Cài đặt → Giới thiệu → Có gì mới?",
       "cta_label": "Mở Cài đặt"
     },
     "noti_3": {
       "title": "Video: Summarizerrrr trong 100 giây",
       "description": "Video giới thiệu nhanh về extension.",
+      "cta_label": "Xem ngay"
+    },
+    "noti_4": {
+      "title": "Video: Đồng bộ dữ liệu qua Google Drive",
+      "description": "BYOK - Dữ liệu của bạn không bao giờ qua máy chủ bên thứ ba.",
       "cta_label": "Xem ngay"
     }
   }

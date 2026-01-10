@@ -526,6 +526,29 @@
     "redirectUris": {
       "title": "Redirect URIs",
       "description": "Add these URIs to your \"Authorized redirect URIs\" in Google Cloud OAuth consent screen."
+    },
+    "conflict": {
+      "title": "Settings Sync",
+      "description": "Your local settings differ from cloud.",
+      "selectToKeep": "Select one to keep:",
+      "thisDevice": "This Device",
+      "cloud": "Cloud",
+      "noApiKeys": "No API keys",
+      "apiKeyCount": "✓ {count} API key",
+      "apiKeysCount": "✓ {count} API keys",
+      "defaultPrompts": "Default",
+      "customPrompts": "✓ Custom prompts",
+      "unknown": "Unknown",
+      "minAgo": "{count} min ago",
+      "hourAgo": "{count} hour ago",
+      "hoursAgo": "{count} hours ago",
+      "dayAgo": "{count} day ago",
+      "daysAgo": "{count} days ago",
+      "thisDeviceExplanation": "Settings will be overwritten from this device to Cloud.",
+      "cloudExplanation": "Settings will be overwritten from Cloud to this device.",
+      "mergeNote": "Archive, Tags and History will be merged from both this device and Cloud.",
+      "cancel": "Cancel",
+      "sync": "Sync"
     }
   },
   "notifications": {
@@ -536,13 +559,18 @@
       "cta_label": "Watch guide"
     },
     "noti_2": {
-      "title": "Version 2.9.0 released",
+      "title": "Version 2.10.0 released",
       "description": "Check out the new features in Settings → About → What's new?",
       "cta_label": "Open Settings"
     },
     "noti_3": {
       "title": "Video: Summarizerrrr in 100 Seconds",
       "description": "A quick introduction to the extension.",
+      "cta_label": "Watch Now"
+    },
+    "noti_4": {
+      "title": "Video: Sync data via Google Drive",
+      "description": "BYOK - Your data never through third-party servers.",
       "cta_label": "Watch Now"
     }
   }

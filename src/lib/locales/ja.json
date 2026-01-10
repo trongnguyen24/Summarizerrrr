@@ -495,6 +495,11 @@
       "title": "動画: 100秒でわかる Summarizerrrr",
       "description": "拡張機能のクイック紹介動画。",
       "cta_label": "今すぐ見る"
+    },
+    "noti_4": {
+      "title": "動画: Google Drive経由でデータを同期",
+      "description": "BYOK - あなたのデータはサードパーティのサーバーを経由しません。",
+      "cta_label": "今すぐ見る"
     }
   },
   "cloudSync": {
@@ -543,6 +548,29 @@
     "redirectUris": {
       "title": "リダイレクトURI",
       "description": "これらのURIをGoogle Cloud OAuthの同意画面の「承認済みのリダイレクトURI」に追加してください。"
+    },
+    "conflict": {
+      "title": "設定の同期",
+      "description": "ローカル設定がクラウドと異なります。",
+      "selectToKeep": "保持する設定を選択してください：",
+      "thisDevice": "このデバイス",
+      "cloud": "クラウド",
+      "noApiKeys": "APIキーなし",
+      "apiKeyCount": "✓ {count}個のAPIキー",
+      "apiKeysCount": "✓ {count}個のAPIキー",
+      "defaultPrompts": "デフォルト",
+      "customPrompts": "✓ カスタムプロンプト",
+      "unknown": "不明",
+      "minAgo": "{count}分前",
+      "hourAgo": "{count}時間前",
+      "hoursAgo": "{count}時間前",
+      "dayAgo": "{count}日前",
+      "daysAgo": "{count}日前",
+      "thisDeviceExplanation": "設定がこのデバイスからクラウドに上書きされます。",
+      "cloudExplanation": "設定がクラウドからこのデバイスに上書きされます。",
+      "mergeNote": "アーカイブ、タグ、履歴はこのデバイスとクラウドの両方からマージされます。",
+      "cancel": "キャンセル",
+      "sync": "同期"
     }
   }
 }

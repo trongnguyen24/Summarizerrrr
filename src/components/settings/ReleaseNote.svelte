@@ -89,6 +89,34 @@
     <div class="p-6 prose prose-sm w-full max-w-full">
       <h2>Release note</h2>
 
+      <b class="font-mono">2.10.0</b>
+      <ul class="mt-0">
+        {@render note(
+          'Cloud Sync:',
+          "Use your personal Google Cloud account (Client ID/Secret) to sync directly with Google Drive, your data never through third-party servers. Synced data (History, Library, Settings) is neatly stored in a dedicated folder named 'Summarizerrrr' on your Google Drive.",
+          [
+            {
+              label: 'sisi399',
+              url: 'https://github.com/trongnguyen24/Summarizerrrr/issues/48',
+            },
+          ],
+        )}
+        {@render note(
+          'Enhanced Backup & Restore:',
+          'Export/Import now supports JSONL and JSON files are compatible with Cloud Sync files.',
+        )}
+        {@render note(
+          'AI Model Configuration Improvements:',
+          'Synchronized temperature and topP configuration across AI Models and Tools.',
+          [
+            {
+              label: 'agitoxin',
+              url: 'https://github.com/trongnguyen24/Summarizerrrr/issues/49',
+            },
+          ],
+        )}
+      </ul>
+
       <b class="font-mono">2.9.0</b>
       <ul class="mt-0">
         {@render note(

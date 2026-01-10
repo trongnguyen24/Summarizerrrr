@@ -487,13 +487,18 @@
       "cta_label": "Ver guía"
     },
     "noti_2": {
-      "title": "Versión 2.9.0 lanzada",
+      "title": "Versión 2.10.0 lanzada",
       "description": "Consulta las nuevas funciones en Ajustes → Acerca de → ¿Qué hay de nuevo?",
       "cta_label": "Abrir ajustes"
     },
     "noti_3": {
       "title": "Video: Summarizerrrr en 100 segundos",
       "description": "Una breve introducción a la extensión.",
+      "cta_label": "Ver ahora"
+    },
+    "noti_4": {
+      "title": "Video: Sincronizar datos a través de Google Drive",
+      "description": "BYOK - Tus datos nunca pasan por servidores de terceros.",
       "cta_label": "Ver ahora"
     }
   },
@@ -543,6 +548,29 @@
     "redirectUris": {
       "title": "URIs de redirección",
       "description": "Agregue estos URIs a sus 'URIs de redirección autorizados' en la pantalla de consentimiento OAuth de Google Cloud."
+    },
+    "conflict": {
+      "title": "Sincronización de ajustes",
+      "description": "Tus ajustes locales difieren de la nube.",
+      "selectToKeep": "Selecciona uno para conservar:",
+      "thisDevice": "Este dispositivo",
+      "cloud": "Nube",
+      "noApiKeys": "Sin claves API",
+      "apiKeyCount": "✓ {count} clave API",
+      "apiKeysCount": "✓ {count} claves API",
+      "defaultPrompts": "Predeterminado",
+      "customPrompts": "✓ Prompts personalizados",
+      "unknown": "Desconocido",
+      "minAgo": "hace {count} min",
+      "hourAgo": "hace {count} hora",
+      "hoursAgo": "hace {count} horas",
+      "dayAgo": "hace {count} día",
+      "daysAgo": "hace {count} días",
+      "thisDeviceExplanation": "Los ajustes se sobrescribirán desde este dispositivo a la nube.",
+      "cloudExplanation": "Los ajustes se sobrescribirán desde la nube a este dispositivo.",
+      "mergeNote": "Archivo, etiquetas e historial se fusionarán de este dispositivo y la nube.",
+      "cancel": "Cancelar",
+      "sync": "Sincronizar"
     }
   }
 }

@@ -516,7 +516,7 @@
     "autoSyncPromptDescription": "La sincronización automática mantendrá tus datos actualizados en todos tus dispositivos. Puedes cambiar esto en cualquier momento.",
     "manualSync": "Manual",
     "enableAutoSync": "Activar Auto",
-    "beta_description": "Sincroniza tus datos a través de Google Drive. (Beta - Limitado a 100 plazas)",
+    "beta_description": "Sincroniza tus datos a través de Google Drive.",
     "syncMode": "Modo de sincronización",
     "syncModeDescription": "Elige cómo se sincronizan tus datos con Google Drive",
     "manualDescription": "Sincronizar solo al hacer clic en Sincronizar ahora",
@@ -527,10 +527,6 @@
     "library": "Archivo",
     "error": "Error",
     "enabled": "Habilitado",
-    "disabled": "Deshabilitado",
-    "permissionRequired": "Permiso requerido",
-    "permissionDescription": "Por favor, conceda permiso para acceder al servidor de Cloud Sync.",
-    "grantPermission": "Conceder permiso",
-    "requesting": "Solicitando..."
+    "disabled": "Deshabilitado"
   }
 }

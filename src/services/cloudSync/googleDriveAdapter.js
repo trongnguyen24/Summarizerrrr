@@ -542,7 +542,38 @@ let folderCreationPromise = null
 async function getOrCreateSyncFolder(accessToken) {
   // Return cached folder ID if available
   if (cachedSyncFolderId) {
-    return cachedSyncFolderId
+    // Verify the cached folder still exists
+    try {
+      const verifyResponse = await fetch(
+        `https://www.googleapis.com/drive/v3/files/${cachedSyncFolderId}?fields=id,trashed`,
+        {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        }
+      )
+      
+      if (verifyResponse.ok) {
+        const folderData = await verifyResponse.json()
+        if (!folderData.trashed) {
+          return cachedSyncFolderId
+        }
+        // Folder was trashed, clear cache
+        console.log('[CloudSync] Cached folder was trashed, clearing cache')
+        cachedSyncFolderId = null
+      } else if (verifyResponse.status === 404) {
+        // Folder was deleted, clear cache
+        console.log('[CloudSync] Cached folder was deleted, clearing cache')
+        cachedSyncFolderId = null
+      } else if (verifyResponse.status === 401) {
+        throw new Error('TOKEN_EXPIRED')
+      }
+    } catch (error) {
+      if (error.message === 'TOKEN_EXPIRED') {
+        throw error
+      }
+      // Network error or other issue, clear cache and try fresh lookup
+      console.warn('[CloudSync] Error verifying cached folder, clearing cache:', error)
+      cachedSyncFolderId = null
+    }
   }
   
   // If another call is already creating the folder, wait for it
@@ -570,6 +601,8 @@ async function getOrCreateSyncFolder(accessToken) {
         if (searchResponse.status === 401) {
           throw new Error('TOKEN_EXPIRED')
         }
+        const errorText = await searchResponse.text()
+        console.error('[CloudSync] Folder search failed:', searchResponse.status, errorText)
         throw new Error('Failed to search for sync folder')
       }
       

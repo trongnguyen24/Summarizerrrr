@@ -18,6 +18,7 @@
 
   let now = $state(Date.now())
   let showDebugLogs = $state(false)
+  let showClientSecret = $state(false)
 
   $effect(() => {
     const interval = setInterval(() => {
@@ -148,15 +149,33 @@
       class="w-full font-mono relative text-[10px] flex items-center text-muted px-3 py-1 border-t border-border"
     >
       <span class="w-24 shrink-0">Client Secret:</span>
-      <span class="select-all truncate">{clientSecret || 'N/A'}</span>
+      <span class="truncate {showClientSecret ? 'select-all' : 'select-none'}"
+        >{showClientSecret
+          ? clientSecret || 'N/A'
+          : clientSecret
+            ? '••••••••••••••••'
+            : 'N/A'}</span
+      >
       {#if clientSecret}
         <button
           class="ml-auto shrink-0 p-1 hover:text-text-primary transition-colors"
-          title="Copy Client Secret"
-          onclick={() => navigator.clipboard.writeText(clientSecret)}
+          title={showClientSecret ? 'Hide Client Secret' : 'Show Client Secret'}
+          onclick={() => (showClientSecret = !showClientSecret)}
         >
-          <Icon icon="heroicons:square-2-stack" class="size-4" />
+          <Icon
+            icon={showClientSecret ? 'heroicons:eye-slash' : 'heroicons:eye'}
+            class="size-4"
+          />
         </button>
+        {#if showClientSecret}
+          <button
+            class="shrink-0 p-1 hover:text-text-primary transition-colors"
+            title="Copy Client Secret"
+            onclick={() => navigator.clipboard.writeText(clientSecret)}
+          >
+            <Icon icon="heroicons:square-2-stack" class="size-4" />
+          </button>
+        {/if}
       {/if}
     </div>
     <SyncDebugLogs {debugLogs} />

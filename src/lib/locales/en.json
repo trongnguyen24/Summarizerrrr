@@ -499,7 +499,7 @@
     "autoSyncPromptDescription": "Auto-sync will automatically keep your data synchronized across devices. You can change this setting anytime.",
     "manualSync": "Manual",
     "enableAutoSync": "Enable Auto",
-    "beta_description": "Sync your data via Google Drive. (Beta - Limited to 100 slots)",
+    "beta_description": "Sync your data via Google Drive.",
     "syncMode": "Sync Mode",
     "syncModeDescription": "Choose how your data syncs with Google Drive",
     "manualDescription": "Sync only when you click Sync Now",

@@ -516,7 +516,7 @@
     "autoSyncPromptDescription": "自動同期は、すべてのデバイス間でデータを自動的に同期させます。この設定はいつでも変更できます。",
     "manualSync": "手動",
     "enableAutoSync": "自動を有効化",
-    "beta_description": "Google Drive経由でデータを同期します。(ベータ版 - 100枠限定)",
+    "beta_description": "Google Drive経由でデータを同期します。",
     "syncMode": "同期モード",
     "syncModeDescription": "Google Driveとのデータ同期方法を選択",
     "manualDescription": "「今すぐ同期」をクリックしたときのみ同期",
@@ -527,10 +527,6 @@
     "library": "アーカイブ",
     "error": "エラー",
     "enabled": "有効",
-    "disabled": "無効",
-    "permissionRequired": "権限が必要です",
-    "permissionDescription": "クラウド同期サーバーへのアクセス許可を付与してください。",
-    "grantPermission": "権限を付与",
-    "requesting": "リクエスト中..."
+    "disabled": "無効"
   }
 }

@@ -27,6 +27,8 @@
   import SettingsConflictDialog from '@/components/tools/cloudsync/SettingsConflictDialog.svelte'
   import TextInput from '@/components/inputs/TextInput.svelte'
   import ApiKeyInput from '@/components/inputs/ApiKeyInput.svelte'
+  import { Dialog } from 'bits-ui'
+  import { slideScaleFade, fadeOnly } from '@/lib/ui/slideScaleFade.js'
 
   // Load icons
   loadIcons([
@@ -67,6 +69,29 @@
   let customClientSecret = $state('')
   let credentialsSaved = $state(false)
   let credentialsError = $state(null)
+  let showRedirectUrisDialog = $state(false)
+  let copiedUri = $state(null)
+
+  const redirectUris = [
+    {
+      browser: 'Chrome Extension',
+      url: 'https://ahfjndakflcegianjdojpldllodpkkpc.chromiumapp.org/',
+    },
+    {
+      browser: 'Firefox Addon',
+      url: 'https://5addcb3f-a5ee-4df3-b7e6-a30bf3445a6d.extensions.allizom.org/',
+    },
+    {
+      browser: 'Edge Extension',
+      url: 'https://kgoolaebmcbhbjokofmhdcjbljagaiif.chromiumapp.org/',
+    },
+  ]
+
+  async function copyToClipboard(url, browser) {
+    await navigator.clipboard.writeText(url)
+    copiedUri = browser
+    setTimeout(() => (copiedUri = null), 2000)
+  }
 
   onMount(async () => {
     // Load existing custom credentials if any
@@ -139,21 +164,37 @@
     credentialsError = null
     credentialsSaved = false
 
-    // Validate inputs
-    if (!customClientId.trim() || !customClientSecret.trim()) {
+    const trimmedClientId = customClientId.trim()
+    const trimmedClientSecret = customClientSecret.trim()
+
+    // If both are empty, clear credentials
+    if (!trimmedClientId && !trimmedClientSecret) {
+      try {
+        await saveCustomCredentials('', '')
+        credentialsSaved = false // Not saved, just cleared
+        return
+      } catch (error) {
+        console.error('Failed to clear credentials:', error)
+        credentialsError = error.message
+        return
+      }
+    }
+
+    // Validate inputs - both required if one is provided
+    if (!trimmedClientId || !trimmedClientSecret) {
       credentialsError = 'Both Client ID and Client Secret are required'
       return
     }
 
     // Basic format validation for Client ID
-    if (!customClientId.includes('.apps.googleusercontent.com')) {
+    if (!trimmedClientId.includes('.apps.googleusercontent.com')) {
       credentialsError =
         'Invalid Client ID format (should end with .apps.googleusercontent.com)'
       return
     }
 
     try {
-      await saveCustomCredentials(customClientId, customClientSecret)
+      await saveCustomCredentials(trimmedClientId, trimmedClientSecret)
       credentialsSaved = true
     } catch (error) {
       console.error('Failed to save credentials:', error)
@@ -197,9 +238,9 @@
       <div class="flex flex-col gap-4">
         <!-- OAuth Credentials Section -->
 
-        <p class="text-xs text-text-secondary">
-          Enter your Google Cloud OAuth credentials to sync data securely. Your
-          credentials are stored locally and never sent to any server.
+        <p class="text-xs text-muted">
+          Enter your own OAuth credentials from your Google Cloud Console, your
+          data never through third-party servers.
         </p>
 
         <!-- Client ID Input -->
@@ -217,6 +258,8 @@
           placeholder="Your client secret"
           bind:apiKey={customClientSecret}
           onSave={handleSaveCredentials}
+          linkHref="https://console.cloud.google.com/projectselector2/auth"
+          linkText="Get credentials"
         />
 
         <!-- Error Message -->
@@ -231,7 +274,7 @@
         <button
           onclick={handleLogin}
           disabled={isLoggingIn || !credentialsSaved}
-          class="relative group disabled:opacity-50 disabled:cursor-not-allowed"
+          class="relative group mt-2 disabled:opacity-50 disabled:cursor-not-allowed"
           title={$t('cloudSync.signInWithGoogle')}
         >
           <div
@@ -256,7 +299,24 @@
             ></div>
           </div>
         </button>
+        <div class="flex justify-center items-center gap-4">
+          <a
+            href="##"
+            class="text-primary underline underline-offset-2 w-fit flex items-center mt-1 gap-1"
+            >Setup Tutorial
+            <Icon width={12} icon="heroicons:arrow-up-right-16-solid" />
+          </a>
 
+          <button
+            onclick={() => (showRedirectUrisDialog = true)}
+            class="text-text-secondary underline underline-offset-2 w-fit flex items-center mt-1 gap-1"
+          >
+            Redirect URIs list<Icon
+              width={12}
+              icon="heroicons:information-circle-20-solid"
+            />
+          </button>
+        </div>
         {#if loginError}
           <div class="flex items-center gap-2 text-red-500 text-xs">
             <Icon icon="heroicons:exclamation-circle" class="size-4" />
@@ -374,3 +434,102 @@
     />
   {/if}
 </div>
+
+<!-- Redirect URIs Dialog -->
+<Dialog.Root bind:open={showRedirectUrisDialog}>
+  <Dialog.Portal>
+    <Dialog.Overlay class="fixed inset-0 z-[999] bg-black/80" forceMount>
+      {#snippet child({ props, open })}
+        {#if open}
+          <div {...props} transition:fadeOnly></div>
+        {/if}
+      {/snippet}
+    </Dialog.Overlay>
+    <Dialog.Content
+      forceMount
+      class="outline-hidden flex flex-col font-mono fixed left-[50%] top-1/2 w-[calc(100vw-32px)] max-w-xl z-[1000] -translate-y-1/2 rounded-lg overflow-hidden shadow-lg translate-x-[-50%]"
+    >
+      {#snippet child({ props, open })}
+        {#if open}
+          <div
+            {...props}
+            transition:slideScaleFade={{
+              duration: 300,
+              slideFrom: 'bottom',
+              slideDistance: '0rem',
+              startScale: 0.95,
+            }}
+          >
+            <div class="absolute z-10 right-3 top-2.5 group flex gap-2">
+              <span class="block size-3.5 bg-muted/15 rounded-full"></span>
+              <span class="block size-3.5 bg-muted/15 rounded-full"></span>
+              <!-- svelte-ignore a11y_consider_explicit_label -->
+              <button
+                class="block size-3.5 bg-error rounded-full"
+                onclick={() => (showRedirectUrisDialog = false)}
+              >
+                <Icon
+                  class="text-red-800 transition-opacity duration-150"
+                  width={14}
+                  icon="heroicons:x-mark-16-solid"
+                />
+              </button>
+            </div>
+            <div class="px-4 text-xs top-0 w-full bg-surface-2 py-2">
+              <p class="!text-center text-text-primary select-none font-bold">
+                Redirect URIs
+              </p>
+            </div>
+
+            <div class="bg-surface-1 flex flex-col p-4 gap-4">
+              <p class="text-text-primary text-xs">
+                Add these URIs to your "Authorized redirect URIs" in Google
+                Cloud OAuth consent screen.
+              </p>
+
+              {#each redirectUris as { browser, url }}
+                <div class="flex flex-col gap-0">
+                  <span class="text-xs text-muted font-medium">{browser}</span>
+                  <div class="flex items-center">
+                    <div
+                      class="relative flex w-full h-8 transition-colors duration-150 overflow-hidden"
+                    >
+                      <input
+                        type="text"
+                        id="api-key-input"
+                        value={url}
+                        readonly
+                        class="absolute top-0 left-0 w-[133.33%] h-[133.33%] pr-10 text-base text-text-secondary bg-transparent border-none focus:outline-none focus:ring-0 placeholder:text-muted truncate origin-top-left scale-75"
+                      />
+                      <button
+                        onclick={() => copyToClipboard(url, browser)}
+                        class="shrink-0 w-8 relative z-30 ml-auto hover:bg-muted/10 rounded transition-colors"
+                        title="Copy"
+                      >
+                        {#if copiedUri === browser}
+                          <span transition:fadeOnly>
+                            <Icon
+                              icon="heroicons:check"
+                              class="size-4 text-text-secondary absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+                            />
+                          </span>
+                        {:else}
+                          <span transition:fadeOnly>
+                            <Icon
+                              icon="heroicons:square-2-stack"
+                              class="size-4 text-text-secondary absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+                            />
+                          </span>
+                        {/if}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              {/each}
+            </div>
+          </div>
+        {/if}
+      {/snippet}
+    </Dialog.Content>
+  </Dialog.Portal>
+</Dialog.Root>

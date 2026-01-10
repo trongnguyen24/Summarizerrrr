@@ -516,7 +516,7 @@
     "autoSyncPromptDescription": "Auto-Sync hält Ihre Daten automatisch auf allen Geräten synchron. Sie können diese Einstellung jederzeit ändern.",
     "manualSync": "Manuell",
     "enableAutoSync": "Auto aktivieren",
-    "beta_description": "Synchronisieren Sie Ihre Daten über Google Drive. (Beta - Limitiert auf 100 Plätze)",
+    "beta_description": "Synchronisieren Sie Ihre Daten über Google Drive.",
     "syncMode": "Synchronisierungsmodus",
     "syncModeDescription": "Wählen Sie, wie Ihre Daten mit Google Drive synchronisiert werden sollen",
     "manualDescription": "Nur synchronisieren, wenn Sie auf 'Jetzt synchronisieren' klicken",

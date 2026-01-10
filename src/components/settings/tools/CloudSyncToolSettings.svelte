@@ -182,14 +182,13 @@
 
     // Validate inputs - both required if one is provided
     if (!trimmedClientId || !trimmedClientSecret) {
-      credentialsError = 'Both Client ID and Client Secret are required'
+      credentialsError = $t('cloudSync.byok.errors.bothRequired')
       return
     }
 
     // Basic format validation for Client ID
     if (!trimmedClientId.includes('.apps.googleusercontent.com')) {
-      credentialsError =
-        'Invalid Client ID format (should end with .apps.googleusercontent.com)'
+      credentialsError = $t('cloudSync.byok.errors.invalidClientId')
       return
     }
 
@@ -239,15 +238,14 @@
         <!-- OAuth Credentials Section -->
 
         <p class="text-xs text-muted">
-          Enter your own OAuth credentials from your Google Cloud Console, your
-          data never through third-party servers.
+          {$t('cloudSync.byok.description')}
         </p>
 
         <!-- Client ID Input -->
         <TextInput
           id="byok-client-id"
           label="Client ID"
-          placeholder="xxxxx.apps.googleusercontent.com"
+          placeholder={$t('cloudSync.byok.clientIdPlaceholder')}
           bind:value={customClientId}
           onSave={handleSaveCredentials}
         />
@@ -255,11 +253,11 @@
         <!-- Client Secret Input -->
         <ApiKeyInput
           label="Client Secret"
-          placeholder="Your client secret"
+          placeholder={$t('cloudSync.byok.clientSecretPlaceholder')}
           bind:apiKey={customClientSecret}
           onSave={handleSaveCredentials}
           linkHref="https://console.cloud.google.com/projectselector2/auth"
-          linkText="Get credentials"
+          linkText={$t('cloudSync.byok.getCredentials')}
         />
 
         <!-- Error Message -->
@@ -301,9 +299,10 @@
         </button>
         <div class="flex justify-center items-center gap-4">
           <a
-            href="##"
+            href="https://www.youtube.com/watch?v=6L579ori-0w"
+            target="_blank"
             class="text-primary underline underline-offset-2 w-fit flex items-center mt-1 gap-1"
-            >Setup Tutorial
+            >{$t('cloudSync.byok.setupTutorial')}
             <Icon width={12} icon="heroicons:arrow-up-right-16-solid" />
           </a>
 
@@ -311,7 +310,7 @@
             onclick={() => (showRedirectUrisDialog = true)}
             class="text-text-secondary underline underline-offset-2 w-fit flex items-center mt-1 gap-1"
           >
-            Redirect URIs list<Icon
+            {$t('cloudSync.byok.redirectUrisList')}<Icon
               width={12}
               icon="heroicons:information-circle-20-solid"
             />
@@ -477,14 +476,13 @@
             </div>
             <div class="px-4 text-xs top-0 w-full bg-surface-2 py-2">
               <p class="!text-center text-text-primary select-none font-bold">
-                Redirect URIs
+                {$t('cloudSync.redirectUris.title')}
               </p>
             </div>
 
             <div class="bg-surface-1 flex flex-col p-4 gap-4">
               <p class="text-text-primary text-xs">
-                Add these URIs to your "Authorized redirect URIs" in Google
-                Cloud OAuth consent screen.
+                {$t('cloudSync.redirectUris.description')}
               </p>
 
               {#each redirectUris as { browser, url }}

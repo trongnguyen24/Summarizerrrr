@@ -527,6 +527,22 @@
     "library": "아카이브",
     "error": "오류",
     "enabled": "활성화됨",
-    "disabled": "비활성화됨"
+    "disabled": "비활성화됨",
+    "byok": {
+      "description": "Google Cloud Console에서 자신의 OAuth 자격 증명을 입력하세요. 데이터는 제3자 서버를 통과하지 않습니다.",
+      "clientIdPlaceholder": "xxxxx.apps.googleusercontent.com",
+      "clientSecretPlaceholder": "클라이언트 시크릿",
+      "getCredentials": "자격 증명 가져오기",
+      "setupTutorial": "설정 튜토리얼",
+      "redirectUrisList": "리디렉션 URI 목록",
+      "errors": {
+        "bothRequired": "Client ID와 Client Secret이 모두 필요합니다",
+        "invalidClientId": "Client ID 형식이 잘못되었습니다 (.apps.googleusercontent.com으로 끝나야 합니다)"
+      }
+    },
+    "redirectUris": {
+      "title": "리디렉션 URI",
+      "description": "Google Cloud OAuth 동의 화면의 '승인된 리디렉션 URI'에 이 URI들을 추가하세요."
+    }
   }
 }

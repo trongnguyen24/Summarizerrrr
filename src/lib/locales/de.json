@@ -528,9 +528,21 @@
     "error": "Fehler",
     "enabled": "Aktiviert",
     "disabled": "Deaktiviert",
-    "permissionRequired": "Berechtigung erforderlich",
-    "permissionDescription": "Bitte erteilen Sie die Berechtigung für den Zugriff auf den Cloud-Sync-Server.",
-    "grantPermission": "Berechtigung erteilen",
-    "requesting": "Anfrage läuft..."
+    "byok": {
+      "description": "Geben Sie Ihre eigenen OAuth-Anmeldedaten aus Ihrer Google Cloud Console ein. Ihre Daten werden niemals über Drittanbieter-Server übertragen.",
+      "clientIdPlaceholder": "xxxxx.apps.googleusercontent.com",
+      "clientSecretPlaceholder": "Ihr Client-Geheimnis",
+      "getCredentials": "Anmeldedaten abrufen",
+      "setupTutorial": "Einrichtungsanleitung",
+      "redirectUrisList": "Redirect-URI-Liste",
+      "errors": {
+        "bothRequired": "Sowohl Client ID als auch Client Secret sind erforderlich",
+        "invalidClientId": "Ungültiges Client ID-Format (sollte mit .apps.googleusercontent.com enden)"
+      }
+    },
+    "redirectUris": {
+      "title": "Redirect-URIs",
+      "description": "Fügen Sie diese URIs zu Ihren 'Autorisierten Redirect-URIs' in der Google Cloud OAuth-Zustimmungsseite hinzu."
+    }
   }
 }

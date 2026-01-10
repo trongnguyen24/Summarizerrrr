@@ -527,6 +527,22 @@
     "library": "Archive",
     "error": "Erreur",
     "enabled": "Activé",
-    "disabled": "Désactivé"
+    "disabled": "Désactivé",
+    "byok": {
+      "description": "Entrez vos propres identifiants OAuth depuis votre Google Cloud Console, vos données ne transitent jamais par des serveurs tiers.",
+      "clientIdPlaceholder": "xxxxx.apps.googleusercontent.com",
+      "clientSecretPlaceholder": "Votre secret client",
+      "getCredentials": "Obtenir les identifiants",
+      "setupTutorial": "Tutoriel de configuration",
+      "redirectUrisList": "Liste des URIs de redirection",
+      "errors": {
+        "bothRequired": "Client ID et Client Secret sont tous deux requis",
+        "invalidClientId": "Format de Client ID invalide (doit se terminer par .apps.googleusercontent.com)"
+      }
+    },
+    "redirectUris": {
+      "title": "URIs de redirection",
+      "description": "Ajoutez ces URIs à vos 'URIs de redirection autorisés' dans l'écran de consentement OAuth de Google Cloud."
+    }
   }
 }

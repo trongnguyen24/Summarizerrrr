@@ -527,6 +527,22 @@
     "library": "Archivo",
     "error": "Error",
     "enabled": "Habilitado",
-    "disabled": "Deshabilitado"
+    "disabled": "Deshabilitado",
+    "byok": {
+      "description": "Ingrese sus propias credenciales OAuth desde su Google Cloud Console, sus datos nunca pasan por servidores de terceros.",
+      "clientIdPlaceholder": "xxxxx.apps.googleusercontent.com",
+      "clientSecretPlaceholder": "Su secreto de cliente",
+      "getCredentials": "Obtener credenciales",
+      "setupTutorial": "Tutorial de configuración",
+      "redirectUrisList": "Lista de URIs de redirección",
+      "errors": {
+        "bothRequired": "Se requieren tanto Client ID como Client Secret",
+        "invalidClientId": "Formato de Client ID inválido (debe terminar con .apps.googleusercontent.com)"
+      }
+    },
+    "redirectUris": {
+      "title": "URIs de redirección",
+      "description": "Agregue estos URIs a sus 'URIs de redirección autorizados' en la pantalla de consentimiento OAuth de Google Cloud."
+    }
   }
 }

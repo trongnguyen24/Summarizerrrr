@@ -527,6 +527,22 @@
     "library": "归档",
     "error": "错误",
     "enabled": "已启用",
-    "disabled": "已禁用"
+    "disabled": "已禁用",
+    "byok": {
+      "description": "从您的 Google Cloud Console 输入您自己的 OAuth 凭据，您的数据永远不会通过第三方服务器。",
+      "clientIdPlaceholder": "xxxxx.apps.googleusercontent.com",
+      "clientSecretPlaceholder": "您的客户端密钥",
+      "getCredentials": "获取凭据",
+      "setupTutorial": "设置教程",
+      "redirectUrisList": "重定向 URI 列表",
+      "errors": {
+        "bothRequired": "Client ID 和 Client Secret 都是必需的",
+        "invalidClientId": "Client ID 格式无效（应以 .apps.googleusercontent.com 结尾）"
+      }
+    },
+    "redirectUris": {
+      "title": "重定向 URI",
+      "description": "将这些 URI 添加到 Google Cloud OAuth 同意屏幕中的\"授权重定向 URI\"。"
+    }
   }
 }

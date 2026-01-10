@@ -510,7 +510,23 @@
     "library": "Lưu trữ",
     "error": "Lỗi",
     "enabled": "Đang bật",
-    "disabled": "Đang tắt"
+    "disabled": "Đang tắt",
+    "byok": {
+      "description": "Nhập thông tin xác thực OAuth của riêng bạn từ Google Cloud Console, dữ liệu của bạn không bao giờ đi qua máy chủ bên thứ ba.",
+      "clientIdPlaceholder": "xxxxx.apps.googleusercontent.com",
+      "clientSecretPlaceholder": "Client secret của bạn",
+      "getCredentials": "Lấy thông tin xác thực",
+      "setupTutorial": "Hướng dẫn thiết lập",
+      "redirectUrisList": "Danh sách Redirect URIs",
+      "errors": {
+        "bothRequired": "Cần cả Client ID và Client Secret",
+        "invalidClientId": "Định dạng Client ID không hợp lệ (phải kết thúc bằng .apps.googleusercontent.com)"
+      }
+    },
+    "redirectUris": {
+      "title": "Redirect URIs",
+      "description": "Thêm các URI này vào \"Authorized redirect URIs\" trong màn hình OAuth consent của Google Cloud."
+    }
   },
   "notifications": {
     "no_notifications": "Không có thông báo",

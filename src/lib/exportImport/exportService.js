@@ -21,6 +21,7 @@ import {
 
 import { createZipFromFiles } from './zipService.js'
 import { sanitizeSettings } from '@/lib/config/settingsSchema.js'
+import { getCustomCredentials } from '@/services/cloudSync/cloudSyncService.svelte.js'
 
 /**
  * Export all data to ZIP format
@@ -102,6 +103,26 @@ export async function exportDataToZip(settings, onProgress) {
     ]
     const libraryJsonl = libraryLines.join('\n')
 
+    // Step 3.5: Create sync.json if custom credentials exist (BYOK mode)
+    let syncJson = null
+    try {
+      const customCredentials = await getCustomCredentials()
+      if (customCredentials?.clientId && customCredentials?.clientSecret) {
+        const syncData = {
+          version: 1,
+          type: 'sync',
+          credentials: {
+            clientId: customCredentials.clientId,
+            clientSecret: customCredentials.clientSecret,
+          },
+        }
+        syncJson = JSON.stringify(syncData, null, 2)
+      }
+    } catch (error) {
+      // If cloudSync service not available, skip sync.json
+      console.warn('[exportDataToZip] Could not get custom credentials:', error.message)
+    }
+
     // Step 4: Create ZIP with Cloud Sync compatible filenames
     if (onProgress) {
       onProgress({
@@ -111,12 +132,20 @@ export async function exportDataToZip(settings, onProgress) {
       })
     }
 
+    // Build files object for ZIP
+    const zipFiles = {
+      'summarizerrrr-settings.json': settingsJson,
+      'summarizerrrr-history.jsonl': historyJsonl,
+      'summarizerrrr-library.jsonl': libraryJsonl,
+    }
+
+    // Add sync.json only if credentials exist
+    if (syncJson) {
+      zipFiles['summarizerrrr-sync.json'] = syncJson
+    }
+
     const zipBlob = await createZipFromFiles(
-      {
-        'summarizerrrr-settings.json': settingsJson,
-        'summarizerrrr-history.jsonl': historyJsonl,
-        'summarizerrrr-library.jsonl': libraryJsonl,
-      },
+      zipFiles,
       (zipProgress) => {
         if (onProgress) {
           onProgress({

@@ -361,6 +361,23 @@
         }
       }
 
+      // Parse sync credentials (new format: summarizerrrr-sync.json)
+      const syncFile = files['summarizerrrr-sync.json']
+      if (syncFile) {
+        try {
+          const parsedSync = JSON.parse(syncFile)
+          if (
+            parsedSync.credentials?.clientId &&
+            parsedSync.credentials?.clientSecret
+          ) {
+            data.syncCredentials = parsedSync.credentials
+            console.log('[Import] Found sync credentials in backup')
+          }
+        } catch (error) {
+          console.error(`Failed to parse sync credentials: ${error.message}`)
+        }
+      }
+
       if (
         Object.keys(data).length === 0 ||
         (!data.settings && !data.history && !data.summaries && !data.tags)
@@ -438,6 +455,11 @@
     if (importOptions.dataTypes.tags && state.importData.tags) {
       data.tags = state.importData.tags
     }
+
+    // Sync credentials go with settings
+    if (importOptions.dataTypes.settings && state.importData.syncCredentials) {
+      data.syncCredentials = state.importData.syncCredentials
+    }
     return data
   }
 
@@ -500,6 +522,25 @@
           ...cleanImportedSettings,
         }
         await updateSettings(mergedSettings)
+      }
+
+      // Import sync credentials if present (goes with settings)
+      if (importedData.syncCredentials) {
+        try {
+          const { saveCustomCredentials } = await import(
+            '../../services/cloudSync/cloudSyncService.svelte.js'
+          )
+          await saveCustomCredentials(
+            importedData.syncCredentials.clientId,
+            importedData.syncCredentials.clientSecret,
+          )
+          console.log('[Import] Sync credentials restored successfully')
+        } catch (error) {
+          console.error(
+            '[Import] Failed to restore sync credentials:',
+            error.message,
+          )
+        }
       }
     }
 

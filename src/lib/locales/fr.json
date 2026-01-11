@@ -300,6 +300,12 @@
         "previous_questions": "Questions précédentes",
         "next_questions": "Questions suivantes",
         "ask_own_question_in_chat": "Posez votre propre question dans le chat"
+      },
+      "perTabCache": {
+        "title": "Cache par onglet",
+        "description": "Conserver un état de résumé distinct pour chaque onglet du navigateur.",
+        "enabled": "Activé",
+        "disabled": "Désactivé"
       }
     }
   },

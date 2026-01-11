@@ -29,6 +29,7 @@
   } from '@/stores/summaryStore.svelte.js'
   import { tabTitle } from '@/stores/tabTitleStore.svelte.js'
   import { setupMessageListener } from '@/services/messageHandler.js'
+  import { getCurrentTabId } from '@/services/tabCacheService.js'
   import { initializeApp } from '@/services/initialization.js'
   import { settings, loadSettings } from '@/stores/settingsStore.svelte.js'
   import {
@@ -375,9 +376,10 @@
 
       // Async function inside effect
       ;(async () => {
+        const targetTabId = getCurrentTabId()
         try {
-          setGenerating(true)
-          setError(null) // Clear previous errors
+          setGenerating(true, targetTabId)
+          setError(null, targetTabId) // Clear previous errors
 
           const questions = await generateFollowUpQuestions(
             content,
@@ -387,16 +389,19 @@
             deepDiveState.questionHistory,
           )
 
-          setQuestions(questions)
-          addToQuestionHistory(questions)
+          setQuestions(questions, targetTabId)
+          addToQuestionHistory(questions, targetTabId)
           console.log('[App] Auto-generated questions:', questions)
         } catch (error) {
           console.error('[App] Auto-generation failed:', error)
           // Silent fail - Lưu error vào store
           // Error sẽ hiển thị khi user mở dialog
-          setError(error.message || 'Failed to auto-generate questions')
+          setError(
+            error.message || 'Failed to auto-generate questions',
+            targetTabId,
+          )
         } finally {
-          setGenerating(false)
+          setGenerating(false, targetTabId)
         }
       })()
     }

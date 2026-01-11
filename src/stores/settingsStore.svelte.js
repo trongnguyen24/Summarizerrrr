@@ -135,6 +135,9 @@ const DEFAULT_SETTINGS = {
     cloudSync: {
       enabled: true, // Default enabled for backward compatibility
     },
+    perTabCache: {
+      enabled: true, // Keep separate summary state for each tab
+    },
   },
 
   // Metadata

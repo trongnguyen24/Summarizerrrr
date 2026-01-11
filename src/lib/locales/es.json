@@ -300,6 +300,12 @@
         "previous_questions": "Preguntas anteriores",
         "next_questions": "Siguientes preguntas",
         "ask_own_question_in_chat": "Haz tu propia pregunta en el chat"
+      },
+      "perTabCache": {
+        "title": "Caché por pestaña",
+        "description": "Mantener estado de resumen separado para cada pestaña del navegador.",
+        "enabled": "Activado",
+        "disabled": "Desactivado"
       }
     }
   },

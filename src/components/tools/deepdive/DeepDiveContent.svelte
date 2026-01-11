@@ -24,7 +24,9 @@
   import { isRTLLanguage } from '@/lib/utils/rtlUtils.js'
   import QuestionChip from './QuestionChip.svelte'
   import CustomQuestionInput from './CustomQuestionInput.svelte'
+
   import ChatProviderSelect from './ChatProviderSelect.svelte'
+  import { getCurrentTabId } from '@/services/tabCacheService.js'
 
   // Props
   let { summaryContent, pageTitle, pageUrl, summaryLang = 'English' } = $props()
@@ -86,8 +88,10 @@
   async function handleGenerate() {
     if (!canGenerate) return
 
-    setGenerating(true)
-    setError(null)
+    const targetTabId = getCurrentTabId()
+
+    setGenerating(true, targetTabId)
+    setError(null, targetTabId)
 
     try {
       console.log('[DeepDiveContent] Generating questions...')
@@ -105,8 +109,8 @@
         deepDiveState.questionHistory,
       )
 
-      setQuestions(generated)
-      addToQuestionHistory(generated)
+      setQuestions(generated, targetTabId)
+      addToQuestionHistory(generated, targetTabId)
 
       console.log('[DeepDiveContent] Generated questions:', generated)
       console.log(
@@ -115,9 +119,9 @@
       )
     } catch (err) {
       console.error('[DeepDiveContent] Generation error:', err)
-      setError(err.message || 'Failed to generate questions')
+      setError(err.message || 'Failed to generate questions', targetTabId)
     } finally {
-      setGenerating(false)
+      setGenerating(false, targetTabId)
     }
   }
 
@@ -127,13 +131,15 @@
   async function handleRegenerate() {
     if (!canGenerate) return
 
+    const targetTabId = getCurrentTabId()
+
     // Clear current selections
     setSelectedQuestion(null)
     setCustomQuestion('')
 
     // Generate with isRegenerate flag for diversity
-    setGenerating(true)
-    setError(null)
+    setGenerating(true, targetTabId)
+    setError(null, targetTabId)
 
     try {
       console.log('[DeepDiveContent] Regenerating questions...')
@@ -152,8 +158,8 @@
         true, // ← isRegenerate = true for flexible prompt
       )
 
-      setQuestions(generated)
-      addToQuestionHistory(generated)
+      setQuestions(generated, targetTabId)
+      addToQuestionHistory(generated, targetTabId)
 
       console.log('[DeepDiveContent] Regenerated questions:', generated)
       console.log(
@@ -162,9 +168,9 @@
       )
     } catch (err) {
       console.error('[DeepDiveContent] Regeneration error:', err)
-      setError(err.message || 'Failed to regenerate questions')
+      setError(err.message || 'Failed to regenerate questions', targetTabId)
     } finally {
-      setGenerating(false)
+      setGenerating(false, targetTabId)
     }
   }
 

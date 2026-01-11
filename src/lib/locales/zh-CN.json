@@ -300,6 +300,12 @@
         "previous_questions": "上一个问题",
         "next_questions": "下一个问题",
         "ask_own_question_in_chat": "在聊天中提出自己的问题"
+      },
+      "perTabCache": {
+        "title": "每个标签页的缓存",
+        "description": "为每个浏览器标签页保持独立的摘要状态。",
+        "enabled": "已启用",
+        "disabled": "已禁用"
       }
     }
   },

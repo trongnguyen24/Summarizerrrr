@@ -300,6 +300,12 @@
         "previous_questions": "前の質問",
         "next_questions": "次の質問",
         "ask_own_question_in_chat": "チャットで独自の質問をする"
+      },
+      "perTabCache": {
+        "title": "タブごとのキャッシュ",
+        "description": "各ブラウザタブに独立した要約状態を保持します。",
+        "enabled": "有効",
+        "disabled": "無効"
       }
     }
   },

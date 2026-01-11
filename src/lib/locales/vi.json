@@ -300,6 +300,12 @@
         "previous_questions": "Câu hỏi trước đó",
         "next_questions": "Câu hỏi tiếp theo",
         "ask_own_question_in_chat": "Đặt câu hỏi của bạn"
+      },
+      "perTabCache": {
+        "title": "Bộ nhớ tạm mỗi Tab",
+        "description": "Giữ trạng thái tóm tắt riêng cho từng tab trình duyệt.",
+        "enabled": "Đang bật",
+        "disabled": "Đang tắt"
       }
     }
   },

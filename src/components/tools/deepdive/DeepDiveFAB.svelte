@@ -16,7 +16,9 @@
     generateFollowUpQuestions,
     validateDeepDiveAvailability,
   } from '@/services/tools/deepDiveService.js'
+
   import { toast } from 'svelte-sonner'
+  import { getCurrentTabId } from '@/services/tabCacheService.js'
 
   // Props
   let { summaryContent, pageTitle, pageUrl, summaryLang = 'English' } = $props()
@@ -52,8 +54,10 @@
       return
     }
 
+    const targetTabId = getCurrentTabId()
+
     // Start pre-loading
-    startPreloading()
+    startPreloading(targetTabId)
 
     try {
       console.log('[DeepDiveFAB] Generating questions...')
@@ -64,12 +68,12 @@
         summaryLang,
       )
 
-      setQuestions(questions)
-      finishPreloadingAndOpen()
+      setQuestions(questions, targetTabId)
+      finishPreloadingAndOpen(targetTabId)
       console.log('[DeepDiveFAB] Questions generated, dialog opened')
     } catch (error) {
       console.error('[DeepDiveFAB] Generation error:', error)
-      cancelPreloading()
+      cancelPreloading(targetTabId)
       toast.error(error.message || 'Failed to generate questions')
     }
   }

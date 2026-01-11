@@ -1,5 +1,9 @@
 // @ts-nocheck
 import { settings } from './settingsStore.svelte.js'
+import {
+  getOrCreateTabState,
+  getCurrentTabId,
+} from '@/services/tabCacheService.js'
 
 /**
  * Deep Dive UI state management
@@ -31,20 +35,48 @@ export const deepDiveState = $state({
 })
 
 /**
+ * Helper to update Deep Dive state for a specific tab (and global if active)
+ * @param {Object} updates - Key-value pairs to update
+ * @param {number|null} targetTabId - Optional tab ID to target. Defaults to current.
+ */
+function updateDeepDive(updates, targetTabId = null) {
+  const tabId = targetTabId || getCurrentTabId()
+  const perTabCacheEnabled = settings.tools?.perTabCache?.enabled ?? true
+
+  // 1. Update tab cache
+  if (perTabCacheEnabled && tabId) {
+    const tabState = getOrCreateTabState(tabId)
+    if (tabState) {
+      Object.assign(tabState.deepDiveState, updates)
+    }
+  }
+
+  // 2. Update global state if active
+  if (!perTabCacheEnabled || tabId === getCurrentTabId()) {
+    Object.assign(deepDiveState, updates)
+  }
+}
+
+/**
  * Toggle expand/collapse Deep Dive panel
  */
 export function toggleDeepDive() {
-  deepDiveState.isExpanded = !deepDiveState.isExpanded
-  console.log('[deepDiveStore] Toggled:', deepDiveState.isExpanded)
+  // Read current value from global state (which reflects current tab)
+  const newValue = !deepDiveState.isExpanded
+  updateDeepDive({ isExpanded: newValue })
+  console.log('[deepDiveStore] Toggled:', newValue)
 }
 
 /**
  * Set generated questions
  * @param {Array<string>} questions - Array of generated questions
+ * @param {number|null} targetTabId - Optional target tab ID
  */
-export function setQuestions(questions) {
-  deepDiveState.questions = questions
-  deepDiveState.hasGenerated = true
+export function setQuestions(questions, targetTabId = null) {
+  updateDeepDive({
+    questions,
+    hasGenerated: true
+  }, targetTabId)
   console.log('[deepDiveStore] Questions set:', questions.length)
 }
 
@@ -54,77 +86,94 @@ export function setQuestions(questions) {
  * @param {string} title - Page title
  * @param {string} url - Page URL
  * @param {string} lang - Summary language
+ * @param {number|null} targetTabId - Optional target tab ID
  */
-export function updateSummaryContext(content, title, url, lang) {
-  deepDiveState.lastSummaryContent = content
-  deepDiveState.lastPageTitle = title
-  deepDiveState.lastPageUrl = url
-  deepDiveState.lastSummaryLang = lang
+export function updateSummaryContext(content, title, url, lang, targetTabId = null) {
+  updateDeepDive({
+    lastSummaryContent: content,
+    lastPageTitle: title,
+    lastPageUrl: url,
+    lastSummaryLang: lang
+  }, targetTabId)
   console.log('[deepDiveStore] Context updated:', { title, url, lang })
 }
 
 /**
  * Reset Deep Dive state (khi start summarization mới)
+ * @param {number|null} targetTabId - Optional target tab ID
  */
-export function resetDeepDive() {
-  deepDiveState.isExpanded = false
-  deepDiveState.isGenerating = false
-  deepDiveState.questions = []
-  deepDiveState.hasGenerated = false
-  deepDiveState.error = null
-  deepDiveState.lastSummaryContent = ''
-  deepDiveState.lastPageTitle = ''
-  deepDiveState.lastPageUrl = ''
-  deepDiveState.lastSummaryLang = 'English'
-  deepDiveState.customQuestion = ''
-  deepDiveState.selectedQuestion = null
-  deepDiveState.questionHistory = []
-  deepDiveState.currentPageIndex = 0
+export function resetDeepDive(targetTabId = null) {
+  updateDeepDive({
+    isExpanded: false,
+    isGenerating: false,
+    questions: [],
+    hasGenerated: false,
+    error: null,
+    lastSummaryContent: '',
+    lastPageTitle: '',
+    lastPageUrl: '',
+    lastSummaryLang: 'English',
+    customQuestion: '',
+    selectedQuestion: null,
+    questionHistory: [],
+    currentPageIndex: 0
+  }, targetTabId)
   console.log('[deepDiveStore] Reset')
 }
 
 /**
  * Set generating state
  * @param {boolean} isGenerating - Generating state
+ * @param {number|null} targetTabId - Optional target tab ID
  */
-export function setGenerating(isGenerating) {
-  deepDiveState.isGenerating = isGenerating
+export function setGenerating(isGenerating, targetTabId = null) {
+  updateDeepDive({ isGenerating }, targetTabId)
 }
 
 /**
  * Set error
  * @param {string|null} error - Error message
+ * @param {number|null} targetTabId - Optional target tab ID
  */
-export function setError(error) {
-  deepDiveState.error = error
+export function setError(error, targetTabId = null) {
+  updateDeepDive({ error }, targetTabId)
 }
 
 /**
  * Start pre-loading questions (before opening dialog)
+ * @param {number|null} targetTabId - Optional target tab ID
  */
-export function startPreloading() {
-  deepDiveState.isPreloading = true
-  deepDiveState.isGenerating = true
-  deepDiveState.error = null
+export function startPreloading(targetTabId = null) {
+  updateDeepDive({
+    isPreloading: true,
+    isGenerating: true,
+    error: null
+  }, targetTabId)
   console.log('[deepDiveStore] Start preloading')
 }
 
 /**
  * Finish pre-loading and open dialog
+ * @param {number|null} targetTabId - Optional target tab ID
  */
-export function finishPreloadingAndOpen() {
-  deepDiveState.isPreloading = false
-  deepDiveState.isGenerating = false
-  deepDiveState.isExpanded = true
+export function finishPreloadingAndOpen(targetTabId = null) {
+  updateDeepDive({
+    isPreloading: false,
+    isGenerating: false,
+    isExpanded: true
+  }, targetTabId)
   console.log('[deepDiveStore] Finish preloading, open dialog')
 }
 
 /**
  * Cancel pre-loading
+ * @param {number|null} targetTabId - Optional target tab ID
  */
-export function cancelPreloading() {
-  deepDiveState.isPreloading = false
-  deepDiveState.isGenerating = false
+export function cancelPreloading(targetTabId = null) {
+  updateDeepDive({
+    isPreloading: false,
+    isGenerating: false
+  }, targetTabId)
   console.log('[deepDiveStore] Cancel preloading')
 }
 
@@ -133,7 +182,7 @@ export function cancelPreloading() {
  * @param {string} value - Custom question text
  */
 export function setCustomQuestion(value) {
-  deepDiveState.customQuestion = value
+  updateDeepDive({ customQuestion: value })
 }
 
 /**
@@ -141,7 +190,7 @@ export function setCustomQuestion(value) {
  * @param {string|null} question - Selected question or null
  */
 export function setSelectedQuestion(question) {
-  deepDiveState.selectedQuestion = question
+  updateDeepDive({ selectedQuestion: question })
 }
 
 /**
@@ -157,23 +206,70 @@ export function shouldShowDeepDive() {
 /**
  * Add generated questions to history
  * @param {Array<string>} questions - Questions to add
+ * @param {number|null} targetTabId - Optional target tab ID
  */
-export function addToQuestionHistory(questions) {
-  deepDiveState.questionHistory.push([...questions])
-  const newPageIndex = deepDiveState.questionHistory.length - 1
-  setCurrentPage(newPageIndex)
+export function addToQuestionHistory(questions, targetTabId = null) {
+  // Logic complex: need to read specific tab's history?
+  // Since we rely on updateDeepDive to sync to tab cache, 
+  // we must be careful. reading deepDiveState (global) might be wrong if targeting background tab.
+  
+  // Ideally we should get the current state from cache if targetTabId is provided.
+  // But for simplicity, we assume this flow runs on active tab OR handled by caller correctly.
+  
+  // If we are backgrounded, deepDiveState reflects CURRENT tab (Tab B), not Target (Tab A).
+  // Thus deepDiveState.questionHistory is Tab B's history.
+  // THIS IS WRONG.
+  
+  // We need to fetch the history from the correct state source.
+  
+  const tabId = targetTabId || getCurrentTabId();
+  const perTabCacheEnabled = settings.tools?.perTabCache?.enabled ?? true;
+  
+  let currentHistory = [];
+  
+  if (perTabCacheEnabled && tabId) {
+      const tabState = getOrCreateTabState(tabId);
+      // If we are targeting a background tab, read from cache
+      if (tabState) {
+          currentHistory = [...tabState.deepDiveState.questionHistory];
+      } else {
+         // Fallback to global if matched or empty
+         currentHistory = [...deepDiveState.questionHistory];
+      }
+  } else {
+       currentHistory = [...deepDiveState.questionHistory];
+  }
+
+  currentHistory.push([...questions])
+  const newPageIndex = currentHistory.length - 1
+  
+  updateDeepDive({
+      questionHistory: currentHistory,
+      currentPageIndex: newPageIndex
+  }, tabId)
+
+  // Update visible questions too
+  updateDeepDive({
+      questions: currentHistory[newPageIndex],
+      selectedQuestion: null,
+      customQuestion: ''
+  }, tabId)
+  
   console.log(
-    '[deepDiveStore] Added to history, total pages:',
-    deepDiveState.questionHistory.length
+    `[deepDiveStore] Added to history for tab ${tabId}, total pages:`,
+    currentHistory.length
   )
 }
 
 /**
  * Clear question history (when new summary or reset)
+ * @param {number|null} targetTabId - Optional target tab ID
  */
-export function clearQuestionHistory() {
-  deepDiveState.questionHistory = []
-  deepDiveState.currentPageIndex = 0
+export function clearQuestionHistory(targetTabId = null) {
+  updateDeepDive({
+      questionHistory: [],
+      currentPageIndex: 0
+  }, targetTabId)
   console.log('[deepDiveStore] Cleared history')
 }
 
@@ -201,12 +297,12 @@ export function setCurrentPage(pageIndex) {
   }
 
   // Update state
-  deepDiveState.currentPageIndex = pageIndex
-  deepDiveState.questions = deepDiveState.questionHistory[pageIndex]
-
-  // Clear selections when switching pages to avoid confusion
-  deepDiveState.selectedQuestion = null
-  deepDiveState.customQuestion = ''
+  updateDeepDive({
+      currentPageIndex: pageIndex,
+      questions: deepDiveState.questionHistory[pageIndex],
+      selectedQuestion: null,
+      customQuestion: ''
+  })
 
   console.log(
     `[deepDiveStore] Switched to page ${pageIndex + 1}/${maxIndex + 1}`

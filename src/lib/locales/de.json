@@ -300,6 +300,12 @@
         "previous_questions": "Vorherige Fragen",
         "next_questions": "Nächste Fragen",
         "ask_own_question_in_chat": "Stellen Sie Ihre eigene Frage im Chat"
+      },
+      "perTabCache": {
+        "title": "Tab-spezifischer Cache",
+        "description": "Separater Zusammenfassungsstatus für jeden Browser-Tab.",
+        "enabled": "Aktiviert",
+        "disabled": "Deaktiviert"
       }
     }
   },

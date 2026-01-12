@@ -35,6 +35,7 @@ export function getOrCreateTabState(tabId) {
       summaryState: createDefaultSummaryState(),
       deepDiveState: createDefaultDeepDiveState(),
       scrollY: 0,
+      currentUrl: null,
     })
   }
   
@@ -127,4 +128,53 @@ export function tabHasSummary(tabId) {
   if (!tabStates.has(tabId)) return false
   const state = tabStates.get(tabId).summaryState
   return !!(state.summary || state.courseSummary || state.selectedTextSummary || state.customActionResult)
+}
+
+/**
+ * Checks if URL has changed for a tab and resets state if auto-reset is enabled
+ * @param {number} tabId - Browser tab ID
+ * @param {string} newUrl - New URL to check against
+ * @returns {boolean} True if state was reset
+ */
+export function checkAndResetTabState(tabId, newUrl) {
+  if (!tabId || !tabStates.has(tabId)) return false
+  
+  const tabState = tabStates.get(tabId)
+  
+  // If no previous URL, just save current one
+  if (!tabState.currentUrl) {
+    tabState.currentUrl = newUrl
+    return false
+  }
+  
+  // Normalize URLs (ignore hash if needed, but for now exact match except maybe trailing slash)
+  const currentUrl = tabState.currentUrl
+  
+  // If URL hasn't changed, do nothing
+  if (currentUrl === newUrl) return false
+  
+  // URL changed
+  console.log(`[tabCacheService] URL changed checking reset for tab ${tabId}: ${currentUrl} -> ${newUrl}`)
+  
+  // Check setting
+  const autoReset = settings.tools?.perTabCache?.autoResetOnNavigation ?? true
+  
+  if (autoReset) {
+    console.log(`[tabCacheService] Auto-resetting state for tab ${tabId}`)
+    
+    // Reset states
+    tabState.summaryState = createDefaultSummaryState()
+    tabState.deepDiveState = createDefaultDeepDiveState()
+    tabState.scrollY = 0
+    
+    // Update URL
+    tabState.currentUrl = newUrl
+    
+    return true
+  }
+  
+  // If auto-reset disabled, just update URL tracking (or maybe keep old one? updating seems safer to avoid permanent mismatch)
+  // Updating URL allows next navigation to be detected correctly
+  tabState.currentUrl = newUrl
+  return false
 }

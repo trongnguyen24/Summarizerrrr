@@ -54,6 +54,21 @@
         enabledText={$t('settings.tools.perTabCache.enabled')}
         disabledText={$t('settings.tools.perTabCache.disabled')}
       />
+
+      <!-- Auto Reset Toggle -->
+      {#if toolSettings.enabled}
+        <div class="mt-4 pt-3 border-t border-border">
+          <ToolEnableToggle
+            id="pertabcache-autoreset"
+            bind:checked={toolSettings.autoResetOnNavigation}
+            onCheckedChange={(value) =>
+              updateToolSetting('autoResetOnNavigation', value)}
+            icon="heroicons:arrow-path-20-solid"
+            enabledText="Auto-reset on URL change"
+            disabledText="Keep summary on navigation"
+          />
+        </div>
+      {/if}
     </div>
   </div>
 </div>

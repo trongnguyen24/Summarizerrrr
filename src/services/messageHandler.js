@@ -15,6 +15,7 @@ import {
   setCurrentTabId,
   getCurrentTabId,
   getCurrentTabScrollY,
+  checkAndResetTabState,
 } from './tabCacheService.js'
 
 /**
@@ -129,6 +130,19 @@ function handleBackgroundMessage(request) {
       
       // Handle per-tab state switching
       handleTabSwitch(request.tabId)
+      
+      // Handle auto-reset on navigation (URL change)
+      if (request.tabUrl) {
+        // request.tabUrl comes from background script's tabUpdated message
+        const wasReset = checkAndResetTabState(request.tabId, request.tabUrl)
+        
+        // If state was reset and we are looking at this tab currently, update UI
+        if (wasReset && request.tabId === getCurrentTabId()) {
+          console.log('[messageHandler.js] State reset for current tab, syncing UI...')
+          const tabState = getOrCreateTabState(request.tabId)
+          syncFromTabState(tabState)
+        }
+      }
       
       // Always update tab title and video states
       setTabTitle(request.tabTitle)

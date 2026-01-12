@@ -300,12 +300,6 @@
         "previous_questions": "이전 질문",
         "next_questions": "다음 질문",
         "ask_own_question_in_chat": "채팅에서 자신만의 질문하기"
-      },
-      "perTabCache": {
-        "title": "탭별 캐시",
-        "description": "각 브라우저 탭에 대해 별도의 요약 상태를 유지합니다.",
-        "enabled": "활성화됨",
-        "disabled": "비활성화됨"
       }
     }
   },

@@ -131,6 +131,75 @@ export function tabHasSummary(tabId) {
 }
 
 /**
+ * Gets list of tab IDs that have summary content
+ * @returns {number[]} Array of tab IDs with summaries
+ */
+export function getTabsWithSummary() {
+  const tabsWithSummary = []
+  for (const [tabId, state] of tabStates) {
+    const summaryState = state.summaryState
+    if (summaryState.summary || summaryState.courseSummary || summaryState.selectedTextSummary || summaryState.customActionResult) {
+      tabsWithSummary.push(tabId)
+    }
+  }
+  return tabsWithSummary
+}
+
+/**
+ * Navigates to the next tab with cached summary
+ * @returns {Promise<number|null>} The tab ID navigated to, or null if none
+ */
+export async function navigateToNextCachedTab() {
+  const tabsWithSummary = getTabsWithSummary()
+  if (tabsWithSummary.length <= 1) return null
+  
+  // Save scroll position for current tab before navigating
+  if (currentTabId && tabStates.has(currentTabId)) {
+    tabStates.get(currentTabId).scrollY = window.scrollY || 0
+    console.log(`[tabCacheService] Saved scroll ${tabStates.get(currentTabId).scrollY} before nav from tab ${currentTabId}`)
+  }
+  
+  const currentIndex = tabsWithSummary.indexOf(currentTabId)
+  const nextIndex = (currentIndex + 1) % tabsWithSummary.length
+  const nextTabId = tabsWithSummary[nextIndex]
+  
+  try {
+    await browser.tabs.update(nextTabId, { active: true })
+    return nextTabId
+  } catch (error) {
+    console.error('[tabCacheService] Failed to navigate to next tab:', error)
+    return null
+  }
+}
+
+/**
+ * Navigates to the previous tab with cached summary
+ * @returns {Promise<number|null>} The tab ID navigated to, or null if none
+ */
+export async function navigateToPreviousCachedTab() {
+  const tabsWithSummary = getTabsWithSummary()
+  if (tabsWithSummary.length <= 1) return null
+  
+  // Save scroll position for current tab before navigating
+  if (currentTabId && tabStates.has(currentTabId)) {
+    tabStates.get(currentTabId).scrollY = window.scrollY || 0
+    console.log(`[tabCacheService] Saved scroll ${tabStates.get(currentTabId).scrollY} before nav from tab ${currentTabId}`)
+  }
+  
+  const currentIndex = tabsWithSummary.indexOf(currentTabId)
+  const prevIndex = currentIndex <= 0 ? tabsWithSummary.length - 1 : currentIndex - 1
+  const prevTabId = tabsWithSummary[prevIndex]
+  
+  try {
+    await browser.tabs.update(prevTabId, { active: true })
+    return prevTabId
+  } catch (error) {
+    console.error('[tabCacheService] Failed to navigate to previous tab:', error)
+    return null
+  }
+}
+
+/**
  * Checks if URL has changed for a tab and resets state if auto-reset is enabled
  * @param {number} tabId - Browser tab ID
  * @param {string} newUrl - New URL to check against

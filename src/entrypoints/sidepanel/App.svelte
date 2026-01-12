@@ -27,9 +27,11 @@
     fetchAndSummarizeStream,
     updateActiveCourseTab,
   } from '@/stores/summaryStore.svelte.js'
-  import { tabTitle } from '@/stores/tabTitleStore.svelte.js'
   import { setupMessageListener } from '@/services/messageHandler.js'
-  import { getCurrentTabId } from '@/services/tabCacheService.js'
+  import {
+    getCurrentTabId,
+    getTabsWithSummary,
+  } from '@/services/tabCacheService.js'
   import { initializeApp } from '@/services/initialization.js'
   import { settings, loadSettings } from '@/stores/settingsStore.svelte.js'
   import {
@@ -47,6 +49,7 @@
   import { debounce } from '@/lib/utils/utils.js'
   import Tooltip from '@/components/ui/Tooltip.svelte'
   import { Tooltip as BitsTooltip } from 'bits-ui'
+  import TabTitleBar from '@/components/ui/TabTitleBar.svelte'
 
   // Deep Dive imports
   import DeepDiveFAB from '@/components/tools/deepdive/DeepDiveFAB.svelte'
@@ -71,6 +74,23 @@
   // Permission state for Firefox
   let hasPermission = $state(true) // Default to true for non-Firefox
   let currentTabUrl = $state('')
+
+  // Track cached tabs count for navigation arrows
+  let cachedTabsCount = $state(0)
+
+  // Effect to update cached tabs count when summary state changes
+  $effect(() => {
+    // Dependencies: any summary content changes
+    const _trigger = [
+      summaryState.summary,
+      summaryState.courseSummary,
+      summaryState.selectedTextSummary,
+      summaryState.customActionResult,
+      summaryState.lastSummaryTypeDisplayed,
+    ]
+    // Update count
+    cachedTabsCount = getTabsWithSummary().length
+  })
 
   // Use API key validation composable
   const { needsApiKeySetup, currentProviderDisplayName } = useApiKeyValidation()
@@ -443,16 +463,16 @@
   <div
     class="grid grid-rows-[32px_1px_8px_1px_192px_1px_8px_1px_1fr] min-h-screen"
   >
-    <div class=" flex justify-center items-center w-full h-full">
-      <div class="text-text-secondary">
-        <div
-          class="line-clamp-1 w-screen !text-center text-[0.75rem] px-2 text-text-secondary"
-        >
-          {$tabTitle}
-        </div>
-      </div>
+    <div
+      class="flex justify-center items-center w-full h-full {settings.tools
+        ?.perTabCache?.enabled &&
+      settings.tools?.perTabCache?.stickyTabNavigation &&
+      cachedTabsCount > 1
+        ? 'sticky top-0 z-40 bg-surface-1'
+        : ''}"
+    >
+      <TabTitleBar {cachedTabsCount} />
     </div>
-
     <div class="bg-border"></div>
     <div
       class="top-stripes flex justify-center items-center w-full h-full"

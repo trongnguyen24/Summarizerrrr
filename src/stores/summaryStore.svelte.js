@@ -36,40 +36,11 @@ import {
   getCurrentTabId,
 } from '@/services/tabCacheService.js'
 
+// Import shared initial state
+import { createDefaultSummaryState } from '@/lib/constants/initialStates.js'
+
 // --- State ---
-export const summaryState = $state({
-  summary: '',
-  courseSummary: '',
-  courseConcepts: '',
-  isLoading: false,
-  isCourseSummaryLoading: false,
-  isCourseConceptsLoading: false,
-  summaryError: null, // Will hold the structured error object
-  courseSummaryError: null,
-  courseConceptsError: null,
-  isYouTubeVideoActive: false,
-  isCourseVideoActive: false,
-  currentContentSource: '',
-  selectedTextSummary: '',
-  isSelectedTextLoading: false,
-  selectedTextError: null,
-  lastSummaryTypeDisplayed: null,
-  activeYouTubeTab: 'videoSummary',
-  activeCourseTab: 'courseSummary',
-  pageTitle: '', // Thêm pageTitle vào state
-  pageUrl: '', // Thêm pageUrl vào state
-  isArchived: false,
-  currentActionType: 'summarize', // 'summarize' | 'analyze' | 'explain' | 'debate'
-  customActionResult: '',
-  isCustomActionLoading: false,
-  customActionError: null,
-  modelStatus: {
-    currentModel: null,
-    fallbackFrom: null,
-    isFallback: false,
-  },
-  abortController: null, // AbortController for cancelling streaming operations
-})
+export const summaryState = $state(createDefaultSummaryState())
 
 // --- Actions ---
 

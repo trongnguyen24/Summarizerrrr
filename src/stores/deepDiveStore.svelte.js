@@ -1,5 +1,6 @@
 // @ts-nocheck
 import { settings } from './settingsStore.svelte.js'
+import { createDefaultDeepDiveState } from '@/lib/constants/initialStates.js'
 import {
   getOrCreateTabState,
   getCurrentTabId,
@@ -9,30 +10,7 @@ import {
  * Deep Dive UI state management
  * Uses Svelte 5 $state for fine-grained reactivity
  */
-export const deepDiveState = $state({
-  isExpanded: false,
-  isGenerating: false,
-  isPreloading: false, // NEW: Loading before dialog opens
-  questions: [],
-  hasGenerated: false,
-  error: null,
-
-  // Context từ summary cuối cùng
-  lastSummaryContent: '',
-  lastPageTitle: '',
-  lastPageUrl: '',
-  lastSummaryLang: 'English',
-
-  // UI state persistence
-  customQuestion: '', // Persist custom input
-  selectedQuestion: null, // Persist selected question
-
-  // History tracking for avoiding duplicate questions
-  questionHistory: [], // Array of arrays: [[q1, q2, q3], [q4, q5, q6], ...]
-
-  // Pagination state
-  currentPageIndex: 0, // Current page being viewed (0-based)
-})
+export const deepDiveState = $state(createDefaultDeepDiveState())
 
 /**
  * Helper to update Deep Dive state for a specific tab (and global if active)

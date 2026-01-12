@@ -8,6 +8,10 @@
  */
 
 import { settings } from '@/stores/settingsStore.svelte.js'
+import {
+  createDefaultSummaryState,
+  createDefaultDeepDiveState
+} from '@/lib/constants/initialStates.js'
 
 // Map<tabId, {summaryState, deepDiveState, scrollY}>
 const tabStates = new Map()
@@ -15,66 +19,7 @@ const tabStates = new Map()
 // Current active tab ID
 let currentTabId = null
 
-/**
- * Creates a fresh default summary state object
- */
-function createDefaultSummaryState() {
-  return {
-    summary: '',
-    courseSummary: '',
-    courseConcepts: '',
-    isLoading: false,
-    isCourseSummaryLoading: false,
-    isCourseConceptsLoading: false,
-    summaryError: null,
-    courseSummaryError: null,
-    courseConceptsError: null,
-    isYouTubeVideoActive: false,
-    isCourseVideoActive: false,
-    currentContentSource: '',
-    selectedTextSummary: '',
-    isSelectedTextLoading: false,
-    selectedTextError: null,
-    lastSummaryTypeDisplayed: null,
-    activeYouTubeTab: 'videoSummary',
-    activeCourseTab: 'courseSummary',
-    pageTitle: '',
-    pageUrl: '',
-    isArchived: false,
-    currentActionType: 'summarize',
-    customActionResult: '',
-    isCustomActionLoading: false,
-    customActionError: null,
-    modelStatus: {
-      currentModel: null,
-      fallbackFrom: null,
-      isFallback: false,
-    },
-    abortController: null,
-  }
-}
 
-/**
- * Creates a fresh default deep dive state object
- */
-function createDefaultDeepDiveState() {
-  return {
-    isExpanded: false,
-    isGenerating: false,
-    isPreloading: false,
-    questions: [],
-    hasGenerated: false,
-    error: null,
-    lastSummaryContent: '',
-    lastPageTitle: '',
-    lastPageUrl: '',
-    lastSummaryLang: '',
-    customQuestion: '',
-    selectedQuestion: null,
-    questionHistory: [],
-    currentPageIndex: 0,
-  }
-}
 
 /**
  * Gets or creates state for a tab

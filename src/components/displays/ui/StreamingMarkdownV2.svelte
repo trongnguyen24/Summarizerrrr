@@ -26,6 +26,7 @@
     onFinishTyping, // Callback khi hoàn thành
     enableCursor = true, // TÙY CHỌN: Hiển thị cursor animation
     summaryLang = 'English', // TÙY CHỌN: Ngôn ngữ summary để detect RTL
+    isLoading = true, // TÙY CHỌN: Trạng thái loading từ parent
   } = $props()
 
   // Detect RTL language
@@ -33,7 +34,7 @@
 
   // === State nội bộ ===
   let container = $state()
-  let isStreaming = $state(true)
+  let isStreaming = $state(isLoading) // Khởi tạo dựa trên prop isLoading
   let completionTimeout = null
   let hasCalledFinish = false
   let highlightTimeout = null
@@ -110,17 +111,38 @@
   })
 
   // Effect để theo dõi processedMarkdown và lên lịch các tác vụ
+  // Modified: Chỉ set isStreaming = true nếu thực sự đang loading và có nội dung mới
   $effect(() => {
+    // Nếu isLoading là false (đã load xong từ trước), không set lại isStreaming = true
+    // Trừ khi sourceMarkdown rỗng (reset state)
     if (processedMarkdown && processedMarkdown.length > 0) {
-      isStreaming = true
-      hasCalledFinish = false
-      scheduleCompletion()
-      // scheduleHighlight() // Bỏ đi để tránh race condition
+      if (isLoading) {
+        isStreaming = true
+        hasCalledFinish = false
+        scheduleCompletion()
+      } else {
+        // Nếu đã load xong (isLoading = false), đảm bảo isStreaming = false ngay lập tức
+        // và gọi markComplete để báo cho parent biết (nếu chưa gọi)
+        if (!hasCalledFinish) {
+          markComplete()
+        }
+      }
     } else {
-      isStreaming = true
+      // Reset state khi không có nội dung
+      isStreaming = true // Reset về default loading state cho lần sau
       hasCalledFinish = false
       clearTimeout(completionTimeout)
       clearTimeout(highlightTimeout)
+    }
+  })
+
+  // React to isLoading prop changes
+  $effect(() => {
+    if (!isLoading && processedMarkdown && processedMarkdown.length > 0) {
+      if (isStreaming) {
+        // Force finish if loading stops
+        scheduleCompletion()
+      }
     }
   })
 

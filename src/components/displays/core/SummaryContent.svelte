@@ -22,6 +22,7 @@
     enableCursor={settings.enableStreaming}
     enableHighlight={true}
     summaryLang={settings.summaryLang}
+    {isLoading}
     class="custom-markdown-style"
   />
 </div>

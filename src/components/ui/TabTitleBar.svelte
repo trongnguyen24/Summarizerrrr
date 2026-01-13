@@ -4,6 +4,10 @@
   import { tabTitle } from '@/stores/tabTitleStore.svelte.js'
   import { settings } from '@/stores/settingsStore.svelte.js'
   import {
+    summaryState,
+    globalStoreUpdate,
+  } from '@/stores/summaryStore.svelte.js'
+  import {
     getTabsWithSummaryInfo,
     navigateToTab,
     navigateToPreviousCachedTab,
@@ -13,7 +17,7 @@
   } from '@/services/tabCacheService.js'
   import { onMount } from 'svelte'
 
-  // Props
+  // Props - no longer needed but keep for backward compatibility
   let { cachedTabsCount = 0 } = $props()
 
   // State for cached tabs info
@@ -30,17 +34,44 @@
     cachedTabs.some((tab) => tab.id === currentTabId),
   )
 
-  // Load tabs info when cachedTabsCount changes (new summaries added)
+  // Computed: Check if current tab has summary from reactive summaryState
+  // This allows immediate UI update when summary is completed
+  let currentTabHasSummary = $derived(
+    !!(
+      summaryState.summary ||
+      summaryState.courseSummary ||
+      summaryState.selectedTextSummary ||
+      summaryState.customActionResult
+    ),
+  )
+
+  // Load tabs info when summary state changes (reactive dependency on summaryState)
   $effect(() => {
-    // Depend on cachedTabsCount to trigger reload
-    const _count = cachedTabsCount
-    if (showNavigation || _count > 0) {
+    // Reactive dependencies - these trigger when summary content OR loading state changes
+    const _trigger = [
+      summaryState.summary,
+      summaryState.courseSummary,
+      summaryState.selectedTextSummary,
+      summaryState.customActionResult,
+      summaryState.lastSummaryTypeDisplayed,
+      summaryState.isLoading,
+      summaryState.isCourseSummaryLoading,
+      summaryState.isCourseConceptsLoading,
+      summaryState.isSelectedTextLoading,
+      summaryState.isCustomActionLoading,
+      globalStoreUpdate.version, // Trigger update when background tabs change
+      cachedTabsCount, // Keep this as backup trigger
+    ]
+    if (showNavigation) {
       loadTabsInfo()
     }
   })
 
   // Listen for tab events to update the list
   onMount(() => {
+    // Initialize tabs info on mount - use async to get browser tab directly
+    initializeCurrentTab()
+
     // Handle tab close
     const handleTabRemoved = (tabId) => {
       // Remove the closed tab from cachedTabs immediately
@@ -65,10 +96,87 @@
     }
   })
 
+  // Initialize current tab directly from browser API
+  async function initializeCurrentTab() {
+    try {
+      // Get current tab directly from browser API
+      const [tab] = await browser.tabs.query({
+        active: true,
+        currentWindow: true,
+      })
+      if (tab?.id) {
+        currentTabId = tab.id
+      }
+    } catch (error) {
+      console.error('[TabTitleBar] Failed to get current tab:', error)
+    }
+    // Load tabs info after setting currentTabId
+    await loadTabsInfo(false)
+  }
+
   async function loadTabsInfo(updateCurrentTab = true) {
-    cachedTabs = await getTabsWithSummaryInfo()
-    if (updateCurrentTab) {
-      currentTabId = getCurrentTabId()
+    let tabs = await getTabsWithSummaryInfo()
+
+    // Check if current tab has summary OR is loading (show tab button immediately when user clicks summarize)
+    // This happens when summary just completed but syncToTabState hasn't run yet
+    const hasSummaryOrLoading = !!(
+      summaryState.summary ||
+      summaryState.courseSummary ||
+      summaryState.selectedTextSummary ||
+      summaryState.customActionResult ||
+      summaryState.isLoading ||
+      summaryState.isCourseSummaryLoading ||
+      summaryState.isCourseConceptsLoading ||
+      summaryState.isSelectedTextLoading ||
+      summaryState.isCustomActionLoading
+    )
+
+    // Get current tab ID
+    let activeTabId = currentTabId
+    if (!activeTabId) {
+      try {
+        const [tab] = await browser.tabs.query({
+          active: true,
+          currentWindow: true,
+        })
+        activeTabId = tab?.id
+      } catch (error) {
+        console.error('[TabTitleBar] Failed to get current tab:', error)
+      }
+    }
+
+    // If current tab has summary or is loading, add it to tabs list
+    if (activeTabId && hasSummaryOrLoading) {
+      const isInList = tabs.some((t) => t.id === activeTabId)
+      if (!isInList) {
+        try {
+          const tab = await browser.tabs.get(activeTabId)
+          const isActuallyLoading =
+            summaryState.isLoading ||
+            summaryState.isCourseSummaryLoading ||
+            summaryState.isCourseConceptsLoading ||
+            summaryState.isSelectedTextLoading ||
+            summaryState.isCustomActionLoading
+
+          tabs = [
+            ...tabs,
+            {
+              id: activeTabId,
+              title: tab.title || 'Untitled',
+              isActive: true,
+              isLoading: isActuallyLoading,
+            },
+          ]
+        } catch (error) {
+          console.error('[TabTitleBar] Failed to add current tab:', error)
+        }
+      }
+    }
+
+    cachedTabs = tabs
+
+    if (updateCurrentTab && activeTabId) {
+      currentTabId = activeTabId
     }
   }
 
@@ -134,17 +242,41 @@
           title={tab.title}
         >
           <div
-            class="-translate-y-0.5 w-full mask-alpha mask-r-from-black mask-r-from-85% mask-r-to-transparent"
+            class="-translate-y-0.5 w-full mask-alpha mask-r-from-black mask-r-from-85% mask-r-to-transparent flex items-center gap-1"
           >
-            {tab.title}
+            {#if tab.isLoading}
+              <Icon
+                icon="eos-icons:loading"
+                width="12"
+                height="12"
+                class="shrink-0"
+              />
+            {/if}
+            <span class="truncate">
+              {tab.title}
+            </span>
           </div>
           <span class="tab-round-l bg-surface-1"></span>
           <span class="tab-round-r bg-surface-1"></span>
         </button>
       {/each}
 
-      <!-- Current tab button (when not in cached list) -->
-      {#if !isCurrentTabInCache && currentTabId}
+      <!-- Current tab button (when not in cached list but has summary OR just for showing current tab) -->
+      {#if !isCurrentTabInCache && currentTabId && currentTabHasSummary}
+        <button
+          class="tab-btn tab tab-active bg-surface-1 text-text-primary !border !border-b-0 !border-border"
+          title={$tabTitle}
+        >
+          <div
+            class="-translate-y-0.5 w-full mask-alpha mask-r-from-black mask-r-from-85% mask-r-to-transparent"
+          >
+            {$tabTitle}
+          </div>
+          <span class="tab-round-l bg-surface-1"></span>
+          <span class="tab-round-r bg-surface-1"></span>
+        </button>
+      {:else if !isCurrentTabInCache && currentTabId && !currentTabHasSummary}
+        <!-- Current tab without summary - show simple tab button -->
         <button
           class="tab-btn tab tab-active bg-surface-1 text-text-primary !border !border-b-0 !border-border"
           title={$tabTitle}

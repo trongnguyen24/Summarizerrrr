@@ -31,6 +31,7 @@
   import {
     getCurrentTabId,
     getTabsWithSummary,
+    getOrCreateTabState,
   } from '@/services/tabCacheService.js'
   import { initializeApp } from '@/services/initialization.js'
   import { settings, loadSettings } from '@/stores/settingsStore.svelte.js'
@@ -93,6 +94,22 @@
       summaryState.customActionResult,
       summaryState.lastSummaryTypeDisplayed,
     ]
+
+    // Sync current summaryState to tabStates for current tab
+    // This ensures getTabsWithSummary() sees the latest summary content
+    const currentTabId = getCurrentTabId()
+    if (currentTabId) {
+      const tabState = getOrCreateTabState(currentTabId)
+      if (tabState) {
+        // Copy relevant summary fields to tab state
+        Object.keys(summaryState).forEach((key) => {
+          if (key !== 'abortController') {
+            tabState.summaryState[key] = summaryState[key]
+          }
+        })
+      }
+    }
+
     // Update count
     cachedTabsCount = getTabsWithSummary().length
   })

@@ -40,7 +40,11 @@ import {
 import { createDefaultSummaryState } from '@/lib/constants/initialStates.js'
 
 // --- State ---
+// --- State ---
 export const summaryState = $state(createDefaultSummaryState())
+
+// Global signal for background updates
+export const globalStoreUpdate = $state({ version: 0 })
 
 // --- Actions ---
 
@@ -222,6 +226,9 @@ export async function fetchAndSummarize() {
     if (!perTabCacheEnabled || targetTabId === getCurrentTabId()) {
       Object.assign(summaryState, updates)
     }
+
+    // Trigger global update for UI lists
+    globalStoreUpdate.version++
   }
 
   /**

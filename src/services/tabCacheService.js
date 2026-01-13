@@ -138,7 +138,17 @@ export function getTabStateStats() {
 export function tabHasSummary(tabId) {
   if (!tabStates.has(tabId)) return false
   const state = tabStates.get(tabId).summaryState
-  return !!(state.summary || state.courseSummary || state.selectedTextSummary || state.customActionResult)
+  return !!(
+    state.summaryState.summary ||
+    state.summaryState.courseSummary ||
+    state.summaryState.selectedTextSummary ||
+    state.summaryState.customActionResult ||
+    state.summaryState.isLoading ||
+    state.summaryState.isCourseSummaryLoading ||
+    state.summaryState.isCourseConceptsLoading ||
+    state.summaryState.isSelectedTextLoading ||
+    state.summaryState.isCustomActionLoading
+  )
 }
 
 /**
@@ -149,7 +159,17 @@ export function getTabsWithSummary() {
   const tabsWithSummary = []
   for (const [tabId, state] of tabStates) {
     const summaryState = state.summaryState
-    if (summaryState.summary || summaryState.courseSummary || summaryState.selectedTextSummary || summaryState.customActionResult) {
+    if (
+      summaryState.summary ||
+      summaryState.courseSummary ||
+      summaryState.selectedTextSummary ||
+      summaryState.customActionResult ||
+      summaryState.isLoading ||
+      summaryState.isCourseSummaryLoading ||
+      summaryState.isCourseConceptsLoading ||
+      summaryState.isSelectedTextLoading ||
+      summaryState.isCustomActionLoading
+    ) {
       tabsWithSummary.push(tabId)
     }
   }
@@ -167,10 +187,19 @@ export async function getTabsWithSummaryInfo() {
   for (const tabId of tabsWithSummary) {
     try {
       const tab = await browser.tabs.get(tabId)
+      const state = tabStates.get(tabId)
+      const isLoading =
+        state?.summaryState?.isLoading ||
+        state?.summaryState?.isCourseSummaryLoading ||
+        state?.summaryState?.isCourseConceptsLoading ||
+        state?.summaryState?.isSelectedTextLoading ||
+        state?.summaryState?.isCustomActionLoading
+
       tabInfos.push({
         id: tabId,
         title: tab.title || 'Untitled',
-        isActive: tabId === currentTabId
+        isActive: tabId === currentTabId,
+        isLoading,
       })
     } catch (error) {
       // Tab might have been closed, skip it

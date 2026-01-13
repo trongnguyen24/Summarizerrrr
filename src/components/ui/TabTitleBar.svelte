@@ -6,6 +6,7 @@
   import {
     summaryState,
     globalStoreUpdate,
+    isAnyLoading,
   } from '@/stores/summaryStore.svelte.js'
   import {
     getTabsWithSummaryInfo,
@@ -17,8 +18,7 @@
   } from '@/services/tabCacheService.js'
   import { onMount } from 'svelte'
 
-  // Props - no longer needed but keep for backward compatibility
-  let { cachedTabsCount = 0 } = $props()
+  // Props - none
 
   // State for cached tabs info
   let cachedTabs = $state([])
@@ -54,13 +54,8 @@
       summaryState.selectedTextSummary,
       summaryState.customActionResult,
       summaryState.lastSummaryTypeDisplayed,
-      summaryState.isLoading,
-      summaryState.isCourseSummaryLoading,
-      summaryState.isCourseConceptsLoading,
-      summaryState.isSelectedTextLoading,
-      summaryState.isCustomActionLoading,
+      isAnyLoading(),
       globalStoreUpdate.version, // Trigger update when background tabs change
-      cachedTabsCount, // Keep this as backup trigger
     ]
     if (showNavigation) {
       loadTabsInfo()
@@ -124,11 +119,8 @@
       summaryState.courseSummary ||
       summaryState.selectedTextSummary ||
       summaryState.customActionResult ||
-      summaryState.isLoading ||
-      summaryState.isCourseSummaryLoading ||
-      summaryState.isCourseConceptsLoading ||
-      summaryState.isSelectedTextLoading ||
-      summaryState.isCustomActionLoading
+      summaryState.customActionResult ||
+      isAnyLoading()
     )
 
     // Get current tab ID
@@ -151,12 +143,7 @@
       if (!isInList) {
         try {
           const tab = await browser.tabs.get(activeTabId)
-          const isActuallyLoading =
-            summaryState.isLoading ||
-            summaryState.isCourseSummaryLoading ||
-            summaryState.isCourseConceptsLoading ||
-            summaryState.isSelectedTextLoading ||
-            summaryState.isCustomActionLoading
+          const isActuallyLoading = isAnyLoading()
 
           tabs = [
             ...tabs,
@@ -209,7 +196,7 @@
 </script>
 
 <div
-  class="text-text-secondary relative bg-border dark:bg-black h-full w-full flex gap-1 items-center"
+  class="text-text-secondary relative bg-border dark:bg-black h-full w-full flex gap-1 pl-2 items-center"
 >
   {#if showNavigation}
     <!-- Left arrow -->
@@ -298,7 +285,7 @@
       {$tabTitle}
     </div>
   {/if}
-  <div class="w-full absolute bottom-0 h-px bg-border"></div>
+  <div class="w-full right-0 left-0 absolute bottom-0 h-px bg-border"></div>
 </div>
 
 <style>
@@ -311,10 +298,10 @@
   }
 
   .tab {
-    min-width: 6rem;
     height: 2.25rem;
     max-width: 8rem;
     text-align: left;
+    width: 100%;
     flex: 1;
     border: 1px solid transparent;
     transform: translateY(2px);

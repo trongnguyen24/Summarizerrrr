@@ -67,6 +67,20 @@ export function updateModelStatus(
 }
 
 /**
+ * Helper to check if any loading state is active
+ * @returns {boolean}
+ */
+export function isAnyLoading() {
+  return (
+    summaryState.isLoading ||
+    summaryState.isCourseSummaryLoading ||
+    summaryState.isCourseConceptsLoading ||
+    summaryState.isSelectedTextLoading ||
+    summaryState.isCustomActionLoading
+  )
+}
+
+/**
  * Stop the current streaming operation
  */
 export function stopStreaming() {

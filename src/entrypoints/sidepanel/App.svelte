@@ -20,6 +20,7 @@
   // Import direct variables and functions from refactored stores
   import {
     summaryState,
+    isAnyLoading,
     summarizeSelectedText,
     resetDisplayState,
     updateVideoActiveStates,
@@ -101,7 +102,7 @@
     if (currentTabId) {
       const tabState = getOrCreateTabState(currentTabId)
       if (tabState) {
-        // Copy relevant summary fields to tab state
+        // Copy all summary fields to tab state dynamically
         Object.keys(summaryState).forEach((key) => {
           if (key !== 'abortController') {
             tabState.summaryState[key] = summaryState[key]
@@ -210,12 +211,7 @@
   // Create derived variable to check if all summaries for the current page type are completed
   const areAllSummariesCompleted = $derived(() => {
     // No loading states should be active
-    const noLoadingStates =
-      !summaryState.isLoading &&
-      !summaryState.isCourseSummaryLoading &&
-      !summaryState.isCourseConceptsLoading &&
-      !summaryState.isSelectedTextLoading &&
-      !summaryState.isCustomActionLoading
+    const noLoadingStates = !isAnyLoading()
 
     if (!noLoadingStates) return false
 
@@ -365,12 +361,7 @@
    */
   $effect(() => {
     // Chỉ update context khi KHÔNG còn loading nào
-    const allLoadingComplete =
-      !summaryState.isLoading &&
-      !summaryState.isCourseSummaryLoading &&
-      !summaryState.isCourseConceptsLoading &&
-      !summaryState.isSelectedTextLoading &&
-      !summaryState.isCustomActionLoading
+    const allLoadingComplete = !isAnyLoading()
 
     const content = getSummaryContent()
 
@@ -389,12 +380,7 @@
    * Chỉ chạy khi autoGenerate setting = true
    */
   $effect(() => {
-    const allLoadingComplete =
-      !summaryState.isLoading &&
-      !summaryState.isCourseSummaryLoading &&
-      !summaryState.isCourseConceptsLoading &&
-      !summaryState.isSelectedTextLoading &&
-      !summaryState.isCustomActionLoading
+    const allLoadingComplete = !isAnyLoading()
 
     const content = getSummaryContent()
     const autoGenEnabled = settings.tools?.deepDive?.autoGenerate ?? false
@@ -540,9 +526,7 @@
         {#if !needsApiKeySetup()()}
           <div class="flex flex-row gap-3 items-center">
             <SummarizeButton
-              isLoading={summaryState.isLoading ||
-                isAnyCourseLoading ||
-                summaryState.isCustomActionLoading}
+              isLoading={isAnyLoading()}
               disabled={!hasPermission && import.meta.env.BROWSER === 'firefox'}
             />
           </div>

@@ -59,7 +59,6 @@
   import {
     deepDiveState,
     toggleDeepDive,
-    shouldShowDeepDive,
     updateSummaryContext,
     setQuestions,
     setGenerating,
@@ -77,6 +76,12 @@
 
   // Track cached tabs count for navigation arrows
   let cachedTabsCount = $state(0)
+
+  // Derived value for Deep Dive visibility - ensures reactivity when tab switches
+  let shouldShowDeepDiveNow = $derived(
+    (settings.tools?.deepDive?.enabled ?? false) &&
+      deepDiveState.lastSummaryContent.trim() !== '',
+  )
 
   // Effect to update cached tabs count when summary state changes
   $effect(() => {
@@ -461,24 +466,25 @@
 {/if}
 <div class="main-container flex min-w-[22.5rem] bg-surface-1 w-full flex-col">
   <div
-    class="grid grid-rows-[32px_1px_8px_1px_192px_1px_8px_1px_1fr] min-h-screen"
+    class="grid min-h-screen {settings.tools?.perTabCache?.enabled
+      ? 'grid-rows-[36px_10px_192px_10px_1fr]'
+      : 'grid-rows-[32px_10px_192px_10px_1fr]'}"
   >
     <div
-      class="flex justify-center items-center w-full h-full {settings.tools
-        ?.perTabCache?.enabled &&
-      settings.tools?.perTabCache?.stickyTabNavigation &&
-      cachedTabsCount > 1
+      class="flex justify-center items-center w-screen h-full {settings.tools
+        ?.perTabCache?.enabled
         ? 'sticky top-0 z-40 bg-surface-1'
         : ''}"
     >
       <TabTitleBar {cachedTabsCount} />
     </div>
-    <div class="bg-border"></div>
-    <div
-      class="top-stripes flex justify-center items-center w-full h-full"
-    ></div>
-    <div class="bg-border"></div>
 
+    <div
+      class="top-stripes flex justify-center border-b border-border border-t items-center w-full h-full {settings
+        .tools?.perTabCache?.enabled
+        ? 'mt-2'
+        : ''}"
+    ></div>
     <div
       class="flex relative font-mono flex-col gap-1 justify-center items-center"
     >
@@ -539,13 +545,9 @@
       {/if}
     </div>
 
-    <div class="bg-border"></div>
-
     <div
-      class="top-stripes flex justify-center items-center w-full h-full"
+      class="top-stripes flex justify-center border-b border-border border-t items-center w-full h-full"
     ></div>
-
-    <div class="bg-border"></div>
 
     <div
       class="relative prose wrap-anywhere main-sidepanel prose-h2:mt-4 p z-10 flex flex-col gap-8 px-6 pt-8 pb-[30vh] min-w-[22.5rem] max-w-[52rem] w-screen mx-auto"
@@ -557,7 +559,7 @@
       {:else if summaryState.lastSummaryTypeDisplayed === 'youtube'}
         <YouTubeSummaryDisplay />
         <!-- Inline Deep Dive Questions for YouTube -->
-        {#if shouldShowDeepDive() && settings.tools?.deepDive?.autoGenerate}
+        {#if shouldShowDeepDiveNow && settings.tools?.deepDive?.autoGenerate}
           <InlineDeepDiveQuestions
             summaryContent={getSummaryContent()}
             pageTitle={summaryState.pageTitle}
@@ -576,7 +578,7 @@
           showTOC={true}
         />
         <!-- Inline Deep Dive Questions for Selected Text -->
-        {#if shouldShowDeepDive() && settings.tools?.deepDive?.autoGenerate}
+        {#if shouldShowDeepDiveNow && settings.tools?.deepDive?.autoGenerate}
           <InlineDeepDiveQuestions
             summaryContent={getSummaryContent()}
             pageTitle={summaryState.pageTitle}
@@ -593,7 +595,7 @@
           showTOC={true}
         />
         <!-- Inline Deep Dive Questions for Web -->
-        {#if shouldShowDeepDive() && settings.tools?.deepDive?.autoGenerate}
+        {#if shouldShowDeepDiveNow && settings.tools?.deepDive?.autoGenerate}
           <InlineDeepDiveQuestions
             summaryContent={getSummaryContent()}
             pageTitle={summaryState.pageTitle}
@@ -610,7 +612,7 @@
           showTOC={true}
         />
         <!-- Inline Deep Dive Questions for Custom Actions -->
-        {#if shouldShowDeepDive() && settings.tools?.deepDive?.autoGenerate}
+        {#if shouldShowDeepDiveNow && settings.tools?.deepDive?.autoGenerate}
           <InlineDeepDiveQuestions
             summaryContent={getSummaryContent()}
             pageTitle={summaryState.pageTitle}
@@ -633,7 +635,7 @@
 {/if}
 <Toaster />
 <!-- Deep Dive FAB & Section with Error Boundary -->
-{#if shouldShowDeepDive()}
+{#if shouldShowDeepDiveNow}
   {#await Promise.resolve()}
     <!-- Loading placeholder -->
   {:then}

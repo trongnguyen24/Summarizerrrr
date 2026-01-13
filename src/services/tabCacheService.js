@@ -65,13 +65,11 @@ export function setCurrentTabId(tabId) {
   }
   
   const previousTabId = currentTabId
-  currentTabId = tabId
   
-  // Save scroll position for previous tab
-  if (previousTabId && previousTabId !== tabId && tabStates.has(previousTabId)) {
-    tabStates.get(previousTabId).scrollY = window.scrollY || 0
-    console.log(`[tabCacheService] Saved scroll ${tabStates.get(previousTabId).scrollY} for tab ${previousTabId}`)
-  }
+  // Note: Scroll is saved by handleTabSwitch() in messageHandler.js
+  // BEFORE this function is called, so no need to save here
+  
+  currentTabId = tabId
   
   console.log(`[tabCacheService] Switched from tab ${previousTabId} to tab ${tabId}`)
   
@@ -85,6 +83,19 @@ export function setCurrentTabId(tabId) {
 export function getCurrentTabScrollY() {
   if (!currentTabId || !tabStates.has(currentTabId)) return 0
   return tabStates.get(currentTabId).scrollY
+}
+
+/**
+ * Saves scroll position for a specific tab
+ * This is the ONLY place scroll is saved - called once before tab switch
+ * @param {number} tabId - Tab ID to save scroll position for
+ */
+export function saveScrollForTab(tabId) {
+  if (tabId && tabStates.has(tabId)) {
+    const scrollY = window.scrollY || 0
+    tabStates.get(tabId).scrollY = scrollY
+    console.log(`[tabCacheService] Saved scrollY=${scrollY} for tab ${tabId}`)
+  }
 }
 
 /**
@@ -146,18 +157,54 @@ export function getTabsWithSummary() {
 }
 
 /**
+ * Gets list of tabs with summary including their titles
+ * @returns {Promise<Array<{id: number, title: string, isActive: boolean}>>}
+ */
+export async function getTabsWithSummaryInfo() {
+  const tabsWithSummary = getTabsWithSummary()
+  const tabInfos = []
+  
+  for (const tabId of tabsWithSummary) {
+    try {
+      const tab = await browser.tabs.get(tabId)
+      tabInfos.push({
+        id: tabId,
+        title: tab.title || 'Untitled',
+        isActive: tabId === currentTabId
+      })
+    } catch (error) {
+      // Tab might have been closed, skip it
+      console.log(`[tabCacheService] Tab ${tabId} not found, skipping`)
+    }
+  }
+  
+  return tabInfos
+}
+
+/**
+ * Navigates to a specific tab by ID
+ * @param {number} targetTabId - Tab ID to navigate to
+ * @returns {Promise<boolean>} True if navigation was successful
+ */
+export async function navigateToTab(targetTabId) {
+  if (!targetTabId || targetTabId === currentTabId) return false
+  
+  try {
+    await browser.tabs.update(targetTabId, { active: true })
+    return true
+  } catch (error) {
+    console.error('[tabCacheService] Failed to navigate to tab:', error)
+    return false
+  }
+}
+
+/**
  * Navigates to the next tab with cached summary
  * @returns {Promise<number|null>} The tab ID navigated to, or null if none
  */
 export async function navigateToNextCachedTab() {
   const tabsWithSummary = getTabsWithSummary()
   if (tabsWithSummary.length <= 1) return null
-  
-  // Save scroll position for current tab before navigating
-  if (currentTabId && tabStates.has(currentTabId)) {
-    tabStates.get(currentTabId).scrollY = window.scrollY || 0
-    console.log(`[tabCacheService] Saved scroll ${tabStates.get(currentTabId).scrollY} before nav from tab ${currentTabId}`)
-  }
   
   const currentIndex = tabsWithSummary.indexOf(currentTabId)
   const nextIndex = (currentIndex + 1) % tabsWithSummary.length
@@ -179,12 +226,6 @@ export async function navigateToNextCachedTab() {
 export async function navigateToPreviousCachedTab() {
   const tabsWithSummary = getTabsWithSummary()
   if (tabsWithSummary.length <= 1) return null
-  
-  // Save scroll position for current tab before navigating
-  if (currentTabId && tabStates.has(currentTabId)) {
-    tabStates.get(currentTabId).scrollY = window.scrollY || 0
-    console.log(`[tabCacheService] Saved scroll ${tabStates.get(currentTabId).scrollY} before nav from tab ${currentTabId}`)
-  }
   
   const currentIndex = tabsWithSummary.indexOf(currentTabId)
   const prevIndex = currentIndex <= 0 ? tabsWithSummary.length - 1 : currentIndex - 1

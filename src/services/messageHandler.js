@@ -16,6 +16,7 @@ import {
   getCurrentTabId,
   getCurrentTabScrollY,
   checkAndResetTabState,
+  saveScrollForTab,
 } from './tabCacheService.js'
 
 /**
@@ -88,29 +89,33 @@ function handleTabSwitch(newTabId) {
   
   console.log(`[messageHandler.js] Switching from tab ${previousTabId} to tab ${newTabId}`)
   
-  // Save current global state to previous tab's state (if exists)
+  // STEP 1: Save scroll position for previous tab BEFORE anything else
+  // This is the ONLY place scroll is saved - simple and no race condition
   if (previousTabId) {
+    saveScrollForTab(previousTabId)
+    
+    // Sync summary/deepDive state to previous tab
     const prevTabState = getOrCreateTabState(previousTabId)
     if (prevTabState) {
       syncToTabState(prevTabState)
-      prevTabState.scrollY = window.scrollY || 0
     }
   }
   
-  // Switch to new tab and get/create its state
+  // STEP 2: Switch to new tab
   const newTabState = setCurrentTabId(newTabId)
   
   if (newTabState) {
-    // Sync global state from new tab's state
+    // STEP 3: Sync global state from new tab's state
     syncFromTabState(newTabState)
     
-    // Restore scroll position after DOM update
+    // STEP 4: Restore scroll position after DOM update
     const scrollY = newTabState.scrollY || 0
-    if (scrollY > 0) {
-      requestAnimationFrame(() => {
-        window.scrollTo({ top: scrollY, behavior: 'instant' })
-      })
-    }
+    console.log(`[messageHandler.js] Restoring scrollY=${scrollY} for tab ${newTabId}`)
+    
+    // Use requestAnimationFrame to ensure DOM is updated before scrolling
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: scrollY, behavior: 'instant' })
+    })
     
     console.log(`[messageHandler.js] Loaded state for tab ${newTabId}`, {
       hasSummary: !!summaryState.summary || !!summaryState.courseSummary,
@@ -228,6 +233,7 @@ export function setupMessageListener() {
 
   port.onMessage.addListener(handleBackgroundMessage)
   browser.runtime.onMessage.addListener(handleBackgroundMessage)
+  
   // Request current tab info on sidepanel initialization
   // Use timeout to ensure port is fully registered in background script
   setTimeout(() => {

@@ -494,12 +494,18 @@
         : ''}"
     >
       <TabTitleBar {cachedTabsCount} />
+      <div
+        class=" absolute w-screen h-3 -bottom-3 bg-linear-to-b from-surface-1 to-surface-1/0 {settings
+          .tools?.perTabCache?.enabled
+          ? ''
+          : 'hidden'}"
+      ></div>
     </div>
 
     <div
       class="top-stripes flex justify-center border-b border-border border-t items-center w-full h-full {settings
         .tools?.perTabCache?.enabled
-        ? 'mt-2'
+        ? 'mt-3'
         : ''}"
     ></div>
     <div

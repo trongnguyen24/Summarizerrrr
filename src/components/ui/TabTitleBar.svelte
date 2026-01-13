@@ -252,9 +252,8 @@
                 class="shrink-0"
               />
             {/if}
-            <span class="truncate">
-              {tab.title}
-            </span>
+
+            {tab.title}
           </div>
           <span class="tab-round-l bg-surface-1"></span>
           <span class="tab-round-r bg-surface-1"></span>

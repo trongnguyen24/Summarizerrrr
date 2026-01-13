@@ -88,44 +88,8 @@
         </ButtonSet>
       </div>
     </div>
-
-    <!-- Sticky Tab Navigation -->
-    <div>
-      <span class="text-text-primary">Tab Navigation Bar</span>
-      <p class="mt-2 text-muted">
-        Control how the cached tabs navigation bar behaves when scrolling.
-      </p>
-      <div class="grid mt-3 grid-cols-2 gap-2">
-        <ButtonSet
-          title="Static Navigation"
-          class="setting-btn {!toolSettings.stickyTabNavigation
-            ? 'active'
-            : ''}"
-          onclick={() => updateToolSetting('stickyTabNavigation', false)}
-          Description="Tab bar scrolls with the content"
-        >
-          <Icon icon="heroicons:bars-3" width="16" height="16" />
-        </ButtonSet>
-        <ButtonSet
-          title="Sticky Navigation"
-          class="setting-btn {toolSettings.stickyTabNavigation ? 'active' : ''}"
-          onclick={() => updateToolSetting('stickyTabNavigation', true)}
-          Description="Tab bar stays fixed at the top when scrolling"
-        >
-          <Icon icon="heroicons:arrow-down-on-square" width="16" height="16" />
-        </ButtonSet>
-      </div>
-    </div>
   {/if}
 </div>
 
 <style>
-  .setting-btn {
-    transition: all 0.2s ease;
-  }
-
-  .setting-btn.active {
-    background-color: var(--color-surface-2);
-    border-color: var(--color-border);
-  }
 </style>

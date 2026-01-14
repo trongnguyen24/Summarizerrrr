@@ -271,16 +271,11 @@
           <div
             class="-translate-y-0.5 w-full mask-alpha mask-r-from-black mask-r-from-75% mask-r-to-90% flex items-center gap-1 relative overflow-hidden"
           >
-            {#if tab.isLoading}
-              <Icon
-                icon="eos-icons:loading"
-                width="12"
-                height="12"
-                class="shrink-0"
-              />
-            {/if}
-
-            <span class="flex max-w-full select-none">{tab.title}</span>
+            <span
+              class="flex max-w-full select-none {tab.isLoading
+                ? 'animate-pulse'
+                : ''}">{tab.title}</span
+            >
           </div>
           <!-- Close Button - Hidden by default, visible on hover -->
           <button
@@ -305,9 +300,9 @@
           title={$tabTitle}
         >
           <div
-            class="-translate-y-0.5 w-full mask-alpha mask-r-from-black mask-r-from-85% mask-r-to-transparent"
+            class="-translate-y-0.5 w-full mask-alpha overflow-x-hidden mask-r-from-black mask-r-from-85% mask-r-to-transparent"
           >
-            {$tabTitle}
+            <span class="flex max-w-full select-none"> {$tabTitle}</span>
           </div>
           <span class="tab-round-l bg-surface-1"></span>
           <span class="tab-round-r bg-surface-1"></span>
@@ -321,7 +316,7 @@
           <div
             class="-translate-y-0.5 w-full mask-alpha mask-r-from-black mask-r-from-85% mask-r-to-transparent"
           >
-            {$tabTitle}
+            <span class="flex max-w-full select-none"> {$tabTitle}</span>
           </div>
           <span class="tab-round-l bg-surface-1"></span>
           <span class="tab-round-r bg-surface-1"></span>

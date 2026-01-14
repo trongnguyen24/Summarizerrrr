@@ -52,6 +52,7 @@
   import Tooltip from '@/components/ui/Tooltip.svelte'
   import { Tooltip as BitsTooltip } from 'bits-ui'
   import TabTitleBar from '@/components/ui/TabTitleBar.svelte'
+  import { tabTitle } from '@/stores/tabTitleStore.svelte.js'
 
   // Deep Dive imports
   import DeepDiveFAB from '@/components/tools/deepdive/DeepDiveFAB.svelte'
@@ -470,7 +471,7 @@
 <div class="main-container flex min-w-[22.5rem] bg-surface-1 w-full flex-col">
   <div
     class="grid min-h-screen {settings.tools?.perTabCache?.enabled
-      ? 'grid-rows-[36px_12px_10px_192px_10px_1fr]'
+      ? 'grid-rows-[36px_32px_10px_192px_10px_1fr]'
       : 'grid-rows-[32px_10px_192px_10px_1fr]'}"
   >
     <div
@@ -488,10 +489,15 @@
       ></div>
     </div>
     <div
-      class="w-screen h-3 {settings.tools?.perTabCache?.enabled
+      class="w-screen text-center text-[0.7rem] flex justify-center items-center px-2 text-text-secondary {settings
+        .tools?.perTabCache?.enabled
         ? ''
         : 'hidden'}"
-    ></div>
+    >
+      <div class="line-clamp-1 w-full">
+        {$tabTitle}
+      </div>
+    </div>
     <div
       class="top-stripes flex justify-center border-b border-border border-t items-center w-full h-full"
     ></div>

@@ -50,7 +50,7 @@
 
   // Load tabs info when summary state changes (reactive dependency on summaryState)
   $effect(() => {
-    // Reactive dependencies - these trigger when summary content OR loading state changes
+    // Reactive dependencies - these trigger when summary content OR loading/error state changes
     const _trigger = [
       summaryState.summary,
       summaryState.courseSummary,
@@ -58,6 +58,9 @@
       summaryState.customActionResult,
       summaryState.lastSummaryTypeDisplayed,
       isAnyLoading(),
+      summaryState.summaryError, // Trigger update when error state changes
+      summaryState.customActionError,
+      summaryState.courseSummaryError,
       globalStoreUpdate.version, // Trigger update when background tabs change
     ]
     if (showNavigation) {
@@ -115,15 +118,17 @@
   async function loadTabsInfo(updateCurrentTab = true) {
     let tabs = await getTabsWithSummaryInfo()
 
-    // Check if current tab has summary OR is loading (show tab button immediately when user clicks summarize)
+    // Check if current tab has summary OR is loading OR has error (show tab button immediately)
     // This happens when summary just completed but syncToTabState hasn't run yet
-    const hasSummaryOrLoading = !!(
+    const hasSummaryOrLoadingOrError = !!(
       summaryState.summary ||
       summaryState.courseSummary ||
       summaryState.selectedTextSummary ||
       summaryState.customActionResult ||
-      summaryState.customActionResult ||
-      isAnyLoading()
+      isAnyLoading() ||
+      summaryState.summaryError ||
+      summaryState.customActionError ||
+      summaryState.courseSummaryError
     )
 
     // Get current tab ID
@@ -140,13 +145,18 @@
       }
     }
 
-    // If current tab has summary or is loading, add it to tabs list
-    if (activeTabId && hasSummaryOrLoading) {
+    // If current tab has summary, loading, or error, add it to tabs list
+    if (activeTabId && hasSummaryOrLoadingOrError) {
       const isInList = tabs.some((t) => t.id === activeTabId)
       if (!isInList) {
         try {
           const tab = await browser.tabs.get(activeTabId)
           const isActuallyLoading = isAnyLoading()
+          const hasError = !!(
+            summaryState.summaryError ||
+            summaryState.customActionError ||
+            summaryState.courseSummaryError
+          )
 
           tabs = [
             ...tabs,
@@ -155,6 +165,7 @@
               title: tab.title || 'Untitled',
               isActive: true,
               isLoading: isActuallyLoading,
+              hasError,
             },
           ]
         } catch (error) {
@@ -297,7 +308,9 @@
 </script>
 
 <div
-  class="text-text-secondary relative bg-border dark:bg-black h-full w-full flex gap-px pl-2 items-center"
+  class="text-text-secondary relative {showNavigation
+    ? ' bg-background-dark '
+    : 'bg-transparent'} h-full w-full flex gap-px pl-2 items-center"
 >
   {#if showNavigation}
     <!-- Left arrow -->
@@ -326,7 +339,7 @@
       onmouseup={handleMouseUp}
       onmouseleave={handleMouseLeave}
       role="group"
-      class="flex px-2 z-10 relative h-full overflow-x-auto overflow-y-hidden scrollbar-hide flex-1 cursor-grab"
+      class="flex font-mono px-2 z-10 relative h-full overflow-x-auto overflow-y-hidden scrollbar-hide flex-1 cursor-grab"
     >
       {#each cachedTabs as tab (tab.id)}
         <div
@@ -341,7 +354,7 @@
           }}
           onauxclick={(e) => handleTabMiddleClick(e, tab.id)}
           class="tab-btn flex items-center group tab {tab.id === currentTabId
-            ? 'bg-surface-1 tab-active  text-text-primary !border !border-b-0 !border-border  '
+            ? 'bg-surface-1 tab-active  text-text-primary !border !border-b-0 !border-surface-2/50 dark:!border-border  '
             : ' hover:text-text-primary !border !border-b-0 !border-transparent'}"
           title={tab.title}
         >
@@ -351,29 +364,33 @@
             <span
               class="flex max-w-full select-none {tab.isLoading
                 ? 'animate-pulse'
-                : ''}">{tab.title}</span
+                : ''} {tab.hasError ? 'text-red-400' : ''}">{tab.title}</span
             >
           </div>
           <!-- Close Button - Hidden by default, visible on hover -->
           <button
-            class="absolute right-0.5 top-1/2 -translate-y-2.75 p-0.5 rounded-full text-text-secondary hover:text-text-primary opacity-0 group-hover:opacity-100 transition-opacity"
+            class="absolute right-0.5 top-1/2 -translate-y-3.25 p-0.5 hover:bg-surface-2 rounded-full text-text-secondary hover:text-text-primary opacity-0 group-hover:opacity-100 transition-opacity"
             onclick={(e) => {
               e.stopPropagation()
               handleCloseTab(tab.id)
             }}
             title="Remove from list (Middle-click)"
           >
-            <Icon icon="solar:close-circle-bold" width="14" height="14" />
+            <Icon icon="heroicons:x-mark-16-solid" width="16" height="16" />
           </button>
-          <span class="tab-round-l bg-surface-1"></span>
-          <span class="tab-round-r bg-surface-1"></span>
+          <span
+            class="tab-round-l bg-surface-1 before:bg-background-dark before:!border-surface-2/70 dark:before:!border-border dark:before:bg-black"
+          ></span>
+          <span
+            class="tab-round-r bg-surface-1 before:bg-background-dark before:!border-surface-2/70 dark:before:!border-border dark:before:bg-black"
+          ></span>
         </div>
       {/each}
 
-      <!-- Current tab button (when not in cached list but has summary OR just for showing current tab) -->
-      {#if !isCurrentTabInCache && currentTabId && currentTabHasSummary}
+      <!-- Current tab button (when not in cached list but has summary OR cache is empty) -->
+      {#if !isCurrentTabInCache && currentTabId && (currentTabHasSummary || cachedTabs.length === 0)}
         <button
-          class="tab-btn tab tab-active bg-surface-1 text-text-primary !border !border-b-0 !border-border"
+          class="tab-btn tab tab-active bg-surface-1 text-text-primary !border !border-b-0 !border-surface-2/50 dark:!border-border"
           title={$tabTitle}
         >
           <div
@@ -381,36 +398,26 @@
           >
             <span class="flex max-w-full select-none"> {$tabTitle}</span>
           </div>
-          <span class="tab-round-l bg-surface-1"></span>
-          <span class="tab-round-r bg-surface-1"></span>
-        </button>
-      {:else if !isCurrentTabInCache && currentTabId && !currentTabHasSummary}
-        <!-- Current tab without summary - show simple tab button -->
-        <button
-          class="tab-btn tab tab-active bg-surface-1 text-text-primary !border !border-b-0 !border-border"
-          title={$tabTitle}
-        >
-          <div
-            class="-translate-y-0.5 w-full mask-alpha mask-r-from-black mask-r-from-85% mask-r-to-transparent"
-          >
-            <span class="flex max-w-full overflow-hidden select-none">
-              {$tabTitle}</span
-            >
-          </div>
-          <span class="tab-round-l bg-surface-1"></span>
-          <span class="tab-round-r bg-surface-1"></span>
+          <span
+            class="tab-round-l bg-surface-1 before:bg-background-dark before:!border-surface-2/70 dark:before:!border-border dark:before:bg-black"
+          ></span>
+          <span
+            class="tab-round-r bg-surface-1 before:bg-background-dark before:!border-surface-2/70 dark:before:!border-border dark:before:bg-black"
+          ></span>
         </button>
       {/if}
     </div>
   {:else}
     <!-- Centered title mode when feature disabled or no cached tabs -->
-    <div
-      class="line-clamp-1 w-full text-center text-[0.75rem] px-2 text-text-secondary"
-    >
-      {$tabTitle}
+    <div class="w-full text-center text-[0.75rem] px-2 text-text-secondary">
+      <div class="line-clamp-1 w-full">{$tabTitle}</div>
     </div>
   {/if}
-  <div class="w-full right-0 left-0 absolute bottom-0 h-px bg-border"></div>
+  <div
+    class="w-full right-0 left-0 absolute bottom-0 h-px dark:bg-border bg-surface-2/50 {showNavigation
+      ? ''
+      : 'hidden'}"
+  ></div>
 </div>
 
 <style>
@@ -426,7 +433,7 @@
     cursor: pointer;
     height: 2.25rem;
     text-align: left;
-    width: clamp(5.75rem, -1.3214rem + 31.4286vw, 11.25rem);
+    width: clamp(5.75rem, 1.5714rem + 18.5714vw, 9rem);
     border: 1px solid transparent;
     transform: translateY(2px);
     padding: 0.125rem 0.5rem;
@@ -448,13 +455,12 @@
         content: '';
         position: absolute;
         top: 0;
+        border: 1px solid transparent;
         left: 0;
         width: 200%;
         height: 200%;
-        border: 1px solid var(--color-border);
         transform: translate(-50%, -50%);
         border-radius: 100%;
-        background-color: var(--color-black);
       }
     }
     .tab-round-l {

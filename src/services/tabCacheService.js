@@ -168,7 +168,13 @@ export function getTabsWithSummary() {
       summaryState.isCourseSummaryLoading ||
       summaryState.isCourseConceptsLoading ||
       summaryState.isSelectedTextLoading ||
-      summaryState.isCustomActionLoading
+      summaryState.isCustomActionLoading ||
+      // Also include tabs with errors so they show in the list
+      summaryState.summaryError ||
+      summaryState.customActionError ||
+      summaryState.courseSummaryError ||
+      summaryState.courseConceptsError ||
+      summaryState.selectedTextError
     ) {
       tabsWithSummary.push(tabId)
     }
@@ -177,12 +183,21 @@ export function getTabsWithSummary() {
 }
 
 /**
- * Gets list of tabs with summary including their titles
+ * Gets list of tabs with summary including their titles, sorted by browser tab order
  * @returns {Promise<Array<{id: number, title: string, isActive: boolean}>>}
  */
 export async function getTabsWithSummaryInfo() {
   const tabsWithSummary = getTabsWithSummary()
   const tabInfos = []
+  
+  // Get all tabs in current window to determine order
+  let tabIndexMap = new Map()
+  try {
+    const allTabs = await browser.tabs.query({ currentWindow: true })
+    tabIndexMap = new Map(allTabs.map((tab, index) => [tab.id, index]))
+  } catch (error) {
+    console.log('[tabCacheService] Failed to get tabs order:', error)
+  }
   
   for (const tabId of tabsWithSummary) {
     try {
@@ -195,11 +210,21 @@ export async function getTabsWithSummaryInfo() {
         state?.summaryState?.isSelectedTextLoading ||
         state?.summaryState?.isCustomActionLoading
 
+      // Check if tab has any error state
+      const hasError =
+        !!state?.summaryState?.summaryError ||
+        !!state?.summaryState?.customActionError ||
+        !!state?.summaryState?.courseSummaryError ||
+        !!state?.summaryState?.courseConceptsError ||
+        !!state?.summaryState?.selectedTextError
+
       tabInfos.push({
         id: tabId,
         title: tab.title || 'Untitled',
         isActive: tabId === currentTabId,
         isLoading,
+        hasError,
+        _browserIndex: tabIndexMap.get(tabId) ?? Infinity,
       })
     } catch (error) {
       // Tab might have been closed, skip it
@@ -207,7 +232,11 @@ export async function getTabsWithSummaryInfo() {
     }
   }
   
-  return tabInfos
+  // Sort by browser tab order
+  tabInfos.sort((a, b) => a._browserIndex - b._browserIndex)
+  
+  // Remove internal property before returning
+  return tabInfos.map(({ _browserIndex, ...rest }) => rest)
 }
 
 /**
@@ -228,16 +257,16 @@ export async function navigateToTab(targetTabId) {
 }
 
 /**
- * Navigates to the next tab with cached summary
+ * Navigates to the next tab with cached summary (sorted by browser tab order)
  * @returns {Promise<number|null>} The tab ID navigated to, or null if none
  */
 export async function navigateToNextCachedTab() {
-  const tabsWithSummary = getTabsWithSummary()
-  if (tabsWithSummary.length <= 1) return null
+  const tabInfos = await getTabsWithSummaryInfo()
+  if (tabInfos.length <= 1) return null
   
-  const currentIndex = tabsWithSummary.indexOf(currentTabId)
-  const nextIndex = (currentIndex + 1) % tabsWithSummary.length
-  const nextTabId = tabsWithSummary[nextIndex]
+  const currentIndex = tabInfos.findIndex(t => t.id === currentTabId)
+  const nextIndex = (currentIndex + 1) % tabInfos.length
+  const nextTabId = tabInfos[nextIndex].id
   
   try {
     await browser.tabs.update(nextTabId, { active: true })
@@ -249,16 +278,16 @@ export async function navigateToNextCachedTab() {
 }
 
 /**
- * Navigates to the previous tab with cached summary
+ * Navigates to the previous tab with cached summary (sorted by browser tab order)
  * @returns {Promise<number|null>} The tab ID navigated to, or null if none
  */
 export async function navigateToPreviousCachedTab() {
-  const tabsWithSummary = getTabsWithSummary()
-  if (tabsWithSummary.length <= 1) return null
+  const tabInfos = await getTabsWithSummaryInfo()
+  if (tabInfos.length <= 1) return null
   
-  const currentIndex = tabsWithSummary.indexOf(currentTabId)
-  const prevIndex = currentIndex <= 0 ? tabsWithSummary.length - 1 : currentIndex - 1
-  const prevTabId = tabsWithSummary[prevIndex]
+  const currentIndex = tabInfos.findIndex(t => t.id === currentTabId)
+  const prevIndex = currentIndex <= 0 ? tabInfos.length - 1 : currentIndex - 1
+  const prevTabId = tabInfos[prevIndex].id
   
   try {
     await browser.tabs.update(prevTabId, { active: true })

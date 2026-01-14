@@ -218,6 +218,13 @@
     }
   }
 
+  // Prevent middle-click auto-scroll icon from appearing
+  function preventMiddleClickScroll(e) {
+    if (e.button === 1) {
+      e.preventDefault()
+    }
+  }
+
   async function handlePrevious() {
     // Scroll is saved in messageHandler.js handleTabSwitch()
     const newTabId = await navigateToPreviousCachedTab()
@@ -334,7 +341,10 @@
     <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
     <div
       bind:this={tabListContainer}
-      onmousedown={handleMouseDown}
+      onmousedown={(e) => {
+        preventMiddleClickScroll(e)
+        handleMouseDown(e)
+      }}
       onmousemove={handleMouseMove}
       onmouseup={handleMouseUp}
       onmouseleave={handleMouseLeave}

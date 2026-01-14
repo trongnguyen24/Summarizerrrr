@@ -470,7 +470,7 @@
 <div class="main-container flex min-w-[22.5rem] bg-surface-1 w-full flex-col">
   <div
     class="grid min-h-screen {settings.tools?.perTabCache?.enabled
-      ? 'grid-rows-[36px_10px_192px_10px_1fr]'
+      ? 'grid-rows-[36px_12px_10px_192px_10px_1fr]'
       : 'grid-rows-[32px_10px_192px_10px_1fr]'}"
   >
     <div
@@ -487,12 +487,13 @@
           : 'hidden'}"
       ></div>
     </div>
-
     <div
-      class="top-stripes flex justify-center border-b border-border border-t items-center w-full h-full {settings
-        .tools?.perTabCache?.enabled
-        ? 'mt-3'
-        : ''}"
+      class="w-screen h-3 {settings.tools?.perTabCache?.enabled
+        ? ''
+        : 'hidden'}"
+    ></div>
+    <div
+      class="top-stripes flex justify-center border-b border-border border-t items-center w-full h-full"
     ></div>
     <div
       class="flex relative font-mono flex-col gap-1 justify-center items-center"

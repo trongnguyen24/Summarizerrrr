@@ -7,6 +7,8 @@
     summaryState,
     globalStoreUpdate,
     isAnyLoading,
+    stopStreaming,
+    resetState,
   } from '@/stores/summaryStore.svelte.js'
   import {
     getTabsWithSummaryInfo,
@@ -15,6 +17,7 @@
     navigateToNextCachedTab,
     getCurrentTabId,
     getTabsWithSummary,
+    clearTabState,
   } from '@/services/tabCacheService.js'
   import { onMount } from 'svelte'
 
@@ -176,6 +179,34 @@
     await loadTabsInfo(false)
   }
 
+  async function handleCloseTab(tabId) {
+    // If closing the current active tab, we need to:
+    // 1. Stop any ongoing streaming
+    // 2. Reset the global summaryState so the tab button disappears
+    if (tabId === currentTabId) {
+      // Stop streaming if running
+      if (isAnyLoading()) {
+        stopStreaming()
+      }
+      // Reset global state so currentTabHasSummary becomes false
+      resetState()
+    }
+
+    // Clear the tab state from cache (don't close the actual browser tab)
+    clearTabState(tabId)
+
+    await loadTabsInfo(false)
+  }
+
+  function handleTabMiddleClick(e, tabId) {
+    if (e.button === 1) {
+      // Middle click
+      e.preventDefault()
+      e.stopPropagation()
+      handleCloseTab(tabId)
+    }
+  }
+
   async function handlePrevious() {
     // Scroll is saved in messageHandler.js handleTabSwitch()
     const newTabId = await navigateToPreviousCachedTab()
@@ -196,13 +227,13 @@
 </script>
 
 <div
-  class="text-text-secondary relative bg-border dark:bg-black h-full w-full flex gap-1 pl-2 items-center"
+  class="text-text-secondary relative bg-border dark:bg-black h-full w-full flex gap-px pl-2 items-center"
 >
   {#if showNavigation}
     <!-- Left arrow -->
     <button
       onclick={handlePrevious}
-      class="py-0.5 px-1.5 hover:bg-surface-2 rounded transition-colors hover:text-text-primary shrink-0"
+      class="py-0.5 px-1 hover:bg-surface-2 rounded transition-colors hover:text-text-primary shrink-0"
       title="Previous cached tab"
     >
       <Icon icon="solar:alt-arrow-left-linear" width="16" height="16" />
@@ -210,7 +241,7 @@
     <!-- Right arrow -->
     <button
       onclick={handleNext}
-      class="py-0.5 px-1.5 hover:bg-surface-2 rounded transition-colors hover:text-text-primary shrink-0"
+      class="py-0.5 px-1 hover:bg-surface-2 rounded transition-colors hover:text-text-primary shrink-0"
       title="Next cached tab"
     >
       <Icon icon="solar:alt-arrow-right-linear" width="16" height="16" />
@@ -221,15 +252,24 @@
       class="flex px-2 z-10 relative h-full overflow-x-auto overflow-y-hidden scrollbar-hide flex-1"
     >
       {#each cachedTabs as tab (tab.id)}
-        <button
+        <div
+          role="button"
+          tabindex="0"
           onclick={() => handleTabClick(tab.id)}
-          class="tab-btn tab {tab.id === currentTabId
+          onkeydown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault()
+              handleTabClick(tab.id)
+            }
+          }}
+          onauxclick={(e) => handleTabMiddleClick(e, tab.id)}
+          class="tab-btn flex items-center group tab {tab.id === currentTabId
             ? 'bg-surface-1 tab-active  text-text-primary !border !border-b-0 !border-border  '
-            : ' hover:text-text-primary'}"
+            : ' hover:text-text-primary !border !border-b-0 !border-transparent'}"
           title={tab.title}
         >
           <div
-            class="-translate-y-0.5 w-full mask-alpha mask-r-from-black mask-r-from-85% mask-r-to-transparent flex items-center gap-1"
+            class="-translate-y-0.5 w-full mask-alpha mask-r-from-black mask-r-from-75% mask-r-to-90% flex items-center gap-1 relative overflow-hidden"
           >
             {#if tab.isLoading}
               <Icon
@@ -240,11 +280,22 @@
               />
             {/if}
 
-            {tab.title}
+            <span class="flex max-w-full select-none">{tab.title}</span>
           </div>
+          <!-- Close Button - Hidden by default, visible on hover -->
+          <button
+            class="absolute right-0.5 top-1/2 -translate-y-2.75 p-0.5 rounded-full text-text-secondary hover:text-text-primary opacity-0 group-hover:opacity-100 transition-opacity"
+            onclick={(e) => {
+              e.stopPropagation()
+              handleCloseTab(tab.id)
+            }}
+            title="Remove from list (Middle-click)"
+          >
+            <Icon icon="solar:close-circle-bold" width="14" height="14" />
+          </button>
           <span class="tab-round-l bg-surface-1"></span>
           <span class="tab-round-r bg-surface-1"></span>
-        </button>
+        </div>
       {/each}
 
       <!-- Current tab button (when not in cached list but has summary OR just for showing current tab) -->
@@ -298,7 +349,9 @@
   }
 
   .tab {
+    cursor: pointer;
     height: 2.25rem;
+    min-width: 3rem;
     max-width: 8rem;
     text-align: left;
     width: 100%;

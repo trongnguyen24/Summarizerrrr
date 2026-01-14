@@ -346,6 +346,8 @@
               if (!status.isLoading) {
                 currentEmoji = '🎉'
                 ensureEmojiInTitle()
+                // Update internal state to prevent re-summary on FAB click
+                oneClickSummarization.markSummaryAsGenerated()
                 clearInterval(checkSummaryDone)
                 // Cleanup emoji tracking after success
                 cleanupEmojiTracking()
@@ -430,6 +432,8 @@
                 if (!status.isLoading) {
                   currentEmoji = '🎉'
                   ensureEmojiInTitle()
+                  // Update internal state to prevent re-summary on FAB click
+                  oneClickSummarization.markSummaryAsGenerated()
                   clearInterval(checkSummaryDone)
                   cleanupEmojiTracking()
                 }

@@ -159,9 +159,6 @@ export function useOneClickSummarization() {
     return true // Prevent default toggle
   }
 
-  /**
-   * Clear cache cho URL cụ thể hoặc toàn bộ
-   */
   function clearSummaryCache(url = null) {
     if (url) {
       const cacheKey = getCacheKey(url)
@@ -174,6 +171,35 @@ export function useOneClickSummarization() {
     if (!url || url === oneClickState.currentUrl) {
       oneClickState.hasSummaryForCurrentUrl = false
       oneClickState.buttonState = 'idle'
+    }
+  }
+
+  /**
+   * Helper để mark state là "đã có summary" thủ công
+   * Dùng cho trường hợp Quick Summary trigger summarization từ bên ngoài
+   */
+  function markSummaryAsGenerated() {
+    console.log('[useOneClickSummarization] Manually marking summary as generated')
+
+    // 1. Update state
+    oneClickState.hasSummaryForCurrentUrl = true
+    oneClickState.buttonState = 'has-summary'
+
+    // 2. Cache result (quan trọng để prevent re-summarize khi toggle)
+    try {
+      const currentState = localSummaryState()
+      const cacheKey = getCacheKey(oneClickState.currentUrl)
+      summaryCache.set(cacheKey, {
+        summary: currentState.summary,
+        chapterSummary: currentState.chapterSummary,
+        courseConcepts: currentState.courseConcepts,
+        contentType: currentState.contentType,
+        pageTitle: currentState.pageTitle,
+        pageUrl: currentState.pageUrl,
+        timestamp: Date.now(),
+      })
+    } catch (e) {
+      console.warn('[useOneClickSummarization] Failed to cache manual summary:', e)
     }
   }
 
@@ -213,5 +239,6 @@ export function useOneClickSummarization() {
     summarizeComments,
     resetLocalSummaryState,
     handleSummarizationError,
+    markSummaryAsGenerated, // Expose helper
   }
 }

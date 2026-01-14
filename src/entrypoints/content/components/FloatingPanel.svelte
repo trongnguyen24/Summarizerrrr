@@ -184,18 +184,12 @@
         savedWidthPx <= MAX_WIDTH_PX
       ) {
         currentWidthPx = savedWidthPx
-        if (panelElement) {
-          panelElement.style.width = `${savedWidthPx}px`
-        }
       } else {
         // Set default width if no saved width or invalid saved width
         currentWidthPx = Math.max(
           MIN_WIDTH_PX,
           Math.min(emToPx(settings.sidePanelDefaultWidth), MAX_WIDTH_PX),
         )
-        if (panelElement) {
-          panelElement.style.width = `${currentWidthPx}px`
-        }
       }
     } catch (error) {
       console.warn('Failed to load width, using default:', error)
@@ -204,9 +198,6 @@
         MIN_WIDTH_PX,
         Math.min(emToPx(settings.sidePanelDefaultWidth), MAX_WIDTH_PX),
       )
-      if (panelElement) {
-        panelElement.style.width = `${currentWidthPx}px`
-      }
     }
   }
 
@@ -287,45 +278,32 @@
     }
   }
 
+  // State for animation class
+  let isActive = $state(false)
+
   // Effect để handle visible state changes với smooth animation
   $effect(() => {
     if (visible) {
-      // Show element first, then animate in
+      // Show element first
       showElement = true
-      // Use double requestAnimationFrame for smoother animation start (optional, but good practice)
+      // Use requestAnimationFrame to ensure element is rendered/displayed before adding visible class (trigger transition)
       requestAnimationFrame(() => {
-        if (panelElement && currentWidthPx > 0) {
-          panelElement.style.width = `${currentWidthPx}px`
-          panelElement.classList.add('visible')
-        }
+        isActive = true
       })
     } else {
-      // Animate out first, then hiding is handled by CSS/transition
-      if (panelElement) {
-        panelElement.classList.remove('visible')
-        // Wait for animation to complete before hiding "interactions"
-        setTimeout(() => {
+      // Start exit animation
+      isActive = false
+      // Wait for animation to complete before hiding "interactions"
+      setTimeout(() => {
+        // Only output hidden if we didn't become visible again during the timeout
+        if (!isActive) {
           showElement = false
-        }, 410) // Match CSS transition duration
-      } else {
-        showElement = false
-      }
+        }
+      }, 410) // Match CSS transition duration
     }
   })
 
-  // Effect để handle case khi panelElement được bind SAU khi visible=true
-  // Quan trọng khi component được re-create bởi {#key currentUrlKey}
-  $effect(() => {
-    if (panelElement && visible && currentWidthPx > 0) {
-      // Đảm bảo class 'visible' được thêm khi element ready
-      requestAnimationFrame(() => {
-        if (panelElement && !panelElement.classList.contains('visible')) {
-          panelElement.style.width = `${currentWidthPx}px`
-          panelElement.classList.add('visible')
-        }
-      })
-    }
-  })
+  // Width is handled by style binding in template, no need for manual effect
 
   onMount(() => {
     loadWidth()
@@ -357,6 +335,7 @@
 <!-- Sidepanel container -->
 <div
   class="floating-panel pt-8"
+  class:visible={isActive}
   class:left={panelPosition === 'left'}
   class:right={panelPosition === 'right'}
   class:invisible={!showElement}

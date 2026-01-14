@@ -224,6 +224,76 @@
       await loadTabsInfo(false)
     }
   }
+
+  // ==========================================
+  // Grab Scroll (Drag to scroll) functionality
+  // ==========================================
+  let tabListContainer = $state(null)
+  let isGrabbing = $state(false)
+  let hasDragged = $state(false) // Track if actual drag occurred
+  let startX = $state(0)
+  let scrollLeft = $state(0)
+
+  function handleMouseDown(e) {
+    // Only trigger on left mouse button
+    if (e.button !== 0) return
+    if (!tabListContainer) return
+
+    isGrabbing = true
+    hasDragged = false // Reset drag flag
+    startX = e.pageX - tabListContainer.offsetLeft
+    scrollLeft = tabListContainer.scrollLeft
+    tabListContainer.style.cursor = 'grabbing'
+  }
+
+  function handleMouseMove(e) {
+    if (!isGrabbing) return
+    e.preventDefault()
+
+    const x = e.pageX - tabListContainer.offsetLeft
+    const walk = (x - startX) * 1.5 // Scroll speed multiplier
+
+    // If moved more than 5px, consider it a drag
+    if (Math.abs(x - startX) > 5) {
+      hasDragged = true
+    }
+
+    tabListContainer.scrollLeft = scrollLeft - walk
+  }
+
+  function handleMouseUp() {
+    if (!isGrabbing) return
+    isGrabbing = false
+    if (tabListContainer) {
+      tabListContainer.style.cursor = 'grab'
+    }
+
+    // If we dragged, prevent click on tabs by resetting after a short delay
+    if (hasDragged) {
+      // Use setTimeout to allow this flag to be checked by click handlers
+      setTimeout(() => {
+        hasDragged = false
+      }, 10)
+    }
+  }
+
+  function handleMouseLeave() {
+    if (isGrabbing) {
+      isGrabbing = false
+      hasDragged = false
+      if (tabListContainer) {
+        tabListContainer.style.cursor = 'grab'
+      }
+    }
+  }
+
+  // Wrapper to prevent tab click after dragging
+  function handleTabClickWrapper(tabId) {
+    if (hasDragged) {
+      return // Don't navigate if we just finished dragging
+    }
+    handleTabClick(tabId)
+  }
 </script>
 
 <div
@@ -248,18 +318,25 @@
     </button>
 
     <!-- Tab list -->
+    <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
     <div
-      class="flex px-2 z-10 relative h-full overflow-x-auto overflow-y-hidden scrollbar-hide flex-1"
+      bind:this={tabListContainer}
+      onmousedown={handleMouseDown}
+      onmousemove={handleMouseMove}
+      onmouseup={handleMouseUp}
+      onmouseleave={handleMouseLeave}
+      role="group"
+      class="flex px-2 z-10 relative h-full overflow-x-auto overflow-y-hidden scrollbar-hide flex-1 cursor-grab"
     >
       {#each cachedTabs as tab (tab.id)}
         <div
           role="button"
           tabindex="0"
-          onclick={() => handleTabClick(tab.id)}
+          onclick={() => handleTabClickWrapper(tab.id)}
           onkeydown={(e) => {
             if (e.key === 'Enter' || e.key === ' ') {
               e.preventDefault()
-              handleTabClick(tab.id)
+              handleTabClickWrapper(tab.id)
             }
           }}
           onauxclick={(e) => handleTabMiddleClick(e, tab.id)}
@@ -316,7 +393,9 @@
           <div
             class="-translate-y-0.5 w-full mask-alpha mask-r-from-black mask-r-from-85% mask-r-to-transparent"
           >
-            <span class="flex max-w-full select-none"> {$tabTitle}</span>
+            <span class="flex max-w-full overflow-hidden select-none">
+              {$tabTitle}</span
+            >
           </div>
           <span class="tab-round-l bg-surface-1"></span>
           <span class="tab-round-r bg-surface-1"></span>
@@ -346,11 +425,8 @@
   .tab {
     cursor: pointer;
     height: 2.25rem;
-    min-width: 3rem;
-    max-width: 8rem;
     text-align: left;
-    width: 100%;
-    flex: 1;
+    width: clamp(5.75rem, -1.3214rem + 31.4286vw, 11.25rem);
     border: 1px solid transparent;
     transform: translateY(2px);
     padding: 0.125rem 0.5rem;

@@ -20,6 +20,12 @@
   import '@fontsource/opendyslexic'
   import '@fontsource/mali'
 
+  // Browser detection for review URL
+  const isFirefox = import.meta.env.FIREFOX
+  const reviewUrl = isFirefox
+    ? 'https://addons.mozilla.org/firefox/addon/summarizerrrr/reviews/'
+    : 'https://chromewebstore.google.com/detail/summarizerrrr/ahfjndakflcegianjdojpldllodpkkpc/reviews'
+
   $effect(() => {
     initializeTheme()
     const unsubscribeSystemTheme = subscribeToSystemThemeChanges()
@@ -47,22 +53,67 @@
 </script>
 
 <div class="flex parent h-dvh bg-background">
-  <span class=" bg-border/70 top"></span>
-  <span class=" bg-border/70 relative bottom">
-    <!-- Bug Reports & Feature Ideas Button -->
+  <span class=" bg-border/70 top">
     <div
-      class="w-full absolute max-w-2xl left-1/2 -translate-x-1/2 top-px z-10"
+      class="w-full absolute max-w-2xl left-1/2 -translate-x-1/2 top-px z-10 flex items-end"
     >
+      <!-- Bug Reports & Feature Ideas -->
       <a
-        href="https://reddit.com/r/summarizerrrr/"
+        href="https://github.com/trongnguyen24/Summarizerrrr/issues"
         target="_blank"
         rel="noopener noreferrer"
-        class="flex w-fit ml-auto text-muted hover:text-primary justify-center py-1 px-3 items-center gap-1"
+        class="flex w-fit ml-auto text-muted hover:text-primary py-1 px-3 items-center gap-1"
       >
-        <Icon icon="mdi:reddit" width="16" height="16" />
+        <Icon icon="mdi:github" width="16" height="16" />
         <span class="text-xs">Bug reports & feature ideas</span>
         <Icon icon="heroicons:arrow-up-right-16-solid" width="12" height="12" />
       </a>
+    </div>
+  </span>
+  <span class=" bg-border/70 relative bottom">
+    <!-- Footer Links: Support & Bug Reports -->
+    <div
+      class="w-full absolute max-w-2xl left-1/2 -translate-x-1/2 top-px z-10"
+    >
+      <!-- Buy Me a Coffee or Review -->
+      <div
+        class="flex w-full text-muted py-1 px-3 items-center gap-1 text-xs justify-center"
+      >
+        If helpful? Support me on <a
+          href="https://www.buymeacoffee.com/trongnguyen24"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="flex items-center gap-1 hover:text-primary underline underline-offset-1"
+          >Buy Me a Coffee</a
+        >
+        or leave a
+        <a
+          href={reviewUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="flex items-center gap-1 hover:text-primary underline underline-offset-1"
+          >Review</a
+        >
+        <!-- <a
+          href="https://www.buymeacoffee.com/trongnguyen24"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="flex items-center gap-1 hover:text-primary"
+        >
+          <Icon icon="simple-icons:buymeacoffee" width="14" height="14" />
+          <span>Buy me a coffee</span>
+        </a>
+        <span class="text-muted/50">or</span>
+        <a
+          href={reviewUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="flex items-center gap-1 hover:text-primary"
+        >
+          <Icon icon="material-symbols:star-rounded" width="14" height="14" />
+          <span>Review</span>
+        </a> -->
+      </div>
     </div>
   </span>
   <span class="bg-border/70 left"></span>

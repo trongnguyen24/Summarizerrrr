@@ -26,6 +26,9 @@
   // State for cached tabs info
   let cachedTabs = $state([])
 
+  // State to track if initial load completed (prevents flicker)
+  let hasLoadedOnce = $state(false)
+
   // State for current tab ID (reactive)
   let currentTabId = $state(null)
 
@@ -175,6 +178,7 @@
     }
 
     cachedTabs = tabs
+    hasLoadedOnce = true
 
     if (updateCurrentTab && activeTabId) {
       currentTabId = activeTabId
@@ -349,7 +353,7 @@
       onmouseup={handleMouseUp}
       onmouseleave={handleMouseLeave}
       role="group"
-      class="flex font-mono px-2 z-10 relative h-full overflow-x-auto overflow-y-hidden scrollbar-hide flex-1 cursor-grab"
+      class="flex gap-px font-mono px-2 z-10 relative h-full overflow-x-auto overflow-y-hidden scrollbar-hide flex-1 cursor-grab"
     >
       {#each cachedTabs as tab (tab.id)}
         <div
@@ -368,15 +372,14 @@
             : ' hover:text-text-primary !border !border-b-0 !border-transparent'}"
           title={tab.title}
         >
-          <div
-            class="-translate-y-0.5 w-full mask-alpha mask-r-from-black mask-r-from-75% mask-r-to-90% flex items-center gap-1 relative overflow-hidden"
+          <span
+            class="flex z-20 -translate-y-1 px-1.5 max-w-full w-full group-hover:w-[90%] duration-100 transition-all mask-alpha mask-r-from-black mask-r-from-75% mask-r-to-90% select-none {tab.isLoading
+              ? 'animate-pulse'
+              : ''} {tab.hasError ? 'text-red-400' : ''}">{tab.title}</span
           >
-            <span
-              class="flex max-w-full select-none {tab.isLoading
-                ? 'animate-pulse'
-                : ''} {tab.hasError ? 'text-red-400' : ''}">{tab.title}</span
-            >
-          </div>
+          <div
+            class=" absolute w-[calc(100%-2px)] top-0 left-0 flex items-center gap-1 group-hover:bg-surface-1 px-1.5 h-6 rounded overflow-hidden"
+          ></div>
           <!-- Close Button - Hidden by default, visible on hover -->
           <button
             class="absolute right-0.5 top-1/2 -translate-y-3.25 p-0.5 hover:bg-surface-2 rounded-full text-text-secondary hover:text-text-primary opacity-0 group-hover:opacity-100 transition-opacity"
@@ -397,8 +400,8 @@
         </div>
       {/each}
 
-      <!-- Current tab button (when not in cached list but has summary OR cache is empty) -->
-      {#if !isCurrentTabInCache && currentTabId && (currentTabHasSummary || cachedTabs.length === 0)}
+      <!-- Current tab button (only when no cached tabs exist after initial load) -->
+      {#if hasLoadedOnce && cachedTabs.length === 0 && currentTabId}
         <button
           class="tab-btn tab tab-active bg-surface-1 text-text-primary !border !border-b-0 !border-surface-2/50 dark:!border-border"
           title={$tabTitle}
@@ -441,12 +444,12 @@
 
   .tab {
     cursor: pointer;
-    height: 2.25rem;
+    height: 2rem;
     text-align: left;
-    width: clamp(5.75rem, 1.5714rem + 18.5714vw, 9rem);
+    width: clamp(5rem, 2.5rem + 12.5vw, 7.5rem);
     border: 1px solid transparent;
-    transform: translateY(2px);
-    padding: 0.125rem 0.5rem;
+    transform: translateY(6px);
+    padding: 2px 0 2px 2px;
     font-size: 0.7rem;
     border-radius: 0.5rem 0.5rem 0 0;
     white-space: nowrap;

@@ -353,7 +353,7 @@
       onmouseup={handleMouseUp}
       onmouseleave={handleMouseLeave}
       role="group"
-      class="flex gap-px font-mono px-2 z-10 relative h-full overflow-x-auto overflow-y-hidden scrollbar-hide flex-1 cursor-grab"
+      class="flex gap-0.5 font-mono px-2 z-10 relative h-full overflow-x-auto overflow-y-hidden scrollbar-hide flex-1 cursor-grab"
     >
       {#each cachedTabs as tab (tab.id)}
         <div
@@ -373,12 +373,12 @@
           title={tab.title}
         >
           <span
-            class="flex z-20 -translate-y-1 px-1.5 max-w-full w-full group-hover:w-[90%] duration-100 transition-all mask-alpha mask-r-from-black mask-r-from-75% mask-r-to-90% select-none {tab.isLoading
+            class="flex z-20 -translate-y-0.75 px-1.75 max-w-full w-full group-hover:w-[90%] duration-100 transition-all mask-alpha mask-r-from-black mask-r-from-75% mask-r-to-90% select-none {tab.isLoading
               ? 'animate-pulse'
               : ''} {tab.hasError ? 'text-red-400' : ''}">{tab.title}</span
           >
           <div
-            class=" absolute w-[calc(100%-2px)] top-0 left-0 flex items-center gap-1 group-hover:bg-surface-1 px-1.5 h-6 rounded overflow-hidden"
+            class=" absolute w-[calc(100%-4px)] top-0 left-1/2 -translate-x-1/2 flex items-center gap-1 group-hover:bg-surface-1 px-1.5 h-6 rounded overflow-hidden"
           ></div>
           <!-- Close Button - Hidden by default, visible on hover -->
           <button

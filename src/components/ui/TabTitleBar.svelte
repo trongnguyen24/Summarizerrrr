@@ -373,16 +373,16 @@
           title={tab.title}
         >
           <span
-            class="flex z-20 -translate-y-0.75 px-1.75 max-w-full w-full group-hover:w-[90%] duration-100 transition-all mask-alpha mask-r-from-black mask-r-from-75% mask-r-to-90% select-none {tab.isLoading
+            class="flex z-20 -translate-y-0.75 px-1.75 max-w-full w-full group-hover:w-[90%] duration-200 transition-all mask-alpha mask-r-from-black mask-r-from-75% mask-r-to-90% select-none {tab.isLoading
               ? 'animate-pulse'
               : ''} {tab.hasError ? 'text-red-400' : ''}">{tab.title}</span
           >
           <div
-            class=" absolute w-[calc(100%-4px)] top-0 left-1/2 -translate-x-1/2 flex items-center gap-1 group-hover:bg-surface-1 px-1.5 h-6 rounded overflow-hidden"
+            class=" absolute w-[calc(100%-4px)] top-0 left-1/2 -translate-x-1/2 flex items-center gap-1 transition-colors duration-200 group-hover:bg-surface-1 px-1.5 h-6 rounded overflow-hidden"
           ></div>
           <!-- Close Button - Hidden by default, visible on hover -->
           <button
-            class="absolute right-0.5 top-1/2 -translate-y-3.25 p-0.5 hover:bg-surface-2 rounded-full text-text-secondary hover:text-text-primary opacity-0 group-hover:opacity-100 transition-opacity"
+            class="absolute z-30 right-0.5 top-1/2 -translate-y-3.25 p-0.5 hover:bg-blackwhite/10 rounded-full text-text-secondary hover:text-text-primary opacity-0 group-hover:opacity-100 transition-all duration-200"
             onclick={(e) => {
               e.stopPropagation()
               handleCloseTab(tab.id)

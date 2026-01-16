@@ -25,7 +25,7 @@
   // ==========================================
   // Constants
   // ==========================================
-  const SCROLL_SPEED_MULTIPLIER = 1.5
+  const SCROLL_SPEED_MULTIPLIER = 1
   const DRAG_THRESHOLD_PX = 5
   const ANIMATION_DELAY_MS = 50
   const LERP_FACTOR = 0.15 // Lower = smoother but slower, Higher = faster but less smooth
@@ -468,6 +468,41 @@
     }
     handleTabClick(tabId)
   }
+
+  // ==========================================
+  // Horizontal Wheel Scroll functionality
+  // ==========================================
+  function handleWheel(e) {
+    if (!tabListContainer) return
+
+    // Prevent default vertical scroll
+    e.preventDefault()
+
+    // Convert vertical scroll to horizontal scroll
+    // deltaY is the vertical scroll amount, we use it for horizontal scrolling
+    const scrollAmount = e.deltaY || e.deltaX
+
+    // Update target scroll position
+    targetScrollLeft =
+      tabListContainer.scrollLeft + scrollAmount * SCROLL_SPEED_MULTIPLIER
+
+    // Clamp to valid scroll range
+    const maxScroll =
+      tabListContainer.scrollWidth - tabListContainer.clientWidth
+    targetScrollLeft = Math.max(0, Math.min(targetScrollLeft, maxScroll))
+
+    // Sync current position for lerp
+    currentScrollLeft = tabListContainer.scrollLeft
+
+    // Use lerp animation if reduce motion is not enabled
+    if (!isReduceMotionEnabled()) {
+      startLerpAnimation()
+    } else {
+      // Instant scroll if reduce motion is enabled
+      tabListContainer.scrollLeft = targetScrollLeft
+      currentScrollLeft = targetScrollLeft
+    }
+  }
 </script>
 
 <div
@@ -504,6 +539,7 @@
       onmousemove={handleMouseMove}
       onmouseup={handleMouseUp}
       onmouseleave={handleMouseLeave}
+      onwheel={handleWheel}
       role="group"
       class="flex gap-0.5 font-mono px-2 z-10 relative h-full overflow-x-auto overflow-y-hidden scrollbar-hide flex-1 cursor-grab"
     >

@@ -19,6 +19,7 @@
     getTabsWithSummary,
     clearTabState,
   } from '@/services/tabCacheService.js'
+  import { isReduceMotionEnabled } from '@/services/animationService.js'
   import { onMount } from 'svelte'
 
   // Props - none
@@ -248,13 +249,113 @@
   }
 
   // ==========================================
-  // Grab Scroll (Drag to scroll) functionality
+  // Grab Scroll (Drag to scroll) functionality with Lerp Animation
   // ==========================================
   let tabListContainer = $state(null)
   let isGrabbing = $state(false)
   let hasDragged = $state(false) // Track if actual drag occurred
   let startX = $state(0)
   let scrollLeft = $state(0)
+
+  // Lerp animation state
+  let targetScrollLeft = $state(0)
+  let currentScrollLeft = $state(0)
+  let lerpAnimationId = $state(null)
+  const LERP_FACTOR = 0.15 // Lower = smoother but slower, Higher = faster but less smooth
+  const LERP_THRESHOLD = 0.5 // Stop animating when difference is less than this
+
+  // Lerp (Linear Interpolation) function
+  function lerp(start, end, factor) {
+    return start + (end - start) * factor
+  }
+
+  // Animation loop for smooth scrolling
+  function animateLerp() {
+    if (!tabListContainer) {
+      lerpAnimationId = null
+      return
+    }
+
+    // Calculate new position using lerp
+    currentScrollLeft = lerp(currentScrollLeft, targetScrollLeft, LERP_FACTOR)
+
+    // Apply the scroll position
+    tabListContainer.scrollLeft = currentScrollLeft
+
+    // Continue animation if we haven't reached target (within threshold)
+    if (Math.abs(targetScrollLeft - currentScrollLeft) > LERP_THRESHOLD) {
+      lerpAnimationId = requestAnimationFrame(animateLerp)
+    } else {
+      // Snap to target when close enough
+      tabListContainer.scrollLeft = targetScrollLeft
+      currentScrollLeft = targetScrollLeft
+      lerpAnimationId = null
+    }
+  }
+
+  // Start lerp animation
+  function startLerpAnimation() {
+    if (lerpAnimationId === null) {
+      lerpAnimationId = requestAnimationFrame(animateLerp)
+    }
+  }
+
+  // Stop lerp animation
+  function stopLerpAnimation() {
+    if (lerpAnimationId !== null) {
+      cancelAnimationFrame(lerpAnimationId)
+      lerpAnimationId = null
+    }
+  }
+
+  // Global mouse handlers for grab scroll - allows dragging to continue outside container
+  function handleGlobalMouseMove(e) {
+    if (!isGrabbing || !tabListContainer) return
+    e.preventDefault()
+
+    const x = e.pageX - tabListContainer.offsetLeft
+    const walk = (x - startX) * 1.5 // Scroll speed multiplier
+
+    // If moved more than 5px, consider it a drag
+    if (Math.abs(x - startX) > 5) {
+      hasDragged = true
+    }
+
+    // Update target scroll position
+    targetScrollLeft = scrollLeft - walk
+
+    // Use lerp animation if reduce motion is not enabled
+    if (!isReduceMotionEnabled()) {
+      startLerpAnimation()
+    } else {
+      // Instant scroll if reduce motion is enabled
+      tabListContainer.scrollLeft = targetScrollLeft
+      currentScrollLeft = targetScrollLeft
+    }
+  }
+
+  function handleGlobalMouseUp() {
+    if (!isGrabbing) return
+    isGrabbing = false
+    if (tabListContainer) {
+      tabListContainer.style.cursor = 'grab'
+    }
+
+    // Remove global listeners
+    document.removeEventListener('mousemove', handleGlobalMouseMove)
+    document.removeEventListener('mouseup', handleGlobalMouseUp)
+
+    // If we dragged, prevent click on tabs by resetting after a short delay
+    if (hasDragged) {
+      // Use setTimeout to allow this flag to be checked by click handlers
+      setTimeout(() => {
+        hasDragged = false
+      }, 10)
+    }
+
+    // Let lerp animation continue to finish smoothly after mouse up
+    // Don't stop it immediately - it will stop when reaching target
+  }
 
   function handleMouseDown(e) {
     // Only trigger on left mouse button
@@ -266,6 +367,17 @@
     startX = e.pageX - tabListContainer.offsetLeft
     scrollLeft = tabListContainer.scrollLeft
     tabListContainer.style.cursor = 'grabbing'
+
+    // Sync lerp state with current scroll position
+    currentScrollLeft = tabListContainer.scrollLeft
+    targetScrollLeft = tabListContainer.scrollLeft
+
+    // Stop any existing lerp animation
+    stopLerpAnimation()
+
+    // Add global listeners to track mouse outside container
+    document.addEventListener('mousemove', handleGlobalMouseMove)
+    document.addEventListener('mouseup', handleGlobalMouseUp)
   }
 
   function handleMouseMove(e) {
@@ -280,33 +392,29 @@
       hasDragged = true
     }
 
-    tabListContainer.scrollLeft = scrollLeft - walk
+    // Update target scroll position
+    targetScrollLeft = scrollLeft - walk
+
+    // Use lerp animation if reduce motion is not enabled
+    if (!isReduceMotionEnabled()) {
+      startLerpAnimation()
+    } else {
+      // Instant scroll if reduce motion is enabled
+      tabListContainer.scrollLeft = targetScrollLeft
+      currentScrollLeft = targetScrollLeft
+    }
   }
 
   function handleMouseUp() {
+    // This is now handled by handleGlobalMouseUp
+    // Keep for compatibility but global handler does the main work
     if (!isGrabbing) return
-    isGrabbing = false
-    if (tabListContainer) {
-      tabListContainer.style.cursor = 'grab'
-    }
-
-    // If we dragged, prevent click on tabs by resetting after a short delay
-    if (hasDragged) {
-      // Use setTimeout to allow this flag to be checked by click handlers
-      setTimeout(() => {
-        hasDragged = false
-      }, 10)
-    }
+    handleGlobalMouseUp()
   }
 
   function handleMouseLeave() {
-    if (isGrabbing) {
-      isGrabbing = false
-      hasDragged = false
-      if (tabListContainer) {
-        tabListContainer.style.cursor = 'grab'
-      }
-    }
+    // Don't stop grabbing when mouse leaves - global listeners handle it
+    // This allows dragging to continue even when cursor leaves the container
   }
 
   // Wrapper to prevent tab click after dragging
@@ -321,7 +429,7 @@
 <div
   class="text-text-secondary relative {showNavigation
     ? ' bg-background-dark '
-    : 'bg-transparent'} h-full w-full flex gap-px pl-2 items-center"
+    : 'bg-transparent'} overflow-hidden w-full h-9 flex gap-px pl-2 items-center"
 >
   {#if showNavigation}
     <!-- Left arrow -->
@@ -373,7 +481,7 @@
           title={tab.title}
         >
           <span
-            class="flex z-20 -translate-y-0.75 px-1.75 max-w-full w-full group-hover:w-[90%] duration-200 transition-all mask-alpha mask-r-from-black mask-r-from-75% mask-r-to-90% select-none {tab.isLoading
+            class="flex z-20 -translate-y-0.75 px-1.75 max-w-full w-full group-hover:w-[90%] duration-200 transition-all mask-alpha overflow-x-hidden mask-r-from-black mask-r-from-75% mask-r-to-90% select-none {tab.isLoading
               ? 'animate-pulse'
               : ''} {tab.hasError ? 'text-red-400' : ''}">{tab.title}</span
           >
@@ -406,11 +514,15 @@
           class="tab-btn tab tab-active bg-surface-1 text-text-primary !border !border-b-0 !border-surface-2/50 dark:!border-border"
           title={$tabTitle}
         >
-          <div
-            class="-translate-y-0.5 w-full mask-alpha overflow-x-hidden mask-r-from-black mask-r-from-85% mask-r-to-transparent"
+          <span
+            class="flex z-20 -translate-y-0.75 px-1.75 max-w-full w-full group-hover:w-[90%] duration-200 transition-all mask-alpha overflow-hidden mask-r-from-black mask-r-from-75% mask-r-to-90% select-none"
           >
-            <span class="flex max-w-full select-none"> {$tabTitle}</span>
-          </div>
+            {$tabTitle}</span
+          >
+
+          <div
+            class=" absolute w-[calc(100%-4px)] top-0 left-1/2 -translate-x-1/2 flex items-center gap-1 transition-colors duration-200 group-hover:bg-surface-1 px-1.5 h-6 rounded overflow-hidden"
+          ></div>
           <span
             class="tab-round-l bg-surface-1 before:bg-background-dark before:!border-surface-2/70 dark:before:!border-border dark:before:bg-black"
           ></span>

@@ -89,7 +89,10 @@
       // Just update local state here for UI
       currentTabId = activeInfo.tabId
       // Reload tabs info to update list
-      loadTabsInfo(false)
+      loadTabsInfo(false).then(() => {
+        // Scroll to the activated tab after list is updated
+        setTimeout(() => scrollToActiveTab(activeInfo.tabId), 50)
+      })
     }
 
     browser.tabs.onRemoved.addListener(handleTabRemoved)
@@ -186,6 +189,39 @@
     }
   }
 
+  // Scroll to the active tab button with lerp animation
+  function scrollToActiveTab(tabId) {
+    if (!tabListContainer) return
+
+    // Find the tab button element by data-tab-id
+    const tabButton = tabListContainer.querySelector(`[data-tab-id="${tabId}"]`)
+    if (!tabButton) return
+
+    // Calculate the scroll position to center the tab button
+    const containerRect = tabListContainer.getBoundingClientRect()
+    const buttonRect = tabButton.getBoundingClientRect()
+    const containerWidth = containerRect.width
+    const buttonWidth = buttonRect.width
+
+    // Calculate the target scroll position to center the button
+    const buttonOffsetLeft = tabButton.offsetLeft
+    const targetScroll = buttonOffsetLeft - containerWidth / 2 + buttonWidth / 2
+
+    // Clamp to valid scroll range
+    const maxScroll = tabListContainer.scrollWidth - containerWidth
+    const clampedTarget = Math.max(0, Math.min(targetScroll, maxScroll))
+
+    // Use lerp animation
+    if (!isReduceMotionEnabled()) {
+      targetScrollLeft = clampedTarget
+      currentScrollLeft = tabListContainer.scrollLeft
+      startLerpAnimation()
+    } else {
+      // Instant scroll if reduce motion is enabled
+      tabListContainer.scrollLeft = clampedTarget
+    }
+  }
+
   async function handleTabClick(tabId) {
     // Scroll is saved in messageHandler.js handleTabSwitch() when tabUpdated fires
     // Just update local state and navigate
@@ -193,6 +229,8 @@
     await navigateToTab(tabId)
     // Reload tabs list only, don't overwrite currentTabId
     await loadTabsInfo(false)
+    // Scroll to the clicked tab (use timeout to ensure DOM is updated)
+    setTimeout(() => scrollToActiveTab(tabId), 50)
   }
 
   async function handleCloseTab(tabId) {
@@ -236,6 +274,8 @@
     if (newTabId) {
       currentTabId = newTabId
       await loadTabsInfo(false)
+      // Scroll to the new active tab
+      setTimeout(() => scrollToActiveTab(newTabId), 50)
     }
   }
 
@@ -245,6 +285,8 @@
     if (newTabId) {
       currentTabId = newTabId
       await loadTabsInfo(false)
+      // Scroll to the new active tab
+      setTimeout(() => scrollToActiveTab(newTabId), 50)
     }
   }
 
@@ -467,6 +509,7 @@
         <div
           role="button"
           tabindex="0"
+          data-tab-id={tab.id}
           onclick={() => handleTabClickWrapper(tab.id)}
           onkeydown={(e) => {
             if (e.key === 'Enter' || e.key === ' ') {

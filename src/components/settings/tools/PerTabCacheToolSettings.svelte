@@ -12,6 +12,7 @@
       settings.tools?.perTabCache ?? {
         enabled: true,
         autoResetOnNavigation: false,
+        autoScrollBehavior: 'smooth',
       },
   )
 
@@ -62,9 +63,9 @@
   </div>
 
   {#if toolSettings.enabled}
-    <!-- Auto Reset on Navigation -->
+    <!-- Clear Cache on Navigation -->
     <div>
-      <span class="text-text-primary">Navigation Behavior</span>
+      <span class="text-text-primary">Clear Cache on Navigation</span>
       <p class="mt-2 text-muted">
         Choose how the summary cache behaves when you navigate to a different
         URL within the same tab.
@@ -81,7 +82,7 @@
           <Icon icon="heroicons:bookmark" width="16" height="16" />
         </ButtonSet>
         <ButtonSet
-          title="Auto Reset"
+          title="Auto Clear"
           class="setting-btn {toolSettings.autoResetOnNavigation
             ? 'active'
             : ''}"
@@ -89,6 +90,46 @@
           Description="Automatically clear summary when URL changes"
         >
           <Icon icon="heroicons:arrow-path" width="16" height="16" />
+        </ButtonSet>
+      </div>
+    </div>
+
+    <!-- Auto Scroll to Active Tab -->
+    <div>
+      <span class="text-text-primary">Auto Scroll to Active Tab</span>
+      <p class="mt-2 text-muted">
+        Automatically scroll to bring the active tab button into view.
+      </p>
+      <div class="grid mt-3 grid-cols-3 gap-2">
+        <ButtonSet
+          title="Off"
+          class="setting-btn {toolSettings.autoScrollBehavior === 'off'
+            ? 'active'
+            : ''}"
+          onclick={() => updateToolSetting('autoScrollBehavior', 'off')}
+          Description="Don't auto scroll"
+        >
+          <Icon icon="heroicons:x-mark" width="16" height="16" />
+        </ButtonSet>
+        <ButtonSet
+          title="Jump"
+          class="setting-btn {toolSettings.autoScrollBehavior === 'jump'
+            ? 'active'
+            : ''}"
+          onclick={() => updateToolSetting('autoScrollBehavior', 'jump')}
+          Description="Instant scroll"
+        >
+          <Icon icon="heroicons:bolt" width="16" height="16" />
+        </ButtonSet>
+        <ButtonSet
+          title="Smooth"
+          class="setting-btn {toolSettings.autoScrollBehavior === 'smooth'
+            ? 'active'
+            : ''}"
+          onclick={() => updateToolSetting('autoScrollBehavior', 'smooth')}
+          Description="Animated scroll"
+        >
+          <Icon icon="heroicons:sparkles" width="16" height="16" />
         </ButtonSet>
       </div>
     </div>

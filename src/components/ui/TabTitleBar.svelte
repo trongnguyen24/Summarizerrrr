@@ -45,6 +45,11 @@
   // Computed: Check if should show navigation buttons
   let showNavigation = $derived(settings.tools?.perTabCache?.enabled)
 
+  // Computed: Auto scroll behavior ('off' | 'jump' | 'smooth')
+  let autoScrollBehavior = $derived(
+    settings.tools?.perTabCache?.autoScrollBehavior ?? 'smooth',
+  )
+
   // Computed: Check if current tab is in cached tabs list
   let isCurrentTabInCache = $derived(
     cachedTabs.some((tab) => tab.id === currentTabId),
@@ -200,8 +205,10 @@
     }
   }
 
-  // Scroll to the active tab button with lerp animation
+  // Scroll to the active tab button based on autoScrollBehavior setting
   function scrollToActiveTab(tabId) {
+    // Check if auto scroll is disabled
+    if (autoScrollBehavior === 'off') return
     if (!tabListContainer) return
 
     // Find the tab button element by data-tab-id
@@ -222,13 +229,14 @@
     const maxScroll = tabListContainer.scrollWidth - containerWidth
     const clampedTarget = Math.max(0, Math.min(targetScroll, maxScroll))
 
-    // Use lerp animation
-    if (!isReduceMotionEnabled()) {
+    // Apply scroll based on behavior setting
+    if (autoScrollBehavior === 'smooth' && !isReduceMotionEnabled()) {
+      // Use lerp animation for smooth scroll
       targetScrollLeft = clampedTarget
       currentScrollLeft = tabListContainer.scrollLeft
       startLerpAnimation()
     } else {
-      // Instant scroll if reduce motion is enabled
+      // Instant scroll (jump) or if reduce motion is enabled
       tabListContainer.scrollLeft = clampedTarget
     }
   }

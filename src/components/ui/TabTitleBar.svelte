@@ -567,7 +567,7 @@
               : ''} {tab.hasError ? 'text-red-400' : ''}">{tab.title}</span
           >
           <div
-            class=" absolute w-[calc(100%-4px)] top-0 left-1/2 -translate-x-1/2 flex items-center gap-1 transition-colors duration-200 group-hover:bg-surface-1 px-1.5 h-6 rounded overflow-hidden"
+            class=" absolute scale-50 translate-y-2 group-hover:scale-100 group-hover:translate-y-0 w-[calc(100%-4px)] top-0 left-1/2 -translate-x-1/2 flex items-center gap-1 transition-all duration-200 group-hover:bg-surface-1 px-1.5 h-6 rounded overflow-hidden"
           ></div>
           <!-- Close Button - Hidden by default, visible on hover -->
           <button

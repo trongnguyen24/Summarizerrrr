@@ -20,7 +20,16 @@
     clearTabState,
   } from '@/services/tabCacheService.js'
   import { isReduceMotionEnabled } from '@/services/animationService.js'
-  import { onMount } from 'svelte'
+  import { onMount, onDestroy } from 'svelte'
+
+  // ==========================================
+  // Constants
+  // ==========================================
+  const SCROLL_SPEED_MULTIPLIER = 1.5
+  const DRAG_THRESHOLD_PX = 5
+  const ANIMATION_DELAY_MS = 50
+  const LERP_FACTOR = 0.15 // Lower = smoother but slower, Higher = faster but less smooth
+  const LERP_THRESHOLD = 0.5 // Stop animating when difference is less than this
 
   // Props - none
 
@@ -101,6 +110,8 @@
     return () => {
       browser.tabs.onRemoved.removeListener(handleTabRemoved)
       browser.tabs.onActivated.removeListener(handleTabActivated)
+      // Cleanup global mouse listeners to prevent memory leaks
+      cleanupGlobalMouseListeners()
     }
   })
 
@@ -230,7 +241,7 @@
     // Reload tabs list only, don't overwrite currentTabId
     await loadTabsInfo(false)
     // Scroll to the clicked tab (use timeout to ensure DOM is updated)
-    setTimeout(() => scrollToActiveTab(tabId), 50)
+    setTimeout(() => scrollToActiveTab(tabId), ANIMATION_DELAY_MS)
   }
 
   async function handleCloseTab(tabId) {
@@ -275,7 +286,7 @@
       currentTabId = newTabId
       await loadTabsInfo(false)
       // Scroll to the new active tab
-      setTimeout(() => scrollToActiveTab(newTabId), 50)
+      setTimeout(() => scrollToActiveTab(newTabId), ANIMATION_DELAY_MS)
     }
   }
 
@@ -286,7 +297,7 @@
       currentTabId = newTabId
       await loadTabsInfo(false)
       // Scroll to the new active tab
-      setTimeout(() => scrollToActiveTab(newTabId), 50)
+      setTimeout(() => scrollToActiveTab(newTabId), ANIMATION_DELAY_MS)
     }
   }
 
@@ -303,8 +314,6 @@
   let targetScrollLeft = $state(0)
   let currentScrollLeft = $state(0)
   let lerpAnimationId = $state(null)
-  const LERP_FACTOR = 0.15 // Lower = smoother but slower, Higher = faster but less smooth
-  const LERP_THRESHOLD = 0.5 // Stop animating when difference is less than this
 
   // Lerp (Linear Interpolation) function
   function lerp(start, end, factor) {
@@ -350,16 +359,22 @@
     }
   }
 
+  // Cleanup function for global mouse listeners
+  function cleanupGlobalMouseListeners() {
+    document.removeEventListener('mousemove', handleGlobalMouseMove)
+    document.removeEventListener('mouseup', handleGlobalMouseUp)
+  }
+
   // Global mouse handlers for grab scroll - allows dragging to continue outside container
   function handleGlobalMouseMove(e) {
     if (!isGrabbing || !tabListContainer) return
     e.preventDefault()
 
     const x = e.pageX - tabListContainer.offsetLeft
-    const walk = (x - startX) * 1.5 // Scroll speed multiplier
+    const walk = (x - startX) * SCROLL_SPEED_MULTIPLIER
 
-    // If moved more than 5px, consider it a drag
-    if (Math.abs(x - startX) > 5) {
+    // If moved more than threshold, consider it a drag
+    if (Math.abs(x - startX) > DRAG_THRESHOLD_PX) {
       hasDragged = true
     }
 
@@ -384,8 +399,7 @@
     }
 
     // Remove global listeners
-    document.removeEventListener('mousemove', handleGlobalMouseMove)
-    document.removeEventListener('mouseup', handleGlobalMouseUp)
+    cleanupGlobalMouseListeners()
 
     // If we dragged, prevent click on tabs by resetting after a short delay
     if (hasDragged) {
@@ -422,29 +436,9 @@
     document.addEventListener('mouseup', handleGlobalMouseUp)
   }
 
+  // handleMouseMove now delegates to global handler to avoid code duplication
   function handleMouseMove(e) {
-    if (!isGrabbing) return
-    e.preventDefault()
-
-    const x = e.pageX - tabListContainer.offsetLeft
-    const walk = (x - startX) * 1.5 // Scroll speed multiplier
-
-    // If moved more than 5px, consider it a drag
-    if (Math.abs(x - startX) > 5) {
-      hasDragged = true
-    }
-
-    // Update target scroll position
-    targetScrollLeft = scrollLeft - walk
-
-    // Use lerp animation if reduce motion is not enabled
-    if (!isReduceMotionEnabled()) {
-      startLerpAnimation()
-    } else {
-      // Instant scroll if reduce motion is enabled
-      tabListContainer.scrollLeft = targetScrollLeft
-      currentScrollLeft = targetScrollLeft
-    }
+    handleGlobalMouseMove(e)
   }
 
   function handleMouseUp() {

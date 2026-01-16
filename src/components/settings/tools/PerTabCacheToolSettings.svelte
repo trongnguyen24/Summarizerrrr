@@ -6,9 +6,13 @@
   import ToolEnableToggle from '@/components/inputs/ToolEnableToggle.svelte'
   import ButtonSet from '@/components/buttons/ButtonSet.svelte'
 
-  // Computed value for tool settings
+  // Computed value for tool settings with complete defaults
   let toolSettings = $derived.by(
-    () => settings.tools?.perTabCache ?? { enabled: true },
+    () =>
+      settings.tools?.perTabCache ?? {
+        enabled: true,
+        autoResetOnNavigation: false,
+      },
   )
 
   /**

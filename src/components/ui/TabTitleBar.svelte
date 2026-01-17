@@ -508,25 +508,32 @@
 <div
   class="text-text-secondary relative {showNavigation
     ? ' bg-background-dark '
-    : 'bg-transparent'} overflow-hidden w-full h-9 flex gap-px pl-2 items-center"
+    : 'bg-transparent'} overflow-hidden w-full h-9 flex gap-px items-center"
 >
   {#if showNavigation}
-    <!-- Left arrow -->
-    <button
-      onclick={handlePrevious}
-      class="py-0.5 px-1 hover:bg-surface-2 rounded transition-colors hover:text-text-primary shrink-0"
-      title="Previous cached tab"
+    <div
+      class="flex fixed z-40 left-0 top-0 h-9 px-2 justify-center items-center"
     >
-      <Icon icon="solar:alt-arrow-left-linear" width="16" height="16" />
-    </button>
-    <!-- Right arrow -->
-    <button
-      onclick={handleNext}
-      class="py-0.5 px-1 hover:bg-surface-2 rounded transition-colors hover:text-text-primary shrink-0"
-      title="Next cached tab"
-    >
-      <Icon icon="solar:alt-arrow-right-linear" width="16" height="16" />
-    </button>
+      <!-- Left arrow -->
+      <button
+        onclick={handlePrevious}
+        class="py-0.5 px-0.5 relative z-20 bg-surface-1 hover:bg-surface-2 rounded-l transition-colors hover:text-text-primary shrink-0"
+        title="Previous cached tab"
+      >
+        <Icon icon="solar:alt-arrow-left-linear" width="16" height="16" />
+      </button>
+      <!-- Right arrow -->
+      <button
+        onclick={handleNext}
+        class="py-0.5 px-0.5 relative z-20 bg-surface-1 hover:bg-surface-2 rounded-r transition-colors hover:text-text-primary shrink-0"
+        title="Next cached tab"
+      >
+        <Icon icon="solar:alt-arrow-right-linear" width="16" height="16" />
+      </button>
+      <div
+        class="w-14 absolute z-10 left-0 top-0 h-8.5 bg-linear-to-r from-surface-1 to-surface-1/0 mask-r-from-20% backdrop-blur-[1px]"
+      ></div>
+    </div>
 
     <!-- Tab list -->
     <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
@@ -541,7 +548,7 @@
       onmouseleave={handleMouseLeave}
       onwheel={handleWheel}
       role="group"
-      class="flex gap-0.5 font-mono px-2 z-10 relative h-full overflow-x-auto overflow-y-hidden scrollbar-hide flex-1 cursor-grab"
+      class="flex gap-0.5 font-mono pr-8 pl-14 z-10 relative h-full overflow-x-auto overflow-y-hidden scrollbar-hide flex-1 cursor-grab"
     >
       {#each cachedTabs as tab (tab.id)}
         <div

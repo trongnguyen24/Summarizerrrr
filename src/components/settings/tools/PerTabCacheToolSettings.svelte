@@ -66,10 +66,7 @@
     <!-- Clear Cache on Navigation -->
     <div>
       <span class="text-text-primary">Clear Cache on Navigation</span>
-      <p class="mt-2 text-muted">
-        Choose how the summary cache behaves when you navigate to a different
-        URL within the same tab.
-      </p>
+      <p class="mt-2 text-muted">Cache behavior when the page URL changes.</p>
       <div class="grid mt-3 grid-cols-2 gap-2">
         <ButtonSet
           title="Keep Summary"
@@ -77,7 +74,7 @@
             ? 'active'
             : ''}"
           onclick={() => updateToolSetting('autoResetOnNavigation', false)}
-          Description="Summary remains cached when navigating to a new page"
+          Description="Summary remains cached when URL changes"
         >
           <Icon icon="heroicons:bookmark" width="16" height="16" />
         </ButtonSet>
@@ -87,7 +84,7 @@
             ? 'active'
             : ''}"
           onclick={() => updateToolSetting('autoResetOnNavigation', true)}
-          Description="Automatically clear summary when URL changes"
+          Description="Clear summary when URL changes"
         >
           <Icon icon="heroicons:arrow-path" width="16" height="16" />
         </ButtonSet>

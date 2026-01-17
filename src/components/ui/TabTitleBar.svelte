@@ -504,7 +504,7 @@
         <Icon icon="solar:alt-arrow-right-linear" width="16" height="16" />
       </button>
       <div
-        class="w-14 absolute z-10 left-0 top-0 h-8.5 bg-linear-to-r from-surface-1 to-surface-1/0 mask-r-from-20% backdrop-blur-[1px]"
+        class="w-14 absolute z-10 left-0 top-0 h-8.5 bg-linear-to-r from-background-dark/50 to-background-dark/0 mask-r-from-70% backdrop-blur-[1px]"
       ></div>
     </div>
 

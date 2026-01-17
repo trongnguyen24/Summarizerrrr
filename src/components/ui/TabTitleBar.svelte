@@ -486,26 +486,26 @@
 >
   {#if showNavigation}
     <div
-      class="flex fixed z-40 left-0 top-0 h-9 px-2 justify-center items-center"
+      class="flex fixed gap-1.5 z-40 left-0 top-0 h-9 px-1.5 justify-center items-center"
     >
       <!-- Left arrow -->
       <button
         onclick={handlePrevious}
-        class="py-0.5 px-0.5 relative z-20 bg-surface-1 hover:bg-surface-2 rounded-l transition-colors hover:text-text-primary shrink-0"
+        class="size-5 flex justify-center items-center relative z-20 bg-surface-1 hover:bg-surface-2 rounded-full transition-colors hover:text-text-primary shrink-0"
         title={$t('settings.tools.perTabCache.nav.previous_tab')}
       >
-        <Icon icon="solar:alt-arrow-left-linear" width="16" height="16" />
+        <Icon icon="carbon:caret-left" width="14" height="14" />
       </button>
       <!-- Right arrow -->
       <button
         onclick={handleNext}
-        class="py-0.5 px-0.5 relative z-20 bg-surface-1 hover:bg-surface-2 rounded-r transition-colors hover:text-text-primary shrink-0"
+        class="size-5 flex justify-center items-center relative z-20 bg-surface-1 hover:bg-surface-2 rounded-full transition-colors hover:text-text-primary shrink-0"
         title={$t('settings.tools.perTabCache.nav.next_tab')}
       >
-        <Icon icon="solar:alt-arrow-right-linear" width="16" height="16" />
+        <Icon icon="carbon:caret-right" width="14" height="14" />
       </button>
       <div
-        class="w-14 absolute z-10 left-0 top-0 h-8.5 bg-linear-to-r from-background-dark/50 to-background-dark/0 mask-r-from-70% backdrop-blur-[1px]"
+        class="w-14 absolute z-10 left-0 top-0 h-8.5 bg-linear-to-r from-background-dark/70 to-background-dark/0 mask-r-from-50% backdrop-blur-[2px]"
       ></div>
     </div>
 
@@ -522,7 +522,7 @@
       onmouseleave={handleMouseLeave}
       onwheel={handleWheel}
       role="group"
-      class="flex gap-0.5 font-mono pr-8 pl-14 z-10 relative h-full overflow-x-auto overflow-y-hidden scrollbar-hide flex-1 cursor-grab"
+      class="flex gap-0.5 font-mono pr-8 pl-15 z-10 relative h-full overflow-x-auto overflow-y-hidden scrollbar-hide flex-1 cursor-grab"
     >
       {#each cachedTabs as tab (tab.id)}
         <div

@@ -300,6 +300,35 @@
         "previous_questions": "上一个问题",
         "next_questions": "下一个问题",
         "ask_own_question_in_chat": "在聊天中提出自己的问题"
+      },
+      "perTabCache": {
+        "title": "侧边栏标签页",
+        "description": "为每个浏览器标签页保持独立的摘要状态。",
+        "enabled": "已启用",
+        "disabled": "已禁用",
+        "clear_on_navigation": {
+          "title": "导航时清除",
+          "description": "当页面URL更改时，缓存的摘要会发生什么。",
+          "keep_summary": "保留摘要",
+          "keep_summary_desc": "URL更改时摘要保持缓存",
+          "auto_clear": "自动清除",
+          "auto_clear_desc": "URL更改时清除摘要"
+        },
+        "auto_scroll": {
+          "title": "自动滚动到活动标签页",
+          "description": "自动滚动以使活动标签页按钮可见。",
+          "off": "关闭",
+          "off_desc": "不自动滚动",
+          "jump": "跳转",
+          "jump_desc": "即时滚动",
+          "smooth": "平滑",
+          "smooth_desc": "动画滚动"
+        },
+        "nav": {
+          "previous_tab": "上一个标签页",
+          "next_tab": "下一个标签页",
+          "remove_tab": "移除（中键点击）"
+        }
       }
     }
   },

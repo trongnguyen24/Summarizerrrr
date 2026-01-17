@@ -300,6 +300,35 @@
         "previous_questions": "前の質問",
         "next_questions": "次の質問",
         "ask_own_question_in_chat": "チャットで独自の質問をする"
+      },
+      "perTabCache": {
+        "title": "サイドパネルのタブ",
+        "description": "各ブラウザタブに個別の要約状態を保持します。",
+        "enabled": "有効",
+        "disabled": "無効",
+        "clear_on_navigation": {
+          "title": "ナビゲーション時にクリア",
+          "description": "ページURLが変更されたときにキャッシュされた要約に何が起こるか。",
+          "keep_summary": "要約を保持",
+          "keep_summary_desc": "URL変更時も要約をキャッシュに保持",
+          "auto_clear": "自動クリア",
+          "auto_clear_desc": "URL変更時に要約をクリア"
+        },
+        "auto_scroll": {
+          "title": "アクティブなタブに自動スクロール",
+          "description": "アクティブなタブボタンを表示するために自動的にスクロールします。",
+          "off": "オフ",
+          "off_desc": "自動スクロールしない",
+          "jump": "ジャンプ",
+          "jump_desc": "即時スクロール",
+          "smooth": "スムーズ",
+          "smooth_desc": "アニメーションスクロール"
+        },
+        "nav": {
+          "previous_tab": "前のタブ",
+          "next_tab": "次のタブ",
+          "remove_tab": "削除（中クリック）"
+        }
       }
     }
   },

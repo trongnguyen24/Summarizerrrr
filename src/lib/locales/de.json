@@ -300,6 +300,35 @@
         "previous_questions": "Vorherige Fragen",
         "next_questions": "Nächste Fragen",
         "ask_own_question_in_chat": "Stellen Sie Ihre eigene Frage im Chat"
+      },
+      "perTabCache": {
+        "title": "Tab im Seitenbereich",
+        "description": "Separaten Zusammenfassungsstatus für jeden Browser-Tab beibehalten.",
+        "enabled": "Aktiviert",
+        "disabled": "Deaktiviert",
+        "clear_on_navigation": {
+          "title": "Bei Navigation löschen",
+          "description": "Was mit der gecachten Zusammenfassung passiert, wenn sich die Seiten-URL ändert.",
+          "keep_summary": "Zusammenfassung behalten",
+          "keep_summary_desc": "Zusammenfassung bleibt gecacht bei URL-Änderung",
+          "auto_clear": "Automatisch löschen",
+          "auto_clear_desc": "Zusammenfassung bei URL-Änderung löschen"
+        },
+        "auto_scroll": {
+          "title": "Automatisch zum aktiven Tab scrollen",
+          "description": "Automatisch scrollen, um den aktiven Tab-Button sichtbar zu machen.",
+          "off": "Aus",
+          "off_desc": "Nicht automatisch scrollen",
+          "jump": "Springen",
+          "jump_desc": "Sofortiges Scrollen",
+          "smooth": "Sanft",
+          "smooth_desc": "Animiertes Scrollen"
+        },
+        "nav": {
+          "previous_tab": "Vorheriger Tab",
+          "next_tab": "Nächster Tab",
+          "remove_tab": "Entfernen (Mittelklick)"
+        }
       }
     }
   },

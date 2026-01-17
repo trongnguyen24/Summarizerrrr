@@ -300,6 +300,35 @@
         "previous_questions": "Câu hỏi trước đó",
         "next_questions": "Câu hỏi tiếp theo",
         "ask_own_question_in_chat": "Đặt câu hỏi của bạn"
+      },
+      "perTabCache": {
+        "title": "Tab trên Sidepanel",
+        "description": "Giữ trạng thái tóm tắt riêng cho mỗi tab trình duyệt.",
+        "enabled": "Đang bật",
+        "disabled": "Đang tắt",
+        "clear_on_navigation": {
+          "title": "Xóa khi điều hướng",
+          "description": "Điều gì xảy ra với tóm tắt được lưu khi URL trang thay đổi.",
+          "keep_summary": "Giữ tóm tắt",
+          "keep_summary_desc": "Tóm tắt vẫn được lưu khi URL thay đổi",
+          "auto_clear": "Tự động xóa",
+          "auto_clear_desc": "Xóa tóm tắt khi URL thay đổi"
+        },
+        "auto_scroll": {
+          "title": "Tự động cuộn đến Tab đang hoạt động",
+          "description": "Tự động cuộn để đưa nút tab đang hoạt động vào tầm nhìn.",
+          "off": "Tắt",
+          "off_desc": "Không tự động cuộn",
+          "jump": "Nhảy",
+          "jump_desc": "Cuộn tức thì",
+          "smooth": "Mượt",
+          "smooth_desc": "Cuộn có hiệu ứng"
+        },
+        "nav": {
+          "previous_tab": "Tab trước",
+          "next_tab": "Tab tiếp theo",
+          "remove_tab": "Xóa (Click chuột giữa)"
+        }
       }
     }
   },

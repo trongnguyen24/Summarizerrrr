@@ -300,6 +300,35 @@
         "previous_questions": "Preguntas anteriores",
         "next_questions": "Siguientes preguntas",
         "ask_own_question_in_chat": "Haz tu propia pregunta en el chat"
+      },
+      "perTabCache": {
+        "title": "Pestaña en el panel lateral",
+        "description": "Mantener estado de resumen separado para cada pestaña del navegador.",
+        "enabled": "Activado",
+        "disabled": "Desactivado",
+        "clear_on_navigation": {
+          "title": "Borrar al navegar",
+          "description": "Qué sucede con el resumen en caché cuando cambia la URL de la página.",
+          "keep_summary": "Mantener resumen",
+          "keep_summary_desc": "El resumen permanece en caché cuando cambia la URL",
+          "auto_clear": "Borrar automático",
+          "auto_clear_desc": "Borrar resumen cuando cambia la URL"
+        },
+        "auto_scroll": {
+          "title": "Desplazar automáticamente a la pestaña activa",
+          "description": "Desplazar automáticamente para mostrar el botón de la pestaña activa.",
+          "off": "Desactivado",
+          "off_desc": "No desplazar automáticamente",
+          "jump": "Saltar",
+          "jump_desc": "Desplazamiento instantáneo",
+          "smooth": "Suave",
+          "smooth_desc": "Desplazamiento animado"
+        },
+        "nav": {
+          "previous_tab": "Pestaña anterior",
+          "next_tab": "Pestaña siguiente",
+          "remove_tab": "Eliminar (Clic central)"
+        }
       }
     }
   },

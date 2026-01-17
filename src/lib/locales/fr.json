@@ -300,6 +300,35 @@
         "previous_questions": "Questions précédentes",
         "next_questions": "Questions suivantes",
         "ask_own_question_in_chat": "Posez votre propre question dans le chat"
+      },
+      "perTabCache": {
+        "title": "Onglet dans le panneau latéral",
+        "description": "Conserver un état de résumé séparé pour chaque onglet du navigateur.",
+        "enabled": "Activé",
+        "disabled": "Désactivé",
+        "clear_on_navigation": {
+          "title": "Effacer lors de la navigation",
+          "description": "Ce qui arrive au résumé en cache lorsque l'URL de la page change.",
+          "keep_summary": "Conserver le résumé",
+          "keep_summary_desc": "Le résumé reste en cache lorsque l'URL change",
+          "auto_clear": "Effacer automatiquement",
+          "auto_clear_desc": "Effacer le résumé quand l'URL change"
+        },
+        "auto_scroll": {
+          "title": "Défiler automatiquement vers l'onglet actif",
+          "description": "Défiler automatiquement pour amener le bouton de l'onglet actif dans la vue.",
+          "off": "Désactivé",
+          "off_desc": "Ne pas défiler automatiquement",
+          "jump": "Saut",
+          "jump_desc": "Défilement instantané",
+          "smooth": "Fluide",
+          "smooth_desc": "Défilement animé"
+        },
+        "nav": {
+          "previous_tab": "Onglet précédent",
+          "next_tab": "Onglet suivant",
+          "remove_tab": "Supprimer (Clic du milieu)"
+        }
       }
     }
   },

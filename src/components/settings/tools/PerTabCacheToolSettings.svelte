@@ -1,5 +1,6 @@
 <script>
   // @ts-nocheck
+  import { t } from 'svelte-i18n'
   import { settings, updateSettings } from '@/stores/settingsStore.svelte.js'
   import Icon from '@iconify/svelte'
   import ToolIcon96 from '@/components/ui/ToolIcon96.svelte'
@@ -45,10 +46,10 @@
 
     <div class="text-left">
       <div class="font-bold text-text-primary text-xs">
-        Per-Tab Summary Cache
+        {$t('settings.tools.perTabCache.title')}
       </div>
       <div class="text-xs mt-2 pb-3 text-text-secondary text-pretty">
-        Keep separate summary state for each browser tab.
+        {$t('settings.tools.perTabCache.description')}
       </div>
       <!-- Enable Tool Toggle -->
       <ToolEnableToggle
@@ -56,8 +57,8 @@
         bind:checked={toolSettings.enabled}
         onCheckedChange={(value) => updateToolSetting('enabled', value)}
         icon="heroicons:document-duplicate-20-solid"
-        enabledText="Enabled"
-        disabledText="Disabled"
+        enabledText={$t('settings.tools.perTabCache.enabled')}
+        disabledText={$t('settings.tools.perTabCache.disabled')}
       />
     </div>
   </div>
@@ -65,26 +66,38 @@
   {#if toolSettings.enabled}
     <!-- Clear Cache on Navigation -->
     <div>
-      <span class="text-text-primary">Clear Cache on Navigation</span>
-      <p class="mt-2 text-muted">Cache behavior when the page URL changes.</p>
+      <span class="text-text-primary"
+        >{$t('settings.tools.perTabCache.clear_on_navigation.title')}</span
+      >
+      <p class="mt-2 text-muted">
+        {$t('settings.tools.perTabCache.clear_on_navigation.description')}
+      </p>
       <div class="grid mt-3 grid-cols-2 gap-2">
         <ButtonSet
-          title="Keep Summary"
+          title={$t(
+            'settings.tools.perTabCache.clear_on_navigation.keep_summary',
+          )}
           class="setting-btn {!toolSettings.autoResetOnNavigation
             ? 'active'
             : ''}"
           onclick={() => updateToolSetting('autoResetOnNavigation', false)}
-          Description="Summary remains cached when URL changes"
+          Description={$t(
+            'settings.tools.perTabCache.clear_on_navigation.keep_summary_desc',
+          )}
         >
           <Icon icon="heroicons:bookmark" width="16" height="16" />
         </ButtonSet>
         <ButtonSet
-          title="Auto Clear"
+          title={$t(
+            'settings.tools.perTabCache.clear_on_navigation.auto_clear',
+          )}
           class="setting-btn {toolSettings.autoResetOnNavigation
             ? 'active'
             : ''}"
           onclick={() => updateToolSetting('autoResetOnNavigation', true)}
-          Description="Clear summary when URL changes"
+          Description={$t(
+            'settings.tools.perTabCache.clear_on_navigation.auto_clear_desc',
+          )}
         >
           <Icon icon="heroicons:arrow-path" width="16" height="16" />
         </ButtonSet>
@@ -93,38 +106,40 @@
 
     <!-- Auto Scroll to Active Tab -->
     <div>
-      <span class="text-text-primary">Auto Scroll to Active Tab</span>
+      <span class="text-text-primary"
+        >{$t('settings.tools.perTabCache.auto_scroll.title')}</span
+      >
       <p class="mt-2 text-muted">
-        Automatically scroll to bring the active tab button into view.
+        {$t('settings.tools.perTabCache.auto_scroll.description')}
       </p>
       <div class="grid mt-3 grid-cols-3 gap-2">
         <ButtonSet
-          title="Off"
+          title={$t('settings.tools.perTabCache.auto_scroll.off')}
           class="setting-btn {toolSettings.autoScrollBehavior === 'off'
             ? 'active'
             : ''}"
           onclick={() => updateToolSetting('autoScrollBehavior', 'off')}
-          Description="Don't auto scroll"
+          Description={$t('settings.tools.perTabCache.auto_scroll.off_desc')}
         >
           <Icon icon="heroicons:x-mark" width="16" height="16" />
         </ButtonSet>
         <ButtonSet
-          title="Jump"
+          title={$t('settings.tools.perTabCache.auto_scroll.jump')}
           class="setting-btn {toolSettings.autoScrollBehavior === 'jump'
             ? 'active'
             : ''}"
           onclick={() => updateToolSetting('autoScrollBehavior', 'jump')}
-          Description="Instant scroll"
+          Description={$t('settings.tools.perTabCache.auto_scroll.jump_desc')}
         >
           <Icon icon="heroicons:bolt" width="16" height="16" />
         </ButtonSet>
         <ButtonSet
-          title="Smooth"
+          title={$t('settings.tools.perTabCache.auto_scroll.smooth')}
           class="setting-btn {toolSettings.autoScrollBehavior === 'smooth'
             ? 'active'
             : ''}"
           onclick={() => updateToolSetting('autoScrollBehavior', 'smooth')}
-          Description="Animated scroll"
+          Description={$t('settings.tools.perTabCache.auto_scroll.smooth_desc')}
         >
           <Icon icon="heroicons:sparkles" width="16" height="16" />
         </ButtonSet>

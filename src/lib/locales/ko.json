@@ -300,6 +300,35 @@
         "previous_questions": "이전 질문",
         "next_questions": "다음 질문",
         "ask_own_question_in_chat": "채팅에서 자신만의 질문하기"
+      },
+      "perTabCache": {
+        "title": "사이드패널의 탭",
+        "description": "각 브라우저 탭에 대해 별도의 요약 상태를 유지합니다.",
+        "enabled": "활성화",
+        "disabled": "비활성화",
+        "clear_on_navigation": {
+          "title": "탐색 시 지우기",
+          "description": "페이지 URL이 변경될 때 캐시된 요약에 어떤 일이 발생하는지.",
+          "keep_summary": "요약 유지",
+          "keep_summary_desc": "URL 변경 시 요약이 캐시에 유지됨",
+          "auto_clear": "자동 지우기",
+          "auto_clear_desc": "URL 변경 시 요약 지우기"
+        },
+        "auto_scroll": {
+          "title": "활성 탭으로 자동 스크롤",
+          "description": "활성 탭 버튼이 보이도록 자동으로 스크롤합니다.",
+          "off": "끄기",
+          "off_desc": "자동 스크롤 안 함",
+          "jump": "점프",
+          "jump_desc": "즉시 스크롤",
+          "smooth": "부드럽게",
+          "smooth_desc": "애니메이션 스크롤"
+        },
+        "nav": {
+          "previous_tab": "이전 탭",
+          "next_tab": "다음 탭",
+          "remove_tab": "제거 (가운데 클릭)"
+        }
       }
     }
   },

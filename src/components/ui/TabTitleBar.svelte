@@ -1,5 +1,6 @@
 <script>
   // @ts-nocheck
+  import { t } from 'svelte-i18n'
   import Icon from '@iconify/svelte'
   import { tabTitle } from '@/stores/tabTitleStore.svelte.js'
   import { settings } from '@/stores/settingsStore.svelte.js'
@@ -491,7 +492,7 @@
       <button
         onclick={handlePrevious}
         class="py-0.5 px-0.5 relative z-20 bg-surface-1 hover:bg-surface-2 rounded-l transition-colors hover:text-text-primary shrink-0"
-        title="Previous tab"
+        title={$t('settings.tools.perTabCache.nav.previous_tab')}
       >
         <Icon icon="solar:alt-arrow-left-linear" width="16" height="16" />
       </button>
@@ -499,7 +500,7 @@
       <button
         onclick={handleNext}
         class="py-0.5 px-0.5 relative z-20 bg-surface-1 hover:bg-surface-2 rounded-r transition-colors hover:text-text-primary shrink-0"
-        title="Next tab"
+        title={$t('settings.tools.perTabCache.nav.next_tab')}
       >
         <Icon icon="solar:alt-arrow-right-linear" width="16" height="16" />
       </button>
@@ -556,7 +557,7 @@
               e.stopPropagation()
               handleCloseTab(tab.id)
             }}
-            title="Remove (Middle-click)"
+            title={$t('settings.tools.perTabCache.nav.remove_tab')}
           >
             <Icon icon="heroicons:x-mark-16-solid" width="16" height="16" />
           </button>

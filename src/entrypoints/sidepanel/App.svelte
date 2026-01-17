@@ -468,7 +468,10 @@
     {/await}
   </div>
 {/if}
-<div class="main-container flex min-w-[22.5rem] bg-surface-1 w-full flex-col">
+<div
+  class="main-container flex min-w-[22.5rem] bg-surface-1 w-full flex-col"
+  data-per-tab={settings.tools?.perTabCache?.enabled ? 'true' : undefined}
+>
   <div
     class="grid min-h-screen {settings.tools?.perTabCache?.enabled
       ? 'grid-rows-[36px_32px_10px_192px_10px_1fr]'

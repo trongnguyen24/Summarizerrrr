@@ -124,7 +124,9 @@
     const element = document.getElementById(id)
     activeHeadingId = id // Update active heading when clicking
     if (element) {
-      // element.scrollIntoView({ behavior: 'smooth' })
+      // scrollIntoView will respect CSS scroll-margin-top automatically
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' })
+
       // Add animate-pulse class and remove after 3 seconds
       element.classList.add('animate-pulse')
       setTimeout(() => {

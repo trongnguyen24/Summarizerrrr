@@ -36,8 +36,8 @@
   // State for cached tabs info
   let cachedTabs = $state([])
 
-  // State to track if initial load completed (prevents flicker)
-  let hasLoadedOnce = $state(false)
+  // State to track if we've ever had cached tabs (controls Current tab button visibility)
+  let hasHadCachedTabs = $state(false)
 
   // State for current tab ID (reactive)
   let currentTabId = $state(null)
@@ -104,8 +104,12 @@
       currentTabId = activeInfo.tabId
       // Reload tabs info to update list
       loadTabsInfo(false).then(() => {
-        // Scroll to the activated tab after list is updated
-        setTimeout(() => scrollToActiveTab(activeInfo.tabId), 50)
+        // Only scroll to the tab if it's actually in the cached list
+        // This prevents flash/scroll issues when switching to tabs without summaries
+        const isTabInList = cachedTabs.some((t) => t.id === activeInfo.tabId)
+        if (isTabInList) {
+          setTimeout(() => scrollToActiveTab(activeInfo.tabId), 50)
+        }
       })
     }
 
@@ -141,19 +145,6 @@
   async function loadTabsInfo(updateCurrentTab = true) {
     let tabs = await getTabsWithSummaryInfo()
 
-    // Check if current tab has summary OR is loading OR has error (show tab button immediately)
-    // This happens when summary just completed but syncToTabState hasn't run yet
-    const hasSummaryOrLoadingOrError = !!(
-      summaryState.summary ||
-      summaryState.courseSummary ||
-      summaryState.selectedTextSummary ||
-      summaryState.customActionResult ||
-      isAnyLoading() ||
-      summaryState.summaryError ||
-      summaryState.customActionError ||
-      summaryState.courseSummaryError
-    )
-
     // Get current tab ID
     let activeTabId = currentTabId
     if (!activeTabId) {
@@ -168,37 +159,19 @@
       }
     }
 
-    // If current tab has summary, loading, or error, add it to tabs list
-    if (activeTabId && hasSummaryOrLoadingOrError) {
-      const isInList = tabs.some((t) => t.id === activeTabId)
-      if (!isInList) {
-        try {
-          const tab = await browser.tabs.get(activeTabId)
-          const isActuallyLoading = isAnyLoading()
-          const hasError = !!(
-            summaryState.summaryError ||
-            summaryState.customActionError ||
-            summaryState.courseSummaryError
-          )
-
-          tabs = [
-            ...tabs,
-            {
-              id: activeTabId,
-              title: tab.title || 'Untitled',
-              isActive: true,
-              isLoading: isActuallyLoading,
-              hasError,
-            },
-          ]
-        } catch (error) {
-          console.error('[TabTitleBar] Failed to add current tab:', error)
-        }
-      }
-    }
+    // Note: We no longer add current tab based on global summaryState here
+    // because it caused race conditions during tab switches (flash issue).
+    // The tab will be added to the list once its state is properly synced
+    // to tabStates cache via syncToTabState in messageHandler.js
 
     cachedTabs = tabs
-    hasLoadedOnce = true
+
+    // Update hasHadCachedTabs based on current tabs
+    if (tabs.length > 0) {
+      hasHadCachedTabs = true // Have cached tabs → true
+    } else if (hasHadCachedTabs && tabs.length === 0) {
+      hasHadCachedTabs = false // Had tabs but now empty → reset
+    }
 
     if (updateCurrentTab && activeTabId) {
       currentTabId = activeTabId
@@ -518,7 +491,7 @@
       <button
         onclick={handlePrevious}
         class="py-0.5 px-0.5 relative z-20 bg-surface-1 hover:bg-surface-2 rounded-l transition-colors hover:text-text-primary shrink-0"
-        title="Previous cached tab"
+        title="Previous tab"
       >
         <Icon icon="solar:alt-arrow-left-linear" width="16" height="16" />
       </button>
@@ -526,7 +499,7 @@
       <button
         onclick={handleNext}
         class="py-0.5 px-0.5 relative z-20 bg-surface-1 hover:bg-surface-2 rounded-r transition-colors hover:text-text-primary shrink-0"
-        title="Next cached tab"
+        title="Next tab"
       >
         <Icon icon="solar:alt-arrow-right-linear" width="16" height="16" />
       </button>
@@ -583,7 +556,7 @@
               e.stopPropagation()
               handleCloseTab(tab.id)
             }}
-            title="Remove from list (Middle-click)"
+            title="Remove (Middle-click)"
           >
             <Icon icon="heroicons:x-mark-16-solid" width="16" height="16" />
           </button>
@@ -596,8 +569,8 @@
         </div>
       {/each}
 
-      <!-- Current tab button (only when no cached tabs exist after initial load) -->
-      {#if hasLoadedOnce && cachedTabs.length === 0 && currentTabId}
+      <!-- Current tab button (only when never had cached tabs, or all were removed) -->
+      {#if !hasHadCachedTabs && currentTabId}
         <button
           class="tab-btn tab tab-active bg-surface-1 text-text-primary !border !border-b-0 !border-surface-2/50 dark:!border-border"
           title={$tabTitle}

@@ -175,3 +175,11 @@
   scrollbar-width: thin;
   scrollbar-color: var(--color-border) transparent;
 }
+
+/* Scroll offset for headings when per-tab navigation is enabled */
+/* The 48px accounts for the 36px tab bar height + 12px buffer */
+[data-per-tab='true'] h2,
+[data-per-tab='true'] h3,
+[data-per-tab='true'] h4 {
+  scroll-margin-top: 48px;
+}

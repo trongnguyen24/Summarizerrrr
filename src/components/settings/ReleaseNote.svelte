@@ -89,6 +89,20 @@
     <div class="p-6 prose prose-sm w-full max-w-full">
       <h2>Release note</h2>
 
+      <b class="font-mono">2.11.0</b>
+      <ul class="mt-0">
+        {@render note(
+          'New Tab Navigation UI for sidepanel:',
+          'Introduced a new feature that allows the summary and Deep Dive states to be maintained separately for each browser tab. Implemented a Tab Bar component to view, navigate, and manage cached summaries across different tabs. This includes previous/next buttons, drag-to-scroll functionality, and middle-click to close tabs.',
+          [
+            {
+              label: 'Hack00769',
+              url: 'https://github.com/trongnguyen24/Summarizerrrr/issues/51',
+            },
+          ],
+        )}
+      </ul>
+
       <b class="font-mono">2.10.0</b>
       <ul class="mt-0">
         {@render note(

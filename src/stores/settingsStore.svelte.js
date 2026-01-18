@@ -135,6 +135,11 @@ const DEFAULT_SETTINGS = {
     cloudSync: {
       enabled: true, // Default enabled for backward compatibility
     },
+    perTabCache: {
+      enabled: true, // Keep separate summary state for each tab
+      autoResetOnNavigation: true, // Reset cache when navigating to new URL in same tab
+      autoScrollBehavior: 'smooth', // 'off' | 'jump' | 'smooth'
+    },
   },
 
   // Metadata

@@ -21,7 +21,9 @@
     getTotalPages,
   } from '@/stores/deepDiveStore.svelte.js'
   import { generateFollowUpQuestions } from '@/services/tools/deepDiveService.js'
+
   import { isRTLLanguage } from '@/lib/utils/rtlUtils.js'
+  import { getCurrentTabId } from '@/services/tabCacheService.js'
 
   // Import provider icons
   import GeminiIcon from '@/components/icons/GeminiIcon.svelte'
@@ -70,12 +72,14 @@
   async function handleRegenerate() {
     if (isGenerating) return
 
+    const targetTabId = getCurrentTabId()
+
     // Clear current selections
     setSelectedQuestion(null)
     setCustomQuestion('')
 
-    setGenerating(true)
-    setError(null)
+    setGenerating(true, targetTabId)
+    setError(null, targetTabId)
 
     try {
       console.log('[InlineDeepDiveQuestions] Regenerating questions...')
@@ -93,8 +97,8 @@
         deepDiveState.questionHistory,
       )
 
-      setQuestions(generated)
-      addToQuestionHistory(generated)
+      setQuestions(generated, targetTabId)
+      addToQuestionHistory(generated, targetTabId)
 
       console.log('[InlineDeepDiveQuestions] Regenerated questions:', generated)
       console.log(
@@ -103,9 +107,9 @@
       )
     } catch (err) {
       console.error('[InlineDeepDiveQuestions] Regeneration error:', err)
-      setError(err.message || 'Failed to regenerate questions')
+      setError(err.message || 'Failed to regenerate questions', targetTabId)
     } finally {
-      setGenerating(false)
+      setGenerating(false, targetTabId)
     }
   }
 

@@ -300,6 +300,36 @@
         "previous_questions": "Previous questions",
         "next_questions": "Next questions",
         "ask_own_question_in_chat": "Ask your own question"
+      },
+      "perTabCache": {
+        "title": "Tab on Sidepanel",
+        "description": "Keep separate summary state for each browser tab.",
+        "enabled": "Enabled",
+        "disabled": "Disabled",
+        "clear_on_navigation": {
+          "title": "Clear on Navigation",
+          "description": "What happens to the cached summary when the page URL changes.",
+          "keep_summary": "Keep Summary",
+          "keep_summary_desc": "Summary remains cached when URL changes",
+          "auto_clear": "Auto Clear",
+          "auto_clear_desc": "Clear summary when URL changes"
+        },
+        "auto_scroll": {
+          "title": "Auto Scroll to Active Tab",
+          "description": "Automatically scroll to bring the active tab button into view.",
+          "off": "Off",
+          "off_desc": "Don't auto scroll",
+          "jump": "Jump",
+          "jump_desc": "Instant scroll",
+          "smooth": "Smooth",
+          "smooth_desc": "Animated scroll"
+        },
+        "nav": {
+          "previous_tab": "Previous tab",
+          "next_tab": "Next tab",
+          "remove_tab": "Remove (Middle-click)"
+        },
+        "blocking_note": "Note: Response Mode is set to Blocking for best performance."
       }
     }
   },

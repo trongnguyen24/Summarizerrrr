@@ -31,41 +31,20 @@ import {
   formatCommentsForAI,
   fetchYouTubeComments,
 } from '@/lib/utils/youtubeUtils.js'
+import {
+  getOrCreateTabState,
+  getCurrentTabId,
+} from '@/services/tabCacheService.js'
+
+// Import shared initial state
+import { createDefaultSummaryState } from '@/lib/constants/initialStates.js'
 
 // --- State ---
-export const summaryState = $state({
-  summary: '',
-  courseSummary: '',
-  courseConcepts: '',
-  isLoading: false,
-  isCourseSummaryLoading: false,
-  isCourseConceptsLoading: false,
-  summaryError: null, // Will hold the structured error object
-  courseSummaryError: null,
-  courseConceptsError: null,
-  isYouTubeVideoActive: false,
-  isCourseVideoActive: false,
-  currentContentSource: '',
-  selectedTextSummary: '',
-  isSelectedTextLoading: false,
-  selectedTextError: null,
-  lastSummaryTypeDisplayed: null,
-  activeYouTubeTab: 'videoSummary',
-  activeCourseTab: 'courseSummary',
-  pageTitle: '', // Thêm pageTitle vào state
-  pageUrl: '', // Thêm pageUrl vào state
-  isArchived: false,
-  currentActionType: 'summarize', // 'summarize' | 'analyze' | 'explain' | 'debate'
-  customActionResult: '',
-  isCustomActionLoading: false,
-  customActionError: null,
-  modelStatus: {
-    currentModel: null,
-    fallbackFrom: null,
-    isFallback: false,
-  },
-  abortController: null, // AbortController for cancelling streaming operations
-})
+// --- State ---
+export const summaryState = $state(createDefaultSummaryState())
+
+// Global signal for background updates
+export const globalStoreUpdate = $state({ version: 0 })
 
 // --- Actions ---
 
@@ -85,6 +64,20 @@ export function updateModelStatus(
     fallbackFrom,
     isFallback,
   }
+}
+
+/**
+ * Helper to check if any loading state is active
+ * @returns {boolean}
+ */
+export function isAnyLoading() {
+  return (
+    summaryState.isLoading ||
+    summaryState.isCourseSummaryLoading ||
+    summaryState.isCourseConceptsLoading ||
+    summaryState.isSelectedTextLoading ||
+    summaryState.isCustomActionLoading
+  )
 }
 
 /**
@@ -225,9 +218,87 @@ export function updateActiveCourseTab(tabName) {
  * Fetches content from the current tab and triggers the summarization process.
  */
 export async function fetchAndSummarize() {
+  const targetTabId = getCurrentTabId()
+  const perTabCacheEnabled = settings.tools?.perTabCache?.enabled ?? true
+  let logData = null // Capture data for history logging
+
+  /**
+   * Helper to update state for the target tab (and global if active)
+   * @param {Object} updates - Key-value pairs to update
+   */
+  const updateState = (updates) => {
+    // 1. Update the tab-specific state in cache
+    if (perTabCacheEnabled && targetTabId) {
+      const tabState = getOrCreateTabState(targetTabId)
+      if (tabState) {
+        Object.assign(tabState.summaryState, updates)
+      }
+    }
+
+    // 2. Update the global state IF we are looking at the target tab
+    //    OR if per-tab cache is disabled
+    if (!perTabCacheEnabled || targetTabId === getCurrentTabId()) {
+      Object.assign(summaryState, updates)
+    }
+
+    // Trigger global update for UI lists
+    globalStoreUpdate.version++
+  }
+
+  /**
+   * Helper to reset state for local/target tab
+   */
+  const resetLocalState = () => {
+    // Abort any ongoing streaming operation if it matches global state
+    if ((!perTabCacheEnabled || targetTabId === getCurrentTabId()) && summaryState.abortController) {
+      summaryState.abortController.abort()
+      summaryState.abortController = null
+    }
+
+    const resetValues = {
+      summary: '',
+      courseSummary: '',
+      courseConcepts: '',
+      selectedTextSummary: '',
+      isLoading: false,
+      isCourseSummaryLoading: false,
+      isCourseConceptsLoading: false,
+      isSelectedTextLoading: false,
+      summaryError: null,
+      courseSummaryError: null,
+      courseConceptsError: null,
+      selectedTextError: null,
+      isYouTubeVideoActive: false,
+      isCourseVideoActive: false,
+      currentContentSource: '',
+      lastSummaryTypeDisplayed: null,
+      activeYouTubeTab: 'videoSummary',
+      activeCourseTab: 'courseSummary',
+      pageTitle: '',
+      pageUrl: '',
+      isArchived: false,
+      currentActionType: 'summarize',
+      customActionResult: '',
+      isCustomActionLoading: false,
+      customActionError: null,
+      modelStatus: {
+        currentModel: null,
+        fallbackFrom: null,
+        isFallback: false,
+      },
+    }
+    
+    updateState(resetValues)
+    
+    // Reset DeepDive (global only if active)
+    if (!perTabCacheEnabled || targetTabId === getCurrentTabId()) {
+      resetDeepDive()
+    }
+  }
+
   // If a summarization process is already ongoing, reset state and start a new one
   if (summaryState.isLoading || summaryState.isCustomActionLoading) {
-    resetState() // Reset state before starting a new summarization
+    resetLocalState()
   }
 
   // Wait for settings to be initialized
@@ -236,7 +307,7 @@ export async function fetchAndSummarize() {
   const userSettings = settings
 
   // Reset state before starting
-  resetState()
+  resetLocalState()
 
   // Determine the actual provider to use based on isAdvancedMode
   let selectedProviderId = userSettings.selectedProvider || 'gemini'
@@ -245,7 +316,9 @@ export async function fetchAndSummarize() {
   }
 
   // Check if we should use streaming mode
+  // FORCE DISABLE STREAMING if per-tab cache is enabled
   const shouldUseStreaming =
+    !perTabCacheEnabled &&
     userSettings.enableStreaming &&
     providerSupportsStreaming(selectedProviderId)
 
@@ -254,27 +327,23 @@ export async function fetchAndSummarize() {
       // Use streaming mode
       await fetchAndSummarizeStream()
     } catch (streamError) {
-      // Error đã được handle trong fetchAndSummarizeStream()
-      // Chỉ cần log để debug
       console.error('[fetchAndSummarize] Streaming error caught:', streamError)
-      // Error state đã được set trong fetchAndSummarizeStream()
-      // Không cần set lại ở đây
     } finally {
-      // Ensure all loading states are set to false after streaming completes
       summaryState.isLoading = false
       summaryState.isCourseSummaryLoading = false
       summaryState.isCourseConceptsLoading = false
     }
-    // logAllGeneratedSummariesToHistory() is called within fetchAndSummarizeStream
-    return // Exit the function after streaming
+    return
   }
 
-  // Use non-streaming mode (existing logic)
+  // Use non-streaming mode (Blocking)
   try {
-    // Immediately set loading states inside try block
-    summaryState.isLoading = true
-    summaryState.isCourseSummaryLoading = true
-    summaryState.isCourseConceptsLoading = true
+    // Immediately set loading states
+    updateState({
+        isLoading: true,
+        isCourseSummaryLoading: true,
+        isCourseConceptsLoading: true
+    })
 
     const [tabInfo] = await browser.tabs.query({
       active: true,
@@ -284,142 +353,143 @@ export async function fetchAndSummarize() {
       throw new Error('Could not get current tab information or URL.')
     }
 
-    // Check permissions cho Firefox trước khi tiếp tục
+    // Check permissions cho Firefox
     if (import.meta.env.BROWSER === 'firefox') {
       const hasPermission = await checkPermission(tabInfo.url)
 
       if (!hasPermission) {
         const permissionGranted = await requestPermission(tabInfo.url)
         if (!permissionGranted) {
-          throw new Error(
-            'Permission denied for this website. Please enable permissions in Settings or grant access when prompted.'
-          )
+            throw new Error(
+                'Permission denied for this website. Please enable permissions in Settings or grant access when prompted.'
+            )
         }
       }
     }
 
-    // LƯU TIÊU ĐỀ VÀ URL VÀO STATE NGAY TẠI ĐÂY
-    summaryState.pageTitle = tabInfo.title || 'Unknown Title'
-    summaryState.pageUrl = tabInfo.url || 'Unknown URL'
+    // Save page info
+    updateState({
+        pageTitle: tabInfo.title || 'Unknown Title',
+        pageUrl: tabInfo.url || 'Unknown URL'
+    })
 
     const YOUTUBE_MATCH_PATTERN = /youtube\.com\/watch/i
     const COURSE_MATCH_PATTERN =
-      /udemy\.com\/course\/.*\/learn\/|coursera\.org\/learn\//i // Kết hợp Udemy và Coursera
+      /udemy\.com\/course\/.*\/learn\/|coursera\.org\/learn\//i
 
-    summaryState.isYouTubeVideoActive = YOUTUBE_MATCH_PATTERN.test(tabInfo.url)
-    summaryState.isCourseVideoActive = COURSE_MATCH_PATTERN.test(tabInfo.url)
+    const isYouTube = YOUTUBE_MATCH_PATTERN.test(tabInfo.url)
+    const isCourse = COURSE_MATCH_PATTERN.test(tabInfo.url)
+    
+    updateState({
+        isYouTubeVideoActive: isYouTube,
+        isCourseVideoActive: isCourse
+    })
 
     let mainContentTypeToFetch = 'webpageText'
     let summaryType = 'general'
+    let lastType = 'web'
 
-    if (summaryState.isYouTubeVideoActive) {
-      mainContentTypeToFetch = 'timestampedTranscript' // Always use timestamped for better accuracy
+    if (isYouTube) {
+      mainContentTypeToFetch = 'timestampedTranscript'
       summaryType = 'youtube'
-      summaryState.lastSummaryTypeDisplayed = 'youtube'
-    } else if (summaryState.isCourseVideoActive) {
+      lastType = 'youtube'
+    } else if (isCourse) {
       mainContentTypeToFetch = 'transcript'
       summaryType = 'courseSummary'
-      summaryState.lastSummaryTypeDisplayed = 'course'
-    } else {
-      summaryState.lastSummaryTypeDisplayed = 'web'
+      lastType = 'course'
     }
+
+    updateState({ lastSummaryTypeDisplayed: lastType })
 
     const mainContentResult = await getPageContent(
       mainContentTypeToFetch,
       userSettings.summaryLang
     )
-    summaryState.currentContentSource = mainContentResult.content
+    updateState({ currentContentSource: mainContentResult.content })
 
-    if (summaryState.isYouTubeVideoActive) {
-      // Only summarize video content, chapters will be separate
-      summaryState.summaryError = null
+    if (isYouTube) {
       try {
         const videoSummarizedText = await summarizeContent(
-          summaryState.currentContentSource,
+          mainContentResult.content,
           'youtube'
         )
-        summaryState.summary =
-          videoSummarizedText ||
-          '<p><i>Could not generate video summary.</i></p>'
+        const finalContent = videoSummarizedText || '<p><i>Could not generate video summary.</i></p>'
+        updateState({
+            summary: finalContent,
+            summaryError: null
+        })
+        logData = { content: finalContent, title: tabInfo.title, url: tabInfo.url, type: 'Video Summary' }
       } catch (e) {
         const errorObject = handleError(e, {
           source: 'youtubeVideoSummarization',
         })
-        summaryState.summaryError = errorObject
+        updateState({ summaryError: errorObject })
       }
-    } else if (summaryState.isCourseVideoActive) {
-      // Course: chỉ tóm tắt courseSummary, courseConcepts là custom action riêng
-      summaryState.courseSummaryError = null
+    } else if (isCourse) {
+      // Course Summary
       try {
-        const courseSummarizedText = await summarizeContent(
-          summaryState.currentContentSource,
-          'courseSummary'
+        updateState({
+            isCourseSummaryLoading: true,
+            isCourseConceptsLoading: false,
+            courseSummaryError: null
+        })
+        const courseSummaryText = await summarizeContent(
+           mainContentResult.content,
+           'courseSummary'
         )
-        summaryState.courseSummary =
-          courseSummarizedText ||
-          '<p><i>Could not generate course summary.</i></p>'
+        const finalContent = courseSummaryText || '<p><i>Could not generate course summary.</i></p>'
+        updateState({ courseSummary: finalContent })
+        logData = { content: finalContent, title: tabInfo.title, url: tabInfo.url, type: 'Course Summary' }
       } catch (e) {
-        summaryState.courseSummaryError = handleError(e, {
-          source: 'courseSummarization',
+        updateState({
+            courseSummaryError: handleError(e, { source: 'courseSummarySummarization' })
         })
       } finally {
-        summaryState.isCourseSummaryLoading = false
-        summaryState.isCourseConceptsLoading = false
+        updateState({ isCourseSummaryLoading: false })
       }
     } else {
-      summaryState.summaryError = null
+      // General Web Summary
       try {
-        const summarizedText = await summarizeContent(
-          summaryState.currentContentSource,
-          summaryType
+        updateState({ summaryError: null })
+        const webSummaryText = await summarizeContent(
+          mainContentResult.content,
+          'general'
         )
-        summaryState.summary =
-          summarizedText || '<p><i>Could not generate summary.</i></p>'
-      } catch (e) {
-        const errorObject = handleError(e, {
-          source: 'generalSummarization',
+        const finalContent = webSummaryText || '<p><i>Could not generate summary.</i></p>'
+        updateState({
+            summary: finalContent
         })
-        summaryState.summaryError = errorObject
+        logData = { content: finalContent, title: tabInfo.title, url: tabInfo.url, type: 'Web Summary' }
+      } catch (e) {
+        updateState({
+            summaryError: handleError(e, { source: 'webSummarization' })
+        })
       }
     }
-  } catch (e) {
-    const errorObject = handleError(e, {
-      source: 'mainSummarizationProcess',
-    })
-    summaryState.summaryError = errorObject
-    // Don't change the lastSummaryTypeDisplayed on error,
-    // so the UI can show the error in the correct context (e.g., YouTube tab).
+  } catch (error) {
+    if (error.message === 'Could not get current tab information or URL.') {
+      updateState({
+          summaryError: {
+            message: error.message,
+            origError: error,
+            failedAction: 'Initialization',
+          }
+      })
+    } else {
+       updateState({
+           summaryError: handleError(error, { source: 'fetchAndSummarize' })
+       })
+    }
   } finally {
-    // Ensure all loading states are set to false
-    summaryState.isLoading = false
-    summaryState.isCourseSummaryLoading = false
-    summaryState.isCourseConceptsLoading = false
-
-    // Log all generated summaries to history after all loading is complete
-    // Log generated summaries to history as separate entries
-    if (summaryState.isYouTubeVideoActive && summaryState.summary) {
-      await logSingleSummaryToHistory(
-        summaryState.summary,
-        summaryState.pageTitle,
-        summaryState.pageUrl,
-        'Video Summary'
-      )
-    } else if (summaryState.isCourseVideoActive) {
-      // Course: chỉ log courseSummary, courseConcepts là custom action riêng
-      if (summaryState.courseSummary)
-        await logSingleSummaryToHistory(
-          summaryState.courseSummary,
-          summaryState.pageTitle,
-          summaryState.pageUrl,
-          'Course Summary'
-        )
-    } else if (summaryState.summary) {
-      await logSingleSummaryToHistory(
-        summaryState.summary,
-        summaryState.pageTitle,
-        summaryState.pageUrl,
-        'Web Summary'
-      )
+    updateState({
+        isLoading: false,
+        isCourseSummaryLoading: false,
+        isCourseConceptsLoading: false
+    })
+    
+    if (logData) {
+       await logSingleSummaryToHistory(logData.content, logData.title, logData.url, logData.type)
+       console.log(`[summaryStore] Logged history for tab ${targetTabId} (Backround safe)`)
     }
   }
 }

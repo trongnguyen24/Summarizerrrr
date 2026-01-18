@@ -20,6 +20,7 @@
   // Import direct variables and functions from refactored stores
   import {
     summaryState,
+    isAnyLoading,
     summarizeSelectedText,
     resetDisplayState,
     updateVideoActiveStates,
@@ -27,8 +28,12 @@
     fetchAndSummarizeStream,
     updateActiveCourseTab,
   } from '@/stores/summaryStore.svelte.js'
-  import { tabTitle } from '@/stores/tabTitleStore.svelte.js'
   import { setupMessageListener } from '@/services/messageHandler.js'
+  import {
+    getCurrentTabId,
+    getTabsWithSummary,
+    getOrCreateTabState,
+  } from '@/services/tabCacheService.js'
   import { initializeApp } from '@/services/initialization.js'
   import { settings, loadSettings } from '@/stores/settingsStore.svelte.js'
   import {
@@ -46,6 +51,8 @@
   import { debounce } from '@/lib/utils/utils.js'
   import Tooltip from '@/components/ui/Tooltip.svelte'
   import { Tooltip as BitsTooltip } from 'bits-ui'
+  import TabTitleBar from '@/components/ui/TabTitleBar.svelte'
+  import { tabTitle } from '@/stores/tabTitleStore.svelte.js'
 
   // Deep Dive imports
   import DeepDiveFAB from '@/components/tools/deepdive/DeepDiveFAB.svelte'
@@ -55,7 +62,6 @@
   import {
     deepDiveState,
     toggleDeepDive,
-    shouldShowDeepDive,
     updateSummaryContext,
     setQuestions,
     setGenerating,
@@ -70,6 +76,45 @@
   // Permission state for Firefox
   let hasPermission = $state(true) // Default to true for non-Firefox
   let currentTabUrl = $state('')
+
+  // Track cached tabs count for navigation arrows
+  let cachedTabsCount = $state(0)
+
+  // Derived value for Deep Dive visibility - ensures reactivity when tab switches
+  let shouldShowDeepDiveNow = $derived(
+    (settings.tools?.deepDive?.enabled ?? false) &&
+      deepDiveState.lastSummaryContent.trim() !== '',
+  )
+
+  // Effect to update cached tabs count when summary state changes
+  $effect(() => {
+    // Dependencies: any summary content changes
+    const _trigger = [
+      summaryState.summary,
+      summaryState.courseSummary,
+      summaryState.selectedTextSummary,
+      summaryState.customActionResult,
+      summaryState.lastSummaryTypeDisplayed,
+    ]
+
+    // Sync current summaryState to tabStates for current tab
+    // This ensures getTabsWithSummary() sees the latest summary content
+    const currentTabId = getCurrentTabId()
+    if (currentTabId) {
+      const tabState = getOrCreateTabState(currentTabId)
+      if (tabState) {
+        // Copy all summary fields to tab state dynamically
+        Object.keys(summaryState).forEach((key) => {
+          if (key !== 'abortController') {
+            tabState.summaryState[key] = summaryState[key]
+          }
+        })
+      }
+    }
+
+    // Update count
+    cachedTabsCount = getTabsWithSummary().length
+  })
 
   // Use API key validation composable
   const { needsApiKeySetup, currentProviderDisplayName } = useApiKeyValidation()
@@ -167,12 +212,7 @@
   // Create derived variable to check if all summaries for the current page type are completed
   const areAllSummariesCompleted = $derived(() => {
     // No loading states should be active
-    const noLoadingStates =
-      !summaryState.isLoading &&
-      !summaryState.isCourseSummaryLoading &&
-      !summaryState.isCourseConceptsLoading &&
-      !summaryState.isSelectedTextLoading &&
-      !summaryState.isCustomActionLoading
+    const noLoadingStates = !isAnyLoading()
 
     if (!noLoadingStates) return false
 
@@ -322,12 +362,7 @@
    */
   $effect(() => {
     // Chỉ update context khi KHÔNG còn loading nào
-    const allLoadingComplete =
-      !summaryState.isLoading &&
-      !summaryState.isCourseSummaryLoading &&
-      !summaryState.isCourseConceptsLoading &&
-      !summaryState.isSelectedTextLoading &&
-      !summaryState.isCustomActionLoading
+    const allLoadingComplete = !isAnyLoading()
 
     const content = getSummaryContent()
 
@@ -344,40 +379,53 @@
   /**
    * Effect: Auto-generate Deep Dive questions sau khi summary hoàn thành
    * Chỉ chạy khi autoGenerate setting = true
+   *
+   * FIX: Check hasGenerated from TAB-SPECIFIC state (not global) to prevent
+   * duplicate generation when switching between tabs.
    */
   $effect(() => {
-    const allLoadingComplete =
-      !summaryState.isLoading &&
-      !summaryState.isCourseSummaryLoading &&
-      !summaryState.isCourseConceptsLoading &&
-      !summaryState.isSelectedTextLoading &&
-      !summaryState.isCustomActionLoading
+    const allLoadingComplete = !isAnyLoading()
 
     const content = getSummaryContent()
     const autoGenEnabled = settings.tools?.deepDive?.autoGenerate ?? false
     const toolEnabled = settings.tools?.deepDive?.enabled ?? false
+
+    // Get current tab ID for checking tab-specific state
+    const targetTabId = getCurrentTabId()
+
+    // Check hasGenerated from TAB-SPECIFIC state, not global state
+    // This prevents regenerating questions when switching tabs
+    let hasAlreadyGenerated = false
+    if (targetTabId) {
+      const tabState = getOrCreateTabState(targetTabId)
+      if (tabState?.deepDiveState) {
+        hasAlreadyGenerated = tabState.deepDiveState.hasGenerated
+      }
+    }
 
     // Trigger auto-generate nếu:
     // 1. All loading complete
     // 2. Có content
     // 3. Tool enabled
     // 4. Auto-generate enabled
-    // 5. Chưa có questions (tránh regenerate không cần thiết)
+    // 5. Tab-specific hasGenerated = false (tránh regenerate khi switch tab)
     if (
       allLoadingComplete &&
       content &&
       content.trim() !== '' &&
       toolEnabled &&
       autoGenEnabled &&
-      deepDiveState.questions.length === 0
+      !hasAlreadyGenerated
     ) {
-      console.log('[App] Auto-generating Deep Dive questions...')
+      console.log(
+        `[App] Auto-generating Deep Dive questions for tab ${targetTabId}...`,
+      )
 
       // Async function inside effect
       ;(async () => {
         try {
-          setGenerating(true)
-          setError(null) // Clear previous errors
+          setGenerating(true, targetTabId)
+          setError(null, targetTabId) // Clear previous errors
 
           const questions = await generateFollowUpQuestions(
             content,
@@ -387,16 +435,25 @@
             deepDiveState.questionHistory,
           )
 
-          setQuestions(questions)
-          addToQuestionHistory(questions)
-          console.log('[App] Auto-generated questions:', questions)
+          setQuestions(questions, targetTabId)
+          addToQuestionHistory(questions, targetTabId)
+          console.log(
+            `[App] Auto-generated questions for tab ${targetTabId}:`,
+            questions,
+          )
         } catch (error) {
-          console.error('[App] Auto-generation failed:', error)
+          console.error(
+            `[App] Auto-generation failed for tab ${targetTabId}:`,
+            error,
+          )
           // Silent fail - Lưu error vào store
           // Error sẽ hiển thị khi user mở dialog
-          setError(error.message || 'Failed to auto-generate questions')
+          setError(
+            error.message || 'Failed to auto-generate questions',
+            targetTabId,
+          )
         } finally {
-          setGenerating(false)
+          setGenerating(false, targetTabId)
         }
       })()
     }
@@ -434,26 +491,42 @@
     {/await}
   </div>
 {/if}
-<div class="main-container flex min-w-[22.5rem] bg-surface-1 w-full flex-col">
+<div
+  class="main-container flex min-w-[22.5rem] bg-surface-1 w-full flex-col"
+  data-per-tab={settings.tools?.perTabCache?.enabled ? 'true' : undefined}
+>
   <div
-    class="grid grid-rows-[32px_1px_8px_1px_192px_1px_8px_1px_1fr] min-h-screen"
+    class="grid min-h-screen {settings.tools?.perTabCache?.enabled
+      ? 'grid-rows-[36px_32px_10px_192px_10px_1fr]'
+      : 'grid-rows-[32px_10px_192px_10px_1fr]'}"
   >
-    <div class=" flex justify-center items-center w-full h-full">
-      <div class="text-text-secondary">
-        <div
-          class="line-clamp-1 w-screen !text-center text-[0.75rem] px-2 text-text-secondary"
-        >
-          {$tabTitle}
-        </div>
+    <div
+      class="flex justify-center items-center w-screen h-full {settings.tools
+        ?.perTabCache?.enabled
+        ? 'sticky top-0 z-40 bg-surface-1'
+        : ''}"
+    >
+      <TabTitleBar {cachedTabsCount} />
+      <div
+        class=" absolute w-screen h-3 -bottom-3 bg-linear-to-b from-surface-1 to-surface-1/0 {settings
+          .tools?.perTabCache?.enabled
+          ? ''
+          : 'hidden'}"
+      ></div>
+    </div>
+    <div
+      class="w-screen text-center text-[0.7rem] flex justify-center items-center px-2 text-text-secondary {settings
+        .tools?.perTabCache?.enabled
+        ? ''
+        : 'hidden'}"
+    >
+      <div class="line-clamp-1 w-full">
+        {$tabTitle}
       </div>
     </div>
-
-    <div class="bg-border"></div>
     <div
-      class="top-stripes flex justify-center items-center w-full h-full"
+      class="top-stripes flex justify-center border-b border-border border-t items-center w-full h-full"
     ></div>
-    <div class="bg-border"></div>
-
     <div
       class="flex relative font-mono flex-col gap-1 justify-center items-center"
     >
@@ -486,9 +559,7 @@
         {#if !needsApiKeySetup()()}
           <div class="flex flex-row gap-3 items-center">
             <SummarizeButton
-              isLoading={summaryState.isLoading ||
-                isAnyCourseLoading ||
-                summaryState.isCustomActionLoading}
+              isLoading={isAnyLoading()}
               disabled={!hasPermission && import.meta.env.BROWSER === 'firefox'}
             />
           </div>
@@ -514,13 +585,9 @@
       {/if}
     </div>
 
-    <div class="bg-border"></div>
-
     <div
-      class="top-stripes flex justify-center items-center w-full h-full"
+      class="top-stripes flex justify-center border-b border-border border-t items-center w-full h-full"
     ></div>
-
-    <div class="bg-border"></div>
 
     <div
       class="relative prose wrap-anywhere main-sidepanel prose-h2:mt-4 p z-10 flex flex-col gap-8 px-6 pt-8 pb-[30vh] min-w-[22.5rem] max-w-[52rem] w-screen mx-auto"
@@ -532,7 +599,7 @@
       {:else if summaryState.lastSummaryTypeDisplayed === 'youtube'}
         <YouTubeSummaryDisplay />
         <!-- Inline Deep Dive Questions for YouTube -->
-        {#if shouldShowDeepDive() && settings.tools?.deepDive?.autoGenerate}
+        {#if shouldShowDeepDiveNow && settings.tools?.deepDive?.autoGenerate}
           <InlineDeepDiveQuestions
             summaryContent={getSummaryContent()}
             pageTitle={summaryState.pageTitle}
@@ -551,7 +618,7 @@
           showTOC={true}
         />
         <!-- Inline Deep Dive Questions for Selected Text -->
-        {#if shouldShowDeepDive() && settings.tools?.deepDive?.autoGenerate}
+        {#if shouldShowDeepDiveNow && settings.tools?.deepDive?.autoGenerate}
           <InlineDeepDiveQuestions
             summaryContent={getSummaryContent()}
             pageTitle={summaryState.pageTitle}
@@ -568,7 +635,7 @@
           showTOC={true}
         />
         <!-- Inline Deep Dive Questions for Web -->
-        {#if shouldShowDeepDive() && settings.tools?.deepDive?.autoGenerate}
+        {#if shouldShowDeepDiveNow && settings.tools?.deepDive?.autoGenerate}
           <InlineDeepDiveQuestions
             summaryContent={getSummaryContent()}
             pageTitle={summaryState.pageTitle}
@@ -585,7 +652,7 @@
           showTOC={true}
         />
         <!-- Inline Deep Dive Questions for Custom Actions -->
-        {#if shouldShowDeepDive() && settings.tools?.deepDive?.autoGenerate}
+        {#if shouldShowDeepDiveNow && settings.tools?.deepDive?.autoGenerate}
           <InlineDeepDiveQuestions
             summaryContent={getSummaryContent()}
             pageTitle={summaryState.pageTitle}
@@ -608,7 +675,7 @@
 {/if}
 <Toaster />
 <!-- Deep Dive FAB & Section with Error Boundary -->
-{#if shouldShowDeepDive()}
+{#if shouldShowDeepDiveNow}
   {#await Promise.resolve()}
     <!-- Loading placeholder -->
   {:then}

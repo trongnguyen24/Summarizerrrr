@@ -65,6 +65,7 @@
   --color-blackwhite-10: oklch(0 0 0 / 10%);
   --color-track: oklch(0.9 0 0);
   --color-summarize: oklch(0 0 0);
+  --color-background-dark: oklch(0.89 0.001 286);
   --color-background: oklch(0.93 0.001 286);
   --color-surface-1: oklch(0.95 0.0005 286);
   --color-surface-2: oklch(1 0 0);
@@ -110,6 +111,7 @@
   --color-blackwhite-10: oklch(1 0 0 / 10%);
   --color-track: oklch(0.3 0 0);
   --color-background: oklch(0.15 0.02 286);
+  --color-background-dark: oklch(0.08 0.02 286);
   --color-surface-1: oklch(0.2 0.015 268);
   --color-surface-2: oklch(0.25 0.015 264);
   --color-border-2: oklch(0.36 0.015 260);
@@ -172,4 +174,12 @@
 .thin-scroll {
   scrollbar-width: thin;
   scrollbar-color: var(--color-border) transparent;
+}
+
+/* Scroll offset for headings when per-tab navigation is enabled */
+/* The 48px accounts for the 36px tab bar height + 12px buffer */
+[data-per-tab='true'] h2,
+[data-per-tab='true'] h3,
+[data-per-tab='true'] h4 {
+  scroll-margin-top: 48px;
 }

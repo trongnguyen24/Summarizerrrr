@@ -139,15 +139,15 @@ export function tabHasSummary(tabId) {
   if (!tabStates.has(tabId)) return false
   const state = tabStates.get(tabId).summaryState
   return !!(
-    state.summaryState.summary ||
-    state.summaryState.courseSummary ||
-    state.summaryState.selectedTextSummary ||
-    state.summaryState.customActionResult ||
-    state.summaryState.isLoading ||
-    state.summaryState.isCourseSummaryLoading ||
-    state.summaryState.isCourseConceptsLoading ||
-    state.summaryState.isSelectedTextLoading ||
-    state.summaryState.isCustomActionLoading
+    state.summary ||
+    state.courseSummary ||
+    state.selectedTextSummary ||
+    state.customActionResult ||
+    state.isLoading ||
+    state.isCourseSummaryLoading ||
+    state.isCourseConceptsLoading ||
+    state.isSelectedTextLoading ||
+    state.isCustomActionLoading
   )
 }
 
@@ -325,7 +325,7 @@ export function checkAndResetTabState(tabId, newUrl) {
   console.log(`[tabCacheService] URL changed checking reset for tab ${tabId}: ${currentUrl} -> ${newUrl}`)
   
   // Check setting
-  const autoReset = settings.tools?.perTabCache?.autoResetOnNavigation ?? true
+  const autoReset = settings.tools?.perTabCache?.autoResetOnNavigation ?? false
   
   if (autoReset) {
     console.log(`[tabCacheService] Auto-resetting state for tab ${tabId}`)

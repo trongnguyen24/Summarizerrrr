@@ -122,6 +122,8 @@
       browser.tabs.onActivated.removeListener(handleTabActivated)
       // Cleanup global mouse listeners to prevent memory leaks
       cleanupGlobalMouseListeners()
+      // Cancel any running lerp animation to prevent memory leaks
+      stopLerpAnimation()
     }
   })
 
@@ -423,13 +425,6 @@
     handleGlobalMouseMove(e)
   }
 
-  function handleMouseUp() {
-    // This is now handled by handleGlobalMouseUp
-    // Keep for compatibility but global handler does the main work
-    if (!isGrabbing) return
-    handleGlobalMouseUp()
-  }
-
   function handleMouseLeave() {
     // Don't stop grabbing when mouse leaves - global listeners handle it
     // This allows dragging to continue even when cursor leaves the container
@@ -518,7 +513,7 @@
         handleMouseDown(e)
       }}
       onmousemove={handleMouseMove}
-      onmouseup={handleMouseUp}
+      onmouseup={handleGlobalMouseUp}
       onmouseleave={handleMouseLeave}
       onwheel={handleWheel}
       role="group"

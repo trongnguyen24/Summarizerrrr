@@ -379,6 +379,9 @@
   /**
    * Effect: Auto-generate Deep Dive questions sau khi summary hoàn thành
    * Chỉ chạy khi autoGenerate setting = true
+   *
+   * FIX: Check hasGenerated from TAB-SPECIFIC state (not global) to prevent
+   * duplicate generation when switching between tabs.
    */
   $effect(() => {
     const allLoadingComplete = !isAnyLoading()
@@ -387,25 +390,39 @@
     const autoGenEnabled = settings.tools?.deepDive?.autoGenerate ?? false
     const toolEnabled = settings.tools?.deepDive?.enabled ?? false
 
+    // Get current tab ID for checking tab-specific state
+    const targetTabId = getCurrentTabId()
+
+    // Check hasGenerated from TAB-SPECIFIC state, not global state
+    // This prevents regenerating questions when switching tabs
+    let hasAlreadyGenerated = false
+    if (targetTabId) {
+      const tabState = getOrCreateTabState(targetTabId)
+      if (tabState?.deepDiveState) {
+        hasAlreadyGenerated = tabState.deepDiveState.hasGenerated
+      }
+    }
+
     // Trigger auto-generate nếu:
     // 1. All loading complete
     // 2. Có content
     // 3. Tool enabled
     // 4. Auto-generate enabled
-    // 5. Chưa có questions (tránh regenerate không cần thiết)
+    // 5. Tab-specific hasGenerated = false (tránh regenerate khi switch tab)
     if (
       allLoadingComplete &&
       content &&
       content.trim() !== '' &&
       toolEnabled &&
       autoGenEnabled &&
-      deepDiveState.questions.length === 0
+      !hasAlreadyGenerated
     ) {
-      console.log('[App] Auto-generating Deep Dive questions...')
+      console.log(
+        `[App] Auto-generating Deep Dive questions for tab ${targetTabId}...`,
+      )
 
       // Async function inside effect
       ;(async () => {
-        const targetTabId = getCurrentTabId()
         try {
           setGenerating(true, targetTabId)
           setError(null, targetTabId) // Clear previous errors
@@ -420,9 +437,15 @@
 
           setQuestions(questions, targetTabId)
           addToQuestionHistory(questions, targetTabId)
-          console.log('[App] Auto-generated questions:', questions)
+          console.log(
+            `[App] Auto-generated questions for tab ${targetTabId}:`,
+            questions,
+          )
         } catch (error) {
-          console.error('[App] Auto-generation failed:', error)
+          console.error(
+            `[App] Auto-generation failed for tab ${targetTabId}:`,
+            error,
+          )
           // Silent fail - Lưu error vào store
           // Error sẽ hiển thị khi user mở dialog
           setError(

@@ -328,7 +328,8 @@
           "previous_tab": "上一个标签页",
           "next_tab": "下一个标签页",
           "remove_tab": "移除（中键点击）"
-        }
+        },
+        "blocking_note": "注：为获得最佳性能，响应模式已设置为 Blocking。"
       }
     }
   },

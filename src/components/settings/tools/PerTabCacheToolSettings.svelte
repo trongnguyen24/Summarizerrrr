@@ -145,6 +145,9 @@
         </ButtonSet>
       </div>
     </div>
+    <div class="text-xs text-muted">
+      {$t('settings.tools.perTabCache.blocking_note')}
+    </div>
   {/if}
 </div>
 

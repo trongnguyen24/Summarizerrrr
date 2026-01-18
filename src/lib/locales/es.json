@@ -328,7 +328,8 @@
           "previous_tab": "Pestaña anterior",
           "next_tab": "Pestaña siguiente",
           "remove_tab": "Eliminar (Clic central)"
-        }
+        },
+        "blocking_note": "Nota: El modo de respuesta está configurado en Blocking para un mejor rendimiento."
       }
     }
   },

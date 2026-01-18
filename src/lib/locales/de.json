@@ -328,7 +328,8 @@
           "previous_tab": "Vorheriger Tab",
           "next_tab": "Nächster Tab",
           "remove_tab": "Entfernen (Mittelklick)"
-        }
+        },
+        "blocking_note": "Hinweis: Der Antwortmodus wird für beste Leistung auf Blocking gesetzt."
       }
     }
   },

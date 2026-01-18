@@ -328,7 +328,8 @@
           "previous_tab": "Previous tab",
           "next_tab": "Next tab",
           "remove_tab": "Remove (Middle-click)"
-        }
+        },
+        "blocking_note": "Note: Response Mode is set to Blocking for best performance."
       }
     }
   },

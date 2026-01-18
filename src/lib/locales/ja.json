@@ -328,7 +328,8 @@
           "previous_tab": "前のタブ",
           "next_tab": "次のタブ",
           "remove_tab": "削除（中クリック）"
-        }
+        },
+        "blocking_note": "注: 最高のパフォーマンスのため、応答モードはBlockingに設定されています。"
       }
     }
   },

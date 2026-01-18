@@ -328,7 +328,8 @@
           "previous_tab": "Tab trước",
           "next_tab": "Tab tiếp theo",
           "remove_tab": "Xóa (Click chuột giữa)"
-        }
+        },
+        "blocking_note": "Lưu ý: Chế độ phản hồi Blocking được bật để đảm bảo hiệu năng."
       }
     }
   },

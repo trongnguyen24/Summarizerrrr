@@ -328,7 +328,8 @@
           "previous_tab": "Onglet précédent",
           "next_tab": "Onglet suivant",
           "remove_tab": "Supprimer (Clic du milieu)"
-        }
+        },
+        "blocking_note": "Note: Le mode de réponse est réglé sur Blocking pour de meilleures performances."
       }
     }
   },

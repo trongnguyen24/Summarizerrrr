@@ -328,7 +328,8 @@
           "previous_tab": "이전 탭",
           "next_tab": "다음 탭",
           "remove_tab": "제거 (가운데 클릭)"
-        }
+        },
+        "blocking_note": "참고: 최고의 성능을 위해 응답 모드가 Blocking으로 설정됩니다."
       }
     }
   },

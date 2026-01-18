@@ -17,7 +17,6 @@
     navigateToPreviousCachedTab,
     navigateToNextCachedTab,
     getCurrentTabId,
-    getTabsWithSummary,
     clearTabState,
   } from '@/services/tabCacheService.js'
   import { isReduceMotionEnabled } from '@/services/animationService.js'

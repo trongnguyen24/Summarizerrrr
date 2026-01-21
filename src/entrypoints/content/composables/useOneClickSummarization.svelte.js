@@ -6,9 +6,25 @@ import { useSummarization } from './useSummarization.svelte.js'
  * Composable quản lý logic 1-click summarization
  * Kết hợp useSummarization với auto-panel và URL tracking
  */
+// MEMORY FIX: Limit cache size to prevent memory bloat
+const MAX_CACHE_SIZE = 20
+
 export function useOneClickSummarization() {
   // Cache để track summary state theo URL để tránh re-summarize
   const summaryCache = new Map()
+
+  /**
+   * Add to cache with size limit (LRU-style eviction)
+   */
+  function addToCache(key, value) {
+    // If at limit, remove oldest entry
+    if (summaryCache.size >= MAX_CACHE_SIZE) {
+      const oldestKey = summaryCache.keys().next().value
+      summaryCache.delete(oldestKey)
+      console.log('[useOneClickSummarization] Cache limit reached, removed:', oldestKey)
+    }
+    summaryCache.set(key, value)
+  }
 
   // Get summarization composable
   const {
@@ -113,7 +129,7 @@ export function useOneClickSummarization() {
       // Cache kết quả
       const currentState = localSummaryState()
       const cacheKey = getCacheKey(oneClickState.currentUrl)
-      summaryCache.set(cacheKey, {
+      addToCache(cacheKey, {
         summary: currentState.summary,
         chapterSummary: currentState.chapterSummary,
         courseConcepts: currentState.courseConcepts,
@@ -189,7 +205,7 @@ export function useOneClickSummarization() {
     try {
       const currentState = localSummaryState()
       const cacheKey = getCacheKey(oneClickState.currentUrl)
-      summaryCache.set(cacheKey, {
+      addToCache(cacheKey, {
         summary: currentState.summary,
         chapterSummary: currentState.chapterSummary,
         courseConcepts: currentState.courseConcepts,

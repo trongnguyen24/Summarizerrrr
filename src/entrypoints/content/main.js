@@ -14,6 +14,12 @@ export async function main(ctx) {
   // Initialize i18n before mounting Shadow DOM
   await loadSettings()
 
+  // MEMORY FIX: Early return if FAB is completely disabled in settings
+  // This prevents loading any additional modules or mounting UI
+  if (!settings.showFloatingButton) {
+    return
+  }
+
   // Check Firefox permissions trước khi kiểm tra shouldShowFab
   if (import.meta.env.BROWSER === 'firefox') {
     try {

@@ -1755,6 +1755,17 @@ export default defineBackground(() => {
     }
   })
 
+  // MEMORY FIX: Cleanup per-tab cache when browser tab is closed
+  browser.tabs.onRemoved.addListener(async (tabId) => {
+    try {
+      const { clearTabState } = await import('../services/tabCacheService.js')
+      clearTabState(tabId)
+      console.log(`[Background] Cleared tab state for tab ${tabId}`)
+    } catch (e) {
+      // Ignore - tabCacheService might not be loaded
+    }
+  })
+
   // --- AI Service Helper Functions ---
 
   /**

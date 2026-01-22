@@ -218,7 +218,7 @@
       const foundHeadings = rootNode.querySelectorAll('h2, h3, h4')
 
       headings = Array.from(foundHeadings).map((heading) => {
-        let text = heading.innerText
+        let text = heading.textContent
         if (text.endsWith(':')) {
           text = text.slice(0, -1)
         }
@@ -229,7 +229,7 @@
           .replace(/\s+/g, ' ')
           .trim()
 
-        const id = generateId(cleanText || text)
+        const id = heading.id || generateId(cleanText || text)
         heading.id = id // Ensure heading has an ID for scrolling
         return {
           text: cleanText || text,

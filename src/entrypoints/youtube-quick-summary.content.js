@@ -6,8 +6,10 @@
  * 2. Dynamic: Inject into ytd-video-preview when it appears
  * 
  * Performance Optimized:
- * - All observers, listeners, and intervals are stopped when feature is disabled
- * - Resources are re-initialized when feature is re-enabled
+ * - Throttled mouseover handler (100ms) to reduce CPU usage
+ * - Narrowed MutationObserver scope to content container only
+ * - On-demand preview checking instead of polling interval
+ * - Cached style computations for positioned containers
  */
 import { mount, unmount } from 'svelte'
 import QuickSummaryButton from './content/QuickSummaryButton.svelte'
@@ -19,27 +21,35 @@ export default defineContentScript({
   
   async main() {
     // Constants
-    const THUMBNAIL_SELECTORS = [
-      'ytd-thumbnail',                    // Home, Search, Channel pages
-      'yt-thumbnail-view-model',          // Watch page sidebar (new layout)
-      'yt-lockup-view-model',             // Watch page sidebar (container)
-    ].join(', ')
     const PREVIEW_SELECTOR = 'ytd-video-preview'
     const INJECTED_MARKER = 'data-qs-injected'
+    const POSITIONED_MARKER = 'data-qs-positioned'
+    const THROTTLE_MS = 100
     
     // State
-    let isEnabled = false  // Start as false, will be set true by startFeature()
+    let isEnabled = false
     let currentVideoId = null
     let observer = null
-    let intervalId = null
+    let lastMouseOverTime = 0
+    let pendingPreviewCheck = null
     
     // Store mounted components for cleanup
     const mountedComponents = new WeakMap()
     
-    // ===== MOUSEOVER HANDLER =====
+    // ===== THROTTLE UTILITY =====
+    function shouldThrottle() {
+      const now = Date.now()
+      if (now - lastMouseOverTime < THROTTLE_MS) {
+        return true
+      }
+      lastMouseOverTime = now
+      return false
+    }
+    
+    // ===== MOUSEOVER HANDLER (THROTTLED) =====
     function handleMouseOver(e) {
-      // Skip if feature is disabled
       if (!isEnabled) return
+      if (shouldThrottle()) return
       
       // Try to find the thumbnail container - prioritize larger containers
       let thumbnail = e.target.closest('yt-lockup-view-model')  // Watch page sidebar
@@ -52,7 +62,11 @@ export default defineContentScript({
       if (!thumbnail) return
       
       // Skip if already injected
-      if (thumbnail.hasAttribute(INJECTED_MARKER)) return
+      if (thumbnail.hasAttribute(INJECTED_MARKER)) {
+        // Still schedule preview check for already-injected thumbnails
+        schedulePreviewCheck()
+        return
+      }
       
       // Get video link and ID - different selectors for different layouts
       let link = thumbnail.querySelector('a#thumbnail')  // Old layout
@@ -77,14 +91,49 @@ export default defineContentScript({
       const thumbnailImage = thumbnail.querySelector('yt-thumbnail-view-model')
       if (thumbnailImage) {
         targetContainer = thumbnailImage
-        // Ensure relative positioning
-        const style = window.getComputedStyle(targetContainer)
-        if (style.position === 'static') {
-          targetContainer.style.position = 'relative'
-        }
+        ensureRelativePosition(targetContainer)
       }
       
       injectButton(targetContainer, videoId)
+      
+      // Schedule preview check after hover (replaces interval)
+      schedulePreviewCheck()
+    }
+    
+    // ===== ON-DEMAND PREVIEW CHECK (replaces interval) =====
+    function schedulePreviewCheck() {
+      if (pendingPreviewCheck) return
+      
+      pendingPreviewCheck = requestAnimationFrame(() => {
+        pendingPreviewCheck = null
+        checkPreview()
+      })
+    }
+    
+    function checkPreview() {
+      if (!isEnabled) return
+      
+      const preview = document.querySelector(`${PREVIEW_SELECTOR}:not([hidden])`)
+      if (!preview) return
+      
+      // Skip if already has button
+      if (preview.querySelector('.qs-button-wrapper')) return
+      
+      // Try to get video ID from preview's own link first
+      let videoId = null
+      const previewLink = preview.querySelector('a[href*="watch"]')
+      if (previewLink) {
+        videoId = extractVideoId(previewLink.href)
+      }
+      
+      // Fallback to tracked video ID
+      if (!videoId && currentVideoId) {
+        videoId = currentVideoId
+      }
+      
+      if (!videoId) return
+      
+      injectButton(preview, videoId)
     }
     
     // ===== MUTATION OBSERVER CALLBACK =====
@@ -155,32 +204,17 @@ export default defineContentScript({
     }
     
     /**
-     * Interval callback for fallback preview checking
+     * Ensure container has relative positioning (cached via marker)
      */
-    function checkPreviewInterval() {
-      if (!isEnabled) return
+    function ensureRelativePosition(container) {
+      // Skip if already processed
+      if (container.hasAttribute(POSITIONED_MARKER)) return
       
-      const preview = document.querySelector(`${PREVIEW_SELECTOR}:not([hidden])`)
-      if (!preview) return
-      
-      // Skip if already has button
-      if (preview.querySelector('.qs-button-wrapper')) return
-      
-      // Try to get video ID from preview's own link first
-      let videoId = null
-      const previewLink = preview.querySelector('a[href*="watch"]')
-      if (previewLink) {
-        videoId = extractVideoId(previewLink.href)
+      const style = window.getComputedStyle(container)
+      if (style.position === 'static') {
+        container.style.position = 'relative'
       }
-      
-      // Fallback to tracked video ID
-      if (!videoId && currentVideoId) {
-        videoId = currentVideoId
-      }
-      
-      if (!videoId) return
-      
-      injectButton(preview, videoId)
+      container.setAttribute(POSITIONED_MARKER, 'true')
     }
     
     /**
@@ -193,11 +227,8 @@ export default defineContentScript({
       const wrapper = document.createElement('div')
       wrapper.className = 'qs-button-wrapper'
       
-      // Ensure container has relative positioning
-      const computedStyle = window.getComputedStyle(container)
-      if (computedStyle.position === 'static') {
-        container.style.position = 'relative'
-      }
+      // Ensure container has relative positioning (cached)
+      ensureRelativePosition(container)
       
       container.appendChild(wrapper)
       
@@ -227,49 +258,53 @@ export default defineContentScript({
       // Remove injection markers so buttons can be re-injected when enabled
       const markedElements = document.querySelectorAll(`[${INJECTED_MARKER}]`)
       markedElements.forEach(el => el.removeAttribute(INJECTED_MARKER))
+      
+      // Remove positioned markers
+      const positionedElements = document.querySelectorAll(`[${POSITIONED_MARKER}]`)
+      positionedElements.forEach(el => el.removeAttribute(POSITIONED_MARKER))
     }
     
     /**
-     * Start all observers and listeners
+     * Start observer with narrowed scope
      */
     function startFeature() {
-      if (isEnabled) return // Already enabled
+      if (isEnabled) return
       
-       isEnabled = true
+      isEnabled = true
       
-      // Start MutationObserver
+      // Observe only the main content container for better performance
+      // Falls back to body if container not found
+      const observeTarget = document.querySelector('#content, #page-manager, ytd-app') || document.body
+      
       observer = new MutationObserver(handleMutations)
-      observer.observe(document.body, {
+      observer.observe(observeTarget, {
         childList: true,
         subtree: true,
         attributes: true,
-        attributeFilter: ['class', 'style', 'hidden']
+        attributeFilter: ['hidden']  // Only watch 'hidden' attribute changes
       })
       
-      // Start interval
-      intervalId = setInterval(checkPreviewInterval, 500)
-      
-      console.log('[Quick Summary] Feature enabled - observers started')
+      console.log('[Quick Summary] Feature enabled - optimized observer started')
     }
     
     /**
      * Stop all observers and listeners, remove buttons
      */
     function stopFeature() {
-      if (!isEnabled) return // Already disabled
+      if (!isEnabled) return
       
       isEnabled = false
+      
+      // Cancel pending preview check
+      if (pendingPreviewCheck) {
+        cancelAnimationFrame(pendingPreviewCheck)
+        pendingPreviewCheck = null
+      }
       
       // Stop MutationObserver
       if (observer) {
         observer.disconnect()
         observer = null
-      }
-      
-      // Stop interval
-      if (intervalId) {
-        clearInterval(intervalId)
-        intervalId = null
       }
       
       // Remove all injected buttons
@@ -289,9 +324,8 @@ export default defineContentScript({
       isEnabled = false
       console.log('[Quick Summary] Feature disabled in settings (not starting)')
     } else {
-      // Start the feature
       startFeature()
-      console.log('[Quick Summary] Content script initialized (Svelte component)')
+      console.log('[Quick Summary] Content script initialized (optimized)')
     }
     
     // Watch for settings changes to toggle feature without reload

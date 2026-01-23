@@ -13,8 +13,6 @@
 		29150BD02E7D126400491238 /* Style.css in Resources */ = {isa = PBXBuildFile; fileRef = 29150BCF2E7D126400491238 /* Style.css */; };
 		29150BD22E7D126400491238 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29150BD12E7D126400491238 /* SceneDelegate.swift */; };
 		29150BD42E7D126400491238 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29150BD32E7D126400491238 /* ViewController.swift */; };
-		29150BD72E7D126400491238 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 29150BD52E7D126400491238 /* LaunchScreen.storyboard */; };
-		29150BDA2E7D126400491238 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 29150BD82E7D126400491238 /* Main.storyboard */; };
 		29150BE22E7D126500491238 /* Summarizerrrr Extension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 29150BE12E7D126500491238 /* Summarizerrrr Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		29150BE72E7D126500491238 /* SafariWebExtensionHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29150BE62E7D126500491238 /* SafariWebExtensionHandler.swift */; };
 		29150BE92E7D126500491238 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 29150BDB2E7D126500491238 /* Assets.xcassets */; };
@@ -34,6 +32,8 @@
 		29150C112E7D126600491238 /* assets in Resources */ = {isa = PBXBuildFile; fileRef = 29150C012E7D126600491238 /* assets */; };
 		29150C122E7D126600491238 /* Sumarizzerrrr.png in Resources */ = {isa = PBXBuildFile; fileRef = 29150C022E7D126600491238 /* Sumarizzerrrr.png */; };
 		29150C132E7D126600491238 /* archive.html in Resources */ = {isa = PBXBuildFile; fileRef = 29150C032E7D126600491238 /* archive.html */; };
+		293D874D2F235F7600A15461 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 29150BD52E7D126400491238 /* LaunchScreen.storyboard */; };
+		293D874E2F235F8100A15461 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 29150BD82E7D126400491238 /* Main.storyboard */; };
 		295074AE2ED82EC60079D4D5 /* Icon.png in Resources */ = {isa = PBXBuildFile; fileRef = 29150BCD2E7D126400491238 /* Icon.png */; };
 		2958EEAA2EDEBC1C00ED7BC8 /* _locales in Resources */ = {isa = PBXBuildFile; fileRef = 2958EEA92EDEBC1400ED7BC8 /* _locales */; };
 		2958EEAC2EDECF0000ED7BC8 /* Ios-safari.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = 2958EEAB2EDECF0000ED7BC8 /* Ios-safari.mp4 */; };
@@ -289,9 +289,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				2958EEAC2EDECF0000ED7BC8 /* Ios-safari.mp4 in Resources */,
+				293D874D2F235F7600A15461 /* LaunchScreen.storyboard in Resources */,
 				295074AE2ED82EC60079D4D5 /* Icon.png in Resources */,
-				29150BDA2E7D126400491238 /* Main.storyboard in Resources */,
-				29150BD72E7D126400491238 /* LaunchScreen.storyboard in Resources */,
+				293D874E2F235F8100A15461 /* Main.storyboard in Resources */,
 				29150BCC2E7D126400491238 /* Main.html in Resources */,
 				29150BE92E7D126500491238 /* Assets.xcassets in Resources */,
 				29150BD02E7D126400491238 /* Style.css in Resources */,
@@ -520,7 +520,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 2.11;
 				OTHER_LDFLAGS = (
 					"-framework",
 					SafariServices,
@@ -549,7 +549,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 2.11;
 				OTHER_LDFLAGS = (
 					"-framework",
 					SafariServices,
@@ -583,7 +583,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 2.11;
 				OTHER_LDFLAGS = (
 					"-framework",
 					SafariServices,
@@ -618,7 +618,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 2.11;
 				OTHER_LDFLAGS = (
 					"-framework",
 					SafariServices,

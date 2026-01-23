@@ -591,7 +591,7 @@
   {:else}
     <!-- Centered title mode when feature disabled or no cached tabs -->
     <div class="w-full text-center text-[0.75rem] px-2 text-text-secondary">
-      <div class="line-clamp-1 w-full">{$tabTitle}</div>
+      <div class="line-clamp-1 !text-center w-full">{$tabTitle}</div>
     </div>
   {/if}
   <div

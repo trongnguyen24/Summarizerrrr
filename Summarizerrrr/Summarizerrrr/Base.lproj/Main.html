@@ -187,6 +187,108 @@
         #tutorialVideo {
             display: none;
         }
+
+        /* Tab styles */
+        .tab-container {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .tab-button {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.625rem 1.25rem;
+            border: 1px solid var(--color-border);
+            background-color: var(--color-surface-1);
+            color: var(--color-text-secondary);
+            border-radius: 6.25rem;
+            font-size: 0.9375rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tab-button:hover {
+            background-color: var(--color-surface-2);
+        }
+
+        .tab-button.active {
+            background-color: var(--color-blackwhite);
+            color: var(--color-background);
+            border-color: var(--color-blackwhite);
+        }
+
+        .tab-button svg {
+            width: 1.125rem;
+            height: 1.125rem;
+        }
+
+        .platform-content {
+            display: none;
+        }
+
+        .platform-content.active {
+            display: block;
+        }
+
+        /* Larger screens (macOS) - increase font sizes */
+        @media (min-width: 768px) {
+            .logo-container {
+                height: 16rem;
+                margin-bottom: 3rem;
+            }
+
+            .logo {
+                width: 50rem;
+            }
+
+            .content {
+                max-width: 50rem;
+                gap: 2.5rem;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .tab-container {
+                gap: 1rem;
+                margin-bottom: 2rem;
+            }
+
+            .tab-button {
+                padding: 0.875rem 1.75rem;
+                font-size: 1.125rem;
+            }
+
+            .tab-button svg {
+                width: 1.5rem;
+                height: 1.5rem;
+            }
+
+            .steps {
+                gap: 1.25rem;
+            }
+
+            .step-number {
+                width: 2rem;
+                height: 2rem;
+                font-size: 1rem;
+            }
+
+            .step-text {
+                font-size: 1.25rem;
+            }
+
+            .video-button {
+                padding: 1rem 2rem;
+                font-size: 1.125rem;
+                margin-top: 1.5rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -240,66 +342,120 @@
     <div class="content">
     <h1 data-i18n="title">Kích hoạt Summarizerrrr</h1>
     
-    <div class="steps">
-        <div class="step">
-            <div class="step-number">1</div>
-            <div class="step-text" data-i18n="step1">Mở <b>Cài đặt</b> (Settings)</div>
+    <!-- Platform Tabs -->
+    <div class="tab-container">
+        <button class="tab-button active" id="tab-ios" onclick="switchPlatform('ios')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+                <line x1="12" y1="18" x2="12.01" y2="18"></line>
+            </svg>
+            <span>iOS</span>
+        </button>
+        <button class="tab-button" id="tab-macos" onclick="switchPlatform('macos')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                <line x1="8" y1="21" x2="16" y2="21"></line>
+                <line x1="12" y1="17" x2="12" y2="21"></line>
+            </svg>
+            <span>macOS</span>
+        </button>
+    </div>
+
+    <!-- iOS Instructions -->
+    <div class="platform-content active" id="content-ios">
+        <div class="steps">
+            <div class="step">
+                <div class="step-number">1</div>
+                <div class="step-text" data-i18n="ios_step1">Mở <b>Cài đặt</b> (Settings)</div>
+            </div>
+            <div class="step">
+                <div class="step-number">2</div>
+                <div class="step-text" data-i18n="ios_step2">Chọn <b>Ứng dụng</b> (Apps)</div>
+            </div>
+            <div class="step">
+                <div class="step-number">3</div>
+                <div class="step-text" data-i18n="ios_step3">Chọn <b>Safari</b></div>
+            </div>
+            <div class="step">
+                <div class="step-number">4</div>
+                <div class="step-text" data-i18n="ios_step4">Chọn <b>Phần mở rộng</b> (Extensions)</div>
+            </div>
+            <div class="step">
+                <div class="step-number">5</div>
+                <div class="step-text" data-i18n="ios_step5">Chọn <b>Summarizerrrr</b></div>
+            </div>
+            <div class="step">
+                <div class="step-number">6</div>
+                <div class="step-text" data-i18n="ios_step6">Bật <b>Summarizerrrr</b> và cấp quyền truy cập</div>
+            </div>
         </div>
-        <div class="step">
-            <div class="step-number">2</div>
-            <div class="step-text" data-i18n="step2">Chọn <b>Ứng dụng</b> (Apps)</div>
+        
+        <button class="video-button" onclick="playVideo('ios')">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+            </svg>
+            <span data-i18n="watchVideo">Xem hướng dẫn</span>
+        </button>
+        
+        <video id="tutorialVideo-ios" playsinline>
+            <source src="../Resources/Ios-safari.mp4" type="video/mp4">
+        </video>
+    </div>
+
+    <!-- macOS Instructions -->
+    <div class="platform-content" id="content-macos">
+        <div class="steps">
+            <div class="step">
+                <div class="step-number">1</div>
+                <div class="step-text" data-i18n="macos_step1">Mở <b>Safari</b></div>
+            </div>
+            <div class="step">
+                <div class="step-number">2</div>
+                <div class="step-text" data-i18n="macos_step2">Chọn <b>Safari → Settings</b> hoặc nhấn <b>⌘ + ,</b></div>
+            </div>
+            <div class="step">
+                <div class="step-number">3</div>
+                <div class="step-text" data-i18n="macos_step3">Chọn tab <b>Extensions</b></div>
+            </div>
+            <div class="step">
+                <div class="step-number">4</div>
+                <div class="step-text" data-i18n="macos_step4">Bật <b>Summarizerrrr</b> và cấp quyền truy cập</div>
+            </div>
         </div>
-        <div class="step">
-            <div class="step-number">3</div>
-            <div class="step-text" data-i18n="step3">Chọn <b>Safari</b></div>
-        </div>
-        <div class="step">
-            <div class="step-number">4</div>
-            <div class="step-text" data-i18n="step4">Chọn <b>Phần mở rộng</b> (Extensions)</div>
-        </div>
-        <div class="step">
-            <div class="step-number">5</div>
-            <div class="step-text" data-i18n="step5">Chọn <b>Summarizerrrr</b></div>
-        </div>
-        <div class="step">
-            <div class="step-number">6</div>
-            <div class="step-text" data-i18n="step6">Bật <b>Summarizerrrr</b> và cấp quyền truy cập</div>
-        </div>
-    
-    <button class="video-button" onclick="playVideo()">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polygon points="5 3 19 12 5 21 5 3"></polygon>
-        </svg>
-        <span data-i18n="watchVideo">Xem hướng dẫn</span>
-    </button>
-    
-    <video id="tutorialVideo" playsinline>
-        <source src="../Ios-safari.mp4" type="video/mp4">
-    </video>
     </div>
     </div>
     <script>
         const translations = {
             vi: {
                 title: "Kích hoạt Summarizerrrr",
-                
-                step1: "Mở <b>Cài đặt</b> (Settings)",
-                step2: "Chọn <b>Ứng dụng</b> (Apps)",
-                step3: "Chọn <b>Safari</b>",
-                step4: "Chọn <b>Phần mở rộng</b> (Extensions)",
-                step5: "Chọn <b>Summarizerrrr</b>",
-                step6: "Bật <b>Summarizerrrr</b> và cấp quyền truy cập",
+                // iOS
+                ios_step1: "Mở <b>Cài đặt</b> (Settings)",
+                ios_step2: "Chọn <b>Ứng dụng</b> (Apps)",
+                ios_step3: "Chọn <b>Safari</b>",
+                ios_step4: "Chọn <b>Phần mở rộng</b> (Extensions)",
+                ios_step5: "Chọn <b>Summarizerrrr</b>",
+                ios_step6: "Bật <b>Summarizerrrr</b> và cấp quyền truy cập",
+                // macOS
+                macos_step1: "Mở <b>Safari</b>",
+                macos_step2: "Chọn <b>Safari → Settings</b> hoặc nhấn <b>⌘ + ,</b>",
+                macos_step3: "Chọn tab <b>Extensions</b>",
+                macos_step4: "Bật <b>Summarizerrrr</b> và cấp quyền truy cập",
                 watchVideo: "Xem hướng dẫn"
             },
             en: {
                 title: "Activate Summarizerrrr",
-                
-                step1: "Open <b>Settings</b>",
-                step2: "Select <b>Apps</b>",
-                step3: "Select <b>Safari</b>",
-                step4: "Select <b>Extensions</b>",
-                step5: "Select <b>Summarizerrrr</b>",
-                step6: "Turn on <b>Summarizerrrr</b> and allow access",
+                // iOS
+                ios_step1: "Open <b>Settings</b>",
+                ios_step2: "Select <b>Apps</b>",
+                ios_step3: "Select <b>Safari</b>",
+                ios_step4: "Select <b>Extensions</b>",
+                ios_step5: "Select <b>Summarizerrrr</b>",
+                ios_step6: "Turn on <b>Summarizerrrr</b> and allow access",
+                // macOS
+                macos_step1: "Open <b>Safari</b>",
+                macos_step2: "Select <b>Safari → Settings</b> or press <b>⌘ + ,</b>",
+                macos_step3: "Select the <b>Extensions</b> tab",
+                macos_step4: "Turn on <b>Summarizerrrr</b> and allow access",
                 watchVideo: "Watch Tutorial"
             }
         };
@@ -321,14 +477,25 @@
             });
         }
 
-        function playVideo() {
-            const video = document.getElementById('tutorialVideo');
-            // On iOS, calling play() on a video element triggers fullscreen if it's not inline or if configured to do so.
-            // Even with playsinline, we can try to play it. 
-            // If display:none prevents it, we might need to make it visible but hidden.
-            // Let's try simple play first as user said it auto-played fullscreen.
+        function switchPlatform(platform) {
+            // Update tab buttons
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.getElementById('tab-' + platform).classList.add('active');
+
+            // Update content visibility
+            document.querySelectorAll('.platform-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById('content-' + platform).classList.add('active');
+        }
+
+        function playVideo(platform) {
+            const video = document.getElementById('tutorialVideo-' + platform);
+            if (!video) return;
             
-            // If display:none is an issue, we can temporarily show it.
+            // On iOS, calling play() on a video element triggers fullscreen if it's not inline or if configured to do so.
             video.style.display = 'block';
             video.style.position = 'absolute';
             video.style.width = '0.0625rem';
@@ -336,8 +503,6 @@
             video.style.opacity = '0';
             
             video.play().then(() => {
-                // If it plays, it might go fullscreen on iPhone.
-                // If it doesn't go fullscreen automatically (e.g. iPad), we might need to request it.
                 if (video.webkitEnterFullscreen) {
                     video.webkitEnterFullscreen();
                 } else if (video.requestFullscreen) {
@@ -345,7 +510,6 @@
                 }
             }).catch(e => {
                 console.log('Play failed:', e);
-                // Revert styles if failed
                 video.style.display = 'none';
             });
 

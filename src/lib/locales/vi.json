@@ -602,6 +602,11 @@
       "title": "Video: Đồng bộ dữ liệu qua Google Drive",
       "description": "BYOK - Dữ liệu của bạn không bao giờ qua máy chủ bên thứ ba.",
       "cta_label": "Xem ngay"
+    },
+    "noti_5": {
+      "title": "🎉 Đã có trên Apple App Store!",
+      "description": "Sử dụng Summarizerrrr với Safari trên iPhone & iPad.",
+      "cta_label": "Tải ngay"
     }
   }
 }

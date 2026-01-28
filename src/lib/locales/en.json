@@ -602,6 +602,11 @@
       "title": "Video: Sync data via Google Drive",
       "description": "BYOK - Your data never through third-party servers.",
       "cta_label": "Watch Now"
+    },
+    "noti_5": {
+      "title": "🎉 Now on Apple App Store!",
+      "description": "Use Summarizerrrr with Safari on iPhone & iPad.",
+      "cta_label": "Get it now"
     }
   }
 }

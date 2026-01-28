@@ -530,6 +530,11 @@
       "title": "動画: Google Drive経由でデータを同期",
       "description": "BYOK - あなたのデータはサードパーティのサーバーを経由しません。",
       "cta_label": "今すぐ見る"
+    },
+    "noti_5": {
+      "title": "🎉 Apple App Storeで公開中！",
+      "description": "iPhone・iPadのSafariでSummarizerrrrをお使いいただけます。",
+      "cta_label": "今すぐダウンロード"
     }
   },
   "cloudSync": {

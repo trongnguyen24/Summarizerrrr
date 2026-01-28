@@ -530,6 +530,11 @@
       "title": "Video: Daten über Google Drive synchronisieren",
       "description": "BYOK - Ihre Daten werden nie über Drittanbieter-Server übertragen.",
       "cta_label": "Jetzt ansehen"
+    },
+    "noti_5": {
+      "title": "🎉 Jetzt im Apple App Store!",
+      "description": "Nutzen Sie Summarizerrrr mit Safari auf iPhone & iPad.",
+      "cta_label": "Jetzt herunterladen"
     }
   },
   "cloudSync": {

@@ -530,6 +530,11 @@
       "title": "비디오: Google Drive를 통한 데이터 동기화",
       "description": "BYOK - 귀하의 데이터는 제3자 서버를 거치지 않습니다.",
       "cta_label": "지금 시청하기"
+    },
+    "noti_5": {
+      "title": "🎉 Apple App Store에 출시!",
+      "description": "iPhone 및 iPad의 Safari에서 Summarizerrrr를 사용하세요.",
+      "cta_label": "지금 다운로드"
     }
   },
   "cloudSync": {

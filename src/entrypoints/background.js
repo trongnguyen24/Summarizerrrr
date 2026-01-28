@@ -1456,6 +1456,12 @@ export default defineBackground(() => {
         url,
         active: true,
       })
+    } else if (message.type === 'OPEN_URL') {
+      // Open external URL from content script
+      browser.tabs.create({
+        url: message.url,
+        active: true,
+      })
     } else if (message.type === 'UPDATE_OLLAMA_ENDPOINT') {
       ollamaCorsService.updateEndpoint(message.endpoint)
     } else if (message.action === 'courseContentFetched') {

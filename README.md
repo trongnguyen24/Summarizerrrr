@@ -15,6 +15,10 @@
     <a href="https://microsoftedge.microsoft.com/addons/detail/summarizerrrr/kgoolaebmcbhbjokofmhdcjbljagaiif">
       <img src="https://img.shields.io/badge/Edge-Install%20Now-0078D7?style=for-the-badge&logo=microsoftedge&logoColor=white" alt="Edge Add-ons"/>
     </a>
+    <a href="https://apps.apple.com/vn/app/summarizerrrr/id6755809467">
+      <img src="https://img.shields.io/badge/Safari-Install%20Now-000000?style=for-the-badge&logo=safari&logoColor=white" alt="Mac App Store"/>
+    </a>
+    
   </p>
   
 </div>
@@ -74,6 +78,7 @@ The easiest way to get started is to install from your browser's extension store
 - [**Chrome Web Store**](https://chromewebstore.google.com/detail/summarizerrrr/ahfjndakflcegianjdojpldllodpkkpc)
 - [**Firefox Add-ons**](https://addons.mozilla.org/en-CA/firefox/addon/summarizerrrr/)
 - [**Edge Add-ons**](https://microsoftedge.microsoft.com/addons/detail/summarizerrrr/kgoolaebmcbhbjokofmhdcjbljagaiif)
+- [**App Store (Safari)**](https://apps.apple.com/vn/app/summarizerrrr/id6755809467)
 
 ### Manual Installation (Developer Mode)
 If you want to try the latest features before they are released:

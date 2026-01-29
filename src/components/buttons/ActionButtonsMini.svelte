@@ -13,6 +13,10 @@
   import { t } from 'svelte-i18n'
 
   import { ACTION_BUTTONS } from '@/lib/constants/actionConstants.js'
+  import {
+    getHasAnimatedButtons,
+    setHasAnimatedButtons,
+  } from '@/services/tabCacheService.js'
 
   const actions = ACTION_BUTTONS
 
@@ -41,6 +45,9 @@
     }),
   )
 
+  // Track if we should skip animation (already animated for this tab)
+  let skipAnimation = $state(false)
+
   // Animation control: reset animations when visibleActions changes
   let animationKey = $derived(visibleActions.map((a) => a.key).join('-'))
   let showAnimations = $state(false)
@@ -50,12 +57,23 @@
     // React to animationKey changes
     animationKey
 
+    // Check if animation already played for this tab
+    skipAnimation = getHasAnimatedButtons()
+
     // Reset animations
     showAnimations = false
 
-    // Trigger animations after a brief delay for browser to re-render
+    // If already animated for this tab, show immediately
+    if (skipAnimation) {
+      showAnimations = true
+      return
+    }
+
+    // First time for this tab - trigger animation after brief delay
     const timer = setTimeout(() => {
       showAnimations = true
+      // Mark that animation has played for this tab
+      setHasAnimatedButtons(true)
     }, 50)
 
     return () => clearTimeout(timer)
@@ -81,9 +99,10 @@
           <button
             class="action-btn-mini font-mono relative p-2.5 text-xs rounded-full border border-border text-text-secondary hover:text-text-primary hover:bg-blackwhite-5 transition-colors duration-125 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
             class:animate={showAnimations}
+            class:no-delay={skipAnimation}
             onclick={() => handleActionClick(action.key)}
             {...builder}
-            style="animation-delay: {600 + i * 150}ms"
+            style={skipAnimation ? '' : `animation-delay: ${600 + i * 150}ms`}
           >
             <Icon
               width={16}
@@ -108,6 +127,13 @@
   /* Only animate when class is applied */
   .action-btn-mini.animate {
     animation: fadeInScale 300ms ease-out forwards;
+  }
+
+  /* Show immediately without animation when switching between cached tabs */
+  .action-btn-mini.no-delay {
+    opacity: 1;
+    transform: scale(1);
+    animation: none;
   }
 
   @keyframes fadeInScale {

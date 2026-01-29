@@ -7,16 +7,16 @@
     <br/>
     <br/>
     <a href="https://chromewebstore.google.com/detail/summarizerrrr/ahfjndakflcegianjdojpldllodpkkpc">
-      <img src="https://img.shields.io/badge/Chrome-Install%20Now-4285F4?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Chrome Web Store"/>
+      <img src="https://img.shields.io/badge/Chrome-Install-4285F4?&logo=googlechrome&logoColor=white" alt="Chrome Web Store"/>
     </a>
     <a href="https://addons.mozilla.org/en-CA/firefox/addon/summarizerrrr/">
-      <img src="https://img.shields.io/badge/Firefox-Install%20Now-FF7139?style=for-the-badge&logo=firefoxbrowser&logoColor=white" alt="Firefox Add-ons"/>
+      <img src="https://img.shields.io/badge/Firefox-Install-4285F4?&logo=firefoxbrowser&logoColor=white" alt="Firefox Add-ons"/>
     </a>
     <a href="https://microsoftedge.microsoft.com/addons/detail/summarizerrrr/kgoolaebmcbhbjokofmhdcjbljagaiif">
-      <img src="https://img.shields.io/badge/Edge-Install%20Now-0078D7?style=for-the-badge&logo=microsoftedge&logoColor=white" alt="Edge Add-ons"/>
+      <img src="https://img.shields.io/badge/Edge-Install-4285F4?&logo=microsoftedge&logoColor=white" alt="Edge Add-ons"/>
     </a>
     <a href="https://apps.apple.com/vn/app/summarizerrrr/id6755809467">
-      <img src="https://img.shields.io/badge/Safari-Install%20Now-000000?style=for-the-badge&logo=safari&logoColor=white" alt="Mac App Store"/>
+      <img src="https://img.shields.io/badge/Safari-Install-4285F4  ?&logo=safari&logoColor=white" alt="Mac App Store"/>
     </a>
     
   </p>

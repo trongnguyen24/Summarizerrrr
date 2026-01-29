@@ -464,11 +464,13 @@
         `[CopyTranscriptIcon] Timestamped transcript extracted: ${fullContent.length} characters`,
       )
 
-      // Send simple message to background script
+      // Send simple message to background script with source URL
+      const videoUrlToSend = currentVideoUrl || window.location.href
       chrome.runtime.sendMessage(
         {
           type: `SUMMARIZE_ON_${provider.toUpperCase()}`,
           transcript: fullContent,
+          sourceUrl: videoUrlToSend,
         },
         (response) => {
           if (response && response.success) {

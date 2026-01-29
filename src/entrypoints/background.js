@@ -1357,7 +1357,7 @@ export default defineBackground(() => {
       return true
     }
     if (message.type === 'SUMMARIZE_ON_GEMINI') {
-      handleAISummarization('gemini', message.transcript, sendResponse)
+      handleAISummarization('gemini', message.transcript, sendResponse, message.sourceUrl)
       return true
     }
     if (message.type === 'SUMMARIZE_ON_GEMINI_WITH_URL') {
@@ -1365,15 +1365,15 @@ export default defineBackground(() => {
       return true
     }
     if (message.type === 'SUMMARIZE_ON_CHATGPT') {
-      handleAISummarization('chatgpt', message.transcript, sendResponse)
+      handleAISummarization('chatgpt', message.transcript, sendResponse, message.sourceUrl)
       return true
     }
     if (message.type === 'SUMMARIZE_ON_PERPLEXITY') {
-      handleAISummarization('perplexity', message.transcript, sendResponse)
+      handleAISummarization('perplexity', message.transcript, sendResponse, message.sourceUrl)
       return true
     }
     if (message.type === 'SUMMARIZE_ON_GROK') {
-      handleAISummarization('grok', message.transcript, sendResponse)
+      handleAISummarization('grok', message.transcript, sendResponse, message.sourceUrl)
       return true
     }
 
@@ -1803,10 +1803,11 @@ export default defineBackground(() => {
    * Builds the prompt for AI summarization
    * @param {string} transcript - The transcript to summarize
    * @param {string} summaryLang - The language for summary
+   * @param {string} sourceUrl - Optional URL of the source content
    * @returns {string} The formatted prompt
    */
-  function buildPrompt(transcript, summaryLang) {
-    return generateAISummaryPrompt(transcript, summaryLang)
+  function buildPrompt(transcript, summaryLang, sourceUrl = '') {
+    return generateAISummaryPrompt(transcript, summaryLang, sourceUrl)
   }
 
   /**
@@ -1882,7 +1883,7 @@ export default defineBackground(() => {
   }
 
   // --- AI Service Handler (Generalized) ---
-  async function handleAISummarization(service, transcript, sendResponse) {
+  async function handleAISummarization(service, transcript, sendResponse, sourceUrl = '') {
     try {
       console.log(`[Background] Processing ${service} summarization request`)
 
@@ -1900,8 +1901,8 @@ export default defineBackground(() => {
       // Create AI service tab
       const tab = await createAITab(service, config)
 
-      // Build prompt
-      const prompt = buildPrompt(transcript, summaryLang)
+      // Build prompt with optional source URL
+      const prompt = buildPrompt(transcript, summaryLang, sourceUrl)
       console.log(`[Background] ${service} prompt length:`, prompt.length)
 
       // Send content to tab with retry mechanism

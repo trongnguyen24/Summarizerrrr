@@ -516,7 +516,7 @@
       onmouseleave={handleMouseLeave}
       onwheel={handleWheel}
       role="group"
-      class="flex gap-0.5 font-mono pr-8 pl-15 z-10 relative h-full overflow-x-auto overflow-y-hidden scrollbar-hide flex-1 cursor-grab"
+      class="tab-list-container flex gap-0.5 font-mono pr-8 pl-15 z-10 relative h-full overflow-x-auto overflow-y-hidden scrollbar-hide flex-1 cursor-grab"
     >
       {#each cachedTabs as tab (tab.id)}
         <div
@@ -542,18 +542,18 @@
               : ''} {tab.hasError ? 'text-red-400' : ''}">{tab.title}</span
           >
           <div
-            class=" absolute scale-50 translate-y-2 group-hover:scale-100 group-hover:translate-y-0 w-[calc(100%-4px)] top-0 left-1/2 -translate-x-1/2 flex items-center gap-1 transition-all duration-200 group-hover:bg-surface-1 px-1.5 h-6 rounded overflow-hidden"
+            class=" absolute tab-bg scale-90 group-hover:scale-100 w-[calc(100%-2px)] top-0.5 left-1/2 -translate-x-1/2 flex items-center gap-1 transition-all duration-150 ease-in-out group-hover:bg-surface-1 group-hover:dark:bg-surface-2 px-1.5 h-5 rounded-xl overflow-hidden"
           ></div>
-          <!-- Close Button - Hidden by default, visible on hover -->
+          <!-- Close Button - Hidden by default, 50% on tab-list hover, 100% on tab hover -->
           <button
-            class="absolute z-30 right-0.5 top-1/2 -translate-y-3.25 p-0.5 hover:bg-blackwhite/10 rounded-full text-text-secondary hover:text-text-primary opacity-0 group-hover:opacity-100 transition-all duration-200"
+            class="close-btn absolute z-30 right-0.5 top-1/2 -translate-y-3.25 bg-surface-2 p-0.5 rounded-full text-text-secondary hover:text-text-primary opacity-0 transition-all duration-200"
             onclick={(e) => {
               e.stopPropagation()
               handleCloseTab(tab.id)
             }}
             title={$t('settings.tools.perTabCache.nav.remove_tab')}
           >
-            <Icon icon="heroicons:x-mark-16-solid" width="16" height="16" />
+            <Icon icon="heroicons:x-mark-16-solid" width="14" height="14" />
           </button>
           <span
             class="tab-round-l bg-surface-1 before:bg-background-dark before:!border-surface-2/70 dark:before:!border-border dark:before:bg-black"
@@ -610,6 +610,15 @@
     display: none;
   }
 
+  /* When hovering over the tab list container, show all close buttons at 50% opacity */
+  .tab-list-container:hover :global(.close-btn) {
+    opacity: 1;
+  }
+  /* When hovering directly on a tab, show close button at 100% opacity */
+  .tab-list-container .tab:hover :global(.close-btn) {
+    opacity: 1;
+  }
+
   .tab {
     cursor: pointer;
     height: 2rem;
@@ -660,6 +669,10 @@
     .tab-round-l,
     .tab-round-r {
       opacity: 1;
+    }
+    .tab-bg {
+      background-color: transparent;
+      transition-duration: 0ms;
     }
   }
 </style>

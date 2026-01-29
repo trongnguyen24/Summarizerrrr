@@ -101,6 +101,18 @@
             },
           ],
         )}
+        {@render note(
+          'Safari Extension Support:',
+          'Now available on Safari for iOS and macOS! Download from the Apple App Store.',
+        )}
+        {@render note(
+          'Performance & Memory Optimizations:',
+          'Reduced memory usage by limiting cache size, cleaning up closed tabs, and optimizing YouTube quick summary with smarter event handling.',
+        )}
+        {@render note(
+          'UI/UX Enhancements:',
+          'Smoother tab switching with skipped animations for cached tabs, improved close button visibility, and centralized notification system.',
+        )}
       </ul>
 
       <b class="font-mono">2.10.0</b>

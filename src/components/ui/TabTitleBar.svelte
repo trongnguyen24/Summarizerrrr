@@ -544,7 +544,7 @@
           <div
             class=" absolute tab-bg scale-90 group-hover:scale-100 w-[calc(100%-2px)] top-0.5 left-1/2 -translate-x-1/2 flex items-center gap-1 transition-all duration-150 ease-in-out group-hover:bg-surface-1 group-hover:dark:bg-surface-2 px-1.5 h-5 rounded-xl overflow-hidden"
           ></div>
-          <!-- Close Button - Hidden by default, 50% on tab-list hover, 100% on tab hover -->
+          <!-- Close Button - Hidden by default, visible on tab-list hover -->
           <button
             class="close-btn absolute z-30 right-0.5 top-1/2 -translate-y-3.25 bg-surface-2 p-0.5 rounded-full text-text-secondary hover:text-text-primary opacity-0 transition-all duration-200"
             onclick={(e) => {

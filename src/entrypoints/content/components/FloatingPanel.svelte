@@ -20,6 +20,8 @@
   import { t } from 'svelte-i18n'
   // Deep Dive imports
   import DeepDivePanelFP from './DeepDivePanelFP.svelte'
+  // Notification for Floating Panel (Shadow DOM compatible)
+  import NotiFP from './NotiFP.svelte'
   import {
     deepDiveState,
     shouldShowDeepDive,
@@ -536,6 +538,9 @@
         icon={toastProps.icon}
         onClose={closeToast}
       />
+
+      <!-- Notification Bar -->
+      <NotiFP />
     </div>
   </div>
 </div>

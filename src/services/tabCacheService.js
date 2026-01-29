@@ -36,6 +36,7 @@ export function getOrCreateTabState(tabId) {
       deepDiveState: createDefaultDeepDiveState(),
       scrollY: 0,
       currentUrl: null,
+      hasAnimatedButtons: false, // Track if action buttons animation has played
     })
   }
   
@@ -74,6 +75,24 @@ export function setCurrentTabId(tabId) {
   console.log(`[tabCacheService] Switched from tab ${previousTabId} to tab ${tabId}`)
   
   return getOrCreateTabState(tabId)
+}
+
+/**
+ * Checks if action buttons animation has already played for current tab
+ * @returns {boolean}
+ */
+export function getHasAnimatedButtons() {
+  if (!currentTabId || !tabStates.has(currentTabId)) return false
+  return tabStates.get(currentTabId).hasAnimatedButtons
+}
+
+/**
+ * Sets the hasAnimatedButtons flag for current tab
+ * @param {boolean} value - Whether animation has played
+ */
+export function setHasAnimatedButtons(value) {
+  if (!currentTabId || !tabStates.has(currentTabId)) return
+  tabStates.get(currentTabId).hasAnimatedButtons = value
 }
 
 /**
@@ -128,6 +147,14 @@ export function getTabStateStats() {
     tabIds: Array.from(tabStates.keys()),
     currentTabId,
   }
+}
+
+/**
+ * Gets the current number of tabs in cache
+ * @returns {number} Number of tabs with cached states
+ */
+export function getTabCacheSize() {
+  return tabStates.size
 }
 
 /**

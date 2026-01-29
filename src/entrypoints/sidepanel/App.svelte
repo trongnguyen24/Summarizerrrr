@@ -520,7 +520,7 @@
         ? ''
         : 'hidden'}"
     >
-      <div class="line-clamp-1 w-full">
+      <div class="line-clamp-1 !text-center w-full">
         {$tabTitle}
       </div>
     </div>

@@ -530,6 +530,11 @@
       "title": "视频：通过 Google Drive 同步数据",
       "description": "BYOK - 你的数据永远不会通过第三方服务器。",
       "cta_label": "立即观看"
+    },
+    "noti_5": {
+      "title": "🎉 现已登陆 Apple App Store！",
+      "description": "在 iPhone 和 iPad 上使用 Safari 体验 Summarizerrrr。",
+      "cta_label": "立即下载"
     }
   },
   "cloudSync": {

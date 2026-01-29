@@ -613,16 +613,16 @@
     <!-- <div
       class="absolute bottom-px left-0 right-0 h-15 bg-surface-1 translate-y-15"
     ></div> -->
-
-    <!-- Toast Notification -->
-    <ShadowToast
-      visible={toastVisible}
-      title={toastProps.title}
-      message={toastProps.message}
-      icon={toastProps.icon}
-      onClose={closeToast}
-    />
   </div>
+
+  <!-- Toast Notification - Outside Drawer Panel to prevent clipping -->
+  <ShadowToast
+    visible={toastVisible}
+    title={toastProps.title}
+    message={toastProps.message}
+    icon={toastProps.icon}
+    onClose={closeToast}
+  />
 </div>
 
 {#if safariHackVisible && isSafari}

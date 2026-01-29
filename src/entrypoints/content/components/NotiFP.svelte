@@ -2,7 +2,6 @@
   import { onMount, onDestroy } from 'svelte'
   import { fadeOnly } from '@/lib/ui/slideScaleFade.js'
   import { t } from 'svelte-i18n'
-  import Cat from './cat.svelte'
   import {
     displayOrder,
     notificationData,
@@ -63,6 +62,20 @@
     }
   }
 
+  // Open link via background script
+  function openLink(link) {
+    // Check if it's an extension page (settings.html, etc.)
+    if (link.startsWith('settings.html')) {
+      browser.runtime.sendMessage({
+        type: 'OPEN_SETTINGS',
+        tab: link.split('tab=')[1],
+      })
+    } else {
+      // External URL - send to background to open
+      browser.runtime.sendMessage({ type: 'OPEN_URL', url: link })
+    }
+  }
+
   onMount(() => {
     startRotation()
     window.addEventListener('keydown', handleKeyDown)
@@ -83,7 +96,7 @@
   <!-- Notification Bar -->
   <button
     onclick={openSheet}
-    class="fixed left-1/2 -translate-x-1/2 w-full font-mono flex flex-col justify-center max-w-100 bottom-2 z-50 p-2 rounded-full cursor-pointer group"
+    class="absolute left-1/2 -translate-x-1/2 w-full font-mono flex flex-col justify-center max-w-100 bottom-2 z-50 p-2 rounded-full cursor-pointer group"
     aria-label="Open notifications"
   >
     <div
@@ -137,16 +150,15 @@
   <!-- svelte-ignore a11y_click_events_have_key_events -->
   <!-- svelte-ignore a11y_interactive_supports_focus -->
   <div
-    class="fixed inset-0 z-[100] cursor-default bg-transparent border-none"
+    class="absolute inset-0 top-[-100vh] z-[100] cursor-default bg-transparent border-none"
     onclick={handleBackdropClick}
     role="button"
     aria-label="Close notification sheet"
   ></div>
 
   <!-- Sheet Content (separate for animation) -->
-
   <div
-    class="fixed bottom-0 max-w-100 w-full left-1/2 -translate-x-1/2 z-[101] flex justify-center"
+    class="absolute bottom-0 max-w-100 w-full left-1/2 -translate-x-1/2 z-[101] flex justify-center font-sans"
   >
     <div
       class="relative w-full bg-surface-2 rounded-t-3xl border-t border-x border-surface-2 dark:border-border shadow-2xl py-3 flex flex-col"
@@ -154,7 +166,6 @@
       class:sheet-close={isClosing}
       style="height: max(40vh, 320px);"
     >
-      <Cat {isClosing} />
       <!-- Notifications List -->
       <div class="relative flex-1 flex flex-col min-h-0">
         <!-- Scroll Gradient Overlays -->
@@ -178,8 +189,7 @@
                 </div>
                 {#if notification.cta}
                   <button
-                    onclick={() =>
-                      browser.tabs.create({ url: notification.cta.link })}
+                    onclick={() => openLink(notification.cta.link)}
                     class="inline-flex items-center gap-1 text-xs font-medium text-primary hover:text-primary-hover transition-colors w-fit cursor-pointer"
                   >
                     {$t(notification.cta.labelKey)}

@@ -1456,6 +1456,12 @@ export default defineBackground(() => {
         url,
         active: true,
       })
+    } else if (message.type === 'OPEN_URL') {
+      // Open external URL from content script
+      browser.tabs.create({
+        url: message.url,
+        active: true,
+      })
     } else if (message.type === 'UPDATE_OLLAMA_ENDPOINT') {
       ollamaCorsService.updateEndpoint(message.endpoint)
     } else if (message.action === 'courseContentFetched') {
@@ -1752,6 +1758,17 @@ export default defineBackground(() => {
       } catch (error) {
         console.error('[Background] Error checking active tab:', error)
       }
+    }
+  })
+
+  // MEMORY FIX: Cleanup per-tab cache when browser tab is closed
+  browser.tabs.onRemoved.addListener(async (tabId) => {
+    try {
+      const { clearTabState } = await import('../services/tabCacheService.js')
+      clearTabState(tabId)
+      console.log(`[Background] Cleared tab state for tab ${tabId}`)
+    } catch (e) {
+      // Ignore - tabCacheService might not be loaded
     }
   })
 

@@ -43,12 +43,10 @@ class NavigationManager {
     // Listen for popstate events (back/forward navigation)
     window.addEventListener('popstate', this.boundHandlePopState)
 
-    // KHÔNG override history methods nữa - gây conflict với scroll restoration
-    // Thay vào đó, chỉ dựa vào popstate + periodic URL check
-    // this.overrideHistoryMethods() // DISABLED
-
-    // Fallback: Periodic URL checking (đủ nhanh để catch SPA navigation)
-    this.startPeriodicUrlCheck()
+    // MEMORY FIX: Removed periodic URL check interval
+    // It only updated internal state without notifying callbacks (per Reddit scroll issue fix)
+    // Popstate events are sufficient for back/forward navigation detection
+    // For SPA navigation detection, App.svelte uses lazy URL check on panel toggle
 
     this.isMonitoring = true
   }
@@ -61,12 +59,6 @@ class NavigationManager {
 
     if (this.boundHandlePopState) {
       window.removeEventListener('popstate', this.boundHandlePopState)
-    }
-
-    // Cleanup URL check interval
-    if (this.urlCheckInterval) {
-      clearInterval(this.urlCheckInterval)
-      this.urlCheckInterval = null
     }
 
     this.isMonitoring = false
@@ -116,21 +108,9 @@ class NavigationManager {
     }, this.debounceDelay)
   }
 
-  /**
-   * Fallback: Periodic URL checking để sync internal state
-   * 
-   * CHÚ Ý: KHÔNG notify callbacks từ periodic check vì gây scroll issue
-   * trên Reddit mobile. Callbacks chỉ được gọi từ popstate (back/forward).
-   */
-  startPeriodicUrlCheck() {
-    this.urlCheckInterval = setInterval(() => {
-      const newUrl = window.location.href
-      if (newUrl !== this.currentUrl) {
-        // CHỈ update internal state, KHÔNG notify
-        this.currentUrl = newUrl
-      }
-    }, 1000)
-  }
+  // MEMORY FIX: startPeriodicUrlCheck() removed
+  // The interval only updated internal state without notifying callbacks
+  // This was causing unnecessary CPU usage on every tab
 
   /**
    * Notify tất cả subscribers về URL change

@@ -397,7 +397,7 @@
 
       <!-- Render matched items -->
       {#each categorizedList.matchedItems as item (item.id)}
-        <div class="relative group">
+        <div class="relative group h-10">
           <button
             class="list-button w-full relative p-2.5 text-left hover:bg-blackwhite/5 rounded-md {selectedSummaryId ==
             item.id

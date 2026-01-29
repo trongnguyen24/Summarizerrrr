@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { marked } from 'marked'
+// MEMORY FIX: Removed unused 'marked' import (was dead code)
 import { getPageContent } from '@/services/contentService.js'
 import { browser } from 'wxt/browser'
 import { settings, loadSettings } from './settingsStore.svelte.js'

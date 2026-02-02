@@ -3,6 +3,7 @@
   import { updateSettings } from '../../stores/settingsStore.svelte.js'
   import ApiKeyInputMulti from '../inputs/ApiKeyInputMulti.svelte'
   import ReusableCombobox from '../inputs/ReusableCombobox.svelte'
+  import ButtonSet from '../buttons/ButtonSet.svelte'
   import { t } from 'svelte-i18n'
   import { onMount } from 'svelte'
   import { settings } from '@/stores/settingsStore.svelte.js'
@@ -18,30 +19,17 @@
 
   const availableModels = [
     { value: 'gemini-3-flash-preview', label: 'gemini-3-flash-preview' },
-    {
-      value: 'gemini-3-pro-preview',
-      label: 'gemini-3-pro-preview',
-    },
+    { value: 'gemini-3-pro-preview', label: 'gemini-3-pro-preview' },
     { value: 'gemini-2.5-pro', label: 'gemini-2.5-pro' },
     { value: 'gemini-2.5-flash', label: 'gemini-2.5-flash' },
-    {
-      value: 'gemini-2.5-flash-lite',
-      label: 'gemini-2.5-flash-lite',
-    },
+    { value: 'gemini-2.5-flash-lite', label: 'gemini-2.5-flash-lite' },
     {
       value: 'gemini-2.5-computer-use-preview-10-2025',
       label: 'gemini-2.5-computer-use-preview-10-2025',
     },
     { value: 'gemini-2.0-flash', label: 'gemini-2.0-flash' },
-    {
-      value: 'gemini-2.0-flash-lite',
-      label: 'gemini-2.0-flash-lite',
-    },
+    { value: 'gemini-2.0-flash-lite', label: 'gemini-2.0-flash-lite' },
     { value: 'gemma-3-27b-it', label: 'gemma-3-27b-it' },
-    {
-      value: 'gemini-robotics-er-1.5-preview',
-      label: 'gemini-robotics-er-1.5-preview',
-    },
   ]
 
   // Đảm bảo giá trị mặc định nếu props không được cung cấp
@@ -180,4 +168,32 @@
     ariaLabel="Search a model"
     onValueChangeCallback={handleModelChange}
   />
+</div>
+
+<!-- Auto-Fallback Section -->
+<div class="flex flex-col gap-2">
+  <!-- svelte-ignore a11y_label_has_associated_control -->
+  <label class="text-xs text-text-secondary">
+    {$t('settings.gemini_advanced_config.auto_fallback_label', {
+      default: 'Auto-Fallback on Overload',
+    })}
+  </label>
+  <div class="grid grid-cols-2 gap-1">
+    <ButtonSet
+      title="Disable"
+      class={!settings.geminiAdvancedEnableAutoFallback ? 'active' : ''}
+      onclick={() =>
+        updateSettings({ geminiAdvancedEnableAutoFallback: false })}
+    />
+    <ButtonSet
+      title="Enable"
+      class={settings.geminiAdvancedEnableAutoFallback ? 'active' : ''}
+      onclick={() => updateSettings({ geminiAdvancedEnableAutoFallback: true })}
+    />
+  </div>
+  {#if settings.geminiAdvancedEnableAutoFallback}
+    <p class="text-[10px] text-text-tertiary leading-relaxed">
+      Chain: 3 Flash → 2.5 Flash → 2.5 Lite → Gemma 3
+    </p>
+  {/if}
 </div>

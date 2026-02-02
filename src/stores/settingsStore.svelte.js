@@ -19,6 +19,7 @@ const DEFAULT_SETTINGS = {
   geminiAdvancedApiKey: '',
   geminiAdvancedAdditionalApiKeys: [], // Additional API keys for Gemini Advanced mode
   selectedGeminiAdvancedModel: 'gemini-3-flash-preview',
+  geminiAdvancedEnableAutoFallback: true, // Enable auto-fallback for Advanced mode
   openaiCompatibleApiKey: '',
   openaiCompatibleBaseUrl: '',
   selectedOpenAICompatibleModel: '',

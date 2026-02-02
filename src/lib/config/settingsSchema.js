@@ -18,6 +18,7 @@ export const VALID_SETTING_KEYS = [
   'geminiAdvancedApiKey',
   'geminiAdvancedAdditionalApiKeys',
   'selectedGeminiAdvancedModel',
+  'geminiAdvancedEnableAutoFallback',
   'openaiCompatibleApiKey',
   'openaiCompatibleBaseUrl',
   'selectedOpenAICompatibleModel',

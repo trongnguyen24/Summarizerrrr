@@ -18,6 +18,7 @@ import {
   isOverloadError,
   isQuotaError,
   getNextFallbackModel,
+  getNextAdvancedFallbackModel,
   shouldEnableAutoFallback,
   shouldEnableApiKeyRetry,
   getCurrentGeminiModel,
@@ -329,7 +330,11 @@ export async function generateContent(
 
       const currentSettings = {
         ...settings,
-        ...(autoFallbackEnabled ? { selectedGeminiModel: currentModel } : {}),
+        ...(autoFallbackEnabled ? (
+          settings.isAdvancedMode 
+            ? { selectedGeminiAdvancedModel: currentModel }
+            : { selectedGeminiModel: currentModel }
+        ) : {}),
         ...(currentApiKey ? { specificApiKey: currentApiKey } : {})
       }
 
@@ -448,10 +453,13 @@ export async function generateContent(
          }
       }
 
-      // 2. Check for Overload Error (503) OR (All keys failed quota) -> Try different MODEL (Basic mode only)
+      // 2. Check for Overload Error (503) OR (All keys failed quota) -> Try different MODEL
       if (autoFallbackEnabled) {
           if (isOverloadError(error) || (isQuotaError(error) && failedKeys.size >= ([settings.geminiApiKey, ...(settings.geminiAdditionalApiKeys||[])].filter(k => k && k.trim() !== '').length || 1))) {
-               const nextModel = getNextFallbackModel(currentModel)
+               // Use appropriate fallback function based on mode
+               const nextModel = settings.isAdvancedMode
+                 ? getNextAdvancedFallbackModel(currentModel, settings)
+                 : getNextFallbackModel(currentModel)
 
                 if (nextModel) {
                   console.log(
@@ -556,7 +564,11 @@ export async function* generateContentStream(
 
       const currentSettings = {
         ...settings,
-        ...(autoFallbackEnabled ? { selectedGeminiModel: currentModel } : {}),
+        ...(autoFallbackEnabled ? (
+          settings.isAdvancedMode 
+            ? { selectedGeminiAdvancedModel: currentModel }
+            : { selectedGeminiModel: currentModel }
+        ) : {}),
         ...(currentApiKey ? { specificApiKey: currentApiKey } : {})
       }
 
@@ -718,10 +730,13 @@ export async function* generateContentStream(
          }
       }
 
-      // 2. Check for Overload Error (503) OR (All keys failed quota) -> Try different MODEL (Basic mode only)
+      // 2. Check for Overload Error (503) OR (All keys failed quota) -> Try different MODEL
       if (autoFallbackEnabled) {
           if (isOverloadError(error) || (isQuotaError(error) && failedKeys.size >= ([settings.geminiApiKey, ...(settings.geminiAdditionalApiKeys||[])].filter(k => k && k.trim() !== '').length || 1))) {
-                const nextModel = getNextFallbackModel(currentModel)
+                // Use appropriate fallback function based on mode
+                const nextModel = settings.isAdvancedMode
+                  ? getNextAdvancedFallbackModel(currentModel, settings)
+                  : getNextFallbackModel(currentModel)
         
                 if (nextModel) {
                   console.log(

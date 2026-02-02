@@ -6,13 +6,24 @@
  */
 
 /**
- * Fallback chain for Gemini models
+ * Fallback chain for Gemini Basic mode
  * Order: Best performance → Lighter → Lightest
  */
 export const GEMINI_FALLBACK_CHAIN = [
   'gemini-3-flash-preview',
   'gemini-2.5-flash',
   'gemini-2.5-flash-lite',
+]
+
+/**
+ * Fixed fallback chain for Gemini Advanced mode
+ * Used when auto-fallback is enabled, covers all free models
+ */
+export const GEMINI_ADVANCED_FALLBACK_CHAIN = [
+  'gemini-3-flash-preview',
+  'gemini-2.5-flash',
+  'gemini-2.5-flash-lite',
+  'gemma-3-27b-it',
 ]
 
 /**
@@ -123,7 +134,7 @@ export function isQuotaError(error) {
 }
 
 /**
- * Gets the next fallback model in the chain
+ * Gets the next fallback model in the chain (for Basic mode)
  * @param {string} currentModel - Current model that failed
  * @returns {string|null} Next model to try, or null if no more fallbacks
  */
@@ -139,6 +150,32 @@ export function getNextFallbackModel(currentModel) {
   }
 
   return GEMINI_FALLBACK_CHAIN[currentIndex + 1]
+}
+
+/**
+ * Gets the next fallback model for Advanced mode using fixed chain
+ * Chain: gemini-3-flash-preview → gemini-2.5-flash → gemini-2.5-flash-lite → gemma-3-27b-it
+ * @param {string} currentModel - Current model that failed
+ * @param {object} settings - User settings (only used to check if fallback is enabled)
+ * @returns {string|null} Next model to try, or null if no more fallbacks
+ */
+export function getNextAdvancedFallbackModel(currentModel, settings) {
+  // Check if auto-fallback is enabled
+  if (!settings?.geminiAdvancedEnableAutoFallback) {
+    return null
+  }
+
+  const currentIndex = GEMINI_ADVANCED_FALLBACK_CHAIN.indexOf(currentModel)
+
+  // If model not in chain or is last model, no fallback available
+  if (
+    currentIndex === -1 ||
+    currentIndex === GEMINI_ADVANCED_FALLBACK_CHAIN.length - 1
+  ) {
+    return null
+  }
+
+  return GEMINI_ADVANCED_FALLBACK_CHAIN[currentIndex + 1]
 }
 
 /**
@@ -160,7 +197,7 @@ export function shouldEnableApiKeyRetry(providerId, settings) {
 
 /**
  * Checks if auto-fallback should be enabled for current settings
- * Only enable for Gemini Basic mode (not Advanced)
+ * Enable for Gemini Basic mode (always) or Advanced mode (if backup models configured)
  * @param {string} providerId - Provider ID
  * @param {object} settings - User settings
  * @returns {boolean} True if auto-fallback should be enabled
@@ -171,11 +208,12 @@ export function shouldEnableAutoFallback(providerId, settings) {
     return false
   }
 
-  // Only for Basic mode (not Advanced)
+  // For Advanced mode: check if auto-fallback toggle is enabled
   if (settings.isAdvancedMode) {
-    return false
+    return settings.geminiAdvancedEnableAutoFallback === true
   }
 
+  // Basic mode always has auto-fallback enabled
   return true
 }
 

@@ -540,7 +540,9 @@
       />
 
       <!-- Notification Bar -->
-      <NotiFP />
+      {#if !summaryToDisplay && !summarization.localSummaryState().isLoading && !summarization.localSummaryState().error}
+        <NotiFP />
+      {/if}
     </div>
   </div>
 </div>

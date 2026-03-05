@@ -171,11 +171,11 @@ export default defineContentScript({
           display: inline-flex;
           align-items: center;
           height: 100%;
-          padding: 0 0.4rem;
+         
         `
 
-        // Insert before .ytp-right-controls
-        rightControls.parentNode.insertBefore(iconContainer, rightControls)
+        // Insert as the first child inside .ytp-right-controls so it auto-hides with the player
+        rightControls.insertBefore(iconContainer, rightControls.firstChild)
 
         // Create shadow DOM UI for the icon
         currentUI = await createShadowRootUi(ctx, {

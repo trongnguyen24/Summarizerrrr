@@ -131,8 +131,6 @@
   height: 1.6rem;
 }
 .summarizerrrr-wrap {
-  background: hsl(0deg 0% 0% / 30%);
-  padding: 4px;
   position: relative;
   border-radius: 4rem;
   width: var(--yt-delhi-pill-height, 24px);

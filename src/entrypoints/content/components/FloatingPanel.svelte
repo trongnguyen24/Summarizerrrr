@@ -328,6 +328,7 @@
 <div
   class="backdrop"
   class:visible
+  style="pointer-events: {settings.closePanelOnOutsideClick ? 'auto' : 'none'};"
   onclick={() => {
     if (settings.closePanelOnOutsideClick) {
       onclose?.()
@@ -617,7 +618,6 @@
   }
 
   .backdrop.visible {
-    pointer-events: auto;
     opacity: 1;
   }
 </style>

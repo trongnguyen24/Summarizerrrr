@@ -2,6 +2,7 @@
   // @ts-nocheck
   import { geminiBasicModels } from '@/lib/prompts/models/geminiModels.js'
   import { updateSettings } from '../../stores/settingsStore.svelte.js'
+  import ReusableSelect from '../inputs/ReusableSelect.svelte'
   import ButtonSet from '../buttons/ButtonSet.svelte'
   import ApiKeyInputMulti from '../inputs/ApiKeyInputMulti.svelte'
   import { settings } from '@/stores/settingsStore.svelte.js'
@@ -146,19 +147,14 @@
   </button>
 </div>
 
-<div class="flex flex-col gap-2 mt-2">
+<div class="flex flex-col gap-2 mt-2 relative z-50">
   <!-- svelte-ignore a11y_label_has_associated_control -->
-  <label class="block"
+  <label class="text-xs text-text-secondary" for="gemini-basic-model-select"
     >{$t('settings.gemini_basic_config.select_model_label')}</label
   >
-  <div class="grid grid-cols-3 w-full gap-1">
-    {#each modelOptions as model}
-      <ButtonSet
-        title={model.name}
-        class="setting-btn {selectedGeminiModel === model.id ? 'active' : ''}"
-        onclick={() => (selectedGeminiModel = model.id)}
-        Description={model.description}
-      ></ButtonSet>
-    {/each}
-  </div>
+  <ReusableSelect
+    items={geminiBasicModels}
+    bind:bindValue={selectedGeminiModel}
+    ariaLabel="Select a model"
+  />
 </div>

@@ -1,20 +1,9 @@
 // @ts-nocheck
 export const geminiBasicModels = [
   {
-    value: 'gemini-2.5-flash-lite',
-    label: '2.5 Lite',
-    description: 'A lighter version of 2.5 Flash.',
-    generationConfig: {
-      maxOutputTokens: 65536,
-      temperature: 0.3,
-      topP: 0.9,
-    },
-  },
-  
-  {
-    value: 'gemini-2.5-flash',
-    label: '2.5 Flash',
-    description: 'Powerful but slow.',
+    value: 'gemini-3.1-flash-lite-preview',
+    label: '3.1 flash Lite',
+    description: 'A lighter version of 3.1 Flash.',
     generationConfig: {
       maxOutputTokens: 65536,
       temperature: 0.3,
@@ -31,5 +20,24 @@ export const geminiBasicModels = [
       topP: 0.9,
     },
   },
-  
+  {
+    value: 'gemini-2.5-flash',
+    label: '2.5 Flash',
+    description: 'Powerful but slow.',
+    generationConfig: {
+      maxOutputTokens: 65536,
+      temperature: 0.3,
+      topP: 0.9,
+    },
+  },
+  {
+    value: 'gemini-2.5-flash-lite',
+    label: '2.5 Lite',
+    description: 'A lighter version of 2.5 Flash.',
+    generationConfig: {
+      maxOutputTokens: 65536,
+      temperature: 0.3,
+      topP: 0.9,
+    },
+  },
 ]

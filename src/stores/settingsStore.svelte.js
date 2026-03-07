@@ -186,6 +186,33 @@ function migrateDeprecatedGeminiModels(settings) {
 }
 
 /**
+ * Migrates deprecated Gemini Pro models to their current equivalents
+ * @param {Object} settings - Settings object to migrate
+ * @returns {boolean} - True if any migration was performed
+ */
+function migrateDeprecatedGeminiProModels(settings) {
+  const OLD_MODEL = 'gemini-3-pro-preview'
+  const NEW_MODEL = 'gemini-3.1-pro-preview'
+  let migrated = false
+
+  // Migrate selectedGeminiAdvancedModel
+  if (settings.selectedGeminiAdvancedModel === OLD_MODEL) {
+    console.log(`[settingsStore] Migration: ${OLD_MODEL} -> ${NEW_MODEL}`)
+    settings.selectedGeminiAdvancedModel = NEW_MODEL
+    migrated = true
+  }
+
+  // Migrate selectedGeminiModel
+  if (settings.selectedGeminiModel === OLD_MODEL) {
+    console.log(`[settingsStore] Migration: ${OLD_MODEL} -> ${NEW_MODEL}`)
+    settings.selectedGeminiModel = NEW_MODEL
+    migrated = true
+  }
+
+  return migrated
+}
+
+/**
  * Migrates deprecated 'alien' tone to 'witty'
  * @param {Object} settings - Settings object to migrate
  * @returns {boolean} - True if any migration was performed
@@ -273,6 +300,9 @@ export async function loadSettings() {
 
         // ✅ MIGRATION: Migrate deprecated Gemini model names
         migrateDeprecatedGeminiModels(cleanStoredSettings)
+        
+        // ✅ MIGRATION: Migrate deprecated Gemini Pro models
+        migrateDeprecatedGeminiProModels(cleanStoredSettings)
         
         // ✅ MIGRATION: Migrate 'alien' tone to 'witty'
         migrateDeprecatedTone(cleanStoredSettings)

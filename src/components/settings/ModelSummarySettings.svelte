@@ -312,7 +312,18 @@
         class="block mt-4 font-bold text-text-primary">Summary</label
       >
 
-      <!-- Summary Settings - Advanced Mode -->
+      <!-- Summary Language Section -->
+      <div class="flex flex-col gap-2">
+        <!-- svelte-ignore a11y_label_has_associated_control -->
+        <label class="block text-text-secondary"
+          >{$t('settings.summary.language_output')}</label
+        >
+        <LanguageSelect
+          bind:value={settings.summaryLang}
+          onchange={(event) => handleUpdateSetting('summaryLang', event.detail)}
+        />
+      </div>
+
       <!-- Summary Length Section -->
       <div class="flex flex-col gap-2">
         <!-- svelte-ignore a11y_label_has_associated_control -->
@@ -384,18 +395,6 @@
               : $t('settings.summary.tone_mode.witty_desc')}
           ></ButtonSet>
         </div>
-      </div>
-
-      <!-- Summary Language Section -->
-      <div class="flex flex-col gap-2">
-        <!-- svelte-ignore a11y_label_has_associated_control -->
-        <label class="block text-text-secondary"
-          >{$t('settings.summary.language_output')}</label
-        >
-        <LanguageSelect
-          bind:value={settings.summaryLang}
-          onchange={(event) => handleUpdateSetting('summaryLang', event.detail)}
-        />
       </div>
 
       <!-- Comment Limit Section -->
@@ -473,6 +472,19 @@
           bind:selectedGeminiModel={settings.selectedGeminiModel}
         />
 
+        <!-- Summary Language Section -->
+        <div class="flex flex-col gap-2">
+          <!-- svelte-ignore a11y_label_has_associated_control -->
+          <label class="block text-text-secondary"
+            >{$t('settings.summary.language_output')}</label
+          >
+          <LanguageSelect
+            bind:value={settings.summaryLang}
+            onchange={(event) =>
+              handleUpdateSetting('summaryLang', event.detail)}
+          />
+        </div>
+
         <!-- Summary Length Section -->
         <div class="flex flex-col gap-2">
           <!-- svelte-ignore a11y_label_has_associated_control -->
@@ -544,19 +556,6 @@
                 : $t('settings.summary.tone_mode.witty_desc')}
             ></ButtonSet>
           </div>
-        </div>
-
-        <!-- Summary Language Section -->
-        <div class="flex flex-col gap-2">
-          <!-- svelte-ignore a11y_label_has_associated_control -->
-          <label class="block text-text-secondary"
-            >{$t('settings.summary.language_output')}</label
-          >
-          <LanguageSelect
-            bind:value={settings.summaryLang}
-            onchange={(event) =>
-              handleUpdateSetting('summaryLang', event.detail)}
-          />
         </div>
 
         <!-- Comment Limit Section -->

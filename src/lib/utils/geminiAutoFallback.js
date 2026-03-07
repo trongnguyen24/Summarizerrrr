@@ -12,6 +12,7 @@
 export const GEMINI_FALLBACK_CHAIN = [
   'gemini-3-flash-preview',
   'gemini-2.5-flash',
+  'gemini-3.1-flash-lite-preview',
   'gemini-2.5-flash-lite',
 ]
 
@@ -22,6 +23,7 @@ export const GEMINI_FALLBACK_CHAIN = [
 export const GEMINI_ADVANCED_FALLBACK_CHAIN = [
   'gemini-3-flash-preview',
   'gemini-2.5-flash',
+  'gemini-3.1-flash-lite-preview',
   'gemini-2.5-flash-lite',
   'gemma-3-27b-it',
 ]

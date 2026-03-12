@@ -446,7 +446,7 @@
   <!-- Drawer Panel -->
   <div
     bind:this={drawerPanel}
-    class="drawer-panel fixed bottom-0 left-0 right-0 border-t border-surface-2 bg-surface-1 text-black rounded-t-3xl shadow-2xl flex flex-col pointer-events-none"
+    class="drawer-panel fixed bottom-0 left-0 right-0 border-t border-surface-2 bg-surface-1 text-black rounded-t-3xl shadow-2xl flex flex-col pointer-events-auto"
     class:sheet-transition={!isDragging && !closingFromBackdrop}
     class:sheet-transition-fast={closingFromBackdrop}
     class:invisible={!delayedVisible}

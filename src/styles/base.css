@@ -181,3 +181,8 @@
 [data-per-tab='true'] h4 {
   scroll-margin-top: 48px;
 }
+
+/* Remove italic from blockquotes - indentation and border are sufficient */
+.prose blockquote {
+  font-style: normal !important;
+}

@@ -158,3 +158,25 @@
     ariaLabel="Select a model"
   />
 </div>
+
+<div class="flex flex-col gap-2 mt-2">
+  <!-- svelte-ignore a11y_label_has_associated_control -->
+  <label class="text-xs text-text-secondary">Thinking Level</label>
+  <div class="grid grid-cols-3 gap-1">
+    <ButtonSet
+      title="Minimal"
+      class={settings.geminiThinkingLevel === 'minimal' ? 'active' : ''}
+      onclick={() => updateSettings({ geminiThinkingLevel: 'minimal' })}
+    />
+    <ButtonSet
+      title="Medium"
+      class={settings.geminiThinkingLevel === 'medium' ? 'active' : ''}
+      onclick={() => updateSettings({ geminiThinkingLevel: 'medium' })}
+    />
+    <ButtonSet
+      title="High"
+      class={settings.geminiThinkingLevel === 'high' ? 'active' : ''}
+      onclick={() => updateSettings({ geminiThinkingLevel: 'high' })}
+    />
+  </div>
+</div>

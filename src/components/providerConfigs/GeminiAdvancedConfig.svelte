@@ -200,3 +200,26 @@
     </p>
   {/if} -->
 </div>
+
+<!-- Thinking Level Section -->
+<div class="flex flex-col gap-2">
+  <!-- svelte-ignore a11y_label_has_associated_control -->
+  <label class="text-xs text-text-secondary">Thinking Level</label>
+  <div class="grid grid-cols-3 gap-1">
+    <ButtonSet
+      title="Minimal"
+      class={settings.geminiAdvancedThinkingLevel === 'minimal' ? 'active' : ''}
+      onclick={() => updateSettings({ geminiAdvancedThinkingLevel: 'minimal' })}
+    />
+    <ButtonSet
+      title="Medium"
+      class={settings.geminiAdvancedThinkingLevel === 'medium' ? 'active' : ''}
+      onclick={() => updateSettings({ geminiAdvancedThinkingLevel: 'medium' })}
+    />
+    <ButtonSet
+      title="High"
+      class={settings.geminiAdvancedThinkingLevel === 'high' ? 'active' : ''}
+      onclick={() => updateSettings({ geminiAdvancedThinkingLevel: 'high' })}
+    />
+  </div>
+</div>

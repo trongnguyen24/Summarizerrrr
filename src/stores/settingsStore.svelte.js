@@ -129,7 +129,7 @@ const DEFAULT_SETTINGS = {
       enabled: true,
       useGeminiBasic: true,
       customProvider: 'gemini',
-      customModel: 'gemma-3-27b-it',
+      customModel: 'gemma-4-26b-a4b-it',
       autoGenerate: true,
       defaultChatProvider: 'gemini',
     },
@@ -227,16 +227,17 @@ function migrateDeprecatedTone(settings) {
 }
 
 /**
- * Migrates Deep Dive Questions default model from gemini-2.5-flash-lite to gemma-3-27b-it
+ * Migrates Deep Dive Questions default model to gemma-4-26b-a4b-it
+ * Handles migration from both gemini-2.5-flash-lite and deprecated gemma-3-27b-it
  * @param {Object} settings - Settings object to migrate
  * @returns {boolean} - True if migration was performed
  */
 function migrateDeepDiveModel(settings) {
-  const OLD_MODEL = 'gemini-2.5-flash-lite'
-  const NEW_MODEL = 'gemma-3-27b-it'
+  const OLD_MODELS = ['gemini-2.5-flash-lite', 'gemma-3-27b-it']
+  const NEW_MODEL = 'gemma-4-26b-a4b-it'
   
-  if (settings.tools?.deepDive?.customModel === OLD_MODEL) {
-    console.log('[settingsStore] Migration: Upgrading Deep Dive model to gemma-3-27b-it')
+  if (OLD_MODELS.includes(settings.tools?.deepDive?.customModel)) {
+    console.log(`[settingsStore] Migration: Upgrading Deep Dive model from ${settings.tools.deepDive.customModel} to ${NEW_MODEL}`)
     settings.tools.deepDive.customModel = NEW_MODEL
     return true
   }
@@ -390,7 +391,7 @@ export async function loadSettings() {
           })
         }
 
-        // ✅ MIGRATION: Upgrade Deep Dive model to gemma-3-27b-it
+        // ✅ MIGRATION: Upgrade Deep Dive model to gemma-4-26b-a4b-it
         migrateDeepDiveModel(cleanStoredSettings)
 
         // MIGRATION: Split geminiApiKeys into geminiApiKey + geminiAdditionalApiKeys

@@ -33,6 +33,12 @@
    * Handle FAB click - Option 2 flow
    */
   async function handleFABClick() {
+    // Guard: prevent duplicate generation when already loading
+    if (isPreloading || isGenerating) {
+      console.log('[DeepDiveFAB] Click ignored - already generating')
+      return
+    }
+
     console.log('[DeepDiveFAB] Click', { hasQuestions, isExpanded })
 
     // If already expanded, just toggle (close)
@@ -101,7 +107,7 @@
 <!-- FAB Button -->
 <button
   onclick={handleFABClick}
-  disabled={isPreloading}
+  disabled={isPreloading || isGenerating}
   class="fixed bottom-6 left-4 z-40 p-2 transition-colors overflow-hidden
          border border-primary/10 hover:border-primary/20
          dark:border-border/70 dark:hover:border-gray-700

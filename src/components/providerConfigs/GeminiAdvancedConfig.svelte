@@ -31,9 +31,8 @@
       value: 'gemini-2.5-computer-use-preview-10-2025',
       label: 'gemini-2.5-computer-use-preview-10-2025',
     },
-    { value: 'gemini-2.0-flash', label: 'gemini-2.0-flash' },
-    { value: 'gemini-2.0-flash-lite', label: 'gemini-2.0-flash-lite' },
-    { value: 'gemma-3-27b-it', label: 'gemma-3-27b-it' },
+    { value: 'gemma-4-31b-it', label: 'gemma-4-31b-it' },
+    { value: 'gemma-4-26b-a4b-it', label: 'gemma-4-26b-a4b-it' },
   ]
 
   // Đảm bảo giá trị mặc định nếu props không được cung cấp

@@ -40,4 +40,24 @@ export const geminiBasicModels = [
       topP: 0.9,
     },
   },
+  {
+    value: 'gemma-4-31b-it',
+    label: 'Gemma 4 31B',
+    description: 'Gemma 4 31B instruction-tuned.',
+    generationConfig: {
+      maxOutputTokens: 65536,
+      temperature: 0.3,
+      topP: 0.9,
+    },
+  },
+  {
+    value: 'gemma-4-26b-a4b-it',
+    label: 'Gemma 4 26B',
+    description: 'Gemma 4 26B MoE instruction-tuned.',
+    generationConfig: {
+      maxOutputTokens: 65536,
+      temperature: 0.3,
+      topP: 0.9,
+    },
+  },
 ]

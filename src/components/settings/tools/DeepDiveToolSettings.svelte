@@ -46,7 +46,7 @@
     // Initialize custom provider if switching to custom mode
     if (!useBasic && !settings.tools.deepDive.customProvider) {
       updates.customProvider = settings.selectedProvider || 'gemini'
-      updates.customModel = 'gemma-3-27b-it'
+      updates.customModel = 'gemma-4-26b-a4b-it'
     }
 
     updateSettings({
@@ -68,13 +68,13 @@
 
     // Reset model về default của provider mới
     const defaultModels = {
-      gemini: 'gemma-3-27b-it',
+      gemini: 'gemma-4-26b-a4b-it',
       chatgpt: 'gpt-5-mini',
       deepseek: 'deepseek-chat',
       groq: 'moonshotai/kimi-k2-instruct',
       ollama: 'deepseek-r1:8b',
       lmstudio: 'google/gemma-3-12b',
-      openrouter: 'google/gemma-3-27b-it:free',
+      openrouter: 'google/gemma-4-26b-a4b-it:free',
       openaiCompatible: '',
       cerebras: 'llama-3.3-70b',
     }
@@ -85,7 +85,7 @@
         deepDive: {
           ...settings.tools.deepDive,
           customProvider: newProvider,
-          customModel: defaultModels[newProvider] || 'gemma-3-27b-it',
+          customModel: defaultModels[newProvider] || 'gemma-4-26b-a4b-it',
         },
       },
     })

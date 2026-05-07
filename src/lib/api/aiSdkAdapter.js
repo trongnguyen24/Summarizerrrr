@@ -105,8 +105,8 @@ export function getAISDKModel(providerId, settings) {
       // getGeminiApiKey handles both Advanced and Basic mode
       const geminiApiKey = settings.specificApiKey || getGeminiApiKey(settings)
       const geminiModel = settings.isAdvancedMode
-        ? settings.selectedGeminiAdvancedModel || 'gemini-2.0-flash'
-        : settings.selectedGeminiModel || 'gemini-2.0-flash'
+        ? settings.selectedGeminiAdvancedModel || 'gemini-3-flash-preview'
+        : settings.selectedGeminiModel || 'gemini-3-flash-preview'
 
       if (!geminiApiKey || geminiApiKey.trim() === '') {
         throw new Error(

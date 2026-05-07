@@ -25,7 +25,7 @@ export const GEMINI_ADVANCED_FALLBACK_CHAIN = [
   'gemini-2.5-flash',
   'gemini-3.1-flash-lite-preview',
   'gemini-2.5-flash-lite',
-  'gemma-3-27b-it',
+  'gemma-4-26b-a4b-it',
 ]
 
 /**
@@ -156,7 +156,7 @@ export function getNextFallbackModel(currentModel) {
 
 /**
  * Gets the next fallback model for Advanced mode using fixed chain
- * Chain: gemini-3-flash-preview → gemini-2.5-flash → gemini-2.5-flash-lite → gemma-3-27b-it
+ * Chain: gemini-3-flash-preview → gemini-2.5-flash → gemini-2.5-flash-lite → gemma-4-26b-a4b-it
  * @param {string} currentModel - Current model that failed
  * @param {object} settings - User settings (only used to check if fallback is enabled)
  * @returns {string|null} Next model to try, or null if no more fallbacks

@@ -220,7 +220,14 @@
       "get_a_key": "Lấy khóa",
       "select_model_label": "Mô hình Gemini Advanced",
       "select_model_placeholder": "Chọn một mô hình",
-      "select_gemini_model_aria_label": "Chọn mô hình Gemini"
+      "select_gemini_model_aria_label": "Chọn mô hình Gemini",
+      "auto_fallback_label": "Tự động chuyển đổi khi quá tải",
+      "thinking_level": "Mức độ suy nghĩ",
+      "thinking_levels": {
+        "minimal": "Tối thiểu",
+        "medium": "Trung bình",
+        "high": "Cao"
+      }
     },
     "gemini_basic_config": {
       "api_key_label": "Khóa API Gemini",
@@ -228,7 +235,13 @@
       "select_model_label": "Chọn mô hình Gemini",
       "placeholder_additional_key": "Nhập khóa API Gemini bổ sung #{index}",
       "remove_api_key": "Xóa khóa API",
-      "add_key_for_higher_limit": "Thêm key để tăng giới hạn"
+      "add_key_for_higher_limit": "Thêm key để tăng giới hạn",
+      "thinking_level": "Mức độ suy nghĩ",
+      "thinking_levels": {
+        "minimal": "Tối thiểu",
+        "medium": "Trung bình",
+        "high": "Cao"
+      }
     },
     "ollama_config": {
       "endpoint_label": "Điểm cuối Ollama",

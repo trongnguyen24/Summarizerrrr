@@ -220,7 +220,14 @@
       "get_a_key": "키 얻기",
       "select_model_label": "Gemini 고급 모델",
       "select_model_placeholder": "모델 선택",
-      "select_gemini_model_aria_label": "Gemini 모델 선택"
+      "select_gemini_model_aria_label": "Gemini 모델 선택",
+      "auto_fallback_label": "과부하 시 자동 폴백",
+      "thinking_level": "생각 수준",
+      "thinking_levels": {
+        "minimal": "최소",
+        "medium": "중간",
+        "high": "높음"
+      }
     },
     "gemini_basic_config": {
       "api_key_label": "Gemini API 키",

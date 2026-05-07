@@ -220,7 +220,14 @@
       "get_a_key": "キーを取得",
       "select_model_label": "Gemini Advancedモデル",
       "select_model_placeholder": "モデルを選択",
-      "select_gemini_model_aria_label": "Geminiモデルを選択"
+      "select_gemini_model_aria_label": "Geminiモデルを選択",
+      "auto_fallback_label": "過負荷時の自動フォールバック",
+      "thinking_level": "思考レベル",
+      "thinking_levels": {
+        "minimal": "最小",
+        "medium": "中",
+        "high": "高"
+      }
     },
     "gemini_basic_config": {
       "api_key_label": "Gemini APIキー",

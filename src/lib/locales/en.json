@@ -220,7 +220,14 @@
       "get_a_key": "Get a key",
       "select_model_label": "Gemini Advanced Model",
       "select_model_placeholder": "Select a model",
-      "select_gemini_model_aria_label": "Select Gemini Model"
+      "select_gemini_model_aria_label": "Select Gemini Model",
+      "auto_fallback_label": "Auto-Fallback on Overload",
+      "thinking_level": "Thinking Level",
+      "thinking_levels": {
+        "minimal": "Minimal",
+        "medium": "Medium",
+        "high": "High"
+      }
     },
     "gemini_basic_config": {
       "api_key_label": "Gemini API Key",
@@ -228,7 +235,13 @@
       "select_model_label": "Select Gemini Model",
       "placeholder_additional_key": "Enter Additional Gemini API Key #{index}",
       "remove_api_key": "Remove API Key",
-      "add_key_for_higher_limit": "Add key for higher limit"
+      "add_key_for_higher_limit": "Add key for higher limit",
+      "thinking_level": "Thinking Level",
+      "thinking_levels": {
+        "minimal": "Minimal",
+        "medium": "Medium",
+        "high": "High"
+      }
     },
     "ollama_config": {
       "endpoint_label": "Ollama Endpoint",

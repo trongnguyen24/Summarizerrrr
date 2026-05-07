@@ -220,7 +220,14 @@
       "get_a_key": "Obtener clave",
       "select_model_label": "Modelo Gemini Advanced",
       "select_model_placeholder": "Selecciona un modelo",
-      "select_gemini_model_aria_label": "Seleccionar modelo Gemini"
+      "select_gemini_model_aria_label": "Seleccionar modelo Gemini",
+      "auto_fallback_label": "Recurso automático por sobrecarga",
+      "thinking_level": "Nivel de pensamiento",
+      "thinking_levels": {
+        "minimal": "Mínimo",
+        "medium": "Medio",
+        "high": "Alto"
+      }
     },
     "gemini_basic_config": {
       "api_key_label": "Clave API de Gemini",

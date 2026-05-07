@@ -177,9 +177,7 @@
 <div class="flex flex-col gap-2">
   <!-- svelte-ignore a11y_label_has_associated_control -->
   <label class="text-xs text-text-secondary">
-    {$t('settings.gemini_advanced_config.auto_fallback_label', {
-      default: 'Auto-Fallback on Overload',
-    })}
+    {$t('settings.gemini_advanced_config.auto_fallback_label')}
   </label>
   <div class="grid grid-cols-2 gap-1">
     <ButtonSet
@@ -201,23 +199,24 @@
   {/if} -->
 </div>
 
-<!-- Thinking Level Section -->
 <div class="flex flex-col gap-2">
   <!-- svelte-ignore a11y_label_has_associated_control -->
-  <label class="text-xs text-text-secondary">Thinking Level</label>
+  <label class="text-xs text-text-secondary"
+    >{$t('settings.gemini_advanced_config.thinking_level')}</label
+  >
   <div class="grid grid-cols-3 gap-1">
     <ButtonSet
-      title="Minimal"
+      title={$t('settings.gemini_advanced_config.thinking_levels.minimal')}
       class={settings.geminiAdvancedThinkingLevel === 'minimal' ? 'active' : ''}
       onclick={() => updateSettings({ geminiAdvancedThinkingLevel: 'minimal' })}
     />
     <ButtonSet
-      title="Medium"
+      title={$t('settings.gemini_advanced_config.thinking_levels.medium')}
       class={settings.geminiAdvancedThinkingLevel === 'medium' ? 'active' : ''}
       onclick={() => updateSettings({ geminiAdvancedThinkingLevel: 'medium' })}
     />
     <ButtonSet
-      title="High"
+      title={$t('settings.gemini_advanced_config.thinking_levels.high')}
       class={settings.geminiAdvancedThinkingLevel === 'high' ? 'active' : ''}
       onclick={() => updateSettings({ geminiAdvancedThinkingLevel: 'high' })}
     />

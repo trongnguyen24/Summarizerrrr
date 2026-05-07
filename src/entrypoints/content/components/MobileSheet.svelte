@@ -6,12 +6,6 @@
   import { useNavigationManager } from '../composables/useNavigationManager.svelte.js'
   import { useSummarization } from '../composables/useSummarization.svelte.js'
   import { useFloatingPanelState } from '../composables/useFloatingPanelState.svelte.js'
-  import {
-    lockBodyScroll,
-    unlockBodyScroll,
-    forceUnlockBodyScroll,
-    isBodyLocked,
-  } from '../composables/scroll-freezer.js'
   import FloatingPanelContent from '@/components/displays/floating-panel/FloatingPanelContent.svelte'
   import ApiKeySetupPrompt from '@/components/ui/ApiKeySetupPrompt.svelte'
   import { settings } from '@/stores/settingsStore.svelte.js'
@@ -140,7 +134,6 @@
 
   function openDrawer() {
     isAnimating = true
-    lockBodyScroll()
 
     // If onboarding not completed, open full screen
     if (!settings.hasCompletedOnboarding) {
@@ -175,8 +168,6 @@
       closeTimer = null
     }
 
-    // Force unlock to ensure body scroll is restored regardless of lock count
-    forceUnlockBodyScroll()
     isAnimating = true
     closingFromBackdrop = false
 
@@ -194,10 +185,6 @@
 
         closeTimer = setTimeout(() => {
           isAnimating = false
-          // Double-check body is unlocked when animation completes
-          if (isBodyLocked()) {
-            forceUnlockBodyScroll()
-          }
           onclose?.()
         }, 600) // Match transition duration
       })
@@ -212,8 +199,6 @@
       closeTimer = null
     }
 
-    // Force unlock to ensure body scroll is restored regardless of lock count
-    forceUnlockBodyScroll()
     isAnimating = true
     closingFromBackdrop = true
 
@@ -232,9 +217,6 @@
         closeTimer = setTimeout(() => {
           isAnimating = false
           closingFromBackdrop = false
-          if (isBodyLocked()) {
-            forceUnlockBodyScroll()
-          }
           onclose?.()
         }, 400) // Shorter duration for backdrop close
       })
@@ -404,8 +386,6 @@
     window.removeEventListener('keydown', handleKeyDown)
     document.removeEventListener('summarizeClick', handleSummarizeClick)
     window.removeEventListener('gemini-toast', handleToastEvent)
-    // Force unlock to ensure body scroll is always restored when component is destroyed
-    forceUnlockBodyScroll()
     if (toastTimeout) clearTimeout(toastTimeout)
     if (visibleTimer) clearTimeout(visibleTimer)
     if (closeTimer) clearTimeout(closeTimer)

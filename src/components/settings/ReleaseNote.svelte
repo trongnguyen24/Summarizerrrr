@@ -89,6 +89,28 @@
     <div class="p-6 prose prose-sm w-full max-w-full">
       <h2>Release note</h2>
 
+      <b class="font-mono">2.12.0</b>
+      <ul class="mt-0">
+        {@render note(
+          'Gemma 4 Models:',
+          'Added support for two new models: gemma-4-31b-it and gemma-4-26b-a4b-it.'
+        )}
+        {@render note(
+          'Thinking Level Setting:',
+          'Introduced a new setting to control the Thinking Level (Minimal, Medium, High) for compatible Gemini and Gemma models.'
+        )}
+        {@render note(
+          'Summarize Selected Text via FAB:',
+          'The "summarize selected text" feature now triggers the Floating Action Button for a more consistent and integrated experience.',
+          [
+            {
+              label: 'sojusnik',
+              url: 'https://github.com/trongnguyen24/Summarizerrrr/issues/59',
+            },
+          ],
+        )}
+      </ul>
+
       <b class="font-mono">2.11.0</b>
       <ul class="mt-0">
         {@render note(

@@ -32,6 +32,7 @@ export function useOneClickSummarization() {
     summaryToDisplay,
     statusToDisplay,
     summarizePageContent,
+    summarizeSelectedText,
     summarizeChapters,
     summarizeComments,
     resetLocalSummaryState,
@@ -251,6 +252,7 @@ export function useOneClickSummarization() {
 
     // Direct access to base summarization if needed
     summarizePageContent,
+    summarizeSelectedText,
     summarizeChapters,
     summarizeComments,
     resetLocalSummaryState,

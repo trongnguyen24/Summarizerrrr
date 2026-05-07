@@ -785,6 +785,103 @@ export function useSummarization() {
     }
   }
 
+  /**
+   * Summarize user-selected text (triggered from FAB via context menu)
+   * Nhận text trực tiếp, không cần extract từ trang
+   * @param {string} text - The selected text to summarize
+   */
+  async function summarizeSelectedText(text) {
+    if (isProcessing) {
+      console.log(
+        '[useSummarization] Already processing, ignoring summarizeSelectedText request'
+      )
+      return
+    }
+
+    if (!text || text.trim() === '') {
+      console.warn('[useSummarization] summarizeSelectedText: empty text, aborting')
+      return
+    }
+
+    // Cancel any previous request
+    if (abortController) {
+      abortController.abort()
+    }
+    abortController = new AbortController()
+    const signal = abortController.signal
+
+    // Generate new request ID
+    const requestId = Date.now().toString()
+    localSummaryState.currentRequestId = requestId
+
+    // Reset state
+    resetLocalSummaryState()
+    localSummaryState.currentRequestId = requestId
+    localSummaryState.loadingAction = 'selectedText'
+    localSummaryState.isLoading = true
+    localSummaryState.contentType = 'selectedText'
+    isProcessing = true
+
+    // Reset global model status
+    updateModelStatus(null, null, false)
+
+    try {
+      console.log('[useSummarization] Starting selected text summarization...', requestId)
+
+      // Set page info from current document
+      localSummaryState.pageTitle = extractPageTitle()
+      localSummaryState.pageUrl = window.location.href
+      localSummaryState.startTime = Date.now()
+
+      // Load settings
+      await loadSettings()
+
+      // Check abort signal
+      if (signal.aborted) throw new Error('Aborted')
+
+      // Call AI summarization with selectedText prompt type
+      const { summarizeContent } = await import('@/lib/api/api.js')
+      const result = await summarizeContent(text, 'selectedText', signal)
+
+      // Check request ID before updating state
+      if (localSummaryState.currentRequestId !== requestId) {
+        console.log('[useSummarization] Selected text summarization stopped/outdated, skipping update')
+        return
+      }
+
+      localSummaryState.summary = result || '<p><i>Could not generate summary from this selected text.</i></p>'
+
+      // Reset UI and processing lock immediately after getting result.
+      // Post-processing (autoSave, DeepDive) runs in the background and should NOT block new requests.
+      localSummaryState.isLoading = false
+      isProcessing = false
+      if (abortController && abortController.signal === signal) {
+        abortController = null
+      }
+
+      const duration = Date.now() - localSummaryState.startTime
+      console.log(`[useSummarization] Selected text summarization completed in ${duration}ms`)
+
+      // Post-processing (non-blocking for new requests)
+      await autoSaveToHistory('Selected Text')
+      await handleDeepDiveAfterSummary()
+    } catch (error) {
+      if (localSummaryState.currentRequestId === requestId) {
+        console.error('[useSummarization] Selected text summarization error:', error)
+        handleSummarizationError(error)
+      }
+    } finally {
+      // Safety net: ensure these are always reset even if an unexpected error occurs
+      if (localSummaryState.currentRequestId === requestId || localSummaryState.currentRequestId === null) {
+        localSummaryState.isLoading = false
+      }
+      isProcessing = false
+      if (abortController && abortController.signal === signal) {
+        abortController = null
+      }
+    }
+  }
+
   // Computed properties
   let summaryToDisplay = $derived(localSummaryState.summary)
   let statusToDisplay = $derived(
@@ -804,6 +901,7 @@ export function useSummarization() {
 
     // Actions
     summarizePageContent,
+    summarizeSelectedText,
     summarizeChapters,
     summarizeComments,
     summarizeCourseConcepts,

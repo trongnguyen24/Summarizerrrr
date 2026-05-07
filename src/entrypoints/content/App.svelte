@@ -370,6 +370,37 @@
           sendResponse({ success: true, alreadyTriggered: false })
       }
 
+      // Summarize selected text in FAB (triggered by context menu "Summarize selected text")
+      if (message.type === 'SUMMARIZE_SELECTED_TEXT_FAB') {
+        const selectedText = message.selectedText
+        console.log('[App] SUMMARIZE_SELECTED_TEXT_FAB received, text length:', selectedText?.length)
+
+        // Only handle if FAB/floating panel is actually enabled for this page.
+        // If not, return false so background.js falls back to the browser sidepanel.
+        if (!settings.showFloatingButton || !isFabAllowedOnDomain) {
+          console.log('[App] FAB not active on this page, declining — background will use sidepanel')
+          if (sendResponse) sendResponse({ success: false, reason: 'fab_disabled' })
+          return
+        }
+
+        if (!selectedText || selectedText.trim() === '') {
+          if (sendResponse) sendResponse({ success: false, reason: 'empty_text' })
+          return
+        }
+
+        // Auto-open panel
+        isPanelVisible = true
+
+        // Start summarization (non-blocking)
+        oneClickSummarization.summarizeSelectedText(selectedText).catch((err) => {
+          console.error('[App] Selected text summarization failed:', err)
+        })
+
+        // Respond immediately so background.js knows FAB handled it
+        if (sendResponse) sendResponse({ success: true })
+        return
+      }
+
       // Generic Quick Summary mode: triggered by context menu on non-YouTube links
       if (message.type === 'QUICK_SUMMARY_TRIGGER_GENERIC') {
         // Wrap in async IIFE since message listeners don't support async directly

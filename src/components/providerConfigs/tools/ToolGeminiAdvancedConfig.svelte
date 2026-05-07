@@ -18,6 +18,10 @@
   let statusTimeout = null
 
   const availableModels = [
+    {
+      value: 'gemini-3.1-flash-lite-preview',
+      label: 'gemini-3.1-flash-lite-preview',
+    },
     { value: 'gemini-3-flash-preview', label: 'gemini-3-flash-preview' },
     {
       value: 'gemini-3-pro-preview',

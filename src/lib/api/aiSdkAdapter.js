@@ -26,6 +26,7 @@ import {
 import { updateModelStatus } from '@/stores/summaryStore.svelte.js'
 
 import { showModelFallbackToast } from '@/lib/utils/toastUtils.js'
+import { buildThinkingProviderOptions } from '@/lib/utils/geminiThinkingConfig.js'
 
 // Global index for round-robin key rotation
 let currentKeyIndex = 0
@@ -382,6 +383,21 @@ export async function generateContent(
         console.log(`[aiSdkAdapter] ✅ API Success - Model: ${modelName}`)
         return result.text
       } else {
+        // Build thinking providerOptions from user settings (Gemini-only)
+        // Caller-provided providerOptions (e.g. DeepDive) take precedence
+        const thinkingLevel = currentSettings.isAdvancedMode
+          ? (currentSettings.geminiAdvancedThinkingLevel || 'high')
+          : (currentSettings.geminiThinkingLevel || 'high')
+        const thinkingProviderOptions =
+          providerId === 'gemini'
+            ? buildThinkingProviderOptions(modelName, thinkingLevel)
+            : {}
+
+        // Merge: caller options override auto-built thinking options
+        const mergedProviderOptions = Object.keys(thinkingProviderOptions).length
+          ? { ...thinkingProviderOptions, ...(options.providerOptions || {}) }
+          : options.providerOptions
+
         // Use the standard AI SDK generateText for direct calls - no middleware
         const { text } = await generateText({
           model,
@@ -389,6 +405,7 @@ export async function generateContent(
           prompt: effectiveUserPrompt,
           maxRetries: 0, // Disable AI SDK built-in retry to allow custom fallback to work faster
           ...generationConfig,
+          ...(mergedProviderOptions && { providerOptions: mergedProviderOptions }),
           ...(options.abortSignal && { abortSignal: options.abortSignal }),
         })
         console.log(`[aiSdkAdapter] ✅ API Success - Model: ${modelName}`)
@@ -632,6 +649,15 @@ export async function* generateContentStream(
           browserCompatibility.streamingOptions.useSmoothing &&
           streamOptions.useSmoothing !== false
 
+        // Build thinking providerOptions from user settings (Gemini-only)
+        const thinkingLevel = currentSettings.isAdvancedMode
+          ? (currentSettings.geminiAdvancedThinkingLevel || 'high')
+          : (currentSettings.geminiThinkingLevel || 'high')
+        const thinkingProviderOptions =
+          providerId === 'gemini'
+            ? buildThinkingProviderOptions(modelName, thinkingLevel)
+            : {}
+
         const streamConfig = {
           model,
           system: effectiveSystemInstruction,
@@ -639,6 +665,10 @@ export async function* generateContentStream(
           ...generationConfig,
           maxRetries: 0, // Disable AI SDK built-in retry to allow custom fallback to work faster
           ...(shouldUseSmoothing ? defaultSmoothingOptions : {}),
+          ...(Object.keys(thinkingProviderOptions).length && {
+            providerOptions: thinkingProviderOptions,
+          }),
+          // Caller stream options (e.g. abortSignal) go last so they always win
           ...streamOptions,
           ...(streamOptions.abortSignal && {
             abortSignal: streamOptions.abortSignal,

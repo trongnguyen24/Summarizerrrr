@@ -612,7 +612,7 @@
     height: 100vh;
     background-color: transparent;
     z-index: 2147483640;
-    pointer-events: none; /* Allow pass through when hidden */
+    pointer-events: none !important; /* Allow pass through when hidden */
     opacity: 0;
     transition: opacity 0.4s ease;
   }

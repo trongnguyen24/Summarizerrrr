@@ -389,6 +389,7 @@ export async function generateContent(
           prompt: effectiveUserPrompt,
           maxRetries: 0, // Disable AI SDK built-in retry to allow custom fallback to work faster
           ...generationConfig,
+          ...(options.providerOptions && { providerOptions: options.providerOptions }),
           ...(options.abortSignal && { abortSignal: options.abortSignal }),
         })
         console.log(`[aiSdkAdapter] ✅ API Success - Model: ${modelName}`)

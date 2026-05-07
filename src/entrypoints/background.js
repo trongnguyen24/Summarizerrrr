@@ -385,6 +385,24 @@ export default defineBackground(() => {
   const ollamaApiProxy = new OllamaApiProxyService()
   let sidePanelPort = null
   let pendingSelectedText = null
+  // Sync cache of settings.showFloatingButton — updated from storage so we can read it synchronously
+  // in the context menu handler (before any await, within the user gesture window).
+  let cachedFabEnabled = true // Default true; will be updated on init and on storage changes
+  ;(async () => {
+    try {
+      const result = await chrome.storage.local.get('settings')
+      if (result.settings?.showFloatingButton !== undefined) {
+        cachedFabEnabled = result.settings.showFloatingButton
+        console.log('[Background] cachedFabEnabled init:', cachedFabEnabled)
+      }
+    } catch (e) {}
+  })()
+  chrome.storage.onChanged.addListener((changes, area) => {
+    if (area === 'local' && changes.settings?.newValue?.showFloatingButton !== undefined) {
+      cachedFabEnabled = changes.settings.newValue.showFloatingButton
+      console.log('[Background] cachedFabEnabled updated:', cachedFabEnabled)
+    }
+  })
   const userAgent = navigator.userAgent
   const isMobile = userAgent.includes('Android') || userAgent.includes('Mobile')
   const isEdgeMobile =
@@ -1502,15 +1520,23 @@ export default defineBackground(() => {
     if (port.name === 'side-panel') {
       sidePanelPort = port
       if (pendingSelectedText) {
-        try {
-          sidePanelPort.postMessage({
-            action: 'summarizeSelectedText',
-            selectedText: pendingSelectedText,
-          })
-          pendingSelectedText = null
-        } catch (e) {
-          pendingSelectedText = null
-        }
+        // Delay sending to allow sidepanel's messageHandler to fully mount and register its listener.
+        // Without delay, the message can arrive before the Svelte component's onMount has run.
+        const textToSend = pendingSelectedText
+        pendingSelectedText = null
+        setTimeout(() => {
+          if (sidePanelPort) {
+            try {
+              sidePanelPort.postMessage({
+                action: 'summarizeSelectedText',
+                selectedText: textToSend,
+              })
+              console.log('[Background] Sent pendingSelectedText to sidepanel after delay')
+            } catch (e) {
+              console.error('[Background] Failed to send pendingSelectedText after delay:', e)
+            }
+          }
+        }, 500)
       }
       port.onDisconnect.addListener(() => {
         sidePanelPort = null
@@ -1582,7 +1608,28 @@ export default defineBackground(() => {
       pendingSelectedText = info.selectionText
       console.log('[Background] Context menu: summarizeSelectedText clicked')
 
-      // --- DUAL-PATH: Try FAB (content script) first ---
+      // --- STEP 1: Open sidepanel immediately within user gesture context (before any await) ---
+      // chrome.sidePanel.open() requires a user gesture token.
+      // We use cachedFabEnabled (sync, no await needed) to decide:
+      // - FAB disabled → pre-open sidepanel right here (user gesture still valid)
+      // - FAB enabled  → skip pre-open; FAB will handle it
+      let sidePanelPreOpened = false
+      if (!cachedFabEnabled && !sidePanelPort && tab?.id) {
+        try {
+          if (import.meta.env.BROWSER === 'chrome') {
+            await chrome.sidePanel.open({ tabId: tab.id })
+            sidePanelPreOpened = true
+            console.log('[Background] Sidepanel pre-opened within user gesture (FAB disabled)')
+          } else {
+            await browser.sidebarAction.open()
+            sidePanelPreOpened = true
+          }
+        } catch (e) {
+          console.error('[Background] Failed to pre-open sidepanel:', e)
+        }
+      }
+
+      // --- STEP 2: Try FAB (content script) ---
       let fabHandled = false
       if (tab?.id) {
         try {
@@ -1593,49 +1640,33 @@ export default defineBackground(() => {
           if (fabResponse?.success) {
             console.log('[Background] summarizeSelectedText handled by FAB content script')
             fabHandled = true
-            pendingSelectedText = null
+            pendingSelectedText = null // Clear so sidepanel (if pre-opened) does nothing
           }
         } catch (fabError) {
-          // Content script not active on this page (chrome://, PDF, etc.) → fallback
-          console.log('[Background] FAB content script not available, falling back to sidepanel:', fabError.message)
+          console.log('[Background] FAB content script not available, sidepanel will handle:', fabError.message)
         }
       }
 
-      // --- FALLBACK: Send to sidepanel if FAB did not handle ---
+      // --- STEP 3: Send to sidepanel if FAB did not handle ---
       if (!fabHandled) {
-        console.log('[Background] summarizeSelectedText: FAB not handled, routing to sidepanel. sidePanelPort exists:', !!sidePanelPort)
-
+        console.log('[Background] Routing to sidepanel. sidePanelPort exists:', !!sidePanelPort)
         if (sidePanelPort) {
+          // Sidepanel already connected — send directly
           try {
-            console.log('[Background] Sending summarizeSelectedText message to sidepanel...')
             sidePanelPort.postMessage({
               action: 'summarizeSelectedText',
               selectedText: pendingSelectedText,
             })
-            console.log('[Background] Message sent successfully to sidepanel')
             pendingSelectedText = null
           } catch (e) {
-            console.error('[Background] Failed to send message to sidepanel:', e)
-            /* Port might have just closed */
+            console.error('[Background] Failed to send to sidepanel port:', e)
           }
         }
-
-        if (pendingSelectedText) {
-          // If message failed or port wasn't open, open the sidepanel
-          if (tab?.windowId) {
-            try {
-              // Browser-specific panel opening
-              if (import.meta.env.BROWSER === 'chrome') {
-                await chrome.sidePanel.open({ windowId: tab.windowId })
-              } else {
-                await browser.sidebarAction.open()
-              }
-            } catch (e) {
-              pendingSelectedText = null
-            }
-          } else {
-            pendingSelectedText = null
-          }
+        // If sidepanel was pre-opened (not connected yet), pendingSelectedText stays
+        // set so onConnect handler will send it when panel finishes loading
+        if (pendingSelectedText && !sidePanelPreOpened) {
+          console.warn('[Background] No sidepanel port and could not open panel — clearing pending text')
+          pendingSelectedText = null
         }
       }
     } else if (info.menuItemId === 'openSettings') {

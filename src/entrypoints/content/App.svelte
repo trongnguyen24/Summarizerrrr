@@ -375,6 +375,14 @@
         const selectedText = message.selectedText
         console.log('[App] SUMMARIZE_SELECTED_TEXT_FAB received, text length:', selectedText?.length)
 
+        // Only handle if FAB/floating panel is actually enabled for this page.
+        // If not, return false so background.js falls back to the browser sidepanel.
+        if (!settings.showFloatingButton || !isFabAllowedOnDomain) {
+          console.log('[App] FAB not active on this page, declining — background will use sidepanel')
+          if (sendResponse) sendResponse({ success: false, reason: 'fab_disabled' })
+          return
+        }
+
         if (!selectedText || selectedText.trim() === '') {
           if (sendResponse) sendResponse({ success: false, reason: 'empty_text' })
           return

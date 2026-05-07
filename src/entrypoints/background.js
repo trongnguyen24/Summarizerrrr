@@ -1580,38 +1580,62 @@ export default defineBackground(() => {
     const MIN_SELECTION_LENGTH = 20
     if (info.menuItemId === 'summarizeSelectedText' && info.selectionText && info.selectionText.trim().length >= MIN_SELECTION_LENGTH) {
       pendingSelectedText = info.selectionText
-      console.log('[Background] Context menu: summarizeSelectedText clicked, sidePanelPort exists:', !!sidePanelPort)
-      
-      if (sidePanelPort) {
+      console.log('[Background] Context menu: summarizeSelectedText clicked')
+
+      // --- DUAL-PATH: Try FAB (content script) first ---
+      let fabHandled = false
+      if (tab?.id) {
         try {
-          console.log('[Background] Sending summarizeSelectedText message to sidepanel...')
-          sidePanelPort.postMessage({
-            action: 'summarizeSelectedText',
+          const fabResponse = await browser.tabs.sendMessage(tab.id, {
+            type: 'SUMMARIZE_SELECTED_TEXT_FAB',
             selectedText: pendingSelectedText,
           })
-          console.log('[Background] Message sent successfully to sidepanel')
-          pendingSelectedText = null
-        } catch (e) {
-          console.error('[Background] Failed to send message to sidepanel:', e)
-          /* Port might have just closed */
+          if (fabResponse?.success) {
+            console.log('[Background] summarizeSelectedText handled by FAB content script')
+            fabHandled = true
+            pendingSelectedText = null
+          }
+        } catch (fabError) {
+          // Content script not active on this page (chrome://, PDF, etc.) → fallback
+          console.log('[Background] FAB content script not available, falling back to sidepanel:', fabError.message)
         }
       }
 
-      if (pendingSelectedText) {
-        // If message failed or port wasn't open
-        if (tab?.windowId) {
+      // --- FALLBACK: Send to sidepanel if FAB did not handle ---
+      if (!fabHandled) {
+        console.log('[Background] summarizeSelectedText: FAB not handled, routing to sidepanel. sidePanelPort exists:', !!sidePanelPort)
+
+        if (sidePanelPort) {
           try {
-            // Browser-specific panel opening
-            if (import.meta.env.BROWSER === 'chrome') {
-              await chrome.sidePanel.open({ windowId: tab.windowId })
-            } else {
-              await browser.sidebarAction.open()
-            }
+            console.log('[Background] Sending summarizeSelectedText message to sidepanel...')
+            sidePanelPort.postMessage({
+              action: 'summarizeSelectedText',
+              selectedText: pendingSelectedText,
+            })
+            console.log('[Background] Message sent successfully to sidepanel')
+            pendingSelectedText = null
           } catch (e) {
+            console.error('[Background] Failed to send message to sidepanel:', e)
+            /* Port might have just closed */
+          }
+        }
+
+        if (pendingSelectedText) {
+          // If message failed or port wasn't open, open the sidepanel
+          if (tab?.windowId) {
+            try {
+              // Browser-specific panel opening
+              if (import.meta.env.BROWSER === 'chrome') {
+                await chrome.sidePanel.open({ windowId: tab.windowId })
+              } else {
+                await browser.sidebarAction.open()
+              }
+            } catch (e) {
+              pendingSelectedText = null
+            }
+          } else {
             pendingSelectedText = null
           }
-        } else {
-          pendingSelectedText = null
         }
       }
     } else if (info.menuItemId === 'openSettings') {

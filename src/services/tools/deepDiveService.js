@@ -557,9 +557,15 @@ function buildNoThinkingProviderOptions(providerId, modelName) {
 
   const lowerModel = (modelName || '').toLowerCase()
 
-  // Gemma models do NOT support thinkingConfig at all
+  // Gemma 4 models: support thinkingLevel ('minimal' and 'high' only)
   if (lowerModel.includes('gemma')) {
-    return {}
+    return {
+      google: {
+        thinkingConfig: {
+          thinkingLevel: 'minimal', // Fastest response, minimal reasoning
+        },
+      },
+    }
   }
 
   // Gemini 2.5 series: use thinkingBudget

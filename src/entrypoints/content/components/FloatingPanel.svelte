@@ -327,8 +327,8 @@
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
   class="backdrop"
-  class:visible
-  style="pointer-events: {settings.closePanelOnOutsideClick ? 'auto' : 'none'};"
+  class:visible={isActive}
+  style="pointer-events: {showElement && isActive && settings.closePanelOnOutsideClick ? 'auto' : 'none'};"
   onclick={() => {
     if (settings.closePanelOnOutsideClick) {
       onclose?.()
@@ -612,7 +612,7 @@
     height: 100vh;
     background-color: transparent;
     z-index: 2147483640;
-    pointer-events: none !important; /* Allow pass through when hidden */
+    pointer-events: none; /* Allow pass through when hidden */
     opacity: 0;
     transition: opacity 0.4s ease;
   }

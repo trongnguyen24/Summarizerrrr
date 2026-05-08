@@ -1608,18 +1608,29 @@ export default defineBackground(() => {
       pendingSelectedText = info.selectionText
       console.log('[Background] Context menu: summarizeSelectedText clicked')
 
+      // --- Detect extension pages (archive, settings, prompt) where FAB is NOT available ---
+      // Extension pages are opened via browser.runtime.getURL() and don't have content scripts.
+      const extensionBaseUrl = browser.runtime.getURL('')
+      const isExtensionPage = tab?.url?.startsWith(extensionBaseUrl)
+      // Force sidepanel routing when on extension pages (no FAB there)
+      const shouldUseSidePanel = !cachedFabEnabled || isExtensionPage
+
+      if (isExtensionPage) {
+        console.log('[Background] Extension page detected, forcing sidepanel route')
+      }
+
       // --- STEP 1: Open sidepanel immediately within user gesture context (before any await) ---
       // chrome.sidePanel.open() requires a user gesture token.
       // We use cachedFabEnabled (sync, no await needed) to decide:
-      // - FAB disabled → pre-open sidepanel right here (user gesture still valid)
-      // - FAB enabled  → skip pre-open; FAB will handle it
+      // - FAB disabled or extension page → pre-open sidepanel right here (user gesture still valid)
+      // - FAB enabled on normal page     → skip pre-open; FAB will handle it
       let sidePanelPreOpened = false
-      if (!cachedFabEnabled && !sidePanelPort && tab?.id) {
+      if (shouldUseSidePanel && !sidePanelPort && tab?.id) {
         try {
           if (import.meta.env.BROWSER === 'chrome') {
             await chrome.sidePanel.open({ tabId: tab.id })
             sidePanelPreOpened = true
-            console.log('[Background] Sidepanel pre-opened within user gesture (FAB disabled)')
+            console.log('[Background] Sidepanel pre-opened within user gesture (FAB disabled or extension page)')
           } else {
             await browser.sidebarAction.open()
             sidePanelPreOpened = true
@@ -1629,9 +1640,9 @@ export default defineBackground(() => {
         }
       }
 
-      // --- STEP 2: Try FAB (content script) ---
+      // --- STEP 2: Try FAB (content script) — skip for extension pages ---
       let fabHandled = false
-      if (tab?.id) {
+      if (tab?.id && !isExtensionPage) {
         try {
           const fabResponse = await browser.tabs.sendMessage(tab.id, {
             type: 'SUMMARIZE_SELECTED_TEXT_FAB',
@@ -1665,8 +1676,21 @@ export default defineBackground(() => {
         // If sidepanel was pre-opened (not connected yet), pendingSelectedText stays
         // set so onConnect handler will send it when panel finishes loading
         if (pendingSelectedText && !sidePanelPreOpened) {
-          console.warn('[Background] No sidepanel port and could not open panel — clearing pending text')
-          pendingSelectedText = null
+          // Last resort: try to open sidepanel now (may fail without user gesture on Chrome)
+          try {
+            if (import.meta.env.BROWSER === 'chrome' && tab?.id) {
+              await chrome.sidePanel.open({ tabId: tab.id })
+              sidePanelPreOpened = true
+              console.log('[Background] Sidepanel opened as last resort fallback')
+            } else if (import.meta.env.BROWSER === 'firefox') {
+              await browser.sidebarAction.open()
+              sidePanelPreOpened = true
+            }
+          } catch (fallbackError) {
+            console.warn('[Background] Last resort sidepanel open failed:', fallbackError.message)
+            console.warn('[Background] No sidepanel port and could not open panel — clearing pending text')
+            pendingSelectedText = null
+          }
         }
       }
     } else if (info.menuItemId === 'openSettings') {

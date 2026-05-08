@@ -35,6 +35,7 @@ import {
   getOrCreateTabState,
   getCurrentTabId,
 } from '@/services/tabCacheService.js'
+import { cleanTitle } from '@/lib/utils/titleExtractor.js'
 
 // Import shared initial state
 import { createDefaultSummaryState } from '@/lib/constants/initialStates.js'
@@ -605,7 +606,7 @@ export async function fetchChapterSummary() {
     }
 
     // Always update page info for current video
-    summaryState.pageTitle = tabInfo.title || 'Unknown Title'
+    summaryState.pageTitle = cleanTitle(tabInfo.title) || 'Unknown Title'
     summaryState.pageUrl = tabInfo.url || 'Unknown URL'
 
     // Keep display type as 'custom' for chapters
@@ -741,7 +742,7 @@ export async function fetchCourseConcepts() {
     }
 
     // Update page info
-    summaryState.pageTitle = tabInfo.title || 'Unknown Title'
+    summaryState.pageTitle = cleanTitle(tabInfo.title) || 'Unknown Title'
     summaryState.pageUrl = tabInfo.url || 'Unknown URL'
 
   } catch (e) {
@@ -805,7 +806,7 @@ export async function fetchAndSummarizeStream() {
       }
     }
 
-    summaryState.pageTitle = tabInfo.title || 'Unknown Title'
+    summaryState.pageTitle = cleanTitle(tabInfo.title) || 'Unknown Title'
     summaryState.pageUrl = tabInfo.url
 
     const YOUTUBE_MATCH_PATTERN = /youtube\.com\/watch/i
@@ -1059,7 +1060,7 @@ export async function summarizeSelectedText(text) {
       active: true,
       currentWindow: true,
     })
-    summaryState.pageTitle = tabInfo.title || 'Selected Text Summary'
+    summaryState.pageTitle = cleanTitle(tabInfo.title) || 'Selected Text Summary'
     summaryState.pageUrl = tabInfo.url || 'Unknown URL'
 
     if (!text || text.trim() === '') {
@@ -1290,7 +1291,7 @@ export async function executeCustomAction(actionType) {
     }
 
     // Set page info
-    summaryState.pageTitle = tabInfo.title || 'Custom Action Result'
+    summaryState.pageTitle = cleanTitle(tabInfo.title) || 'Custom Action Result'
     summaryState.pageUrl = tabInfo.url
 
     // Get page content
@@ -1448,7 +1449,7 @@ export async function fetchCommentSummary(
     }
 
     // Set page info
-    summaryState.pageTitle = tabInfo.title || 'YouTube Comment Analysis'
+    summaryState.pageTitle = cleanTitle(tabInfo.title) || 'YouTube Comment Analysis'
     summaryState.pageUrl = tabInfo.url
 
     console.log('[fetchCommentSummary] Sending message to content script...')

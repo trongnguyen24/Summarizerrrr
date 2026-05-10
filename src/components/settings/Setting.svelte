@@ -28,8 +28,9 @@
   // Function to update the active bar's position dynamically
   function updateActiveBarPosition() {
     if (!tabContainerEl) return
-    scrollContainerEl.scrollTop = 0
-    document.querySelector('#setting-scroll > div:nth-child(1)').scrollTop = 0
+    if (scrollContainerEl) scrollContainerEl.scrollTop = 0
+    const scrollContent = document.querySelector('#setting-scroll > div:nth-child(1)')
+    if (scrollContent) scrollContent.scrollTop = 0
     const activeButton = tabContainerEl.querySelector(
       `[data-tab='${activeTab}']`,
     )
@@ -38,13 +39,25 @@
     const containerRect = tabContainerEl.getBoundingClientRect()
     const buttonRect = activeButton.getBoundingClientRect()
 
-    const activeBarOffset =
-      buttonRect.left -
-      containerRect.left +
-      buttonRect.width / 2 -
-      activeBarEl.offsetWidth / 2
+    const isDesktop = window.innerWidth >= 640
 
-    activeBarEl.style.transform = `translateX(${activeBarOffset}px) skewX(45deg)`
+    if (isDesktop) {
+      const activeBarOffset =
+        buttonRect.top -
+        containerRect.top +
+        buttonRect.height / 2 -
+        activeBarEl.offsetHeight / 2
+
+      activeBarEl.style.transform = `translateY(${activeBarOffset}px)`
+    } else {
+      const activeBarOffset =
+        buttonRect.left -
+        containerRect.left +
+        buttonRect.width / 2 -
+        activeBarEl.offsetWidth / 2
+
+      activeBarEl.style.transform = `translateX(${activeBarOffset}px)`
+    }
   }
 
   // Effect to update the bar when the active tab changes
@@ -129,142 +142,152 @@
 </script>
 
 <div
-  class="relative settings font-mono text-text-primary dark:text-text-secondary text-xs bg-surface-1 overflow-hidden w-full flex-shrink-0 flex flex-col"
+  class="relative settings font-mono text-text-primary dark:text-text-secondary text-xs bg-surface-1 overflow-hidden w-full h-full flex-shrink-0 flex flex-col sm:flex-row"
 >
   <FirefoxPermissionOverlay />
+
+  <!-- Title for Mobile -->
   <div
-    class="flex justify-center relative items-center py-2 sm:order-1 sm:bg-surface-1 bg-background dark:bg-surface-2 border-b-0 border-border"
+    class="flex sm:hidden justify-center relative items-center py-2 bg-background border-b-0 border-border"
   >
-    <p class=" !text-center">{$t('settings.title')}</p>
+    <p class="!text-center">{$t('settings.title')}</p>
   </div>
 
+  <!-- Left Sidebar (Desktop) / Bottom Bar (Mobile) -->
   <div
-    class="flex order-4 sm:order-2 bg-background items-center text-[0.65rem] justify-center p-3 gap-2"
-    bind:this={tabContainerEl}
+    class="flex flex-row sm:flex-col order-4 sm:order-1 bg-background items-center sm:items-stretch text-[0.65rem] sm:text-sm justify-center sm:justify-start sm:w-40 border-t sm:border-t-0 sm:border-r border-border z-10 flex-shrink-0"
   >
-    <button
-      data-tab="ai-summary"
-      class="flex flex-col w-16 items-center justify-center gap-1 cursor-pointer rounded-md transition-colors duration-200 {activeTab ===
-      'ai-summary'
-        ? ' text-blackwhite '
-        : 'text-text-secondary'}"
-      onclick={() => switchTab('ai-summary')}
-    >
-      <div class="size-5">
-        {#if activeTab === 'ai-summary'}
-          <Icon icon="heroicons:sparkles-solid" width="20" height="20" />
-        {:else}
-          <Icon icon="heroicons:sparkles" width="20" height="20" />
-        {/if}
-      </div>
-      <span class="text-center">Summary</span>
-    </button>
-    <button
-      data-tab="fab"
-      class="flex flex-col w-16 items-center gap-1 justify-center cursor-pointer rounded-md transition-colors duration-200 {activeTab ===
-      'fab'
-        ? ' text-blackwhite '
-        : 'text-text-secondary'}"
-      onclick={() => switchTab('fab')}
-    >
-      <div class="size-5">
-        {#if activeTab === 'fab'}
-          <Icon
-            icon="heroicons:cursor-arrow-rays-solid"
-            width="20"
-            height="20"
-          />
-        {:else}
-          <Icon icon="heroicons:cursor-arrow-rays" width="20" height="20" />
-        {/if}
-      </div>
-      <span>FAB</span>
-    </button>
-    <button
-      data-tab="general"
-      class="flex flex-col w-16 items-center gap-1 justify-center cursor-pointer rounded-md transition-colors duration-200 {activeTab ===
-      'general'
-        ? ' text-blackwhite '
-        : 'text-text-secondary'}"
-      onclick={() => switchTab('general')}
-    >
-      <div class="size-5">
-        {#if activeTab === 'general'}
-          <Icon icon="heroicons:swatch-solid" width="20" height="20" />
-        {:else}
-          <Icon icon="heroicons:swatch" width="20" height="20" />
-        {/if}
-      </div>
-      <span> General</span>
-    </button>
+    <!-- Title for Desktop -->
+    <div class="hidden sm:flex justify-center items-center py-4 border-b border-border">
+      <p class="font-bold text-center">{$t('settings.title')}</p>
+    </div>
 
-    <button
-      data-tab="tools"
-      class="flex flex-col w-16 items-center gap-1 justify-center cursor-pointer rounded-md transition-colors duration-200 {activeTab ===
-      'tools'
-        ? ' text-blackwhite '
-        : 'text-text-secondary'}"
-      onclick={() => switchTab('tools')}
-    >
-      <div class="size-5">
-        {#if activeTab === 'tools'}
-          <Icon
-            icon="heroicons:wrench-screwdriver-solid"
-            width="20"
-            height="20"
-          />
-        {:else}
-          <Icon icon="heroicons:wrench-screwdriver" width="20" height="20" />
-        {/if}
-      </div>
-      <span>Tools</span>
-    </button>
+    <!-- Navigation container -->
+    <div class="flex flex-row sm:flex-col w-full items-center sm:items-stretch sm:p-0 p-2 sm:py-2 gap-2 sm:gap-1 relative" bind:this={tabContainerEl}>
+      <button
+        data-tab="ai-summary"
+        class="flex flex-col sm:flex-row w-16 sm:w-full sm:py-3 sm:px-4 items-center sm:justify-start justify-center gap-1 sm:gap-3 cursor-pointer transition-colors duration-200 {activeTab ===
+        'ai-summary'
+          ? ' text-blackwhite sm:bg-surface-2'
+          : 'text-text-secondary hover:text-text-primary hover:bg-surface-2/50'}"
+        onclick={() => switchTab('ai-summary')}
+      >
+        <div class="size-5 flex-shrink-0 flex items-center justify-center">
+          {#if activeTab === 'ai-summary'}
+            <Icon icon="heroicons:sparkles-solid" width="20" height="20" />
+          {:else}
+            <Icon icon="heroicons:sparkles" width="20" height="20" />
+          {/if}
+        </div>
+        <span class="text-center sm:text-left">Summary</span>
+      </button>
 
-    <button
-      data-tab="about"
-      class="flex flex-col w-16 items-center gap-1 justify-center cursor-pointer rounded-md transition-colors duration-200 {activeTab ===
-      'about'
-        ? ' text-blackwhite '
-        : 'text-text-secondary'}"
-      onclick={() => switchTab('about')}
-    >
-      <div class="size-5">
-        {#if activeTab === 'about'}
-          <Icon
-            icon="heroicons:information-circle-solid"
-            width="20"
-            height="20"
-          />
-        {:else}
-          <Icon icon="heroicons:information-circle" width="20" height="20" />
-        {/if}
+      <button
+        data-tab="fab"
+        class="flex flex-col sm:flex-row w-16 sm:w-full sm:py-3 sm:px-4 items-center sm:justify-start justify-center gap-1 sm:gap-3 cursor-pointer transition-colors duration-200 {activeTab ===
+        'fab'
+          ? ' text-blackwhite sm:bg-surface-2'
+          : 'text-text-secondary hover:text-text-primary hover:bg-surface-2/50'}"
+        onclick={() => switchTab('fab')}
+      >
+        <div class="size-5 flex-shrink-0 flex items-center justify-center">
+          {#if activeTab === 'fab'}
+            <Icon
+              icon="heroicons:cursor-arrow-rays-solid"
+              width="20"
+              height="20"
+            />
+          {:else}
+            <Icon icon="heroicons:cursor-arrow-rays" width="20" height="20" />
+          {/if}
+        </div>
+        <span class="text-center sm:text-left">FAB</span>
+      </button>
+
+      <button
+        data-tab="general"
+        class="flex flex-col sm:flex-row w-16 sm:w-full sm:py-3 sm:px-4 items-center sm:justify-start justify-center gap-1 sm:gap-3 cursor-pointer transition-colors duration-200 {activeTab ===
+        'general'
+          ? ' text-blackwhite sm:bg-surface-2'
+          : 'text-text-secondary hover:text-text-primary hover:bg-surface-2/50'}"
+        onclick={() => switchTab('general')}
+      >
+        <div class="size-5 flex-shrink-0 flex items-center justify-center">
+          {#if activeTab === 'general'}
+            <Icon icon="heroicons:swatch-solid" width="20" height="20" />
+          {:else}
+            <Icon icon="heroicons:swatch" width="20" height="20" />
+          {/if}
+        </div>
+        <span class="text-center sm:text-left">General</span>
+      </button>
+
+      <button
+        data-tab="tools"
+        class="flex flex-col sm:flex-row w-16 sm:w-full sm:py-3 sm:px-4 items-center sm:justify-start justify-center gap-1 sm:gap-3 cursor-pointer transition-colors duration-200 {activeTab ===
+        'tools'
+          ? ' text-blackwhite sm:bg-surface-2'
+          : 'text-text-secondary hover:text-text-primary hover:bg-surface-2/50'}"
+        onclick={() => switchTab('tools')}
+      >
+        <div class="size-5 flex-shrink-0 flex items-center justify-center">
+          {#if activeTab === 'tools'}
+            <Icon
+              icon="heroicons:wrench-screwdriver-solid"
+              width="20"
+              height="20"
+            />
+          {:else}
+            <Icon icon="heroicons:wrench-screwdriver" width="20" height="20" />
+          {/if}
+        </div>
+        <span class="text-center sm:text-left">Tools</span>
+      </button>
+
+      <button
+        data-tab="about"
+        class="flex flex-col sm:flex-row w-16 sm:w-full sm:py-3 sm:px-4 items-center sm:justify-start justify-center gap-1 sm:gap-3 cursor-pointer transition-colors duration-200 {activeTab ===
+        'about'
+          ? ' text-blackwhite sm:bg-surface-2'
+          : 'text-text-secondary hover:text-text-primary hover:bg-surface-2/50'}"
+        onclick={() => switchTab('about')}
+      >
+        <div class="size-5 flex-shrink-0 flex items-center justify-center">
+          {#if activeTab === 'about'}
+            <Icon
+              icon="heroicons:information-circle-solid"
+              width="20"
+              height="20"
+            />
+          {:else}
+            <Icon icon="heroicons:information-circle" width="20" height="20" />
+          {/if}
+        </div>
+        <span class="text-center sm:text-left">About</span>
+      </button>
+
+      <!-- Active Bar Indicator -->
+      <div
+        class="absolute left-0 top-0 sm:right-0 sm:left-auto w-full h-0 sm:w-0 sm:h-full pointer-events-none"
+      >
+        <div
+          id="activebar"
+          bind:this={activeBarEl}
+          class="w-14 h-1 sm:w-1 sm:h-11 bg-white sm:-translate-x-1 sm:rounded-sm absolute left-0 top-0 sm:top-auto sm:left-auto sm:right-0 transition-transform duration-300 ease-out"
+        >
+          <div class="absolute inset-0 bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)]"></div>
+        </div>
       </div>
-      <span>About</span>
-    </button>
-  </div>
-  <div
-    class="top-stripes order-3 relative bg-background flex items-center h-2 border border-border border-l-0 border-r-0"
-  >
-    <div
-      id="activebar"
-      bind:this={activeBarEl}
-      class="w-14 left-0.5 h-1 rounded-xs relative bg-white skew-x-[45deg] transition-transform duration-300 ease-out"
-    >
-      <div class=" absolute rounded-xs -inset-px bg-white"></div>
-      <div
-        class=" -skew-x-[30deg] absolute -inset-px bg-white/50 blur-xs"
-      ></div>
-      <div
-        class=" -skew-x-[30deg] absolute -inset-px bg-white/50 blur-[2px]"
-      ></div>
     </div>
   </div>
+
+  <!-- Content Area -->
   <div
     id="setting-scroll"
-    class="sm:h-[calc(100dvh-9.5rem)] order-2 sm:order-4 h-[calc(100dvh-6.35rem)] pb-16 overflow-y-auto"
+    class="flex-grow order-2 sm:order-2 h-[calc(100dvh-6.35rem)] sm:h-full pb-16 sm:pb-8 overflow-y-auto bg-surface-1"
     bind:this={scrollContainerEl}
   >
-    <div>
+    <div class="p-0 sm:p-4">
       {#if activeTab === 'ai-summary'}
         <ModelSummarySettings />
       {:else if activeTab === 'general'}

@@ -1,61 +1,61 @@
 <script>
   // @ts-nocheck
-  import { t } from 'svelte-i18n'
-  import Icon, { loadIcons } from '@iconify/svelte'
+  import { t } from "svelte-i18n";
+  import Icon, { loadIcons } from "@iconify/svelte";
 
   import {
     settings,
     loadSettings,
     subscribeToSettingsChanges,
-  } from '@/stores/settingsStore.svelte.js'
-  import Setting from '@/components/settings/Setting.svelte'
+  } from "@/stores/settingsStore.svelte.js";
+  import Setting from "@/components/settings/Setting.svelte";
   import {
     themeSettings,
     initializeTheme,
     subscribeToSystemThemeChanges,
     subscribeToThemeChanges,
-  } from '@/stores/themeStore.svelte.js'
-  import '@fontsource-variable/geist-mono'
-  import '@fontsource-variable/noto-serif'
-  import '@fontsource/opendyslexic'
-  import '@fontsource/mali'
+  } from "@/stores/themeStore.svelte.js";
+  import "@fontsource-variable/geist-mono";
+  import "@fontsource-variable/noto-serif";
+  import "@fontsource/opendyslexic";
+  import "@fontsource/mali";
 
   // Browser detection for review URL
-  const isFirefox = import.meta.env.FIREFOX
+  const isFirefox = import.meta.env.FIREFOX;
   const reviewUrl = isFirefox
-    ? 'https://addons.mozilla.org/firefox/addon/summarizerrrr/reviews/'
-    : 'https://chromewebstore.google.com/detail/summarizerrrr/ahfjndakflcegianjdojpldllodpkkpc/reviews'
+    ? "https://addons.mozilla.org/firefox/addon/summarizerrrr/reviews/"
+    : "https://chromewebstore.google.com/detail/summarizerrrr/ahfjndakflcegianjdojpldllodpkkpc/reviews";
 
   $effect(() => {
-    initializeTheme()
-    const unsubscribeSystemTheme = subscribeToSystemThemeChanges()
-    const unsubscribeTheme = subscribeToThemeChanges()
+    initializeTheme();
+    const unsubscribeSystemTheme = subscribeToSystemThemeChanges();
+    const unsubscribeTheme = subscribeToThemeChanges();
 
     return () => {
-      unsubscribeSystemTheme()
-      unsubscribeTheme()
-    }
-  })
+      unsubscribeSystemTheme();
+      unsubscribeTheme();
+    };
+  });
 
   // Apply reduce motion setting to DOM
   $effect(() => {
-    const _reduceMotion = settings.reduceMotion
-    import('@/services/animationService.js').then(
+    const _reduceMotion = settings.reduceMotion;
+    import("@/services/animationService.js").then(
       ({ applyReduceMotionToDOM }) => {
-        applyReduceMotionToDOM()
+        applyReduceMotionToDOM();
       },
-    )
-  })
+    );
+  });
 
   loadSettings().then(() => {
-    subscribeToSettingsChanges()
-  })
+    subscribeToSettingsChanges();
+  });
 </script>
 
 <div class="flex parent h-dvh bg-background">
   <span class=" bg-border/70 top">
     <div
-      class="w-full absolute max-w-2xl left-1/2 -translate-x-1/2 top-px z-10 flex items-end"
+      class="w-full absolute max-w-5xl left-1/2 -translate-x-1/2 top-px z-10 flex items-end"
     >
       <!-- Bug Reports & Feature Ideas -->
       <a
@@ -73,7 +73,7 @@
   <span class=" bg-border/70 relative bottom">
     <!-- Footer Links: Support & Bug Reports -->
     <div
-      class="w-full absolute max-w-2xl left-1/2 -translate-x-1/2 top-px z-10"
+      class="w-full absolute max-w-5xl left-1/2 -translate-x-1/2 top-px z-10"
     >
       <!-- Buy Me a Coffee or Review -->
       <div
@@ -118,7 +118,7 @@
   </span>
   <span class="bg-border/70 left"></span>
   <span class="bg-border/70 right"></span>
-  <div class="settings max-w-2xl w-full relative">
+  <div class="settings max-w-5xl w-full relative">
     <div
       class="absolute hidden sm:block left-0 z-10 -translate-x-[5px] -translate-y-[5px]"
     >
@@ -150,7 +150,7 @@
     grid-template-columns:
       minmax(1.5rem, 1fr) /* trái min 1.5rem */
       1px
-      min(672px, calc(100% - 3rem - 2px))
+      min(1024px, calc(100% - 3rem - 2px))
       /* giữa: 640px hoặc 100% - 3rem - 2px, tuỳ nhỏ hơn */
       1px
       minmax(1.5rem, 1fr); /* phải min 1.5rem */

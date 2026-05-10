@@ -1,144 +1,99 @@
 <script>
   // @ts-nocheck
-  import Icon, { loadIcons } from '@iconify/svelte'
-  import { Dialog } from 'bits-ui'
-  import { t } from 'svelte-i18n'
-  import Logdev from './Logdev.svelte'
-  import 'overlayscrollbars/overlayscrollbars.css'
-  import { useOverlayScrollbars } from 'overlayscrollbars-svelte'
+  import Icon, { loadIcons } from "@iconify/svelte";
+  import { Dialog } from "bits-ui";
+  import { t } from "svelte-i18n";
+  import Logdev from "./Logdev.svelte";
+  import "overlayscrollbars/overlayscrollbars.css";
+  import { useOverlayScrollbars } from "overlayscrollbars-svelte";
   import {
     settings,
     loadSettings,
     updateSettings,
-  } from '@/stores/settingsStore.svelte.js'
-  import { domVisibility } from '@/stores/stateAbout.svelte.js'
-  import ModelSummarySettings from '@/components/settings/ModelSummarySettings.svelte'
-  import GeneralSettings from '@/components/settings/GeneralSettings.svelte'
-  import FABSettings from '@/components/settings/FABSettings.svelte'
-  import AboutSettings from './AboutSettings.svelte'
-  import ToolsSettings from './ToolsSettings.svelte'
-  import ReleaseNote from './ReleaseNote.svelte'
-  import { getTabFromURL } from '@/lib/utils/urlUtils.js'
+  } from "@/stores/settingsStore.svelte.js";
+  import { domVisibility } from "@/stores/stateAbout.svelte.js";
+  import ModelSummarySettings from "@/components/settings/ModelSummarySettings.svelte";
+  import GeneralSettings from "@/components/settings/GeneralSettings.svelte";
+  import FABSettings from "@/components/settings/FABSettings.svelte";
+  import AboutSettings from "./AboutSettings.svelte";
+  import ToolsSettings from "./ToolsSettings.svelte";
+  import ReleaseNote from "./ReleaseNote.svelte";
+  import { getTabFromURL } from "@/lib/utils/urlUtils.js";
 
-  let activeTab = $state(getTabFromURL()) // Initialize tab from URL
-  let tabContainerEl // Reference to the tab container element
-  let activeBarEl // Reference to the active bar element
-  let scrollContainerEl // Reference to the scroll container element
+  let activeTab = $state(getTabFromURL()); // Initialize tab from URL
+  let scrollContainerEl; // Reference to the scroll container element
 
-  // Function to update the active bar's position dynamically
-  function updateActiveBarPosition() {
-    if (!tabContainerEl) return
-    if (scrollContainerEl) scrollContainerEl.scrollTop = 0
-    const scrollContent = document.querySelector('#setting-scroll > div:nth-child(1)')
-    if (scrollContent) scrollContent.scrollTop = 0
-    const activeButton = tabContainerEl.querySelector(
-      `[data-tab='${activeTab}']`,
-    )
-    if (!activeButton || !activeBarEl) return
-
-    const containerRect = tabContainerEl.getBoundingClientRect()
-    const buttonRect = activeButton.getBoundingClientRect()
-
-    const isDesktop = window.innerWidth >= 640
-
-    if (isDesktop) {
-      const activeBarOffset =
-        buttonRect.top -
-        containerRect.top +
-        buttonRect.height / 2 -
-        activeBarEl.offsetHeight / 2
-
-      activeBarEl.style.transform = `translateY(${activeBarOffset}px)`
-    } else {
-      const activeBarOffset =
-        buttonRect.left -
-        containerRect.left +
-        buttonRect.width / 2 -
-        activeBarEl.offsetWidth / 2
-
-      activeBarEl.style.transform = `translateX(${activeBarOffset}px)`
-    }
-  }
-
-  // Effect to update the bar when the active tab changes
-  $effect(updateActiveBarPosition)
-
-  // Effect for handling resize events
   $effect(() => {
-    if (!tabContainerEl) return
-
-    const resizeObserver = new ResizeObserver(() => {
-      updateActiveBarPosition()
-    })
-
-    resizeObserver.observe(tabContainerEl)
-
-    return () => {
-      resizeObserver.disconnect()
-    }
-  })
+    // React to activeTab changes
+    const currentTab = activeTab;
+    if (scrollContainerEl) scrollContainerEl.scrollTop = 0;
+    const scrollContent = document.querySelector(
+      "#setting-scroll > div:nth-child(1)",
+    );
+    if (scrollContent) scrollContent.scrollTop = 0;
+  });
 
   // Function to handle tab switching with URL update
   function switchTab(tabName) {
-    activeTab = tabName
+    activeTab = tabName;
   }
   const options = {
     scrollbars: {
-      theme: 'os-theme-custom-app',
+      theme: "os-theme-custom-app",
     },
-  }
-  const [initialize, instance] = useOverlayScrollbars({ options, defer: true })
+  };
+  const [initialize, instance] = useOverlayScrollbars({ options, defer: true });
 
   // Utility function to detect touch devices
   function isTouchDevice() {
     return (
-      'ontouchstart' in window ||
+      "ontouchstart" in window ||
       navigator.maxTouchPoints > 0 ||
       navigator.msMaxTouchPoints > 0
-    )
+    );
   }
 
   // Use $effect to initialize OverlayScrollbars (only on non-touch devices)
   $effect(() => {
-    const tocElement = document.getElementById('setting-scroll')
+    const tocElement = document.getElementById("setting-scroll");
     if (tocElement && !isTouchDevice()) {
-      initialize(tocElement)
+      initialize(tocElement);
     }
-  })
+  });
 
   // Use $effect to load settings from stores when the component mounts
   $effect(async () => {
-    await loadSettings()
-  })
+    await loadSettings();
+  });
 
   // Use $effect to save settings when they change
 
   // No longer needed, handled by the dynamic position effects
   loadIcons([
-    'heroicons:sparkles-solid',
-    'heroicons:sparkles',
-    'heroicons:document-text-solid',
-    'heroicons:document-text',
-    'heroicons:cursor-arrow-rays-solid',
-    'heroicons:cursor-arrow-rays',
-    'heroicons:swatch-solid',
-    'heroicons:swatch',
-    'heroicons:information-circle-solid',
-    'heroicons:information-circle',
-    'heroicons:wrench-screwdriver-solid',
-    'heroicons:wrench-screwdriver',
+    "heroicons:sparkles-solid",
+    "heroicons:sparkles",
+    "heroicons:document-text-solid",
+    "heroicons:document-text",
+    "heroicons:cursor-arrow-rays-solid",
+    "heroicons:cursor-arrow-rays",
+    "heroicons:swatch-solid",
+    "heroicons:swatch",
+    "heroicons:information-circle-solid",
+    "heroicons:information-circle",
+    "heroicons:wrench-screwdriver-solid",
+    "heroicons:wrench-screwdriver",
     // Icons from AboutSettings.svelte
-    'heroicons:circle-stack',
-    'heroicons:adjustments-horizontal',
-    'heroicons:device-phone-mobile',
-    'mdi:github',
-    'logos:chrome',
-    'logos:firefox',
-    'logos:microsoft-edge',
-    'heroicons:arrow-up-right-16-solid',
-    'mdi:reddit',
-  ])
-  import FirefoxPermissionOverlay from './FirefoxPermissionOverlay.svelte'
+    "heroicons:circle-stack",
+    "heroicons:adjustments-horizontal",
+    "heroicons:device-phone-mobile",
+    "mdi:github",
+    "logos:chrome",
+    "logos:firefox",
+    "logos:microsoft-edge",
+    "heroicons:arrow-up-right-16-solid",
+    "mdi:reddit",
+  ]);
+  import FirefoxPermissionOverlay from "./FirefoxPermissionOverlay.svelte";
 </script>
 
 <div
@@ -150,30 +105,34 @@
   <div
     class="flex sm:hidden justify-center relative items-center py-2 bg-background border-b-0 border-border"
   >
-    <p class="!text-center">{$t('settings.title')}</p>
+    <p class="!text-center">{$t("settings.title")}</p>
   </div>
 
   <!-- Left Sidebar (Desktop) / Bottom Bar (Mobile) -->
   <div
-    class="flex flex-row sm:flex-col order-4 sm:order-1 bg-background items-center sm:items-stretch text-[0.65rem] sm:text-sm justify-center sm:justify-start sm:w-40 border-t sm:border-t-0 sm:border-r border-border z-10 flex-shrink-0"
+    class="flex flex-row sm:flex-col order-4 sm:order-1 bg-background items-center sm:items-stretch text-[0.65rem] sm:text-sm justify-center sm:justify-start sm:w-72 border-t sm:border-t-0 sm:border-r border-border z-10 flex-shrink-0"
   >
     <!-- Title for Desktop -->
-    <div class="hidden sm:flex justify-center items-center py-4 border-b border-border">
-      <p class="font-bold text-center">{$t('settings.title')}</p>
+    <div
+      class="hidden sm:flex justify-center items-center py-4 border-b border-border"
+    >
+      <p class="font-bold text-center">{$t("settings.title")}</p>
     </div>
 
     <!-- Navigation container -->
-    <div class="flex flex-row sm:flex-col w-full items-center sm:items-stretch sm:p-0 p-2 sm:py-2 gap-2 sm:gap-1 relative" bind:this={tabContainerEl}>
+    <div
+      class="flex flex-row sm:flex-col w-full items-center sm:items-stretch p-2 sm:py-2 relative"
+    >
       <button
         data-tab="ai-summary"
-        class="flex flex-col sm:flex-row w-16 sm:w-full sm:py-3 sm:px-4 items-center sm:justify-start justify-center gap-1 sm:gap-3 cursor-pointer transition-colors duration-200 {activeTab ===
+        class="setting-tab-button relative rounded-md flex flex-col sm:flex-row w-16 sm:w-full sm:py-3 sm:px-4 items-center sm:justify-start justify-center gap-1 sm:gap-3 cursor-pointer transition-colors duration-200 {activeTab ===
         'ai-summary'
-          ? ' text-blackwhite sm:bg-surface-2'
-          : 'text-text-secondary hover:text-text-primary hover:bg-surface-2/50'}"
-        onclick={() => switchTab('ai-summary')}
+          ? 'text-text-primary bg-neutral-100 hover:bg-white/60 dark:hover:bg-white/10 dark:bg-surface-2 active'
+          : 'text-text-secondary hover:text-text-primary hover:bg-surface-1 dark:hover:bg-surface-2'}"
+        onclick={() => switchTab("ai-summary")}
       >
         <div class="size-5 flex-shrink-0 flex items-center justify-center">
-          {#if activeTab === 'ai-summary'}
+          {#if activeTab === "ai-summary"}
             <Icon icon="heroicons:sparkles-solid" width="20" height="20" />
           {:else}
             <Icon icon="heroicons:sparkles" width="20" height="20" />
@@ -184,14 +143,14 @@
 
       <button
         data-tab="fab"
-        class="flex flex-col sm:flex-row w-16 sm:w-full sm:py-3 sm:px-4 items-center sm:justify-start justify-center gap-1 sm:gap-3 cursor-pointer transition-colors duration-200 {activeTab ===
+        class="setting-tab-button relative rounded-md flex flex-col sm:flex-row w-16 sm:w-full sm:py-3 sm:px-4 items-center sm:justify-start justify-center gap-1 sm:gap-3 cursor-pointer transition-colors duration-200 {activeTab ===
         'fab'
-          ? ' text-blackwhite sm:bg-surface-2'
-          : 'text-text-secondary hover:text-text-primary hover:bg-surface-2/50'}"
-        onclick={() => switchTab('fab')}
+          ? 'text-text-primary bg-neutral-100 hover:bg-white/60 dark:hover:bg-white/10 dark:bg-surface-2 active'
+          : 'text-text-secondary hover:text-text-primary hover:bg-surface-1 dark:hover:bg-surface-2'}"
+        onclick={() => switchTab("fab")}
       >
         <div class="size-5 flex-shrink-0 flex items-center justify-center">
-          {#if activeTab === 'fab'}
+          {#if activeTab === "fab"}
             <Icon
               icon="heroicons:cursor-arrow-rays-solid"
               width="20"
@@ -206,14 +165,14 @@
 
       <button
         data-tab="general"
-        class="flex flex-col sm:flex-row w-16 sm:w-full sm:py-3 sm:px-4 items-center sm:justify-start justify-center gap-1 sm:gap-3 cursor-pointer transition-colors duration-200 {activeTab ===
+        class="setting-tab-button relative rounded-md flex flex-col sm:flex-row w-16 sm:w-full sm:py-3 sm:px-4 items-center sm:justify-start justify-center gap-1 sm:gap-3 cursor-pointer transition-colors duration-200 {activeTab ===
         'general'
-          ? ' text-blackwhite sm:bg-surface-2'
-          : 'text-text-secondary hover:text-text-primary hover:bg-surface-2/50'}"
-        onclick={() => switchTab('general')}
+          ? 'text-text-primary bg-neutral-100 hover:bg-white/60 dark:hover:bg-white/10 dark:bg-surface-2 active'
+          : 'text-text-secondary hover:text-text-primary hover:bg-surface-1 dark:hover:bg-surface-2'}"
+        onclick={() => switchTab("general")}
       >
         <div class="size-5 flex-shrink-0 flex items-center justify-center">
-          {#if activeTab === 'general'}
+          {#if activeTab === "general"}
             <Icon icon="heroicons:swatch-solid" width="20" height="20" />
           {:else}
             <Icon icon="heroicons:swatch" width="20" height="20" />
@@ -224,14 +183,14 @@
 
       <button
         data-tab="tools"
-        class="flex flex-col sm:flex-row w-16 sm:w-full sm:py-3 sm:px-4 items-center sm:justify-start justify-center gap-1 sm:gap-3 cursor-pointer transition-colors duration-200 {activeTab ===
+        class="setting-tab-button relative rounded-md flex flex-col sm:flex-row w-16 sm:w-full sm:py-3 sm:px-4 items-center sm:justify-start justify-center gap-1 sm:gap-3 cursor-pointer transition-colors duration-200 {activeTab ===
         'tools'
-          ? ' text-blackwhite sm:bg-surface-2'
-          : 'text-text-secondary hover:text-text-primary hover:bg-surface-2/50'}"
-        onclick={() => switchTab('tools')}
+          ? 'text-text-primary bg-neutral-100 hover:bg-white/60 dark:hover:bg-white/10 dark:bg-surface-2 active'
+          : 'text-text-secondary hover:text-text-primary hover:bg-surface-1 dark:hover:bg-surface-2'}"
+        onclick={() => switchTab("tools")}
       >
         <div class="size-5 flex-shrink-0 flex items-center justify-center">
-          {#if activeTab === 'tools'}
+          {#if activeTab === "tools"}
             <Icon
               icon="heroicons:wrench-screwdriver-solid"
               width="20"
@@ -246,14 +205,14 @@
 
       <button
         data-tab="about"
-        class="flex flex-col sm:flex-row w-16 sm:w-full sm:py-3 sm:px-4 items-center sm:justify-start justify-center gap-1 sm:gap-3 cursor-pointer transition-colors duration-200 {activeTab ===
+        class="setting-tab-button relative rounded-md flex flex-col sm:flex-row w-16 sm:w-full sm:py-3 sm:px-4 items-center sm:justify-start justify-center gap-1 sm:gap-3 cursor-pointer transition-colors duration-200 {activeTab ===
         'about'
-          ? ' text-blackwhite sm:bg-surface-2'
-          : 'text-text-secondary hover:text-text-primary hover:bg-surface-2/50'}"
-        onclick={() => switchTab('about')}
+          ? 'text-text-primary bg-neutral-100 hover:bg-white/60 dark:hover:bg-white/10 dark:bg-surface-2 active'
+          : 'text-text-secondary hover:text-text-primary hover:bg-surface-1 dark:hover:bg-surface-2'}"
+        onclick={() => switchTab("about")}
       >
         <div class="size-5 flex-shrink-0 flex items-center justify-center">
-          {#if activeTab === 'about'}
+          {#if activeTab === "about"}
             <Icon
               icon="heroicons:information-circle-solid"
               width="20"
@@ -265,19 +224,6 @@
         </div>
         <span class="text-center sm:text-left">About</span>
       </button>
-
-      <!-- Active Bar Indicator -->
-      <div
-        class="absolute left-0 top-0 sm:right-0 sm:left-auto w-full h-0 sm:w-0 sm:h-full pointer-events-none"
-      >
-        <div
-          id="activebar"
-          bind:this={activeBarEl}
-          class="w-14 h-1 sm:w-1 sm:h-11 bg-white sm:-translate-x-1 sm:rounded-sm absolute left-0 top-0 sm:top-auto sm:left-auto sm:right-0 transition-transform duration-300 ease-out"
-        >
-          <div class="absolute inset-0 bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)]"></div>
-        </div>
-      </div>
     </div>
   </div>
 
@@ -288,15 +234,15 @@
     bind:this={scrollContainerEl}
   >
     <div class="p-0 sm:p-4">
-      {#if activeTab === 'ai-summary'}
+      {#if activeTab === "ai-summary"}
         <ModelSummarySettings />
-      {:else if activeTab === 'general'}
+      {:else if activeTab === "general"}
         <GeneralSettings />
-      {:else if activeTab === 'fab'}
+      {:else if activeTab === "fab"}
         <FABSettings />
-      {:else if activeTab === 'about'}
+      {:else if activeTab === "about"}
         <AboutSettings />
-      {:else if activeTab === 'tools'}
+      {:else if activeTab === "tools"}
         <ToolsSettings />
       {/if}
     </div>
@@ -333,3 +279,56 @@
     <ReleaseNote />
   </Dialog.Content>
 </Dialog.Root>
+
+<style>
+  .setting-tab-button::after {
+    content: "";
+    display: block;
+    position: absolute;
+    background: white;
+    transition: all 0.3s ease-in-out;
+    box-shadow:
+      0 0 2px #ffffff18,
+      0 0 0 #ffffff18;
+  }
+
+  /* Desktop layout (sidebar right border) */
+  @media (min-width: 640px) {
+    .setting-tab-button::after {
+      width: 0px;
+      top: 50%;
+      transform: translateY(-50%) translateX(-0.25rem);
+      left: -0.5rem;
+      height: 1rem;
+      border-radius: 0 4px 4px 0;
+    }
+
+    .setting-tab-button.active::after {
+      transform: translateY(-50%) translateX(1px);
+      width: 4px;
+      box-shadow:
+        4px 0 8px 2px #ffffff71,
+        0 0 3px 1px #ffffff94;
+    }
+  }
+
+  /* Mobile layout (bottom bar top border) */
+  @media (max-width: 639px) {
+    .setting-tab-button::after {
+      height: 0px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-0.25rem);
+      top: -0.5rem;
+      width: 1rem;
+      border-radius: 0 0 4px 4px;
+    }
+
+    .setting-tab-button.active::after {
+      transform: translateX(-50%) translateY(1px);
+      height: 4px;
+      box-shadow:
+        0 4px 8px 2px #ffffff71,
+        0 0 3px 1px #ffffff94;
+    }
+  }
+</style>

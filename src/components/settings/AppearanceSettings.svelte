@@ -16,7 +16,6 @@
   import { t } from 'svelte-i18n'
   import { getBrowserCompatibility } from '../../lib/utils/browserDetection.js'
   import { browser } from 'wxt/browser'
-  import PerTabCacheToolSettings from './tools/PerTabCacheToolSettings.svelte'
 
   const browserCompatibility = getBrowserCompatibility()
 
@@ -253,7 +252,4 @@
     </div>
   {/if}
 
-  <div class="border-t border-border/50 pt-4">
-    <PerTabCacheToolSettings />
-  </div>
 </div>

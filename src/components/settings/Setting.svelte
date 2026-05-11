@@ -4,6 +4,8 @@
   import 'overlayscrollbars/overlayscrollbars.css'
   import Icon, { loadIcons } from '@iconify/svelte'
   import { t } from 'svelte-i18n'
+  import DeepDiveToolSettings from './tools/DeepDiveToolSettings.svelte'
+  import PerTabCacheToolSettings from './tools/PerTabCacheToolSettings.svelte'
   import {
     loadSettings,
     settings,
@@ -22,7 +24,7 @@
   let activeTab = $state(getTabFromURL()) // Initialize tab from URL
   let scrollContainerEl // Reference to the scroll container element
 
-  const tabs = [
+  const mainTabs = [
     {
       id: 'ai-provider',
       label: 'AI Provider',
@@ -48,11 +50,26 @@
       iconOutline: 'heroicons:cursor-arrow-rays',
     },
     {
+      id: 'deep-dive',
+      label: 'Deep Dive',
+      iconSolid: 'heroicons:light-bulb-solid',
+      iconOutline: 'heroicons:light-bulb',
+    },
+    {
+      id: 'per-tab-cache',
+      label: 'Tab on Sidepanel',
+      iconSolid: 'heroicons:document-duplicate-solid',
+      iconOutline: 'heroicons:document-duplicate',
+    },
+    {
       id: 'data-sync',
       label: 'Data & Sync',
       iconSolid: 'heroicons:cloud-arrow-up-solid',
       iconOutline: 'heroicons:cloud-arrow-up',
     },
+  ]
+
+  const footerTabs = [
     {
       id: 'whats-new',
       label: "What's New",
@@ -67,14 +84,24 @@
     },
   ]
 
+  // Flat list for mobile and icon preloading
+  const allTabs = [...mainTabs, ...footerTabs]
+
   $effect(() => {
     // React to activeTab changes
     const currentTab = activeTab
+    // Mobile: scroll internal container
     if (scrollContainerEl) scrollContainerEl.scrollTop = 0
     const scrollContent = document.querySelector(
       '#setting-scroll > div:nth-child(1)',
     )
     if (scrollContent) scrollContent.scrollTop = 0
+    // Desktop: scroll body (handled by OverlayScrollbars on body)
+    if (window.matchMedia('(min-width: 640px)').matches) {
+      const osViewport = document.querySelector('.os-viewport')
+      if (osViewport) osViewport.scrollTop = 0
+      else window.scrollTo({ top: 0 })
+    }
   })
 
   // Function to handle tab switching with URL update
@@ -98,10 +125,11 @@
     )
   }
 
-  // Use $effect to initialize OverlayScrollbars (only on non-touch devices)
+  // Use $effect to initialize OverlayScrollbars (only on mobile non-touch devices)
   $effect(() => {
     const tocElement = document.getElementById('setting-scroll')
-    if (tocElement && !isTouchDevice()) {
+    const isDesktop = window.matchMedia('(min-width: 640px)').matches
+    if (tocElement && !isTouchDevice() && !isDesktop) {
       initialize(tocElement)
     }
   })
@@ -123,6 +151,10 @@
     'heroicons:swatch',
     'heroicons:cursor-arrow-rays-solid',
     'heroicons:cursor-arrow-rays',
+    'heroicons:light-bulb-solid',
+    'heroicons:light-bulb',
+    'heroicons:document-duplicate-solid',
+    'heroicons:document-duplicate',
     'heroicons:cloud-arrow-up-solid',
     'heroicons:cloud-arrow-up',
     'heroicons:megaphone-solid',
@@ -144,7 +176,7 @@
 </script>
 
 <div
-  class="relative settings font-mono text-text-primary dark:text-text-secondary text-xs bg-surface-1 overflow-hidden w-full h-full flex-shrink-0 flex flex-col sm:flex-row"
+  class="relative settings font-mono text-text-primary dark:text-text-secondary text-xs bg-surface-1 overflow-hidden sm:overflow-visible w-full h-full sm:h-auto flex-shrink-0 flex flex-col sm:flex-row"
 >
   <FirefoxPermissionOverlay />
 
@@ -157,7 +189,7 @@
 
   <!-- Left Sidebar (Desktop) / Bottom Bar (Mobile) -->
   <div
-    class="flex flex-row sm:flex-col order-4 sm:order-1 bg-background items-center sm:items-stretch text-[0.65rem] sm:text-sm justify-center sm:justify-start sm:w-64 border-t sm:border-t-0 sm:border-r border-border z-10 flex-shrink-0"
+    class="flex flex-row sm:flex-col order-4 sm:order-1 bg-background items-center sm:items-stretch text-[0.65rem] sm:text-sm justify-center sm:justify-start sm:w-64 sm:sticky sm:top-[calc(1.5rem+1px)] sm:h-[calc(100dvh-3rem-2px)] sm:overflow-hidden border-t sm:border-t-0 sm:border-r border-border z-10 flex-shrink-0"
   >
     <!-- Title for Desktop -->
     <div
@@ -168,9 +200,9 @@
 
     <!-- Navigation container -->
     <div
-      class="flex flex-row sm:flex-col w-full items-center sm:items-stretch p-3 gap-0.5 relative overflow-x-auto sm:overflow-x-visible no-scrollbar"
+      class="flex flex-row sm:flex-col w-full sm:h-full sm:min-h-0 items-center sm:items-stretch p-3 gap-0.5 relative overflow-x-auto sm:overflow-x-visible sm:overflow-y-auto no-scrollbar"
     >
-      {#each tabs as tab}
+      {#snippet tabButton(tab)}
         <button
           data-tab={tab.id}
           class="setting-tab-button relative rounded-md flex flex-col sm:flex-row w-16 sm:w-full py-2 px-3 items-center sm:justify-start justify-center gap-1 sm:gap-3 flex-shrink-0 cursor-pointer transition-colors duration-200 hover:duration-75 {activeTab ===
@@ -186,8 +218,20 @@
               <Icon icon={tab.iconOutline} width="20" height="20" />
             {/if}
           </div>
-          <span class="text-center sm:text-left">{tab.label}</span>
+          <span class="text-center text-xs sm:text-left">{tab.label}</span>
         </button>
+      {/snippet}
+
+      {#each mainTabs as tab}
+        {@render tabButton(tab)}
+      {/each}
+
+      <!-- Spacer to push footer to bottom (desktop only) -->
+      <div class="hidden sm:block sm:flex-grow"></div>
+
+      <!-- Footer Group (What's New, About) -->
+      {#each footerTabs as tab}
+        {@render tabButton(tab)}
       {/each}
     </div>
   </div>
@@ -195,7 +239,7 @@
   <!-- Content Area -->
   <div
     id="setting-scroll"
-    class="flex-grow order-2 sm:order-2 h-[calc(100dvh-6.35rem)] sm:h-full pb-16 sm:pb-8 overflow-y-auto bg-surface-1"
+    class="flex-grow order-2 sm:order-2 h-[calc(100dvh-6.35rem)] sm:h-auto pb-16 sm:pb-8 overflow-y-auto sm:overflow-visible bg-surface-1"
     bind:this={scrollContainerEl}
   >
     <div class="p-0 sm:p-4">
@@ -207,6 +251,10 @@
         <AppearanceSettings />
       {:else if activeTab === 'fab'}
         <FABSettings />
+      {:else if activeTab === 'deep-dive'}
+        <div class="px-5"><DeepDiveToolSettings /></div>
+      {:else if activeTab === 'per-tab-cache'}
+        <div class="px-5"><PerTabCacheToolSettings /></div>
       {:else if activeTab === 'data-sync'}
         <DataSyncSettings />
       {:else if activeTab === 'whats-new'}

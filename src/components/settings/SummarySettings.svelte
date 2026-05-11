@@ -56,8 +56,6 @@
     }
   })
 
-  import DeepDiveToolSettings from './tools/DeepDiveToolSettings.svelte'
-
   const customPrompts = [
     {
       id: 'youtubep',
@@ -294,8 +292,4 @@
       <p>{$t('settings.summary.custom_prompts.override_note')}</p>
     </div>
   {/if}
-
-  <div class="border-t border-border/50 pt-4">
-    <DeepDiveToolSettings />
-  </div>
 </div>

@@ -2,7 +2,6 @@
   // @ts-nocheck
   import Icon, { loadIcons } from '@iconify/svelte'
   import { settings, updateSettings } from '@/stores/settingsStore.svelte.js'
-  import { domVisibility } from '@/stores/stateAbout.svelte.js'
   import {
     themeSettings,
     setTheme,
@@ -44,11 +43,7 @@
 
       <p class="text-center sm:text-left text-muted">
         {$t('about.version')}
-        {packageJson.version} -
-        <button
-          class=" underline hover:text-text-primary transition-colors underline-offset-2"
-          onclick={domVisibility.show}>{$t('about.whats_new')}</button
-        >
+        {packageJson.version}
       </p>
 
       <p class="text-pretty mt-4 text-text-secondary">

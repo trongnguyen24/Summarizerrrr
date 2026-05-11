@@ -56,6 +56,8 @@
     }
   })
 
+  import DeepDiveToolSettings from './tools/DeepDiveToolSettings.svelte'
+
   const customPrompts = [
     {
       id: 'youtubep',
@@ -139,6 +141,18 @@
   </div>
 
   <div class="setting-secsion flex flex-col gap-6 px-5">
+    <!-- Summary Language Section -->
+    <div class="flex flex-col gap-2">
+      <!-- svelte-ignore a11y_label_has_associated_control -->
+      <label class="block text-text-secondary"
+        >{$t('settings.summary.language_output')}</label
+      >
+      <LanguageSelect
+        bind:value={settings.summaryLang}
+        onchange={(event) => handleUpdateSetting('summaryLang', event.detail)}
+      />
+    </div>
+
     <!-- Summary Length Section -->
     <div class="flex flex-col gap-2">
       <!-- svelte-ignore a11y_label_has_associated_control -->
@@ -212,16 +226,32 @@
       </div>
     </div>
 
-    <!-- Summary Language Section -->
+    <!-- Comment Limit Section -->
     <div class="flex flex-col gap-2">
       <!-- svelte-ignore a11y_label_has_associated_control -->
       <label class="block text-text-secondary"
-        >{$t('settings.summary.language_output')}</label
+        >{$t('settings.summary.comment_limit')}</label
       >
-      <LanguageSelect
-        bind:value={settings.summaryLang}
-        onchange={(event) => handleUpdateSetting('summaryLang', event.detail)}
-      />
+      <div class="grid grid-cols-3 w-full gap-1">
+        <ButtonSet
+          title="40"
+          class="setting-btn {settings.commentLimit === 40 ? 'active' : ''}"
+          onclick={() => handleUpdateSetting('commentLimit', 40)}
+          Description=""
+        ></ButtonSet>
+        <ButtonSet
+          title="60"
+          class="setting-btn {settings.commentLimit === 60 ? 'active' : ''}"
+          onclick={() => handleUpdateSetting('commentLimit', 60)}
+          Description=""
+        ></ButtonSet>
+        <ButtonSet
+          title="80"
+          class="setting-btn {settings.commentLimit === 80 ? 'active' : ''}"
+          onclick={() => handleUpdateSetting('commentLimit', 80)}
+          Description=""
+        ></ButtonSet>
+      </div>
     </div>
   </div>
 
@@ -229,7 +259,9 @@
     <div class="@container setting-secsion flex flex-col gap-4 px-5">
       <!-- Prompt settings -->
       <div class="flex items-center gap-1 text-text-primary justify-between">
-        {$t('settings.summary.custom_prompts.title')}
+        <span class=" font-bold">
+          {$t('settings.summary.custom_prompts.title')}</span
+        >
         <a
           href={browser.runtime.getURL(
             'prompt.html?promptKey=youtubeCustomPromptContent',
@@ -262,4 +294,8 @@
       <p>{$t('settings.summary.custom_prompts.override_note')}</p>
     </div>
   {/if}
+
+  <div class="border-t border-border/50 pt-4">
+    <DeepDiveToolSettings />
+  </div>
 </div>

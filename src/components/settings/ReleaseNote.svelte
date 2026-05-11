@@ -4,20 +4,7 @@
   import packageJson from '../../../package.json'
   import LogoColor from '../ui/Logo-color.svelte'
   import Pivot from '../ui/Pivot.svelte'
-  import { render } from 'svelte/server'
-  import { domVisibility } from '@/stores/stateAbout.svelte.js'
-  import 'overlayscrollbars/overlayscrollbars.css'
-  import { useOverlayScrollbars } from 'overlayscrollbars-svelte'
-
   import Icon from '@iconify/svelte'
-
-  const options = {
-    scrollbars: {
-      theme: 'os-theme-custom-app',
-      autoHide: 'scroll',
-    },
-  }
-  const [initialize, instance] = useOverlayScrollbars({ options, defer: true })
 
   // Utility function to detect touch devices
   function isTouchDevice() {
@@ -28,17 +15,10 @@
     )
   }
   let scrollContainerEl
-  // Use $effect to initialize OverlayScrollbars (only on non-touch devices)
-  $effect(() => {
-    const tocElement = document.getElementById('release-note-scroll')
-    if (tocElement && !isTouchDevice()) {
-      initialize(tocElement)
-    }
-  })
 </script>
 
 {#snippet note(title, description, links = [])}
-  <li class="p-0 mt-4 text-text-secondary">
+  <li class="p-0 mt-4 text-text-secondary list-none">
     <span class=" text-text-primary font-bold">{title}</span>
     {description}
     {#if links && links.length > 0}
@@ -51,7 +31,7 @@
             class="inline-flex items-center gap-0.5 text-xs font-medium text-primary hover:underline bg-primary/10 px-1.5 py-0.5 rounded"
           >
             {link.label}
-            <Icon icon="lucide:arrow-up-right" class="size-3" />
+            <Icon icon="heroicons:arrow-up-right-16-solid" class="size-3" />
           </a>
         {/each}
       </div>
@@ -59,10 +39,10 @@
   </li>
 {/snippet}
 
-<div class=" absolute inset-0 bg-surface-1 z-[99]">
+<div class="relative w-full h-full bg-surface-1">
   <div
     id="release-note-scroll"
-    class="h-full pb-20 {isTouchDevice() ? 'overflow-y-auto' : ''}"
+    class="h-full {isTouchDevice() ? 'overflow-y-auto' : ''}"
     bind:this={scrollContainerEl}
   >
     <div
@@ -90,7 +70,7 @@
       <h2>Release note</h2>
 
       <b class="font-mono">2.12.0</b>
-      <ul class="mt-0">
+      <ul class="mt-0 pl-0">
         {@render note(
           'Gemma 4 Models:',
           'Added support for two new models: gemma-4-31b-it and gemma-4-26b-a4b-it.'
@@ -112,7 +92,7 @@
       </ul>
 
       <b class="font-mono">2.11.0</b>
-      <ul class="mt-0">
+      <ul class="mt-0 pl-0">
         {@render note(
           'New Tab Navigation UI for sidepanel:',
           'Introduced a new feature that allows the summary and Deep Dive states to be maintained separately for each browser tab. Implemented a Tab Bar component to view, navigate, and manage cached summaries across different tabs. This includes previous/next buttons, drag-to-scroll functionality, and middle-click to close tabs.',
@@ -138,7 +118,7 @@
       </ul>
 
       <b class="font-mono">2.10.0</b>
-      <ul class="mt-0">
+      <ul class="mt-0 pl-0">
         {@render note(
           'Cloud Sync:',
           "Use your personal Google Cloud account (Client ID/Secret) to sync directly with Google Drive, your data never through third-party servers. Synced data (History, Library, Settings) is neatly stored in a dedicated folder named 'Summarizerrrr' on your Google Drive.",
@@ -166,7 +146,7 @@
       </ul>
 
       <b class="font-mono">2.9.0</b>
-      <ul class="mt-0">
+      <ul class="mt-0 pl-0">
         {@render note(
           'YouTube Quick Summary:',
           'Click icon on thumbnails to quick summarize YouTube video in new tab. can be disabled in FAB settings.',
@@ -208,7 +188,7 @@
       </ul>
 
       <b class="font-mono">2.8.0</b>
-      <ul class="mt-0">
+      <ul class="mt-0 pl-0">
         {@render note(
           'Cloud Sync via Google Drive:',
           'Sync settings, history, archive, and tags across devices using your Google Account. Includes conflict resolution and privacy-focused design.',
@@ -252,7 +232,7 @@
       </ul>
 
       <b class="font-mono">2.7.0</b>
-      <ul class="mt-0">
+      <ul class="mt-0 pl-0">
         {@render note(
           'New AI Provider - Cerebras:',
           'Added a new option offering lightning-fast speeds and daily free usage tokens.',
@@ -280,7 +260,7 @@
       </ul>
 
       <b class="font-mono">2.6.0</b>
-      <ul class="mt-0">
+      <ul class="mt-0 pl-0">
         {@render note(
           'Enhanced Mobile Experience:',
           'Mobile sheet now supports natural swipe gestures (quick swipe to dismiss, slow drag to snap back), freely adjustable height (40% to 100% of screen height), and customizable font size.',
@@ -304,7 +284,7 @@
       </ul>
 
       <b class="font-mono">2.5.0</b>
-      <ul class="mt-0">
+      <ul class="mt-0 pl-0">
         {@render note(
           'YouTube Comment Insights:',
           'Now fetches and summarizes top comments (including replies) to reveal audience sentiment and key discussion topics.',
@@ -360,7 +340,7 @@
       </ul>
 
       <b class="font-mono">2.4.0</b>
-      <ul class="mt-0">
+      <ul class="mt-0 pl-0">
         {@render note(
           'Deep Dive Tool:',
           'Introduces a powerful Deep Dive feature that generates contextual follow-up questions from summaries and enables conversations with multiple AI providers (Gemini, ChatGPT, Perplexity, Grok) for deeper content exploration.',
@@ -382,7 +362,7 @@
       </ul>
 
       <b class="font-mono">2.3.0</b>
-      <ul class="mt-0">
+      <ul class="mt-0 pl-0">
         {@render note(
           'YouTube Transcript Copy & SRT Download:',
           'Added new buttons directly in the YouTube player to copy transcripts with timestamps and download video subtitles as SRT files for offline use and easier reference.',
@@ -428,7 +408,7 @@
       </ul>
 
       <b class="font-mono">2.2.9</b>
-      <ul class="mt-0">
+      <ul class="mt-0 pl-0">
         {@render note(
           'Tag Management System:',
           'Introduced a comprehensive tag management system, allowing users to organize and categorize summaries in the archive. This includes functionality to create, rename, delete, and assign tags to summaries.',
@@ -445,7 +425,7 @@
         )}
       </ul>
       <b class="font-mono">2.2.6</b>
-      <ul class="mt-0">
+      <ul class="mt-0 pl-0">
         {@render note(
           'YouTube Transcript to AI:',
           'Added direct integration button to YouTube player for sending transcripts to Gemini, ChatGPT, Perplexity, and Grok quickly.',
@@ -458,14 +438,14 @@
         )}
       </ul>
       <b class="font-mono">2.2.5</b>
-      <ul class="mt-0">
+      <ul class="mt-0 pl-0">
         {@render note(
           'Custom AI Actions:',
           "Enhances the Summarizerrrr extension by introducing custom AI actions ('Analyze', 'Explain', 'Debate') that allow users to perform specialized content analysis.",
         )}
       </ul>
       <b class="font-mono">2.2.0</b>
-      <ul class="mt-0">
+      <ul class="mt-0 pl-0">
         {@render note(
           'Proactive Permission System for Firefox:',
           'Implemented a new permission system that checks website access when opening sidepanel and displays warnings if permissions are missing. The Summarize button is disabled until permissions are granted.',
@@ -501,7 +481,7 @@
       </ul>
 
       <b class="font-mono">2.1.6</b>
-      <ul class="mt-0">
+      <ul class="mt-0 pl-0">
         {@render note(
           '[Enhanced] Copy-to-Clipboard Functionality',
           'Supports copying formatted content (lists, headings) with a fallback to plain text if it fails.',
@@ -525,7 +505,7 @@
       </ul>
 
       <b class="font-mono">2.1.0</b>
-      <ul class="mt-0">
+      <ul class="mt-0 pl-0">
         {@render note(
           'One-Click Summarization:',
           'A new mode has been introduced where clicking the floating action button automatically triggers summarization.',
@@ -558,7 +538,7 @@
         )}
       </ul>
       <b class="font-mono">2.0.0</b>
-      <ul class="mt-0">
+      <ul class="mt-0 pl-0">
         {@render note(
           'Enhanced Mobile Support & UI Overhaul:',
           'Introduction of new floating panel, mobile sheet, alongside significant refactoring of existing UI elements, to provide a more responsive and mobile-friendly user experience.',

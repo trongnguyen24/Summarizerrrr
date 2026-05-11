@@ -1,34 +1,45 @@
 <script>
   // @ts-nocheck
-  import Icon, { loadIcons } from '@iconify/svelte'
-  import { Dialog } from 'bits-ui'
-  import { t } from 'svelte-i18n'
-  import Logdev from './Logdev.svelte'
-  import 'overlayscrollbars/overlayscrollbars.css'
   import { useOverlayScrollbars } from 'overlayscrollbars-svelte'
+  import 'overlayscrollbars/overlayscrollbars.css'
+  import Icon, { loadIcons } from '@iconify/svelte'
+  import { t } from 'svelte-i18n'
   import {
-    settings,
     loadSettings,
+    settings,
     updateSettings,
   } from '@/stores/settingsStore.svelte.js'
   import { domVisibility } from '@/stores/stateAbout.svelte.js'
-  import ModelSummarySettings from '@/components/settings/ModelSummarySettings.svelte'
-  import GeneralSettings from '@/components/settings/GeneralSettings.svelte'
+  import AIProviderSettings from './AIProviderSettings.svelte'
+  import AppearanceSettings from './AppearanceSettings.svelte'
+  import DataSyncSettings from './DataSyncSettings.svelte'
+  import SummarySettings from './SummarySettings.svelte'
   import FABSettings from '@/components/settings/FABSettings.svelte'
   import AboutSettings from './AboutSettings.svelte'
-  import ToolsSettings from './ToolsSettings.svelte'
   import ReleaseNote from './ReleaseNote.svelte'
-  import { getTabFromURL } from '@/lib/utils/urlUtils.js'
+  import { getTabFromURL, updateTabInURL } from '@/lib/utils/urlUtils.js'
 
   let activeTab = $state(getTabFromURL()) // Initialize tab from URL
   let scrollContainerEl // Reference to the scroll container element
 
   const tabs = [
     {
-      id: 'ai-summary',
+      id: 'ai-provider',
+      label: 'AI Provider',
+      iconSolid: 'heroicons:cpu-chip-solid',
+      iconOutline: 'heroicons:cpu-chip',
+    },
+    {
+      id: 'summary',
       label: 'Summary',
       iconSolid: 'heroicons:sparkles-solid',
       iconOutline: 'heroicons:sparkles',
+    },
+    {
+      id: 'appearance',
+      label: 'Appearance',
+      iconSolid: 'heroicons:swatch-solid',
+      iconOutline: 'heroicons:swatch',
     },
     {
       id: 'fab',
@@ -37,16 +48,16 @@
       iconOutline: 'heroicons:cursor-arrow-rays',
     },
     {
-      id: 'general',
-      label: 'General',
-      iconSolid: 'heroicons:swatch-solid',
-      iconOutline: 'heroicons:swatch',
+      id: 'data-sync',
+      label: 'Data & Sync',
+      iconSolid: 'heroicons:cloud-arrow-up-solid',
+      iconOutline: 'heroicons:cloud-arrow-up',
     },
     {
-      id: 'tools',
-      label: 'Tools',
-      iconSolid: 'heroicons:wrench-screwdriver-solid',
-      iconOutline: 'heroicons:wrench-screwdriver',
+      id: 'whats-new',
+      label: "What's New",
+      iconSolid: 'heroicons:megaphone-solid',
+      iconOutline: 'heroicons:megaphone',
     },
     {
       id: 'about',
@@ -69,6 +80,7 @@
   // Function to handle tab switching with URL update
   function switchTab(tabName) {
     activeTab = tabName
+    updateTabInURL(tabName)
   }
   const options = {
     scrollbars: {
@@ -103,18 +115,20 @@
 
   // No longer needed, handled by the dynamic position effects
   loadIcons([
+    'heroicons:cpu-chip-solid',
+    'heroicons:cpu-chip',
     'heroicons:sparkles-solid',
     'heroicons:sparkles',
-    'heroicons:document-text-solid',
-    'heroicons:document-text',
-    'heroicons:cursor-arrow-rays-solid',
-    'heroicons:cursor-arrow-rays',
     'heroicons:swatch-solid',
     'heroicons:swatch',
+    'heroicons:cursor-arrow-rays-solid',
+    'heroicons:cursor-arrow-rays',
+    'heroicons:cloud-arrow-up-solid',
+    'heroicons:cloud-arrow-up',
+    'heroicons:megaphone-solid',
+    'heroicons:megaphone',
     'heroicons:information-circle-solid',
     'heroicons:information-circle',
-    'heroicons:wrench-screwdriver-solid',
-    'heroicons:wrench-screwdriver',
     // Icons from AboutSettings.svelte
     'heroicons:circle-stack',
     'heroicons:adjustments-horizontal',
@@ -154,12 +168,12 @@
 
     <!-- Navigation container -->
     <div
-      class="flex flex-row sm:flex-col w-full items-center sm:items-stretch p-3 gap-0.5 relative"
+      class="flex flex-row sm:flex-col w-full items-center sm:items-stretch p-3 gap-0.5 relative overflow-x-auto sm:overflow-x-visible no-scrollbar"
     >
       {#each tabs as tab}
         <button
           data-tab={tab.id}
-          class="setting-tab-button relative rounded-md flex flex-col sm:flex-row w-16 sm:w-full py-2 px-3 items-center sm:justify-start justify-center gap-1 sm:gap-3 cursor-pointer transition-colors duration-200 hover:duration-75 {activeTab ===
+          class="setting-tab-button relative rounded-md flex flex-col sm:flex-row w-16 sm:w-full py-2 px-3 items-center sm:justify-start justify-center gap-1 sm:gap-3 flex-shrink-0 cursor-pointer transition-colors duration-200 hover:duration-75 {activeTab ===
           tab.id
             ? 'text-text-primary bg-neutral-100 hover:bg-white/60 dark:hover:bg-white/10 dark:bg-surface-2 active'
             : 'text-text-secondary hover:text-text-primary hover:bg-surface-1 dark:hover:bg-surface-2'}"
@@ -185,101 +199,21 @@
     bind:this={scrollContainerEl}
   >
     <div class="p-0 sm:p-4">
-      {#if activeTab === 'ai-summary'}
-        <ModelSummarySettings />
-      {:else if activeTab === 'general'}
-        <GeneralSettings />
+      {#if activeTab === 'ai-provider'}
+        <AIProviderSettings />
+      {:else if activeTab === 'summary'}
+        <SummarySettings />
+      {:else if activeTab === 'appearance'}
+        <AppearanceSettings />
       {:else if activeTab === 'fab'}
         <FABSettings />
+      {:else if activeTab === 'data-sync'}
+        <DataSyncSettings />
+      {:else if activeTab === 'whats-new'}
+        <ReleaseNote />
       {:else if activeTab === 'about'}
         <AboutSettings />
-      {:else if activeTab === 'tools'}
-        <ToolsSettings />
       {/if}
     </div>
   </div>
-  <!-- Summary Format Section -->
 </div>
-
-<!-- Apply Tailwind classes for overall layout and styling -->
-<Dialog.Root bind:open={domVisibility.value}>
-  <Dialog.Content>
-    <button
-      onclick={domVisibility.toggle}
-      aria-label="Close"
-      class="group absolute font-mono z-[999] flex items-center right-1.5 top-1.5 text-sm py-1.5 px-2 bg-surface-1 dark:bg-surface-2 border border-border"
-      ><svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-      >
-        <path
-          fill="none"
-          stroke="currentColor"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="1.5"
-          d="M6 18L18 6M6 6l12 12"
-        />
-      </svg>
-      <span
-        class=" absolute inset-0 bg-blackwhite/0 transition-colors group-hover:bg-blackwhite/5"
-      ></span>
-    </button>
-    <ReleaseNote />
-  </Dialog.Content>
-</Dialog.Root>
-
-<style>
-  .setting-tab-button::after {
-    content: '';
-    display: block;
-    position: absolute;
-    background: white;
-    transition: all 0.3s ease-in-out;
-    box-shadow:
-      0 0 2px #ffffff18,
-      0 0 0 #ffffff18;
-  }
-
-  /* Desktop layout (sidebar right border) */
-  @media (min-width: 640px) {
-    .setting-tab-button::after {
-      width: 0px;
-      top: 50%;
-      transform: translateY(-50%) translateX(-0.25rem);
-      left: -0.75rem;
-      height: 1rem;
-      border-radius: 0 4px 4px 0;
-    }
-
-    .setting-tab-button.active::after {
-      transform: translateY(-50%) translateX(1px);
-      width: 4px;
-      box-shadow:
-        4px 0 8px 2px #ffffff71,
-        0 0 3px 1px #ffffff94;
-    }
-  }
-
-  /* Mobile layout (bottom bar top border) */
-  @media (max-width: 639px) {
-    .setting-tab-button::after {
-      height: 0px;
-      left: 50%;
-      transform: translateX(-50%) translateY(-0.25rem);
-      top: -0.5rem;
-      width: 1rem;
-      border-radius: 0 0 4px 4px;
-    }
-
-    .setting-tab-button.active::after {
-      transform: translateX(-50%) translateY(1px);
-      height: 4px;
-      box-shadow:
-        0 4px 8px 2px #ffffff71,
-        0 0 3px 1px #ffffff94;
-    }
-  }
-</style>

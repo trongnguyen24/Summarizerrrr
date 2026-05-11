@@ -217,3 +217,56 @@
     </div>
   </div>
 </div>
+
+<style>
+  .setting-tab-button::after {
+    content: '';
+    display: block;
+    position: absolute;
+    background: white;
+    transition: all 0.3s ease-in-out;
+    box-shadow:
+      0 0 2px #ffffff18,
+      0 0 0 #ffffff18;
+  }
+
+  /* Desktop layout (sidebar right border) */
+  @media (min-width: 640px) {
+    .setting-tab-button::after {
+      width: 0px;
+      top: 50%;
+      transform: translateY(-50%) translateX(-0.25rem);
+      left: -0.75rem;
+      height: 1rem;
+      border-radius: 0 4px 4px 0;
+    }
+
+    .setting-tab-button.active::after {
+      transform: translateY(-50%) translateX(1px);
+      width: 4px;
+      box-shadow:
+        4px 0 8px 2px #ffffff71,
+        0 0 3px 1px #ffffff94;
+    }
+  }
+
+  /* Mobile layout (bottom bar top border) */
+  @media (max-width: 639px) {
+    .setting-tab-button::after {
+      height: 0px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-0.25rem);
+      top: -0.5rem;
+      width: 1rem;
+      border-radius: 0 0 4px 4px;
+    }
+
+    .setting-tab-button.active::after {
+      transform: translateX(-50%) translateY(1px);
+      height: 4px;
+      box-shadow:
+        0 4px 8px 2px #ffffff71,
+        0 0 3px 1px #ffffff94;
+    }
+  }
+</style>

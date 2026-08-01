@@ -9,6 +9,7 @@
     userEmail,
     lastSyncTime,
     isSyncing,
+    needsReauth = false,
     debugLogs,
     clientId = '',
     clientSecret = '',
@@ -109,7 +110,7 @@
   <div class="flex gap-0 justify-center items-center border-t border-border">
     <button
       onclick={onSyncNow}
-      disabled={isSyncing}
+      disabled={isSyncing || needsReauth}
       class="flex flex-1 items-center justify-center gap-2 py-3 px-4 text-text-primary hover:bg-blackwhite/10 transition-colors duration-100 disabled:opacity-50 disabled:cursor-not-allowed"
     >
       <Icon

@@ -14,6 +14,7 @@
     refreshSyncState,
     login,
     logout,
+    reconnect,
     syncNow,
     setAutoSync,
     setSyncPreferences,
@@ -38,6 +39,7 @@
     'heroicons:arrow-path',
     'heroicons:check-circle',
     'heroicons:exclamation-circle',
+    'heroicons:exclamation-triangle',
     'heroicons:arrow-right-on-rectangle',
     'heroicons:shield-check',
     'heroicons:key',
@@ -63,6 +65,12 @@
 
   let isLoggingIn = $state(false)
   let loginError = $state(null)
+  let isReconnecting = $state(false)
+  let reconnectError = $state(null)
+
+  // "Publish app" lives on the Audience page of the Google Auth Platform —
+  // the one switch that stops Testing-mode refresh tokens dying every 7 days.
+  const PUBLISH_APP_URL = 'https://console.cloud.google.com/auth/audience'
 
   // BYOK OAuth credentials state
   let customClientId = $state('')
@@ -121,6 +129,19 @@
       loginError = error.message
     } finally {
       isLoggingIn = false
+    }
+  }
+
+  async function handleReconnect() {
+    isReconnecting = true
+    reconnectError = null
+
+    try {
+      await reconnect()
+    } catch (error) {
+      reconnectError = error.message
+    } finally {
+      isReconnecting = false
     }
   }
 
@@ -325,6 +346,55 @@
       </div>
     {:else}
       <div class="flex flex-col gap-6">
+        <!-- Reconnect prompt: the refresh token died, the account is still here -->
+        {#if cloudSyncStore.needsReauth}
+          <div
+            class="flex flex-col gap-3 rounded-md border border-warning/30 bg-warning/10 px-3 py-3 text-xs text-text-secondary"
+            role="status"
+            aria-live="polite"
+          >
+            <div class="flex items-center gap-1.5 text-text-primary font-bold">
+              <Icon
+                icon="heroicons:exclamation-triangle"
+                class="size-4 shrink-0 text-warning"
+              />
+              <span>{$t('cloudSync.reauth.title')}</span>
+            </div>
+            <p class="text-pretty">{$t('cloudSync.reauth.description')}</p>
+            <div class="flex flex-wrap items-center gap-4">
+              <button
+                onclick={handleReconnect}
+                disabled={isReconnecting}
+                class="flex items-center gap-1.5 font-bold text-text-primary underline underline-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {#if isReconnecting}
+                  <Icon
+                    icon="heroicons:arrow-path"
+                    class="size-4 animate-spin"
+                  />
+                  <span>{$t('cloudSync.reauth.reconnecting')}</span>
+                {:else}
+                  <Icon icon="logos:google-icon" class="size-4" />
+                  <span>{$t('cloudSync.reauth.button')}</span>
+                {/if}
+              </button>
+              <a
+                href={PUBLISH_APP_URL}
+                target="_blank"
+                class="flex items-center gap-1 underline underline-offset-2"
+                >{$t('cloudSync.reauth.publishGuide')}
+                <Icon width={12} icon="heroicons:arrow-up-right-16-solid" />
+              </a>
+            </div>
+            {#if reconnectError}
+              <div class="flex items-center gap-2 text-red-500">
+                <Icon icon="heroicons:exclamation-circle" class="size-4" />
+                <span>{reconnectError}</span>
+              </div>
+            {/if}
+          </div>
+        {/if}
+
         <!-- User Info Card Component -->
         <CloudSyncUserCard
           userPicture={cloudSyncStore.userPicture}
@@ -332,6 +402,7 @@
           userEmail={cloudSyncStore.userEmail}
           lastSyncTime={cloudSyncStore.lastSyncTime}
           isSyncing={cloudSyncStore.isSyncing}
+          needsReauth={cloudSyncStore.needsReauth}
           debugLogs={cloudSyncStore.debugLogs}
           clientId={customClientId}
           clientSecret={customClientSecret}
@@ -413,8 +484,8 @@
           </div>
         </div>
 
-        <!-- Error Display -->
-        {#if cloudSyncStore.syncError}
+        <!-- Error Display (the reauth banner above already says it better) -->
+        {#if cloudSyncStore.syncError && !cloudSyncStore.needsReauth}
           <div
             class="mt-2 p-2 text-xs text-red-600 bg-red-500/10 border border-red-500/20 rounded-md break-all"
           >

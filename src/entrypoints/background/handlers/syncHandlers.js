@@ -65,6 +65,12 @@ export function createSyncHandlers({ setupAutoSyncAlarm, autoSyncAlarmName }) {
             return
           }
 
+          if (stored.needsReauth) {
+            console.log('[Background] TRIGGER_SYNC skipped: reconnect required')
+            sendResponse({ success: false, reason: 'needs_reauth' })
+            return
+          }
+
           // Clear existing debounce timer and set a new one
           // Use globalThis instead of window (service worker doesn't have window)
           if (globalThis.syncDebounceTimer) {

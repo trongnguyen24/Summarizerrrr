@@ -13,6 +13,39 @@
 
 import { browser } from 'wxt/browser'
 
+/**
+ * Thrown when Google's token endpoint rejects a request.
+ * `code` carries Google's own identifier (`invalid_grant`, `invalid_client`, …)
+ * so callers can branch on it instead of matching message strings — the
+ * messages are user-facing and change; the codes don't.
+ */
+export class OAuthTokenError extends Error {
+  constructor(message, code) {
+    super(message)
+    this.name = 'OAuthTokenError'
+    this.code = code || 'unknown_error'
+  }
+}
+
+/**
+ * Turn a non-OK token-endpoint response into an OAuthTokenError.
+ * Google answers with `{ error, error_description }`; a proxy or a network-level
+ * failure may answer with neither, hence the defensive parse.
+ */
+async function toTokenError(response, fallbackMessage) {
+  let body = {}
+  try {
+    body = await response.json()
+  } catch {
+    // Non-JSON body (gateway error page, empty 5xx) — code stays unknown.
+  }
+  console.error(`${fallbackMessage}:`, body)
+  return new OAuthTokenError(
+    body.error_description || body.error || fallbackMessage,
+    body.error
+  )
+}
+
 // OAuth2 Configuration
 const CLIENT_ID = '1045816330790-n9u8unuthqvdqvlmce7d3j779uprv26k.apps.googleusercontent.com'
 // drive.file scope: only access files created by this app (visible in Drive)
@@ -46,11 +79,9 @@ async function exchangeCodeDirectInternal(code, codeVerifier, redirectUri, clien
   })
   
   if (!response.ok) {
-    const error = await response.json()
-    console.error('Direct token exchange failed:', error)
-    throw new Error(error.error_description || error.error || 'Failed to exchange code')
+    throw await toTokenError(response, 'Direct token exchange failed')
   }
-  
+
   const data = await response.json()
   
   return {
@@ -80,18 +111,15 @@ export async function refreshAccessTokenDirect(refreshToken, clientId, clientSec
   })
   
   if (!response.ok) {
-    const error = await response.json()
-    console.error('Direct token refresh failed:', error)
-    
-    if (error.error === 'invalid_grant') {
-      throw new Error('Session expired. Please sign in again.')
-    }
-    
-    throw new Error(error.error_description || 'Failed to refresh token')
+    // `invalid_grant` here means the refresh token itself is dead — revoked,
+    // or (by far the most common case for BYOK) expired because the user's
+    // OAuth app is still in "Testing", where Google caps them at 7 days.
+    // Callers branch on `error.code`, not on this message.
+    throw await toTokenError(response, 'Direct token refresh failed')
   }
-  
+
   const data = await response.json()
-  
+
   return {
     accessToken: data.access_token,
     expiresAt: Date.now() + (data.expires_in || 3600) * 1000,
@@ -465,11 +493,9 @@ async function exchangeCodeViaProxy(code, codeVerifier, redirectUri) {
   })
   
   if (!response.ok) {
-    const error = await response.json()
-    console.error('Token exchange failed:', error)
-    throw new Error(error.error_description || error.error || 'Failed to exchange code')
+    throw await toTokenError(response, 'Token exchange failed')
   }
-  
+
   const data = await response.json()
   
   return {
@@ -494,16 +520,9 @@ export async function refreshAccessToken(refreshToken) {
   })
   
   if (!response.ok) {
-    const error = await response.json()
-    console.error('Token refresh failed:', error)
-    
-    if (error.error === 'invalid_grant') {
-      throw new Error('Session expired. Please sign in again.')
-    }
-    
-    throw new Error(error.error_description || 'Failed to refresh token')
+    throw await toTokenError(response, 'Token refresh failed')
   }
-  
+
   const data = await response.json()
   
   return {

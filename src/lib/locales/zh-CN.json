@@ -647,6 +647,13 @@
     "error": "错误",
     "enabled": "已启用",
     "disabled": "已禁用",
+    "reauth": {
+      "title": "需要重新连接",
+      "description": "Google 拒绝了已保存的会话。如果你的 OAuth 应用在 Google Cloud Console 中仍处于“测试”状态，其刷新令牌会在 7 天后过期——发布该应用即可避免重复出现。",
+      "button": "重新连接",
+      "reconnecting": "正在重新连接...",
+      "publishGuide": "发布你的 OAuth 应用"
+    },
     "byok": {
       "description": "从您的 Google Cloud Console 输入您自己的 OAuth 凭据，您的数据永远不会通过第三方服务器。",
       "clientIdPlaceholder": "xxxxx.apps.googleusercontent.com",

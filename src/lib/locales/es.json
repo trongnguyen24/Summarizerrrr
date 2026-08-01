@@ -647,6 +647,13 @@
     "error": "Error",
     "enabled": "Habilitado",
     "disabled": "Deshabilitado",
+    "reauth": {
+      "title": "Se requiere volver a conectar",
+      "description": "Google rechazó la sesión guardada. Si tu aplicación OAuth sigue en «Testing» en Google Cloud Console, sus tokens de actualización caducan a los 7 días: publica la aplicación para que no vuelva a ocurrir.",
+      "button": "Volver a conectar",
+      "reconnecting": "Conectando...",
+      "publishGuide": "Publicar tu aplicación OAuth"
+    },
     "byok": {
       "description": "Ingrese sus propias credenciales OAuth desde su Google Cloud Console, sus datos nunca pasan por servidores de terceros.",
       "clientIdPlaceholder": "xxxxx.apps.googleusercontent.com",

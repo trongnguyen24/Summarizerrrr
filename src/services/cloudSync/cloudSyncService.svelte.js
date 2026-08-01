@@ -50,6 +50,10 @@ const SOFT_DELETE_CLEANUP_MS = 30 * 24 * 60 * 60 * 1000
 export const syncStorage = storage.defineItem('local:syncState', {
   defaultValue: {
     isLoggedIn: false,
+    // Google refused the stored refresh token (see markNeedsReauth). The account
+    // stays "logged in" so the UI keeps the profile and can offer Reconnect,
+    // but every sync path is gated off until the user re-authorises.
+    needsReauth: false,
     autoSyncEnabled: null, // null = chưa hỏi, true/false = user đã chọn
     lastSyncTime: null,
     needsSettingsConflictCheck: true, // Flag to show settings conflict dialog on first sync after login
@@ -73,6 +77,7 @@ export const syncStorage = storage.defineItem('local:syncState', {
 // --- State ---
 let syncState = $state({
   isLoggedIn: false,
+  needsReauth: false,
   autoSyncEnabled: null,
   lastSyncTime: null,
   isSyncing: false,
@@ -131,12 +136,13 @@ export async function initSync() {
     }
     
     syncState.isLoggedIn = stored.isLoggedIn
+    syncState.needsReauth = !!stored.needsReauth
     syncState.autoSyncEnabled = stored.autoSyncEnabled
     syncState.lastSyncTime = stored.lastSyncTime
     syncState.userEmail = stored.userEmail
     syncState.userName = stored.userName
     syncState.userPicture = stored.userPicture
-    
+
     // Migrate old preferences format if needed
     if (stored.syncPreferences?.archive !== undefined && stored.syncPreferences?.library === undefined) {
       stored.syncPreferences.library = stored.syncPreferences.archive
@@ -151,19 +157,21 @@ export async function initSync() {
     }
     
     // If logged in, check token validity and start auto-sync
-    if (stored.isLoggedIn && stored.accessToken) {
+    if (stored.isLoggedIn && stored.accessToken && !stored.needsReauth) {
       if (isTokenExpired(stored.tokenExpiry)) {
-        // Try silent re-auth with Implicit Flow
         try {
           await doRefreshToken()
         } catch (error) {
-          console.warn('Silent refresh failed, user needs to re-login:', error)
-          // Don't logout immediately - let them manually try again
-          // await logout(false)
+          // A dead refresh token has already flipped needsReauth inside
+          // doRefreshToken; anything else (offline at browser start, 5xx) is
+          // transient, so the session is left intact for the next sync to retry.
+          console.warn('[CloudSync] Startup token refresh failed:', error)
         }
       }
-      
-      if (stored.autoSyncEnabled) {
+
+      // Re-read: doRefreshToken may have flagged the session dead just above.
+      const afterRefresh = await syncStorage.getValue()
+      if (afterRefresh.autoSyncEnabled && !afterRefresh.needsReauth) {
         startAutoSync()
       }
     }
@@ -183,6 +191,7 @@ export async function refreshSyncState() {
     const stored = await syncStorage.getValue()
     
     syncState.isLoggedIn = stored.isLoggedIn
+    syncState.needsReauth = !!stored.needsReauth
     syncState.autoSyncEnabled = stored.autoSyncEnabled
     syncState.lastSyncTime = stored.lastSyncTime
     syncState.userEmail = stored.userEmail
@@ -204,6 +213,45 @@ export async function refreshSyncState() {
 function isTokenExpired(expiryTime) {
   if (!expiryTime) return true
   return Date.now() >= expiryTime - 60000 // 1 minute buffer
+}
+
+// Shown in the UI (and the debug log) when the refresh token is dead. The
+// 7-day figure is Google's cap on refresh tokens issued by an OAuth app whose
+// publishing status is still "Testing" — which is where BYOK users land unless
+// they press "Publish app", so it's the overwhelmingly likely cause here.
+const REAUTH_HINT =
+  'Google rejected the saved session (invalid_grant). If your OAuth app is still in "Testing", its refresh tokens expire after 7 days — publish the app in Google Cloud Console to stop this from repeating.'
+
+/**
+ * Flag the session as needing re-authorisation instead of signing the user out.
+ *
+ * A hard logout wipes the profile and re-arms needsSettingsConflictCheck, so a
+ * user whose token expired on a weekly cadence would be dropped to a blank
+ * sign-in screen and then get a settings-conflict dialog on the way back in,
+ * for an event they did nothing to cause. Keeping the account visible with a
+ * Reconnect button costs one flag and removes both.
+ *
+ * The dead tokens are still cleared — they can't be used again.
+ */
+async function markNeedsReauth() {
+  stopAutoSync()
+  tokenCache = { accessToken: null, tokenExpiry: null, lastUpdated: 0 }
+  clearSyncFolderCache()
+
+  const stored = await syncStorage.getValue()
+  await syncStorage.setValue({
+    ...stored,
+    needsReauth: true,
+    accessToken: null,
+    refreshToken: null,
+    tokenExpiry: null,
+    // Deliberately keep isLoggedIn, the profile fields, lastSyncTime and
+    // needsSettingsConflictCheck untouched: this is not a logout.
+  })
+
+  syncState.needsReauth = true
+  syncState.syncError = REAUTH_HINT
+  logToUI(REAUTH_HINT, 'error')
 }
 
 /**
@@ -245,10 +293,11 @@ async function doRefreshToken() {
     
     return accessToken
   } catch (error) {
-    console.error('Token refresh failed:', error)
-    // If refresh token is invalid, clear login state
-    if (error.message.includes('Session expired')) {
-      await logout(false)
+    console.error('[CloudSync] Token refresh failed:', error)
+    // Only a dead grant is terminal. Network blips, 5xx from Google and the
+    // like must not tear the session down — they resolve on the next attempt.
+    if (error.code === 'invalid_grant') {
+      await markNeedsReauth()
     }
     throw error
   }
@@ -265,12 +314,19 @@ async function getValidAccessToken() {
   }
   
   const stored = await syncStorage.getValue()
-  
+
+  if (stored.needsReauth) {
+    tokenCache = { accessToken: null, tokenExpiry: null, lastUpdated: 0 }
+    const error = new Error(REAUTH_HINT)
+    error.code = 'needs_reauth'
+    throw error
+  }
+
   if (!stored.accessToken) {
     tokenCache = { accessToken: null, tokenExpiry: null, lastUpdated: 0 }
     throw new Error('Not logged in')
   }
-  
+
   let token = stored.accessToken
   let expiry = stored.tokenExpiry
   
@@ -326,6 +382,7 @@ export async function login() {
     const updatedState = {
       ...freshStored,
       isLoggedIn: true,
+      needsReauth: false, // Fresh grant — clears any pending Reconnect prompt
       accessToken,
       refreshToken: newRefreshToken,
       tokenExpiry: expiresAt,
@@ -342,6 +399,8 @@ export async function login() {
     await syncStorage.setValue(updatedState)
     
     syncState.isLoggedIn = true
+    syncState.needsReauth = false
+    syncState.syncError = null
     syncState.userEmail = profile.email
     syncState.userName = profile.name
     syncState.userPicture = profile.picture
@@ -352,13 +411,28 @@ export async function login() {
       history: true,
       library: true,
     }
-    
+
+    // markNeedsReauth() cleared the alarm when the grant died; a reconnect has
+    // to put it back, otherwise auto-sync stays silently off.
+    if (updatedState.autoSyncEnabled) {
+      startAutoSync()
+    }
+
     return {}
   } catch (error) {
     console.error('Login failed:', error)
     syncState.syncError = error.message
     throw error
   }
+}
+
+/**
+ * Re-authorise an account whose refresh token died, without losing the session.
+ * Same OAuth round-trip as login(); named separately so the UI reads honestly
+ * and so the two intents stay distinguishable if they ever diverge.
+ */
+export async function reconnect() {
+  return await login()
 }
 
 /**
@@ -388,17 +462,24 @@ export async function logout(revokeAccess = true) {
   await syncStorage.setValue({
     ...stored,
     isLoggedIn: false,
+    needsReauth: false,
     accessToken: null,
     refreshToken: null,
     tokenExpiry: null,
     userEmail: null,
     userName: null,
     userPicture: null,
-    needsSettingsConflictCheck: true, // Trigger conflict dialog on next login (important for multiple profiles)
+    // Only a deliberate sign-out re-arms this: the next login may be a
+    // different Google account, so its settings genuinely need reconciling.
+    // An expired-token reconnect goes through markNeedsReauth() and leaves it
+    // alone — same account, nothing to reconcile.
+    needsSettingsConflictCheck: true,
     // Note: Keep lastSyncTime so UI can still show last sync time
   })
-  
+
   syncState.isLoggedIn = false
+  syncState.needsReauth = false
+  syncState.syncError = null
   syncState.userEmail = null
   syncState.userName = null
   syncState.userPicture = null
@@ -472,7 +553,16 @@ function cleanupSoftDeleted(itemsMap) {
 export async function pullData(_isRetry = false) {
   if (!isToolEnabled('cloudSync')) return
   if (syncState.isSyncing) return
-  
+
+  // No point burning a network round-trip (or the alarm's wake-up) while the
+  // grant is dead — nothing works until the user reconnects.
+  const preflight = await syncStorage.getValue()
+  if (preflight.needsReauth) {
+    syncState.needsReauth = true
+    logToUI('Sync skipped: reconnect required', 'error')
+    return
+  }
+
   syncState.isSyncing = true
   syncState.syncError = null
   logToUI('Starting sync...')
@@ -556,8 +646,12 @@ export async function pullData(_isRetry = false) {
         return pullData(true)
       } catch (refreshError) {
         console.error('Token refresh failed:', refreshError)
-        logToUI(`Token refresh failed: ${refreshError.message}`, 'error')
-        syncState.syncError = `Token refresh failed: ${refreshError.message}`
+        // markNeedsReauth() has already logged the actionable message for a
+        // dead grant; don't bury it under a generic prefix.
+        if (refreshError.code !== 'invalid_grant') {
+          logToUI(`Token refresh failed: ${refreshError.message}`, 'error')
+          syncState.syncError = `Token refresh failed: ${refreshError.message}`
+        }
       }
     } else {
       logToUI(`Sync failed: ${error.message}`, 'error')
@@ -954,6 +1048,10 @@ async function debouncedPush() {
     console.log('[CloudSync] Sync skipped: not logged in or auto sync disabled')
     return
   }
+  if (stored.needsReauth) {
+    console.log('[CloudSync] Sync skipped: reconnect required')
+    return
+  }
   
   // If currently syncing, mark as pending to sync again after current sync completes
   if (syncState.isSyncing) {
@@ -1218,6 +1316,9 @@ export async function isUsingCustomCredentials() {
 export const cloudSyncStore = {
   get isLoggedIn() {
     return syncState.isLoggedIn
+  },
+  get needsReauth() {
+    return syncState.needsReauth
   },
   get autoSyncEnabled() {
     return syncState.autoSyncEnabled

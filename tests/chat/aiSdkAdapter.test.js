@@ -15,6 +15,7 @@ const mocks = vi.hoisted(() => ({
   getCurrentGeminiModel: vi.fn(),
   getNextFallbackModel: vi.fn(),
   isOverloadError: vi.fn(),
+  isModelUnavailableError: vi.fn(),
   updateModelStatus: vi.fn(),
 }))
 
@@ -46,6 +47,7 @@ vi.mock('@/lib/utils/browserDetection.js', () => ({
 vi.mock('@/lib/utils/geminiAutoFallback.js', () => ({
   isOverloadError: mocks.isOverloadError,
   isQuotaError: vi.fn(),
+  isModelUnavailableError: mocks.isModelUnavailableError,
   getNextFallbackModel: mocks.getNextFallbackModel,
   getNextAdvancedFallbackModel: vi.fn(),
   shouldEnableAutoFallback: mocks.shouldEnableAutoFallback,
@@ -99,6 +101,7 @@ beforeEach(() => {
   mocks.getCurrentGeminiModel.mockReturnValue('gemini-test')
   mocks.getNextFallbackModel.mockReturnValue(null)
   mocks.isOverloadError.mockReturnValue(false)
+  mocks.isModelUnavailableError.mockReturnValue(false)
 })
 
 describe('AI SDK generation requests', () => {
@@ -170,6 +173,25 @@ describe('AI SDK generation requests', () => {
     expect(mocks.generateText.mock.calls).toHaveLength(2)
     expect(mocks.generateText.mock.calls[0][0].messages).toEqual(messages)
     expect(mocks.generateText.mock.calls[1][0].messages).toEqual(messages)
+  })
+
+  it('steps over a retired model instead of surfacing its 404', async () => {
+    mocks.shouldEnableAutoFallback.mockReturnValue(true)
+    mocks.getCurrentGeminiModel.mockReturnValue('gemini-retired')
+    mocks.getNextFallbackModel.mockReturnValue('gemini-alive')
+    mocks.isModelUnavailableError.mockReturnValue(true)
+    const notFound = new Error(
+      'models/gemini-retired is not found for API version v1beta'
+    )
+    notFound.status = 404
+    mocks.generateText
+      .mockRejectedValueOnce(notFound)
+      .mockResolvedValueOnce({ text: 'answer from the live model' })
+
+    await expect(
+      generateContentRequest({ providerId: 'gemini', settings, prompt: 'Prompt' })
+    ).resolves.toBe('answer from the live model')
+    expect(mocks.generateText.mock.calls).toHaveLength(2)
   })
 
   it('passes abort signals through direct and proxy request paths', async () => {

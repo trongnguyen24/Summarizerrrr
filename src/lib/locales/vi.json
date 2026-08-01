@@ -340,7 +340,8 @@
       "unconfigured_suffix": "chưa cấu hình",
       "unconfigured_warning": "Nhà cung cấp này chưa được cấu hình.",
       "configure_link": "Cấu hình API Key",
-      "free_text_placeholder": "Nhập ID mô hình"
+      "free_text_placeholder": "Nhập ID mô hình",
+      "free_tier_badge": "Free"
     },
     "provider_key_config": {
       "status_configured": "đã cấu hình",
@@ -630,6 +631,13 @@
     "error": "Lỗi",
     "enabled": "Đang bật",
     "disabled": "Đang tắt",
+    "reauth": {
+      "title": "Cần kết nối lại",
+      "description": "Google đã từ chối phiên đăng nhập đã lưu. Nếu OAuth app của bạn vẫn ở trạng thái \"Testing\" trong Google Cloud Console, refresh token sẽ hết hạn sau 7 ngày — hãy Publish app để không bị lặp lại.",
+      "button": "Kết nối lại",
+      "reconnecting": "Đang kết nối lại...",
+      "publishGuide": "Publish OAuth app của bạn"
+    },
     "byok": {
       "description": "Nhập thông tin xác thực OAuth của riêng bạn từ Google Cloud Console, dữ liệu của bạn không bao giờ đi qua máy chủ bên thứ ba.",
       "clientIdPlaceholder": "xxxxx.apps.googleusercontent.com",

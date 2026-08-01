@@ -340,7 +340,8 @@
       "unconfigured_suffix": "unconfigured",
       "unconfigured_warning": "This provider is not configured.",
       "configure_link": "Configure API Key",
-      "free_text_placeholder": "Enter model ID"
+      "free_text_placeholder": "Enter model ID",
+      "free_tier_badge": "Free"
     },
     "provider_key_config": {
       "status_configured": "configured",
@@ -630,6 +631,13 @@
     "error": "Error",
     "enabled": "Enabled",
     "disabled": "Disabled",
+    "reauth": {
+      "title": "Reconnect required",
+      "description": "Google rejected the saved session. If your OAuth app is still in \"Testing\" in Google Cloud Console, its refresh tokens expire after 7 days — publish the app to stop this from repeating.",
+      "button": "Reconnect",
+      "reconnecting": "Reconnecting...",
+      "publishGuide": "Publish your OAuth app"
+    },
     "byok": {
       "description": "Enter your own OAuth credentials from your Google Cloud Console, your data never through third-party servers.",
       "clientIdPlaceholder": "xxxxx.apps.googleusercontent.com",

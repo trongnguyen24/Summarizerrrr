@@ -242,6 +242,28 @@ describe('provider model discovery', () => {
     clearDiscoveredCapabilities()
   })
 
+  it('drops Gemini models that cannot do text-out work', async () => {
+    const fetchFn = vi.fn().mockResolvedValue(
+      jsonResponse({
+        models: [
+          'gemini-3-flash-preview',
+          'gemini-3-pro-image',
+          'gemini-2.5-flash-preview-tts',
+          'gemini-3-flash-live',
+          'gemini-2.5-computer-use-preview-10-2025',
+          'gemini-robotics-er-2-preview',
+        ].map((id) => ({
+          name: `models/${id}`,
+          supportedGenerationMethods: ['generateContent'],
+        })),
+      }),
+    )
+
+    await expect(
+      fetchProviderModels('gemini', 'secret', fetchFn),
+    ).resolves.toEqual(['gemini-3-flash-preview'])
+  })
+
   it('uses fallback Gemini models until an API key is available', async () => {
     const fetchFn = vi.fn()
 

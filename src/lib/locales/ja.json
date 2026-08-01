@@ -647,6 +647,13 @@
     "error": "エラー",
     "enabled": "有効",
     "disabled": "無効",
+    "reauth": {
+      "title": "再接続が必要です",
+      "description": "Google が保存済みのセッションを拒否しました。Google Cloud Console で OAuth アプリがまだ「テスト」状態の場合、更新トークンは 7 日で失効します。アプリを公開すると再発を防げます。",
+      "button": "再接続",
+      "reconnecting": "再接続中...",
+      "publishGuide": "OAuth アプリを公開する"
+    },
     "byok": {
       "description": "Google Cloud Consoleから独自のOAuth認証情報を入力してください。データがサードパーティのサーバーを経由することはありません。",
       "clientIdPlaceholder": "xxxxx.apps.googleusercontent.com",

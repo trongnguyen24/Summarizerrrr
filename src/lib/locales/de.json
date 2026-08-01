@@ -647,6 +647,13 @@
     "error": "Fehler",
     "enabled": "Aktiviert",
     "disabled": "Deaktiviert",
+    "reauth": {
+      "title": "Neuverbindung erforderlich",
+      "description": "Google hat die gespeicherte Sitzung abgelehnt. Wenn deine OAuth-App in der Google Cloud Console noch den Status „Testing“ hat, laufen ihre Refresh-Tokens nach 7 Tagen ab — veröffentliche die App, damit das nicht erneut passiert.",
+      "button": "Neu verbinden",
+      "reconnecting": "Verbinde neu ...",
+      "publishGuide": "OAuth-App veröffentlichen"
+    },
     "byok": {
       "description": "Geben Sie Ihre eigenen OAuth-Anmeldedaten aus Ihrer Google Cloud Console ein. Ihre Daten werden niemals über Drittanbieter-Server übertragen.",
       "clientIdPlaceholder": "xxxxx.apps.googleusercontent.com",

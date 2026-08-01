@@ -20,6 +20,7 @@ import { createOllamaProxyModel } from './ollamaProxyModel.js'
 import {
   isOverloadError,
   isQuotaError,
+  isModelUnavailableError,
   getNextFallbackModel,
   getNextAdvancedFallbackModel,
   shouldEnableAutoFallback,
@@ -459,9 +460,9 @@ export async function generateContentRequest(request) {
          }
       }
 
-      // 2. Check for Overload Error (503) OR (All keys failed quota) -> Try different MODEL
+      // 2. Check for Overload Error (503), a retired model (404), OR (All keys failed quota) -> Try different MODEL
       if (autoFallbackEnabled) {
-          if (isOverloadError(error) || (isQuotaError(error) && failedKeys.size >= ([settings.geminiApiKey, ...(settings.geminiAdditionalApiKeys||[])].filter(k => k && k.trim() !== '').length || 1))) {
+          if (isOverloadError(error) || isModelUnavailableError(error) || (isQuotaError(error) && failedKeys.size >= ([settings.geminiApiKey, ...(settings.geminiAdditionalApiKeys||[])].filter(k => k && k.trim() !== '').length || 1))) {
                const nextModel = getNextAdvancedFallbackModel(currentModel, settings)
                   || getNextFallbackModel(currentModel)
 
@@ -794,9 +795,9 @@ export async function* generateContentStreamRequest(request) {
          }
       }
 
-      // 2. Check for Overload Error (503) OR (All keys failed quota) -> Try different MODEL
+      // 2. Check for Overload Error (503), a retired model (404), OR (All keys failed quota) -> Try different MODEL
       if (autoFallbackEnabled) {
-          if (isOverloadError(error) || (isQuotaError(error) && failedKeys.size >= ([settings.geminiApiKey, ...(settings.geminiAdditionalApiKeys||[])].filter(k => k && k.trim() !== '').length || 1))) {
+          if (isOverloadError(error) || isModelUnavailableError(error) || (isQuotaError(error) && failedKeys.size >= ([settings.geminiApiKey, ...(settings.geminiAdditionalApiKeys||[])].filter(k => k && k.trim() !== '').length || 1))) {
                 const nextModel = getNextAdvancedFallbackModel(currentModel, settings)
                   || getNextFallbackModel(currentModel)
         

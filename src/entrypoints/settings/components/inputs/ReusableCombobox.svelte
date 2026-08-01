@@ -147,22 +147,36 @@
                     label={item.label}
                   >
                     {#snippet children({ selected })}
-                      <div class="flex items-center justify-between w-full">
+                      <div class="flex items-center justify-between w-full gap-2">
                         <span class="line-clamp-1 truncate">{item.label}</span>
-                        {#if selected}
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="16"
-                            height="16"
-                            viewBox="0 0 24 24"
-                            class="ml-2 text-primary"
-                          >
-                            <path
-                              fill="currentColor"
-                              d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
-                            />
-                          </svg>
-                        {/if}
+                        <span class="flex shrink-0 items-center gap-2">
+                          {#if item.badge}
+                            <span
+                              class="rounded-full border border-border bg-blackwhite/5 px-1.5 py-0.5 text-[10px] font-medium normal-case leading-none text-muted"
+                              title={item.badgeTitle}
+                            >
+                              {item.badge}
+                            </span>
+                          {/if}
+                          <!-- The check slot keeps its width even when empty, so
+                               badges stay in one column across rows. -->
+                          <span class="grid size-4 place-items-center">
+                            {#if selected}
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                class="text-primary"
+                              >
+                                <path
+                                  fill="currentColor"
+                                  d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
+                                />
+                              </svg>
+                            {/if}
+                          </span>
+                        </span>
                       </div>
                     {/snippet}
                   </Combobox.Item>

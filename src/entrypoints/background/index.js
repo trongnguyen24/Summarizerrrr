@@ -391,7 +391,7 @@ export default defineBackground(() => {
       const { syncStorage } = await import('@/services/cloudSync/cloudSyncService.svelte.js')
       const stored = await syncStorage.getValue()
 
-      if (stored.isLoggedIn && stored.autoSyncEnabled) {
+      if (stored.isLoggedIn && stored.autoSyncEnabled && !stored.needsReauth) {
         // Check if alarm already exists
         const existingAlarm = await browser.alarms.get(AUTO_SYNC_ALARM_NAME)
         if (!existingAlarm) {
@@ -403,9 +403,9 @@ export default defineBackground(() => {
           console.log('[Background] Auto-sync alarm already exists')
         }
       } else {
-        // Clear alarm if not logged in or auto-sync disabled
+        // Clear alarm if not logged in, auto-sync disabled, or the grant died
         await browser.alarms.clear(AUTO_SYNC_ALARM_NAME)
-        console.log('[Background] Auto-sync alarm cleared (disabled or not logged in)')
+        console.log('[Background] Auto-sync alarm cleared (disabled, not logged in, or reconnect required)')
       }
     } catch (error) {
       console.error('[Background] Failed to setup auto-sync alarm:', error)
@@ -531,6 +531,14 @@ export default defineBackground(() => {
         if (!stored.isLoggedIn || !stored.autoSyncEnabled) {
           console.log('[Background] Auto-sync skipped: not logged in or disabled')
           // Clear alarm since auto-sync is disabled
+          await browser.alarms.clear(AUTO_SYNC_ALARM_NAME)
+          return
+        }
+
+        if (stored.needsReauth) {
+          console.log('[Background] Auto-sync skipped: reconnect required')
+          // Nothing will succeed until the user re-authorises; stop waking up
+          // every 10 minutes. login() re-arms the alarm.
           await browser.alarms.clear(AUTO_SYNC_ALARM_NAME)
           return
         }

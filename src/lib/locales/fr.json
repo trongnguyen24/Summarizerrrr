@@ -647,6 +647,13 @@
     "error": "Erreur",
     "enabled": "Activé",
     "disabled": "Désactivé",
+    "reauth": {
+      "title": "Reconnexion requise",
+      "description": "Google a rejeté la session enregistrée. Si votre application OAuth est encore en « Testing » dans Google Cloud Console, ses jetons d'actualisation expirent au bout de 7 jours — publiez l'application pour éviter que cela se reproduise.",
+      "button": "Se reconnecter",
+      "reconnecting": "Reconnexion...",
+      "publishGuide": "Publier votre application OAuth"
+    },
     "byok": {
       "description": "Entrez vos propres identifiants OAuth depuis votre Google Cloud Console, vos données ne transitent jamais par des serveurs tiers.",
       "clientIdPlaceholder": "xxxxx.apps.googleusercontent.com",

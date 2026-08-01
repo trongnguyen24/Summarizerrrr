@@ -1,11 +1,16 @@
 <script>
   // @ts-nocheck
   import Icon from '@iconify/svelte'
+  import { t } from 'svelte-i18n'
   import ReusableCombobox from '@/entrypoints/settings/components/inputs/ReusableCombobox.svelte'
   import {
     FALLBACK_PROVIDER_MODELS,
     fetchProviderModels,
   } from '@/lib/api/providerModelService.js'
+  import {
+    sortFreeTierFirst,
+    toModelItem,
+  } from '@/lib/providers/geminiFreeTier.js'
 
   let {
     providerId,
@@ -26,8 +31,12 @@
   let loadError = $state(null)
   let requestId = 0
 
+  const badgeLabel = $derived(
+    $t('settings.feature_model_picker.free_tier_badge', { default: 'Free' }),
+  )
+
   const items = $derived(
-    models.map((model) => ({ value: model, label: model })),
+    models.map((model) => toModelItem(providerId, model, badgeLabel)),
   )
 
   async function loadModels() {
@@ -36,7 +45,10 @@
     loadError = null
 
     try {
-      const loadedModels = await fetchProviderModels(providerId, apiKey)
+      const loadedModels = sortFreeTierFirst(
+        providerId,
+        await fetchProviderModels(providerId, apiKey),
+      )
       if (currentRequestId !== requestId) return
 
       models = selectedModel && !loadedModels.includes(selectedModel)
@@ -46,7 +58,10 @@
       if (currentRequestId !== requestId) return
 
       loadError = error
-      const fallbackModels = FALLBACK_PROVIDER_MODELS[providerId] || []
+      const fallbackModels = sortFreeTierFirst(
+        providerId,
+        FALLBACK_PROVIDER_MODELS[providerId] || [],
+      )
       models = selectedModel && !fallbackModels.includes(selectedModel)
         ? [selectedModel, ...fallbackModels]
         : fallbackModels

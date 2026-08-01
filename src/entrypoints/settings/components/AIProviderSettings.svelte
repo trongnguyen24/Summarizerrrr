@@ -188,7 +188,7 @@
   </div>
 
   <div class="setting-secsion flex flex-col gap-4 px-5">
-    <div class="grid gap-2 md:grid-cols-2">
+    <div class="flex flex-col gap-2">
       {#each addedProviders as provider (provider.id)}
         <div class="flex items-center gap-0.5">
           <button

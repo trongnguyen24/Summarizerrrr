@@ -1,5 +1,6 @@
 import { registerModelCapability } from '@/lib/chat/providerCapabilities.js'
 import { persistDiscoveredCapabilities } from '@/lib/chat/modelCapabilityCache.js'
+import { isNonTextGeminiModel } from '@/lib/providers/geminiFreeTier.js'
 
 export const PROVIDER_CONFIG = {
   chatgpt: {
@@ -194,6 +195,9 @@ function normalizeModels(providerId, body) {
           model.baseModelId?.trim() || model.name?.replace(/^models\//, '').trim(),
       )
       .filter(Boolean)
+      // `generateContent` alone still lets TTS, image and Live-audio models
+      // through; this extension only ever sends text.
+      .filter((id) => !isNonTextGeminiModel(id))
       .filter((id, index, models) => models.indexOf(id) === index)
       .sort((a, b) => a.localeCompare(b))
   }

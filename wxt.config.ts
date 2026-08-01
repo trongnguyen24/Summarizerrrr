@@ -48,6 +48,7 @@ export default defineConfig({
           '*://api.anthropic.com/*',
           '*://openrouter.ai/*',
           '*://api.cerebras.ai/*',
+          '*://integrate.api.nvidia.com/*',
           '*://api.deepseek.com/*',
           '<all_urls>',
         ],
@@ -130,6 +131,7 @@ export default defineConfig({
           '*://api.anthropic.com/*',
           '*://openrouter.ai/*',
           '*://api.cerebras.ai/*',
+          '*://integrate.api.nvidia.com/*',
           '*://api.deepseek.com/*',
           '<all_urls>',
         ],
@@ -219,6 +221,7 @@ export default defineConfig({
           '*://api.anthropic.com/*',
           '*://openrouter.ai/*',
           '*://api.cerebras.ai/*',
+          '*://integrate.api.nvidia.com/*',
           '*://api.deepseek.com/*',
         ],
         action: {

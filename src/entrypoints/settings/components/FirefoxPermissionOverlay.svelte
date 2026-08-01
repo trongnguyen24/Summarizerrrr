@@ -6,16 +6,43 @@
     updateFirefoxPermission,
   } from '@/stores/settingsStore.svelte.js'
   import { requestSpecificPermission } from '@/services/firefoxPermissionService.js'
+  import { listGrantedSites } from '@/services/firefoxSitePermissionService.js'
   import { browser } from 'wxt/browser'
   import { isTouchDevice } from '@/lib/utils/browserDetection.js'
 
   let httpsPermission = $state(getFirefoxPermission('httpsPermission'))
+  let hasPerSiteGrants = $state(false)
   let isChecking = $state(false)
 
   // Sync with store
   $effect(() => {
     httpsPermission = getFirefoxPermission('httpsPermission')
   })
+
+  // Selected-sites-only users (Site Access tab) must not be nagged for
+  // <all_urls> just because they haven't granted every site.
+  async function refreshPerSiteGrants() {
+    const sites = await listGrantedSites()
+    hasPerSiteGrants = sites.length > 0
+  }
+
+  if (import.meta.env.BROWSER === 'firefox') {
+    $effect(() => {
+      refreshPerSiteGrants()
+
+      function handlePermissionChange() {
+        refreshPerSiteGrants()
+      }
+
+      browser.permissions.onAdded.addListener(handlePermissionChange)
+      browser.permissions.onRemoved.addListener(handlePermissionChange)
+
+      return () => {
+        browser.permissions.onAdded.removeListener(handlePermissionChange)
+        browser.permissions.onRemoved.removeListener(handlePermissionChange)
+      }
+    })
+  }
 
   async function grantPermission() {
     isChecking = true
@@ -45,7 +72,7 @@
   }
 </script>
 
-{#if import.meta.env.BROWSER === 'firefox' && !httpsPermission && isTouchDevice()}
+{#if import.meta.env.BROWSER === 'firefox' && !httpsPermission && !hasPerSiteGrants && isTouchDevice()}
   <div
     transition:fadeOnly
     class="absolute bottom-17.5 sm:bottom-0 left-0 right-0 z-[51] flex items-center justify-center pointer-events-none"

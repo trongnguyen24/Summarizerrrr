@@ -190,7 +190,7 @@
 
     <Select.Portal>
       <Select.Content
-        class="z-50 w-40 min-w-[var(--bits-select-anchor-width)] bg-surface-2 border border-border rounded-xl shadow-lg p-1 overflow-hidden outline-none"
+        class="z-50 w-40 min-w-[var(--bits-floating-anchor-width)] bg-surface-2 border border-border rounded-xl shadow-lg p-1 overflow-hidden outline-none"
         align="end"
         sideOffset={4}
         forceMount

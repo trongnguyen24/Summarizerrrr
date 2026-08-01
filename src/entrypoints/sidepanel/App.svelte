@@ -508,6 +508,31 @@
     {/await}
   </div>
 {/if}
+
+<!--
+  Firefox-only permission overlay, rendered by BOTH the legacy summary surface
+  and the chat surface — a missing host permission blocks extraction for both,
+  so both need the notice and the blocking overlay. Only one branch of the
+  `showLegacySummary` if/else mounts at a time, so this never renders twice.
+
+  Skipped while API-key setup is pending: without a key nothing works at all,
+  so ApiKeySetupPrompt takes precedence over the permission notice.
+-->
+{#snippet firefoxPermissionOverlay()}
+  {#if import.meta.env.BROWSER === 'firefox' && !needsApiKeySetup()()}
+    {#await import('@/entrypoints/sidepanel/components/PermissionWarningPrompt.svelte')}
+      <!-- Loading placeholder - có thể để trống hoặc thêm loading indicator nhỏ -->
+    {:then { default: PermissionWarningPrompt }}
+      <PermissionWarningPrompt
+        currentUrl={currentTabUrl}
+        onPermissionGranted={handlePermissionChange}
+      />
+    {:catch error}
+      <!-- Silent fail - log error nhưng không block UI -->
+    {/await}
+  {/if}
+{/snippet}
+
 {#if showLegacySummary}
 <div
   class="main-container flex min-w-[22.5rem] bg-surface-1 w-full flex-col"
@@ -517,7 +542,7 @@
     class="grid min-h-screen grid-rows-[36px_32px_10px_192px_10px_1fr]"
   >
     <div
-      class="flex sticky top-0 z-40 justify-center items-center w-screen h-full bg-surface-1"
+      class="flex sticky top-0 z-50 justify-center items-center w-screen h-full bg-surface-1"
     >
       <TabTitleBar {cachedTabsCount} />
       <div
@@ -537,7 +562,9 @@
     <div
       class="flex relative font-mono flex-col gap-1 justify-center items-center"
     >
-      <div class="size-6 absolute z-10 top-2 left-2 text-text-secondary">
+      <!-- z-50: phải nằm trên permission overlay (z-45) để user luôn mở được
+           archive / settings ngay cả khi panel đang bị che. -->
+      <div class="size-6 absolute z-50 top-2 left-2 text-text-secondary">
         <BitsTooltip.Provider>
           <Tooltip
             content={$t('archive.open_archive')}
@@ -558,7 +585,7 @@
           </Tooltip>
         </BitsTooltip.Provider>
       </div>
-      <div class="size-6 z-10 absolute top-2 right-4 text-text-secondary">
+      <div class="size-6 z-50 absolute top-2 right-4 text-text-secondary">
         <SettingButton />
       </div>
 
@@ -577,19 +604,7 @@
         {/if}
       </div>
 
-      <!-- NEW: Permission Warning Component for Firefox -->
-      {#if import.meta.env.BROWSER === 'firefox'}
-        {#await import('@/entrypoints/sidepanel/components/PermissionWarningPrompt.svelte')}
-          <!-- Loading placeholder - có thể để trống hoặc thêm loading indicator nhỏ -->
-        {:then { default: PermissionWarningPrompt }}
-          <PermissionWarningPrompt
-            currentUrl={currentTabUrl}
-            onPermissionGranted={handlePermissionChange}
-          />
-        {:catch error}
-          <!-- Silent fail - log error nhưng không block UI -->
-        {/await}
-      {/if}
+      {@render firefoxPermissionOverlay()}
     </div>
 
     <div
@@ -686,7 +701,9 @@
   data-per-tab="true"
 >
   <!-- `data-sticky-header`: ChatShell measures this to offset its submit scroll. -->
-  <div class="sticky top-0 z-40 bg-surface-1" data-sticky-header>
+  <!-- z-50: trên permission overlay (z-45) để ConversationMenu → Settings vẫn
+       mở được khi overlay đang che chat. -->
+  <div class="sticky top-0 z-50 bg-surface-1" data-sticky-header>
     <div
       class="relative flex h-9 shrink-0 items-center justify-center bg-surface-1"
     >
@@ -710,6 +727,8 @@
       <ChatShell />
     </div>
   {/if}
+
+  {@render firefoxPermissionOverlay()}
 </div>
 {/if}
 <Toaster />

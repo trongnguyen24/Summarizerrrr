@@ -125,6 +125,21 @@
         "pause_desc": "要約生成前に動画を一時停止"
       }
     },
+    "site_access": {
+      "title": "サイトアクセス",
+      "description": "Summarizerrrrがアクセスできるウェブサイトを制御します。",
+      "mode": {
+        "all_sites": "すべてのサイト",
+        "selected_only": "選択したサイトのみ",
+        "aria_label": "サイトアクセスモードを選択"
+      },
+      "domain_input_placeholder": "example.com",
+      "selected_helper": "Summarizerrrrは上記に記載されたサイトのデータにアクセスできます。",
+      "all_helper": "Summarizerrrrはすべてのウェブサイトのデータにアクセスできます。",
+      "invalid_domain": "有効なドメインを入力してください（例: example.com または *.example.com）。",
+      "already_added": "このドメインはすでに追加されています。",
+      "denied": "このサイトへの権限は拒否されました。"
+    },
     "ai_model": {
       "title": "AI設定",
       "mode": {

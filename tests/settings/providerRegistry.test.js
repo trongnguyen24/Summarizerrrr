@@ -58,6 +58,38 @@ describe('Provider Registry', () => {
     expect(getProvider('deepseek').modelInfoHref).toBe('https://api-docs.deepseek.com/quick_start/pricing')
     expect(getProvider('groq').modelInfoHref).toBe('https://console.groq.com/docs/models')
     expect(getProvider('cerebras').modelInfoHref).toBe('https://inference-docs.cerebras.ai/models/overview')
+    expect(getProvider('nvidia').modelInfoHref).toBe('https://build.nvidia.com/models')
+  })
+
+  it('nvidia routes through the openai-compatible adapter but keeps its own key/model fields', () => {
+    const nvidia = getProvider('nvidia')
+    expect(nvidia.apiKeyField).toBe('nvidiaApiKey')
+    expect(nvidia.legacyModelField).toBe('selectedNvidiaModel')
+    expect(nvidia.modelSource).toBe('discovery')
+    expect(nvidia.discoveryId).toBe('nvidia')
+    // NVIDIA model ids are vendor-namespaced (`vendor/model`).
+    expect(nvidia.defaultModel).toBe('deepseek-ai/deepseek-v4-flash')
+
+    const { providerId, settings: resolved } = resolveAdapterCall(
+      'nvidia',
+      'meta/llama-3.3-70b-instruct',
+      { nvidiaApiKey: 'nvapi-test' },
+    )
+    expect(providerId).toBe('nvidia')
+    expect(resolved.selectedNvidiaModel).toBe('meta/llama-3.3-70b-instruct')
+    // Must not leak into the shared openaiCompatible slots.
+    expect(resolved.openaiCompatibleApiKey).toBeUndefined()
+    expect(resolved.openaiCompatibleBaseUrl).toBeUndefined()
+  })
+
+  it('nvidia is configured once a key is present and appears in listConfiguredProviders', () => {
+    expect(isProviderConfigured('nvidia', { nvidiaApiKey: '' })).toBe(false)
+    expect(isProviderConfigured('nvidia', { nvidiaApiKey: '  ' })).toBe(false)
+    expect(isProviderConfigured('nvidia', { nvidiaApiKey: 'nvapi-abc' })).toBe(true)
+    expect(getApiKey('nvidia', { nvidiaApiKey: 'nvapi-abc' })).toBe('nvapi-abc')
+
+    const configured = listConfiguredProviders({ nvidiaApiKey: 'nvapi-abc' })
+    expect(configured.map((p) => p.id)).toContain('nvidia')
   })
 
   it('resolveAdapterCall returns correct adapter ID and overlay settings', () => {

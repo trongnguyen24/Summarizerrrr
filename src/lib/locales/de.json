@@ -125,6 +125,21 @@
         "pause_desc": "Video vor der Zusammenfassung pausieren"
       }
     },
+    "site_access": {
+      "title": "Website-Zugriff",
+      "description": "Legen Sie fest, auf welche Websites Summarizerrrr zugreifen darf.",
+      "mode": {
+        "all_sites": "Alle Websites",
+        "selected_only": "Nur ausgewählte Websites",
+        "aria_label": "Website-Zugriffsmodus auswählen"
+      },
+      "domain_input_placeholder": "example.com",
+      "selected_helper": "Summarizerrrr kann auf die oben aufgeführten Websites zugreifen.",
+      "all_helper": "Summarizerrrr kann auf alle Websites zugreifen.",
+      "invalid_domain": "Geben Sie eine gültige Domain ein, z. B. example.com oder *.example.com.",
+      "already_added": "Diese Domain wurde bereits hinzugefügt.",
+      "denied": "Die Berechtigung für diese Website wurde verweigert."
+    },
     "ai_model": {
       "title": "KI-Einstellungen",
       "mode": {

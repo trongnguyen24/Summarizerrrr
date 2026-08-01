@@ -22,6 +22,12 @@ import { createOllamaHandlers } from './handlers/ollamaHandlers.js'
 import { createStorageHandlers } from './handlers/storageHandlers.js'
 import { createExternalChatHandlers } from './handlers/externalChatHandlers.js'
 import { createNavigationHandlers } from './handlers/navigationHandlers.js'
+import {
+  ALL_URLS,
+  hasAllSitesAccess,
+  listGrantedSites,
+  domainToOriginPattern,
+} from '@/services/firefoxSitePermissionService.js'
 
 export async function injectScript(tabId, files) {
   if (!browser.scripting) return false
@@ -139,7 +145,18 @@ export default defineBackground(() => {
       }
     }
 
-    async function registerDynamicContentScript() {
+    // Recomputes which origins the dynamic FAB content script should match,
+    // from the current permission grants, and re-registers it accordingly.
+    // Per-site grants are invisible to a hardcoded `matches: ['<all_urls>']`
+    // registration, so this replaces that fixed value with a live one:
+    //   - all-sites access granted -> ['<all_urls>']
+    //   - else the per-site patterns from listGrantedSites()
+    //   - else [] -> unregister
+    // Always unregister before re-registering (rather than
+    // `updateContentScripts()`, which has been unreliable in Firefox for
+    // `matches` changes) — this also naturally covers the "not currently
+    // registered" state after a worker restart.
+    async function syncDynamicContentScripts() {
       try {
         const files = await getDynamicContentScriptFiles()
         if (!files) {
@@ -149,12 +166,18 @@ export default defineBackground(() => {
           return
         }
 
-        // Check if already registered
-        const existing = await browser.scripting.getRegisteredContentScripts({
-          ids: [DYNAMIC_SCRIPT_ID],
-        })
-        if (existing && existing.length > 0) {
-          console.log('[Background] Dynamic content script already registered')
+        let matches = []
+        if (await hasAllSitesAccess()) {
+          matches = [ALL_URLS]
+        } else {
+          const grantedSites = await listGrantedSites()
+          matches = grantedSites
+            .map((domain) => domainToOriginPattern(domain))
+            .filter(Boolean)
+        }
+
+        if (matches.length === 0) {
+          await unregisterDynamicContentScript()
           return
         }
 
@@ -167,23 +190,25 @@ export default defineBackground(() => {
           '*://*.wikipedia.org/*',
         ]
 
+        await unregisterDynamicContentScript()
         await browser.scripting.registerContentScripts([
           {
             id: DYNAMIC_SCRIPT_ID,
             js: files.js,
             css: files.css,
-            matches: ['<all_urls>'],
+            matches,
             excludeMatches: excludeMatches,
             runAt: 'document_end',
             persistAcrossSessions: true,
           },
         ])
         console.log(
-          '[Background] Dynamic content script registered for <all_urls>'
+          '[Background] Dynamic content script registered for matches:',
+          matches
         )
       } catch (error) {
         console.error(
-          '[Background] Failed to register dynamic content script:',
+          '[Background] Failed to sync dynamic content script:',
           error
         )
       }
@@ -200,33 +225,23 @@ export default defineBackground(() => {
       }
     }
 
-    // Listen for permission changes
+    // Listen for permission changes. Any origin change (not just
+    // <all_urls>/*://*/*) can add or remove a per-site grant, so the FAB
+    // registration must be recomputed whenever any origin is added/removed.
     browser.permissions.onAdded.addListener(async (permissions) => {
-      if (
-        permissions.origins &&
-        permissions.origins.some((o) => o === '<all_urls>' || o === '*://*/*')
-      ) {
-        await registerDynamicContentScript()
+      if (permissions.origins?.length) {
+        await syncDynamicContentScripts()
       }
     })
 
     browser.permissions.onRemoved.addListener(async (permissions) => {
-      if (
-        permissions.origins &&
-        permissions.origins.some((o) => o === '<all_urls>' || o === '*://*/*')
-      ) {
-        await unregisterDynamicContentScript()
+      if (permissions.origins?.length) {
+        await syncDynamicContentScripts()
       }
     })
 
     // Check on startup
-    browser.permissions
-      .contains({ origins: ['<all_urls>'] })
-      .then((hasPermission) => {
-        if (hasPermission) {
-          registerDynamicContentScript()
-        }
-      })
+    syncDynamicContentScripts()
   }
 
   // --- Initial Setup ---
@@ -317,14 +332,18 @@ export default defineBackground(() => {
     })
   }
 
-  // Subscribe to settings changes - this function returns a watcher (Chrome only)
-  if (import.meta.env.BROWSER === 'chrome') {
-    const unsubscribe = subscribeToSettingsChanges()
-    console.log(
-      '[Background] Settings change watcher setup:',
-      unsubscribe ? 'success' : 'failed'
-    )
-  }
+  // Subscribe to settings changes on every browser. This used to be gated to
+  // Chrome, which left the Firefox background holding whatever settings it read
+  // at start-up: MV2 background pages are persistent, so unlike Chrome's MV3
+  // worker they never restart and re-read. Since `updateSettings()` rewrites the
+  // *entire* settings object from in-memory state, any background write on a
+  // stale copy would silently revert every change made in the settings page
+  // since browser start.
+  const unsubscribe = subscribeToSettingsChanges()
+  console.log(
+    '[Background] Settings change watcher setup:',
+    unsubscribe ? 'success' : 'failed'
+  )
   ;(async () => {
     try {
       // Wait a bit for settings to be ready, then initialize Ollama if needed

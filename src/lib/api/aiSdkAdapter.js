@@ -169,6 +169,18 @@ export function getAISDKModel(providerId, settings) {
       })
       return cerebras(settings.selectedCerebrasModel || 'gpt-oss-120b')
 
+    case 'nvidia':
+      // NVIDIA NIM has no dedicated AI SDK package — it exposes an
+      // OpenAI-compatible surface at integrate.api.nvidia.com/v1.
+      const nvidia = createOpenAICompatible({
+        name: 'nvidia',
+        apiKey: settings.nvidiaApiKey,
+        baseURL: 'https://integrate.api.nvidia.com/v1',
+      })
+      return nvidia(
+        settings.selectedNvidiaModel || 'deepseek-ai/deepseek-v4-flash'
+      )
+
     default:
       throw new Error(`Unsupported provider: ${providerId}`)
   }
@@ -1004,6 +1016,8 @@ function getDisplayModelName(providerId, settings) {
       return settings.selectedLmStudioModel || 'lmstudio-community/gemma-2b-it-GGUF'
     case 'cerebras':
       return settings.selectedCerebrasModel || 'gpt-oss-120b'
+    case 'nvidia':
+      return settings.selectedNvidiaModel || 'deepseek-ai/deepseek-v4-flash'
     default:
       return providerId
   }

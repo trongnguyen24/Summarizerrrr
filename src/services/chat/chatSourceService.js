@@ -1,5 +1,6 @@
 import { browser } from 'wxt/browser'
 import { getPageContent } from '@/services/contentService.js'
+import { checkPermission } from '@/services/firefoxPermissionService.js'
 import { conversationRepository } from '@/lib/db/conversationRepository.js'
 import { fetchYouTubeComments, formatCommentsForAI } from '@/lib/utils/youtubeUtils.js'
 import { resolveAutoSourceKind, contentTypeForKind, SOURCE_KINDS } from './sourceResolution.js'
@@ -48,6 +49,8 @@ export function createChatSourceService({
   fetchCommentsFn = fetchYouTubeComments,
   formatCommentsFn = formatCommentsForAI,
   repository = conversationRepository,
+  checkPermissionFn = checkPermission,
+  isFirefox = () => import.meta.env.BROWSER === 'firefox',
 } = {}) {
   /** @type {Map<string, {sourceId: string, normalizedUrl: string}>} */
   const sourceIdsByTab = new Map()
@@ -67,6 +70,24 @@ export function createChatSourceService({
    * @returns {Promise<string>}
    */
   async function capturePageContent(tab, sourceKind) {
+    // Firefox site access can be revoked per-site from Settings → Site Access
+    // at any point after an @tab chip was added. getPageContent() swallows
+    // every executeScript rejection and falls through to an empty string, so
+    // without this check the user would be told the *page* had no readable
+    // content — blaming the site for a permission the extension simply no
+    // longer holds, with no hint of how to fix it.
+    if (isFirefox() && !(await checkPermissionFn(tab.url))) {
+      let host = tab.url
+      try {
+        host = new URL(tab.url).hostname
+      } catch {
+        // Keep the raw URL if it will not parse.
+      }
+      throw new Error(
+        `Summarizerrrr does not have permission to read ${host}. Open Settings → Site Access to allow it, then try again.`
+      )
+    }
+
     const contentType = contentTypeForKind(sourceKind)
     const extracted = await getPageContentFn({ tabId: tab.id, url: tab.url, contentType, preferredLang: 'en' })
     const content = String(extracted?.content || '').trim()

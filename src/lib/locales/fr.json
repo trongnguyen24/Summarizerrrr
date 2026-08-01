@@ -125,6 +125,21 @@
         "pause_desc": "Mettre en pause la vidéo avant de générer le résumé"
       }
     },
+    "site_access": {
+      "title": "Accès aux sites",
+      "description": "Contrôlez à quels sites web Summarizerrrr peut accéder.",
+      "mode": {
+        "all_sites": "Tous les sites",
+        "selected_only": "Sites sélectionnés uniquement",
+        "aria_label": "Sélectionner le mode d'accès aux sites"
+      },
+      "domain_input_placeholder": "example.com",
+      "selected_helper": "Summarizerrrr peut accéder aux données des sites listés ci-dessus.",
+      "all_helper": "Summarizerrrr peut accéder aux données de tous les sites web.",
+      "invalid_domain": "Saisissez un domaine valide, par ex. example.com ou *.example.com.",
+      "already_added": "Ce domaine a déjà été ajouté.",
+      "denied": "L'autorisation pour ce site a été refusée."
+    },
     "ai_model": {
       "title": "Modèle IA",
       "mode": {

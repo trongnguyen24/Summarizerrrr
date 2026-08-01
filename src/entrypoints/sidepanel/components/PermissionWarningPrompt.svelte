@@ -9,7 +9,6 @@
   import {
     updateFirefoxPermission,
     getFirefoxPermission,
-    getCachedPermission,
   } from '@/stores/settingsStore.svelte.js'
   import { browser } from 'wxt/browser'
 
@@ -78,56 +77,33 @@
       permissionCheckError = null
 
       try {
-        // Kiểm tra ngay nếu là educational sites (có host permissions)
-        const isEducationalSite =
-          currentUrl.includes('youtube.com') ||
-          currentUrl.includes('udemy.com') ||
-          currentUrl.includes('coursera.org')
+        // Always ask the API, never the settingsStore permission cache: that
+        // cache is keyed by the bare string 'httpsPermission' with no URL
+        // dimension, which was sound while getRequiredPermission() returned a
+        // global '<all_urls>' but is not now that the answer is per-site. A
+        // cached `false` from an ungranted site would otherwise cover the side
+        // panel with this warning on youtube.com (a static host permission),
+        // and a cached `true` would skip the prompt on an ungranted site and
+        // hand the user a silent extraction failure instead.
+        //
+        // checkPermission() already returns true immediately for sites covered
+        // by the manifest's static host_permissions (YouTube, Udemy, Coursera,
+        // Reddit, Wikipedia) via getRequiredPermission() returning null - no
+        // separate hardcoded site list needed here.
+        console.log(
+          '[PermissionWarningPrompt] Checking Firefox permission for:',
+          currentUrl,
+        )
+        const permission = await checkPermission(currentUrl)
+        console.log('[PermissionWarningPrompt] Permission result:', permission)
 
-        if (isEducationalSite) {
-          // Educational sites có host permissions - ngay lập tức set true
-          await updateFirefoxPermission('httpsPermission', true)
-          showWarning = false
-          if (onPermissionGranted) {
-            onPermissionGranted(true)
-          }
-        } else {
-          // Check cache first
-          const permissionKey = 'httpsPermission'
-          const cached = getCachedPermission(permissionKey)
+        // Update store with result
+        await updateFirefoxPermission('httpsPermission', permission)
+        showWarning = !permission
 
-          if (cached) {
-            console.log(
-              '[PermissionWarningPrompt] Using cached permission:',
-              cached.value,
-            )
-            await updateFirefoxPermission(permissionKey, cached.value)
-            showWarning = !cached.value
-
-            if (cached.value && onPermissionGranted) {
-              onPermissionGranted(true)
-            }
-          } else {
-            // Check actual permission for general sites
-            console.log(
-              '[PermissionWarningPrompt] Checking Firefox permission for:',
-              currentUrl,
-            )
-            const permission = await checkPermission(currentUrl)
-            console.log(
-              '[PermissionWarningPrompt] Permission result:',
-              permission,
-            )
-
-            // Update store with result
-            await updateFirefoxPermission(permissionKey, permission)
-            showWarning = !permission
-
-            // Notify parent component về permission status
-            if (permission && onPermissionGranted) {
-              onPermissionGranted(true)
-            }
-          }
+        // Notify parent component về permission status
+        if (permission && onPermissionGranted) {
+          onPermissionGranted(true)
         }
       } catch (error) {
         console.error(
@@ -230,11 +206,24 @@
   })
 </script>
 
-<!-- Warning banner khi cần permission - chỉ cho Reddit và general websites -->
-<!-- YouTube, Udemy, Coursera đã có host_permissions nên không bao giờ hiển thị warning -->
+<!-- Overlay khi thiếu permission cho site hiện tại. Sites đã có
+     host_permissions tĩnh (YouTube, Udemy, Coursera, Reddit, Wikipedia) không
+     bao giờ hiển thị vì checkPermission() trả true ngay.
+
+     `fixed inset-0` + z-[45]: phải che toàn bộ panel, không chỉ khối nút.
+     Thang z của sidepanel, giữ đúng thứ tự này khi thêm layer mới:
+       ≤ 40  content (ChatEmptyState z-40, composer z-30, summary content z-10)
+         45  overlay này
+         50  chrome luôn phải bấm được (sticky header 2 surface, nút
+             archive/settings) - đó là đường duy nhất vào Settings → Site
+             Access khi panel đang bị che, cần cho cả trang mà Firefox không
+             bao giờ cấp quyền (restricted domain như addons.mozilla.org).
+       ≥ 50  onboarding / Noti.
+     Đừng đặt content ở z-45+ nữa: ChatEmptyState từng ở z-40 ngang sticky
+     header nên overlay không có khe nào để chen vào giữa. -->
 {#if showWarning && !isCheckingPermission}
   <div
-    class="p-4 min-w-90 w-full h-[calc(100%-2.5rem)] absolute items-center justify-center flex left-1/2 top-10 -translate-x-1/2 bg-surface-1 z-[10]"
+    class="fixed inset-0 z-[45] flex items-center justify-center bg-surface-1 p-4"
   >
     <div class="flex gap-1 justify-center flex-col space-y-3">
       <p class="text-xs text-balance !text-center text-text-secondary mt-4">

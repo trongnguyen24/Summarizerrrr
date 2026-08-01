@@ -125,6 +125,21 @@
         "pause_desc": "Tạm dừng video trước khi tóm tắt"
       }
     },
+    "site_access": {
+      "title": "Quyền truy cập trang web",
+      "description": "Kiểm soát trang web mà Summarizerrrr được phép truy cập.",
+      "mode": {
+        "all_sites": "Tất cả trang web",
+        "selected_only": "Chỉ trang web đã chọn",
+        "aria_label": "Chọn chế độ quyền truy cập trang web"
+      },
+      "domain_input_placeholder": "example.com",
+      "selected_helper": "Summarizerrrr có thể truy cập dữ liệu trên các trang web liệt kê ở trên.",
+      "all_helper": "Summarizerrrr có thể truy cập dữ liệu trên tất cả trang web.",
+      "invalid_domain": "Nhập tên miền hợp lệ, ví dụ: example.com hoặc *.example.com.",
+      "already_added": "Tên miền này đã được thêm.",
+      "denied": "Quyền truy cập trang web này đã bị từ chối."
+    },
     "ai_model": {
       "title": "Nhà cung cấp",
       "mode": {
@@ -173,7 +188,7 @@
         "witty": "Xéo xắt",
         "witty_desc": "Hài hước, mỉa mai nhẹ nhàng."
       },
-      "language_output": "Ngôn ngữ tóm tắt",
+      "language_output": "Ngôn ngữ đầu ra",
       "custom_prompts": {
         "title": "Prompt tùy chỉnh",
         "editor_button": "Trình sửa Prompt",

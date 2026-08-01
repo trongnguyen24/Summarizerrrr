@@ -11,6 +11,7 @@ const VALID_TABS = [
   'chat',
   'appearance',
   'fab',
+  ...(import.meta.env.BROWSER === 'firefox' ? ['site-access'] : []),
   'data-sync',
   'whats-new',
   'about',

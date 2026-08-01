@@ -49,6 +49,52 @@ describe('provider model discovery', () => {
     )
   })
 
+  it('loads NVIDIA models without an API key and drops non-chat entries', async () => {
+    const fetchFn = vi.fn().mockResolvedValue(
+      jsonResponse({
+        object: 'list',
+        data: [
+          { id: 'meta/llama-3.3-70b-instruct' },
+          { id: 'deepseek-ai/deepseek-v4-flash' },
+          // Non-chat modalities sharing the same catalog endpoint:
+          { id: 'nvidia/nv-embedqa-e5-v5' },
+          { id: 'baai/bge-m3' },
+          { id: 'nvidia/llama-3.2-nemoretriever-1b-vlm-embed-v1' },
+          { id: 'meta/llama-guard-4-12b' },
+          { id: 'nvidia/nemotron-3.5-content-safety' },
+          { id: 'nvidia/nemotron-4-340b-reward' },
+          { id: 'nvidia/nemotron-parse' },
+          { id: 'nvidia/nvclip' },
+          { id: 'nvidia/vila' },
+          { id: 'adept/fuyu-8b' },
+          { id: 'nvidia/riva-translate-4b-instruct' },
+          { id: 'nvidia/ai-synthetic-video-detector' },
+        ],
+      }),
+    )
+
+    await expect(fetchProviderModels('nvidia', '', fetchFn)).resolves.toEqual([
+      'deepseek-ai/deepseek-v4-flash',
+      'meta/llama-3.3-70b-instruct',
+    ])
+    expect(fetchFn).toHaveBeenCalledWith(
+      'https://integrate.api.nvidia.com/v1/models',
+      expect.objectContaining({ method: 'GET' }),
+    )
+    // Keyless discovery must not send an Authorization header.
+    expect(fetchFn.mock.calls[0][1].headers).toBeUndefined()
+  })
+
+  it('falls back to the static NVIDIA list when discovery yields no chat models', async () => {
+    const fetchFn = vi.fn().mockResolvedValue(
+      jsonResponse({ data: [{ id: 'nvidia/nv-embedqa-e5-v5' }] }),
+    )
+
+    await expect(fetchProviderModels('nvidia', '', fetchFn)).resolves.toEqual(
+      FALLBACK_PROVIDER_MODELS.nvidia,
+    )
+  })
+
   it('loads OpenRouter models dynamically without requiring an API key', async () => {
     const fetchFn = vi.fn().mockResolvedValue(
       jsonResponse({

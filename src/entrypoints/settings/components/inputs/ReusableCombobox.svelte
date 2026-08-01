@@ -114,7 +114,7 @@
 
   <Combobox.Portal>
     <Combobox.Content
-      class="focus-override text-text-primary bg-surface-2 outline-hidden z-50 max-h-[var(--bits-combobox-content-available-height)] w-[var(--bits-combobox-anchor-width)] min-w-[var(--bits-combobox-anchor-width)] select-none border border-border  shadow-popover"
+      class="focus-override text-text-primary bg-surface-2 outline-hidden z-50 flex flex-col overflow-hidden max-h-[var(--bits-floating-available-height)] w-[var(--bits-floating-anchor-width)] min-w-[var(--bits-floating-anchor-width)] select-none border border-border  shadow-popover"
       sideOffset={4}
       forceMount
     >

@@ -125,6 +125,21 @@
         "pause_desc": "Pause video before generating summary"
       }
     },
+    "site_access": {
+      "title": "Site Access",
+      "description": "Control which websites Summarizerrrr can access.",
+      "mode": {
+        "all_sites": "All sites",
+        "selected_only": "Selected sites only",
+        "aria_label": "Select site access mode"
+      },
+      "domain_input_placeholder": "example.com",
+      "selected_helper": "Summarizerrrr can access data on the sites listed above.",
+      "all_helper": "Summarizerrrr can access data on all websites.",
+      "invalid_domain": "Enter a valid domain, e.g. example.com or *.example.com.",
+      "already_added": "This domain has already been added.",
+      "denied": "Permission for this site was denied."
+    },
     "ai_model": {
       "title": "Provider",
       "mode": {

@@ -125,6 +125,21 @@
         "pause_desc": "요약 생성 전 동영상 일시 정지"
       }
     },
+    "site_access": {
+      "title": "사이트 접근 권한",
+      "description": "Summarizerrrr가 접근할 수 있는 웹사이트를 제어합니다.",
+      "mode": {
+        "all_sites": "모든 사이트",
+        "selected_only": "선택한 사이트만",
+        "aria_label": "사이트 접근 모드 선택"
+      },
+      "domain_input_placeholder": "example.com",
+      "selected_helper": "Summarizerrrr는 위에 나열된 사이트의 데이터에 접근할 수 있습니다.",
+      "all_helper": "Summarizerrrr는 모든 웹사이트의 데이터에 접근할 수 있습니다.",
+      "invalid_domain": "유효한 도메인을 입력하세요. 예: example.com 또는 *.example.com.",
+      "already_added": "이 도메인은 이미 추가되었습니다.",
+      "denied": "이 사이트에 대한 권한이 거부되었습니다."
+    },
     "ai_model": {
       "title": "제공자",
       "mode": {

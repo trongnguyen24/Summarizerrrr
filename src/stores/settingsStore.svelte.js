@@ -50,6 +50,8 @@ const DEFAULT_SETTINGS = {
   selectedGroqModel: 'llama-3.3-70b-versatile',
   cerebrasApiKey: '',
   selectedCerebrasModel: 'gpt-oss-120b',
+  nvidiaApiKey: '',
+  selectedNvidiaModel: 'deepseek-ai/deepseek-v4-flash',
   selectedFont: 'default',
   uiLang: 'en',
   mobileSheetHeight: 80, // Chiều cao MobileSheet (40-100 svh)
@@ -790,6 +792,11 @@ export async function loadSettings() {
       console.error('[settingsStore] Error loading settings:', error)
       Object.assign(settings, DEFAULT_SETTINGS) // Fallback to defaults
     }
+
+    // Resolve to the live store object. Without this the promise resolved to
+    // `undefined`, which silently disabled every `await loadSettings()` caller
+    // that checked the result (see background/settingsBootstrap.js).
+    return settings
   })()
 
   return _isInitializedPromise
@@ -818,7 +825,15 @@ export async function updateSettings(newSettings, options = {}) {
     newSettings = applyFeatureModelMirrors(newSettings)
   }
 
+  // `isFullIngress` runs the payload through normalizeStoredSettings, whose
+  // migration steps treat every *absent* key as "never migrated" and re-seed it
+  // from defaults. That is only correct for a COMPLETE settings object (cloud
+  // sync ingress); handing it a partial patch silently resets addedProviders,
+  // openaiCompatibleProfiles and the summarize/chat blocks.
   const isFullIngress = options.isFullIngress === true
+  // Suppressing the sync round-trip is a separate concern from full ingress —
+  // internal caching writes need the former without the latter.
+  const skipSync = options.skipSync === true || _isSyncingFromCloud
 
   // ✅ FIX: Sanitize input hoặc normalizeStoredSettings nếu là full ingress
   const cleanNewSettings = isFullIngress
@@ -868,7 +883,7 @@ export async function updateSettings(newSettings, options = {}) {
     await settingsStorage.setValue(JSON.parse(JSON.stringify(updatedSettings)))
     
     // Trigger cloud sync after settings change (unless syncing from cloud)
-    if (!_isSyncingFromCloud) {
+    if (!skipSync) {
       console.log('[settingsStore] Triggering cloud sync after settings change...')
       try {
         const { triggerSync } = await import(
@@ -991,8 +1006,13 @@ export async function updateFirefoxPermission(permissionKey, value) {
     timestamp: Date.now(),
   })
 
-  // Use updateSettingsFromCloud to avoid triggering sync - this is internal caching, not user-initiated change
-  await updateSettingsFromCloud({ firefoxPermissions: newPermissions })
+  // Skip the sync round-trip (this is internal caching, not a user-initiated
+  // change) but stay on the normal *patch* path. Routing this one-key payload
+  // through updateSettingsFromCloud marked it as full ingress, which re-seeded
+  // addedProviders to ['gemini'] and cleared openaiCompatibleProfiles every
+  // time a permission was checked — Firefox-only, since this is the only
+  // caller of that path outside real cloud sync.
+  await updateSettings({ firefoxPermissions: newPermissions }, { skipSync: true })
 }
 
 /**

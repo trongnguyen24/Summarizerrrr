@@ -17,12 +17,14 @@
   import SummarySettings from '@/entrypoints/settings/components/SummarySettings.svelte'
   import ChatSettings from '@/entrypoints/settings/components/ChatSettings.svelte'
   import FABSettings from '@/entrypoints/settings/components/FABSettings.svelte'
+  import SitePermissionsSettings from '@/entrypoints/settings/components/SitePermissionsSettings.svelte'
   import AboutSettings from '@/entrypoints/settings/components/AboutSettings.svelte'
   import ReleaseNote from '@/entrypoints/settings/components/ReleaseNote.svelte'
   import { getTabFromURL, updateTabInURL } from '@/lib/utils/urlUtils.js'
 
   let activeTab = $state(getTabFromURL()) // Initialize tab from URL
   let scrollContainerEl // Reference to the scroll container element
+  let navScrollEl // Reference to the sidebar/tab-bar scroll container
 
   const mainTabs = [
     {
@@ -55,6 +57,16 @@
       iconSolid: 'heroicons:cursor-arrow-rays-solid',
       iconOutline: 'heroicons:cursor-arrow-rays',
     },
+    ...(import.meta.env.BROWSER === 'firefox'
+      ? [
+          {
+            id: 'site-access',
+            label: 'Site Access',
+            iconSolid: 'heroicons:shield-check-solid',
+            iconOutline: 'heroicons:shield-check',
+          },
+        ]
+      : []),
     {
       id: 'deep-dive',
       label: 'Deep Dive',
@@ -116,6 +128,19 @@
   }
   const [initialize, instance] = useOverlayScrollbars({ options, defer: true })
 
+  // Sidebar menu (desktop) / tab bar (mobile) gets its own overlay scrollbar
+  const navOptions = {
+    scrollbars: {
+      theme: 'os-theme-custom-app',
+      autoHide: 'leave',
+      autoHideDelay: 500,
+    },
+  }
+  const [initializeNav, navInstance] = useOverlayScrollbars({
+    options: navOptions,
+    defer: true,
+  })
+
   // Utility function to detect touch devices
   function isTouchDevice() {
     return (
@@ -129,8 +154,18 @@
   $effect(() => {
     const tocElement = document.getElementById('setting-scroll')
     const isDesktop = window.matchMedia('(min-width: 640px)').matches
-    if (tocElement && !isTouchDevice() && !isDesktop) {
+    const touch = isTouchDevice()
+    if (tocElement && !touch && !isDesktop) {
       initialize(tocElement)
+    }
+    // The nav scroller exists on both breakpoints (vertical sidebar / horizontal tab bar)
+    if (navScrollEl && !touch) {
+      initializeNav(navScrollEl)
+    }
+
+    return () => {
+      instance()?.destroy()
+      navInstance()?.destroy()
     }
   })
 
@@ -153,6 +188,8 @@
     'heroicons:swatch',
     'heroicons:cursor-arrow-rays-solid',
     'heroicons:cursor-arrow-rays',
+    'heroicons:shield-check-solid',
+    'heroicons:shield-check',
     'heroicons:light-bulb-solid',
     'heroicons:light-bulb',
     'heroicons:document-duplicate-solid',
@@ -200,41 +237,46 @@
       <p class="font-bold text-center">{$t('settings.title')}</p>
     </div>
 
-    <!-- Navigation container -->
+    <!-- Navigation container (OverlayScrollbars host) -->
     <div
-      class="flex flex-row sm:flex-col w-full sm:h-full sm:min-h-0 items-center sm:items-stretch p-3 gap-0.5 relative overflow-x-auto sm:overflow-x-visible sm:overflow-y-auto no-scrollbar"
+      bind:this={navScrollEl}
+      class="w-full sm:h-full sm:min-h-0 relative overflow-x-auto sm:overflow-x-hidden sm:overflow-y-auto"
     >
-      {#snippet tabButton(tab)}
-        <button
-          data-tab={tab.id}
-          class="setting-tab-button relative rounded-md flex flex-col sm:flex-row w-16 sm:w-full py-2 px-3 items-center sm:justify-start justify-center gap-1 sm:gap-3 flex-shrink-0 cursor-pointer transition-colors duration-200 hover:duration-75 {activeTab ===
-          tab.id
-            ? 'text-text-primary bg-neutral-100 hover:bg-white/60 dark:hover:bg-white/10 dark:bg-surface-2 active'
-            : 'text-text-secondary hover:text-text-primary hover:bg-surface-1 dark:hover:bg-surface-2'}"
-          onclick={() => switchTab(tab.id)}
-        >
-          <div class="size-5 flex-shrink-0 flex items-center justify-center">
-            {#if activeTab === tab.id}
-              <Icon icon={tab.iconSolid} width="20" height="20" />
-            {:else}
-              <Icon icon={tab.iconOutline} width="20" height="20" />
-            {/if}
-          </div>
-          <span class="text-center text-xs sm:text-left">{tab.label}</span>
-        </button>
-      {/snippet}
+      <div
+        class="flex flex-row sm:flex-col w-full sm:min-h-full items-center sm:items-stretch p-3 gap-0.5"
+      >
+        {#snippet tabButton(tab)}
+          <button
+            data-tab={tab.id}
+            class="setting-tab-button relative rounded-md flex flex-col sm:flex-row w-16 sm:w-full py-2 px-3 items-center sm:justify-start justify-center gap-1 sm:gap-3 flex-shrink-0 cursor-pointer transition-colors duration-200 hover:duration-75 {activeTab ===
+            tab.id
+              ? 'text-text-primary bg-neutral-100 hover:bg-white/60 dark:hover:bg-white/10 dark:bg-surface-2 active'
+              : 'text-text-secondary hover:text-text-primary hover:bg-surface-1 dark:hover:bg-surface-2'}"
+            onclick={() => switchTab(tab.id)}
+          >
+            <div class="size-5 flex-shrink-0 flex items-center justify-center">
+              {#if activeTab === tab.id}
+                <Icon icon={tab.iconSolid} width="20" height="20" />
+              {:else}
+                <Icon icon={tab.iconOutline} width="20" height="20" />
+              {/if}
+            </div>
+            <span class="text-center text-xs sm:text-left">{tab.label}</span>
+          </button>
+        {/snippet}
 
-      {#each mainTabs as tab}
-        {@render tabButton(tab)}
-      {/each}
+        {#each mainTabs as tab}
+          {@render tabButton(tab)}
+        {/each}
 
-      <!-- Spacer to push footer to bottom (desktop only) -->
-      <div class="hidden sm:block sm:flex-grow"></div>
+        <!-- Spacer to push footer to bottom (desktop only) -->
+        <div class="hidden sm:block sm:flex-grow"></div>
 
-      <!-- Footer Group (What's New, About) -->
-      {#each footerTabs as tab}
-        {@render tabButton(tab)}
-      {/each}
+        <!-- Footer Group (What's New, About) -->
+        {#each footerTabs as tab}
+          {@render tabButton(tab)}
+        {/each}
+      </div>
     </div>
   </div>
 
@@ -255,6 +297,8 @@
         <AppearanceSettings />
       {:else if activeTab === 'fab'}
         <FABSettings />
+      {:else if import.meta.env.BROWSER === 'firefox' && activeTab === 'site-access'}
+        <SitePermissionsSettings />
       {:else if activeTab === 'deep-dive'}
         <div class="px-5"><DeepDiveToolSettings /></div>
       {:else if activeTab === 'data-sync'}

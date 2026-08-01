@@ -35,6 +35,8 @@ export const VALID_SETTING_KEYS = [
   'selectedGroqModel',
   'cerebrasApiKey',
   'selectedCerebrasModel',
+  'nvidiaApiKey',
+  'selectedNvidiaModel',
   'addedProviders',
   'openaiCompatibleProfiles',
 

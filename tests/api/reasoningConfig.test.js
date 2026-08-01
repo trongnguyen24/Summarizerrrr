@@ -121,6 +121,12 @@ describe('getChatReasoningOptions', () => {
     expect(options[0].value).toBe('provider-default')
   })
 
+  it('returns Auto-only for nvidia (thinking is per-model on NIM)', () => {
+    const options = getChatReasoningOptions('nvidia')
+    expect(options).toHaveLength(1)
+    expect(options[0].value).toBe('provider-default')
+  })
+
   it('returns Auto-only for dynamic openai-compatible profile ids', () => {
     const options = getChatReasoningOptions('openai-compatible-abc-123')
     expect(options).toHaveLength(1)
@@ -353,6 +359,14 @@ describe('buildReasoningRequestOptions', () => {
     it('returns {} for lmstudio regardless of level', () => {
       expect(buildReasoningRequestOptions('lmstudio', 'high')).toEqual({})
       expect(buildReasoningRequestOptions('lmstudio', 'off')).toEqual({})
+    })
+
+    it('returns {} for nvidia regardless of level', () => {
+      // NIM would 400 on a portable `reasoning`/`reasoningEffort` for most of
+      // its ~70-model catalog, so nothing must be sent.
+      expect(buildReasoningRequestOptions('nvidia', 'high')).toEqual({})
+      expect(buildReasoningRequestOptions('nvidia', 'provider-default')).toEqual({})
+      expect(buildReasoningRequestOptions('nvidia', 'off')).toEqual({})
     })
 
     it('returns {} for unknown providers', () => {

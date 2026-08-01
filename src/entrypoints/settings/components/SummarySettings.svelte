@@ -5,7 +5,6 @@
   import { t } from 'svelte-i18n'
   import Icon from '@iconify/svelte'
   import ButtonSet from '@/components/buttons/ButtonSet.svelte'
-  import LanguageSelect from '@/components/inputs/LanguageSelect.svelte'
   import SwitchButton from '@/entrypoints/settings/components/inputs/Switch.svelte'
   import {
     settings,
@@ -98,18 +97,6 @@
         bind:provider={settings.summarize.provider}
         bind:model={settings.summarize.model}
         onchange={(p, m) => updateFeatureSettings('summarize', { provider: p, model: m })}
-      />
-    </div>
-
-    <!-- Summary Language Section -->
-    <div class="flex flex-col gap-2">
-      <!-- svelte-ignore a11y_label_has_associated_control -->
-      <label class="block text-text-secondary"
-        >{$t('settings.summary.language_output')}</label
-      >
-      <LanguageSelect
-        bind:value={settings.summaryLang}
-        onchange={(event) => handleUpdateSetting('summaryLang', event.detail)}
       />
     </div>
 

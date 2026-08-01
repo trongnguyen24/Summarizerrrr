@@ -603,6 +603,40 @@ describe('Model-routing contract (Phase 1 lock)', () => {
     )
   })
 
+  it('resolveAdapterCall for nvidia builds an OpenAI-compatible client on the NIM base URL', async () => {
+    const explicitModel = 'meta/llama-3.3-70b-instruct'
+    const { providerId: adapterId, settings: resolved } = resolveAdapterCall(
+      'nvidia',
+      explicitModel,
+      { ...settings, nvidiaApiKey: 'nvapi-key-test' }
+    )
+
+    expect(adapterId).toBe('nvidia')
+    expect(resolved.selectedNvidiaModel).toBe(explicitModel)
+
+    const nvidiaModel = { modelId: explicitModel }
+    const nvidiaFactory = vi.fn(() => nvidiaModel)
+    mocks.createOpenAICompatible.mockReturnValue(nvidiaFactory)
+
+    await generateContentRequest({
+      providerId: adapterId,
+      settings: resolved,
+      prompt: 'test nvidia model routing',
+    })
+
+    expect(mocks.createOpenAICompatible).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'nvidia',
+        apiKey: 'nvapi-key-test',
+        baseURL: 'https://integrate.api.nvidia.com/v1',
+      })
+    )
+    expect(nvidiaFactory).toHaveBeenCalledWith(explicitModel)
+    expect(mocks.generateText).toHaveBeenCalledWith(
+      expect.objectContaining({ model: nvidiaModel })
+    )
+  })
+
   it('explicit model via resolveAdapterCall reaches streamText in the streaming path', async () => {
     const explicitModel = 'gemini-2.5-pro-preview'
     const { providerId: adapterId, settings: resolved } = resolveAdapterCall(

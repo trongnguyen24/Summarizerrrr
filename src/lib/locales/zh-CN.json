@@ -50,6 +50,21 @@
         "disabled_desc": "动画已启用（默认）"
       }
     },
+    "site_access": {
+      "title": "网站访问权限",
+      "description": "控制 Summarizerrrr 可以访问哪些网站。",
+      "mode": {
+        "all_sites": "所有网站",
+        "selected_only": "仅选定的网站",
+        "aria_label": "选择网站访问模式"
+      },
+      "domain_input_placeholder": "example.com",
+      "selected_helper": "Summarizerrrr 可以访问上方列出的网站的数据。",
+      "all_helper": "Summarizerrrr 可以访问所有网站的数据。",
+      "invalid_domain": "请输入有效的域名，例如 example.com 或 *.example.com。",
+      "already_added": "该域名已添加。",
+      "denied": "该网站的权限请求已被拒绝。"
+    },
     "ai_model": {
       "title": "AI 模型",
       "mode": {

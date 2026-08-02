@@ -223,12 +223,7 @@
             {/if}
             <span class="shrink-0 tabular-nums text-text-tertiary">
               {#if source.estimating}
-                <Icon
-                  icon="solar:loader-2-bold"
-                  width="12"
-                  height="12"
-                  class="animate-spin"
-                />
+                <Icon icon="svg-spinners:ring-resize" width="12" height="12" />
               {:else if source.tokens != null}
                 ~{formatK(source.tokens)}
               {:else}
@@ -285,10 +280,10 @@
         </span>
         {#if sources[0].estimating}
           <Icon
-            icon="solar:loader-2-bold"
+            icon="svg-spinners:ring-resize"
             width="12"
             height="12"
-            class="shrink-0 animate-spin text-text-tertiary"
+            class="shrink-0 text-text-tertiary"
             data-testid="context-bar-estimating"
           />
         {:else if sources[0].tokens != null}

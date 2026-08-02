@@ -5,6 +5,7 @@ import { loadSettings, settings } from '@/stores/settingsStore.svelte.js'
 import { subscribeToLocaleChanges } from '@/stores/i18nShadowStore.svelte.js'
 import { shouldShowFab } from '@/services/fabPermissionService.js'
 import '@/lib/i18n/i18n.js' // Ensure locales are registered
+import '@/lib/icons/registerIcons.js' // Register bundled icon data (no runtime fetch)
 
 import cssContent from './styles/floating-ui.css?inline'
 import App from './App.svelte'

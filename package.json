@@ -18,6 +18,7 @@
     "zip:firefox": "wxt zip -b firefox",
     "zip:safari": "wxt zip -b safari",
     "check": "svelte-check --tsconfig ./tsconfig.json",
+    "icons:sync": "node build/icons/iconBundlePlugin.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
     "postinstall": "wxt prepare",

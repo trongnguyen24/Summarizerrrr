@@ -1,6 +1,6 @@
 <script>
   // @ts-nocheck
-  import Icon, { loadIcons } from '@iconify/svelte'
+  import Icon from '@iconify/svelte'
   import ToolIcon96 from '@/entrypoints/settings/components/ui/ToolIcon96.svelte'
   import ToolEnableToggle from '@/entrypoints/settings/components/inputs/ToolEnableToggle.svelte'
   import EnableToggle from '@/entrypoints/settings/components/inputs/EnableToggle.svelte'
@@ -30,21 +30,6 @@
   import ApiKeyInput from '@/entrypoints/settings/components/inputs/ApiKeyInput.svelte'
   import { Dialog } from 'bits-ui'
   import { slideScaleFade, fadeOnly } from '@/lib/utils/slideScaleFade.js'
-
-  // Load icons
-  loadIcons([
-    'logos:google-icon',
-    'heroicons:cloud-arrow-up',
-    'heroicons:cloud-arrow-down',
-    'heroicons:arrow-path',
-    'heroicons:check-circle',
-    'heroicons:exclamation-circle',
-    'heroicons:exclamation-triangle',
-    'heroicons:arrow-right-on-rectangle',
-    'heroicons:shield-check',
-    'heroicons:key',
-    'heroicons:cog-6-tooth',
-  ])
 
   // Cloud Sync enabled state
   let cloudSyncEnabled = $derived.by(

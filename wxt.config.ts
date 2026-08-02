@@ -1,10 +1,11 @@
 import { defineConfig } from 'wxt'
 import tailwindcss from '@tailwindcss/vite'
+import { iconBundlePlugin } from './build/icons/iconBundlePlugin.mjs'
 
 // See https://wxt.dev/api/config.html
 export default defineConfig({
   vite: () => ({
-    plugins: [tailwindcss()],
+    plugins: [tailwindcss(), iconBundlePlugin()],
     optimizeDeps: {
       exclude: ['@wxt-dev/module-svelte'],
     },

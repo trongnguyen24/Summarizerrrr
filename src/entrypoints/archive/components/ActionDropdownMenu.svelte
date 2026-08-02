@@ -1,12 +1,9 @@
 <script>
   // @ts-nocheck
   import { DropdownMenu } from 'bits-ui'
-  import Icon, { loadIcons } from '@iconify/svelte'
+  import Icon from '@iconify/svelte'
   import { slideScaleFade } from '@/lib/utils/slideScaleFade.js'
   import { t } from 'svelte-i18n'
-
-  // Load icons for archive states
-  loadIcons(['heroicons:archive-box', 'heroicons:archive-box-solid'])
 
   // Props từ component cha
   let {

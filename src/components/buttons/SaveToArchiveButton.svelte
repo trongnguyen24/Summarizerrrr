@@ -5,7 +5,7 @@
     saveAllGeneratedSummariesToArchive,
   } from '@/stores/summaryStore.svelte.js'
   import { t } from 'svelte-i18n'
-  import Icon, { loadIcons } from '@iconify/svelte'
+  import Icon from '@iconify/svelte'
   import { slideScaleFade } from '@/lib/utils/slideScaleFade.js'
   import HoverTooltip from '@/components/ui/HoverTooltip.svelte'
 
@@ -13,7 +13,6 @@
     if (summaryState.isArchived) return
     await saveAllGeneratedSummariesToArchive()
   }
-  loadIcons(['heroicons:archive-box', 'heroicons:archive-box-solid'])
 </script>
 
 <HoverTooltip

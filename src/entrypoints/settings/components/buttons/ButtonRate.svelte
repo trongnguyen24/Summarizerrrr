@@ -1,7 +1,7 @@
 <!-- @ts-nocheck -->
 <script>
   import { onMount } from 'svelte'
-  import Icon, { loadIcons } from '@iconify/svelte'
+  import Icon from '@iconify/svelte'
   import { DropdownMenu } from 'bits-ui'
   import {
     createTimer,

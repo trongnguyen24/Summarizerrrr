@@ -236,10 +236,10 @@
         class="flex w-fit mx-auto items-center gap-2 px-3 py-1.5 bg-blackwhite/5 text-text-primary rounded-2xl text-xs font-medium hover:bg-blackwhite/15 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
       >
         {#if isRequestingPermission}
-          <Icon icon="solar:loader-2-bold" class="w-3 h-3 animate-spin" />
+          <Icon icon="svg-spinners:ring-resize" width="12" height="12" />
           <span>{$t('permissionWarning.requesting')}</span>
         {:else}
-          <Icon icon="solar:shield-check-bold" class="w-3 h-3" />
+          <Icon icon="solar:shield-check-bold" width="12" height="12" />
           <span>{$t('permissionWarning.grant_permissions')}</span>
         {/if}
       </button>

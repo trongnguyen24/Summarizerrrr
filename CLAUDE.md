@@ -199,6 +199,18 @@ No `.svelte` file components use these stores directly in templates; instead, th
 - Configures permissions, content scripts, commands, icons
 - Tailwind CSS integrated via `@tailwindcss/vite`
 - Svelte module enabled
+- `iconBundlePlugin()` from `build/icons/` — see below
+
+### Icons (offline-bundled)
+
+Icons are `@iconify/svelte` `<Icon icon="prefix:name" />` as usual, but the icon **data is bundled, not fetched**. `@iconify/svelte`'s default component renders *nothing at all* until its network request resolves — no box, so declared `width`/`height` don't help — which is what used to make the side panel's icons pop in and shift the layout on every open.
+
+- `src/lib/icons/iconBundle.js` — **generated, committed, never hand-edit.** It is its own cache: the plugin diffs it against the source scan and only touches the network or disk when the icon set actually changes.
+- `src/lib/icons/registerIcons.js` — `addCollection()` loop, imported as a top-level side effect from all six `entrypoints/*/main.js`, next to the existing `@/lib/i18n/i18n.js` import. Must stay top-level: it has to run before `mount()`.
+- `build/icons/scanIconNames.mjs` — scans `src/**/*.{svelte,js}` for quoted `prefix:name` literals, filtered by `KNOWN_PREFIXES`. Scans `.js` too because several call sites bind the name dynamically (`providerRegistry.js`, `actionConstants.js`, `iconForSourceKind()`), but the literal always lives somewhere in `src/`. It skips `iconBundle.js` itself — scanning the generated file would make its icon set self-sustaining and nothing could ever be pruned.
+- `build/icons/iconBundlePlugin.mjs` — Vite plugin, memoised at **module** scope (WXT calls `vite()` once per build target, each time constructing a fresh plugin object). Also runs standalone via `npm run icons:sync`.
+
+Day to day this is invisible: add an icon and `npm run dev` picks it up; remove one and it gets pruned. Two things fail the build on purpose — a name Iconify doesn't have (`not_found`), and an `<Icon>` prop using a collection absent from `KNOWN_PREFIXES`. Both used to render silently-empty icons. `*://*.iconify.design/*` stays in `host_permissions` as a safety net, so a missed icon degrades to the old pop-in rather than disappearing.
 
 ### TypeScript
 

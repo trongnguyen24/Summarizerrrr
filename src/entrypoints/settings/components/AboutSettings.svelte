@@ -1,6 +1,6 @@
 <script>
   // @ts-nocheck
-  import Icon, { loadIcons } from '@iconify/svelte'
+  import Icon from '@iconify/svelte'
   import { settings, updateSettings } from '@/stores/settingsStore.svelte.js'
   import {
     themeSettings,
@@ -17,16 +17,6 @@
     updateSettings({ [key]: value })
   }
 
-  // Load icons for Donate and Review buttons to prevent layout shift
-  loadIcons([
-    // Icons from ButtonSupport.svelte
-    'hugeicons:ko-fi',
-    // Icons from ButtonRate.svelte
-    'hugeicons:chrome',
-    'mingcute:firefox-line',
-    'mingcute:edge-line',
-    'mingcute:apple-line',
-  ])
 </script>
 
 <!-- About Section -->

@@ -1,6 +1,6 @@
 <script>
   // @ts-nocheck
-  import Icon, { loadIcons } from '@iconify/svelte'
+  import Icon from '@iconify/svelte'
   import { t } from 'svelte-i18n'
   import 'overlayscrollbars/overlayscrollbars.css'
   import Dialog from './Dialog.svelte'
@@ -8,8 +8,6 @@
   import { slideScaleFade } from '@/lib/utils/slideScaleFade.js'
   import ExportMarkdownFAB from '@/entrypoints/archive/components/ExportMarkdownFAB.svelte'
 
-  // Load icons for archive states
-  loadIcons(['heroicons:archive-box', 'heroicons:archive-box-solid'])
   import {
     deleteSummary,
     deleteHistory,

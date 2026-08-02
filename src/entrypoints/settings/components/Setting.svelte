@@ -2,7 +2,7 @@
   // @ts-nocheck
   import { useOverlayScrollbars } from 'overlayscrollbars-svelte'
   import 'overlayscrollbars/overlayscrollbars.css'
-  import Icon, { loadIcons } from '@iconify/svelte'
+  import Icon from '@iconify/svelte'
   import { t } from 'svelte-i18n'
   import DeepDiveToolSettings from '@/entrypoints/settings/components/tools/DeepDiveToolSettings.svelte'
   import {
@@ -96,7 +96,7 @@
     },
   ]
 
-  // Flat list for mobile and icon preloading
+  // Flat list for mobile
   const allTabs = [...mainTabs, ...footerTabs]
 
   $effect(() => {
@@ -177,40 +177,6 @@
   // Use $effect to save settings when they change
 
   // No longer needed, handled by the dynamic position effects
-  loadIcons([
-    'heroicons:cpu-chip-solid',
-    'heroicons:cpu-chip',
-    'heroicons:sparkles-solid',
-    'heroicons:sparkles',
-    'heroicons:chat-bubble-left-right-solid',
-    'heroicons:chat-bubble-left-right',
-    'heroicons:swatch-solid',
-    'heroicons:swatch',
-    'heroicons:cursor-arrow-rays-solid',
-    'heroicons:cursor-arrow-rays',
-    'heroicons:shield-check-solid',
-    'heroicons:shield-check',
-    'heroicons:light-bulb-solid',
-    'heroicons:light-bulb',
-    'heroicons:document-duplicate-solid',
-    'heroicons:document-duplicate',
-    'heroicons:cloud-arrow-up-solid',
-    'heroicons:cloud-arrow-up',
-    'heroicons:megaphone-solid',
-    'heroicons:megaphone',
-    'heroicons:information-circle-solid',
-    'heroicons:information-circle',
-    // Icons from AboutSettings.svelte
-    'heroicons:circle-stack',
-    'heroicons:adjustments-horizontal',
-    'heroicons:device-phone-mobile',
-    'mdi:github',
-    'logos:chrome',
-    'logos:firefox',
-    'logos:microsoft-edge',
-    'heroicons:arrow-up-right-16-solid',
-    'mdi:reddit',
-  ])
   import FirefoxPermissionOverlay from '@/entrypoints/settings/components/FirefoxPermissionOverlay.svelte'
 </script>
 

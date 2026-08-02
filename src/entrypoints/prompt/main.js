@@ -8,6 +8,7 @@ import {
   subscribeToSettingsChanges,
 } from '@/stores/settingsStore.svelte.js'
 import '@/lib/i18n/i18n.js' // Ensure locales are registered
+import '@/lib/icons/registerIcons.js' // Register bundled icon data (no runtime fetch)
 
 async function startup() {
   await loadSettings()

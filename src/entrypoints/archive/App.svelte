@@ -2,7 +2,7 @@
   // @ts-nocheck
   import { onMount } from 'svelte'
   import { t } from 'svelte-i18n'
-  import Icon, { loadIcons } from '@iconify/svelte'
+  import Icon from '@iconify/svelte'
   import 'overlayscrollbars/overlayscrollbars.css'
   import { useOverlayScrollbars } from 'overlayscrollbars-svelte'
   import { appStateStorage } from '@/services/wxtStorageService.js'
@@ -219,16 +219,6 @@
   loadSettings().then(() => {
     subscribeToSettingsChanges()
   })
-  loadIcons([
-    'tabler:layout-sidebar-left-collapse',
-    'tabler:layout-sidebar-right-collapse',
-    'heroicons:sun-16-solid',
-    'heroicons:moon-20-solid',
-    'heroicons:computer-desktop-20-solid',
-    'tabler:pencil',
-    'heroicons:trash',
-    'heroicons:x-mark-16-solid',
-  ])
 </script>
 
 <!--

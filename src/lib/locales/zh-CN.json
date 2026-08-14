@@ -27,10 +27,12 @@
       },
       "floatingButton": "浮动按钮",
       "floating_button": {
-        "show": "显示",
-        "show_desc": "在网页上显示浮动按钮。",
-        "hide": "隐藏",
-        "hide_desc": "从网页隐藏浮动按钮。"
+        "show": "始终显示",
+        "show_desc": "在固定位置始终显示浮动按钮。",
+        "hide": "始终隐藏",
+        "hide_desc": "在所有网页上完全隐藏浮动按钮。",
+        "hide_on_scroll": "滚动时隐藏",
+        "show_on_scroll_up": "智能滚动"
       },
       "shortcuts": "快捷键",
       "shortcuts_settings": "管理快捷键",
@@ -440,6 +442,11 @@
     "open_archive": "打开归档",
     "tab_history": "历史记录",
     "tab_archive": "归档",
+    "kind_all": "全部",
+    "kind_summaries": "摘要",
+    "kind_chats": "对话",
+    "resume_in_sidepanel": "在侧边栏中继续",
+    "no_chats": "还没有对话",
     "change_theme": "切换主题",
     "font_dec": "缩小字体",
     "font_inc": "放大字体",
@@ -533,6 +540,7 @@
     "actions": "操作",
     "archived": "已归档",
     "add_to_archive": "添加到归档",
+    "remove_from_archive": "从归档中移除",
     "errors": {
       "empty": "名称不能为空",
       "max_length": "最多50个字符",

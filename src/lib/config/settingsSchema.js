@@ -127,6 +127,7 @@ export const VALID_SETTING_KEYS = [
   'chatGlobalPersona',
   'chatUserSkills',
   'chatSkillMigrationVersion',
+  'fabVisibilityMigrationVersion',
 
   // Advanced Mode
   'isAdvancedMode',

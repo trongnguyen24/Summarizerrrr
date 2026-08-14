@@ -9,7 +9,7 @@ const HISTORY_STORE_NAME = 'history'
 export const CONVERSATIONS_STORE_NAME = 'conversations'
 export const CONVERSATION_MESSAGES_STORE_NAME = 'conversation_messages'
 export const CONVERSATION_SOURCES_STORE_NAME = 'conversation_sources'
-const HISTORY_LIMIT = 100
+const HISTORY_LIMIT = 300
 
 let db
 

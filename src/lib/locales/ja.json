@@ -27,10 +27,12 @@
       },
       "floatingButton": "フローティングボタン",
       "floating_button": {
-        "show": "表示",
-        "show_desc": "Webページにフローティングボタンを表示します。",
-        "hide": "非表示",
-        "hide_desc": "Webページからフローティングボタンを非表示にします。"
+        "show": "常に表示",
+        "show_desc": "フローティングボタンを常に固定位置に表示します。",
+        "hide": "常に非表示",
+        "hide_desc": "すべてのWebページでフローティングボタンを完全に非表示にします。",
+        "hide_on_scroll": "スクロール時に非表示",
+        "show_on_scroll_up": "スマートスクロール"
       },
       "shortcuts": "ショートカット",
       "shortcuts_settings": "ショートカット設定",
@@ -440,6 +442,11 @@
     "open_archive": "アーカイブを開く",
     "tab_history": "履歴",
     "tab_archive": "アーカイブ",
+    "kind_all": "すべて",
+    "kind_summaries": "要約",
+    "kind_chats": "チャット",
+    "resume_in_sidepanel": "サイドパネルで再開",
+    "no_chats": "チャットはまだありません",
     "change_theme": "テーマ変更",
     "font_dec": "文字サイズ縮小",
     "font_inc": "文字サイズ拡大",
@@ -533,6 +540,7 @@
     "actions": "アクション",
     "archived": "アーカイブ済み",
     "add_to_archive": "アーカイブに追加",
+    "remove_from_archive": "アーカイブから削除",
     "errors": {
       "empty": "名前が必要です",
       "max_length": "最大50文字",

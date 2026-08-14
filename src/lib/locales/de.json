@@ -27,10 +27,12 @@
       },
       "floatingButton": "Schwebender Button",
       "floating_button": {
-        "show": "Anzeigen",
-        "show_desc": "Schwebenden Button auf Webseiten anzeigen.",
-        "hide": "Ausblenden",
-        "hide_desc": "Schwebenden Button auf Webseiten ausblenden."
+        "show": "Immer anzeigen",
+        "show_desc": "Schwebenden Button immer an einer festen Position anzeigen.",
+        "hide": "Immer ausblenden",
+        "hide_desc": "Schwebenden Button auf allen Webseiten vollständig ausblenden.",
+        "hide_on_scroll": "Beim Scrollen ausblenden",
+        "show_on_scroll_up": "Smart Scroll"
       },
       "shortcuts": "Tastenkürzel",
       "shortcuts_settings": "Tastenkürzel",
@@ -440,6 +442,11 @@
     "open_archive": "Archiv öffnen",
     "tab_history": "Verlauf",
     "tab_archive": "Archiv",
+    "kind_all": "Alle",
+    "kind_summaries": "Zusammenfassungen",
+    "kind_chats": "Chats",
+    "resume_in_sidepanel": "Im Seitenbereich fortsetzen",
+    "no_chats": "Noch keine Chats",
     "change_theme": "Design wechseln",
     "font_dec": "Schrift verkleinern",
     "font_inc": "Schrift vergrößern",
@@ -533,6 +540,7 @@
     "actions": "Aktionen",
     "archived": "Archiviert",
     "add_to_archive": "Zum Archiv hinzufügen",
+    "remove_from_archive": "Aus Archiv entfernen",
     "errors": {
       "empty": "Name erforderlich",
       "max_length": "Max. 50 Zeichen",

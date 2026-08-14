@@ -17,7 +17,10 @@ export async function main(ctx) {
 
   // MEMORY FIX: Early return if FAB is completely disabled in settings
   // This prevents loading any additional modules or mounting UI
-  if (!settings.showFloatingButton) {
+  const isFabDisabled =
+    settings.showFloatingButton === false ||
+    settings.showFloatingButton === 'hide'
+  if (isFabDisabled) {
     return
   }
 

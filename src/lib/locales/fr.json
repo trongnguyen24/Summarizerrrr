@@ -27,10 +27,12 @@
       },
       "floatingButton": "Bouton flottant",
       "floating_button": {
-        "show": "Afficher",
-        "show_desc": "Afficher le bouton flottant sur les pages web.",
-        "hide": "Masquer",
-        "hide_desc": "Masquer le bouton flottant des pages web."
+        "show": "Toujours afficher",
+        "show_desc": "Garder le bouton flottant toujours visible à une position fixe.",
+        "hide": "Toujours masquer",
+        "hide_desc": "Masquer complètement le bouton flottant sur toutes les pages web.",
+        "hide_on_scroll": "Masquer au défilement",
+        "show_on_scroll_up": "Défilement intelligent"
       },
       "shortcuts": "Raccourcis",
       "shortcuts_settings": "Gérer les raccourcis",
@@ -440,6 +442,11 @@
     "open_archive": "Ouvrir l'archive",
     "tab_history": "Historique",
     "tab_archive": "Archive",
+    "kind_all": "Tout",
+    "kind_summaries": "Résumés",
+    "kind_chats": "Discussions",
+    "resume_in_sidepanel": "Reprendre dans le panneau latéral",
+    "no_chats": "Aucune discussion",
     "change_theme": "Changer de thème",
     "font_dec": "Réduire la police",
     "font_inc": "Augmenter la police",
@@ -533,6 +540,7 @@
     "actions": "Actions",
     "archived": "Archivé",
     "add_to_archive": "Ajouter à l'archive",
+    "remove_from_archive": "Retirer de l'archive",
     "errors": {
       "empty": "Nom requis",
       "max_length": "Max 50 caractères",

@@ -27,10 +27,12 @@
       },
       "floatingButton": "플로팅 버튼",
       "floating_button": {
-        "show": "표시",
-        "show_desc": "웹 페이지에 플로팅 버튼 표시",
-        "hide": "숨기기",
-        "hide_desc": "웹 페이지에서 플로팅 버튼 숨기기"
+        "show": "항상 표시",
+        "show_desc": "플로팅 버튼을 항상 고정된 위치에 표시합니다.",
+        "hide": "항상 숨기기",
+        "hide_desc": "모든 웹 페이지에서 플로팅 버튼을 완전히 숨깁니다.",
+        "hide_on_scroll": "스크롤 시 숨기기",
+        "show_on_scroll_up": "스마트 스크롤"
       },
       "shortcuts": "단축키",
       "shortcuts_settings": "단축키 설정",
@@ -440,6 +442,11 @@
     "open_archive": "아카이브 열기",
     "tab_history": "기록",
     "tab_archive": "아카이브",
+    "kind_all": "전체",
+    "kind_summaries": "요약",
+    "kind_chats": "채팅",
+    "resume_in_sidepanel": "사이드 패널에서 계속하기",
+    "no_chats": "채팅이 없습니다",
     "change_theme": "테마 변경",
     "font_dec": "글꼴 축소",
     "font_inc": "글꼴 확대",
@@ -533,6 +540,7 @@
     "actions": "작업",
     "archived": "보관됨",
     "add_to_archive": "보관함에 추가",
+    "remove_from_archive": "보관함에서 제거",
     "errors": {
       "empty": "이름 필요",
       "max_length": "최대 50자",

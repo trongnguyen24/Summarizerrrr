@@ -6,7 +6,7 @@
 
   let { activeTab, onSelectTab } = $props()
 
-  let activeBarTransformClass = $state('-translate-x-26')
+  let activeBarTransformClass = $state('-translate-x-20')
 
   // Sync i18n locale with settings store
   $effect(() => {
@@ -16,20 +16,11 @@
     }
   })
 
+  // Two tabs across a w-80 panel: each is 160px wide, so the centres sit
+  // 80px (translate-x-20) either side of the bar's centred position.
   $effect(() => {
-    switch (activeTab) {
-      case 'history':
-        activeBarTransformClass = '-translate-x-26'
-        break
-      case 'archive':
-        activeBarTransformClass = ''
-        break
-      case 'conversations':
-        activeBarTransformClass = 'translate-x-26'
-        break
-      default:
-        activeBarTransformClass = '-translate-x-26'
-    }
+    activeBarTransformClass =
+      activeTab === 'archive' ? 'translate-x-20' : '-translate-x-20'
   })
 </script>
 
@@ -69,15 +60,6 @@
         {/if}
       </div>
       <span>{$t('archive.tab_archive')}</span>
-    </button>
-
-    <button
-      class="flex p-3 items-center flex-1 justify-center gap-1 cursor-pointer rounded-md transition-colors duration-200 {activeTab === 'conversations' ? ' text-blackwhite ' : 'text-text-secondary'}"
-      onclick={() => onSelectTab('conversations')}
-      title="Conversations"
-    >
-      <Icon icon="heroicons:chat-bubble-left-right" width="20" height="20" />
-      <span>Chats</span>
     </button>
   </div>
 

@@ -90,19 +90,20 @@ export default defineBackground(() => {
   let pendingConversationResume = null
   // Sync cache of settings.showFloatingButton — updated from storage so we can read it synchronously
   // in the context menu handler (before any await, within the user gesture window).
+  const isFabActive = (val) => val !== false && val !== 'hide'
   let cachedFabEnabled = true // Default true; will be updated on init and on storage changes
   ;(async () => {
     try {
       const result = await chrome.storage.local.get('settings')
       if (result.settings?.showFloatingButton !== undefined) {
-        cachedFabEnabled = result.settings.showFloatingButton
+        cachedFabEnabled = isFabActive(result.settings.showFloatingButton)
         console.log('[Background] cachedFabEnabled init:', cachedFabEnabled)
       }
     } catch (e) {}
   })()
   chrome.storage.onChanged.addListener((changes, area) => {
     if (area === 'local' && changes.settings?.newValue?.showFloatingButton !== undefined) {
-      cachedFabEnabled = changes.settings.newValue.showFloatingButton
+      cachedFabEnabled = isFabActive(changes.settings.newValue.showFloatingButton)
       console.log('[Background] cachedFabEnabled updated:', cachedFabEnabled)
     }
   })

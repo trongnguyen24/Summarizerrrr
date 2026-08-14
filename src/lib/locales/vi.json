@@ -27,10 +27,12 @@
       },
       "floatingButton": "Nút nổi",
       "floating_button": {
-        "show": "Hiển thị",
-        "show_desc": "Hiển thị nút nổi trên trang web.",
-        "hide": "Ẩn",
-        "hide_desc": "Ẩn nút nổi khỏi trang web."
+        "show": "Luôn hiển thị",
+        "show_desc": "Luôn hiển thị nút nổi cố định ở mọi vị trí cuộn trang.",
+        "hide": "Luôn ẩn",
+        "hide_desc": "Tắt hoàn toàn nút nổi trên mọi trang web.",
+        "hide_on_scroll": "Ẩn khi cuộn",
+        "show_on_scroll_up": "Cuộn thông minh"
       },
       "shortcuts": "Phím tắt",
       "shortcuts_settings": "Cài Phím tắt",
@@ -451,6 +453,11 @@
     "open_archive": "Mở lưu trữ",
     "tab_history": "Lịch sử",
     "tab_archive": "Lưu trữ",
+    "kind_all": "Tất cả",
+    "kind_summaries": "Bản tóm tắt",
+    "kind_chats": "Trò chuyện",
+    "resume_in_sidepanel": "Tiếp tục ở side panel",
+    "no_chats": "Chưa có cuộc trò chuyện nào",
     "change_theme": "Đổi theme",
     "font_dec": "Giảm kích thước chữ",
     "font_inc": "Tăng kích thước chữ",
@@ -545,6 +552,7 @@
     "actions": "Hành động",
     "archived": "Đã lưu trữ",
     "add_to_archive": "Lưu trữ",
+    "remove_from_archive": "Xóa khỏi Lưu trữ",
     "errors": {
       "empty": "Tên bắt buộc",
       "max_length": "Tối đa 50 ký tự",

@@ -4,33 +4,132 @@ import {
   getAllHistory,
 } from '@/lib/db/indexedDBService'
 import {
-  navigatePreviousConversation,
-  navigateNextConversation,
-  canNavigatePreviousConversation,
-  canNavigateNextConversation,
+  conversationArchiveStore,
+  loadConversationArchive,
+  selectConversation,
+  clearConversationSelection,
 } from '@/stores/conversationArchiveStore.svelte.js'
+import { setKindFilter } from '@/stores/kindFilterStore.svelte.js'
 
 let archiveList = $state([])
 let historyList = $state([])
 let selectedSummary = $state(null)
 let selectedSummaryId = $state(null)
+let selectedKind = $state(null) // 'summary' | 'chat' | null
 let isDataLoaded = $state(false)
+
+const VALID_TABS = ['history', 'archive']
+
+/**
+ * Legacy `?tab=conversations` links land on History with the Chats filter on,
+ * so old bookmarks keep working after the tab was folded into the two lists.
+ */
+function normalizeTab(urlTab) {
+  if (urlTab === 'conversations') return 'history'
+  return VALID_TABS.includes(urlTab) ? urlTab : 'history'
+}
 
 function getUrlParams() {
   const params = new URLSearchParams(window.location.search)
   return {
     summaryId: params.get('summaryId'),
+    conversationId: params.get('conversationId'),
     tab: params.get('tab'),
   }
 }
 
-function updateUrl(tab, summaryId = null) {
-  const url = summaryId ? `?tab=${tab}&summaryId=${summaryId}` : `?tab=${tab}`
-  window.history.replaceState({}, '', url)
+function buildQuery(tab, { summaryId, conversationId } = {}) {
+  const params = new URLSearchParams({ tab })
+  if (summaryId) params.set('summaryId', summaryId)
+  if (conversationId) params.set('conversationId', conversationId)
+  return `?${params.toString()}`
 }
 
-function pushUrl(tab, summaryId) {
-  window.history.pushState({}, '', `?tab=${tab}&summaryId=${summaryId}`)
+function updateUrl(tab, params) {
+  window.history.replaceState({}, '', buildQuery(tab, params))
+}
+
+function pushUrl(tab, params) {
+  window.history.pushState({}, '', buildQuery(tab, params))
+}
+
+// --- Unified list ---------------------------------------------------------
+// Summaries and chats live in separate object stores with different shapes, so
+// they are unioned here at the view layer rather than in the database.
+// See the invariant comment in lib/db/indexedDBService.js.
+
+/** Stable identity for a row across the two record families. */
+export function itemKey(item) {
+  return item ? `${item.kind}:${item.id}` : null
+}
+
+function summaryRow(raw) {
+  return { kind: 'summary', id: raw.id, title: raw.title, timestamp: raw.date, raw }
+}
+
+function chatRow(raw) {
+  return { kind: 'chat', id: raw.id, title: raw.title, timestamp: raw.updatedAt, raw }
+}
+
+/**
+ * The merged, newest-first list for a tab.
+ * History shows every chat; Archive shows only chats flagged `archived`.
+ * Timestamps are ISO strings on both sides, so a descending string compare
+ * gives the same ordering as the `date` index the summary lists come from.
+ */
+function unifiedListFor(tab) {
+  const summaries = (tab === 'archive' ? archiveList : historyList).map(summaryRow)
+  const chats = conversationArchiveStore.conversationList
+    .filter((conversation) => (tab === 'archive' ? conversation.archived === true : true))
+    .map(chatRow)
+
+  return [...summaries, ...chats].sort((left, right) =>
+    String(right.timestamp || '').localeCompare(String(left.timestamp || '')),
+  )
+}
+
+function currentSelectedKey() {
+  if (selectedKind === 'chat') {
+    const id = conversationArchiveStore.selectedConversationId
+    return id ? `chat:${id}` : null
+  }
+  return selectedSummaryId ? `summary:${selectedSummaryId}` : null
+}
+
+function clearSelection() {
+  selectedKind = null
+  selectedSummary = null
+  selectedSummaryId = null
+  clearConversationSelection()
+}
+
+/**
+ * Selects a row of either kind, keeping the two selection states mutually
+ * exclusive so the detail pane can switch on `selectedKind` alone.
+ */
+async function applyItemSelection(item, tab, { push }) {
+  const writeUrl = push ? pushUrl : updateUrl
+
+  if (item.kind === 'chat') {
+    // Load the transcript BEFORE flipping selectedKind, otherwise the detail
+    // pane swaps to an empty ConversationTranscript for a frame.
+    await selectConversation(item.raw)
+    selectedSummary = null
+    selectedSummaryId = null
+    selectedKind = 'chat'
+    writeUrl(tab, { conversationId: item.id })
+    return
+  }
+
+  clearConversationSelection()
+  selectedKind = 'summary'
+  selectedSummary = item.raw
+  selectedSummaryId = item.id
+  writeUrl(tab, { summaryId: item.id })
+}
+
+function selectItem(item, tab) {
+  return applyItemSelection(item, tab, { push: true })
 }
 
 async function loadData() {
@@ -40,13 +139,15 @@ async function loadData() {
     // Filter out soft-deleted items (deleted: true)
     archiveList = [...(await getAllSummaries())].filter(item => !item.deleted)
     historyList = [...(await getAllHistory())].filter(item => !item.deleted)
+    // Awaited here so a ?conversationId= deep link can resolve during init
+    await loadConversationArchive()
 
-    const { tab, summaryId } = getUrlParams()
-    const result = await initializeFromUrl(tab, summaryId)
-    
+    const { tab, summaryId, conversationId } = getUrlParams()
+    const result = await initializeFromUrl(tab, summaryId, conversationId)
+
     // Mark data as loaded AFTER initialization is complete
     isDataLoaded = true
-    
+
     return result
   } catch (error) {
     console.error('Failed to initialize DB or load data:', error)
@@ -57,26 +158,30 @@ async function loadData() {
   }
 }
 
-async function initializeFromUrl(urlTab, urlSummaryId) {
-  const targetTab = ['history', 'archive', 'conversations'].includes(urlTab) ? urlTab : 'history'
-  const currentList = targetTab === 'archive' ? archiveList : targetTab === 'history' ? historyList : []
+async function initializeFromUrl(urlTab, urlSummaryId, urlConversationId) {
+  const targetTab = normalizeTab(urlTab)
+  if (urlTab === 'conversations') setKindFilter('chat')
 
-  if (urlSummaryId) {
-    const found = currentList.find((s) => s.id === urlSummaryId)
+  const currentList = unifiedListFor(targetTab)
+
+  const requestedKey = urlConversationId
+    ? `chat:${urlConversationId}`
+    : urlSummaryId
+      ? `summary:${urlSummaryId}`
+      : null
+
+  if (requestedKey) {
+    const found = currentList.find((item) => itemKey(item) === requestedKey)
     if (found) {
-      selectedSummary = found
-      selectedSummaryId = urlSummaryId
+      await applyItemSelection(found, targetTab, { push: false })
       return { activeTab: targetTab }
     }
   }
 
   if (currentList.length > 0) {
-    selectedSummary = currentList[0]
-    selectedSummaryId = currentList[0].id
-    updateUrl(targetTab, currentList[0].id)
+    await applyItemSelection(currentList[0], targetTab, { push: false })
   } else {
-    selectedSummary = null
-    selectedSummaryId = null
+    clearSelection()
     updateUrl(targetTab)
   }
 
@@ -86,110 +191,72 @@ async function initializeFromUrl(urlTab, urlSummaryId) {
 function validateSelectedItem(activeTab) {
   // Don't validate until data is loaded
   if (!isDataLoaded) return
-  if (!selectedSummaryId) return
 
   // IMPORTANT: Check if activeTab matches URL to avoid stale value issue
   // When isDataLoaded becomes true, effect may run with stale activeTab value
   // before App.svelte updates activeTab from loadData result
   const urlTab = getUrlParams().tab
-  const expectedTab = ['history', 'archive', 'conversations'].includes(urlTab) ? urlTab : 'history'
-  
-  // Skip if activeTab doesn't match URL - this means activeTab hasn't been updated yet
-  if (activeTab !== expectedTab) {
-    return
-  }
+  if (activeTab !== normalizeTab(urlTab)) return
 
-  if (activeTab === 'conversations') return
-  const currentList = activeTab === 'archive' ? archiveList : historyList
-  const found = currentList.find((s) => s.id === selectedSummaryId)
+  const currentList = unifiedListFor(activeTab)
+  const selectedKey = currentSelectedKey()
+  if (!selectedKey) return
+  if (currentList.some((item) => itemKey(item) === selectedKey)) return
 
-  if (!found) {
-    selectedSummary = null
-    selectedSummaryId = null
+  // The selected record is gone (deleted, or unarchived off this tab)
+  clearSelection()
+  if (currentList.length > 0) {
+    applyItemSelection(currentList[0], activeTab, { push: false })
+  } else {
     updateUrl(activeTab)
-
-    if (currentList.length > 0) {
-      selectedSummary = currentList[0]
-      selectedSummaryId = currentList[0].id
-      updateUrl(activeTab, currentList[0].id)
-    }
   }
-}
-
-function selectSummary(summary, activeTab) {
-  selectedSummary = summary
-  selectedSummaryId = summary.id
-  pushUrl(activeTab, summary.id)
 }
 
 function selectTab(tabName) {
-  selectedSummary = null
-  selectedSummaryId = null
+  clearSelection()
 
-  const newList = tabName === 'archive' ? archiveList : tabName === 'history' ? historyList : []
+  const newList = unifiedListFor(tabName)
   if (newList.length > 0) {
-    selectedSummary = newList[0]
-    selectedSummaryId = newList[0].id
-    updateUrl(tabName, newList[0].id)
+    applyItemSelection(newList[0], tabName, { push: false })
   } else {
     updateUrl(tabName)
   }
 }
 
-async function navigatePrevious(activeTab) {
-  if (activeTab === 'conversations') {
-    return navigatePreviousConversation()
-  }
-  const currentList = activeTab === 'archive' ? archiveList : historyList
-  if (currentList.length === 0 || !selectedSummaryId) return false
+/** Neighbour of the current selection in the merged list, or null at the edge. */
+function neighbourItem(activeTab, delta) {
+  const currentList = unifiedListFor(activeTab)
+  const selectedKey = currentSelectedKey()
+  if (currentList.length === 0 || !selectedKey) return null
 
-  const currentIndex = currentList.findIndex((s) => s.id === selectedSummaryId)
-  if (currentIndex > 0) {
-    const prevItem = currentList[currentIndex - 1]
-    selectedSummary = prevItem
-    selectedSummaryId = prevItem.id
-    pushUrl(activeTab, prevItem.id)
-    return true
-  }
-  return false
+  const currentIndex = currentList.findIndex((item) => itemKey(item) === selectedKey)
+  if (currentIndex < 0) return null
+
+  const targetIndex = currentIndex + delta
+  if (targetIndex < 0 || targetIndex >= currentList.length) return null
+  return currentList[targetIndex]
+}
+
+async function navigatePrevious(activeTab) {
+  const target = neighbourItem(activeTab, -1)
+  if (!target) return false
+  await selectItem(target, activeTab)
+  return true
 }
 
 async function navigateNext(activeTab) {
-  if (activeTab === 'conversations') {
-    return navigateNextConversation()
-  }
-  const currentList = activeTab === 'archive' ? archiveList : historyList
-  if (currentList.length === 0 || !selectedSummaryId) return false
-
-  const currentIndex = currentList.findIndex((s) => s.id === selectedSummaryId)
-  if (currentIndex < currentList.length - 1) {
-    const nextItem = currentList[currentIndex + 1]
-    selectedSummary = nextItem
-    selectedSummaryId = nextItem.id
-    pushUrl(activeTab, nextItem.id)
-    return true
-  }
-  return false
+  const target = neighbourItem(activeTab, 1)
+  if (!target) return false
+  await selectItem(target, activeTab)
+  return true
 }
 
 function canNavigatePrevious(activeTab) {
-  if (activeTab === 'conversations') {
-    return canNavigatePreviousConversation()
-  }
-  const currentList = activeTab === 'archive' ? archiveList : historyList
-  if (currentList.length === 0 || !selectedSummaryId) return false
-  const currentIndex = currentList.findIndex((s) => s.id === selectedSummaryId)
-  return currentIndex > 0
+  return neighbourItem(activeTab, -1) !== null
 }
 
 function canNavigateNext(activeTab) {
-  if (activeTab === 'conversations') {
-    return canNavigateNextConversation()
-  }
-  const currentList = activeTab === 'archive' ? archiveList : historyList
-  if (currentList.length === 0 || !selectedSummaryId) return false
-  const currentIndex = currentList.findIndex((s) => s.id === selectedSummaryId)
-  return currentIndex < currentList.length - 1
+  return neighbourItem(activeTab, 1) !== null
 }
 
 export const archiveStore = {
@@ -205,8 +272,15 @@ export const archiveStore = {
   get selectedSummaryId() {
     return selectedSummaryId
   },
+  get selectedKind() {
+    return selectedKind
+  },
+  get selectedKey() {
+    return currentSelectedKey()
+  },
+  unifiedListFor,
   loadData,
-  selectSummary,
+  selectItem,
   selectTab,
   validateSelectedItem,
   navigatePrevious,

@@ -24,6 +24,7 @@
     sources = [],
     onRefresh = null,
     isSidePanelVisible = true,
+    activeTab = 'history',
   } = $props()
   let title = $state('')
   let editing = $state(false)
@@ -299,11 +300,8 @@
         </div>
       </div>
     </div>
-    <TOC targetDivId="conversation-content" activeTab="conversations" />
-    <TOCSidebar
-      targetDivId="conversation-content"
-      activeTab="conversations"
-    />
+    <TOC targetDivId="conversation-content" {activeTab} />
+    <TOCSidebar targetDivId="conversation-content" {activeTab} />
   {:else}
     <p
       class="text-center flex flex-col gap-4 items-center justify-center text-text-secondary py-8 h-svh"

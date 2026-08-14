@@ -27,10 +27,12 @@
       },
       "floatingButton": "Floating Button",
       "floating_button": {
-        "show": "Show",
-        "show_desc": "Show floating button on web pages.",
-        "hide": "Hide",
-        "hide_desc": "Hide floating button from web pages."
+        "show": "Always Show",
+        "show_desc": "Keep the floating button always visible at a fixed position.",
+        "hide": "Always Hide",
+        "hide_desc": "Completely hide the floating button on all web pages.",
+        "hide_on_scroll": "Hide on scroll",
+        "show_on_scroll_up": "Smart scroll"
       },
       "shortcuts": "Shortcuts",
       "shortcuts_settings": "Shortcut Settings",
@@ -451,6 +453,11 @@
     "open_archive": "Open archive",
     "tab_history": "History",
     "tab_archive": "Archive",
+    "kind_all": "All",
+    "kind_summaries": "Summaries",
+    "kind_chats": "Chats",
+    "resume_in_sidepanel": "Resume in side panel",
+    "no_chats": "No chats yet",
     "change_theme": "Change theme",
     "font_dec": "Font Decrease",
     "font_inc": "Font Increase",
@@ -545,6 +552,7 @@
     "actions": "Actions",
     "archived": "Archived",
     "add_to_archive": "Add to Archive",
+    "remove_from_archive": "Remove from Archive",
     "errors": {
       "empty": "Name required",
       "max_length": "Max 50 characters",

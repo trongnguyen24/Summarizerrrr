@@ -13,46 +13,31 @@ let selectedConversationId = $state(null)
 let selectedMessages = $state([])
 let selectedSources = $state([])
 
-function sourceDomain(source) {
-  try {
-    return new URL(source?.url || '').hostname.replace(/^www\./, '')
-  } catch {
-    return ''
-  }
-}
-
-function withDisplayMetadata(conversation, messages, sources) {
-  const sourceById = new Map(sources.map((source) => [source.id, source]))
-  const lastMessage = messages[messages.length - 1]
-  const firstSource = messages
-    .flatMap((message) => message.attachmentRefs || [])
-    .map((id) => sourceById.get(id))
-    .find(Boolean)
-  return {
-    ...conversation,
-    lastMessagePreview: String(lastMessage?.content || '').replace(/\s+/g, ' ').trim().slice(0, 140),
-    sourceDomain: sourceDomain(firstSource),
-  }
-}
-
 async function loadConversationDetails(conversation) {
   const messages = await conversationRepository.listMessagesByConversation(conversation.id)
   const sourceIds = [...new Set(messages.flatMap((message) => message.attachmentRefs || []))]
   const sources = (await Promise.all(sourceIds.map((id) => getSourceById(id)))).filter(Boolean)
-  return { messages, sources, conversation: withDisplayMetadata(conversation, messages, sources) }
+  return { messages, sources, conversation }
 }
 
+/**
+ * Loads the conversation list only — no per-conversation message/source fan-out.
+ * Messages and sources are loaded lazily by selectConversation, so the merged
+ * archive list stays cheap even though it now loads on both tabs.
+ *
+ * Does not auto-select: archiveStore drives initial selection across the
+ * unified summary+chat list. It does refresh the details of an already
+ * selected conversation, so rename/archive/delete refreshes stay correct.
+ */
 export async function loadConversationArchive() {
-  const conversations = await conversationRepository.listConversations({ includeArchived: true })
-  const details = await Promise.all(conversations.map(loadConversationDetails))
-  conversationList = details.map((detail) => detail.conversation)
+  conversationList = await conversationRepository.listConversations({ includeArchived: true })
 
   if (selectedConversationId) {
-    const selected = details.find((detail) => detail.conversation.id === selectedConversationId)
-    if (selected) applySelection(selected)
+    const stillPresent = conversationList.find(
+      (conversation) => conversation.id === selectedConversationId,
+    )
+    if (stillPresent) applySelection(await loadConversationDetails(stillPresent))
     else clearConversationSelection()
-  } else if (details[0]) {
-    applySelection(details[0])
   }
   return conversationList
 }
@@ -67,39 +52,6 @@ function applySelection(detail) {
 export async function selectConversation(conversation) {
   applySelection(await loadConversationDetails(conversation))
   return selectedConversation
-}
-
-function selectedConversationIndex() {
-  return conversationList.findIndex(
-    (conversation) => conversation.id === selectedConversationId,
-  )
-}
-
-export function canNavigatePreviousConversation() {
-  return selectedConversationIndex() > 0
-}
-
-export function canNavigateNextConversation() {
-  const currentIndex = selectedConversationIndex()
-  return currentIndex >= 0 && currentIndex < conversationList.length - 1
-}
-
-export async function navigatePreviousConversation() {
-  const currentIndex = selectedConversationIndex()
-  if (currentIndex <= 0) return false
-
-  await selectConversation(conversationList[currentIndex - 1])
-  return true
-}
-
-export async function navigateNextConversation() {
-  const currentIndex = selectedConversationIndex()
-  if (currentIndex < 0 || currentIndex >= conversationList.length - 1) {
-    return false
-  }
-
-  await selectConversation(conversationList[currentIndex + 1])
-  return true
 }
 
 export function clearConversationSelection() {
@@ -149,8 +101,4 @@ export const conversationArchiveStore = {
   loadConversationArchive,
   selectConversation,
   clearConversationSelection,
-  navigatePreviousConversation,
-  navigateNextConversation,
-  canNavigatePreviousConversation,
-  canNavigateNextConversation,
 }

@@ -26,17 +26,9 @@
   import '@fontsource/mali'
   import { formatDate } from '@/lib/utils/utils.js'
   import { archiveStore } from '@/stores/archiveStore.svelte.js'
-  import {
-    conversationArchiveStore,
-    loadConversationArchive,
-    clearConversationSelection,
-  } from '@/stores/conversationArchiveStore.svelte.js'
+  import { conversationArchiveStore } from '@/stores/conversationArchiveStore.svelte.js'
   import ConversationTranscript from '@/entrypoints/archive/components/displays/ConversationTranscript.svelte'
   import { animationService } from '@/services/animationService.js'
-  import {
-    archiveFilterStore,
-    clearAllTagFilters,
-  } from '@/stores/archiveFilterStore.svelte.js'
 
   // State management
   let isSidePanelVisible = $state(window.innerWidth >= 768) // Initialize based on current window size
@@ -59,7 +51,8 @@
 
   // Event handlers
   async function refreshArchiveData() {
-    await Promise.all([archiveStore.loadData(), loadConversationArchive()])
+    // loadData refreshes summaries, history and conversations together
+    await archiveStore.loadData()
   }
 
   function toggleSidePanel() {
@@ -148,7 +141,6 @@
       // Scroll to hash after data is loaded
       setTimeout(scrollToHashHeading, 100)
     })
-    loadConversationArchive()
 
     // Listen for archive updates
     const unsubscribe = appStateStorage.watch((newValue, oldValue) => {
@@ -266,26 +258,19 @@
 
     {#if isSidePanelVisible}
       <SidePanel
-        list={activeTab === 'archive' ? archiveStore.archiveList : archiveStore.historyList}
-        selectedSummary={archiveStore.selectedSummary}
-        selectSummary={(summary) => {
-          archiveStore.selectSummary(summary, activeTab)
-          // Auto-close sidepanel on mobile when selecting summary
+        list={archiveStore.unifiedListFor(activeTab)}
+        selectedKey={archiveStore.selectedKey}
+        selectItem={(item) => {
+          archiveStore.selectItem(item, activeTab)
+          // Auto-close sidepanel on mobile when selecting an item
           if (isMobile && isSidePanelVisible) {
             toggleSidePanel()
           }
         }}
-        selectedSummaryId={archiveStore.selectedSummaryId}
         {activeTab}
         selectTab={(tabName) => {
           activeTab = tabName
           archiveStore.selectTab(tabName) // Select first item of new tab
-          if (tabName === 'conversations') {
-            loadConversationArchive()
-          } else {
-            clearConversationSelection()
-          }
-          clearAllTagFilters() // Reset filter when changing tabs
         }}
         onRefresh={refreshArchiveData}
       />
@@ -297,13 +282,15 @@
     class="flex-1 w-full wrap-break-word relative bg-surface-1 z-20 flex flex-col gap-2
    pl-0"
   >
-    {#if activeTab === 'conversations'}
+    <!-- The detail pane follows the selected row's kind, not the tab -->
+    {#if archiveStore.selectedKind === 'chat'}
       <ConversationTranscript
         conversation={conversationArchiveStore.selectedConversation}
         messages={conversationArchiveStore.selectedMessages}
         sources={conversationArchiveStore.selectedSources}
-        onRefresh={loadConversationArchive}
+        onRefresh={refreshArchiveData}
         {isSidePanelVisible}
+        {activeTab}
       />
     {:else}
       <SummaryDisplay

@@ -24,7 +24,7 @@ const DEFAULT_SETTINGS = {
   selectedProvider: 'gemini',
   floatButton: 200,
   floatButtonLeft: false,
-  showFloatingButton: true,
+  showFloatingButton: 'showOnScrollUp',
   floatingPanelLeft: false, // Default to right side
   closePanelOnOutsideClick: true, // Close floating panel when clicking outside
   geminiApiKey: '',
@@ -140,6 +140,7 @@ const DEFAULT_SETTINGS = {
   },
   chatUserSkills: [],
   chatSkillMigrationVersion: 0,
+  fabVisibilityMigrationVersion: 1,
 
   // Advanced Mode (from former stores)
   isAdvancedMode: false,
@@ -322,6 +323,35 @@ function migrateDeprecatedTone(settings) {
     return true
   }
   return false
+}
+
+const FAB_VISIBILITY_MIGRATION_VERSION = 1
+
+/**
+ * Migrates legacy boolean showFloatingButton to string visibility mode ONCE
+ * Forces old 'true' / default users to 'showOnScrollUp' (Smart Scroll)
+ * Stamped with fabVisibilityMigrationVersion to ensure it runs strictly once per installation.
+ * @param {Object} settings - Settings object to migrate
+ * @returns {boolean} - True if migration was performed
+ */
+function migrateFloatingButtonVisibility(settings) {
+  if ((settings.fabVisibilityMigrationVersion || 0) >= FAB_VISIBILITY_MIGRATION_VERSION) {
+    return false
+  }
+
+  let migrated = false
+  if (settings.showFloatingButton === true || settings.showFloatingButton === 'show') {
+    console.log("[settingsStore] Migration: showFloatingButton -> 'showOnScrollUp'")
+    settings.showFloatingButton = 'showOnScrollUp'
+    migrated = true
+  } else if (settings.showFloatingButton === false) {
+    console.log("[settingsStore] Migration: showFloatingButton false -> 'hide'")
+    settings.showFloatingButton = 'hide'
+    migrated = true
+  }
+
+  settings.fabVisibilityMigrationVersion = FAB_VISIBILITY_MIGRATION_VERSION
+  return true
 }
 
 /**
@@ -640,6 +670,9 @@ export async function loadSettings() {
         
         // ✅ MIGRATION: Migrate 'alien' tone to 'witty'
         migrateDeprecatedTone(cleanStoredSettings)
+
+        // ✅ MIGRATION: Migrate legacy boolean showFloatingButton to 'showOnScrollUp'
+        migrateFloatingButtonVisibility(cleanStoredSettings)
 
         // Handle migration from old fabDomainPermissions to new fabDomainControl format
         if (

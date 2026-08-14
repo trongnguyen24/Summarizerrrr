@@ -15,6 +15,43 @@
     updateSettings({ [key]: value })
   }
 
+  // Chuẩn hóa giá trị từ store (hỗ trợ boolean cũ)
+  function normalizeVisibilityMode(val) {
+    if (val === false || val === 'hide') return 'hide'
+    if (val === true) return 'showOnScrollUp'
+    if (val === 'show') return 'show'
+    if (val === 'hideOnScroll') return 'hideOnScroll'
+    if (val === 'showOnScrollUp' || val === 'showOnScroll') return 'showOnScrollUp'
+    return 'showOnScrollUp'
+  }
+
+  let currentVisibilityMode = $derived(
+    normalizeVisibilityMode(settings.showFloatingButton),
+  )
+
+  const visibilityItems = $derived([
+    {
+      value: 'hide',
+      label: $t('settings.general.floating_button.hide'),
+    },
+    {
+      value: 'show',
+      label: $t('settings.general.floating_button.show'),
+    },
+    {
+      value: 'hideOnScroll',
+      label: $t('settings.general.floating_button.hide_on_scroll'),
+    },
+    {
+      value: 'showOnScrollUp',
+      label: $t('settings.general.floating_button.show_on_scroll_up'),
+    },
+  ])
+
+  function handleVisibilityModeChange(newMode) {
+    handleUpdateSetting('showFloatingButton', newMode)
+  }
+
   let newWhitelistedDomain = $state()
   let newBlacklistedDomain = $state()
 
@@ -169,7 +206,7 @@
         {settings.floatButtonLeft
           ? 'rounded-l-none left-0 origin-left'
           : 'rounded-r-none left-[calc(100%-2.5rem)] origin-right'}
-        {settings.showFloatingButton
+        {currentVisibilityMode !== 'hide'
           ? 'opacity-100 scale-100'
           : 'opacity-0 scale-85'}"
       >
@@ -200,23 +237,14 @@
         <label class="block text-text-secondary"
           >{$t('settings.general.floatingButton')}</label
         >
-        <div class="grid w-full grid-cols-2 gap-1">
-          <ButtonSet
-            title={$t('settings.general.floating_button.hide')}
-            class="setting-btn {!settings.showFloatingButton ? 'active' : ''}"
-            onclick={() => handleUpdateSetting('showFloatingButton', false)}
-            Description={$t('settings.general.floating_button.hide_desc')}
-          >
-            <Icon icon="heroicons:eye-slash-20-solid" width="20" height="20" />
-          </ButtonSet>
-          <ButtonSet
-            title={$t('settings.general.floating_button.show')}
-            class="setting-btn {settings.showFloatingButton ? 'active' : ''}"
-            onclick={() => handleUpdateSetting('showFloatingButton', true)}
-            Description={$t('settings.general.floating_button.show_desc')}
-          >
-            <Icon icon="heroicons:eye-20-solid" width="20" height="20" />
-          </ButtonSet>
+        <div class="w-full">
+          <ReusableSelect
+            items={visibilityItems}
+            bind:bindValue={currentVisibilityMode}
+            onValueChangeCallback={handleVisibilityModeChange}
+            ariaLabel={$t('settings.general.floatingButton')}
+            className="w-full"
+          />
         </div>
       </div>
 

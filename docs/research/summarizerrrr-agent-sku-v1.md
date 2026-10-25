@@ -1,10 +1,18 @@
 ---
 type: research
-status: converged
+status: superseded
 ---
 
 # Summarizerrrr:agent — SKU riêng cho năng lực điều khiển browser
 
+> ⚠️ **SUPERSEDED (2026-08-15):** quyết định 2-SKU / CDP-ở-v1 của doc này đã bị **đảo** —
+> hướng mới là **1 SKU duy nhất, Agent Mode JS-only in-page**, chốt tại
+> [`page-agent-integration-feasibility-v1.md`](./page-agent-integration-feasibility-v1.md)
+> (kèm trần năng lực đã chấp nhận ở §2.1.1 của doc đó). **Đừng xoá doc này:** §6.3 (thứ tự
+> build tool-loop-trước), §8 (safety: `domain_transition`, không `execute_javascript`,
+> takeover, redaction) và §9 (checklist kỹ thuật) vẫn là tham chiếu bắt buộc và được doc mới
+> trỏ về.
+>
 > **Trạng thái: thiết kế đã đóng** (2026-07-31). Không phải plan thực thi — chưa có phân
 > pha, chưa có verify step. Nhánh khi bàn: `V3.0-refactor-01`.
 >

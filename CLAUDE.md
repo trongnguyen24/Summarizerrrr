@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Summarizerrrr is a browser extension for Chrome, Firefox, and Edge that uses AI to summarize YouTube videos, courses (Udemy/Coursera), and web pages. It's built with Svelte, WXT (Web Extension Toolkit), and the Vercel AI SDK to support multiple AI providers.
+Summarizerrrr is a browser extension for Chrome, Firefox, Edge (and Safari builds) that uses AI to summarize YouTube videos, courses (Udemy/Coursera), and web pages, plus a side-panel chat assistant over page/tab content. It's built with Svelte 5, WXT (Web Extension Toolkit), and the Vercel AI SDK to support multiple AI providers.
 
 ## Build & Development Commands
 
@@ -15,14 +15,24 @@ npm install
 # Development mode
 npm run dev
 npm run dev:firefox
+npm run dev:safari
 
 # Build for production
 npm run build
 npm run build:firefox
+npm run build:safari
 
 # Create distribution ZIP
 npm run zip
 npm run zip:firefox
+npm run zip:safari
+
+# Tests (vitest)
+npm test
+npm run test:watch
+
+# Regenerate the offline icon bundle
+npm run icons:sync
 
 # Type checking
 npm run check
@@ -59,7 +69,7 @@ Enforced by `tests/architecture/layering.test.js`, for **static and dynamic** im
 | report model status | `lib/api/modelStatusReporter.js` | `stores/summaryStore` |
 | bump capability signal | `lib/chat/capabilitiesSignal.js` | `stores/chatStore` |
 
-Those port files are the **only** entries in the test's `LAZY_PORT_ALLOWLIST`. Adding one is a design decision, not a fix for a failing test.
+`settingsPort`, `storagePort`, and `capabilitiesSignal` are the **only** entries in the test's `LAZY_PORT_ALLOWLIST` (`modelStatusReporter` needs none — it's a plain setter with a no-op default and no dynamic import). Adding an entry is a design decision, not a fix for a failing test.
 
 > The `settingsStore` carve-out for `services/` is deliberate and named: `animationService`, `deepDiveService`, `toolProviderService`, and `cloudSyncService` read it directly (the last also writes back). One named, greppable exception with a test watching it beats a leaky abstraction.
 
@@ -102,13 +112,13 @@ The extension is organized around **multiple entrypoints** (handled by WXT):
   - `externalChat.js` — opening Gemini/ChatGPT/Perplexity/Grok and driving their content scripts, with the Cloudflare/SPA readiness polling and send retries that requires.
   - `settingsBootstrap.js` — the worker's own settings loader. **Still a duplicate of `settingsStore`'s logic** (seam (f) in `docs/refactor/03-god-files.md`, not yet done).
   - `tabInfo.js` — `describeTab()`, the single YouTube/Udemy/Coursera classification the worker sends to the side panel.
-- **`content.js`** - Shadow DOM UI injection for all websites. Uses `settingsStore` to determine if FAB (floating action button) should show.
-- **`sidepanel/`** - Main UI for the side panel; connects to background via port for messages.
+- **`content/`** - Shadow DOM UI injection for all websites (`content/main.js` → `App.svelte`): FAB, floating panel, mobile sheet, deep-dive panel. Has its own `components/`, `composables/`, `extractors/`, and `services/`. Uses `settingsStore` to determine if the FAB (floating action button) should show.
+- **`sidepanel/`** - Main UI for the side panel (summary views + the chat assistant under `components/chat/`); connects to background via port. `sidepanel/messageHandler.js` handles messages from the background.
 - **`settings/`** - Settings page for API keys, provider configuration, and UI preferences.
 - **`archive/`** - Archive/history viewer with tag management and export/import functionality.
 - **`prompt/`** - Prompt editor for advanced customization.
 - **`popop/`** - Popup UI (shown on icon click or mobile).
-- **Content extractors** - Site-specific scripts: `udemy.content.js`, `coursera.content.js`, `youtubetranscript.content.js`, etc.
+- **Content scripts** - Site-specific: `udemy.content.js`, `coursera.content.js`, `youtubetranscript.content.js`, `youtube-quick-summary.content.js`, `youtube-copy-transcript.content.js`, `youtube-comments-bridge.content.js`, plus external-chat drivers `chatgpt|gemini|perplexity|grok.content.js`.
 
 #### Stores (`src/stores/`)
 
@@ -118,25 +128,47 @@ State management using **Svelte 5 reactive state** (`.svelte.js` files):
 - **`settingsStore.svelte.js`** - User settings (API keys, model choices, temperature, theme, etc.).
 - **`archiveStore.svelte.js`** - Archive/history entries with filtering.
 - **`themeStore.svelte.js`** - UI theme preferences.
+- **`chatStore.svelte.js`** / **`conversationArchiveStore.svelte.js`** - Side-panel chat state and saved conversations.
+- **`deepDiveStore.svelte.js`** - Deep-dive question flow.
+- Filter/view stores: `archiveFilterStore`, `historyFilterStore`, `kindFilterStore`, `sidepanelViewStore`, `tocModeStore`, `tagsCacheStore`, `nowStore`.
 - **`tabTitleStore.svelte.js`** - Current tab title tracking.
 - **`i18nShadowStore.svelte.js`** - Locale for Shadow DOM components.
 
 #### API Layer (`src/lib/api/`)
 
-- **`aiSdkAdapter.js`** - Core adapter that maps provider IDs and settings to AI SDK models. Functions: `getAISDKModel()`, `generateContent()`, `generateContentStream()`. Supports 8+ providers (Gemini, OpenAI, Claude, Groq, OpenRouter, Ollama, DeepSeek, LM Studio).
+- **`aiSdkAdapter.js`** - Core adapter that maps provider IDs and settings to AI SDK models. Functions: `getAISDKModel()`, `generateContent()`, `generateContentStream()`.
+- **`providerModelService.js`** - Model discovery/listing per provider.
+- **`reasoningConfig.js`** - Per-provider reasoning/thinking options.
+- **`modelStatusReporter.js`** - Port that `summaryStore` registers to receive model status.
 - **`api.js`** - High-level summarization functions: `summarizeContent()`, `summarizeChapters()`, with streaming variants.
 - **`ollamaProxyModel.js`** - Custom model wrapper for Ollama when accessed via background script proxy (cross-origin workaround).
 
 #### Database (`src/lib/db/`)
 
 - **`indexedDBService.js`** - IndexedDB operations: `addHistory()`, `addSummary()`, `getSummaryById()`, etc. Data stored in local browser database.
+- **`conversationRepository.js`** - Persistence for chat conversations.
+
+#### Providers (`src/lib/providers/`)
+
+- **`providerRegistry.js`** - Canonical `PROVIDER_LIST`: id, label, key/model settings fields, default model, discovery source, icon. Single source of truth for provider metadata in the UI.
+- **`openAICompatibleProfiles.js`** - Multiple user-defined OpenAI-compatible profiles.
+- **`featureModelResolver.js`**, **`geminiFreeTier.js`** - Per-feature model choice; Gemini free-tier handling.
+
+#### Chat (`src/lib/chat/`, `src/services/chat/`)
+
+- `lib/chat/contextPipeline/` - Source resolution → budgeting → formatting → assembly for chat context (`contextBudgeter.js`'s rigid source allowance is intentional).
+- `lib/chat/skills/builtInSkills.js` - Built-in chat skills; `providerCapabilities.js`, `modelCapabilityCache.js`, `usagePricing.js` - capability/usage metadata.
+- `services/chat/` - `chatService`, `chatSessionService`, `chatSourceService`, `tabMentionService` (`@tab`), `chatTabPolicy`.
 
 #### Utilities
 
 - **`src/services/contentService.js`** - Extracts page content (page text, YouTube transcript, course transcripts).
-- **`src/services/messageHandler.js`** - Handles messages from background script to side panel.
+- **`src/services/cloudSync/`** - Google Drive cloud sync (`cloudSyncService.svelte.js`, `googleDriveAdapter.js`).
+- **`src/services/tools/`** - Deep-dive and tool-provider services.
+- **`src/services/exportImport/`**, **`dataIntegrityService.js`** - Archive export/import and integrity checks.
+- **`src/services/firefoxPermissionService.js`**, **`firefoxSitePermissionService.js`**, **`fabPermissionService.js`** - Permission flows.
 - **`src/lib/utils/`** - Helper functions for crypto, URL parsing, browser detection, DOM manipulation.
-- **`src/lib/prompting/`** - Prompt building and system instructions for different content types.
+- **`src/lib/prompts/`** - Prompt building (`builders/`), system instructions, templates, and length/tone definitions for different content types.
 - **`src/lib/i18n/`** - Internationalization setup with `svelte-i18n`.
 
 ### Critical Message Types
@@ -155,15 +187,18 @@ The extension uses browser messaging for cross-context communication:
 
 The adapter (`aiSdkAdapter.js`) supports:
 
-1. **Gemini** - Google's generative AI (default)
-2. **OpenAI** - ChatGPT and GPT-4
-3. **Anthropic** - Claude
-4. **Groq** - Fast inference
-5. **OpenRouter** - Unified API for many models
-6. **Ollama** - Local models with CORS proxy workaround
-7. **DeepSeek** - via OpenAI-compatible API
-8. **LM Studio** - Local inference engine
-9. **Custom OpenAI-compatible** - Any OpenAI-compatible server
+1. **Gemini** (`gemini`, default) - Google's generative AI; supports multiple rotating API keys
+2. **OpenAI** (`chatgpt` / `openai`)
+3. **OpenRouter** (`openrouter`) - Unified API for many models
+4. **DeepSeek** (`deepseek`) - dedicated `@ai-sdk/deepseek` provider (reports cached-prompt tokens)
+5. **Groq** (`groq`)
+6. **Cerebras** (`cerebras`)
+7. **NVIDIA NIM** (`nvidia`) - via OpenAI-compatible API
+8. **Ollama** (`ollama`) - Local models with CORS proxy workaround
+9. **LM Studio** (`lmstudio`) - Local inference engine
+10. **Custom OpenAI-compatible** (`openaiCompatible`, plus named profiles)
+
+There is **no Anthropic/Claude provider** in `getAISDKModel()` (the `@ai-sdk/anthropic` import in the adapter is unused).
 
 ### Storage
 
@@ -189,7 +224,7 @@ export function updateSummary(text) {
 }
 ```
 
-No `.svelte` file components use these stores directly in templates; instead, the main entrypoints import and use them.
+Components import these stores directly (`@/stores/...`) — ~80 `.svelte` files do — subject to the layering rules above.
 
 ## Configuration & Build
 
@@ -231,7 +266,7 @@ Both paths ultimately append to `summaryState.summary` or other result fields.
 
 ### 2. Error Handling
 
-Errors are structured via `handleError()` (in `simpleErrorHandler.js`):
+Errors are structured via `handleError()` (in `src/lib/error/simpleErrorHandler.js`):
 
 ```javascript
 summaryState.summaryError = handleError(e, {
@@ -260,16 +295,16 @@ Firefox requires optional permissions for sites. The flow:
 
 ### Adding a New AI Provider
 
-1. Add provider configuration to `src/lib/config/aiConfig.js`
-2. Create provider settings component in `src/components/providerConfigs/`
-3. Update `getAISDKModel()` in `aiSdkAdapter.js` with new case
-4. Add model selection UI in settings
+1. Add an entry to `PROVIDER_LIST` in `src/lib/providers/providerRegistry.js` (settings fields, default model, `modelSource`/`discoveryId`, icon)
+2. Add any new settings keys/defaults (`src/lib/config/settingsSchema.js` / `aiConfig.js`)
+3. Add a `case` to both `switch (providerId)` blocks in `aiSdkAdapter.js`
+4. Settings UI is generic (`entrypoints/settings/components/AIProviderSettings.svelte`, `ProviderKeyConfig.svelte`) — only add a component if the provider needs bespoke config
 
 ### Modifying Prompts
 
-- System instructions: `src/lib/prompting/systemInstructions.js`
-- Prompt templates: `src/lib/prompting/promptBuilders.js` and `src/lib/prompts/templates/`
-- Length/tone/format definitions: `src/lib/prompting/prompts/modules/`
+- System instructions: `src/lib/prompts/systemInstructions.js`
+- Prompt builders: `src/lib/prompts/builders/index.js`; templates: `src/lib/prompts/templates/`
+- Length/tone/parameter definitions: `src/lib/prompts/modules/`
 
 ### Updating Archive/History Schema
 
@@ -294,7 +329,7 @@ Firefox requires optional permissions for sites. The flow:
 
 ## Testing
 
-`npm test` runs `vitest run` — 51 test files, including the architecture guard at `tests/architecture/layering.test.js`. Run `npm test` before considering any layering or component-placement change done.
+`npm test` runs `vitest run` — 68 test files, including the architecture guard at `tests/architecture/layering.test.js`. Run `npm test` before considering any layering or component-placement change done.
 
 For manual testing:
 

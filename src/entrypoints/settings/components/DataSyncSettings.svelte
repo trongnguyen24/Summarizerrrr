@@ -5,6 +5,10 @@
 </script>
 
 <div class=" flex flex-col gap-8 py-6">
+  <div class="flex items-center h-6 justify-between px-5">
+    <label class="block font-bold text-text-primary">Data & Sync</label>
+  </div>
+
   <div class="px-5">
     <CloudSyncToolSettings />
   </div>

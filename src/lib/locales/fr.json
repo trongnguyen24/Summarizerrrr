@@ -377,6 +377,10 @@
     }
   },
   "chat": {
+    "detached": {
+      "tab_tooltip": "Page fermée",
+      "source_note": "Page fermée — utilisation des sources précédentes"
+    },
     "time": {
       "justNow": "À l'instant",
       "minutesAgo": "il y a {count} min"
@@ -414,6 +418,13 @@
     "next_tab": "Onglet suivant",
     "remove_tab": "Supprimer (Clic du milieu)"
   },
+  "customize": {
+    "title": "Personnaliser",
+    "tabs": {
+      "prompts": "Prompts",
+      "skills": "Compétences"
+    }
+  },
   "prompts": {
     "title": "Prompts",
     "system_instruction": "Prompt système",
@@ -424,10 +435,11 @@
       "summarize": "Résumé",
       "custom_actions": "Actions personnalisées"
     },
-    "select_template": "Sélectionner un modèle",
     "prompt_enhance": "Améliorer le prompt",
+    "confirm_discard": "Vous avez des modifications non enregistrées. Les ignorer ?",
     "buttons": {
-      "import": "Importer",
+      "load_preset": "Charger un modèle",
+      "improve": "Améliorer",
       "discard": "Ignorer",
       "save": "Sauvegarder",
       "apply_prompt": "Appliquer le prompt"
@@ -451,7 +463,10 @@
     "font_dec": "Réduire la police",
     "font_inc": "Augmenter la police",
     "change_font": "Changer de police",
-    "toggle_width": "Basculer la largeur"
+    "toggle_width": "Basculer la largeur",
+    "search_placeholder": "Rechercher un titre ou une URL",
+    "search_clear": "Effacer la recherche",
+    "search_no_results": "Aucun résultat"
   },
   "button": {
     "copy": "Copier dans le presse-papiers",
@@ -597,6 +612,7 @@
     "confirm_replace": "Oui, remplacer"
   },
   "notifications": {
+    "try_chat": "Essayer le Chat — v3.0 bêta",
     "no_notifications": "Aucune notification",
     "noti_1": {
       "title": "Limites de l'API Gemini réduites",

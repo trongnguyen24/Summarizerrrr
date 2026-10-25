@@ -162,6 +162,22 @@ describe('keyboard navigation across kinds', () => {
     expect(archiveStore.canNavigateNext('history')).toBe(false)
     expect(await archiveStore.navigateNext('history')).toBe(false)
   })
+
+  it('steps through the filtered list the side panel shows', async () => {
+    // e.g. a search that only matches the two chats
+    const visible = archiveStore
+      .unifiedListFor('history')
+      .filter((item) => item.kind === 'chat')
+
+    // h1 is selected but filtered out: stepping lands on the first visible row
+    expect(await archiveStore.navigateNext('history', visible)).toBe(true)
+    expect(archiveStore.selectedKey).toBe('chat:c1')
+
+    // skips summary h2, which sits between the chats in the full list
+    expect(await archiveStore.navigateNext('history', visible)).toBe(true)
+    expect(archiveStore.selectedKey).toBe('chat:c2')
+    expect(await archiveStore.navigateNext('history', visible)).toBe(false)
+  })
 })
 
 describe('url handling', () => {

@@ -8,14 +8,14 @@
  * this flag has to be readable outside `App.svelte` — `messageHandler` reads
  * it before saving or restoring the summary offset.
  *
- * Chat is the default surface; the legacy summary is reachable one-way from
- * the conversation menu and resets when the panel is reopened.
+ * The summary surface is the default; chat is reachable from a button in the
+ * summary header and resets to summary when the panel is reopened.
  */
 export const sidepanelViewState = $state({
   /** @type {'chat' | 'summary'} */
-  surface: 'chat',
+  surface: 'summary',
 })
 
-export function showLegacySummarySurface() {
-  sidepanelViewState.surface = 'summary'
+export function showChatSurface() {
+  sidepanelViewState.surface = 'chat'
 }

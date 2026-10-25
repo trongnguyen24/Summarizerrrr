@@ -377,6 +377,10 @@
     }
   },
   "chat": {
+    "detached": {
+      "tab_tooltip": "ページを閉じました",
+      "source_note": "ページを閉じました — 以前のソースを使用中"
+    },
     "time": {
       "justNow": "たった今",
       "minutesAgo": "{count}分前"
@@ -414,6 +418,13 @@
     "next_tab": "次のタブ",
     "remove_tab": "削除（中クリック）"
   },
+  "customize": {
+    "title": "カスタマイズ",
+    "tabs": {
+      "prompts": "プロンプト",
+      "skills": "スキル"
+    }
+  },
   "prompts": {
     "title": "プロンプト",
     "system_instruction": "システムプロンプト",
@@ -424,10 +435,11 @@
       "summarize": "要約",
       "custom_actions": "カスタムアクション"
     },
-    "select_template": "テンプレートを選択",
     "prompt_enhance": "プロンプト改善",
+    "confirm_discard": "未保存の変更があります。破棄しますか？",
     "buttons": {
-      "import": "インポート",
+      "load_preset": "プリセットを読み込む",
+      "improve": "改善",
       "discard": "破棄",
       "save": "保存",
       "apply_prompt": "プロンプト適用"
@@ -451,7 +463,10 @@
     "font_dec": "文字サイズ縮小",
     "font_inc": "文字サイズ拡大",
     "change_font": "フォント変更",
-    "toggle_width": "幅切り替え"
+    "toggle_width": "幅切り替え",
+    "search_placeholder": "タイトルまたはURLで検索",
+    "search_clear": "検索をクリア",
+    "search_no_results": "一致する結果はありません"
   },
   "button": {
     "copy": "クリップボードにコピー",
@@ -597,6 +612,7 @@
     "confirm_replace": "はい、置換します"
   },
   "notifications": {
+    "try_chat": "チャットを試す — v3.0 ベータ",
     "no_notifications": "通知はありません",
     "noti_1": {
       "title": "Gemini APIの制限が減少しました",

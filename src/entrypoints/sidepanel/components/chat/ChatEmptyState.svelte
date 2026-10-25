@@ -17,8 +17,9 @@
 </script>
 
 {#if pinnedSkills.length > 0}
-  <!-- Centred in the empty area above the composer. `z-40` clears ChatComposer's
-       bottom fade (which sits in a `z-30` fixed block) on short viewports. -->
+  <!-- Centred in the empty area above the composer. `z-40` sits below the
+       composer block (`z-[41]` in ChatShell) so the context-bar panel, which
+       opens upward out of that block, stays clickable over this area. -->
   <div
     class="relative z-40 flex w-full flex-1 items-center justify-center px-4 py-6 max-w-3xl mx-auto"
     data-testid="chat-empty-state"

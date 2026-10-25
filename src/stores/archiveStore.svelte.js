@@ -223,29 +223,38 @@ function selectTab(tabName) {
   }
 }
 
-/** Neighbour of the current selection in the merged list, or null at the edge. */
-function neighbourItem(activeTab, delta) {
-  const currentList = unifiedListFor(activeTab)
-  const selectedKey = currentSelectedKey()
-  if (currentList.length === 0 || !selectedKey) return null
+/**
+ * Neighbour of the current selection, or null at the edge.
+ * `currentList` is what the user sees (search / kind / tag filters applied, in
+ * on-screen order); it defaults to the unfiltered merged list. When the
+ * selection is filtered out of view, stepping lands on the nearest visible
+ * end instead of doing nothing.
+ */
+function neighbourItem(activeTab, delta, currentList = unifiedListFor(activeTab)) {
+  if (currentList.length === 0) return null
 
-  const currentIndex = currentList.findIndex((item) => itemKey(item) === selectedKey)
-  if (currentIndex < 0) return null
+  const selectedKey = currentSelectedKey()
+  const currentIndex = selectedKey
+    ? currentList.findIndex((item) => itemKey(item) === selectedKey)
+    : -1
+  if (currentIndex < 0) {
+    return delta > 0 ? currentList[0] : currentList[currentList.length - 1]
+  }
 
   const targetIndex = currentIndex + delta
   if (targetIndex < 0 || targetIndex >= currentList.length) return null
   return currentList[targetIndex]
 }
 
-async function navigatePrevious(activeTab) {
-  const target = neighbourItem(activeTab, -1)
+async function navigatePrevious(activeTab, visibleList) {
+  const target = neighbourItem(activeTab, -1, visibleList)
   if (!target) return false
   await selectItem(target, activeTab)
   return true
 }
 
-async function navigateNext(activeTab) {
-  const target = neighbourItem(activeTab, 1)
+async function navigateNext(activeTab, visibleList) {
+  const target = neighbourItem(activeTab, 1, visibleList)
   if (!target) return false
   await selectItem(target, activeTab)
   return true

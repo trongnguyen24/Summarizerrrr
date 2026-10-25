@@ -25,6 +25,10 @@
 </script>
 
 <div class=" flex flex-col gap-8 py-6">
+  <div class="flex items-center h-6 justify-between px-5">
+    <label class="block font-bold text-text-primary">Appearance</label>
+  </div>
+
   <!-- Sidepanel Support Setting - Only show on Chrome -->
   {#if import.meta.env.BROWSER === 'chrome' && !browserCompatibility.isMobile}
     <div class="flex flex-col gap-2 px-5">

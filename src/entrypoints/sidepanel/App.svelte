@@ -15,6 +15,7 @@
   import { Toaster, toast } from 'svelte-sonner'
   import ModelToast from '@/entrypoints/sidepanel/components/ModelToast.svelte'
   import Noti from '@/entrypoints/sidepanel/components/Noti.svelte'
+  import ChatTryBanner from '@/entrypoints/sidepanel/components/ChatTryBanner.svelte'
   import 'webextension-polyfill'
   import { browser } from 'wxt/browser'
 
@@ -78,7 +79,6 @@
   import { openConversation } from '@/stores/chatStore.svelte.js'
   import {
     sidepanelViewState,
-    showLegacySummarySurface,
   } from '@/stores/sidepanelViewStore.svelte.js'
 
   // Track if settings are loaded
@@ -482,7 +482,7 @@
 
 {#if !settings.hasCompletedOnboarding}
   <div
-    class=" absolute z-[50] inset-0"
+    class="absolute z-[100] inset-0"
     out:fadeOnly={{
       duration: 400,
     }}
@@ -542,7 +542,7 @@
     class="grid min-h-screen grid-rows-[36px_32px_10px_192px_10px_1fr]"
   >
     <div
-      class="flex sticky top-0 z-50 justify-center items-center w-screen h-full bg-surface-1"
+      class="flex sticky top-0 z-[60] justify-center items-center w-screen h-full bg-surface-1"
     >
       <TabTitleBar {cachedTabsCount} />
       <div
@@ -693,6 +693,7 @@
   class=" fixed bg-linear-to-t from-surface-1 to-surface-1/40 bottom-0 mask-t-from-50% h-16 backdrop-blur-[2px] w-full z-30 pointer-events-none"
 ></div>
 {#if !summaryState.lastSummaryTypeDisplayed && settings.hasCompletedOnboarding && !needsApiKeySetup()()}
+  <ChatTryBanner />
   <Noti />
 {/if}
 {:else}
@@ -714,7 +715,6 @@
     </div>
     <ChatHeader
       onOpenConversation={openConversation}
-      onShowLegacySummary={showLegacySummarySurface}
     />
   </div>
 

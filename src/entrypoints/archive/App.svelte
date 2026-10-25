@@ -1,13 +1,12 @@
 <script>
   // @ts-nocheck
   import { onMount } from 'svelte'
-  import { t } from 'svelte-i18n'
-  import Icon from '@iconify/svelte'
+  import { t, locale } from 'svelte-i18n'
   import 'overlayscrollbars/overlayscrollbars.css'
   import { useOverlayScrollbars } from 'overlayscrollbars-svelte'
   import { appStateStorage } from '@/services/wxtStorageService.js'
   import SidePanel from './SidePanel.svelte'
-  import { fadeOnly } from '@/lib/utils/slideScaleFade.js'
+  import SidebarLayout from '@/components/ui/SidebarLayout.svelte'
   import {
     settings,
     loadSettings,
@@ -26,15 +25,27 @@
   import '@fontsource/mali'
   import { formatDate } from '@/lib/utils/utils.js'
   import { archiveStore } from '@/stores/archiveStore.svelte.js'
+  import { kindFilterStore } from '@/stores/kindFilterStore.svelte.js'
+  import { archiveFilterStore } from '@/stores/archiveFilterStore.svelte.js'
+  import { visibleArchiveList } from '@/lib/utils/archiveListFilter.js'
   import { conversationArchiveStore } from '@/stores/conversationArchiveStore.svelte.js'
   import ConversationTranscript from '@/entrypoints/archive/components/displays/ConversationTranscript.svelte'
-  import { animationService } from '@/services/animationService.js'
 
   // State management
-  let isSidePanelVisible = $state(window.innerWidth >= 768) // Initialize based on current window size
+  // Owned by the shell (SidebarLayout) but read here, so it is bindable.
+  let sidebarOpen = $state(window.innerWidth >= 768) // Initialize based on current window size
   let activeTab = $state('history') // Local state for active tab
-  let sidePanel
-  let isMobile = $state(window.innerWidth < 768) // Initialize mobile state immediately
+  // Lives here, not in SidePanel: the panel unmounts when hidden on mobile,
+  // and the arrow keys must keep following the search either way.
+  let searchQuery = $state('')
+  let visibleList = $derived(
+    visibleArchiveList(archiveStore.unifiedListFor(activeTab), {
+      activeTab,
+      selectedKind: kindFilterStore.selectedKind,
+      selectedTagIds: archiveFilterStore.selectedTagIds,
+      searchQuery,
+    }),
+  )
 
   // Overlay scrollbars configuration
   const scrollOptions = {
@@ -53,30 +64,6 @@
   async function refreshArchiveData() {
     // loadData refreshes summaries, history and conversations together
     await archiveStore.loadData()
-  }
-
-  function toggleSidePanel() {
-    isSidePanelVisible = !isSidePanelVisible
-    if (isSidePanelVisible) {
-      animationService.show(sidePanel)
-    } else {
-      animationService.hide(sidePanel)
-    }
-  }
-
-  function handleResize() {
-    const newIsMobile = window.innerWidth < 768
-    if (newIsMobile !== isMobile) {
-      isMobile = newIsMobile
-      isSidePanelVisible = !isMobile // Set visibility based on screen size
-    }
-  }
-
-  // Close sidepanel when clicking outside on mobile
-  function handleOverlayClick() {
-    if (isMobile && isSidePanelVisible) {
-      toggleSidePanel()
-    }
   }
 
   // Utility function to detect touch devices
@@ -149,10 +136,6 @@
       }
     })
 
-    // Initialize mobile state and listen for resize
-    handleResize()
-    window.addEventListener('resize', handleResize)
-
     // Keyboard navigation for arrow keys
     async function handleKeydown(e) {
       // Don't navigate if user is typing in an input/textarea
@@ -166,12 +149,12 @@
 
       if (e.key === 'ArrowLeft') {
         e.preventDefault()
-        if (await archiveStore.navigatePrevious(activeTab)) {
+        if (await archiveStore.navigatePrevious(activeTab, visibleList)) {
           window.scrollTo({ top: 0, behavior: 'smooth' })
         }
       } else if (e.key === 'ArrowRight') {
         e.preventDefault()
-        if (await archiveStore.navigateNext(activeTab)) {
+        if (await archiveStore.navigateNext(activeTab, visibleList)) {
           window.scrollTo({ top: 0, behavior: 'smooth' })
         }
       }
@@ -181,8 +164,15 @@
     // Return cleanup function
     return () => {
       unsubscribe()
-      window.removeEventListener('resize', handleResize)
       window.removeEventListener('keydown', handleKeydown)
+    }
+  })
+
+  // Sync i18n locale with settings store (moved from the old TabArchive)
+  $effect(() => {
+    const newLocale = settings.uiLang
+    if (newLocale && newLocale !== $locale) {
+      locale.set(newLocale)
     }
   })
 
@@ -217,55 +207,15 @@
 <Logdev /> -->
 
 <main class="flex text-sm relative min-h-vh bg-background text-text-primary">
-  <!-- Overlay backdrop for mobile - click outside to close sidepanel -->
-  {#if isMobile && isSidePanelVisible}
-    <!-- svelte-ignore a11y_click_events_have_key_events -->
-    <!-- svelte-ignore a11y_no_static_element_interactions -->
-    <div
-      transition:fadeOnly
-      class="fixed top-0 bottom-0 left-2 right-2 sm:left-5 sm:right-5 bg-black/40 z-30"
-      onclick={handleOverlayClick}
-    ></div>
-  {/if}
-
-  <button
-    class="fixed top-3 left-3 sm:left-6 md:left-9 translate-x-0.5 z-50 md:hover:bg-blackwhite/5 overflow-hidden rounded-4xl p-2"
-    onclick={toggleSidePanel}
-  >
-    {#if isSidePanelVisible}
-      <Icon icon="tabler:layout-sidebar-left-collapse" width="24" height="24" />
-    {:else}
-      <Icon
-        icon="tabler:layout-sidebar-right-collapse"
-        width="24"
-        height="24"
-      />
-    {/if}
-    <span class=" -z-10 absolute -inset-2 bg-surface-2/50 backdrop-blur-sm"
-    ></span>
-  </button>
-
-  <!-- Left Column: Prompt Menu -->
-  <div
-    class="top-stripes fixed z-50 shrink-0 left-0 top-0 w-2 sm:w-5 md:w-8 h-screen border-r border-border/70"
-  ></div>
-
-  <div
-    bind:this={sidePanel}
-    class="top-0 p-0 fixed left-2 sm:left-5 md:left-8 h-svh max-h-svh z-40 bg-background overflow-hidden"
-  >
-    <div class="w-px absolute z-30 top-0 right-0 h-svh bg-border/70"></div>
-
-    {#if isSidePanelVisible}
+  <SidebarLayout bind:open={sidebarOpen}>
+    {#snippet sidebar({ closeOnMobile })}
       <SidePanel
         list={archiveStore.unifiedListFor(activeTab)}
         selectedKey={archiveStore.selectedKey}
         selectItem={(item) => {
           archiveStore.selectItem(item, activeTab)
           // Auto-close sidepanel on mobile when selecting an item
-          if (isMobile && isSidePanelVisible) {
-            toggleSidePanel()
-          }
+          closeOnMobile()
         }}
         {activeTab}
         selectTab={(tabName) => {
@@ -273,15 +223,10 @@
           archiveStore.selectTab(tabName) // Select first item of new tab
         }}
         onRefresh={refreshArchiveData}
+        bind:searchQuery
       />
-    {/if}
-  </div>
+    {/snippet}
 
-  <!-- Right Column -->
-  <div
-    class="flex-1 w-full wrap-break-word relative bg-surface-1 z-20 flex flex-col gap-2
-   pl-0"
-  >
     <!-- The detail pane follows the selected row's kind, not the tab -->
     {#if archiveStore.selectedKind === 'chat'}
       <ConversationTranscript
@@ -289,7 +234,7 @@
         messages={conversationArchiveStore.selectedMessages}
         sources={conversationArchiveStore.selectedSources}
         onRefresh={refreshArchiveData}
-        {isSidePanelVisible}
+        isSidePanelVisible={sidebarOpen}
         {activeTab}
       />
     {:else}
@@ -298,15 +243,11 @@
         {formatDate}
         {activeTab}
         archiveList={archiveStore.archiveList}
-        {isSidePanelVisible}
+        isSidePanelVisible={sidebarOpen}
       />
     {/if}
     <div
       class="sticky bg-linear-to-t from-surface-1 to-surface-1/40 bottom-8 md:bottom-0 mask-t-from-50% h-16 backdrop-blur-[2px] w-full z-10 pointer-events-none"
     ></div>
-  </div>
-
-  <div
-    class="top-stripes z-50 right-0 shrink-0 fixed top-0 w-2 sm:w-5 md:w-8 h-screen border-l border-border/70"
-  ></div>
+  </SidebarLayout>
 </main>

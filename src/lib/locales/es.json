@@ -377,6 +377,10 @@
     }
   },
   "chat": {
+    "detached": {
+      "tab_tooltip": "Página cerrada",
+      "source_note": "Página cerrada — se usan fuentes anteriores"
+    },
     "time": {
       "justNow": "Justo ahora",
       "minutesAgo": "hace {count} min"
@@ -414,6 +418,13 @@
     "next_tab": "Pestaña siguiente",
     "remove_tab": "Eliminar (Clic central)"
   },
+  "customize": {
+    "title": "Personalizar",
+    "tabs": {
+      "prompts": "Prompts",
+      "skills": "Habilidades"
+    }
+  },
   "prompts": {
     "title": "Prompts",
     "system_instruction": "Prompt del sistema",
@@ -424,10 +435,11 @@
       "summarize": "Resumen",
       "custom_actions": "Acciones Personalizadas"
     },
-    "select_template": "Seleccionar plantilla",
     "prompt_enhance": "Mejorar prompt",
+    "confirm_discard": "Tienes cambios sin guardar. ¿Descartarlos?",
     "buttons": {
-      "import": "Importar",
+      "load_preset": "Cargar plantilla",
+      "improve": "Mejorar",
       "discard": "Descartar",
       "save": "Guardar",
       "apply_prompt": "Aplicar prompt"
@@ -451,7 +463,10 @@
     "font_dec": "Reducir fuente",
     "font_inc": "Aumentar fuente",
     "change_font": "Cambiar fuente",
-    "toggle_width": "Alternar ancho"
+    "toggle_width": "Alternar ancho",
+    "search_placeholder": "Buscar título o URL",
+    "search_clear": "Borrar búsqueda",
+    "search_no_results": "No hay resultados"
   },
   "button": {
     "copy": "Copiar al portapapeles",
@@ -597,6 +612,7 @@
     "confirm_replace": "Sí, reemplazar"
   },
   "notifications": {
+    "try_chat": "Prueba el Chat — v3.0 beta",
     "no_notifications": "Sin notificaciones",
     "noti_1": {
       "title": "Límites de la API de Gemini reducidos",

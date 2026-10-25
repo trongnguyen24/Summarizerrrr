@@ -198,24 +198,14 @@
         >{$t('settings.summary.comment_limit')}</label
       >
       <div class="grid grid-cols-3 w-full gap-1">
-        <ButtonSet
-          title="40"
-          class="setting-btn {settings.commentLimit === 40 ? 'active' : ''}"
-          onclick={() => handleUpdateSetting('commentLimit', 40)}
-          Description=""
-        ></ButtonSet>
-        <ButtonSet
-          title="60"
-          class="setting-btn {settings.commentLimit === 60 ? 'active' : ''}"
-          onclick={() => handleUpdateSetting('commentLimit', 60)}
-          Description=""
-        ></ButtonSet>
-        <ButtonSet
-          title="80"
-          class="setting-btn {settings.commentLimit === 80 ? 'active' : ''}"
-          onclick={() => handleUpdateSetting('commentLimit', 80)}
-          Description=""
-        ></ButtonSet>
+        {#each [40, 60, 80, 160, 300, 500] as limit}
+          <ButtonSet
+            title={String(limit)}
+            class="setting-btn {settings.commentLimit === limit ? 'active' : ''}"
+            onclick={() => handleUpdateSetting('commentLimit', limit)}
+            Description=""
+          ></ButtonSet>
+        {/each}
       </div>
     </div>
   </div>

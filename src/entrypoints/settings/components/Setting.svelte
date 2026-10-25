@@ -3,6 +3,10 @@
   import { useOverlayScrollbars } from 'overlayscrollbars-svelte'
   import 'overlayscrollbars/overlayscrollbars.css'
   import Icon from '@iconify/svelte'
+  import { fadeOnly } from '@/lib/utils/slideScaleFade.js'
+  import { fly } from 'svelte/transition'
+  import { cubicOut } from 'svelte/easing'
+  import { isReduceMotionEnabled } from '@/services/animationService.js'
   import { t } from 'svelte-i18n'
   import DeepDiveToolSettings from '@/entrypoints/settings/components/tools/DeepDiveToolSettings.svelte'
   import {
@@ -24,7 +28,8 @@
 
   let activeTab = $state(getTabFromURL()) // Initialize tab from URL
   let scrollContainerEl // Reference to the scroll container element
-  let navScrollEl // Reference to the sidebar/tab-bar scroll container
+  let navScrollEl // Reference to the desktop sidebar scroll container
+  let menuOpen = $state(false) // Mobile menu, expands upward out of the bottom bar
 
   const mainTabs = [
     {
@@ -96,8 +101,20 @@
     },
   ]
 
-  // Flat list for mobile
   const allTabs = [...mainTabs, ...footerTabs]
+  let activeTabIndex = $derived(
+    Math.max(
+      0,
+      allTabs.findIndex((tab) => tab.id === activeTab),
+    ),
+  )
+  let activeTabInfo = $derived(allTabs[activeTabIndex])
+
+  // Mobile bottom bar: step to the previous/next settings section
+  function stepTab(offset) {
+    const next = allTabs[activeTabIndex + offset]
+    if (next) switchTab(next.id)
+  }
 
   $effect(() => {
     // React to activeTab changes
@@ -120,6 +137,85 @@
   function switchTab(tabName) {
     activeTab = tabName
     updateTabInURL(tabName)
+    if (menuOpen) toggleMenu()
+  }
+
+  function toggleMenu() {
+    menuOpen = !menuOpen
+    if (menuOpen) sheetDragY = 0
+  }
+
+  // Bottom sheet: rises from behind the bar, drag the handle down to dismiss
+  function sheetFly(node) {
+    return fly(node, {
+      y: '100%',
+      opacity: 1,
+      duration: isReduceMotionEnabled() ? 0 : 280,
+      easing: cubicOut,
+    })
+  }
+
+  // Drag to dismiss, after the content script's MobileSheet: from the handle
+  // anywhere, from the list only while it is scrolled to the top.
+  const SHEET_DISMISS_PX = 80
+  const SHEET_DISMISS_VELOCITY = 0.5 // px/ms
+  const SHEET_CLICK_SLOP_PX = 5
+  let sheetHandleEl = $state()
+  let sheetListEl = $state()
+  let sheetDragY = $state(0)
+  let sheetDragging = $state(false)
+  let dragSource = 'handle' // 'handle' | 'content'
+  let dragStartY = 0
+  let dragStartTime = 0
+  let suppressNextClick = false
+
+  const pointerY = (e) => (e.touches ? e.touches[0] : e).clientY
+
+  function onSheetDragStart(event) {
+    const fromHandle = sheetHandleEl?.contains(event.target)
+    const fromContentTop =
+      sheetListEl?.contains(event.target) && sheetListEl.scrollTop <= 0
+    if (!fromHandle && !fromContentTop) return
+    sheetDragging = true
+    dragSource = fromHandle ? 'handle' : 'content'
+    dragStartY = pointerY(event)
+    dragStartTime = event.timeStamp
+  }
+
+  function onSheetDragMove(event) {
+    if (!sheetDragging) return
+    const deltaY = pointerY(event) - dragStartY
+    // Pulling the list up means scrolling it, not dragging the sheet
+    if (dragSource === 'content' && deltaY < 0 && sheetDragY === 0) {
+      sheetDragging = false
+      return
+    }
+    sheetDragY = Math.max(0, deltaY)
+  }
+
+  function onSheetDragEnd(event) {
+    if (!sheetDragging) return
+    sheetDragging = false
+    // A real drag must not also count as a tap on the item under the finger
+    if (sheetDragY > SHEET_CLICK_SLOP_PX) suppressNextClick = true
+    const velocity = sheetDragY / Math.max(1, event.timeStamp - dragStartTime)
+    if (sheetDragY > SHEET_DISMISS_PX || velocity > SHEET_DISMISS_VELOCITY) {
+      // Keep the dragged offset: the outro continues from where the finger left it
+      menuOpen = false
+    } else {
+      sheetDragY = 0
+    }
+  }
+
+  function onSheetClickCapture(event) {
+    if (!suppressNextClick) return
+    suppressNextClick = false
+    event.stopPropagation()
+    event.preventDefault()
+  }
+
+  function handleKeydown(event) {
+    if (menuOpen && event.key === 'Escape') toggleMenu()
   }
   const options = {
     scrollbars: {
@@ -158,7 +254,7 @@
     if (tocElement && !touch && !isDesktop) {
       initialize(tocElement)
     }
-    // The nav scroller exists on both breakpoints (vertical sidebar / horizontal tab bar)
+    // Desktop sidebar scroller (hidden on mobile, where the drawer is used)
     if (navScrollEl && !touch) {
       initializeNav(navScrollEl)
     }
@@ -180,63 +276,162 @@
   import FirefoxPermissionOverlay from '@/entrypoints/settings/components/FirefoxPermissionOverlay.svelte'
 </script>
 
+<svelte:window
+  onkeydown={handleKeydown}
+  onmousemove={onSheetDragMove}
+  onmouseup={onSheetDragEnd}
+  ontouchmove={onSheetDragMove}
+  ontouchend={onSheetDragEnd}
+  ontouchcancel={onSheetDragEnd}
+/>
+
 <div
   class="relative settings font-mono text-text-primary dark:text-text-secondary text-xs bg-surface-1 overflow-hidden sm:overflow-visible w-full h-full sm:h-auto flex-shrink-0 flex flex-col sm:flex-row"
 >
   <FirefoxPermissionOverlay />
 
-  <!-- Title for Mobile -->
+  {#snippet tabButton(tab)}
+    <button
+      data-tab={tab.id}
+      class="setting-tab-button relative rounded-md flex flex-row w-full py-2 px-3 items-center justify-start gap-3 flex-shrink-0 cursor-pointer transition-colors duration-200 hover:duration-75 {activeTab ===
+      tab.id
+        ? 'text-text-primary bg-neutral-100 hover:bg-white/60 dark:hover:bg-white/10 dark:bg-surface-2 active'
+        : 'text-text-secondary hover:text-text-primary hover:bg-surface-1 dark:hover:bg-surface-2'}"
+      aria-current={activeTab === tab.id ? 'page' : undefined}
+      onclick={() => switchTab(tab.id)}
+    >
+      <div class="size-5 flex-shrink-0 flex items-center justify-center">
+        {#if activeTab === tab.id}
+          <Icon icon={tab.iconSolid} width="20" height="20" />
+        {:else}
+          <Icon icon={tab.iconOutline} width="20" height="20" />
+        {/if}
+      </div>
+      <span class="text-left text-xs sm:text-sm">{tab.label}</span>
+    </button>
+  {/snippet}
+
+  <!-- Side stripes (mobile), mirroring the archive page -->
   <div
-    class="flex sm:hidden justify-center relative items-center py-2 bg-background border-b-0 border-border"
+    class="sm:hidden top-stripes absolute z-50 left-0 inset-y-0 w-2 border-r border-border/70"
+  ></div>
+  <div
+    class="sm:hidden top-stripes absolute z-50 right-0 inset-y-0 w-2 border-l border-border/70"
+  ></div>
+
+  <!-- Bottom bar background (mobile): solid content color behind the bar
+       (lower half, h-14) fading out above it (upper half), so content scrolls
+       softly under the bar instead of being cut at its edge. -->
+  <div
+    class="sm:hidden absolute bottom-0 left-2 right-2 z-40 h-28 pointer-events-none bg-linear-to-t from-surface-1 from-50% to-surface-1/0 mask-t-from-50% backdrop-blur-[2px]"
+  ></div>
+
+  <!-- Bottom bar (mobile): the label area opens the menu sheet (reachable with
+       either thumb); the arrows on the right step through the sections. The
+       open sheet simply covers the bar. -->
+  <div
+    class="sm:hidden absolute bottom-0 left-2 right-2 z-40 flex h-14 items-center pr-3"
   >
-    <p class="!text-center">{$t('settings.title')}</p>
+    <button
+      class="flex flex-1 min-w-0 h-full items-center justify-start gap-3 pl-6 cursor-pointer text-text-secondary hover:text-text-primary transition-colors"
+      aria-label="Open settings menu"
+      aria-expanded={menuOpen}
+      aria-controls="settings-mobile-menu"
+      onclick={toggleMenu}
+    >
+      <span class="size-5 flex-shrink-0 flex items-center justify-center">
+        <Icon icon="heroicons:bars-3" width="20" height="20" />
+      </span>
+      <span class="flex items-center gap-1.5 min-w-0 truncate">
+        <span>{$t('settings.title')}</span>
+        <span class="opacity-50">/</span>
+        <span class="text-text-primary truncate">{activeTabInfo.label}</span>
+      </span>
+    </button>
+    {#snippet stepButton(offset, icon, label)}
+      <button
+        class="size-10 flex-shrink-0 flex items-center justify-center rounded-full cursor-pointer text-text-secondary hover:text-text-primary hover:bg-blackwhite/10 active:bg-blackwhite/15 disabled:opacity-30 disabled:pointer-events-none transition-colors"
+        aria-label={label}
+        disabled={!allTabs[activeTabIndex + offset]}
+        onclick={() => stepTab(offset)}
+      >
+        <Icon {icon} width="20" height="20" />
+      </button>
+    {/snippet}
+    <!-- Spaced apart: these are touch targets -->
+    <div class="flex items-center gap-3 pl-3 flex-shrink-0">
+      {@render stepButton(-1, 'heroicons:chevron-left', 'Previous section')}
+      {@render stepButton(1, 'heroicons:chevron-right', 'Next section')}
+    </div>
   </div>
 
-  <!-- Left Sidebar (Desktop) / Bottom Bar (Mobile) -->
+  {#if menuOpen}
+    <!-- Backdrop (mobile) - click outside to close the menu -->
+    <!-- svelte-ignore a11y_click_events_have_key_events -->
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
+    <div
+      transition:fadeOnly
+      class="sm:hidden absolute inset-y-0 left-2 right-2 bg-black/40 z-[45]"
+      onclick={toggleMenu}
+    ></div>
+
+    <!-- Menu bottom sheet (mobile) -->
+    <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+    <nav
+      id="settings-mobile-menu"
+      transition:sheetFly
+      class="sm:hidden absolute bottom-0 left-2 right-2 z-50 flex flex-col max-h-[calc(100%-3rem)] bg-surface-1 rounded-t-2xl border border-b-0 border-border/70 shadow-[0_-8px_24px_rgb(0_0_0/0.25)] {sheetDragging
+        ? ''
+        : 'transition-transform duration-200 ease-out'}"
+      style="transform: translateY({sheetDragY}px)"
+      onmousedown={onSheetDragStart}
+      ontouchstart={onSheetDragStart}
+      onclickcapture={onSheetClickCapture}
+    >
+      <!-- Drag handle: pull down to dismiss -->
+      <div
+        bind:this={sheetHandleEl}
+        class="flex justify-center pt-2.5 pb-1.5 flex-shrink-0 cursor-grab active:cursor-grabbing touch-none select-none"
+        aria-hidden="true"
+      >
+        <span class="w-10 h-1 rounded-full bg-border"></span>
+      </div>
+      <div
+        bind:this={sheetListEl}
+        class="flex flex-col min-h-0 overflow-y-auto overscroll-contain px-3 pt-1 pb-5 gap-1 select-none [&>button]:py-3.5 [&>button]:gap-4"
+      >
+        {#each mainTabs as tab}
+          {@render tabButton(tab)}
+        {/each}
+        <div class="h-px bg-border/70 my-3 mx-3 flex-shrink-0"></div>
+        {#each footerTabs as tab}
+          {@render tabButton(tab)}
+        {/each}
+      </div>
+    </nav>
+  {/if}
+
+  <!-- Left Sidebar (Desktop) -->
   <div
-    class="flex flex-row sm:flex-col order-4 sm:order-1 bg-background items-center sm:items-stretch text-[0.65rem] sm:text-sm justify-center sm:justify-start sm:w-64 sm:sticky sm:top-[calc(1.5rem+1px)] sm:h-[calc(100dvh-3rem-2px)] sm:overflow-hidden border-t sm:border-t-0 sm:border-r border-border z-10 flex-shrink-0"
+    class="hidden sm:flex flex-col bg-background items-stretch text-sm justify-start w-64 sticky top-[calc(1.5rem+1px)] h-[calc(100dvh-3rem-2px)] overflow-hidden border-r border-border z-10 flex-shrink-0"
   >
     <!-- Title for Desktop -->
-    <div
-      class="hidden sm:flex justify-center items-center py-4 border-b border-border"
-    >
+    <div class="flex justify-center items-center py-4 border-b border-border">
       <p class="font-bold text-center">{$t('settings.title')}</p>
     </div>
 
     <!-- Navigation container (OverlayScrollbars host) -->
     <div
       bind:this={navScrollEl}
-      class="w-full sm:h-full sm:min-h-0 relative overflow-x-auto sm:overflow-x-hidden sm:overflow-y-auto"
+      class="w-full h-full min-h-0 relative overflow-x-hidden overflow-y-auto"
     >
-      <div
-        class="flex flex-row sm:flex-col w-full sm:min-h-full items-center sm:items-stretch p-3 gap-0.5"
-      >
-        {#snippet tabButton(tab)}
-          <button
-            data-tab={tab.id}
-            class="setting-tab-button relative rounded-md flex flex-col sm:flex-row w-16 sm:w-full py-2 px-3 items-center sm:justify-start justify-center gap-1 sm:gap-3 flex-shrink-0 cursor-pointer transition-colors duration-200 hover:duration-75 {activeTab ===
-            tab.id
-              ? 'text-text-primary bg-neutral-100 hover:bg-white/60 dark:hover:bg-white/10 dark:bg-surface-2 active'
-              : 'text-text-secondary hover:text-text-primary hover:bg-surface-1 dark:hover:bg-surface-2'}"
-            onclick={() => switchTab(tab.id)}
-          >
-            <div class="size-5 flex-shrink-0 flex items-center justify-center">
-              {#if activeTab === tab.id}
-                <Icon icon={tab.iconSolid} width="20" height="20" />
-              {:else}
-                <Icon icon={tab.iconOutline} width="20" height="20" />
-              {/if}
-            </div>
-            <span class="text-center text-xs sm:text-left">{tab.label}</span>
-          </button>
-        {/snippet}
-
+      <div class="flex flex-col w-full min-h-full items-stretch p-3 gap-0.5">
         {#each mainTabs as tab}
           {@render tabButton(tab)}
         {/each}
 
-        <!-- Spacer to push footer to bottom (desktop only) -->
-        <div class="hidden sm:block sm:flex-grow"></div>
+        <!-- Spacer to push footer to bottom -->
+        <div class="flex-grow"></div>
 
         <!-- Footer Group (What's New, About) -->
         {#each footerTabs as tab}
@@ -249,7 +444,7 @@
   <!-- Content Area -->
   <div
     id="setting-scroll"
-    class="flex-grow order-2 sm:order-2 h-[calc(100dvh-6.35rem)] sm:h-auto pb-16 sm:pb-8 overflow-y-auto sm:overflow-visible bg-surface-1"
+    class="isolate sm:isolation-auto flex-grow min-h-0 min-w-0 mx-2 sm:mx-0 sm:h-auto pb-24 sm:pb-8 overflow-y-auto sm:overflow-visible bg-surface-1"
     bind:this={scrollContainerEl}
   >
     <div class="p-0 sm:p-4">
@@ -288,45 +483,19 @@
     box-shadow:
       0 0 2px #ffffff18,
       0 0 0 #ffffff18;
+    width: 0px;
+    top: 50%;
+    transform: translateY(-50%) translateX(-0.25rem);
+    left: -0.75rem;
+    height: 1rem;
+    border-radius: 0 4px 4px 0;
   }
 
-  /* Desktop layout (sidebar right border) */
-  @media (min-width: 640px) {
-    .setting-tab-button::after {
-      width: 0px;
-      top: 50%;
-      transform: translateY(-50%) translateX(-0.25rem);
-      left: -0.75rem;
-      height: 1rem;
-      border-radius: 0 4px 4px 0;
-    }
-
-    .setting-tab-button.active::after {
-      transform: translateY(-50%) translateX(1px);
-      width: 4px;
-      box-shadow:
-        4px 0 8px 2px #ffffff71,
-        0 0 3px 1px #ffffff94;
-    }
-  }
-
-  /* Mobile layout (bottom bar top border) */
-  @media (max-width: 639px) {
-    .setting-tab-button::after {
-      height: 0px;
-      left: 50%;
-      transform: translateX(-50%) translateY(-0.25rem);
-      top: -0.5rem;
-      width: 1rem;
-      border-radius: 0 0 4px 4px;
-    }
-
-    .setting-tab-button.active::after {
-      transform: translateX(-50%) translateY(1px);
-      height: 4px;
-      box-shadow:
-        0 4px 8px 2px #ffffff71,
-        0 0 3px 1px #ffffff94;
-    }
+  .setting-tab-button.active::after {
+    transform: translateY(-50%) translateX(1px);
+    width: 4px;
+    box-shadow:
+      4px 0 8px 2px #ffffff71,
+      0 0 3px 1px #ffffff94;
   }
 </style>

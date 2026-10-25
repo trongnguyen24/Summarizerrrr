@@ -378,6 +378,10 @@
     }
   },
   "chat": {
+    "detached": {
+      "tab_tooltip": "Đã đóng trang",
+      "source_note": "Đã đóng trang — đang dùng các nguồn trước đó"
+    },
     "time": {
       "justNow": "Vừa xong",
       "minutesAgo": "{count} phút trước"
@@ -425,6 +429,13 @@
     "next_tab": "Tab tiếp theo",
     "remove_tab": "Xóa (Click chuột giữa)"
   },
+  "customize": {
+    "title": "Tùy chỉnh",
+    "tabs": {
+      "prompts": "Prompts",
+      "skills": "Kỹ năng"
+    }
+  },
   "prompts": {
     "title": "Prompts",
     "system_instruction": "Prompt Hệ thống",
@@ -435,10 +446,11 @@
       "summarize": "Tóm tắt",
       "custom_actions": "Hành động tùy chỉnh"
     },
-    "select_template": "Chọn mẫu prompt",
     "prompt_enhance": "Nâng cấp Prompt",
+    "confirm_discard": "Bạn có thay đổi chưa lưu. Bỏ các thay đổi này?",
     "buttons": {
-      "import": "Nhập",
+      "load_preset": "Tải mẫu có sẵn",
+      "improve": "Cải thiện",
       "discard": "Loại",
       "save": "Lưu",
       "apply_prompt": "Áp dụng Prompt"
@@ -462,7 +474,10 @@
     "font_dec": "Giảm kích thước chữ",
     "font_inc": "Tăng kích thước chữ",
     "change_font": "Đổi kiểu chữ",
-    "toggle_width": "Đổi độ rộng vùng đọc"
+    "toggle_width": "Đổi độ rộng vùng đọc",
+    "search_placeholder": "Tìm theo tiêu đề hoặc URL",
+    "search_clear": "Xóa tìm kiếm",
+    "search_no_results": "Không có kết quả phù hợp"
   },
   "button": {
     "copy": "Sao chép vào bộ nhớ đệm",
@@ -687,6 +702,7 @@
     }
   },
   "notifications": {
+    "try_chat": "Dùng thử Chat — bản 3.0 beta",
     "no_notifications": "Không có thông báo",
     "noti_1": {
       "title": "Giới hạn API Gemini đã giảm",

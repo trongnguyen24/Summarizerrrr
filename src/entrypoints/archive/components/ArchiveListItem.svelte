@@ -7,7 +7,7 @@
    * hover action cluster is dispatched on `item.kind` rather than on the tab.
    * This is the single row template for both the matched and dimmed lists —
    * it used to be duplicated three times (twice in SidePanel, once in the old
-   * ConversationList), which is why the kind icon lives here.
+   * ConversationList), so the row template lives here.
    */
   import Icon from '@iconify/svelte'
   import { t } from 'svelte-i18n'
@@ -53,16 +53,8 @@
     onclick={() => onSelect(item)}
     title={item.title}
   >
-    <div
-      class="flex items-center gap-1.5 w-full mask-r-from-85% mask-r-to-100%"
-    >
-      <Icon
-        class="shrink-0 {isSelected ? '' : 'text-text-muted'}"
-        icon={isChat ? 'heroicons:chat-bubble-left-right' : 'heroicons:document-text'}
-        width="16"
-        height="16"
-      />
-      <div class="line-clamp-1 transition-colors flex-1">
+    <div class="w-full mask-r-from-85% mask-r-to-100%">
+      <div class="line-clamp-1 transition-colors">
         {item.title}
       </div>
     </div>

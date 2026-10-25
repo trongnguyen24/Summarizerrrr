@@ -16,16 +16,38 @@
 
   // Chat's tone is independent from Settings > Summary and uses its own
   // chat-native tone roles (CHAT_TONE_ROLES) rather than the summarize-flow
-  // toneDefinitions. Response language is the exception: chat always follows
-  // the Summary language so users only have to set it in one place.
+  // toneDefinitions. Savage is hidden: it unlocks by clicking the witty tile
+  // three times, mirroring Settings > Summary.
   const TONE_OPTIONS = [
     { value: '', label: 'none', description: 'No tone instruction.' },
-    ...Object.entries(CHAT_TONE_ROLES).map(([value, def]) => ({
+    ...['simple', 'expert', 'witty'].map((value) => ({
       value,
       label: value,
-      description: def.toneDescription,
+      description: CHAT_TONE_ROLES[value].toneDescription,
     })),
   ]
+
+  let wittyClickCount = $state(0)
+
+  function currentTone() {
+    return currentPersona().tone || ''
+  }
+
+  function handleWittyClick() {
+    if (currentTone() === 'witty') {
+      wittyClickCount++
+      if (wittyClickCount >= 3) patchPersona({ tone: 'savage' })
+    } else if (currentTone() !== 'savage') {
+      patchPersona({ tone: 'witty' })
+      wittyClickCount = 0
+    }
+  }
+
+  function handleToneClick(option) {
+    if (option.value === 'witty') return handleWittyClick()
+    wittyClickCount = 0
+    patchPersona({ tone: option.value || null })
+  }
 
   function currentPersona() {
     return settings.chatGlobalPersona || {}
@@ -40,14 +62,6 @@
       ...patch,
     }
     updateSettings({ chatGlobalPersona: next })
-  }
-
-  let contentDraft = $state(currentPersona().content || '')
-  let saveTimer = null
-
-  function handleContentInput() {
-    if (saveTimer) clearTimeout(saveTimer)
-    saveTimer = setTimeout(() => patchPersona({ content: contentDraft.trim() }), 400)
   }
 
   // --- Quick models ---
@@ -114,12 +128,6 @@
   </div>
 
   <div class="setting-secsion flex flex-col gap-6 px-5">
-    <p class="text-text-secondary">
-      Controls the assistant persona used in the chat panel. Tone is
-      independent from Summary settings; response language always follows
-      Summary's Language output.
-    </p>
-
     <!-- Chat Model Picker -->
     <div class="flex flex-col gap-2">
       <FeatureModelPicker
@@ -169,9 +177,6 @@
             </span>
           {/each}
         </div>
-        <p class="text-[0.65rem] text-text-secondary">
-          {$t('settings.chat.quick_models_hint', { values: { max: MAX_QUICK_MODELS } })}
-        </p>
       </div>
     {/if}
 
@@ -189,53 +194,21 @@
           ></ButtonSet>
         {/each}
       </div>
-      <p class="text-[0.65rem] text-text-secondary">
-        {$t('settings.chat.default_reasoning_hint')}
-      </p>
-    </div>
-
-    <!-- Custom instructions -->
-    <div class="flex flex-col gap-2">
-      <!-- svelte-ignore a11y_label_has_associated_control -->
-      <label class="block text-text-secondary" for="chat-persona-content">
-        Custom instructions
-      </label>
-      <textarea
-        id="chat-persona-content"
-        bind:value={contentDraft}
-        oninput={handleContentInput}
-        rows="4"
-        placeholder="e.g. Distinguish source facts from general knowledge. Prefer bullet points."
-        class="w-full resize-none px-3 py-2 text-text-primary bg-muted/5 dark:bg-muted/5 border border-border hover:border-blackwhite/15 focus:border-blackwhite/30 dark:border-blackwhite/10 dark:focus:border-blackwhite/20 focus:outline-none focus:ring-0 transition-colors duration-150"
-      ></textarea>
-      <p class="text-[0.65rem] text-text-secondary">
-        Applied to every new chat. Existing conversations keep the persona they
-        were started with.
-      </p>
-    </div>
-
-    <!-- Response language -->
-    <div class="flex flex-col gap-2">
-      <!-- svelte-ignore a11y_label_has_associated_control -->
-      <label class="block text-text-secondary">Response language</label>
-      <p class="text-[0.65rem] text-text-secondary">
-        Chat always replies in the same language as
-        <strong class="text-text-primary">Summary &gt; Language output</strong>
-        (currently <strong class="text-text-primary">{settings.summaryLang}</strong>).
-      </p>
     </div>
 
     <!-- Tone -->
     <div class="flex flex-col gap-2">
       <!-- svelte-ignore a11y_label_has_associated_control -->
       <label class="block text-text-secondary">Tone</label>
-      <div class="grid grid-cols-3 w-full gap-1">
+      <div class="grid grid-cols-4 w-full gap-1">
         {#each TONE_OPTIONS as option (option.value)}
+          {@const isWittySlot = option.value === 'witty'}
+          {@const showSavage = isWittySlot && currentTone() === 'savage'}
           <ButtonSet
-            title={option.label}
-            class="setting-btn {(currentPersona().tone || '') === option.value ? 'active' : ''}"
-            onclick={() => patchPersona({ tone: option.value || null })}
-            Description={option.description}
+            title={showSavage ? 'savage' : option.label}
+            class="setting-btn {(isWittySlot ? ['witty', 'savage'].includes(currentTone()) : currentTone() === option.value) ? 'active' : ''}"
+            onclick={() => handleToneClick(option)}
+            Description={showSavage ? CHAT_TONE_ROLES.savage.toneDescription : option.description}
           ></ButtonSet>
         {/each}
       </div>

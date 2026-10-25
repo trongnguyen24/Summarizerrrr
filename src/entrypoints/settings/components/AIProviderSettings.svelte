@@ -91,6 +91,10 @@
 
 <!-- AI Provider Section -->
 <div class="setting-block flex gap-5 pb-6 pt-5 flex-col">
+  <div class="flex items-center h-6 justify-between px-5">
+    <label class="block font-bold text-text-primary">AI Provider</label>
+  </div>
+
   <!-- Output language: shared by summary, deep dive and chat, so it lives with
        the provider instead of inside the Summary tab. -->
   <div class="flex flex-col gap-2 px-5">

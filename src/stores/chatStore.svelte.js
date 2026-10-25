@@ -39,6 +39,8 @@ import {
  */
 function createChatSessionState() {
   return {
+    /** True when the browser tab that owns this session has been closed. */
+    detached: false,
     activeConversationId: null,
     conversation: null,
     messages: [],
@@ -201,6 +203,10 @@ function readSession(tabId) {
   return tabId == null || tabId === activeTabId ? chatState : getSession(tabId)
 }
 
+function sessionStillOwns(key, ref) {
+  return ref == null || tabSessions.get(key) === ref
+}
+
 function resetView() {
   Object.assign(chatState, createChatSessionState())
   markChatTabsChanged()
@@ -252,6 +258,7 @@ function effectiveActiveSourceKind() {
 export function ensureActiveSourceEstimate(sourceKind = effectiveActiveSourceKind()) {
   const targetTabId = activeTabId ?? chatTabsState.activeBrowserTabId
   const owner = readSession(targetTabId)
+  if (owner?.detached) return Promise.resolve(null)
   const url = owner?.currentUrl
   if (targetTabId == null || !url || owner.activeSourceDismissed) return Promise.resolve(null)
 
@@ -323,13 +330,14 @@ export function canSendChat() {
  * during the generation that just finished. Called only on a clean finish —
  * never after an abort or an error.
  */
-function drainQueuedSend(tabId, completed) {
+function drainQueuedSend(tabId, completed, ownerRef, write) {
+  if (!sessionStillOwns(tabId, ownerRef)) return
   const session = readSession(tabId)
   if (!session.queuedSend) return
   // Always disarm, even on an abort or an error. A flag left set would other-
   // wise survive until some later generation finished and fire there, sending
   // a message the user never asked for.
-  writeSession(tabId, { queuedSend: false })
+  write({ queuedSend: false })
   if (!completed) return
   // `sendChatMessage` always acts on the tab currently on screen. If the user
   // moved away, drop the arming and leave the draft — they can press Enter
@@ -512,14 +520,16 @@ function rebuildContextUsage(conversation, activePath) {
   }
 }
 
-async function reloadActivePath(tabId, result) {
+async function reloadActivePath(tabId, result, ownerRef, write) {
+  if (!sessionStillOwns(tabId, ownerRef)) return
   const owner = readSession(tabId)
   if (!owner.conversation) return
   const fullPath = await conversationRepository.getGenerationPath(owner.conversation.id)
   const committedSources = await resolveCommittedSources(fullPath)
   const hasEarlier = fullPath.length > VISIBLE_MESSAGE_WINDOW
   const windowed = hasEarlier ? fullPath.slice(-VISIBLE_MESSAGE_WINDOW) : fullPath
-  writeSession(tabId, {
+  if (!sessionStillOwns(tabId, ownerRef)) return
+  write({
     messages: windowed,
     committedSources,
     pendingAttachments: [],
@@ -651,12 +661,20 @@ export async function archiveConversation(id) {
 
 export function closeConversation() {
   // Only the active tab's generation is torn down; background tabs keep running.
+  const shouldReturnToBrowser = activeTabId != null && chatState.detached
+  const browserTabId = chatTabsState.activeBrowserTabId
   chatState.abortController?.abort()
   if (activeTabId != null) {
     tabSessions.delete(activeTabId)
     chatSessionService.clearConversationId(activeTabId)
   }
+  if (shouldReturnToBrowser) activeTabId = null
   resetView()
+  if (shouldReturnToBrowser && browserTabId != null) {
+    syncChatForActiveTab(browserTabId).catch((error) => {
+      console.error('[chatStore] Failed to return to the active browser tab:', error)
+    })
+  }
 }
 
 export function removeChatTabSession(tabId, { detachActiveTab = false } = {}) {
@@ -669,8 +687,16 @@ export function removeChatTabSession(tabId, { detachActiveTab = false } = {}) {
   chatSessionService.clearConversationId(tabId)
 
   if (isActiveSession) {
+    const shouldReturnToBrowser = Boolean(session?.detached)
+    const browserTabId = chatTabsState.activeBrowserTabId
+    if (shouldReturnToBrowser) activeTabId = null
     resetView()
-    if (detachActiveTab) activeTabId = null
+    if (!shouldReturnToBrowser && detachActiveTab) activeTabId = null
+    if (shouldReturnToBrowser && browserTabId != null) {
+      syncChatForActiveTab(browserTabId).catch((error) => {
+        console.error('[chatStore] Failed to return to the active browser tab:', error)
+      })
+    }
   }
 
   markChatTabsChanged()
@@ -678,6 +704,14 @@ export function removeChatTabSession(tabId, { detachActiveTab = false } = {}) {
 }
 
 export function handleChatBrowserTabRemoved(tabId) {
+  const session = tabId === activeTabId ? chatState : tabSessions.get(tabId)
+  const { hasConversation, isLoading } = toChatTabRuntimeDescriptor(tabId, session)
+  if (hasConversation || isLoading) {
+    writeSession(tabId, { detached: true, activeSourceEstimate: null })
+    chatSessionService.clearConversationId(tabId)
+    markChatTabsChanged()
+    return true
+  }
   return removeChatTabSession(tabId, { detachActiveTab: true })
 }
 
@@ -689,25 +723,8 @@ export function handleChatTabNavigation(tabId, nextUrl) {
   return false
 }
 
-/**
- * Swap the chat view to a tab. Never touches other tabs' generations. A tab
- * with a persisted conversation but no loaded messages is hydrated lazily.
- *
- * `title` and `favIconUrl` refresh on every sync (a tab's title changes as it
- * loads, and a stale title is a visible bug). `url` remains sticky first-write.
- */
-export async function syncChatForActiveTab(tabId, { url = null, title = undefined, favIconUrl = undefined } = {}) {
-  if (tabId == null) return chatState.conversation
-  chatTabsState.activeBrowserTabId = tabId
-
-  if (tabId === activeTabId) {
-    if (url) handleChatTabNavigation(tabId, url)
-    // Always refresh title/favicon even when staying on the same tab
-    if (title !== undefined) chatState.currentTitle = title
-    if (favIconUrl !== undefined) chatState.currentFavIconUrl = favIconUrl
-    return chatState.conversation
-  }
-
+async function activateChatSessionInternal(tabId) {
+  if (tabId == null || tabId === activeTabId) return chatState
   if (activeTabId != null) {
     // The DOM has been scrolled without the state knowing, so read it back
     // before the stash — otherwise the snapshot keeps a stale offset.
@@ -717,10 +734,6 @@ export async function syncChatForActiveTab(tabId, { url = null, title = undefine
   activeTabId = tabId
 
   const session = getSession(tabId)
-  if (url && !session.currentUrl) session.currentUrl = url
-  // Title and favicon always refresh — unlike URL they are not sticky
-  if (title !== undefined) session.currentTitle = title
-  if (favIconUrl !== undefined) session.currentFavIconUrl = favIconUrl
   projectSessionToView(session)
   // After the projection: it would otherwise overwrite the request with the
   // snapshot's own stale value.
@@ -758,6 +771,45 @@ export async function syncChatForActiveTab(tabId, { url = null, title = undefine
       }
     }
   }
+  return session
+}
+
+/**
+ * Project a detached or live session onto the chat view without changing the
+ * browser tab metadata. Auto-follow uses `syncChatForActiveTab` below; this is
+ * for selecting a chat session that no longer has a browser tab.
+ */
+export async function activateChatSession(key) {
+  return activateChatSessionInternal(key)
+}
+
+/**
+ * Swap the chat view to a browser tab. Never touches other tabs' generations.
+ * A tab with a persisted conversation but no loaded messages is hydrated
+ * lazily. `title` and `favIconUrl` refresh on every sync; `url` remains sticky.
+ */
+export async function syncChatForActiveTab(tabId, { url = null, title = undefined, favIconUrl = undefined } = {}) {
+  if (tabId == null) return chatState.conversation
+  chatTabsState.activeBrowserTabId = tabId
+
+  if (tabId === activeTabId) {
+    if (url) handleChatTabNavigation(tabId, url)
+    // Always refresh title/favicon even when staying on the same tab
+    if (title !== undefined) chatState.currentTitle = title
+    if (favIconUrl !== undefined) chatState.currentFavIconUrl = favIconUrl
+    return chatState.conversation
+  }
+
+  const session = await activateChatSessionInternal(tabId)
+  if (url && !session.currentUrl) session.currentUrl = url
+  // Title and favicon always refresh — unlike URL they are not sticky
+  if (title !== undefined) session.currentTitle = title
+  if (favIconUrl !== undefined) session.currentFavIconUrl = favIconUrl
+  if (activeTabId === tabId) {
+    chatState.currentUrl = session.currentUrl
+    chatState.currentTitle = session.currentTitle
+    chatState.currentFavIconUrl = session.currentFavIconUrl
+  }
   return session.conversation
 }
 
@@ -784,6 +836,10 @@ export async function sendChatMessage(content = chatState.composerText) {
   if (!chatState.conversation) await startConversationForActiveTab()
 
   const targetTabId = activeTabId
+  const ownerRef = getSession(targetTabId)
+  const write = (patch) => {
+    if (sessionStillOwns(targetTabId, ownerRef)) writeSession(targetTabId, patch)
+  }
   const owner = readSession(targetTabId)
   const conversation = owner.conversation
   const history = owner.messages
@@ -800,12 +856,12 @@ export async function sendChatMessage(content = chatState.composerText) {
   const pendingAttachments = $state.snapshot(chatState.pendingAttachments)
   // When the user has dismissed the page context, don't ground the active tab.
   // Explicit @ attachments (if any) are still captured.
-  const sourceRequired = !chatState.activeSourceDismissed
+  let sourceRequired = !chatState.activeSourceDismissed && !owner.detached
   const activeSourceKind =
     skillInvocation?.sourceMode && skillInvocation.sourceMode !== 'auto'
       ? skillInvocation.sourceMode
       : resolveAutoSourceKind(owner.currentUrl || '')
-  const preparedActiveSource = sourceRequired
+  let preparedActiveSource = sourceRequired
     ? {
         tabId: targetTabId,
         url: owner.currentUrl,
@@ -815,7 +871,7 @@ export async function sendChatMessage(content = chatState.composerText) {
       }
     : null
 
-  writeSession(targetTabId, {
+  write({
     error: null,
     contextWarnings: [],
     isSending: true,
@@ -833,6 +889,11 @@ export async function sendChatMessage(content = chatState.composerText) {
       if (preparedActiveSource) preparedActiveSource.sourceId = estimate?.sourceId || null
     }
     if (abortController.signal.aborted) return null
+    const latestOwner = readSession(targetTabId)
+    if (latestOwner?.detached && !preparedActiveSource?.sourceId) {
+      preparedActiveSource = null
+      sourceRequired = false
+    }
 
     const result = await chatService.send({
       conversation,
@@ -846,6 +907,7 @@ export async function sendChatMessage(content = chatState.composerText) {
       settings,
       abortController,
       onUserMessage: (message) => {
+        if (!sessionStillOwns(targetTabId, ownerRef)) return
         const session = readSession(targetTabId)
         const patch = {
           messages: [...session.messages, message],
@@ -869,30 +931,30 @@ export async function sendChatMessage(content = chatState.composerText) {
         ) {
           patch.selectedSkill = null
         }
-        writeSession(targetTabId, patch)
+        write(patch)
       },
       onChunk: (message) => {
-        writeSession(targetTabId, { streamingMessage: message })
+        write({ streamingMessage: message })
       },
       onWarnings: (warnings) => {
-        writeSession(targetTabId, { contextWarnings: warnings })
+        write({ contextWarnings: warnings })
       },
       onDiagnostics: (usage) => {
-        writeSession(targetTabId, { contextUsage: usage })
+        write({ contextUsage: usage })
       },
     })
-    await reloadActivePath(targetTabId, result)
+    await reloadActivePath(targetTabId, result, ownerRef, write)
     completed = true
     return result
   } catch (error) {
-    writeSession(targetTabId, {
+    write({
       error: error?.message ? error : handleError(error, { source: 'chatPersistence' }),
       streamingMessage: null,
     })
     return null
   } finally {
-    writeSession(targetTabId, { isSending: false, abortController: null })
-    drainQueuedSend(targetTabId, completed)
+    write({ isSending: false, abortController: null })
+    drainQueuedSend(targetTabId, completed, ownerRef, write)
   }
 }
 
@@ -910,13 +972,17 @@ export async function retryChatMessage(userMessageId) {
   if (!chatState.conversation || chatState.isSending) return null
 
   const targetTabId = activeTabId
+  const ownerRef = getSession(targetTabId)
+  const write = (patch) => {
+    if (sessionStillOwns(targetTabId, ownerRef)) writeSession(targetTabId, patch)
+  }
   const owner = readSession(targetTabId)
   const abortController = new AbortController()
   // Gates the queued-send drain in `finally`: only a clean finish sends the
   // next message. Aborts and errors leave it false.
   let completed = false
 
-  writeSession(targetTabId, {
+  write({
     error: null,
     isSending: true,
     abortController,
@@ -936,27 +1002,27 @@ export async function retryChatMessage(userMessageId) {
       settings,
       abortController,
       onChunk: (message) => {
-        writeSession(targetTabId, { streamingMessage: message })
+        write({ streamingMessage: message })
       },
       onWarnings: (warnings) => {
-        writeSession(targetTabId, { contextWarnings: warnings })
+        write({ contextWarnings: warnings })
       },
       onDiagnostics: (usage) => {
-        writeSession(targetTabId, { contextUsage: usage })
+        write({ contextUsage: usage })
       },
     })
-    await reloadActivePath(targetTabId, result)
+    await reloadActivePath(targetTabId, result, ownerRef, write)
     completed = true
     return result
   } catch (error) {
-    writeSession(targetTabId, {
+    write({
       error: handleError(error, { source: 'chatGeneration' }),
       streamingMessage: null,
     })
     return null
   } finally {
-    writeSession(targetTabId, { isSending: false, abortController: null })
-    drainQueuedSend(targetTabId, completed)
+    write({ isSending: false, abortController: null })
+    drainQueuedSend(targetTabId, completed, ownerRef, write)
   }
 }
 
@@ -995,6 +1061,10 @@ export async function regenerateChatMessage(assistantMessageId) {
   if (!chatState.conversation || chatState.isSending) return null
 
   const targetTabId = activeTabId
+  const ownerRef = getSession(targetTabId)
+  const write = (patch) => {
+    if (sessionStillOwns(targetTabId, ownerRef)) writeSession(targetTabId, patch)
+  }
   const owner = readSession(targetTabId)
   const abortController = new AbortController()
   // Gates the queued-send drain in `finally`: only a clean finish sends the
@@ -1005,7 +1075,7 @@ export async function regenerateChatMessage(assistantMessageId) {
   const assistantMessage = allMessages.find((m) => m.id === assistantMessageId)
   const userMessageId = assistantMessage?.parentId
 
-  writeSession(targetTabId, {
+  write({
     error: null,
     isSending: true,
     abortController,
@@ -1024,27 +1094,27 @@ export async function regenerateChatMessage(assistantMessageId) {
       settings,
       abortController,
       onChunk: (message) => {
-        writeSession(targetTabId, { streamingMessage: message })
+        write({ streamingMessage: message })
       },
       onWarnings: (warnings) => {
-        writeSession(targetTabId, { contextWarnings: warnings })
+        write({ contextWarnings: warnings })
       },
       onDiagnostics: (usage) => {
-        writeSession(targetTabId, { contextUsage: usage })
+        write({ contextUsage: usage })
       },
     })
-    await reloadActivePath(targetTabId, result)
+    await reloadActivePath(targetTabId, result, ownerRef, write)
     completed = true
     return result
   } catch (error) {
-    writeSession(targetTabId, {
+    write({
       error: handleError(error, { source: 'chatGeneration' }),
       streamingMessage: null,
     })
     return null
   } finally {
-    writeSession(targetTabId, { isSending: false, abortController: null })
-    drainQueuedSend(targetTabId, completed)
+    write({ isSending: false, abortController: null })
+    drainQueuedSend(targetTabId, completed, ownerRef, write)
   }
 }
 
@@ -1052,13 +1122,17 @@ export async function editChatMessage(messageId, content) {
   if (!chatState.conversation || chatState.isSending) return null
 
   const targetTabId = activeTabId
+  const ownerRef = getSession(targetTabId)
+  const write = (patch) => {
+    if (sessionStillOwns(targetTabId, ownerRef)) writeSession(targetTabId, patch)
+  }
   const owner = readSession(targetTabId)
   const abortController = new AbortController()
   // Gates the queued-send drain in `finally`: only a clean finish sends the
   // next message. Aborts and errors leave it false.
   let completed = false
 
-  writeSession(targetTabId, {
+  write({
     error: null,
     isSending: true,
     abortController,
@@ -1078,27 +1152,27 @@ export async function editChatMessage(messageId, content) {
       settings,
       abortController,
       onChunk: (message) => {
-        writeSession(targetTabId, { streamingMessage: message })
+        write({ streamingMessage: message })
       },
       onWarnings: (warnings) => {
-        writeSession(targetTabId, { contextWarnings: warnings })
+        write({ contextWarnings: warnings })
       },
       onDiagnostics: (usage) => {
-        writeSession(targetTabId, { contextUsage: usage })
+        write({ contextUsage: usage })
       },
     })
-    await reloadActivePath(targetTabId, result)
+    await reloadActivePath(targetTabId, result, ownerRef, write)
     completed = true
     return result
   } catch (error) {
-    writeSession(targetTabId, {
+    write({
       error: handleError(error, { source: 'chatGeneration' }),
       streamingMessage: null,
     })
     return null
   } finally {
-    writeSession(targetTabId, { isSending: false, abortController: null })
-    drainQueuedSend(targetTabId, completed)
+    write({ isSending: false, abortController: null })
+    drainQueuedSend(targetTabId, completed, ownerRef, write)
   }
 }
 
@@ -1106,6 +1180,10 @@ export async function continueChatMessage(assistantMessageId) {
   if (!chatState.conversation || chatState.isSending) return null
 
   const targetTabId = activeTabId
+  const ownerRef = getSession(targetTabId)
+  const write = (patch) => {
+    if (sessionStillOwns(targetTabId, ownerRef)) writeSession(targetTabId, patch)
+  }
   const owner = readSession(targetTabId)
   const abortController = new AbortController()
   // Gates the queued-send drain in `finally`: only a clean finish sends the
@@ -1114,7 +1192,7 @@ export async function continueChatMessage(assistantMessageId) {
 
   const assistantMessage = owner.messages.find((m) => m.id === assistantMessageId)
 
-  writeSession(targetTabId, {
+  write({
     error: null,
     isSending: true,
     abortController,
@@ -1135,27 +1213,27 @@ export async function continueChatMessage(assistantMessageId) {
       settings,
       abortController,
       onChunk: (message) => {
-        writeSession(targetTabId, { streamingMessage: message })
+        write({ streamingMessage: message })
       },
       onWarnings: (warnings) => {
-        writeSession(targetTabId, { contextWarnings: warnings })
+        write({ contextWarnings: warnings })
       },
       onDiagnostics: (usage) => {
-        writeSession(targetTabId, { contextUsage: usage })
+        write({ contextUsage: usage })
       },
     })
-    await reloadActivePath(targetTabId, result)
+    await reloadActivePath(targetTabId, result, ownerRef, write)
     completed = true
     return result
   } catch (error) {
-    writeSession(targetTabId, {
+    write({
       error: handleError(error, { source: 'chatGeneration' }),
       streamingMessage: null,
     })
     return null
   } finally {
-    writeSession(targetTabId, { isSending: false, abortController: null })
-    drainQueuedSend(targetTabId, completed)
+    write({ isSending: false, abortController: null })
+    drainQueuedSend(targetTabId, completed, ownerRef, write)
   }
 }
 

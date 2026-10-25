@@ -64,7 +64,7 @@
       </div>
 
       <div class=" absolute inset-0 border border-dashed border-border"></div>
-      <Version class=" w-140 md:w-200 shrink-0 mx-auto" />
+      <Version class=" w-full max-w-200 mx-auto" />
     </div>
     <div class="p-6 prose prose-sm w-full max-w-full">
       <h2>Release note</h2>

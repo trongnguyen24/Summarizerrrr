@@ -18,10 +18,9 @@
     softDeleteHistory,
     removeFromArchiveByHistoryId,
   } from '@/lib/db/indexedDBService'
-  import TabArchive from '@/entrypoints/archive/components/TabArchive.svelte'
+  import SidebarTabs from '@/components/ui/SidebarTabs.svelte'
   import TagManagement from '@/entrypoints/archive/components/displays/TagManagement.svelte'
-  import HistoryTagFilter from '@/entrypoints/archive/components/displays/HistoryTagFilter.svelte'
-  import KindFilter from '@/entrypoints/archive/components/displays/KindFilter.svelte'
+  import ArchiveSearch from '@/entrypoints/archive/components/displays/ArchiveSearch.svelte'
   import AssignTagsModal from '@/entrypoints/archive/components/AssignTagsModal.svelte' // Import the new modal
   import ArchiveListItem from '@/entrypoints/archive/components/ArchiveListItem.svelte'
   import {
@@ -29,10 +28,7 @@
     refreshTagCounts,
     clearAllTagFilters,
   } from '@/stores/archiveFilterStore.svelte.js'
-  import {
-    historyFilterStore,
-    clearContentTypeFilter,
-  } from '@/stores/historyFilterStore.svelte.js'
+  import { categorizeArchiveList } from '@/lib/utils/archiveListFilter.js'
   import {
     kindFilterStore,
     clearKindFilter,
@@ -46,13 +42,14 @@
     resumeArchivedConversation,
   } from '@/stores/conversationArchiveStore.svelte.js'
 
-  const {
+  let {
     list, // Merged rows: { kind, id, title, timestamp, raw }
     selectedKey, // `${kind}:${id}` of the current selection
     selectItem,
     activeTab,
     selectTab,
     onRefresh,
+    searchQuery = $bindable(''), // Owned by App so arrow-key navigation sees it
   } = $props()
 
   // State management
@@ -65,75 +62,18 @@
   let isConfirmingDelete = $state(false)
   let isTouchScreen = $state(false)
 
-  // Use effect to compute categorized list instead of filtered list
-  let categorizedList = $state({ matchedItems: [], unmatchedItems: [] })
-  let filteredList = $state([]) // Keep for backward compatibility
-
-  $effect(() => {
-    // The kind filter HIDES non-matching rows; the content-type and tag
-    // filters below only partition them (matched first, rest dimmed).
-    const selectedKind = kindFilterStore.selectedKind
-    const scoped = (list || []).filter(
-      (item) => !selectedKind || item.kind === selectedKind,
-    )
-
-    // For history tab with content type filter
-    if (activeTab === 'history') {
-      if (historyFilterStore.selectedContentType === null) {
-        // No filter, return original list
-        filteredList = scoped
-        categorizedList = { matchedItems: scoped, unmatchedItems: [] }
-        return
-      }
-
-      // Filter by content type (chats carry none, so they land in unmatched)
-      const matched = []
-      const unmatched = []
-
-      scoped.forEach((item) => {
-        if (item.raw.contentType === historyFilterStore.selectedContentType) {
-          matched.push(item)
-        } else {
-          unmatched.push(item)
-        }
-      })
-
-      categorizedList = { matchedItems: matched, unmatchedItems: unmatched }
-      filteredList = [...matched, ...unmatched] // Keep backward compatibility
-      return
-    }
-
-    // For archive tab with no filter, return original list
-    if (archiveFilterStore.selectedTagIds.length === 0) {
-      filteredList = scoped
-      categorizedList = { matchedItems: scoped, unmatchedItems: [] }
-      return
-    }
-
-    // Categorize items for archive tab with selected tags
-    const matched = []
-    const unmatched = []
-
-    scoped.forEach((item) => {
-      const tags = item.raw.tags
-      if (!tags || !Array.isArray(tags)) {
-        unmatched.push(item)
-      } else {
-        const isMatched = archiveFilterStore.selectedTagIds.every((tagId) =>
-          tags.includes(tagId),
-        )
-
-        if (isMatched) {
-          matched.push(item)
-        } else {
-          unmatched.push(item)
-        }
-      }
-    })
-
-    categorizedList = { matchedItems: matched, unmatchedItems: unmatched }
-    filteredList = [...matched, ...unmatched] // Keep backward compatibility
-  })
+  // Same function App uses for arrow-key navigation, so both see one list
+  let categorizedList = $derived(
+    categorizeArchiveList(list, {
+      activeTab,
+      selectedKind: kindFilterStore.selectedKind,
+      selectedTagIds: archiveFilterStore.selectedTagIds,
+      searchQuery,
+    }),
+  )
+  let visibleCount = $derived(
+    categorizedList.matchedItems.length + categorizedList.unmatchedItems.length,
+  )
 
   // State for AssignTagsModal
   let isAssigningTags = $state(false)
@@ -157,11 +97,25 @@
     summaryToEditTags = null
   }
 
+  let tabs = $derived([
+    {
+      id: 'history',
+      label: $t('archive.tab_history'),
+      icon: 'heroicons:clock',
+      iconActive: 'heroicons:clock-solid',
+    },
+    {
+      id: 'archive',
+      label: $t('archive.tab_archive'),
+      icon: 'heroicons:archive-box',
+      iconActive: 'heroicons:archive-box-solid',
+    },
+  ])
+
   // Single place that resets every filter on tab change (App's selectTab
   // callback used to clear tags a second time).
   function handleTabChange(tabName) {
     clearAllTagFilters() // Reset archive filter when changing tabs
-    clearContentTypeFilter() // Reset history filter when changing tabs
     clearKindFilter() // Reset summary/chat filter when changing tabs
     selectTab(tabName)
   }
@@ -417,9 +371,13 @@
   }}
   class="w-80 relative flex flex-col h-lvh"
 >
-  <h2 class="text-lg pl-12 pt-4.5 pb-2 font-bold">Summarizerrrr</h2>
+  <div class="flex items-center justify-between gap-2 pr-3 pt-4.5 pb-2">
+    <h2 class="text-lg pl-12 font-bold">Summarizerrrr</h2>
+  </div>
 
-  <TabArchive {activeTab} onSelectTab={handleTabChange} />
+  <SidebarTabs {tabs} {activeTab} onSelectTab={handleTabChange} />
+
+  <ArchiveSearch bind:value={searchQuery} />
 
   <div
     id="scroll-side"
@@ -434,15 +392,9 @@
         ? 'gap-1 !text-sm'
         : 'gap-0.5'}"
     >
-      <KindFilter />
-
-      <!-- Tag / content-type filters only apply to summaries -->
+      <!-- Tags only apply to summaries -->
       {#if activeTab === 'archive' && kindFilterStore.selectedKind !== 'chat'}
         <TagManagement />
-      {/if}
-
-      {#if activeTab === 'history' && kindFilterStore.selectedKind !== 'chat'}
-        <HistoryTagFilter />
       {/if}
 
       <!-- Render matched items -->
@@ -486,9 +438,11 @@
         />
       {/each}
 
-      {#if (filteredList?.length || 0) === 0}
+      {#if visibleCount === 0}
         <div class="px-2 py-4 text-text-muted text-xs">
-          {#if kindFilterStore.selectedKind === 'chat'}
+          {#if searchQuery.trim()}
+            {$t('archive.search_no_results')}
+          {:else if kindFilterStore.selectedKind === 'chat'}
             {$t('archive.no_chats')}
           {:else if activeTab === 'archive'}
             {$t('tags.no_archived')}

@@ -1,6 +1,7 @@
 <script>
   // @ts-nocheck
   import Icon from '@iconify/svelte'
+  import { t } from 'svelte-i18n'
   import { slideScaleFade } from '@/lib/utils/slideScaleFade.js'
   import ChatSkillChip from '@/entrypoints/sidepanel/components/chat/ChatSkillChip.svelte'
   import ChatContextBar from '@/entrypoints/sidepanel/components/chat/ChatContextBar.svelte'
@@ -49,6 +50,7 @@
   let hasContextBar = $derived(
     (activeSourceKind && !chatState.activeSourceDismissed) ||
       chatState.pendingAttachments.length > 0 ||
+      chatState.committedSources.length > 0 ||
       (chatState.currentUrl && chatState.activeSourceDismissed),
   )
 
@@ -303,14 +305,29 @@
     />
 
     <!-- Context bar: attached tab, inset on both sides, tucked under the chat box -->
-    <div class="mx-3 {hasContextBar ? '-mb-1.5' : ''}">
+    <div
+      class="mx-3 {hasContextBar || chatState.detached ? '-mb-1.5' : ''}"
+    >
+      {#if chatState.detached}
+        <div
+          class="flex items-center gap-1.5 bg-surface-2 border border-border/40 px-3 pt-1.5 pb-3 text-xs text-text-secondary"
+          data-testid="detached-source-note"
+        >
+          <Icon icon="carbon:unlink" width="14" height="14" />
+          <span>{$t('chat.detached.source_note')}</span>
+        </div>
+      {/if}
       <ChatContextBar
-        currentUrl={chatState.currentUrl}
-        currentTitle={chatState.currentTitle}
-        currentFavIconUrl={chatState.currentFavIconUrl}
-        {activeSourceKind}
-        activeSourceDismissed={chatState.activeSourceDismissed}
-        activeSourceEstimate={chatState.activeSourceEstimate}
+        currentUrl={chatState.detached ? null : chatState.currentUrl}
+        currentTitle={chatState.detached ? null : chatState.currentTitle}
+        currentFavIconUrl={chatState.detached ? null : chatState.currentFavIconUrl}
+        activeSourceKind={chatState.detached ? null : activeSourceKind}
+        activeSourceDismissed={
+          chatState.detached ? true : chatState.activeSourceDismissed
+        }
+        activeSourceEstimate={
+          chatState.detached ? null : chatState.activeSourceEstimate
+        }
         committedSources={chatState.committedSources}
         pendingAttachments={chatState.pendingAttachments}
         onDismissActiveSource={dismissActiveSource}

@@ -18,9 +18,7 @@
   import { getElapsedDisplay } from '@/lib/utils/utils.js'
   import { nowState } from '@/stores/nowStore.svelte.js'
   import ChatDeepDive from '@/entrypoints/sidepanel/components/chat/ChatDeepDive.svelte'
-  import ChatSourceDrawer from '@/entrypoints/sidepanel/components/chat/ChatSourceDrawer.svelte'
   import ChatThinkingIndicator from '@/entrypoints/sidepanel/components/chat/ChatThinkingIndicator.svelte'
-  import ChatMessageMeta from '@/entrypoints/sidepanel/components/chat/ChatMessageMeta.svelte'
 
   let {
     message,
@@ -42,16 +40,6 @@
   let siblings = $state([])
   let isEditing = $state(false)
   let editText = $state('')
-  let sourcesOpen = $state(false)
-
-  const hasGroundingRefs = $derived(!isUser && Array.isArray(message.groundingRefs) && message.groundingRefs.length > 0)
-
-  const sourcesLabel = $derived(
-    $_('chat.message_meta.sources', {
-      default: `${message.groundingRefs?.length ?? 0} source(s)`,
-      values: { count: message.groundingRefs?.length ?? 0 },
-    }),
-  )
 
   $effect(() => {
     // The streaming bubble carries its future id but no conversationId yet;
@@ -140,7 +128,7 @@
   <Tooltip content={label} side="top" delayDuration={300}>
     {#snippet children({ builder })}
       <button type="button" {...builder} class={cls} aria-label={label} {onclick}>
-        <Icon {icon} width="14" height="14" />
+        <Icon {icon} width="16" height="16" />
       </button>
     {/snippet}
   </Tooltip>
@@ -190,7 +178,7 @@
           {@render actionBtn('Edit message', 'heroicons:pencil-square', startEditing, BTN_USER)}
           {@render actionBtn(
             'Copy message',
-            'heroicons:document-duplicate-20-solid',
+            'heroicons:square-2-stack',
             copyContent,
             BTN_USER,
           )}
@@ -252,8 +240,8 @@
     {/if}
 
     {#if !isStreaming}
-      <!-- One row for everything: actions, the metadata popover, sources and
-           the Deep Dive pill. `flex-wrap` is deliberate — a very narrow side
+      <!-- One row: branch switcher (only with siblings), copy, regenerate, the
+           Deep Dive pill and the time. `flex-wrap` is deliberate — a very narrow side
            panel wraps the row instead of overflowing it. -->
       <BitsTooltip.Provider>
         <div class="mt-0.5 flex w-full flex-wrap items-center gap-1 text-muted">
@@ -277,7 +265,7 @@
 
           {@render actionBtn(
             'Copy response',
-            'heroicons:document-duplicate-20-solid',
+            'heroicons:square-2-stack',
             copyContent,
             BTN,
           )}
@@ -307,30 +295,6 @@
             )}
           {/if}
 
-          <ChatMessageMeta
-            modelId={message.modelId}
-            usage={message.usage}
-            createdAt={message.createdAt}
-          />
-
-          {#if hasGroundingRefs}
-            <Tooltip content={sourcesLabel} side="top" delayDuration={300}>
-              {#snippet children({ builder })}
-                <button
-                  type="button"
-                  {...builder}
-                  class="flex items-center gap-0.5 rounded-md px-1 py-1 text-[11px] text-text-secondary/70 hover:bg-blackwhite-5 hover:text-text-primary transition-colors"
-                  onclick={() => (sourcesOpen = !sourcesOpen)}
-                  aria-label={sourcesLabel}
-                >
-                  <Icon icon="heroicons:link" width="14" height="14" />
-                  <span class="tabular-nums">{message.groundingRefs.length}</span>
-                  <Icon icon={sourcesOpen ? 'heroicons:chevron-up' : 'heroicons:chevron-down'} width="12" height="12" />
-                </button>
-              {/snippet}
-            </Tooltip>
-          {/if}
-
           {#if message.status === 'complete'}
             <ChatDeepDive section="trigger" {conversation} {message} {onFollowUp} />
           {/if}
@@ -342,10 +306,6 @@
           {/if}
         </div>
       </BitsTooltip.Provider>
-
-      {#if hasGroundingRefs}
-        <ChatSourceDrawer groundingRefs={message.groundingRefs} open={sourcesOpen} />
-      {/if}
 
       {#if message.status === 'complete'}
         <ChatDeepDive section="panel" {conversation} {message} {onFollowUp} />

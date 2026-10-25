@@ -378,6 +378,10 @@
     }
   },
   "chat": {
+    "detached": {
+      "tab_tooltip": "Page closed",
+      "source_note": "Page closed — using earlier sources"
+    },
     "time": {
       "justNow": "Just now",
       "minutesAgo": "{count}m ago"
@@ -425,6 +429,13 @@
     "next_tab": "Next tab",
     "remove_tab": "Remove (Middle-click)"
   },
+  "customize": {
+    "title": "Customize",
+    "tabs": {
+      "prompts": "Prompts",
+      "skills": "Skills"
+    }
+  },
   "prompts": {
     "title": "Prompts",
     "system_instruction": "System prompt",
@@ -435,10 +446,11 @@
       "summarize": "Summarize",
       "custom_actions": "Custom Actions"
     },
-    "select_template": "Select a template",
     "prompt_enhance": "Prompt enhance",
+    "confirm_discard": "You have unsaved changes. Discard them?",
     "buttons": {
-      "import": "Import",
+      "load_preset": "Load preset",
+      "improve": "Improve",
       "discard": "Discard",
       "save": "Save",
       "apply_prompt": "Apply Prompt"
@@ -462,7 +474,10 @@
     "font_dec": "Font Decrease",
     "font_inc": "Font Increase",
     "change_font": "Change font",
-    "toggle_width": "Toggle width"
+    "toggle_width": "Toggle width",
+    "search_placeholder": "Search title or URL",
+    "search_clear": "Clear search",
+    "search_no_results": "No matching results"
   },
   "button": {
     "copy": "Copy to clipboard",
@@ -687,6 +702,7 @@
     }
   },
   "notifications": {
+    "try_chat": "Try Chat — v3.0 beta",
     "no_notifications": "No notifications",
     "noti_1": {
       "title": "Gemini API limits reduced",

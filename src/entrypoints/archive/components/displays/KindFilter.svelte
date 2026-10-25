@@ -14,7 +14,6 @@
   } from '@/stores/kindFilterStore.svelte.js'
 
   let kinds = $derived([
-    { kind: null, label: $t('archive.kind_all'), icon: 'heroicons:squares-2x2' },
     {
       kind: 'summary',
       label: $t('archive.kind_summaries'),
@@ -28,8 +27,8 @@
   ])
 
   function handleKindClick(kind) {
-    // Re-clicking the active kind clears it, matching HistoryTagFilter
-    if (kind === null || kindFilterStore.selectedKind === kind) {
+    // Re-clicking the active kind clears it
+    if (kindFilterStore.selectedKind === kind) {
       clearKindFilter()
     } else {
       setKindFilter(kind)
@@ -37,30 +36,19 @@
   }
 </script>
 
-<div class="pb-4">
-  <div class="flex gap-2 px-2">
-    {#each kinds as entry (entry.label)}
-      <button
-        class="flex-1 flex flex-col items-center gap-1 p-2 rounded-md transition-colors duration-200 {kindFilterStore.selectedKind ===
-        entry.kind
-          ? 'bg-surface-2 text-text-primary'
-          : 'hover:bg-blackwhite/5 text-text-secondary'}"
-        onclick={() => handleKindClick(entry.kind)}
-        aria-pressed={kindFilterStore.selectedKind === entry.kind}
-        title={entry.label}
-      >
-        <div class="size-6 relative">
-          <Icon
-            icon={entry.icon}
-            width="24"
-            height="24"
-            class="transition-colors duration-200"
-          />
-        </div>
-        <span class="text-xs font-medium">
-          {entry.label}
-        </span>
-      </button>
-    {/each}
-  </div>
+<div class="flex items-center gap-0.5">
+  {#each kinds as entry (entry.label)}
+    <button
+      class="p-1.5 rounded-md transition-colors duration-200 {kindFilterStore.selectedKind ===
+      entry.kind
+        ? 'bg-surface-2 text-text-primary'
+        : 'hover:bg-blackwhite/5 text-text-secondary'}"
+      onclick={() => handleKindClick(entry.kind)}
+      aria-pressed={kindFilterStore.selectedKind === entry.kind}
+      aria-label={entry.label}
+      title={entry.label}
+    >
+      <Icon icon={entry.icon} width="18" height="18" />
+    </button>
+  {/each}
 </div>

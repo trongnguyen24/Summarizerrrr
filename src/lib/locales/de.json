@@ -377,6 +377,10 @@
     }
   },
   "chat": {
+    "detached": {
+      "tab_tooltip": "Seite geschlossen",
+      "source_note": "Seite geschlossen — frühere Quellen werden verwendet"
+    },
     "time": {
       "justNow": "Gerade eben",
       "minutesAgo": "vor {count} Min."
@@ -414,6 +418,13 @@
     "next_tab": "Nächster Tab",
     "remove_tab": "Entfernen (Mittelklick)"
   },
+  "customize": {
+    "title": "Anpassen",
+    "tabs": {
+      "prompts": "Prompts",
+      "skills": "Skills"
+    }
+  },
   "prompts": {
     "title": "Prompts",
     "system_instruction": "System-Prompt",
@@ -424,10 +435,11 @@
       "summarize": "Zusammenfassung",
       "custom_actions": "Benutzerdefinierte Aktionen"
     },
-    "select_template": "Vorlage auswählen",
     "prompt_enhance": "Prompt verbessern",
+    "confirm_discard": "Sie haben nicht gespeicherte Änderungen. Verwerfen?",
     "buttons": {
-      "import": "Importieren",
+      "load_preset": "Vorlage laden",
+      "improve": "Verbessern",
       "discard": "Verwerfen",
       "save": "Speichern",
       "apply_prompt": "Prompt anwenden"
@@ -451,7 +463,10 @@
     "font_dec": "Schrift verkleinern",
     "font_inc": "Schrift vergrößern",
     "change_font": "Schrift wechseln",
-    "toggle_width": "Breite umschalten"
+    "toggle_width": "Breite umschalten",
+    "search_placeholder": "Titel oder URL suchen",
+    "search_clear": "Suche löschen",
+    "search_no_results": "Keine passenden Ergebnisse"
   },
   "button": {
     "copy": "In Zwischenablage kopieren",
@@ -597,6 +612,7 @@
     "confirm_replace": "Ja, ersetzen"
   },
   "notifications": {
+    "try_chat": "Chat testen — v3.0 Beta",
     "no_notifications": "Keine Benachrichtigungen",
     "noti_1": {
       "title": "Gemini API-Limits reduziert",

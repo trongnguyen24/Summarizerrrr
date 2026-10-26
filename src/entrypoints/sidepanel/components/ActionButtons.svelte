@@ -8,7 +8,7 @@
     fetchCourseConcepts,
     summaryState,
   } from '@/stores/summaryStore.svelte.js'
-  import Tooltip from '@/entrypoints/sidepanel/components/Tooltip.svelte'
+  import Tooltip from '@/components/ui/Tooltip.svelte'
   import { Tooltip as BitsTooltip } from 'bits-ui'
   import { t } from 'svelte-i18n'
 

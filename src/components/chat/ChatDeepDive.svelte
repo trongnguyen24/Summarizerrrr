@@ -2,7 +2,7 @@
   // @ts-nocheck
   import Icon from '@iconify/svelte'
   import { Tooltip as BitsTooltip } from 'bits-ui'
-  import Tooltip from '@/entrypoints/sidepanel/components/Tooltip.svelte'
+  import Tooltip from '@/components/ui/Tooltip.svelte'
   import { settings } from '@/stores/settingsStore.svelte.js'
   import {
     getConversationDeepDive,

@@ -9,7 +9,11 @@
   import { settings } from '@/stores/settingsStore.svelte.js'
   import { isRTLLanguage } from '@/lib/utils/rtlUtils.js'
 
-  const { targetDivId, activeTab = 'history' } = $props()
+  // `aboveComposer` (chat view): lift the TOC over the fixed chat composer via
+  // the `--chat-composer-h` it publishes, and drop the ← → item buttons that
+  // would sit under it — the arrow-key shortcuts still navigate. It also stacks
+  // above the composer layer, whose fade-out backdrop reaches up past the box.
+  const { targetDivId, activeTab = 'history', aboveComposer = false } = $props()
 
   // RTL detection
   let isRTL = $derived(isRTLLanguage(settings.summaryLang))
@@ -258,7 +262,12 @@
 {#if !isDesktop || tocMode === 'archive'}
   <div
     id="toc"
-    class="fixed z-20 right-0 sm:right-4 md:right-8 bottom-18 md:bottom-14 group origin-bottom-right"
+    class="fixed {aboveComposer
+      ? 'z-[42]'
+      : 'z-20'} right-0 sm:right-4 md:right-8 bottom-18 md:bottom-14 group origin-bottom-right"
+    style:bottom={aboveComposer
+      ? 'calc(var(--chat-composer-h, 0px) + 0.5rem)'
+      : undefined}
   >
     <button
       class="flex items-end transition-all py-2 px-4 flex-col gap-2 {isTouchDevice()
@@ -295,11 +304,17 @@
           ? 'block opacity-100'
           : 'hidden opacity-0'
         : 'hidden group-hover:block opacity-0 group-hover:opacity-100'}"
+      style:bottom={aboveComposer
+        ? 'calc(var(--chat-composer-h, 0px) + 1rem)'
+        : undefined}
     >
       <div class="relative">
         <div
           id="toc-scroll"
           class="w-full xs:w-108 overflow-auto max-h-[calc(100vh-200px)] border rounded-t-lg border-border bg-background"
+          style:max-height={aboveComposer
+            ? 'calc(100vh - 200px - var(--chat-composer-h, 0px))'
+            : undefined}
         >
           <div
             dir={isRTL ? 'rtl' : 'ltr'}
@@ -378,6 +393,7 @@
     {/if}
   </div>
   <!-- Fixed Navigation Buttons -->
+  {#if !aboveComposer}
   <div
     class="fixed right-2 z-20 left-2 sm:left-5 border-l-0 sm:right-5 md:left-auto md:right-8 bottom-0 border border-border bg-surface-1 md:border-l border-r-0 flex gap-1"
   >
@@ -404,6 +420,7 @@
       <Icon icon="carbon:chevron-right" width="24" height="24" />
     </button>
   </div>
+  {/if}
 {/if}
 
 <style>

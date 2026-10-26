@@ -4,9 +4,9 @@
     buildUnsupportedHTML,
   } from '@humanspeak/svelte-markdown'
   import TableRenderer from '@/components/markdown/TableRenderer.svelte'
-  import ChatUserLink from '@/entrypoints/sidepanel/components/chat/ChatUserLink.svelte'
-  import ChatUserHeading from '@/entrypoints/sidepanel/components/chat/ChatUserHeading.svelte'
-  import ChatUserHr from '@/entrypoints/sidepanel/components/chat/ChatUserHr.svelte'
+  import ChatUserLink from '@/components/chat/ChatUserLink.svelte'
+  import ChatUserHeading from '@/components/chat/ChatUserHeading.svelte'
+  import ChatUserHr from '@/components/chat/ChatUserHr.svelte'
 
   let { source = '' } = $props()
 

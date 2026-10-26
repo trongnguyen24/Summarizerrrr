@@ -1,7 +1,7 @@
 <script>
   // @ts-nocheck
-  import ChatSkillChip from '@/entrypoints/sidepanel/components/chat/ChatSkillChip.svelte'
-  import ChatUserMarkdown from '@/entrypoints/sidepanel/components/chat/ChatUserMarkdown.svelte'
+  import ChatSkillChip from '@/components/chat/ChatSkillChip.svelte'
+  import ChatUserMarkdown from '@/components/chat/ChatUserMarkdown.svelte'
 
   let { message } = $props()
 </script>

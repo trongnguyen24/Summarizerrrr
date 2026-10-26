@@ -377,6 +377,7 @@
     }
   },
   "chat": {
+    "read_only_elsewhere": "该对话正在另一个窗口中打开，此处仅供查看。",
     "detached": {
       "tab_tooltip": "页面已关闭",
       "source_note": "页面已关闭 — 正在使用之前的来源"

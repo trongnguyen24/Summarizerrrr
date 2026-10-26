@@ -3,10 +3,10 @@
   import Icon from '@iconify/svelte'
   import { _ } from 'svelte-i18n'
   import { Tooltip as BitsTooltip } from 'bits-ui'
-  import Tooltip from '@/entrypoints/sidepanel/components/Tooltip.svelte'
+  import Tooltip from '@/components/ui/Tooltip.svelte'
   import StreamingMarkdownV2 from '@/components/markdown/StreamingMarkdownV2.svelte'
-  import ChatUserBubble from '@/entrypoints/sidepanel/components/chat/ChatUserBubble.svelte'
-  import ChatMessageEditor from '@/entrypoints/sidepanel/components/chat/ChatMessageEditor.svelte'
+  import ChatUserBubble from '@/components/chat/ChatUserBubble.svelte'
+  import ChatMessageEditor from '@/components/chat/ChatMessageEditor.svelte'
   import { settings } from '@/stores/settingsStore.svelte.js'
   import {
     switchBranch,
@@ -17,8 +17,8 @@
   import { conversationRepository } from '@/lib/db/conversationRepository.js'
   import { getElapsedDisplay } from '@/lib/utils/utils.js'
   import { nowState } from '@/stores/nowStore.svelte.js'
-  import ChatDeepDive from '@/entrypoints/sidepanel/components/chat/ChatDeepDive.svelte'
-  import ChatThinkingIndicator from '@/entrypoints/sidepanel/components/chat/ChatThinkingIndicator.svelte'
+  import ChatDeepDive from '@/components/chat/ChatDeepDive.svelte'
+  import ChatThinkingIndicator from '@/components/chat/ChatThinkingIndicator.svelte'
 
   let {
     message,
@@ -28,6 +28,10 @@
     onCopy = null,
     conversation = null,
     onFollowUp = null,
+    /** The conversation is open read-only in this view: no edit or regenerate. */
+    readOnly = false,
+    /** Typography for the assistant's markdown; the Archive passes its reader settings. */
+    proseClass = 'main-sidepanel prose-h2:mt-4 text-text-primary',
   } = $props()
 
   const isUser = $derived(message.role === 'user')
@@ -158,6 +162,14 @@
     {#if !isStreaming && !isEditing}
       <BitsTooltip.Provider>
         <div class="mt-0.5 flex flex-wrap items-center justify-end gap-1">
+          {#if timeLabel}
+            <span
+              class="mr-1 text-[11px] text-text-secondary/60 tabular-nums"
+              title={message.createdAt}
+            >
+              {timeLabel}
+            </span>
+          {/if}
           {#if hasSiblings}
             <div class="flex items-center gap-1 select-none text-xs text-text-secondary">
               {@render actionBtn(
@@ -175,21 +187,15 @@
               )}
             </div>
           {/if}
-          {@render actionBtn('Edit message', 'heroicons:pencil-square', startEditing, BTN_USER)}
+          {#if !readOnly}
+            {@render actionBtn('Edit message', 'tabler:pencil', startEditing, BTN_USER)}
+          {/if}
           {@render actionBtn(
             'Copy message',
             'heroicons:square-2-stack',
             copyContent,
             BTN_USER,
           )}
-          {#if timeLabel}
-            <span
-              class="ml-1 text-[11px] text-text-secondary/60 tabular-nums"
-              title={message.createdAt}
-            >
-              {timeLabel}
-            </span>
-          {/if}
         </div>
       </BitsTooltip.Provider>
     {/if}
@@ -202,7 +208,7 @@
          would report its 200px placeholder instead of its real height, so the
          page height (and the scrollbar) would jump as you read down into it. -->
     <div
-      class="prose main-sidepanel wrap-anywhere prose-h2:mt-4 w-full max-w-none text-text-primary"
+      class="prose wrap-anywhere w-full max-w-none {proseClass}"
     >
       <StreamingMarkdownV2
         sourceMarkdown={message.content}
@@ -270,20 +276,22 @@
             BTN,
           )}
 
-          {#if message.status === 'complete'}
-            {@render actionBtn(
-              'Regenerate response',
-              'heroicons:arrow-path',
-              () => regenerateChatMessage(message.id),
-              BTN,
-            )}
-          {:else if canContinue}
-            {@render actionBtn(
-              'Continue response',
-              'heroicons:play',
-              () => continueChatMessage(message.id),
-              BTN,
-            )}
+          {#if !readOnly}
+            {#if message.status === 'complete'}
+              {@render actionBtn(
+                'Regenerate response',
+                'heroicons:arrow-path',
+                () => regenerateChatMessage(message.id),
+                BTN,
+              )}
+            {:else if canContinue}
+              {@render actionBtn(
+                'Continue response',
+                'heroicons:play',
+                () => continueChatMessage(message.id),
+                BTN,
+              )}
+            {/if}
           {/if}
 
           {#if onRetry && retryTargetId && isError}

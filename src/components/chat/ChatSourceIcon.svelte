@@ -1,6 +1,6 @@
 <script>
   // @ts-nocheck
-  import ChatFavicon from '@/entrypoints/sidepanel/components/chat/ChatFavicon.svelte'
+  import ChatFavicon from '@/components/chat/ChatFavicon.svelte'
 
   let {
     favIconUrl = null,

@@ -1,6 +1,6 @@
 <script>
   // @ts-nocheck
-  import ChatSourceIcon from '@/entrypoints/sidepanel/components/chat/ChatSourceIcon.svelte'
+  import ChatSourceIcon from '@/components/chat/ChatSourceIcon.svelte'
   import { tabMentionService } from '@/services/chat/tabMentionService.js'
   let { open = false, query = '', attachments = [], onSelect = null, onClose = null } = $props()
   let entries = $state([])

@@ -1,7 +1,7 @@
 <script>
   import { t } from 'svelte-i18n'
   import Icon from '@iconify/svelte'
-  import Tooltip from '@/entrypoints/sidepanel/components/Tooltip.svelte'
+  import Tooltip from '@/components/ui/Tooltip.svelte'
   import { Tooltip as BitsTooltip } from 'bits-ui'
   import { browser } from 'wxt/browser'
 

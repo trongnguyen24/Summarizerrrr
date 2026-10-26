@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { describe, it, expect } from 'vitest'
 import { mount, flushSync } from 'svelte'
-import ChatUserMarkdown from '../../../src/entrypoints/sidepanel/components/chat/ChatUserMarkdown.svelte'
+import ChatUserMarkdown from '../../../src/components/chat/ChatUserMarkdown.svelte'
 
 describe('ChatUserMarkdown Component', () => {
   it('renders standard text normally', () => {

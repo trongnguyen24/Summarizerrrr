@@ -1,7 +1,7 @@
 <script>
   // @ts-nocheck
   import Icon from '@iconify/svelte'
-  import ChatSourceIcon from '@/entrypoints/sidepanel/components/chat/ChatSourceIcon.svelte'
+  import ChatSourceIcon from '@/components/chat/ChatSourceIcon.svelte'
   import { formatK } from '@/lib/utils/formatTokens.js'
   import {
     labelForSourceKind,

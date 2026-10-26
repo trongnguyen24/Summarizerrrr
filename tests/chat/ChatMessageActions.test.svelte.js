@@ -45,7 +45,7 @@ vi.mock('@/components/markdown/StreamingMarkdownV2.svelte', async () => {
 })
 
 const { default: ChatMessage } = await import(
-  '../../src/entrypoints/sidepanel/components/chat/ChatMessage.svelte'
+  '../../src/components/chat/ChatMessage.svelte'
 )
 
 function render(message, extraProps = {}) {

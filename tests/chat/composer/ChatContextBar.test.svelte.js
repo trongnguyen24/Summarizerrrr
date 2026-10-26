@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { describe, expect, it, vi } from 'vitest'
 import { flushSync, mount } from 'svelte'
-import ChatContextBar from '../../../src/entrypoints/sidepanel/components/chat/ChatContextBar.svelte'
+import ChatContextBar from '../../../src/components/chat/ChatContextBar.svelte'
 
 // Mock the slideScaleFade transition to avoid animation issues in tests
 vi.mock('@/lib/utils/slideScaleFade.js', () => ({

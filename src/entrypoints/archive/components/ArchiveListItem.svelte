@@ -83,13 +83,6 @@
     >
       {#if isChat}
         <button
-          onclick={() => onResume(item)}
-          class="p-1 hover:text-text-primary"
-          title={$t('archive.resume_in_sidepanel')}
-        >
-          <Icon icon="heroicons:play-solid" width="20" height="20" />
-        </button>
-        <button
           onclick={() => onToggleChatArchive(item)}
           class="p-1 hover:text-text-primary"
           title={isArchived

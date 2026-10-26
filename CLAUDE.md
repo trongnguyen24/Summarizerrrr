@@ -75,7 +75,7 @@ Enforced by `tests/architecture/layering.test.js`, for **static and dynamic** im
 
 **Reading settings from `lib/`:** import `settings` from `settingsPort`, not the store. Reads are synchronous and safe from module load onward (the port holds the live `$state` object, which is only ever mutated in place) — so transitions like `lib/utils/slideScaleFade.js` see real values without awaiting. Call `ensureSettingsLoaded()` only when you need storage-backed values guaranteed present, e.g. before building a prompt.
 
-**Where components go:** `src/components/*` is **only** for things used by **2 or more surfaces** — measured, not aspirational: it currently holds exactly 6 folders / 34 files (`buttons` 9, `icons` 5, `inputs` 3, `markdown` 3, `ui` 8, `welcome` 6). The `ui` folder includes `SidebarLayout.svelte` and `SidebarTabs.svelte`, the two-tab sidebar shell shared by the archive and prompt (Customize) pages. Everything else lives next to the entrypoint that owns it, under `src/entrypoints/<surface>/components/`.
+**Where components go:** `src/components/*` is **only** for things used by **2 or more surfaces** — measured, not aspirational: it currently holds exactly 7 folders / 59 files (`buttons` 9, `chat` 24, `icons` 5, `inputs` 3, `markdown` 3, `ui` 9, `welcome` 6). The `ui` folder includes `SidebarLayout.svelte` and `SidebarTabs.svelte`, the two-tab sidebar shell shared by the archive and prompt (Customize) pages. Everything else lives next to the entrypoint that owns it, under `src/entrypoints/<surface>/components/`.
 
 `settings` and `popop` count as **one surface**, not two: `popop/App.svelte` has no `components/` directory of its own and mounts settings' `@/entrypoints/settings/components/Setting.svelte` directly. A settings-only component doesn't become "shared" just because popop also renders it.
 
@@ -113,7 +113,7 @@ The extension is organized around **multiple entrypoints** (handled by WXT):
   - `settingsBootstrap.js` — the worker's own settings loader. **Still a duplicate of `settingsStore`'s logic** (seam (f) in `docs/refactor/03-god-files.md`, not yet done).
   - `tabInfo.js` — `describeTab()`, the single YouTube/Udemy/Coursera classification the worker sends to the side panel.
 - **`content/`** - Shadow DOM UI injection for all websites (`content/main.js` → `App.svelte`): FAB, floating panel, mobile sheet, deep-dive panel. Has its own `components/`, `composables/`, `extractors/`, and `services/`. Uses `settingsStore` to determine if the FAB (floating action button) should show.
-- **`sidepanel/`** - Main UI for the side panel (summary views + the chat assistant under `components/chat/`); connects to background via port. `sidepanel/messageHandler.js` handles messages from the background.
+- **`sidepanel/`** - Main UI for the side panel (summary views + the chat assistant; the shared chat UI lives in `src/components/chat/` — also rendered by the archive — while tab-bound pieces such as `ChatHeader` and `ConversationMenu` stay in `sidepanel/components/chat/`); connects to background via port. `sidepanel/messageHandler.js` handles messages from the background.
 - **`settings/`** - Settings page for API keys, provider configuration, and UI preferences.
 - **`archive/`** - Archive/history viewer with tag management and export/import functionality.
 - **`prompt/`** - Customize page: prompt editor + chat skills (tabs), built on the shared `SidebarLayout` / `SidebarTabs` shell.
@@ -329,7 +329,7 @@ Firefox requires optional permissions for sites. The flow:
 
 ## Testing
 
-`npm test` runs `vitest run` — 68 test files, including the architecture guard at `tests/architecture/layering.test.js`. Run `npm test` before considering any layering or component-placement change done.
+`npm test` runs `vitest run` — 72 test files, including the architecture guard at `tests/architecture/layering.test.js`. Run `npm test` before considering any layering or component-placement change done.
 
 For manual testing:
 

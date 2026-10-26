@@ -51,7 +51,7 @@
   import { fadeOnly, slideScaleFade } from '@/lib/utils/slideScaleFade.js'
   import ActionButtonsMini from '@/entrypoints/sidepanel/components/ActionButtonsMini.svelte'
   import { debounce } from '@/lib/utils/utils.js'
-  import Tooltip from '@/entrypoints/sidepanel/components/Tooltip.svelte'
+  import Tooltip from '@/components/ui/Tooltip.svelte'
   import { Tooltip as BitsTooltip } from 'bits-ui'
   import TabTitleBar from '@/entrypoints/sidepanel/components/TabTitleBar.svelte'
   import { tabTitle } from '@/stores/tabTitleStore.svelte.js'
@@ -73,7 +73,7 @@
   import { generateFollowUpQuestions } from '@/services/tools/deepDiveService.js'
 
   // Chat harness (Phase 5): chat is the default side-panel surface
-  import ChatShell from '@/entrypoints/sidepanel/components/chat/ChatShell.svelte'
+  import ChatShell from '@/components/chat/ChatShell.svelte'
   import ChatHeader from '@/entrypoints/sidepanel/components/chat/ChatHeader.svelte'
   import ChatTabTitleBar from '@/entrypoints/sidepanel/components/chat/ChatTabTitleBar.svelte'
   import { openConversation } from '@/stores/chatStore.svelte.js'

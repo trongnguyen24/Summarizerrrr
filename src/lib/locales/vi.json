@@ -378,6 +378,7 @@
     }
   },
   "chat": {
+    "read_only_elsewhere": "Cuộc trò chuyện này đang mở ở cửa sổ khác. Tại đây chỉ xem được.",
     "detached": {
       "tab_tooltip": "Đã đóng trang",
       "source_note": "Đã đóng trang — đang dùng các nguồn trước đó"

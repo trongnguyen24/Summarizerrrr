@@ -1,10 +1,10 @@
 <script>
   // @ts-nocheck
   import { tick } from 'svelte'
-  import ChatMessageList from '@/entrypoints/sidepanel/components/chat/ChatMessageList.svelte'
-  import ChatEmptyState from '@/entrypoints/sidepanel/components/chat/ChatEmptyState.svelte'
-  import ChatComposer from '@/entrypoints/sidepanel/components/chat/ChatComposer.svelte'
-  import ChatContextWarning from '@/entrypoints/sidepanel/components/chat/ChatContextWarning.svelte'
+  import ChatMessageList from '@/components/chat/ChatMessageList.svelte'
+  import ChatEmptyState from '@/components/chat/ChatEmptyState.svelte'
+  import ChatComposer from '@/components/chat/ChatComposer.svelte'
+  import ChatContextWarning from '@/components/chat/ChatContextWarning.svelte'
   import ErrorDisplay from '@/components/ui/ErrorDisplay.svelte'
   import {
     chatState,
@@ -12,13 +12,54 @@
     sendChatFollowUp,
   } from '@/stores/chatStore.svelte.js'
 
+  // Horizontal placement of the fixed composer. The side panel spans the full
+  // width; `alignComposerToShell` (Archive) instead pins it to the shell's own
+  // measured column, since the page around it has breakpoint-dependent
+  // sidebars and gutters that fixed insets can't track. `mentionsOnly` hides
+  // the page/committed context rows so only fresh @tab chips show (Archive).
+  // `proseClass` overrides the assistant markdown typography (Archive).
+  let {
+    composerClass = 'left-0 right-0',
+    alignComposerToShell = false,
+    mentionsOnly = false,
+    proseClass = undefined,
+  } = $props()
+
   // Gap left between the sticky header and a message parked at the top.
   const PARK_GAP = 8
 
+  let shellEl = $state()
+  let shellBox = $state(null)
   let composerRef = $state()
   let composerBlockHeight = $state(0)
   let listEl = $state()
   let tailSpacerHeight = $state(0)
+
+  $effect(() => {
+    if (!alignComposerToShell || !shellEl) return
+    const update = () => {
+      const rect = shellEl.getBoundingClientRect()
+      shellBox = { left: rect.left, width: rect.width }
+    }
+    update()
+    // Width changes cover sidebar/TOC toggles; resize covers left-only shifts.
+    const observer = new ResizeObserver(update)
+    observer.observe(shellEl)
+    window.addEventListener('resize', update)
+    return () => {
+      observer.disconnect()
+      window.removeEventListener('resize', update)
+    }
+  })
+
+  // Publish the composer's height so page chrome pinned to the same bottom
+  // edge (the Archive's TOC) can sit above it instead of underneath.
+  $effect(() => {
+    if (!alignComposerToShell) return
+    const root = document.documentElement
+    root.style.setProperty('--chat-composer-h', `${composerBlockHeight}px`)
+    return () => root.style.removeProperty('--chat-composer-h')
+  })
 
   // No auto-scroll: the scroll position is the user's to control. Chat is read
   // top-down, so streaming content grows below the fold without moving them.
@@ -154,7 +195,11 @@
   })
 </script>
 
-<div class="flex w-full flex-1 flex-col" data-testid="chat-shell">
+<div
+  bind:this={shellEl}
+  class="flex w-full flex-1 flex-col"
+  data-testid="chat-shell"
+>
   <div
     class="flex w-full flex-1 flex-col"
     style="padding-bottom: {composerBlockHeight}px"
@@ -167,6 +212,7 @@
           onRetry={retryChatMessage}
           conversation={chatState.conversation}
           onFollowUp={sendChatFollowUp}
+          {proseClass}
         />
       </div>
       <div
@@ -184,7 +230,10 @@
 
   <div
     bind:clientHeight={composerBlockHeight}
-    class="fixed bottom-0 left-0 z-[41] w-full"
+    class="fixed bottom-0 z-[41] {alignComposerToShell ? '' : composerClass}"
+    style={alignComposerToShell && shellBox
+      ? `left: ${shellBox.left}px; width: ${shellBox.width}px`
+      : undefined}
   >
     <div class="flex flex-col gap-2 px-4 max-w-[52rem] mx-auto">
       <ChatContextWarning warnings={chatState.contextWarnings} />
@@ -193,6 +242,10 @@
       {/if}
     </div>
 
-    <ChatComposer bind:this={composerRef} />
+    <ChatComposer
+      bind:this={composerRef}
+      {mentionsOnly}
+      shortFade={alignComposerToShell}
+    />
   </div>
 </div>

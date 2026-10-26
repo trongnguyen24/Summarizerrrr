@@ -377,6 +377,7 @@
     }
   },
   "chat": {
+    "read_only_elsewhere": "Dieses Gespräch ist in einem anderen Fenster geöffnet. Hier ist es nur lesbar.",
     "detached": {
       "tab_tooltip": "Seite geschlossen",
       "source_note": "Seite geschlossen — frühere Quellen werden verwendet"

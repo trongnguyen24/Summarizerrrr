@@ -3,14 +3,14 @@
   import Icon from '@iconify/svelte'
   import { t } from 'svelte-i18n'
   import { slideScaleFade } from '@/lib/utils/slideScaleFade.js'
-  import ChatSkillChip from '@/entrypoints/sidepanel/components/chat/ChatSkillChip.svelte'
-  import ChatContextBar from '@/entrypoints/sidepanel/components/chat/ChatContextBar.svelte'
-  import ChatContextGauge from '@/entrypoints/sidepanel/components/chat/ChatContextGauge.svelte'
-  import ChatModelSelect from '@/entrypoints/sidepanel/components/chat/ChatModelSelect.svelte'
-  import SkillPicker from '@/entrypoints/sidepanel/components/chat/SkillPicker.svelte'
-  import TabMentionMenu from '@/entrypoints/sidepanel/components/chat/TabMentionMenu.svelte'
-  import ChatComposerInput from '@/entrypoints/sidepanel/components/chat/ChatComposerInput.svelte'
-  import ChatRichTextInput from '@/entrypoints/sidepanel/components/chat/ChatRichTextInput.svelte'
+  import ChatSkillChip from '@/components/chat/ChatSkillChip.svelte'
+  import ChatContextBar from '@/components/chat/ChatContextBar.svelte'
+  import ChatContextGauge from '@/components/chat/ChatContextGauge.svelte'
+  import ChatModelSelect from '@/components/chat/ChatModelSelect.svelte'
+  import SkillPicker from '@/components/chat/SkillPicker.svelte'
+  import TabMentionMenu from '@/components/chat/TabMentionMenu.svelte'
+  import ChatComposerInput from '@/components/chat/ChatComposerInput.svelte'
+  import ChatRichTextInput from '@/components/chat/ChatRichTextInput.svelte'
 
   import {
     chatState,
@@ -33,7 +33,11 @@
   import { settings } from '@/stores/settingsStore.svelte.js'
   import { resolveAutoSourceKind } from '@/services/chat/sourceResolution.js'
 
-  let { autofocus = false } = $props()
+  // `mentionsOnly`: show only pending @tab chips in the context bar — no
+  // current-page row, committed sources, or detached note (Archive view).
+  // `shortFade`: end the backdrop fade just above the box instead of 11rem up
+  // (Archive, where the reading column runs right down to the composer).
+  let { autofocus = false, mentionsOnly = false, shortFade = false } = $props()
 
   // The effective source kind for the current page. Precedence mirrors
   // chatService.prepareGroundedAttachments: skill sourceMode → auto.
@@ -48,11 +52,16 @@
   // Whether ChatContextBar has anything to render — mirrors its internal
   // visibility condition so the attached-tab overlap only applies when shown.
   let hasContextBar = $derived(
-    (activeSourceKind && !chatState.activeSourceDismissed) ||
+    mentionsOnly
+      ? chatState.pendingAttachments.length > 0
+      : (activeSourceKind && !chatState.activeSourceDismissed) ||
       chatState.pendingAttachments.length > 0 ||
       chatState.committedSources.length > 0 ||
       (chatState.currentUrl && chatState.activeSourceDismissed),
   )
+  let showDetachedNote = $derived(chatState.detached && !mentionsOnly)
+  // Archive mode hides the page row entirely, as if detached with no page.
+  let hidePage = $derived(chatState.detached || mentionsOnly)
 
   // Total estimated token cost of @tab chips attached but not yet sent.
   let pendingEstimate = $derived(
@@ -285,7 +294,11 @@
   })
 </script>
 
-<div class="flex w-full flex-col gap-2 px-4 pt-2 pb-3 max-w-[52rem] mx-auto">
+<!-- Pin the type metrics: hosts differ (the Archive inherits `text-sm`), and
+     the gauge's offset depends on the inherited line box. -->
+<div
+  class="flex w-full flex-col gap-2 px-4 pt-2 pb-3 max-w-[52rem] mx-auto text-base leading-normal"
+>
   <div class="relative">
     <TabMentionMenu
       bind:this={mentionMenuRef}
@@ -305,10 +318,19 @@
     />
 
     <!-- Context bar: attached tab, inset on both sides, tucked under the chat box -->
+    {#if chatState.readOnly}
+      <div
+        class="mx-3 mb-1.5 flex items-center gap-1.5 bg-surface-2 border border-border/40 px-3 py-2 text-xs text-text-secondary"
+        role="status"
+        data-testid="read-only-banner"
+      >
+        <span>{$t('chat.read_only_elsewhere')}</span>
+      </div>
+    {/if}
     <div
-      class="mx-3 {hasContextBar || chatState.detached ? '-mb-1.5' : ''}"
+      class="mx-3 {hasContextBar || showDetachedNote ? '-mb-1.5' : ''}"
     >
-      {#if chatState.detached}
+      {#if showDetachedNote}
         <div
           class="flex items-center gap-1.5 bg-surface-2 border border-border/40 px-3 pt-1.5 pb-3 text-xs text-text-secondary"
           data-testid="detached-source-note"
@@ -318,17 +340,13 @@
         </div>
       {/if}
       <ChatContextBar
-        currentUrl={chatState.detached ? null : chatState.currentUrl}
-        currentTitle={chatState.detached ? null : chatState.currentTitle}
-        currentFavIconUrl={chatState.detached ? null : chatState.currentFavIconUrl}
-        activeSourceKind={chatState.detached ? null : activeSourceKind}
-        activeSourceDismissed={
-          chatState.detached ? true : chatState.activeSourceDismissed
-        }
-        activeSourceEstimate={
-          chatState.detached ? null : chatState.activeSourceEstimate
-        }
-        committedSources={chatState.committedSources}
+        currentUrl={hidePage ? null : chatState.currentUrl}
+        currentTitle={hidePage ? null : chatState.currentTitle}
+        currentFavIconUrl={hidePage ? null : chatState.currentFavIconUrl}
+        activeSourceKind={hidePage ? null : activeSourceKind}
+        activeSourceDismissed={hidePage ? true : chatState.activeSourceDismissed}
+        activeSourceEstimate={hidePage ? null : chatState.activeSourceEstimate}
+        committedSources={mentionsOnly ? [] : chatState.committedSources}
         pendingAttachments={chatState.pendingAttachments}
         onDismissActiveSource={dismissActiveSource}
         onRestoreActiveSource={handleRestoreActiveSource}
@@ -372,7 +390,7 @@
               onskillchange={handleSkillChange}
               oniniterror={handleInitError}
               onsubmit={handleSubmit}
-              disabled={chatState.queuedSend}
+              disabled={chatState.queuedSend || chatState.readOnly}
               placeholder="Ask a question"
             />
           {/key}
@@ -392,7 +410,7 @@
             value={chatState.composerText}
             oninput={handleComposerInput}
             onkeydown={handleKeydown}
-            disabled={chatState.queuedSend}
+            disabled={chatState.queuedSend || chatState.readOnly}
             placeholder="Describe a task or ask a question"
           />
         {/if}
@@ -480,5 +498,7 @@
   </div>
 </div>
 <div
-  class="pointer-events-none z-[-1] absolute inset-x-0 bottom-0 h-44 bg-linear-to-t from-surface-1 from-20% via-surface-1 via-70% to-transparent"
+  class="pointer-events-none z-[-1] absolute inset-x-0 bottom-0 bg-linear-to-t {shortFade
+    ? 'h-[calc(100%+1rem)] from-surface-1 from-75% to-transparent'
+    : 'h-44 from-surface-1 from-20% via-surface-1 via-70% to-transparent'}"
 ></div>

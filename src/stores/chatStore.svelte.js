@@ -16,6 +16,10 @@ import {
   resolveConversationModel,
 } from '@/lib/providers/featureModelResolver.js'
 import { resolveAutoSourceKind } from '@/services/chat/sourceResolution.js'
+import {
+  acquire as acquireConversationLock,
+  waitFor as waitForConversationLock,
+} from '@/services/chat/conversationLockService.js'
 
 /** Number of messages to show in the visible window — pagination decoupled from context. */
 const VISIBLE_MESSAGE_WINDOW = 25
@@ -41,6 +45,12 @@ function createChatSessionState() {
   return {
     /** True when the browser tab that owns this session has been closed. */
     detached: false,
+    /**
+     * True while another extension page holds this conversation's write lock
+     * (see `conversationLockService`). The view is then browse-only: sends and
+     * message edits are blocked until the lock is granted and the path reloaded.
+     */
+    readOnly: false,
     activeConversationId: null,
     conversation: null,
     messages: [],
@@ -212,6 +222,118 @@ function resetView() {
   markChatTabsChanged()
 }
 
+/**
+ * Conversation write locks held (or queued) by this page. Keyed by conversation
+ * id: `{ release, cancelWait }`. `release` is set once the lock is granted;
+ * `cancelWait` aborts a queued request. A conversation is locked once per page,
+ * however many sessions show it.
+ */
+const conversationLocks = new Map()
+
+/** Latest in-flight `openConversation` request per session key (null = standalone view). */
+const pendingOpens = new Map()
+
+function releaseConversationLock(conversationId) {
+  const entry = conversationLocks.get(conversationId)
+  if (!entry) return
+  conversationLocks.delete(conversationId)
+  entry.cancelWait?.()
+  entry.release?.()
+}
+
+function conversationInUse(conversationId) {
+  if (chatState.conversation?.id === conversationId) return true
+  for (const session of tabSessions.values()) {
+    if (session.conversation?.id === conversationId) return true
+  }
+  return false
+}
+
+/** Drop this page's lock on a conversation once no session on the page shows it. */
+function releaseConversationLockIfUnused(conversationId) {
+  if (!conversationId || conversationInUse(conversationId)) return
+  releaseConversationLock(conversationId)
+}
+
+/** True when this page can write to the conversation (lock held). */
+function isConversationWritable(conversationId) {
+  return conversationLocks.get(conversationId)?.release != null
+}
+
+/**
+ * Take the write lock for a conversation a session is about to show. Returns
+ * whether this page may write. When another page holds it, the lock is queued
+ * in the background and every session showing it is reloaded once the lock is
+ * granted, because the other writer may have appended messages in the meantime.
+ *
+ * @param {string} conversationId
+ * @returns {Promise<boolean>} true when writable
+ */
+async function claimConversationLock(conversationId) {
+  if (!conversationId) return true
+  if (conversationLocks.has(conversationId)) return isConversationWritable(conversationId)
+
+  // Register synchronously so a concurrent claim for the same id sees the entry.
+  const entry = { release: null, cancelWait: null }
+  conversationLocks.set(conversationId, entry)
+  const result = await acquireConversationLock(conversationId)
+  // Released while the request was in flight (another session on this page let
+  // go of the conversation). Our caller is still about to show it, so claim
+  // afresh rather than leave it read-only with nothing queued to unlock it. A
+  // caller that was itself superseded releases the new claim right after.
+  if (conversationLocks.get(conversationId) !== entry) {
+    result.release()
+    return claimConversationLock(conversationId)
+  }
+  if (result.held) {
+    entry.release = result.release
+    return true
+  }
+
+  entry.cancelWait = waitForConversationLock(conversationId, (release) => {
+    if (conversationLocks.get(conversationId) !== entry) {
+      // Cancelled after the grant raced in: don't keep a lock nobody uses.
+      release()
+      return
+    }
+    entry.release = release
+    entry.cancelWait = null
+    reloadAfterLockGranted(conversationId)
+  })
+  return false
+}
+
+/** Session keys (null = the standalone view) currently showing a conversation. */
+function sessionKeysShowing(conversationId) {
+  const keys = []
+  if (chatState.conversation?.id === conversationId) keys.push(activeTabId)
+  for (const [key, session] of tabSessions) {
+    if (key !== activeTabId && session.conversation?.id === conversationId) keys.push(key)
+  }
+  return keys
+}
+
+/**
+ * Re-read a conversation's path in every session showing it, once its write
+ * lock was handed to this page — the lock is per page, so all of them unlock.
+ */
+async function reloadAfterLockGranted(conversationId) {
+  await Promise.all(
+    sessionKeysShowing(conversationId).map(async (tabKey) => {
+      const stillShown = () => readSession(tabKey)?.conversation?.id === conversationId
+      try {
+        await reloadActivePath(tabKey, null, null, (patch) => {
+          if (stillShown()) writeSession(tabKey, patch)
+        })
+      } catch (error) {
+        console.error('[chatStore] Failed to reload conversation after lock was granted:', error)
+      } finally {
+        if (stillShown()) writeSession(tabKey, { readOnly: false })
+      }
+    }),
+  )
+}
+
 export function getChatTabRuntimeDescriptors() {
   const ids = new Set(tabSessions.keys())
   if (activeTabId != null) ids.add(activeTabId)
@@ -322,7 +444,7 @@ export function ensureActiveSourceEstimate(sourceKind = effectiveActiveSourceKin
 }
 
 export function canSendChat() {
-  return Boolean(chatState.composerText.trim() || chatState.selectedSkill) && !chatState.isSending
+  return Boolean(chatState.composerText.trim() || chatState.selectedSkill) && !chatState.isSending && !chatState.readOnly
 }
 
 /**
@@ -548,9 +670,11 @@ export async function startConversationForActiveTab() {
   })
   if (activeTabId == null) activeTabId = tab.id
   chatTabsState.activeBrowserTabId = tab.id
+  const writable = await claimConversationLock(conversation.id)
   writeSession(tab.id, {
     activeConversationId: conversation.id,
     conversation,
+    readOnly: !writable,
     messages: [],
     error: null,
     contextWarnings: [],
@@ -572,7 +696,7 @@ export async function startConversationForActiveTab() {
  * @param {{ provider: string, model: string }} selection
  */
 export async function setChatModel({ provider, model }) {
-  if (chatState.isSending) return
+  if (chatState.isSending || chatState.readOnly) return
 
   if (chatState.conversation) {
     const updated = await conversationRepository.updateConversationMetadata(
@@ -619,20 +743,52 @@ export function getEffectiveChatModel() {
   }
 }
 
-export async function openConversation(id) {
+/**
+ * Open a saved conversation into the session of the active browser tab (or the
+ * standalone view when there is no browser tab, e.g. the Archive page).
+ * `detached: true` marks the conversation as having no live page, so follow-ups
+ * never ground on the currently active tab. Omitted, the session keeps its own
+ * flag — a closed tab's session must stay detached when another conversation is
+ * picked from its history.
+ *
+ * Only the latest open per session wins: one that a newer open or a
+ * `closeConversation()` superseded while it was loading writes nothing and
+ * returns null.
+ */
+export async function openConversation(id, { detached } = {}) {
+  const sessionKey = activeTabId
+  const request = {}
+  pendingOpens.set(sessionKey, request)
+  const superseded = () => pendingOpens.get(sessionKey) !== request
+
   const conversation = await conversationRepository.getConversation(id)
-  if (!conversation || conversation.deleted) throw new Error(`Conversation ${id} was not found`)
+  if (!conversation || conversation.deleted) {
+    if (!superseded()) pendingOpens.delete(sessionKey)
+    throw new Error(`Conversation ${id} was not found`)
+  }
 
   // Recovery-on-open: mark any stale 'streaming' messages as 'interrupted'
   await conversationRepository.recoverStreamingMessages(id)
 
+  const writable = await claimConversationLock(id)
   const fullPath = await conversationRepository.getGenerationPath(id)
   const committedSources = await resolveCommittedSources(fullPath)
   const hasEarlier = fullPath.length > VISIBLE_MESSAGE_WINDOW
   const windowed = hasEarlier ? fullPath.slice(-VISIBLE_MESSAGE_WINDOW) : fullPath
+  const usageTurns = await readUsageTurns(id)
+  if (superseded()) {
+    releaseConversationLockIfUnused(id)
+    return null
+  }
+  pendingOpens.delete(sessionKey)
+
+  // Read at write time: an earlier open may have landed while this one loaded.
+  const previousId = readSession(activeTabId)?.conversation?.id ?? null
   writeSession(activeTabId, {
     activeConversationId: id,
     conversation,
+    ...(detached !== undefined && { detached }),
+    readOnly: !writable,
     messages: windowed,
     committedSources,
     hasEarlierMessages: hasEarlier,
@@ -641,8 +797,9 @@ export async function openConversation(id) {
     // Both belong to the conversation being left behind. Rebuild them from this
     // one's records rather than carrying stale numbers forward.
     contextUsage: rebuildContextUsage(conversation, fullPath),
-    usageTurns: await readUsageTurns(id),
+    usageTurns,
   })
+  if (previousId && previousId !== id) releaseConversationLockIfUnused(previousId)
   if (activeTabId != null) chatSessionService.setConversationId(activeTabId, id)
   return conversation
 }
@@ -663,6 +820,9 @@ export function closeConversation() {
   // Only the active tab's generation is torn down; background tabs keep running.
   const shouldReturnToBrowser = activeTabId != null && chatState.detached
   const browserTabId = chatTabsState.activeBrowserTabId
+  const closingId = chatState.conversation?.id ?? null
+  // An open still loading into this view must not land after the close.
+  pendingOpens.delete(activeTabId)
   chatState.abortController?.abort()
   if (activeTabId != null) {
     tabSessions.delete(activeTabId)
@@ -670,6 +830,7 @@ export function closeConversation() {
   }
   if (shouldReturnToBrowser) activeTabId = null
   resetView()
+  releaseConversationLockIfUnused(closingId)
   if (shouldReturnToBrowser && browserTabId != null) {
     syncChatForActiveTab(browserTabId).catch((error) => {
       console.error('[chatStore] Failed to return to the active browser tab:', error)
@@ -682,7 +843,9 @@ export function removeChatTabSession(tabId, { detachActiveTab = false } = {}) {
 
   const isActiveSession = tabId === activeTabId
   const session = isActiveSession ? chatState : tabSessions.get(tabId)
+  const removedId = session?.conversation?.id ?? null
   abortChatTabSession(session)
+  pendingOpens.delete(tabId)
   tabSessions.delete(tabId)
   chatSessionService.clearConversationId(tabId)
 
@@ -699,6 +862,7 @@ export function removeChatTabSession(tabId, { detachActiveTab = false } = {}) {
     }
   }
 
+  releaseConversationLockIfUnused(removedId)
   markChatTabsChanged()
   return Boolean(session)
 }
@@ -752,6 +916,8 @@ async function activateChatSessionInternal(tabId) {
           const committedSources = await resolveCommittedSources(fullPath)
           const hasEarlier = fullPath.length > VISIBLE_MESSAGE_WINDOW
           const windowed = hasEarlier ? fullPath.slice(-VISIBLE_MESSAGE_WINDOW) : fullPath
+          // A restored tab can show a conversation another page is writing to.
+          session.readOnly = !(await claimConversationLock(conversation.id))
           session.activeConversationId = conversation.id
           session.conversation = conversation
           session.messages = windowed
@@ -832,7 +998,7 @@ export async function listRecentConversations({ limit = 10 } = {}) {
 }
 
 export async function sendChatMessage(content = chatState.composerText) {
-  if (chatState.isSending) return null
+  if (chatState.isSending || chatState.readOnly) return null
   if (!chatState.conversation) await startConversationForActiveTab()
 
   const targetTabId = activeTabId
@@ -969,7 +1135,7 @@ export async function sendChatFollowUp(question) {
 }
 
 export async function retryChatMessage(userMessageId) {
-  if (!chatState.conversation || chatState.isSending) return null
+  if (!chatState.conversation || chatState.isSending || chatState.readOnly) return null
 
   const targetTabId = activeTabId
   const ownerRef = getSession(targetTabId)
@@ -1027,6 +1193,7 @@ export async function retryChatMessage(userMessageId) {
 }
 
 export async function switchBranch(messageId) {
+  if (chatState.readOnly) return
   const activeLeafId = await conversationRepository.activateBranch(messageId)
   const conversationId = chatState.activeConversationId
   if (conversationId) {
@@ -1058,7 +1225,7 @@ export async function loadEarlierMessages() {
 }
 
 export async function regenerateChatMessage(assistantMessageId) {
-  if (!chatState.conversation || chatState.isSending) return null
+  if (!chatState.conversation || chatState.isSending || chatState.readOnly) return null
 
   const targetTabId = activeTabId
   const ownerRef = getSession(targetTabId)
@@ -1119,7 +1286,7 @@ export async function regenerateChatMessage(assistantMessageId) {
 }
 
 export async function editChatMessage(messageId, content) {
-  if (!chatState.conversation || chatState.isSending) return null
+  if (!chatState.conversation || chatState.isSending || chatState.readOnly) return null
 
   const targetTabId = activeTabId
   const ownerRef = getSession(targetTabId)
@@ -1177,7 +1344,7 @@ export async function editChatMessage(messageId, content) {
 }
 
 export async function continueChatMessage(assistantMessageId) {
-  if (!chatState.conversation || chatState.isSending) return null
+  if (!chatState.conversation || chatState.isSending || chatState.readOnly) return null
 
   const targetTabId = activeTabId
   const ownerRef = getSession(targetTabId)

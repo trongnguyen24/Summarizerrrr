@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { describe, expect, it, vi } from 'vitest'
 import { flushSync, mount } from 'svelte'
-import ChatEmptyState from '../../src/entrypoints/sidepanel/components/chat/ChatEmptyState.svelte'
+import ChatEmptyState from '../../src/components/chat/ChatEmptyState.svelte'
 
 // `pinned` decides what the empty chat screen offers, so the store only needs
 // to supply the user-skill overrides the service merges over the built-ins.

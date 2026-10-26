@@ -231,7 +231,6 @@
     {#if archiveStore.selectedKind === 'chat'}
       <ConversationTranscript
         conversation={conversationArchiveStore.selectedConversation}
-        messages={conversationArchiveStore.selectedMessages}
         sources={conversationArchiveStore.selectedSources}
         onRefresh={refreshArchiveData}
         isSidePanelVisible={sidebarOpen}

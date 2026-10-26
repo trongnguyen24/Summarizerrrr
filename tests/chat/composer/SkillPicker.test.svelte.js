@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { describe, expect, it, vi } from 'vitest'
 import { flushSync, mount } from 'svelte'
-import SkillPicker from '../../../src/entrypoints/sidepanel/components/chat/SkillPicker.svelte'
+import SkillPicker from '../../../src/components/chat/SkillPicker.svelte'
 
 HTMLElement.prototype.scrollIntoView ||= vi.fn()
 

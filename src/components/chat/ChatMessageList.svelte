@@ -1,11 +1,11 @@
 <script>
   // @ts-nocheck
   import { tick } from 'svelte'
-  import ChatMessage from '@/entrypoints/sidepanel/components/chat/ChatMessage.svelte'
+  import ChatMessage from '@/components/chat/ChatMessage.svelte'
   import Icon from '@iconify/svelte'
   import { loadEarlierMessages, chatState } from '@/stores/chatStore.svelte.js'
 
-  let { messages = [], streamingMessage = null, onRetry = null, conversation = null, onFollowUp = null } = $props()
+  let { messages = [], streamingMessage = null, onRetry = null, conversation = null, onFollowUp = null, proseClass = undefined } = $props()
 
   let isLoadingEarlier = $state(false)
 
@@ -94,6 +94,8 @@
       {onRetry}
       {conversation}
       {onFollowUp}
+      readOnly={chatState.readOnly}
+      {proseClass}
     />
   {/each}
 </div>

@@ -21,7 +21,7 @@ vi.mock('svelte-i18n', () => {
 })
 
 const { default: ChatContextGauge } = await import(
-  '../../src/entrypoints/sidepanel/components/chat/ChatContextGauge.svelte'
+  '../../src/components/chat/ChatContextGauge.svelte'
 )
 
 const MODEL = 'inclusionai/ling-3.0-flash:free'

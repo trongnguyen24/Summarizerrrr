@@ -614,6 +614,7 @@
   },
   "notifications": {
     "try_chat": "Prueba el Chat — v3.0 beta",
+    "back_to_summarize": "Volver a Summarize",
     "no_notifications": "Sin notificaciones",
     "noti_1": {
       "title": "Límites de la API de Gemini reducidos",
@@ -669,6 +670,7 @@
     "syncPreferences": "Preferencias de sincronización",
     "syncPreferencesDescription": "Elige qué tipos de datos sincronizar con la nube",
     "library": "Archivo",
+    "chats": "Chats",
     "error": "Error",
     "enabled": "Habilitado",
     "disabled": "Deshabilitado",

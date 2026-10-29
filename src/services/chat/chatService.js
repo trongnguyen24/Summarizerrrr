@@ -22,6 +22,13 @@ import {
   buildReasoningRequestOptions,
 } from '@/lib/api/reasoningConfig.js'
 
+// Debounced in the background worker, so calling this once per finished turn is cheap.
+function defaultOnPersisted() {
+  import('@/services/cloudSync/cloudSyncService.svelte.js')
+    .then(({ triggerSync }) => triggerSync())
+    .catch((error) => console.warn('[chatService] Failed to trigger cloud sync:', error))
+}
+
 async function* defaultStreamRequest(request) {
   const {
     generateContentRequest,
@@ -126,7 +133,15 @@ export function createChatService({
   sessionService = chatSessionService,
   buildPipeline = buildContextPipeline,
   streamRequest = defaultStreamRequest,
+  onPersisted = defaultOnPersisted,
 } = {}) {
+  /** Every turn ends here (complete, aborted or error), so it doubles as the sync hook. */
+  async function finalizeStreaming(messageId, updates) {
+    const message = await repository.finalizeStreamingAssistantMessage(messageId, updates)
+    onPersisted()
+    return message
+  }
+
   async function startConversationForActiveTab({ settings, personaSnapshot, modelOverride } = {}) {
     const tab = await sourceService.getActiveTab()
     const resolvedChat = resolveFeatureModel('chat', settings)
@@ -347,7 +362,7 @@ export function createChatService({
       cancelCheckpoint()
 
       if (abortController.signal.aborted) transient.status = 'aborted'
-      const assistant = await repository.finalizeStreamingAssistantMessage(streamingMessageId, {
+      const assistant = await finalizeStreaming(streamingMessageId, {
         content: transient.content,
         status: transient.status,
         providerId: conversationProviderId,
@@ -362,7 +377,7 @@ export function createChatService({
       if (isAbortError(error, abortController)) {
         transient.status = 'aborted'
         if (streamingMessageId) {
-          const assistant = await repository.finalizeStreamingAssistantMessage(streamingMessageId, {
+          const assistant = await finalizeStreaming(streamingMessageId, {
             content: transient.content,
             status: 'aborted',
             providerId: conversationProviderId,
@@ -380,7 +395,7 @@ export function createChatService({
       transient.status = 'error'
       transient.error = handledError
       if (streamingMessageId) {
-        const assistant = await repository.finalizeStreamingAssistantMessage(streamingMessageId, {
+        const assistant = await finalizeStreaming(streamingMessageId, {
           content: transient.content,
           status: 'error',
           error: handledError,
@@ -678,7 +693,7 @@ export function createChatService({
         const combined = baseContent + transient.content
         const status = controller.signal.aborted ? 'aborted' : 'complete'
         transient.status = status
-        const updated = await repository.finalizeStreamingAssistantMessage(assistantMessageId, {
+        const updated = await finalizeStreaming(assistantMessageId, {
           content: combined,
           status,
           usage,
@@ -690,15 +705,14 @@ export function createChatService({
         const combined = baseContent + transient.content
         if (isAbortError(error, controller)) {
           transient.status = 'aborted'
-          const updated = await repository.finalizeStreamingAssistantMessage(assistantMessageId, {
+          const updated = await finalizeStreaming(assistantMessageId, {
             content: combined,
             status: 'aborted',
           })
           return { assistant: updated, transient }
         }
         // Leave the record in a continuable terminal state rather than 'streaming'.
-        await repository
-          .finalizeStreamingAssistantMessage(assistantMessageId, { content: combined, status: 'aborted' })
+        await finalizeStreaming(assistantMessageId, { content: combined, status: 'aborted' })
           .catch(() => {})
         throw handleError(error, { source: pipeline ? 'chatGeneration' : 'chatAssembly' })
       }

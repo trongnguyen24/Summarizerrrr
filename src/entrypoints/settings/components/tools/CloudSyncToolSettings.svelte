@@ -438,7 +438,7 @@
             </p>
           </div>
 
-          <div class="grid mt-3 grid-cols-3 gap-2">
+          <div class="grid mt-3 grid-cols-2 gap-2">
             <EnableToggle
               id="sync-settings"
               bind:checked={cloudSyncStore.syncPreferences.settings}
@@ -464,6 +464,16 @@
               onCheckedChange={(value) =>
                 handleSyncPreferenceChange('library', value)}
               text={$t('cloudSync.library')}
+              useAnimation={false}
+            />
+
+            <!-- Chats (Conversations + captured sources) Toggle -->
+            <EnableToggle
+              id="sync-chats"
+              bind:checked={cloudSyncStore.syncPreferences.chats}
+              onCheckedChange={(value) =>
+                handleSyncPreferenceChange('chats', value)}
+              text={$t('cloudSync.chats')}
               useAnimation={false}
             />
           </div>

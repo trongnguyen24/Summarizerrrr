@@ -8,12 +8,21 @@
   import { archiveStore } from '@/stores/archiveStore.svelte.js'
   import { settings } from '@/stores/settingsStore.svelte.js'
   import { isRTLLanguage } from '@/lib/utils/rtlUtils.js'
+  import { slide } from 'svelte/transition'
+  import { buildTurns, findActiveTurnId, scrollToTurn } from './tocTurns.js'
 
   // `aboveComposer` (chat view): lift the TOC over the fixed chat composer via
   // the `--chat-composer-h` it publishes, and drop the ← → item buttons that
   // would sit under it — the arrow-key shortcuts still navigate. It also stacks
   // above the composer layer, whose fade-out backdrop reaches up past the box.
-  const { targetDivId, activeTab = 'history', aboveComposer = false } = $props()
+  // `groupByTurn` (chat transcript): build `turns` (one per user message, with
+  // the assistant headings that follow it) for the turn-grouped rail/popup.
+  const {
+    targetDivId,
+    activeTab = 'history',
+    aboveComposer = false,
+    groupByTurn = false,
+  } = $props()
 
   // RTL detection
   let isRTL = $derived(isRTLLanguage(settings.summaryLang))
@@ -45,6 +54,16 @@
   let observer
   let activeHeadingId = $state(null)
   let isNavOpen = $state(false)
+
+  // Turn grouping (groupByTurn only). A turn = one user message plus the
+  // headings of the assistant messages after it. `turnLabels` caches the last
+  // good user-message label per id, so the label survives while the bubble is
+  // swapped for the editor. It is deliberately non-reactive.
+  let turns = $state([])
+  let activeTurnId = $state(null)
+  const turnLabels = new Map()
+  // Grouped rail's scrollable marker list (bound in markup; groupByTurn only).
+  let turnRailEl = $state(null)
 
   const delay = (ms) => {
     return new Promise((resolve) => setTimeout(resolve, ms))
@@ -85,6 +104,10 @@
       }
     }
     activeHeadingId = currentActiveHeadingId
+
+    if (groupByTurn) {
+      activeTurnId = findActiveTurnId(targetDiv, turns, threshold)
+    }
   }
 
   function generateRandomString(length = 4) {
@@ -111,6 +134,7 @@
     if (!targetDiv) {
       console.warn(`Target div with ID "${targetDivId}" not found.`)
       headings = []
+      turns = []
       return
     }
 
@@ -136,6 +160,9 @@
         level: parseInt(heading.tagName.substring(1)),
       }
     })
+    if (groupByTurn) {
+      turns = buildTurns(targetDiv, headings, turnLabels)
+    }
     highlight() // Highlight after updating TOC
   }
 
@@ -154,7 +181,78 @@
 
   function toggleNav() {
     isNavOpen = !isNavOpen
+    if (groupByTurn) {
+      if (isNavOpen) {
+        requestAnimationFrame(scrollActiveTurnHeaderIntoView)
+      } else {
+        pinnedTurnId = null
+      }
+    }
   }
+
+  // Grouped popup: the clicked turn stays expanded while the smooth scroll
+  // passes other turns; otherwise the expanded turn follows the active one.
+  let pinnedTurnId = $state(null)
+  let expandedTurnId = $derived(pinnedTurnId ?? activeTurnId)
+
+  function selectTurn(turn) {
+    pinnedTurnId = turn.id
+    scrollToTurn(targetDivId, turn)
+  }
+
+  // Grouped popup: keep the active turn's header visible when the popup opens.
+  function scrollActiveTurnHeaderIntoView() {
+    if (!activeTurnId) return
+    const el = document.querySelector(
+      `#toc-scroll [data-turn-header-id="${CSS.escape(activeTurnId)}"]`,
+    )
+    el?.scrollIntoView({ block: 'nearest' })
+  }
+
+  // Grouped mode, desktop: the popup opens on hover like the flat TOC.
+  function handleTocEnter() {
+    if (!groupByTurn || isTouchDevice()) return
+    requestAnimationFrame(scrollActiveTurnHeaderIntoView)
+  }
+
+  function handleTocLeave() {
+    if (!groupByTurn || isTouchDevice()) return
+    pinnedTurnId = null
+  }
+
+  function closeNav() {
+    isNavOpen = false
+    pinnedTurnId = null
+  }
+
+  function handleNavKeydown(event) {
+    if (groupByTurn && isNavOpen && event.key === 'Escape') {
+      closeNav()
+    }
+  }
+
+  // Grouped mode: scroll the capped marker list so the active marker stays in view.
+  function keepActiveTurnVisible(id) {
+    if (!turnRailEl) return
+    const el = turnRailEl.querySelector(`[data-turn-id="${CSS.escape(id)}"]`)
+    if (!el) return
+    const top = el.offsetTop
+    const bottom = top + el.offsetHeight
+    if (top < turnRailEl.scrollTop) {
+      turnRailEl.scrollTop = top
+    } else if (bottom > turnRailEl.scrollTop + turnRailEl.clientHeight) {
+      turnRailEl.scrollTop = bottom - turnRailEl.clientHeight
+    }
+  }
+
+  $effect(() => {
+    const id = activeTurnId
+    if (!groupByTurn || !id) return
+    // One frame later brings the marker into view; the ticks' slide
+    // `onintroend` re-runs it once they reach full height.
+    const frame = requestAnimationFrame(() => keepActiveTurnVisible(id))
+    return () => cancelAnimationFrame(frame)
+  })
 
   // Bọc hàm highlight bằng throttle với giới hạn 40ms
   const throttledHighlight = throttle(highlight, 80)
@@ -258,6 +356,8 @@
   }
 </script>
 
+<svelte:window onkeydown={handleNavKeydown} />
+
 <!-- Show TOCArchive: on mobile always, on desktop only in archive mode -->
 {#if !isDesktop || tocMode === 'archive'}
   <div
@@ -265,10 +365,75 @@
     class="fixed {aboveComposer
       ? 'z-[42]'
       : 'z-20'} right-0 sm:right-4 md:right-8 bottom-18 md:bottom-14 group origin-bottom-right"
+    onmouseenter={handleTocEnter}
+    onmouseleave={handleTocLeave}
     style:bottom={aboveComposer
       ? 'calc(var(--chat-composer-h, 0px) + 0.5rem)'
       : undefined}
   >
+    {#if groupByTurn}
+      <!-- Grouped rail: one marker per turn plus the active turn's heading
+           ticks. Hover opens the popup on desktop, tap toggles it on touch. -->
+      <button
+        type="button"
+        class="flex flex-col items-end gap-2 py-2 px-4 transition-all {isTouchDevice()
+          ? ''
+          : 'group-hover:opacity-0'}"
+        aria-label="Table of contents"
+        aria-expanded={isNavOpen}
+        onclick={() => {
+          if (isTouchDevice()) {
+            toggleNav()
+          }
+        }}
+      >
+        <span
+          bind:this={turnRailEl}
+          class="relative flex flex-col items-end gap-2 overflow-hidden max-h-[calc(100vh-240px-var(--chat-composer-h,0px))]"
+        >
+          {#each turns as turn (turn.id)}
+            {@const isActive = turn.id === activeTurnId}
+            <span
+              class="shrink-0 flex flex-col items-end"
+              data-turn-id={turn.id}
+            >
+              <span
+                class="w-3 h-1 rounded-full {isActive
+                  ? 'bg-primary opacity-100'
+                  : 'bg-text-secondary dark:bg-white opacity-50'}"
+              ></span>
+              {#if isActive && turn.headings.length > 0}
+                <span
+                  transition:slide={{ duration: 150 }}
+                  onintroend={() => keepActiveTurnVisible(turn.id)}
+                  class="flex flex-col items-end gap-2 pt-2"
+                >
+                  <!-- Unkeyed: heading ids repeat across messages (per-message slugger). -->
+                  {#each turn.headings as heading}
+                    <span
+                      class="w-2 flex h-px dark:bg-white {heading.id ===
+                      activeHeadingId
+                        ? 'opacity-100 bg-primary'
+                        : 'opacity-50 bg-text-secondary'} lvs{heading.level}"
+                    >
+                      <span
+                        class="block blur-[1px] h-px rounded-full bg-text-secondary dark:bg-white"
+                      >
+                      </span>
+                    </span>
+                  {/each}
+                </span>
+              {/if}
+            </span>
+          {/each}
+        </span>
+        <span
+          class=" w-1.25 sm:w-1.5 text-[0.65rem] mt-0.5 select-none flex justify-center items-center h-px text-primary dark:text-white"
+        >
+          ^
+        </span>
+      </button>
+    {:else}
     <button
       class="flex items-end transition-all py-2 px-4 flex-col gap-2 {isTouchDevice()
         ? ''
@@ -297,6 +462,28 @@
         ^
       </span>
     </button>
+    {/if}
+
+    {#snippet headingLink(heading)}
+      <a
+        href="#{heading.id}"
+        onclick={() => {
+          scrollToHeading(heading.id)
+          if (isTouchDevice()) {
+            isNavOpen = false
+          }
+        }}
+        class="px-3 py-2 font-mono text-sm/5 no-underline transition-colors
+          {heading.id === activeHeadingId
+          ? 'text-text-primary bg-black/5 dark:bg-white/5'
+          : 'text-text-secondary hover:text-text-primary'}
+          lv{heading.level} {isRTL ? 'text-right' : 'text-left'}"
+      >
+        <span class="line-clamp-2">
+          {heading.text}
+        </span>
+      </a>
+    {/snippet}
 
     <nav
       class="fixed bottom-18 md:bottom-16 z-20 pt-4 px-3 left-0 sm:left-auto right-0 sm:right-6 md:right-8 {isTouchDevice()
@@ -320,26 +507,42 @@
             dir={isRTL ? 'rtl' : 'ltr'}
             class="flex flex-col divide-y divide-border/50 dark:divide-border/70"
           >
-            {#each headings as heading}
-              <a
-                href="#{heading.id}"
-                onclick={() => {
-                  scrollToHeading(heading.id)
-                  if (isTouchDevice()) {
-                    isNavOpen = false
-                  }
-                }}
-                class="px-3 py-2 font-mono text-sm/5 no-underline transition-colors
-          {heading.id === activeHeadingId
-                  ? 'text-text-primary bg-black/5 dark:bg-white/5'
-                  : 'text-text-secondary hover:text-text-primary'}
-          lv{heading.level} {isRTL ? 'text-right' : 'text-left'}"
-              >
-                <span class="line-clamp-2">
-                  {heading.text}
-                </span>
-              </a>
-            {/each}
+            {#if groupByTurn}
+              {#each turns as turn (turn.id)}
+                {@const isActiveTurn = turn.id === activeTurnId}
+                {@const isExpanded = turn.id === expandedTurnId}
+                <button
+                  type="button"
+                  data-turn-header-id={turn.id}
+                  aria-current={isActiveTurn ? 'true' : undefined}
+                  aria-expanded={isExpanded}
+                  onclick={() => selectTurn(turn)}
+                  class="px-3 py-2 font-mono font-bold text-sm/5 transition-colors
+                  {isActiveTurn ? 'text-text-primary' : 'text-text-secondary hover:text-text-primary'}
+                  {isRTL ? 'text-right' : 'text-left'}"
+                >
+                  <span class="line-clamp-2">
+                    <span aria-hidden="true">&gt;&gt;</span>
+                    {turn.label}
+                  </span>
+                </button>
+                {#if isExpanded && turn.headings.length > 0}
+                  <div
+                    transition:slide={{ duration: 150 }}
+                    class="flex flex-col divide-y divide-border/50 dark:divide-border/70"
+                  >
+                    <!-- Unkeyed: heading ids repeat across messages (per-message slugger). -->
+                    {#each turn.headings as heading}
+                      {@render headingLink(heading)}
+                    {/each}
+                  </div>
+                {/if}
+              {/each}
+            {:else}
+              {#each headings as heading}
+                {@render headingLink(heading)}
+              {/each}
+            {/if}
           </div>
         </div>
         <div
@@ -378,7 +581,7 @@
           {#if isTouchDevice()}
             <button
               class="p-3 flex-1 border-border border-l flex justify-center items-center font-mono text-xs/4 no-underline transition-colors"
-              onclick={() => (isNavOpen = false)}
+              onclick={closeNav}
             >
               <Icon width="16" icon="carbon:close" />
             </button>
@@ -389,7 +592,7 @@
     {#if isTouchDevice() && isNavOpen}
       <!-- svelte-ignore a11y_click_events_have_key_events -->
       <!-- svelte-ignore a11y_no_static_element_interactions -->
-      <div class="fixed inset-0 z-10" onclick={() => (isNavOpen = false)}></div>
+      <div class="fixed inset-0 z-10" onclick={closeNav}></div>
     {/if}
   </div>
   <!-- Fixed Navigation Buttons -->

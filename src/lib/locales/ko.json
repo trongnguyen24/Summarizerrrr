@@ -614,6 +614,7 @@
   },
   "notifications": {
     "try_chat": "채팅 체험하기 — v3.0 베타",
+    "back_to_summarize": "요약으로 돌아가기",
     "no_notifications": "알림이 없습니다",
     "noti_1": {
       "title": "Gemini API 제한이 감소했습니다",
@@ -669,6 +670,7 @@
     "syncPreferences": "동기화 환경설정",
     "syncPreferencesDescription": "클라우드와 동기화할 데이터 유형 선택",
     "library": "아카이브",
+    "chats": "채팅",
     "error": "오류",
     "enabled": "활성화됨",
     "disabled": "비활성화됨",

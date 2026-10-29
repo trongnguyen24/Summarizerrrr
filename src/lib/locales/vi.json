@@ -652,6 +652,7 @@
     "syncPreferences": "Tùy chọn đồng bộ",
     "syncPreferencesDescription": "Chọn loại dữ liệu cần đồng bộ với cloud",
     "library": "Lưu trữ",
+    "chats": "Trò chuyện",
     "error": "Lỗi",
     "enabled": "Đang bật",
     "disabled": "Đang tắt",
@@ -704,6 +705,7 @@
   },
   "notifications": {
     "try_chat": "Dùng thử Chat — bản 3.0 beta",
+    "back_to_summarize": "Quay lại Tóm tắt",
     "no_notifications": "Không có thông báo",
     "noti_1": {
       "title": "Giới hạn API Gemini đã giảm",

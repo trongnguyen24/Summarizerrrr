@@ -23,7 +23,6 @@
     addTabAttachment,
     removeTabAttachment,
     dismissActiveSource,
-    restoreActiveSource,
     ensureActiveSourceEstimate,
     getEffectiveChatModel,
     notifyChatDraftChanged,
@@ -56,8 +55,7 @@
       ? chatState.pendingAttachments.length > 0
       : (activeSourceKind && !chatState.activeSourceDismissed) ||
       chatState.pendingAttachments.length > 0 ||
-      chatState.committedSources.length > 0 ||
-      (chatState.currentUrl && chatState.activeSourceDismissed),
+      chatState.committedSources.length > 0,
   )
   let showDetachedNote = $derived(chatState.detached && !mentionsOnly)
   // Archive mode hides the page row entirely, as if detached with no page.
@@ -173,13 +171,6 @@
       ensureActiveSourceEstimate(
         resolveAutoSourceKind(chatState.currentUrl || ''),
       )
-  }
-
-  function handleRestoreActiveSource() {
-    restoreActiveSource()
-    if (chatState.composerText.trim() || chatState.selectedSkill) {
-      ensureActiveSourceEstimate(activeSourceKind)
-    }
   }
 
   function handleComposerChange(markdown) {
@@ -349,7 +340,6 @@
         committedSources={mentionsOnly ? [] : chatState.committedSources}
         pendingAttachments={chatState.pendingAttachments}
         onDismissActiveSource={dismissActiveSource}
-        onRestoreActiveSource={handleRestoreActiveSource}
         onRemoveAttachment={removeTabAttachment}
       />
     </div>

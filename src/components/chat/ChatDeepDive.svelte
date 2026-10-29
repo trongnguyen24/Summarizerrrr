@@ -3,6 +3,7 @@
   import Icon from '@iconify/svelte'
   import { Tooltip as BitsTooltip } from 'bits-ui'
   import Tooltip from '@/components/ui/Tooltip.svelte'
+  import QuestionChip from '@/components/buttons/QuestionChip.svelte'
   import { settings } from '@/stores/settingsStore.svelte.js'
   import {
     getConversationDeepDive,
@@ -85,45 +86,49 @@
   {/if}
 {:else if enabled && entry && section === 'panel'}
   {#if entry.questions.length || entry.error}
-    <div class="mt-2 flex w-full flex-col gap-2">
+    <div class="mt-3 flex w-full flex-col gap-2">
       {#if entry.questions.length}
-        <div class="flex items-center gap-1.5">
-          <Icon icon="octicon:sparkle-fill-16" width="12" height="12" class="text-primary" />
-          <p class="font-mono text-[0.65rem] uppercase tracking-wider text-muted">
-            Deep Dive
-          </p>
-        </div>
-        <div class="flex flex-col gap-1.5 border-l border-border pl-3">
-          {#each entry.questions as question (question)}
+        <!-- Mirrors the summary's inline Deep Dive (InlineDeepDiveQuestions):
+             same QuestionChip rows and round reload button, minus the striped
+             header and provider picker — a chat follow-up stays in this chat. -->
+        <div
+          class="flex flex-col gap-3 transition-opacity duration-300 {entry.isGenerating
+            ? 'pointer-events-none opacity-50'
+            : ''}"
+        >
+          <div class="flex items-center justify-between gap-2">
+            <div class="flex items-center gap-1.5">
+              <Icon icon="octicon:sparkle-fill-16" width="12" height="12" class="text-primary" />
+              <p class="font-mono text-[0.65rem] uppercase tracking-wider text-muted">
+                Deep Dive
+              </p>
+            </div>
             <button
               type="button"
-              class="group flex items-start gap-1.5 text-left text-sm text-text-secondary transition-colors hover:text-text-primary disabled:opacity-50"
+              class="deep-dive-reload"
               disabled={entry.isGenerating}
-              onclick={() => ask(question)}
+              onclick={generate}
+              title={entry.isGenerating ? 'Generating…' : 'Generate new questions'}
+              aria-label="Generate new questions"
             >
               <Icon
-                icon="heroicons:arrow-right-circle"
-                width="15"
-                height="15"
-                class="mt-0.5 shrink-0 text-muted transition-colors group-hover:text-primary"
+                icon="heroicons:arrow-path"
+                width="14"
+                height="14"
+                class={entry.isGenerating ? 'animate-spin' : ''}
               />
-              <span>{question}</span>
             </button>
-          {/each}
-          <button
-            type="button"
-            class="mt-0.5 flex w-fit items-center gap-1 font-mono text-[0.65rem] uppercase tracking-wider text-muted transition-colors hover:text-primary disabled:opacity-50"
-            disabled={entry.isGenerating}
-            onclick={generate}
-          >
-            <Icon
-              icon="heroicons:arrow-path"
-              width="12"
-              height="12"
-              class={entry.isGenerating ? 'animate-spin' : ''}
-            />
-            Regenerate
-          </button>
+          </div>
+          <div class="flex flex-col gap-3">
+            {#each entry.questions as question, i (question)}
+              <QuestionChip
+                {question}
+                index={i + 1}
+                disabled={entry.isGenerating}
+                onclick={() => ask(question)}
+              />
+            {/each}
+          </div>
         </div>
       {/if}
       {#if entry.error}
@@ -132,3 +137,28 @@
     </div>
   {/if}
 {/if}
+
+<style>
+  /* Same look as the summary Deep Dive's `.nav-btn`. */
+  .deep-dive-reload {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.4em;
+    border: 1px solid var(--color-border);
+    border-radius: 10rem;
+    background-color: var(--color-surface-1);
+    color: var(--text-secondary);
+    transition: all 200ms;
+  }
+
+  .deep-dive-reload:hover {
+    background-color: var(--color-surface-2);
+    color: var(--primary);
+  }
+
+  .deep-dive-reload:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+</style>

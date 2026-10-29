@@ -33,11 +33,10 @@ export const iconNames = [
   "heroicons:arrow-long-right",
   "heroicons:arrow-path",
   "heroicons:arrow-path-16-solid",
-  "heroicons:arrow-right",
-  "heroicons:arrow-right-circle",
   "heroicons:arrow-right-on-rectangle",
   "heroicons:arrow-up",
   "heroicons:arrow-up-right-16-solid",
+  "heroicons:arrow-uturn-left",
   "heroicons:bars-3",
   "heroicons:bolt",
   "heroicons:bolt-20-solid",
@@ -47,6 +46,7 @@ export const iconNames = [
   "heroicons:chat-bubble-left-right-solid",
   "heroicons:check",
   "heroicons:check-circle-solid",
+  "heroicons:chevron-down",
   "heroicons:chevron-left",
   "heroicons:chevron-right",
   "heroicons:chevron-right-16-solid",
@@ -248,12 +248,6 @@ export const iconCollections = [
         "width": 16,
         "height": 16
       },
-      "arrow-right": {
-        "body": "<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"1.5\" d=\"M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3\"/>"
-      },
-      "arrow-right-circle": {
-        "body": "<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"1.5\" d=\"m12.75 15l3-3m0 0l-3-3m3 3h-7.5M21 12a9 9 0 1 1-18 0a9 9 0 0 1 18 0\"/>"
-      },
       "arrow-right-on-rectangle": {
         "body": "<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"1.5\" d=\"M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9\"/>"
       },
@@ -264,6 +258,9 @@ export const iconCollections = [
         "body": "<path fill=\"currentColor\" fill-rule=\"evenodd\" d=\"M4.22 11.78a.75.75 0 0 1 0-1.06L9.44 5.5H5.75a.75.75 0 0 1 0-1.5h5.5a.75.75 0 0 1 .75.75v5.5a.75.75 0 0 1-1.5 0V6.56l-5.22 5.22a.75.75 0 0 1-1.06 0\" clip-rule=\"evenodd\"/>",
         "width": 16,
         "height": 16
+      },
+      "arrow-uturn-left": {
+        "body": "<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"1.5\" d=\"M9 15L3 9m0 0l6-6M3 9h12a6 6 0 0 1 0 12h-3\"/>"
       },
       "bars-3": {
         "body": "<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"1.5\" d=\"M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5\"/>"
@@ -297,6 +294,9 @@ export const iconCollections = [
       },
       "check-circle-solid": {
         "body": "<path fill=\"currentColor\" fill-rule=\"evenodd\" d=\"M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75s-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12m13.36-1.814a.75.75 0 1 0-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 0 0-1.06 1.06l2.25 2.25a.75.75 0 0 0 1.14-.094z\" clip-rule=\"evenodd\"/>"
+      },
+      "chevron-down": {
+        "body": "<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"1.5\" d=\"m19.5 8.25l-7.5 7.5l-7.5-7.5\"/>"
       },
       "chevron-left": {
         "body": "<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"1.5\" d=\"M15.75 19.5L8.25 12l7.5-7.5\"/>"

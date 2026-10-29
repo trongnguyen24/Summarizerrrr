@@ -36,3 +36,9 @@ export const openrouterCatalogStorage = storage.defineItem('local:openrouterCata
 export const modelCapabilitiesStorage = storage.defineItem('local:modelCapabilities', {
   fallback: { updatedAt: 0, entries: {} },
 })
+
+// Gemini model ids last seen on /models; the auto-fallback chain is built from
+// this (lib/providers/geminiFallbackChain.js), so new models need no code change.
+export const geminiModelListStorage = storage.defineItem('local:geminiModelList', {
+  fallback: { updatedAt: 0, ids: [] },
+})

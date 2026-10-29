@@ -1,10 +1,11 @@
 // @ts-nocheck
 /**
  * Cloud Sync Service v2
- * Architecture: 3 files (settings.json, history.json, library.json)
+ * Architecture: 4 files (settings.json, history.jsonl, library.jsonl, chats.jsonl)
  * - Settings: Last Write Wins
  * - History: Append-only Map Merge
  * - Library (Archive + Tags): Smart Merge with Soft Delete
+ * - Chats (Conversations + Sources): Last Write Wins per conversation, with tombstones
  */
 
 import { storage } from '@wxt-dev/storage'
@@ -35,12 +36,26 @@ import {
 } from '@/lib/db/indexedDBService.js'
 import { settings, loadSettings, updateSettings, updateSettingsFromCloud, isToolEnabled } from '@/stores/settingsStore.svelte.js'
 import { generateUUID } from '@/lib/utils/utils.js'
+import { buildLocalChatItems, mergeChatData } from '@/lib/db/conversationSyncMerge.js'
 
-// File names on Google Drive - 3 file architecture
+// File names on Google Drive
 const FILES = {
   SETTINGS: 'summarizerrrr-settings.json',
   HISTORY: 'summarizerrrr-history.jsonl',
   LIBRARY: 'summarizerrrr-library.jsonl', // Archive + Tags combined for atomic sync
+  CHATS: 'summarizerrrr-chats.jsonl', // Conversations + captured sources
+}
+
+const DEFAULT_SYNC_PREFERENCES = {
+  settings: true,
+  history: true,
+  library: true,
+  chats: true,
+}
+
+/** Stored preferences predate the `chats` key; a missing key means on. */
+function withDefaultPreferences(preferences) {
+  return { ...DEFAULT_SYNC_PREFERENCES, ...(preferences || {}) }
 }
 
 // Soft delete cleanup threshold (30 days in ms)
@@ -68,6 +83,7 @@ export const syncStorage = storage.defineItem('local:syncState', {
       settings: true,
       history: true,
       library: true, // Archive + Tags combined
+      chats: true,
     },
     // BYOK (Bring Your Own Key) Mode
     customCredentials: null, // { clientId, clientSecret } or null for default proxy mode
@@ -85,11 +101,7 @@ let syncState = $state({
   userEmail: null,
   userName: null,
   userPicture: null,
-  syncPreferences: {
-    settings: true,
-    history: true,
-    library: true,
-  },
+  syncPreferences: { ...DEFAULT_SYNC_PREFERENCES },
 })
 
 // Debug logs store
@@ -150,11 +162,7 @@ export async function initSync() {
       await syncStorage.setValue(stored)
     }
     
-    syncState.syncPreferences = stored.syncPreferences || {
-      settings: true,
-      history: true,
-      library: true,
-    }
+    syncState.syncPreferences = withDefaultPreferences(stored.syncPreferences)
     
     // If logged in, check token validity and start auto-sync
     if (stored.isLoggedIn && stored.accessToken && !stored.needsReauth) {
@@ -197,11 +205,7 @@ export async function refreshSyncState() {
     syncState.userEmail = stored.userEmail
     syncState.userName = stored.userName
     syncState.userPicture = stored.userPicture
-    syncState.syncPreferences = stored.syncPreferences || {
-      settings: true,
-      history: true,
-      library: true,
-    }
+    syncState.syncPreferences = withDefaultPreferences(stored.syncPreferences)
   } catch (error) {
     console.error('Failed to refresh sync state:', error)
   }
@@ -406,11 +410,7 @@ export async function login() {
     syncState.userPicture = profile.picture
     syncState.lastSyncTime = (await syncStorage.getValue()).lastSyncTime
     syncState.autoSyncEnabled = updatedState.autoSyncEnabled
-    syncState.syncPreferences = freshStored.syncPreferences || {
-      settings: true,
-      history: true,
-      library: true,
-    }
+    syncState.syncPreferences = withDefaultPreferences(freshStored.syncPreferences)
 
     // markNeedsReauth() cleared the alarm when the grant died; a reconnect has
     // to put it back, otherwise auto-sync stays silently off.
@@ -585,10 +585,13 @@ export async function pullData(_isRetry = false) {
     
     if (prefs.library) fetchPromises.push(getFileJsonl(accessToken, FILES.LIBRARY))
     else fetchPromises.push(Promise.resolve(null))
-    
-    const [settingsFile, historyFile, libraryFile] = await Promise.all(fetchPromises)
 
-    const hasCloudData = settingsFile || historyFile || libraryFile
+    if (prefs.chats) fetchPromises.push(getFileJsonl(accessToken, FILES.CHATS))
+    else fetchPromises.push(Promise.resolve(null))
+    
+    const [settingsFile, historyFile, libraryFile, chatsFile] = await Promise.all(fetchPromises)
+
+    const hasCloudData = settingsFile || historyFile || libraryFile || chatsFile
     
     if (!hasCloudData) {
       // No cloud data - push local data for first time
@@ -608,6 +611,10 @@ export async function pullData(_isRetry = false) {
     
     if (prefs.library) {
       await syncLibrary(accessToken, libraryFile)
+    }
+
+    if (prefs.chats) {
+      await syncChats(accessToken, chatsFile)
     }
     
     // Update last sync time ONLY if there's no pending settings conflict
@@ -865,6 +872,46 @@ async function syncLibrary(accessToken, cloudFile) {
 }
 
 /**
+ * Sync Chats - Last Write Wins per conversation (record + all its messages),
+ * tombstones for deletions, sources GC'd to what live conversations reference.
+ * Merge rules live in lib/db/conversationSyncMerge.js.
+ */
+async function syncChats(accessToken, cloudFile) {
+  const { exportConversationBackup, applyConversationSyncChanges } = await import(
+    '@/lib/db/conversationRepository.js'
+  )
+  const local = buildLocalChatItems(await exportConversationBackup())
+
+  logToUI('Merging Chats...')
+  const result = mergeChatData({
+    cloudItems: cloudFile?.conversations || {},
+    cloudSources: cloudFile?.chatSources || {},
+    local,
+    tombstoneTtlMs: SOFT_DELETE_CLEANUP_MS,
+  })
+
+  if (result.upserts.length || result.purgeIds.length) {
+    const { applied } = await applyConversationSyncChanges({
+      upserts: result.upserts,
+      purgeIds: result.purgeIds,
+      sources: result.sourcesToApply,
+    })
+    logToUI(`Applied ${applied} chat change(s) from cloud.`)
+  }
+
+  if (result.hasChanges) {
+    logToUI('Pushing merged Chats...')
+    await saveFileJsonl(accessToken, FILES.CHATS, {
+      meta: { version: 2, updatedAt: Date.now() },
+      conversations: result.items,
+      chatSources: result.sources,
+    })
+  } else {
+    logToUI('Chats in sync.')
+  }
+}
+
+/**
  * Merge two item maps based on updatedAt timestamp
  * Handles soft-delete propagation
  */
@@ -1008,6 +1055,12 @@ async function pushAllData(accessToken) {
         tags: arrayToMap(localTags),
       })
     )
+  }
+  
+  if (prefs.chats) {
+    // Same path as a regular sync against an empty cloud file: tombstones and
+    // in-flight conversations are handled there.
+    pushPromises.push(syncChats(accessToken, null))
   }
   
   await Promise.all(pushPromises)
@@ -1192,7 +1245,7 @@ export async function setAutoSync(enabled) {
 
 /**
  * Update sync preferences
- * @param {Object} preferences - { settings: boolean, history: boolean, library: boolean }
+ * @param {Object} preferences - { settings, history, library, chats } booleans
  */
 export async function setSyncPreferences(preferences) {
   const stored = await syncStorage.getValue()
@@ -1203,10 +1256,10 @@ export async function setSyncPreferences(preferences) {
     delete preferences.archive
   }
   
-  const updatedPreferences = {
+  const updatedPreferences = withDefaultPreferences({
     ...stored.syncPreferences,
     ...preferences,
-  }
+  })
   
   await syncStorage.setValue({
     ...stored,

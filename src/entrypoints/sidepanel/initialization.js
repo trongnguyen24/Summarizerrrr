@@ -9,6 +9,7 @@ import {
   subscribeToSystemThemeChanges,
   applyThemeToDocument,
 } from '@/stores/themeStore.svelte.js'
+import { applySavedSurface } from '@/stores/sidepanelViewStore.svelte.js'
 import { useOverlayScrollbars } from 'overlayscrollbars-svelte'
 import { hydrateCatalogFromStorage } from '@/lib/chat/openrouterCatalog.js'
 import { hydrateModelCapabilitiesFromStorage } from '@/lib/chat/modelCapabilityCache.js'
@@ -38,6 +39,7 @@ export async function initializeApp() {
 
   // Load settings and theme initially
   await loadSettings()
+  applySavedSurface()
   await initializeTheme()
 
   // Hydrate cached context-window data (fire-and-forget — must not block startup).

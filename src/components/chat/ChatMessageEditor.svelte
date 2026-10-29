@@ -30,7 +30,10 @@
         autofocus: 'end',
         editorProps: {
           attributes: {
-            class: 'w-full text-sm text-text-primary focus:outline-0 focus-visible:outline-0 focus:ring-0 resize-none min-h-[60px] max-h-[200px] overflow-y-auto',
+            // thin-scroll + pr-3.5: the scrollbar sits flush on the box's right
+            // border (the wrapper's -mr-3.5 cancels the card padding) while the
+            // text keeps its usual inset.
+            class: 'thin-scroll w-full pr-3.5 text-sm text-text-primary focus:outline-0 focus-visible:outline-0 focus:ring-0 resize-none min-h-[60px] max-h-[200px] overflow-y-auto',
             role: 'textbox',
             'aria-multiline': 'true',
             'aria-label': 'Edit message'
@@ -95,9 +98,9 @@
 </script>
 
 {#if editorError}
-  <div class="flex w-full flex-col gap-2 rounded-2xl border border-border bg-surface-2 px-3.5 py-2">
+  <div class="flex w-full flex-col gap-2 border border-border bg-muted/5 px-3.5 py-2 dark:border-blackwhite/10">
     <textarea
-      class="w-full resize-none bg-transparent text-sm text-text-primary focus:outline-none"
+      class="thin-scroll -mr-3.5 resize-none bg-transparent pr-3.5 text-sm text-text-primary focus:outline-none"
       rows="3"
       bind:value={fallbackText}
       onkeydown={(e) => {
@@ -128,8 +131,8 @@
     </div>
   </div>
 {:else}
-  <div class="flex w-full flex-col gap-2 rounded-2xl border border-border bg-surface-2 px-3.5 py-2">
-    <div bind:this={editorContainer} class="w-full"></div>
+  <div class="flex w-full flex-col gap-2 border border-border bg-muted/5 px-3.5 py-2 dark:border-blackwhite/10">
+    <div bind:this={editorContainer} class="-mr-3.5"></div>
     <div class="flex justify-end gap-2 border-t border-border/30 pt-1.5">
       <button
         type="button"

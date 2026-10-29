@@ -275,8 +275,8 @@
         </div>
       </div>
     </div>
-    <TOC targetDivId="conversation-content" {activeTab} aboveComposer />
-    <TOCSidebar targetDivId="conversation-content" {activeTab} />
+    <TOC targetDivId="conversation-content" {activeTab} aboveComposer groupByTurn />
+    <TOCSidebar targetDivId="conversation-content" {activeTab} groupByTurn />
   {:else}
     <p
       class="text-center flex flex-col gap-4 items-center justify-center text-text-secondary py-8 h-svh"

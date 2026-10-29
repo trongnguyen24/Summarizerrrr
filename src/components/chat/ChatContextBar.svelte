@@ -32,7 +32,6 @@
     /** @type {Function} */
     onDismissActiveSource = () => {},
     /** @type {Function} */
-    onRestoreActiveSource = () => {},
     /** @type {Function} */
     onRemoveAttachment = () => {},
   } = $props()
@@ -60,7 +59,6 @@
     )
   }
 
-  const hasCommittedCurrent = $derived(committedSources.some(isCurrentSource))
 
   // Build a unified sources list from active page + pending attachments
   const sources = $derived.by(() => {
@@ -155,9 +153,6 @@
   // A single source stays directly manageable. Only multiple sources open the
   // expandable manager, regardless of whether token measurement has completed.
   const mode = $derived(sources.length > 1 ? 'summary' : 'title')
-  const canRestoreActive = $derived(
-    Boolean(currentUrl && activeSourceDismissed && !hasCommittedCurrent),
-  )
 
   // First 3 sources for the favicon stack
   const stackSources = $derived(sources.slice(0, 3))
@@ -180,7 +175,10 @@
 </script>
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
-{#if sources.length > 0 || (currentUrl && activeSourceDismissed)}
+<!-- Once the user removes the current page there's no "+ This page" chip to
+     add it back: they removed it on purpose, and a standing invitation to undo
+     that is noise. `@` still lists the current tab if they change their mind. -->
+{#if sources.length > 0}
   <div class="relative" onkeydown={handleExpandKeydown}>
     <!-- Expanded panel (above the bar) -->
     {#if expanded && mode === 'summary'}
@@ -379,19 +377,5 @@
       </button>
     {/if}
 
-    <!-- Restore button (when active source is dismissed) -->
-    {#if canRestoreActive}
-      <div class="flex items-center px-1 py-0.5">
-        <button
-          type="button"
-          class="inline-flex items-center gap-1 rounded-full border border-dashed border-border px-2.5 py-1 text-xs text-text-tertiary transition-colors hover:border-text-tertiary hover:text-text-secondary"
-          onclick={onRestoreActiveSource}
-          title="Add this page as context"
-        >
-          <Icon icon="heroicons:plus" width="14" height="14" />
-          {activeSourceLabelForUrl(currentUrl || '')}
-        </button>
-      </div>
-    {/if}
   </div>
 {/if}

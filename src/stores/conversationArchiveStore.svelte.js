@@ -7,6 +7,12 @@ import {
 } from '@/services/exportImport/conversationExportService.js'
 import { downloadBlob } from '@/services/exportImport/exportService.js'
 
+function triggerChatSync() {
+  import('@/services/cloudSync/cloudSyncService.svelte.js')
+    .then(({ triggerSync }) => triggerSync())
+    .catch((error) => console.warn('[conversationArchiveStore] Failed to trigger cloud sync:', error))
+}
+
 let conversationList = $state([])
 let selectedConversation = $state(null)
 let selectedConversationId = $state(null)
@@ -63,18 +69,21 @@ export function clearConversationSelection() {
 
 export async function renameArchivedConversation(id, title) {
   const conversation = await conversationRepository.updateConversationMetadata(id, { title: String(title || '').trim() || 'New conversation' })
+  triggerChatSync()
   await loadConversationArchive()
   return conversation
 }
 
 export async function setArchivedConversationState(id, archived) {
   const conversation = await conversationRepository.archiveConversation(id, archived)
+  triggerChatSync()
   await loadConversationArchive()
   return conversation
 }
 
 export async function deleteArchivedConversation(id) {
   const conversation = await conversationRepository.softDeleteConversation(id)
+  triggerChatSync()
   await loadConversationArchive()
   return conversation
 }

@@ -60,6 +60,15 @@ vi.mock('@/lib/db/indexedDBService.js', () => ({
   replaceTagsStore: vi.fn(),
 }))
 
+vi.mock('@/lib/db/conversationRepository.js', () => ({
+  exportConversationBackup: vi.fn().mockResolvedValue({
+    conversations: [],
+    conversationMessages: [],
+    conversationSources: [],
+  }),
+  applyConversationSyncChanges: vi.fn().mockResolvedValue({ applied: 0, purged: 0 }),
+}))
+
 const {
   syncStorage,
   initSync,

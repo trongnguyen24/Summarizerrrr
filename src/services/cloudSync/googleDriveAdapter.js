@@ -838,6 +838,8 @@ export async function getFileJsonl(accessToken, filename) {
   const items = {}
   const archives = {}
   const tags = {}
+  const conversations = {}
+  const chatSources = {}
   
   const lines = text.split('\n')
   for (const line of lines) {
@@ -854,6 +856,14 @@ export async function getFileJsonl(accessToken, filename) {
         } else if (obj._type === 'tag' && obj.id) {
           // Tag item (Library file)
           tags[obj.id] = obj
+        } else if (obj._type === 'conversation' && obj.id) {
+          // Conversation item (Chats file): conversation record + its messages
+          const { _type, ...item } = obj
+          conversations[obj.id] = item
+        } else if (obj._type === 'chatSource' && obj.id) {
+          // Captured source snapshot (Chats file)
+          const { _type, ...source } = obj
+          chatSources[obj.id] = source
         } else if (obj.id) {
           // Generic item (History file) - use id as key
           items[obj.id] = obj
@@ -865,6 +875,10 @@ export async function getFileJsonl(accessToken, filename) {
   }
   
   // Return appropriate structure based on content
+  if (Object.keys(conversations).length > 0 || Object.keys(chatSources).length > 0) {
+    // Chats file format
+    return { meta, conversations, chatSources }
+  }
   if (Object.keys(archives).length > 0 || Object.keys(tags).length > 0) {
     // Library file format
     return { meta, archives, tags }
@@ -877,10 +891,11 @@ export async function getFileJsonl(accessToken, filename) {
 /**
  * Save data as JSONL file with metadata (JSON Lines format)
  * Format: Line 1 is metadata with _meta:true, remaining lines are items
- * Supports both History format (items) and Library format (archives + tags)
+ * Supports History format (items), Library format (archives + tags) and
+ * Chats format (conversations + chatSources)
  * @param {string} accessToken
  * @param {string} filename
- * @param {Object} data - { meta, items } or { meta, archives, tags }
+ * @param {Object} data - { meta, items }, { meta, archives, tags } or { meta, conversations, chatSources }
  */
 export async function saveFileJsonl(accessToken, filename, data) {
   // Build JSONL content: metadata line first, then items
@@ -893,8 +908,19 @@ export async function saveFileJsonl(accessToken, filename, data) {
     updatedAt: data.meta?.updatedAt || Date.now(),
   }))
   
-  // Check if this is Library format (archives + tags)
-  if (data.archives || data.tags) {
+  if (data.conversations || data.chatSources) {
+    // Chats format: conversations + captured sources
+    const conversations = data.conversations || {}
+    for (const id of Object.keys(conversations)) {
+      lines.push(JSON.stringify({ ...conversations[id], _type: 'conversation' }))
+    }
+
+    const chatSources = data.chatSources || {}
+    for (const id of Object.keys(chatSources)) {
+      lines.push(JSON.stringify({ ...chatSources[id], _type: 'chatSource' }))
+    }
+  } else if (data.archives || data.tags) {
+    // Library format: archives + tags
     // Library format: add _type field to each item
     const archives = data.archives || {}
     for (const id of Object.keys(archives)) {

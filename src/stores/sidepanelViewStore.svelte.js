@@ -1,3 +1,5 @@
+import { settings, updateSettings } from '@/stores/settingsStore.svelte.js'
+
 /**
  * Which surface the side panel is currently showing.
  *
@@ -8,14 +10,32 @@
  * this flag has to be readable outside `App.svelte` — `messageHandler` reads
  * it before saving or restoring the summary offset.
  *
- * The summary surface is the default; chat is reachable from a button in the
- * summary header and resets to summary when the panel is reopened.
+ * The panel opens on whichever surface the user last switched to explicitly
+ * (`settings.sidepanelSurface`): summary until they pick Try Chat, chat from
+ * then on until they go back via the chat menu's "Back to Summarize".
  */
 export const sidepanelViewState = $state({
   /** @type {'chat' | 'summary'} */
   surface: 'summary',
 })
 
+/** Call once settings are loaded, before the first surface matters. */
+export function applySavedSurface() {
+  sidepanelViewState.surface =
+    settings.sidepanelSurface === 'chat' ? 'chat' : 'summary'
+}
+
+function switchSurface(surface) {
+  sidepanelViewState.surface = surface
+  if (settings.sidepanelSurface !== surface) {
+    updateSettings({ sidepanelSurface: surface })
+  }
+}
+
 export function showChatSurface() {
-  sidepanelViewState.surface = 'chat'
+  switchSurface('chat')
+}
+
+export function showSummarySurface() {
+  switchSurface('summary')
 }

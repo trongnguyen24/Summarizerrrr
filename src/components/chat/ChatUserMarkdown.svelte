@@ -33,6 +33,15 @@
 </div>
 
 <style>
+  /* The side panel's unlayered `.prose p { margin-top: 0.5em }` (app.css)
+     beats Typography's layered first-child reset, which pushed the text down
+     inside the bubble. Trim the outer edges back to the bubble's padding. */
+  .prose > :global(:first-child) {
+    margin-top: 0;
+  }
+  .prose > :global(:last-child) {
+    margin-bottom: 0;
+  }
   .prose :global(ul) {
     list-style-type: disc !important;
     padding-left: 1.25rem !important;

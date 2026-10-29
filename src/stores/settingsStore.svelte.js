@@ -77,6 +77,9 @@ const DEFAULT_SETTINGS = {
     httpsPermission: false,
     lastChecked: null,
   },
+  // Side panel surface it opens on: flips to 'chat' once the user picks Try Chat
+  sidepanelSurface: 'summary', // 'summary' | 'chat'
+
   // Onboarding
   hasCompletedOnboarding: false,
   onboardingStep: 0,

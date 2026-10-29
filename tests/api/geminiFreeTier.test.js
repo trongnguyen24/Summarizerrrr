@@ -1,14 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import {
-  GEMINI_FREE_FALLBACK_CHAIN,
   getGeminiFreeTierQuota,
   isNonTextGeminiModel,
   sortFreeTierFirst,
   toModelItem,
 } from '../../src/lib/providers/geminiFreeTier.js'
 import {
-  getNextAdvancedFallbackModel,
-  getNextFallbackModel,
   isModelUnavailableError,
   isOverloadError,
   isQuotaError,
@@ -104,69 +101,6 @@ describe('sortFreeTierFirst', () => {
   it('leaves other providers untouched', () => {
     const models = ['gpt-5.6', 'gpt-5.4-mini']
     expect(sortFreeTierFirst('chatgpt', models)).toBe(models)
-  })
-})
-
-describe('GEMINI_FREE_FALLBACK_CHAIN', () => {
-  it('orders by daily quota, keeping the low-TPM Gemma last', () => {
-    expect(GEMINI_FREE_FALLBACK_CHAIN).toEqual([
-      'gemini-3.5-flash-lite',
-      'gemini-3.1-flash-lite',
-      'gemini-3.6-flash',
-      'gemini-3.5-flash',
-      'gemini-3-flash-preview',
-      'gemini-2.5-flash-lite',
-      'gemini-2.5-flash',
-      'gemma-4-26b-a4b-it',
-    ])
-  })
-
-  it('only contains models that carry a free-tier quota', () => {
-    for (const model of GEMINI_FREE_FALLBACK_CHAIN) {
-      expect(getGeminiFreeTierQuota(model), model).not.toBeNull()
-    }
-  })
-})
-
-describe('auto-fallback walk', () => {
-  it('advances one step down the chain', () => {
-    expect(getNextFallbackModel('gemini-3.5-flash-lite')).toBe(
-      'gemini-3.1-flash-lite',
-    )
-  })
-
-  it('enters at the top when the failing model is outside the chain', () => {
-    expect(getNextFallbackModel('gemini-2.5-pro')).toBe(GEMINI_FREE_FALLBACK_CHAIN[0])
-    expect(getNextFallbackModel('gemini-flash-latest')).toBe(
-      GEMINI_FREE_FALLBACK_CHAIN[0],
-    )
-  })
-
-  it('terminates: every start converges on the last chain entry', () => {
-    for (const start of ['gemini-2.5-pro', 'gemini-3-flash-preview']) {
-      let model = start
-      const seen = new Set([model])
-      let next
-      while ((next = getNextFallbackModel(model))) {
-        expect(seen.has(next), `revisited ${next}`).toBe(false)
-        seen.add(next)
-        model = next
-      }
-      expect(model).toBe(GEMINI_FREE_FALLBACK_CHAIN.at(-1))
-    }
-  })
-
-  it('respects the auto-fallback toggle in the advanced walk', () => {
-    expect(
-      getNextAdvancedFallbackModel('gemini-2.5-pro', {
-        geminiEnableAutoFallback: false,
-      }),
-    ).toBeNull()
-    expect(
-      getNextAdvancedFallbackModel('gemini-2.5-pro', {
-        geminiEnableAutoFallback: true,
-      }),
-    ).toBe(GEMINI_FREE_FALLBACK_CHAIN[0])
   })
 })
 

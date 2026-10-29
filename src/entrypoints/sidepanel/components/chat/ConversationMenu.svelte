@@ -2,7 +2,9 @@
   // @ts-nocheck
   import { DropdownMenu } from 'bits-ui'
   import Icon from '@iconify/svelte'
+  import { t } from 'svelte-i18n'
   import { listRecentConversations } from '@/stores/chatStore.svelte.js'
+  import { showSummarySurface } from '@/stores/sidepanelViewStore.svelte.js'
 
   let {
     activeConversationId = null,
@@ -96,6 +98,16 @@
       >
         <Icon icon="heroicons:cog-6-tooth" width="20" height="20" />
         <span>Settings</span>
+      </DropdownMenu.Item>
+
+      <div class="border-t border-border my-1"></div>
+
+      <DropdownMenu.Item
+        class="px-4 py-2.5 text-left hover:bg-surface-2 dark:hover:bg-surface-3 flex items-center gap-2 text-sm"
+        onSelect={showSummarySurface}
+      >
+        <Icon icon="heroicons:arrow-uturn-left" width="20" height="20" />
+        <span>{$t('notifications.back_to_summarize')}</span>
       </DropdownMenu.Item>
     </DropdownMenu.Content>
   </DropdownMenu.Portal>

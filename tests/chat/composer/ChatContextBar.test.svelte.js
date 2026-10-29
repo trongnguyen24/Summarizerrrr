@@ -354,8 +354,7 @@ describe('ChatContextBar', () => {
     host.remove()
   })
 
-  it('shows restore button when active source is dismissed', () => {
-    const onRestore = vi.fn()
+  it('renders nothing once the user has removed the current page', () => {
     const host = createHost()
 
     mount(ChatContextBar, {
@@ -367,22 +366,13 @@ describe('ChatContextBar', () => {
         activeSourceKind: 'webpage',
         activeSourceDismissed: true,
         pendingAttachments: [],
-        onRestoreActiveSource: onRestore,
       },
     })
     flushSync()
 
-    // Title mode bar should not render since source is dismissed
-    const titleBar = host.querySelector('[data-testid="context-bar-title"]')
-    expect(titleBar).toBeNull()
-
-    // Restore button should exist
-    const restoreButton = host.querySelector('button[title="Add this page as context"]')
-    expect(restoreButton).not.toBeNull()
-
-    restoreButton.click()
-    flushSync()
-    expect(onRestore).toHaveBeenCalled()
+    // No "+ This page" restore chip: removing it was deliberate.
+    expect(host.querySelector('button[title="Add this page as context"]')).toBeNull()
+    expect(host.textContent.trim()).toBe('')
 
     host.remove()
   })

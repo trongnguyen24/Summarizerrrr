@@ -5,6 +5,7 @@ import {
   CONVERSATION_SOURCES_STORE_NAME,
   getDatabase,
 } from './indexedDBService.js'
+import { conversationEffectiveTime } from './conversationSyncMerge.js'
 
 const CHAT_STORES = [
   CONVERSATIONS_STORE_NAME,
@@ -976,6 +977,97 @@ export async function deleteSubtree(messageId) {
   )
 }
 
+/**
+ * Write the result of a cloud-sync merge (`mergeChatData`). Each upsert
+ * replaces the conversation and its whole message set. A conversation that
+ * changed locally after the merge snapshot was taken — or is streaming — is
+ * skipped; the next sync reconciles it.
+ */
+export async function applyConversationSyncChanges({ upserts = [], purgeIds = [], sources = [] } = {}) {
+  return runTransaction(CHAT_STORES, 'readwrite', async (transaction) => {
+    const conversationStore = transaction.objectStore(CONVERSATIONS_STORE_NAME)
+    const messageStore = transaction.objectStore(CONVERSATION_MESSAGES_STORE_NAME)
+    const sourceStore = transaction.objectStore(CONVERSATION_SOURCES_STORE_NAME)
+
+    // Two devices capturing the same page mint different ids for one sourceKey;
+    // keep the local record and point incoming messages at it.
+    const sourceIdMap = new Map()
+    for (const source of sources) {
+      if (await requestAsPromise(sourceStore.get(source.id))) continue
+      const existingByKey = await requestAsPromise(sourceStore.index('sourceKey').get(source.sourceKey))
+      if (existingByKey) {
+        sourceIdMap.set(source.id, existingByKey.id)
+        continue
+      }
+      await requestAsPromise(sourceStore.add(source))
+    }
+
+    const removeMessages = async (conversationId) => {
+      const messages = await requestAsPromise(messageStore.index('conversationId').getAll(conversationId))
+      for (const message of messages) await requestAsPromise(messageStore.delete(message.id))
+      return messages
+    }
+
+    let applied = 0
+    for (const { conversation, messages = [], updatedAt } of upserts) {
+      const current = await requestAsPromise(conversationStore.get(conversation.id))
+      if (current) {
+        const currentMessages = await requestAsPromise(
+          messageStore.index('conversationId').getAll(conversation.id)
+        )
+        if (
+          currentMessages.some((message) => message.status === 'streaming') ||
+          conversationEffectiveTime(current, currentMessages) > new Date(updatedAt || 0).getTime()
+        ) {
+          continue
+        }
+      }
+      await removeMessages(conversation.id)
+      await requestAsPromise(conversationStore.put(conversation))
+      for (const message of messages) {
+        await requestAsPromise(messageStore.put({
+          ...message,
+          attachmentRefs: (message.attachmentRefs || []).map((id) => sourceIdMap.get(id) || id),
+        }))
+      }
+      applied++
+    }
+
+    for (const id of purgeIds) {
+      await removeMessages(id)
+      await requestAsPromise(conversationStore.delete(id))
+    }
+
+    return { applied, purged: purgeIds.length }
+  })
+}
+
+/**
+ * "Clear chat data": tombstone every conversation (so cloud sync propagates
+ * the deletion instead of restoring it) and drop messages and sources.
+ */
+export async function softDeleteAllConversations() {
+  return runTransaction(CHAT_STORES, 'readwrite', async (transaction) => {
+    const conversationStore = transaction.objectStore(CONVERSATIONS_STORE_NAME)
+    const now = new Date().toISOString()
+    const conversations = await requestAsPromise(conversationStore.getAll())
+    let count = 0
+    for (const conversation of conversations) {
+      if (conversation.deleted) continue
+      await requestAsPromise(conversationStore.put({
+        ...conversation,
+        deleted: true,
+        deletedAt: now,
+        updatedAt: now,
+      }))
+      count++
+    }
+    await requestAsPromise(transaction.objectStore(CONVERSATION_MESSAGES_STORE_NAME).clear())
+    await requestAsPromise(transaction.objectStore(CONVERSATION_SOURCES_STORE_NAME).clear())
+    return count
+  })
+}
+
 export async function clearConversationData() {
   return runTransaction(CHAT_STORES, 'readwrite', async (transaction) => {
     await Promise.all(CHAT_STORES.map((storeName) => requestAsPromise(transaction.objectStore(storeName).clear())))
@@ -1123,6 +1215,8 @@ export const conversationRepository = {
   exportConversationBackup,
   importConversationBackup,
   clearConversationData,
+  applyConversationSyncChanges,
+  softDeleteAllConversations,
   getAncestorPath,
   getGenerationPath,
   getGenerationContextForUser,

@@ -544,12 +544,6 @@ export function dismissActiveSource() {
   markChatTabsChanged()
 }
 
-/** Re-enable grounding the current page. */
-export function restoreActiveSource() {
-  chatState.activeSourceDismissed = false
-  markChatTabsChanged()
-}
-
 async function resolveCommittedSources(messages) {
   const refsById = new Map()
   for (const message of messages || []) {

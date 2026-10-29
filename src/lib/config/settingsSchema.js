@@ -53,6 +53,7 @@ export const VALID_SETTING_KEYS = [
   'fontSizeIndex',
   'widthIndex',
   'sidePanelDefaultWidth',
+  'sidepanelSurface',
   'oneClickSummarize',
   'reduceMotion',
   'iconClickAction',

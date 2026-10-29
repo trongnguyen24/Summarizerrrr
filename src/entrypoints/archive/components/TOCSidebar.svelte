@@ -7,8 +7,12 @@
   import { archiveStore } from '@/stores/archiveStore.svelte.js'
   import { settings } from '@/stores/settingsStore.svelte.js'
   import { isRTLLanguage } from '@/lib/utils/rtlUtils.js'
+  import { slide } from 'svelte/transition'
+  import { buildTurns, findActiveTurnId, scrollToTurn } from './tocTurns.js'
 
-  const { targetDivId, activeTab = 'history' } = $props()
+  // `groupByTurn` (chat transcript): list one entry per user message and show
+  // only the expanded turn's headings under it.
+  const { targetDivId, activeTab = 'history', groupByTurn = false } = $props()
 
   // RTL detection
   let isRTL = $derived(isRTLLanguage(settings.summaryLang))
@@ -41,6 +45,24 @@
   )
 
   let shouldShow = $derived(windowWidth >= 1280)
+
+  // Turn grouping (groupByTurn only). The clicked turn stays expanded while the
+  // smooth scroll passes other turns; the user's own scrolling (wheel/touch)
+  // hands the expanded turn back to the active one.
+  let turns = $state([])
+  let activeTurnId = $state(null)
+  let pinnedTurnId = $state(null)
+  let expandedTurnId = $derived(pinnedTurnId ?? activeTurnId)
+  const turnLabels = new Map()
+
+  function selectTurn(turn) {
+    pinnedTurnId = turn.id
+    scrollToTurn(targetDivId, turn)
+  }
+
+  function unpinTurn() {
+    pinnedTurnId = null
+  }
 
   const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
@@ -78,6 +100,10 @@
       }
     }
     activeHeadingId = currentActiveHeadingId
+
+    if (groupByTurn) {
+      activeTurnId = findActiveTurnId(targetDiv, turns, threshold)
+    }
   }
 
   function generateRandomString(length = 4) {
@@ -103,6 +129,7 @@
     const targetDiv = document.getElementById(targetDivId)
     if (!targetDiv) {
       headings = []
+      turns = []
       return
     }
 
@@ -127,6 +154,9 @@
         level: parseInt(heading.tagName.substring(1)),
       }
     })
+    if (groupByTurn) {
+      turns = buildTurns(targetDiv, headings, turnLabels)
+    }
     highlight()
   }
 
@@ -157,6 +187,8 @@
       updateTOC()
 
       window.addEventListener('scroll', throttledHighlight)
+      window.addEventListener('wheel', unpinTurn, { passive: true })
+      window.addEventListener('touchstart', unpinTurn, { passive: true })
       window.addEventListener('resize', () => {
         throttledHighlight()
         handleResize()
@@ -184,6 +216,8 @@
 
     return () => {
       window.removeEventListener('scroll', throttledHighlight)
+      window.removeEventListener('wheel', unpinTurn)
+      window.removeEventListener('touchstart', unpinTurn)
       window.removeEventListener('resize', handleResize)
       if (observer) {
         observer.disconnect()
@@ -254,7 +288,7 @@
             >
               On this page
             </h3>
-            {#each headings as heading}
+            {#snippet headingLink(heading)}
               <a
                 href="#{heading.id}"
                 onclick={() => scrollToHeading(heading.id)}
@@ -268,7 +302,44 @@
                   {heading.text}
                 </span>
               </a>
-            {/each}
+            {/snippet}
+            {#if groupByTurn}
+              {#each turns as turn (turn.id)}
+                {@const isActiveTurn = turn.id === activeTurnId}
+                {@const isExpanded = turn.id === expandedTurnId}
+                <button
+                  type="button"
+                  aria-current={isActiveTurn ? 'true' : undefined}
+                  aria-expanded={isExpanded}
+                  onclick={() => selectTurn(turn)}
+                  class="mt-3 px-2 py-1.5 text-sm/4.5 transition-colors
+                  {isActiveTurn
+                    ? 'text-text-primary font-bold'
+                    : 'text-text-secondary hover:text-text-primary'}
+                  {isRTL ? 'text-right' : 'text-left'}"
+                >
+                  <span class="line-clamp-2">
+                    <span aria-hidden="true">&gt;&gt;</span>
+                    {turn.label}
+                  </span>
+                </button>
+                {#if isExpanded && turn.headings.length > 0}
+                  <div
+                    transition:slide={{ duration: 150 }}
+                    class="flex flex-col"
+                  >
+                    <!-- Unkeyed: heading ids repeat across messages (per-message slugger). -->
+                    {#each turn.headings as heading}
+                      {@render headingLink(heading)}
+                    {/each}
+                  </div>
+                {/if}
+              {/each}
+            {:else}
+              {#each headings as heading}
+                {@render headingLink(heading)}
+              {/each}
+            {/if}
           </div>
         </div>
         <!-- Footer Actions -->

@@ -614,6 +614,7 @@
   },
   "notifications": {
     "try_chat": "チャットを試す — v3.0 ベータ",
+    "back_to_summarize": "要約に戻る",
     "no_notifications": "通知はありません",
     "noti_1": {
       "title": "Gemini APIの制限が減少しました",
@@ -669,6 +670,7 @@
     "syncPreferences": "同期設定",
     "syncPreferencesDescription": "クラウドと同期するデータタイプを選択",
     "library": "アーカイブ",
+    "chats": "チャット",
     "error": "エラー",
     "enabled": "有効",
     "disabled": "無効",

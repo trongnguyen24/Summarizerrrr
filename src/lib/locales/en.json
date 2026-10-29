@@ -652,6 +652,7 @@
     "syncPreferences": "Sync Preferences",
     "syncPreferencesDescription": "Choose which data types to sync with cloud",
     "library": "Archive",
+    "chats": "Chats",
     "error": "Error",
     "enabled": "Enabled",
     "disabled": "Disabled",
@@ -704,6 +705,7 @@
   },
   "notifications": {
     "try_chat": "Try Chat — v3.0 beta",
+    "back_to_summarize": "Back to Summarize",
     "no_notifications": "No notifications",
     "noti_1": {
       "title": "Gemini API limits reduced",

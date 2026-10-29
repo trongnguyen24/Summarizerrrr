@@ -614,6 +614,7 @@
   },
   "notifications": {
     "try_chat": "试用聊天 — v3.0 测试版",
+    "back_to_summarize": "返回摘要",
     "no_notifications": "暂无通知",
     "noti_1": {
       "title": "Gemini API 限制已减少",
@@ -669,6 +670,7 @@
     "syncPreferences": "同步偏好",
     "syncPreferencesDescription": "选择要与云端同步的数据类型",
     "library": "归档",
+    "chats": "聊天",
     "error": "错误",
     "enabled": "已启用",
     "disabled": "已禁用",

@@ -11,47 +11,25 @@
  * `computer-use`) are deliberately absent, so they resolve to `null` and get no
  * badge — same as a model we've simply never heard of.
  *
- * `chainId` is the concrete id to call in the auto-fallback chain — a prefix
- * isn't always a callable model. `null` keeps an entry out of the chain: the
- * "-latest" aliases would duplicate a family already in it, and antigravity is
- * an agent SKU, not a summarizer.
+ * Only drives the "Free" badge in the model picker — a stale entry costs a
+ * wrong badge, nothing more. The auto-fallback chain no longer reads this; it
+ * is built from the live model list (`geminiFallbackChain.js`).
  */
 const GEMINI_FREE_TIER = {
-  'gemini-3.6-flash': { rpm: 5, tpm: 250_000, rpd: 20, chainId: 'gemini-3.6-flash' },
-  'gemini-3.5-flash-lite': { rpm: 15, tpm: 250_000, rpd: 500, chainId: 'gemini-3.5-flash-lite' },
-  'gemini-3.5-flash': { rpm: 5, tpm: 250_000, rpd: 20, chainId: 'gemini-3.5-flash' },
-  'gemini-3.1-flash-lite': { rpm: 15, tpm: 250_000, rpd: 500, chainId: 'gemini-3.1-flash-lite' },
-  'gemini-3-flash': { rpm: 5, tpm: 250_000, rpd: 20, chainId: 'gemini-3-flash-preview' },
-  'gemini-2.5-flash-lite': { rpm: 10, tpm: 250_000, rpd: 20, chainId: 'gemini-2.5-flash-lite' },
-  'gemini-2.5-flash': { rpm: 5, tpm: 250_000, rpd: 20, chainId: 'gemini-2.5-flash' },
+  'gemini-3.6-flash': { rpm: 5, tpm: 250_000, rpd: 20 },
+  'gemini-3.5-flash-lite': { rpm: 15, tpm: 250_000, rpd: 500 },
+  'gemini-3.5-flash': { rpm: 5, tpm: 250_000, rpd: 20 },
+  'gemini-3.1-flash-lite': { rpm: 15, tpm: 250_000, rpd: 500 },
+  'gemini-3-flash': { rpm: 5, tpm: 250_000, rpd: 20 },
+  'gemini-2.5-flash-lite': { rpm: 10, tpm: 250_000, rpd: 20 },
+  'gemini-2.5-flash': { rpm: 5, tpm: 250_000, rpd: 20 },
   // Google's "-latest" aliases point at whichever flash is current, so quote
   // the conservative numbers of the family they alias.
-  'gemini-flash-lite-latest': { rpm: 15, tpm: 250_000, rpd: 500, chainId: null },
-  'gemini-flash-latest': { rpm: 5, tpm: 250_000, rpd: 20, chainId: null },
-  'gemma-4': { rpm: 30, tpm: 16_000, rpd: 14_400, chainId: 'gemma-4-26b-a4b-it' },
-  'antigravity': { rpm: 60, tpm: 100_000, rpd: 100, chainId: null },
+  'gemini-flash-lite-latest': { rpm: 15, tpm: 250_000, rpd: 500 },
+  'gemini-flash-latest': { rpm: 5, tpm: 250_000, rpd: 20 },
+  'gemma-4': { rpm: 30, tpm: 16_000, rpd: 14_400 },
+  'antigravity': { rpm: 60, tpm: 100_000, rpd: 100 },
 }
-
-// A model big enough to swallow a full page/transcript in one request. Gemma's
-// 16K TPM can't, so it belongs at the very end of the fallback chain.
-const ROOMY_TPM = 100_000
-
-/**
- * Auto-fallback order, derived from the table above so a new free model only
- * has to be added in one place. Sort: roomy-TPM models first, then most daily
- * quota (RPD is what actually runs out), then newest family on ties.
- */
-export const GEMINI_FREE_FALLBACK_CHAIN = Object.values(GEMINI_FREE_TIER)
-  .filter((entry) => entry.chainId)
-  .sort((a, b) => {
-    const roomy = (a.tpm >= ROOMY_TPM ? 0 : 1) - (b.tpm >= ROOMY_TPM ? 0 : 1)
-    if (roomy) return roomy
-    if (a.rpd !== b.rpd) return b.rpd - a.rpd
-    // Plain string compare, not localeCompare: collation rules around `-` and
-    // `.` are locale-dependent and would shuffle the chain.
-    return a.chainId < b.chainId ? 1 : a.chainId > b.chainId ? -1 : 0
-  })
-  .map((entry) => entry.chainId)
 
 // Longest prefix wins, otherwise `gemini-3.5-flash-lite` would match the
 // `gemini-3.5-flash` entry and advertise the wrong daily quota.
@@ -90,7 +68,6 @@ export function getGeminiFreeTierQuota(modelId) {
   const prefix = FREE_TIER_PREFIXES.find((key) => id.startsWith(key))
   if (!prefix) return null
 
-  // `chainId` is fallback-chain bookkeeping, not part of the quota.
   const { rpm, tpm, rpd } = GEMINI_FREE_TIER[prefix]
   return { rpm, tpm, rpd }
 }

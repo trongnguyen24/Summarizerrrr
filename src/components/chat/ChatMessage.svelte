@@ -139,7 +139,7 @@
 {/snippet}
 
 <div
-  class="flex w-full flex-col gap-1 {isUser ? 'items-end' : 'items-start'}"
+  class="chat-msg flex w-full flex-col gap-1 {isUser ? 'items-end' : 'items-start'}"
   data-message-status={message.status}
   data-message-id={message.id}
   data-message-role={message.role}
@@ -161,7 +161,7 @@
     {/if}
     {#if !isStreaming && !isEditing}
       <BitsTooltip.Provider>
-        <div class="mt-0.5 flex flex-wrap items-center justify-end gap-1">
+        <div class="mt-0.5 flex flex-wrap items-center justify-end gap-1 msg-actions">
           {#if timeLabel}
             <span
               class="mr-1 text-[11px] text-text-secondary/60 tabular-nums"
@@ -248,9 +248,15 @@
     {#if !isStreaming}
       <!-- One row: branch switcher (only with siblings), copy, regenerate, the
            Deep Dive pill and the time. `flex-wrap` is deliberate — a very narrow side
-           panel wraps the row instead of overflowing it. -->
+           panel wraps the row instead of overflowing it. Hidden until hover only
+           for a complete reply: stopped/failed ones keep Continue/Retry in sight. -->
       <BitsTooltip.Provider>
-        <div class="mt-0.5 flex w-full flex-wrap items-center gap-1 text-muted">
+        <div
+          class="mt-0.5 flex w-full flex-wrap items-center gap-1 text-muted {message.status ===
+          'complete'
+            ? 'msg-actions'
+            : ''}"
+        >
           {#if hasSiblings}
             <div class="flex items-center gap-1 select-none text-xs text-text-secondary">
               {@render actionBtn(
@@ -323,6 +329,24 @@
 </div>
 
 <style>
+  /* Action rows stay hidden until the message is hovered (or a button in it is
+     focused). Opacity, not display — the row keeps its space so nothing shifts.
+     Gated on `hover: hover`: touch screens have no hover, so they always see it. */
+  .msg-actions {
+    transition: opacity 150ms ease;
+  }
+
+  @media (hover: hover) {
+    .msg-actions {
+      opacity: 0;
+    }
+
+    .chat-msg:hover .msg-actions,
+    .chat-msg:focus-within .msg-actions {
+      opacity: 1;
+    }
+  }
+
   .chat-error-markdown {
     color: var(--color-error);
     line-height: 1.35;

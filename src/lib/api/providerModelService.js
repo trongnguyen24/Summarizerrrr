@@ -1,6 +1,7 @@
 import { registerModelCapability } from '@/lib/chat/providerCapabilities.js'
 import { persistDiscoveredCapabilities } from '@/lib/chat/modelCapabilityCache.js'
 import { isNonTextGeminiModel } from '@/lib/providers/geminiFreeTier.js'
+import { rememberGeminiModels } from '@/lib/providers/geminiFallbackChain.js'
 
 export const PROVIDER_CONFIG = {
   chatgpt: {
@@ -273,6 +274,8 @@ export async function fetchProviderModels(
     registerCapabilitiesFromBody(config.capabilityProviderId || providerId, body)
     const models = normalizeModels(providerId, body)
     void persistDiscoveredCapabilities()
+    // Feeds the Gemini auto-fallback chain; the hardcoded fallback list never does.
+    if (providerId === 'gemini' && models.length) void rememberGeminiModels(models)
     return models.length ? models : FALLBACK_PROVIDER_MODELS[providerId]
   } catch (error) {
     if (!config.publicUrl) throw error

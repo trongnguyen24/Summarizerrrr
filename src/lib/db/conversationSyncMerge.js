@@ -80,6 +80,34 @@ export function buildLocalChatItems({
   return { items, sources, pendingIds }
 }
 
+/**
+ * Metadata-only form of a source for the cloud file. `rawContent` and
+ * `condensedContent` are never synced; a stub keeps its `id` and `sourceKey`
+ * so references and dedupe keep working, and content is re-captured on demand.
+ */
+export function toStubSource(source) {
+  const stub = {
+    id: source.id,
+    sourceKey: source.sourceKey,
+    normalizedUrl: source.normalizedUrl,
+    url: source.url,
+    title: source.title,
+    sourceType: source.sourceType,
+    contentHash: source.contentHash,
+    originalLength: source.originalLength,
+    capturedAt: source.capturedAt,
+    contentOmitted: true,
+  }
+  for (const key of ['commentLimit', 'replyLimit', 'fetchedCount']) {
+    if (source[key] !== undefined) stub[key] = source[key]
+  }
+  return stub
+}
+
+export function isStubSource(source) {
+  return source?.contentOmitted === true && !source.rawContent && !source.condensedContent
+}
+
 function referencedSourceIds(items) {
   const ids = new Set()
   for (const item of Object.values(items)) {
@@ -129,7 +157,7 @@ export function mergeChatData({ cloudItems = {}, cloudSources = {}, local, tombs
   const live = referencedSourceIds(merged)
   const sources = {}
   for (const [id, source] of Object.entries({ ...cloudSources, ...localSources })) {
-    if (live.has(id)) sources[id] = source
+    if (live.has(id)) sources[id] = toStubSource(source)
   }
   const neededLocally = referencedSourceIds(Object.fromEntries(upserts.map((item) => [item.id, item])))
   const sourcesToApply = [...neededLocally]

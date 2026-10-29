@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { buildLocalChatItems, mergeChatData } from '@/lib/db/conversationSyncMerge.js'
+import {
+  buildLocalChatItems,
+  isStubSource,
+  mergeChatData,
+  toStubSource,
+} from '@/lib/db/conversationSyncMerge.js'
 
 const DAY = 24 * 60 * 60 * 1000
 const TTL = 30 * DAY
@@ -148,5 +153,98 @@ describe('mergeChatData', () => {
     expect(result.items).toEqual({})
     expect(result.purgeIds).toEqual(['c1'])
     expect(result.hasChanges).toBe(true)
+  })
+})
+
+describe('source stubs', () => {
+  const FULL_SOURCE = {
+    id: 's1',
+    sourceKey: 'k1',
+    normalizedUrl: 'https://example.com/a',
+    url: 'https://example.com/a',
+    title: 'Article',
+    sourceType: 'webPage',
+    contentHash: 'h1',
+    originalLength: 12345,
+    capturedAt: iso(NOW - DAY),
+    rawContent: 'x'.repeat(12345),
+    condensedContent: null,
+    condensationVersion: 0,
+    tabIdHint: 42,
+  }
+
+  it('toStubSource keeps metadata and drops content', () => {
+    const stub = toStubSource({ ...FULL_SOURCE, commentLimit: 60, replyLimit: 10, fetchedCount: 7 })
+    expect(stub).toEqual({
+      id: 's1',
+      sourceKey: 'k1',
+      normalizedUrl: 'https://example.com/a',
+      url: 'https://example.com/a',
+      title: 'Article',
+      sourceType: 'webPage',
+      contentHash: 'h1',
+      originalLength: 12345,
+      capturedAt: iso(NOW - DAY),
+      contentOmitted: true,
+      commentLimit: 60,
+      replyLimit: 10,
+      fetchedCount: 7,
+    })
+    expect(stub).not.toHaveProperty('rawContent')
+    expect(stub).not.toHaveProperty('condensedContent')
+    expect(stub).not.toHaveProperty('tabIdHint')
+    expect(isStubSource(stub)).toBe(true)
+  })
+
+  it('isStubSource is false for a full source or a stub that still has content', () => {
+    expect(isStubSource(FULL_SOURCE)).toBe(false)
+    expect(isStubSource({ ...toStubSource(FULL_SOURCE), rawContent: 'x' })).toBe(false)
+    expect(isStubSource({ ...toStubSource(FULL_SOURCE), condensedContent: 'y' })).toBe(false)
+  })
+
+  it('pushed sources contain no rawContent and are marked contentOmitted', () => {
+    const local = snapshot({
+      conversations: [conversation('c1', NOW)],
+      messages: [message('m1', 'c1', 1, NOW, { attachmentRefs: ['s1'] })],
+      sources: [FULL_SOURCE, { ...FULL_SOURCE, id: 'orphan', sourceKey: 'k2' }],
+    })
+    const result = merge({}, local)
+    expect(Object.keys(result.sources)).toEqual(['s1'])
+    expect(result.sources.s1.contentOmitted).toBe(true)
+    expect(result.sources.s1).not.toHaveProperty('rawContent')
+    expect(JSON.stringify(result.sources)).not.toContain('xxxxx')
+  })
+
+  it('sourcesToApply entries are stubs', () => {
+    const local = snapshot({
+      conversations: [conversation('c1', NOW - DAY)],
+      messages: [message('m1', 'c1', 1, NOW - DAY)],
+    })
+    const cloudSource = { ...toStubSource(FULL_SOURCE), id: 's9', sourceKey: 'k9' }
+    const cloud = snapshot({
+      conversations: [conversation('c1', NOW)],
+      messages: [message('m1', 'c1', 1, NOW - DAY), message('m2', 'c1', 2, NOW, { attachmentRefs: ['s9'] })],
+    })
+    const result = mergeChatData({
+      cloudItems: cloud.items,
+      cloudSources: { s9: cloudSource },
+      local,
+      tombstoneTtlMs: TTL,
+      now: NOW,
+    })
+    expect(result.sourcesToApply).toHaveLength(1)
+    expect(result.sourcesToApply[0]).toEqual(cloudSource)
+    expect(isStubSource(result.sourcesToApply[0])).toBe(true)
+  })
+
+  it('a local full source is pushed as a stub, not dropped', () => {
+    const local = snapshot({
+      conversations: [conversation('c1', NOW)],
+      messages: [message('m1', 'c1', 1, NOW, { attachmentRefs: ['s1'] })],
+      sources: [FULL_SOURCE],
+    })
+    const result = merge({}, local)
+    expect(result.sources.s1.contentOmitted).toBe(true)
+    expect(result.sourcesToApply).toEqual([])
   })
 })

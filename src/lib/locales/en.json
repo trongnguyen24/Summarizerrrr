@@ -378,6 +378,7 @@
     }
   },
   "chat": {
+    "hydratingSources": "Re-capturing page content…",
     "read_only_elsewhere": "This conversation is open in another window. It is read-only here.",
     "detached": {
       "tab_tooltip": "Page closed",
@@ -661,7 +662,8 @@
       "description": "Google rejected the saved session. If your OAuth app is still in \"Testing\" in Google Cloud Console, its refresh tokens expire after 7 days — publish the app to stop this from repeating.",
       "button": "Reconnect",
       "reconnecting": "Reconnecting...",
-      "publishGuide": "Publish your OAuth app"
+      "publishGuide": "Publish your OAuth app",
+      "sharedDescription": "Your Google session expired. Sign in again."
     },
     "byok": {
       "description": "Enter your own OAuth credentials from your Google Cloud Console, your data never through third-party servers.",
@@ -673,7 +675,10 @@
       "errors": {
         "bothRequired": "Both Client ID and Client Secret are required",
         "invalidClientId": "Invalid Client ID format (should end with .apps.googleusercontent.com)"
-      }
+      },
+      "advancedToggle": "Use your own Google Cloud project",
+      "signInWithProject": "Sign in with your project",
+      "separateDataNote": "Data synced with your own project is separate from data synced with the default sign-in. Use the same option on every device."
     },
     "redirectUris": {
       "title": "Redirect URIs",
@@ -701,6 +706,15 @@
       "mergeNote": "Archive, Tags and History will be merged from both this device and Cloud.",
       "cancel": "Cancel",
       "sync": "Sync"
+    },
+    "shared": {
+      "note": "Your data goes straight to your own Google Drive. oauth.summarizerrrr.com only handles the sign-in token.",
+      "firefoxPermissionDenied": "Firefox needs permission to reach oauth.summarizerrrr.com to sign in with Google. Allow it when prompted, or use your own Google Cloud project below."
+    },
+    "proxyPermission": {
+      "title": "Permission needed",
+      "description": "Firefox no longer allows Summarizerrrr to reach oauth.summarizerrrr.com, so your session can't be renewed. Grant access to resume syncing — you stay signed in.",
+      "button": "Grant access"
     }
   },
   "notifications": {

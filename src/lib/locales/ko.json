@@ -377,6 +377,7 @@
     }
   },
   "chat": {
+    "hydratingSources": "페이지 내용을 다시 가져오는 중…",
     "read_only_elsewhere": "이 대화는 다른 창에서 열려 있습니다. 여기서는 읽기 전용입니다.",
     "detached": {
       "tab_tooltip": "페이지 닫힘",
@@ -679,7 +680,8 @@
       "description": "Google이 저장된 세션을 거부했습니다. Google Cloud Console에서 OAuth 앱이 아직 \"테스트\" 상태라면 갱신 토큰이 7일 후 만료됩니다 — 앱을 게시하면 이 문제가 반복되지 않습니다.",
       "button": "다시 연결",
       "reconnecting": "다시 연결 중...",
-      "publishGuide": "OAuth 앱 게시하기"
+      "publishGuide": "OAuth 앱 게시하기",
+      "sharedDescription": "Google 세션이 만료되었습니다. 다시 로그인하세요."
     },
     "byok": {
       "description": "Google Cloud Console에서 자신의 OAuth 자격 증명을 입력하세요. 데이터는 제3자 서버를 통과하지 않습니다.",
@@ -691,7 +693,10 @@
       "errors": {
         "bothRequired": "Client ID와 Client Secret이 모두 필요합니다",
         "invalidClientId": "Client ID 형식이 잘못되었습니다 (.apps.googleusercontent.com으로 끝나야 합니다)"
-      }
+      },
+      "advancedToggle": "내 Google Cloud 프로젝트 사용",
+      "signInWithProject": "내 프로젝트로 로그인",
+      "separateDataNote": "내 프로젝트로 동기화한 데이터는 기본 로그인으로 동기화한 데이터와 분리됩니다. 모든 기기에서 같은 방식을 사용하세요."
     },
     "redirectUris": {
       "title": "리디렉션 URI",
@@ -719,6 +724,15 @@
       "mergeNote": "아카이브, 태그, 기록은 이 기기와 클라우드에서 병합됩니다.",
       "cancel": "취소",
       "sync": "동기화"
+    },
+    "shared": {
+      "note": "데이터는 사용자의 Google 드라이브로 바로 전송됩니다. oauth.summarizerrrr.com은 로그인 토큰만 처리합니다.",
+      "firefoxPermissionDenied": "Google로 로그인하려면 Firefox에서 oauth.summarizerrrr.com 접근 권한이 필요합니다. 요청 시 허용하거나 아래에서 직접 만든 Google Cloud 프로젝트를 사용하세요."
+    },
+    "proxyPermission": {
+      "title": "권한 필요",
+      "description": "Firefox에서 Summarizerrrr의 oauth.summarizerrrr.com 접근을 더 이상 허용하지 않아 세션을 갱신할 수 없습니다. 접근을 허용하면 동기화가 재개되며 로그인 상태는 유지됩니다.",
+      "button": "접근 허용"
     }
   }
 }

@@ -377,6 +377,7 @@
     }
   },
   "chat": {
+    "hydratingSources": "Nouvelle capture du contenu de la page…",
     "read_only_elsewhere": "Cette conversation est ouverte dans une autre fenêtre. Ici, elle est en lecture seule.",
     "detached": {
       "tab_tooltip": "Page fermée",
@@ -679,7 +680,8 @@
       "description": "Google a rejeté la session enregistrée. Si votre application OAuth est encore en « Testing » dans Google Cloud Console, ses jetons d'actualisation expirent au bout de 7 jours — publiez l'application pour éviter que cela se reproduise.",
       "button": "Se reconnecter",
       "reconnecting": "Reconnexion...",
-      "publishGuide": "Publier votre application OAuth"
+      "publishGuide": "Publier votre application OAuth",
+      "sharedDescription": "Votre session Google a expiré. Reconnectez-vous."
     },
     "byok": {
       "description": "Entrez vos propres identifiants OAuth depuis votre Google Cloud Console, vos données ne transitent jamais par des serveurs tiers.",
@@ -691,7 +693,10 @@
       "errors": {
         "bothRequired": "Client ID et Client Secret sont tous deux requis",
         "invalidClientId": "Format de Client ID invalide (doit se terminer par .apps.googleusercontent.com)"
-      }
+      },
+      "advancedToggle": "Utiliser votre propre projet Google Cloud",
+      "signInWithProject": "Se connecter avec votre projet",
+      "separateDataNote": "Les données synchronisées avec votre propre projet sont séparées de celles synchronisées avec la connexion par défaut. Utilisez la même option sur tous vos appareils."
     },
     "redirectUris": {
       "title": "URIs de redirection",
@@ -719,6 +724,15 @@
       "mergeNote": "Archive, tags et historique seront fusionnés de cet appareil et du cloud.",
       "cancel": "Annuler",
       "sync": "Synchroniser"
+    },
+    "shared": {
+      "note": "Vos données vont directement dans votre propre Google Drive. oauth.summarizerrrr.com ne gère que le jeton de connexion.",
+      "firefoxPermissionDenied": "Firefox a besoin de l'autorisation d'accéder à oauth.summarizerrrr.com pour se connecter avec Google. Autorisez-la lorsqu'elle est demandée, ou utilisez votre propre projet Google Cloud ci-dessous."
+    },
+    "proxyPermission": {
+      "title": "Autorisation requise",
+      "description": "Firefox n'autorise plus Summarizerrrr à accéder à oauth.summarizerrrr.com, la session ne peut donc pas être renouvelée. Accordez l'accès pour reprendre la synchronisation — vous restez connecté.",
+      "button": "Accorder l'accès"
     }
   }
 }

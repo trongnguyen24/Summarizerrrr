@@ -377,6 +377,7 @@
     }
   },
   "chat": {
+    "hydratingSources": "ページの内容を再取得しています…",
     "read_only_elsewhere": "この会話は別のウィンドウで開かれています。ここでは閲覧のみです。",
     "detached": {
       "tab_tooltip": "ページを閉じました",
@@ -679,7 +680,8 @@
       "description": "Google が保存済みのセッションを拒否しました。Google Cloud Console で OAuth アプリがまだ「テスト」状態の場合、更新トークンは 7 日で失効します。アプリを公開すると再発を防げます。",
       "button": "再接続",
       "reconnecting": "再接続中...",
-      "publishGuide": "OAuth アプリを公開する"
+      "publishGuide": "OAuth アプリを公開する",
+      "sharedDescription": "Google セッションの有効期限が切れました。もう一度ログインしてください。"
     },
     "byok": {
       "description": "Google Cloud Consoleから独自のOAuth認証情報を入力してください。データがサードパーティのサーバーを経由することはありません。",
@@ -691,7 +693,10 @@
       "errors": {
         "bothRequired": "Client IDとClient Secretの両方が必要です",
         "invalidClientId": "Client IDの形式が無効です（.apps.googleusercontent.comで終わる必要があります）"
-      }
+      },
+      "advancedToggle": "自分の Google Cloud プロジェクトを使用",
+      "signInWithProject": "自分のプロジェクトでログイン",
+      "separateDataNote": "自分のプロジェクトで同期したデータは、デフォルトのログインで同期したデータとは別になります。すべてのデバイスで同じ方法を使用してください。"
     },
     "redirectUris": {
       "title": "リダイレクトURI",
@@ -719,6 +724,15 @@
       "mergeNote": "アーカイブ、タグ、履歴はこのデバイスとクラウドの両方からマージされます。",
       "cancel": "キャンセル",
       "sync": "同期"
+    },
+    "shared": {
+      "note": "データはあなた自身の Google ドライブに直接保存されます。oauth.summarizerrrr.com はログイン用トークンのみを扱います。",
+      "firefoxPermissionDenied": "Google でログインするには、Firefox で oauth.summarizerrrr.com へのアクセス許可が必要です。確認が表示されたら許可するか、下のご自身の Google Cloud プロジェクトを使用してください。"
+    },
+    "proxyPermission": {
+      "title": "許可が必要です",
+      "description": "Firefox が Summarizerrrr による oauth.summarizerrrr.com へのアクセスを許可していないため、セッションを更新できません。アクセスを許可すると同期が再開されます（ログイン状態は保たれます）。",
+      "button": "アクセスを許可"
     }
   }
 }

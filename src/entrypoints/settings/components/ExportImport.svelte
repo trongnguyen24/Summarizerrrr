@@ -994,7 +994,7 @@
       </div>
       <div class="flex flex-col gap-2 pb-4">
         <div class="block text-text-secondary">Chat data</div>
-        <p class="text-xs text-text-muted">Conversations are included in local backups and synced by Cloud sync (Chats).</p>
+        <p class="text-xs text-text-muted">Conversations are included in local backups and synced by Cloud sync. Page content is re-captured when you continue a chat on another device.</p>
         <button onclick={clearChatOnly} disabled={dataCounts.conversations === 0} class="text-left text-xs text-error disabled:opacity-50">Clear chat data</button>
       </div>
       <div class="flex flex-col gap-2 pb-4">

@@ -21,7 +21,11 @@
     resolveSettingsConflict,
     saveCustomCredentials,
     getCustomCredentials,
+    grantProxyPermission,
+    PROXY_ORIGIN_PATTERN,
   } from '@/services/cloudSync/cloudSyncService.svelte.js'
+  import { requestSpecificPermission } from '@/services/firefoxPermissionService.js'
+  import { isFirefox } from '@/lib/utils/browserDetection.js'
 
   // Import refactored components
   import CloudSyncUserCard from '@/entrypoints/settings/components/cloudsync/CloudSyncUserCard.svelte'
@@ -49,9 +53,11 @@
   }
 
   let isLoggingIn = $state(false)
+  let loginMode = $state(null) // which button started the in-flight login
   let loginError = $state(null)
   let isReconnecting = $state(false)
   let reconnectError = $state(null)
+  let proxyPermissionError = $state(null)
 
   // "Publish app" lives on the Audience page of the Google Auth Platform —
   // the one switch that stops Testing-mode refresh tokens dying every 7 days.
@@ -63,6 +69,8 @@
   let credentialsSaved = $state(false)
   let credentialsError = $state(null)
   let showRedirectUrisDialog = $state(false)
+  // "Use your own Google Cloud project" disclosure; open when credentials exist
+  let showByok = $state(false)
   let copiedUri = $state(null)
 
   const redirectUris = [
@@ -93,6 +101,7 @@
       customClientId = existingCreds.clientId
       customClientSecret = existingCreds.clientSecret
       credentialsSaved = true
+      showByok = true
     }
 
     await initSync()
@@ -104,12 +113,23 @@
     return () => clearInterval(interval)
   })
 
-  async function handleLogin() {
+  /**
+   * Firefox only allows permissions.request() while handling a user action, so
+   * this must be the FIRST await in every click handler that calls it.
+   * Elsewhere the proxy needs no permission.
+   */
+  async function ensureProxyPermission() {
+    if (!isFirefox()) return true
+    return await requestSpecificPermission(PROXY_ORIGIN_PATTERN)
+  }
+
+  async function runLogin(mode) {
     isLoggingIn = true
+    loginMode = mode
     loginError = null
 
     try {
-      await login()
+      await login({ mode })
     } catch (error) {
       loginError = error.message
     } finally {
@@ -117,7 +137,28 @@
     }
   }
 
+  async function handleSharedLogin() {
+    const ok = await ensureProxyPermission()
+    if (!ok) {
+      loginError = $t('cloudSync.shared.firefoxPermissionDenied')
+      return
+    }
+    await runLogin('shared')
+  }
+
+  async function handleCustomLogin() {
+    await runLogin('custom')
+  }
+
   async function handleReconnect() {
+    if (cloudSyncStore.authMode === 'shared') {
+      const ok = await ensureProxyPermission()
+      if (!ok) {
+        reconnectError = $t('cloudSync.shared.firefoxPermissionDenied')
+        return
+      }
+    }
+
     isReconnecting = true
     reconnectError = null
 
@@ -128,6 +169,14 @@
     } finally {
       isReconnecting = false
     }
+  }
+
+  async function handleGrantProxyPermission() {
+    // grantProxyPermission() calls permissions.request(): keep it the first await
+    const granted = await grantProxyPermission()
+    proxyPermissionError = granted
+      ? null
+      : $t('cloudSync.shared.firefoxPermissionDenied')
   }
 
   async function handleLogout() {
@@ -239,45 +288,12 @@
 
   {#if cloudSyncEnabled}
     {#if !cloudSyncStore.isLoggedIn}
-      <!-- Not logged in state - BYOK Only Mode -->
+      <!-- Not logged in: shared sign-in first, BYOK under Advanced -->
       <div class="flex flex-col gap-4">
-        <!-- OAuth Credentials Section -->
-
-        <p class="text-xs text-muted">
-          {$t('cloudSync.byok.description')}
-        </p>
-
-        <!-- Client ID Input -->
-        <TextInput
-          id="byok-client-id"
-          label="Client ID"
-          placeholder={$t('cloudSync.byok.clientIdPlaceholder')}
-          bind:value={customClientId}
-          onSave={handleSaveCredentials}
-        />
-
-        <!-- Client Secret Input -->
-        <ApiKeyInput
-          label="Client Secret"
-          placeholder={$t('cloudSync.byok.clientSecretPlaceholder')}
-          bind:apiKey={customClientSecret}
-          onSave={handleSaveCredentials}
-          linkHref="https://console.cloud.google.com/projectselector2/auth"
-          linkText={$t('cloudSync.byok.getCredentials')}
-        />
-
-        <!-- Error Message -->
-        {#if credentialsError}
-          <div class="flex items-center gap-2 text-red-500 text-xs">
-            <Icon icon="heroicons:exclamation-circle" class="size-4" />
-            <span>{credentialsError}</span>
-          </div>
-        {/if}
-
-        <!-- Login Button -->
+        <!-- Shared sign-in (default client via oauth.summarizerrrr.com) -->
         <button
-          onclick={handleLogin}
-          disabled={isLoggingIn || !credentialsSaved}
+          onclick={handleSharedLogin}
+          disabled={isLoggingIn}
           class="relative group mt-2 disabled:opacity-50 disabled:cursor-not-allowed"
           title={$t('cloudSync.signInWithGoogle')}
         >
@@ -287,7 +303,7 @@
             <div
               class="relative z-20 flex gap-2 text-text-primary justify-center items-center"
             >
-              {#if isLoggingIn}
+              {#if isLoggingIn && loginMode === 'shared'}
                 <Icon icon="heroicons:arrow-path" class="size-4 animate-spin" />
                 <span>{$t('cloudSync.signingIn')}</span>
               {:else}
@@ -303,31 +319,120 @@
             ></div>
           </div>
         </button>
-        <div class="flex justify-center items-center gap-4">
-          <a
-            href="https://www.youtube.com/watch?v=6L579ori-0w"
-            target="_blank"
-            class="text-text-secondary underline underline-offset-2 w-fit flex items-center mt-1 gap-1"
-            >{$t('cloudSync.byok.setupTutorial')}
-            <Icon width={12} icon="heroicons:arrow-up-right-16-solid" />
-          </a>
-
-          <button
-            onclick={() => (showRedirectUrisDialog = true)}
-            class="text-text-secondary underline underline-offset-2 w-fit flex items-center mt-1 gap-1"
-          >
-            {$t('cloudSync.byok.redirectUrisList')}<Icon
-              width={12}
-              icon="heroicons:information-circle-20-solid"
-            />
-          </button>
-        </div>
+        <p class="text-xs text-muted text-pretty">
+          {$t('cloudSync.shared.note')}
+        </p>
         {#if loginError}
           <div class="flex items-center gap-2 text-red-500 text-xs">
             <Icon icon="heroicons:exclamation-circle" class="size-4" />
             <span>{loginError}</span>
           </div>
         {/if}
+
+        <!-- Advanced: use your own Google Cloud project (BYOK) -->
+        <div class="flex flex-col gap-4 border-t border-border pt-4">
+          <button
+            onclick={() => (showByok = !showByok)}
+            class="flex items-center gap-1 text-xs text-text-secondary w-fit"
+            aria-expanded={showByok}
+          >
+            <Icon
+              icon="heroicons:chevron-right-16-solid"
+              class="size-4 transition-transform duration-150 {showByok
+                ? 'rotate-90'
+                : ''}"
+            />
+            <span>{$t('cloudSync.byok.advancedToggle')}</span>
+          </button>
+
+          {#if showByok}
+            <div class="flex flex-col gap-4">
+              <p class="text-xs text-muted">
+                {$t('cloudSync.byok.description')}
+              </p>
+
+              <!-- Client ID Input -->
+              <TextInput
+                id="byok-client-id"
+                label="Client ID"
+                placeholder={$t('cloudSync.byok.clientIdPlaceholder')}
+                bind:value={customClientId}
+                onSave={handleSaveCredentials}
+              />
+
+              <!-- Client Secret Input -->
+              <ApiKeyInput
+                label="Client Secret"
+                placeholder={$t('cloudSync.byok.clientSecretPlaceholder')}
+                bind:apiKey={customClientSecret}
+                onSave={handleSaveCredentials}
+                linkHref="https://console.cloud.google.com/projectselector2/auth"
+                linkText={$t('cloudSync.byok.getCredentials')}
+              />
+
+              <!-- Error Message -->
+              {#if credentialsError}
+                <div class="flex items-center gap-2 text-red-500 text-xs">
+                  <Icon icon="heroicons:exclamation-circle" class="size-4" />
+                  <span>{credentialsError}</span>
+                </div>
+              {/if}
+
+              <p class="text-xs text-muted text-pretty">
+                {$t('cloudSync.byok.separateDataNote')}
+              </p>
+
+              <!-- BYOK sign-in -->
+              <button
+                onclick={handleCustomLogin}
+                disabled={isLoggingIn || !credentialsSaved}
+                class="relative group mt-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                title={$t('cloudSync.byok.signInWithProject')}
+              >
+                <div
+                  class="relative flex items-center font-bold justify-center gap-1 px-3 py-2.25 font-mono text-xs inset-0 overflow-hidden"
+                >
+                  <div
+                    class="relative z-20 flex gap-2 text-text-primary justify-center items-center"
+                  >
+                    {#if isLoggingIn && loginMode === 'custom'}
+                      <Icon icon="heroicons:arrow-path" class="size-4 animate-spin" />
+                      <span>{$t('cloudSync.signingIn')}</span>
+                    {:else}
+                      <Icon icon="logos:google-icon" class="size-4" />
+                      <span>{$t('cloudSync.byok.signInWithProject')}</span>
+                    {/if}
+                  </div>
+                  <span
+                    class="absolute z-50 size-4 border border-transparent group-hover:border-blackwhite/15 rotate-45 bg-surface-1 -bottom-px -left-px -translate-x-1/2 translate-y-1/2 duration-150"
+                  ></span>
+                  <div
+                    class="absolute z-40 inset-0 text-text-secondary py-2 font-mono bg-blackwhite/5 dark:bg-blackwhite/5 border border-transparent hover:border-blackwhite/15 focus:border-blackwhite/30 dark:focus:border-blackwhite/10 focus:outline-none focus:ring-0 transition-colors duration-150"
+                  ></div>
+                </div>
+              </button>
+              <div class="flex justify-center items-center gap-4">
+                <a
+                  href="https://www.youtube.com/watch?v=6L579ori-0w"
+                  target="_blank"
+                  class="text-text-secondary underline underline-offset-2 w-fit flex items-center mt-1 gap-1"
+                  >{$t('cloudSync.byok.setupTutorial')}
+                  <Icon width={12} icon="heroicons:arrow-up-right-16-solid" />
+                </a>
+
+                <button
+                  onclick={() => (showRedirectUrisDialog = true)}
+                  class="text-text-secondary underline underline-offset-2 w-fit flex items-center mt-1 gap-1"
+                >
+                  {$t('cloudSync.byok.redirectUrisList')}<Icon
+                    width={12}
+                    icon="heroicons:information-circle-20-solid"
+                  />
+                </button>
+              </div>
+            </div>
+          {/if}
+        </div>
       </div>
     {:else}
       <div class="flex flex-col gap-6">
@@ -345,7 +450,11 @@
               />
               <span>{$t('cloudSync.reauth.title')}</span>
             </div>
-            <p class="text-pretty">{$t('cloudSync.reauth.description')}</p>
+            <p class="text-pretty">
+              {cloudSyncStore.authMode === 'shared'
+                ? $t('cloudSync.reauth.sharedDescription')
+                : $t('cloudSync.reauth.description')}
+            </p>
             <div class="flex flex-wrap items-center gap-4">
               <button
                 onclick={handleReconnect}
@@ -363,18 +472,54 @@
                   <span>{$t('cloudSync.reauth.button')}</span>
                 {/if}
               </button>
-              <a
-                href={PUBLISH_APP_URL}
-                target="_blank"
-                class="flex items-center gap-1 underline underline-offset-2"
-                >{$t('cloudSync.reauth.publishGuide')}
-                <Icon width={12} icon="heroicons:arrow-up-right-16-solid" />
-              </a>
+              {#if cloudSyncStore.authMode === 'custom'}
+                <a
+                  href={PUBLISH_APP_URL}
+                  target="_blank"
+                  class="flex items-center gap-1 underline underline-offset-2"
+                  >{$t('cloudSync.reauth.publishGuide')}
+                  <Icon width={12} icon="heroicons:arrow-up-right-16-solid" />
+                </a>
+              {/if}
             </div>
             {#if reconnectError}
               <div class="flex items-center gap-2 text-red-500">
                 <Icon icon="heroicons:exclamation-circle" class="size-4" />
                 <span>{reconnectError}</span>
+              </div>
+            {/if}
+          </div>
+        {/if}
+
+        <!-- Firefox: shared session lost the oauth.summarizerrrr.com permission.
+             The grant is still valid, so this is not a Reconnect. -->
+        {#if cloudSyncStore.needsProxyPermission}
+          <div
+            class="flex flex-col gap-3 rounded-md border border-warning/30 bg-warning/10 px-3 py-3 text-xs text-text-secondary"
+            role="status"
+            aria-live="polite"
+          >
+            <div class="flex items-center gap-1.5 text-text-primary font-bold">
+              <Icon
+                icon="heroicons:exclamation-triangle"
+                class="size-4 shrink-0 text-warning"
+              />
+              <span>{$t('cloudSync.proxyPermission.title')}</span>
+            </div>
+            <p class="text-pretty">
+              {$t('cloudSync.proxyPermission.description')}
+            </p>
+            <button
+              onclick={handleGrantProxyPermission}
+              class="flex w-fit items-center gap-1.5 font-bold text-text-primary underline underline-offset-2"
+            >
+              <Icon icon="heroicons:key" class="size-4" />
+              <span>{$t('cloudSync.proxyPermission.button')}</span>
+            </button>
+            {#if proxyPermissionError}
+              <div class="flex items-center gap-2 text-red-500">
+                <Icon icon="heroicons:exclamation-circle" class="size-4" />
+                <span>{proxyPermissionError}</span>
               </div>
             {/if}
           </div>
@@ -388,9 +533,12 @@
           lastSyncTime={cloudSyncStore.lastSyncTime}
           isSyncing={cloudSyncStore.isSyncing}
           needsReauth={cloudSyncStore.needsReauth}
+          authMode={cloudSyncStore.authMode}
           debugLogs={cloudSyncStore.debugLogs}
-          clientId={customClientId}
-          clientSecret={customClientSecret}
+          clientId={cloudSyncStore.authMode === 'custom' ? customClientId : ''}
+          clientSecret={cloudSyncStore.authMode === 'custom'
+            ? customClientSecret
+            : ''}
           onSyncNow={handleSyncNow}
           onLogout={handleLogout}
         />

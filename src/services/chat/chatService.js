@@ -1,6 +1,7 @@
 import { buildContextPipeline } from '@/lib/chat/contextPipeline/index.js'
 import { handleError } from '@/lib/error/simpleErrorHandler.js'
 import { conversationRepository } from '@/lib/db/conversationRepository.js'
+import { isStubSource } from '@/lib/db/conversationSyncMerge.js'
 import { chatSourceService } from './chatSourceService.js'
 import { chatSessionService } from './chatSessionService.js'
 import { createPersonaSnapshot } from '@/lib/chat/skills/skillService.js'
@@ -142,6 +143,46 @@ export function createChatService({
     return message
   }
 
+  /**
+   * Re-capture every stub source among `sourceIds` (metadata synced, content
+   * omitted) before the model call. Returns failure strings for the caller to
+   * show; it never emits warnings itself, because `onWarnings` replaces the
+   * list in the store. Never throws.
+   *
+   * @param {string[]} sourceIds
+   * Stop (`signal`) cancels any re-capture still in flight, closing its
+   * background tabs; a cancelled turn reports no warnings.
+   *
+   * @param {string[]} sourceIds
+   * @param {{onStatus?: (status: {type: 'hydrating', titles: string[]} | null) => void, signal?: AbortSignal}} [opts]
+   * @returns {Promise<string[]>}
+   */
+  async function hydrateStubSources(sourceIds, { onStatus, signal } = {}) {
+    const ids = [...new Set((sourceIds || []).filter(Boolean))]
+    if (!ids.length || signal?.aborted) return []
+
+    let stubs
+    try {
+      stubs = ((await repository.getSourcesByIds(ids)) || []).filter(isStubSource)
+    } catch (error) {
+      console.warn('[chatService] Could not load sources for re-capture:', error)
+      return []
+    }
+    if (!stubs.length) return []
+
+    const titles = stubs.map((source) => source.title || source.normalizedUrl || source.url || 'page')
+    onStatus?.({ type: 'hydrating', titles })
+    try {
+      const results = await Promise.all(stubs.map((source) => sourceService.hydrateSource(source, { signal })))
+      if (signal?.aborted) return []
+      return results.flatMap((result, index) =>
+        result?.error ? [`Could not re-capture page content: ${titles[index]} — ${result.error}`] : []
+      )
+    } finally {
+      onStatus?.(null)
+    }
+  }
+
   async function startConversationForActiveTab({ settings, personaSnapshot, modelOverride } = {}) {
     const tab = await sourceService.getActiveTab()
     const resolvedChat = resolveFeatureModel('chat', settings)
@@ -225,6 +266,7 @@ export function createChatService({
     onChunk,
     onWarnings,
     onDiagnostics,
+    onStatus,
   }) {
     const resolved = resolveConversationModel(conversation, settings)
     let conversationProviderId = resolved.providerId
@@ -283,6 +325,16 @@ export function createChatService({
       }, 500)
     }
 
+    // Re-capture stub sources before the streaming bubble is created, so it
+    // does not sit empty while tabs load. Failures become warnings only.
+    const hydrationWarnings = await hydrateStubSources(
+      [...sourceIdsFrom(history), ...(currentUserMessage.attachmentRefs || [])],
+      { onStatus, signal: abortController.signal }
+    )
+    const withHydrationWarnings = (warnings) =>
+      hydrationWarnings.length ? [...hydrationWarnings, ...(warnings || [])] : warnings
+    if (hydrationWarnings.length) onWarnings?.(hydrationWarnings)
+
     try {
       const attachmentRefs = currentUserMessage.attachmentRefs || []
 
@@ -312,7 +364,7 @@ export function createChatService({
         },
         { repository }
       )
-      onWarnings?.(pipeline.warnings)
+      onWarnings?.(withHydrationWarnings(pipeline.warnings))
 
       if (pipeline.rejected) {
         const error = new Error("Your message is too long for this model's context window, even with every source removed. Shorten it or switch to a model with a larger context.")
@@ -350,7 +402,7 @@ export function createChatService({
           // warnings so the user sees them alongside pipeline warnings.
           if (event.reasoningWarnings?.length) {
             const existing = pipeline.warnings || []
-            onWarnings?.([...existing, ...event.reasoningWarnings])
+            onWarnings?.(withHydrationWarnings([...existing, ...event.reasoningWarnings]))
           }
           continue
         }
@@ -429,6 +481,7 @@ export function createChatService({
       onChunk,
       onWarnings,
       onDiagnostics,
+      onStatus,
     }) {
       if (!String(content || '').trim() && !skillInvocation) {
         throw new Error('Enter a message or choose a skill before sending.')
@@ -467,10 +520,11 @@ export function createChatService({
         onChunk,
         onWarnings,
         onDiagnostics,
+        onStatus,
       })
     },
 
-    async retry({ conversation, messages, userMessageId, settings, abortController, onChunk, onWarnings, onDiagnostics }) {
+    async retry({ conversation, messages, userMessageId, settings, abortController, onChunk, onWarnings, onDiagnostics, onStatus }) {
       const { history, currentUserMessage } = await repository.getGenerationContextForUser(userMessageId)
       return runGeneration({
         conversation,
@@ -482,10 +536,11 @@ export function createChatService({
         onChunk,
         onWarnings,
         onDiagnostics,
+        onStatus,
       })
     },
 
-    async regenerate({ conversation, assistantMessageId, settings, abortController, onChunk, onWarnings, onDiagnostics }) {
+    async regenerate({ conversation, assistantMessageId, settings, abortController, onChunk, onWarnings, onDiagnostics, onStatus }) {
       const allMessages = await repository.listMessagesByConversation(conversation.id)
       const assistantMessage = allMessages.find((m) => m.id === assistantMessageId)
       if (!assistantMessage) throw new Error('The assistant message was not found.')
@@ -504,6 +559,7 @@ export function createChatService({
         onChunk,
         onWarnings,
         onDiagnostics,
+        onStatus,
       })
     },
 
@@ -515,7 +571,7 @@ export function createChatService({
       return repository.archiveConversation(id)
     },
 
-    async edit({ conversation, messageId, content, reasoningLevel, settings, abortController, onChunk, onWarnings, onDiagnostics }) {
+    async edit({ conversation, messageId, content, reasoningLevel, settings, abortController, onChunk, onWarnings, onDiagnostics, onStatus }) {
       const original = await repository.getMessage(messageId)
       if (!original) throw new Error('The message to edit was not found.')
       if (original.role !== 'user') throw new Error('Only user messages can be edited.')
@@ -541,10 +597,11 @@ export function createChatService({
         onChunk,
         onWarnings,
         onDiagnostics,
+        onStatus,
       })
     },
 
-    async continueResponse({ conversation, assistantMessageId, settings, abortController, onChunk, onWarnings, onDiagnostics }) {
+    async continueResponse({ conversation, assistantMessageId, settings, abortController, onChunk, onWarnings, onDiagnostics, onStatus }) {
       const assistantMessage = await repository.getMessage(assistantMessageId)
       if (!assistantMessage) throw new Error('The assistant message was not found.')
       if (assistantMessage.status !== 'aborted' && assistantMessage.status !== 'interrupted') {
@@ -634,6 +691,17 @@ export function createChatService({
         const capabilityProviderId = resolvedEntry ? resolvedEntry.capabilityProviderId : conversationProviderId
 
         const attachmentRefs = currentUserMessage.attachmentRefs || []
+
+        // Same as runGeneration: re-capture stubs for the history and this
+        // turn's attachments before the pipeline reads them.
+        const hydrationWarnings = await hydrateStubSources(
+          [...sourceIdsFrom(historyWithPartial), ...attachmentRefs],
+          { onStatus, signal: controller.signal }
+        )
+        const withHydrationWarnings = (warnings) =>
+          hydrationWarnings.length ? [...hydrationWarnings, ...(warnings || [])] : warnings
+        if (hydrationWarnings.length) onWarnings?.(hydrationWarnings)
+
         pipeline = await buildPipeline(
           {
             conversation,
@@ -647,7 +715,7 @@ export function createChatService({
           },
           { repository }
         )
-        onWarnings?.(pipeline.warnings)
+        onWarnings?.(withHydrationWarnings(pipeline.warnings))
 
         const { providerId: resolvedAdapterId, settings: resolvedSettings } = resolveAdapterCall(
           conversationProviderId,
@@ -676,7 +744,7 @@ export function createChatService({
             // Merge any reasoning-related warnings from the AI SDK.
             if (event.reasoningWarnings?.length) {
               const existing = pipeline.warnings || []
-              onWarnings?.([...existing, ...event.reasoningWarnings])
+              onWarnings?.(withHydrationWarnings([...existing, ...event.reasoningWarnings]))
             }
             continue
           }

@@ -378,6 +378,7 @@
     }
   },
   "chat": {
+    "hydratingSources": "Đang thu thập lại nội dung trang…",
     "read_only_elsewhere": "Cuộc trò chuyện này đang mở ở cửa sổ khác. Tại đây chỉ xem được.",
     "detached": {
       "tab_tooltip": "Đã đóng trang",
@@ -661,7 +662,8 @@
       "description": "Google đã từ chối phiên đăng nhập đã lưu. Nếu OAuth app của bạn vẫn ở trạng thái \"Testing\" trong Google Cloud Console, refresh token sẽ hết hạn sau 7 ngày — hãy Publish app để không bị lặp lại.",
       "button": "Kết nối lại",
       "reconnecting": "Đang kết nối lại...",
-      "publishGuide": "Publish OAuth app của bạn"
+      "publishGuide": "Publish OAuth app của bạn",
+      "sharedDescription": "Phiên Google của bạn đã hết hạn. Hãy đăng nhập lại."
     },
     "byok": {
       "description": "Nhập thông tin xác thực OAuth của riêng bạn từ Google Cloud Console, dữ liệu của bạn không bao giờ đi qua máy chủ bên thứ ba.",
@@ -673,7 +675,10 @@
       "errors": {
         "bothRequired": "Cần cả Client ID và Client Secret",
         "invalidClientId": "Định dạng Client ID không hợp lệ (phải kết thúc bằng .apps.googleusercontent.com)"
-      }
+      },
+      "advancedToggle": "Dùng dự án Google Cloud của riêng bạn",
+      "signInWithProject": "Đăng nhập bằng dự án của bạn",
+      "separateDataNote": "Dữ liệu đồng bộ bằng dự án riêng tách biệt với dữ liệu đồng bộ bằng đăng nhập mặc định. Hãy dùng cùng một lựa chọn trên mọi thiết bị."
     },
     "redirectUris": {
       "title": "Redirect URIs",
@@ -701,6 +706,15 @@
       "mergeNote": "Lưu trữ, Thẻ và Lịch sử sẽ được gộp từ cả thiết bị này và Cloud.",
       "cancel": "Hủy",
       "sync": "Đồng bộ"
+    },
+    "shared": {
+      "note": "Dữ liệu của bạn được lưu thẳng vào Google Drive của bạn. oauth.summarizerrrr.com chỉ xử lý token đăng nhập.",
+      "firefoxPermissionDenied": "Firefox cần quyền truy cập oauth.summarizerrrr.com để đăng nhập bằng Google. Hãy cho phép khi được hỏi, hoặc dùng dự án Google Cloud của riêng bạn bên dưới."
+    },
+    "proxyPermission": {
+      "title": "Cần cấp quyền",
+      "description": "Firefox không còn cho phép Summarizerrrr truy cập oauth.summarizerrrr.com nên không thể gia hạn phiên. Hãy cấp quyền để tiếp tục đồng bộ — bạn vẫn đang đăng nhập.",
+      "button": "Cấp quyền"
     }
   },
   "notifications": {

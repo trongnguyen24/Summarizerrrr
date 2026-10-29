@@ -377,6 +377,7 @@
     }
   },
   "chat": {
+    "hydratingSources": "正在重新获取页面内容…",
     "read_only_elsewhere": "该对话正在另一个窗口中打开，此处仅供查看。",
     "detached": {
       "tab_tooltip": "页面已关闭",
@@ -679,7 +680,8 @@
       "description": "Google 拒绝了已保存的会话。如果你的 OAuth 应用在 Google Cloud Console 中仍处于“测试”状态，其刷新令牌会在 7 天后过期——发布该应用即可避免重复出现。",
       "button": "重新连接",
       "reconnecting": "正在重新连接...",
-      "publishGuide": "发布你的 OAuth 应用"
+      "publishGuide": "发布你的 OAuth 应用",
+      "sharedDescription": "您的 Google 会话已过期，请重新登录。"
     },
     "byok": {
       "description": "从您的 Google Cloud Console 输入您自己的 OAuth 凭据，您的数据永远不会通过第三方服务器。",
@@ -691,7 +693,10 @@
       "errors": {
         "bothRequired": "Client ID 和 Client Secret 都是必需的",
         "invalidClientId": "Client ID 格式无效（应以 .apps.googleusercontent.com 结尾）"
-      }
+      },
+      "advancedToggle": "使用您自己的 Google Cloud 项目",
+      "signInWithProject": "使用您的项目登录",
+      "separateDataNote": "使用您自己项目同步的数据与使用默认登录同步的数据相互独立。请在所有设备上使用相同的方式。"
     },
     "redirectUris": {
       "title": "重定向 URI",
@@ -719,6 +724,15 @@
       "mergeNote": "归档、标签和历史记录将从此设备和云端合并。",
       "cancel": "取消",
       "sync": "同步"
+    },
+    "shared": {
+      "note": "您的数据会直接存入您自己的 Google 云端硬盘。oauth.summarizerrrr.com 仅处理登录令牌。",
+      "firefoxPermissionDenied": "Firefox 需要访问 oauth.summarizerrrr.com 的权限才能使用 Google 登录。请在提示时允许，或在下方使用您自己的 Google Cloud 项目。"
+    },
+    "proxyPermission": {
+      "title": "需要权限",
+      "description": "Firefox 不再允许 Summarizerrrr 访问 oauth.summarizerrrr.com，因此无法续期会话。授予访问权限即可恢复同步——您仍保持登录状态。",
+      "button": "授予访问权限"
     }
   }
 }

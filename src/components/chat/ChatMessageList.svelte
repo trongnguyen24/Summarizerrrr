@@ -3,6 +3,7 @@
   import { tick } from 'svelte'
   import ChatMessage from '@/components/chat/ChatMessage.svelte'
   import Icon from '@iconify/svelte'
+  import { _ } from 'svelte-i18n'
   import { loadEarlierMessages, chatState } from '@/stores/chatStore.svelte.js'
 
   let { messages = [], streamingMessage = null, onRetry = null, conversation = null, onFollowUp = null, proseClass = undefined } = $props()
@@ -98,5 +99,16 @@
       {proseClass}
     />
   {/each}
+  {#if chatState.hydratingSources}
+    <div
+      class="flex items-center gap-1.5 text-xs text-text-secondary"
+      role="status"
+      aria-live="polite"
+      data-testid="chat-hydrating-sources"
+    >
+      <Icon icon="heroicons:arrow-path" width="12" height="12" class="animate-spin" />
+      <span>{$_('chat.hydratingSources')}</span>
+    </div>
+  {/if}
 </div>
 

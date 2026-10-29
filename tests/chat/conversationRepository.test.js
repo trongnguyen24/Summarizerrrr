@@ -119,7 +119,7 @@ describe('conversationRepository', () => {
     await createVersionNineFixture()
 
     const database = await getDatabase()
-    expect(database.version).toBe(11)
+    expect(database.version).toBe(12)
     expect([...database.objectStoreNames]).toEqual(
       expect.arrayContaining([
         'summaries',
@@ -129,6 +129,7 @@ describe('conversationRepository', () => {
         'conversations',
         'conversation_messages',
         'conversation_sources',
+        'chat_meta',
       ])
     )
 

@@ -68,6 +68,11 @@ function createChatSessionState() {
     error: null,
     contextWarnings: [],
     /**
+     * Titles of stub sources being re-captured before the reply, or null when
+     * nothing is being re-captured. Set by `chatService`'s `onStatus`.
+     */
+    hydratingSources: null,
+    /**
      * Context occupancy of the last generated turn — `input + output` of a
      * single turn, never a sum across turns (a turn's input already contains
      * every earlier reply). Belongs to one conversation, so it must be cleared
@@ -1099,6 +1104,9 @@ export async function sendChatMessage(content = chatState.composerText) {
       onWarnings: (warnings) => {
         write({ contextWarnings: warnings })
       },
+      onStatus: (status) => {
+        write({ hydratingSources: status?.type === 'hydrating' ? status.titles : null })
+      },
       onDiagnostics: (usage) => {
         write({ contextUsage: usage })
       },
@@ -1166,6 +1174,9 @@ export async function retryChatMessage(userMessageId) {
       },
       onWarnings: (warnings) => {
         write({ contextWarnings: warnings })
+      },
+      onStatus: (status) => {
+        write({ hydratingSources: status?.type === 'hydrating' ? status.titles : null })
       },
       onDiagnostics: (usage) => {
         write({ contextUsage: usage })
@@ -1260,6 +1271,9 @@ export async function regenerateChatMessage(assistantMessageId) {
       onWarnings: (warnings) => {
         write({ contextWarnings: warnings })
       },
+      onStatus: (status) => {
+        write({ hydratingSources: status?.type === 'hydrating' ? status.titles : null })
+      },
       onDiagnostics: (usage) => {
         write({ contextUsage: usage })
       },
@@ -1317,6 +1331,9 @@ export async function editChatMessage(messageId, content) {
       },
       onWarnings: (warnings) => {
         write({ contextWarnings: warnings })
+      },
+      onStatus: (status) => {
+        write({ hydratingSources: status?.type === 'hydrating' ? status.titles : null })
       },
       onDiagnostics: (usage) => {
         write({ contextUsage: usage })
@@ -1378,6 +1395,9 @@ export async function continueChatMessage(assistantMessageId) {
       },
       onWarnings: (warnings) => {
         write({ contextWarnings: warnings })
+      },
+      onStatus: (status) => {
+        write({ hydratingSources: status?.type === 'hydrating' ? status.titles : null })
       },
       onDiagnostics: (usage) => {
         write({ contextUsage: usage })

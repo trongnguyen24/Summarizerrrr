@@ -578,7 +578,7 @@ class DataIntegrityService {
   async clearAllData() {
     if (!db) db = await getDatabase()
 
-    return new Promise((resolve, reject) => {
+    const cleared = await new Promise((resolve, reject) => {
       const transaction = db.transaction(
         [
           'summaries',
@@ -602,6 +602,13 @@ class DataIntegrityService {
       transaction.objectStore('conversation_messages').clear()
       transaction.objectStore('conversation_sources').clear()
     })
+
+    // These chat stores were cleared without going through the repository, so
+    // the revision counter did not move. Drop the sync skip marker so the next
+    // chats sync reconciles fully. Dynamic import: only this path loads the sync service.
+    const { clearChatSyncMarker } = await import('./cloudSync/cloudSyncService.svelte.js')
+    await clearChatSyncMarker()
+    return cleared
   }
 
   /** Clear conversation records without touching legacy summaries/history/tags. */

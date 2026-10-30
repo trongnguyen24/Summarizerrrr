@@ -149,6 +149,14 @@ export function getTabCacheSize() {
 }
 
 /**
+ * Every cached tab's summary state, as `[tabId, summaryState]` pairs.
+ * @returns {Array<[number, Object]>}
+ */
+export function getTabSummaryStates() {
+  return [...tabStates].map(([tabId, state]) => [tabId, state.summaryState])
+}
+
+/**
  * Checks if a tab has any summary content
  * @param {number} tabId - Browser tab ID
  * @returns {boolean}

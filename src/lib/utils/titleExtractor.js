@@ -55,7 +55,8 @@ export function cleanTitle(title) {
   
   return title
     .replace(/\s*-\s*YouTube$/, '')
-    // Replace any combination of (number), ▶, ⏳, 🎉, 🤯 at the beginning
-    .replace(/^(?:\s*(?:\([\d\+]+\)|▶\ufe0e?|⏳|🎉|🤯))+\s*/, '')
+    // Replace any combination of (number), ▶ and our status emoji
+    // (titleStatus.js, plus the pre-#78 🎉 / 🤯) at the beginning
+    .replace(/^(?:\s*(?:\([\d\+]+\)|▶\ufe0e?|⏳|✅|🟥|🎉|🤯))+\s*/, '')
     .trim();
 }

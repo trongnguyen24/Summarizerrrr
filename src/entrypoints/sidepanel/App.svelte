@@ -31,6 +31,7 @@
     updateActiveCourseTab,
   } from '@/stores/summaryStore.svelte.js'
   import { setupMessageListener } from './messageHandler.js'
+  import { syncTabTitleStatus } from './tabTitleStatus.svelte.js'
   import {
     getCurrentTabId,
     getTabsWithSummary,
@@ -135,6 +136,9 @@
 
   // Use API key validation composable
   const { needsApiKeySetup, currentProviderDisplayName } = useApiKeyValidation()
+
+  // ⏳ / ✅ / 🟥 on the summarized tab's title
+  syncTabTitleStatus()
 
   // Use $effect to initialize the app and set up listeners
   $effect(() => {

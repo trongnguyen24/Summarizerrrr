@@ -14,6 +14,7 @@
     subscribeToShadowThemeChanges,
   } from '@/stores/themeStore.svelte.js'
   import { slideScaleFade } from '@/lib/utils/slideScaleFade'
+  import { createTitleStatus } from '@/lib/utils/titleStatus.js'
   import { summaryState } from '../../stores/summaryStore.svelte.js'
   import FloatingButton from './components/FloatingButton.svelte'
   import FloatingPanel from './components/FloatingPanel.svelte'
@@ -42,20 +43,28 @@
   // Quick Summary mode (triggered by qs=1 URL param from background tab)
   let isQuickSummaryMode = $state(false)
 
-  // Quick Summary cleanup references (for memory leak prevention)
-  let emojiInterval = null
-  let titleObserver = null
+  // ⏳ / ✅ / 🟥 in front of the tab title (issue #78). Driven by this
+  // page's own summary below, and by the side panel via SET_TITLE_STATUS.
+  const titleStatus = createTitleStatus()
 
-  // Cleanup function for emoji tracking
-  function cleanupEmojiTracking() {
-    if (emojiInterval) {
-      clearInterval(emojiInterval)
-      emojiInterval = null
+  $effect(() => {
+    const status = oneClickSummarization.statusToDisplay()
+    if (status === 'loading') {
+      titleStatus.set('loading')
+    } else if (titleStatus.get() === 'loading') {
+      titleStatus.set(status === 'error' ? 'error' : 'done')
     }
-    if (titleObserver) {
-      titleObserver.disconnect()
-      titleObserver = null
+  })
+
+  // summarizePageContent() reports failures through its state instead of
+  // rejecting, so the outcome has to be read back from there.
+  function settleQuickSummary() {
+    const failed = oneClickSummarization.statusToDisplay() === 'error'
+    if (titleStatus.get() === 'loading') {
+      titleStatus.set(failed ? 'error' : 'done')
     }
+    // Prevent re-summary on FAB click
+    if (!failed) oneClickSummarization.markSummaryAsGenerated()
   }
 
   /**
@@ -227,6 +236,12 @@
         togglePanel()
       }
 
+      // Summary status from the side panel, for this tab's title
+      if (message.type === 'SET_TITLE_STATUS') {
+        titleStatus.set(message.status ?? null)
+        return
+      }
+
       // Quick Summary mode: triggered by background script after opening tab
       if (message.type === 'QUICK_SUMMARY_TRIGGER') {
         // Only trigger once - ignore retry messages
@@ -294,76 +309,16 @@
         }
         // ===== END PAUSE YOUTUBE VIDEO =====
 
-        // Track current emoji state and base title (without emoji)
-        let currentEmoji = '⏳'
-        // Regex with alternation for multi-byte emoji characters
-        const emojiPattern = /^(⏳|🎉|🤯)\s*/
-        let baseTitle = document.title.replace(emojiPattern, '') // Remove any existing emoji
-
-        // Function to ensure emoji is present in title
-        const ensureEmojiInTitle = () => {
-          const currentTitle = document.title
-          // Check if title doesn't start with our emoji
-          if (!currentTitle.startsWith(currentEmoji)) {
-            // Get base title (remove any emoji prefix if exists)
-            baseTitle = currentTitle.replace(emojiPattern, '')
-            document.title = `${currentEmoji} ${baseTitle}`
-          }
-        }
-
-        // Apply emoji immediately
-        ensureEmojiInTitle()
-
-        // Watch for title changes using MutationObserver
-        const titleElement = document.querySelector('title')
-
-        // Cleanup any existing observers/intervals before creating new ones
-        cleanupEmojiTracking()
-
-        if (titleElement) {
-          titleObserver = new MutationObserver(() => {
-            ensureEmojiInTitle()
-          })
-
-          titleObserver.observe(titleElement, {
-            childList: true,
-            characterData: true,
-            subtree: true,
-          })
-        }
-
-        // Also use interval as fallback (some SPAs don't trigger mutations)
-        emojiInterval = setInterval(ensureEmojiInTitle, 1000)
+        titleStatus.set('loading')
 
         // Auto-trigger summarization
         isPanelVisible = true
         oneClickSummarization
           .summarizePageContent()
-          .then(() => {
-            // Update emoji to success when done
-            const checkSummaryDone = setInterval(() => {
-              const status = oneClickSummarization.statusToDisplay()
-              if (!status.isLoading) {
-                currentEmoji = '🎉'
-                ensureEmojiInTitle()
-                // Update internal state to prevent re-summary on FAB click
-                oneClickSummarization.markSummaryAsGenerated()
-                clearInterval(checkSummaryDone)
-                // Cleanup emoji tracking after success
-                cleanupEmojiTracking()
-              }
-            }, 500)
-
-            // Cleanup after 60s max
-            setTimeout(() => clearInterval(checkSummaryDone), 60000)
-          })
+          .then(settleQuickSummary)
           .catch((error) => {
-            // Show error emoji on failure
             console.error('[App] Quick Summary failed:', error)
-            currentEmoji = '🤯'
-            ensureEmojiInTitle()
-            // Cleanup emoji tracking after error
-            cleanupEmojiTracking()
+            titleStatus.set('error')
           })
         // Send response immediately to stop background retries
         if (sendResponse)
@@ -418,37 +373,7 @@
           if (sendResponse)
             sendResponse({ success: true, alreadyTriggered: false })
 
-          // Track emoji state for title
-          let currentEmoji = '⏳'
-          const emojiPattern = /^(⏳|🎉|🤯)\s*/
-          let baseTitle = document.title.replace(emojiPattern, '')
-
-          const ensureEmojiInTitle = () => {
-            const currentTitle = document.title
-            if (!currentTitle.startsWith(currentEmoji)) {
-              baseTitle = currentTitle.replace(emojiPattern, '')
-              document.title = `${currentEmoji} ${baseTitle}`
-            }
-          }
-
-          ensureEmojiInTitle()
-
-          // Watch for title changes
-          const titleElement = document.querySelector('title')
-          cleanupEmojiTracking()
-
-          if (titleElement) {
-            titleObserver = new MutationObserver(() => {
-              ensureEmojiInTitle()
-            })
-            titleObserver.observe(titleElement, {
-              childList: true,
-              characterData: true,
-              subtree: true,
-            })
-          }
-
-          emojiInterval = setInterval(ensureEmojiInTitle, 1000)
+          titleStatus.set('loading')
 
           // Wait for page content to be ready (handles SPA loading)
           await waitForPageReady()
@@ -457,25 +382,10 @@
           isPanelVisible = true
           oneClickSummarization
             .summarizePageContent()
-            .then(() => {
-              const checkSummaryDone = setInterval(() => {
-                const status = oneClickSummarization.statusToDisplay()
-                if (!status.isLoading) {
-                  currentEmoji = '🎉'
-                  ensureEmojiInTitle()
-                  // Update internal state to prevent re-summary on FAB click
-                  oneClickSummarization.markSummaryAsGenerated()
-                  clearInterval(checkSummaryDone)
-                  cleanupEmojiTracking()
-                }
-              }, 500)
-              setTimeout(() => clearInterval(checkSummaryDone), 60000)
-            })
+            .then(settleQuickSummary)
             .catch((error) => {
               console.error('[App] Generic Quick Summary failed:', error)
-              currentEmoji = '🤯'
-              ensureEmojiInTitle()
-              cleanupEmojiTracking()
+              titleStatus.set('error')
             })
         })()
       }
@@ -571,8 +481,7 @@
       themeUnsubscribe()
     }
 
-    // Cleanup Quick Summary emoji tracking
-    cleanupEmojiTracking()
+    titleStatus.destroy()
   })
 </script>
 

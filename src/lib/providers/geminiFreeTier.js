@@ -1,21 +1,23 @@
 /**
  * Free-tier rate limits for Gemini models.
  *
- * Snapshot taken 2026-08-01 from the AI Studio rate-limit page
+ * Snapshot taken 2026-10-30 from the AI Studio rate-limit page
  * (https://aistudio.google.com/app/rate-limit) — re-check there when Google
  * ships a new model family, the numbers do drift.
  *
  * Keys are model-id PREFIXES and only cover models that still have quota > 0
  * on the Free tier. Families that read 0/0/0 there (`gemini-2.0-flash*`,
- * `gemini-2.5-pro`, `gemini-3-pro*`, `gemini-3.1-pro*`, `deep-research*`,
- * `computer-use`) are deliberately absent, so they resolve to `null` and get no
- * badge — same as a model we've simply never heard of.
+ * `gemini-2.5-pro`, `gemini-3-pro*`, `gemini-3.1-pro*`, `gemini-4-argon`,
+ * `gemini-omni*`, `deep-research*`, `computer-use`) are deliberately absent,
+ * so they resolve to `null` and get no badge — same as a model we've simply
+ * never heard of.
  *
  * Only drives the "Free" badge in the model picker — a stale entry costs a
  * wrong badge, nothing more. The auto-fallback chain no longer reads this; it
  * is built from the live model list (`geminiFallbackChain.js`).
  */
 const GEMINI_FREE_TIER = {
+  'gemini-3.8-flash': { rpm: 5, tpm: 250_000, rpd: 20 },
   'gemini-3.6-flash': { rpm: 5, tpm: 250_000, rpd: 20 },
   'gemini-3.5-flash-lite': { rpm: 15, tpm: 250_000, rpd: 500 },
   'gemini-3.5-flash': { rpm: 5, tpm: 250_000, rpd: 20 },

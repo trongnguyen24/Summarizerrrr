@@ -29,7 +29,7 @@ export const promptBuilders = {
       let systemInstruction = getSystemRole(tone) || systemInstructions.youtube
       let userPrompt = youtubeSummary.userPrompt
 
-      if (settings.isSummaryAdvancedMode && settings.youtubePromptSelection) {
+      if (settings.youtubePromptSelection) {
         systemInstruction = settings.youtubeCustomSystemInstructionContent || ''
         userPrompt = settings.youtubeCustomPromptContent || ''
       } else {
@@ -55,7 +55,7 @@ export const promptBuilders = {
       let systemInstruction = getSystemRole(tone) || systemInstructions.general
       let userPrompt = generalSummary.userPrompt
 
-      if (settings.isSummaryAdvancedMode && settings.webPromptSelection) {
+      if (settings.webPromptSelection) {
         systemInstruction = settings.webCustomSystemInstructionContent || ''
         userPrompt = settings.webCustomPromptContent || ''
       } else {
@@ -81,7 +81,7 @@ export const promptBuilders = {
       let systemInstruction = getSystemRole(tone) || systemInstructions.chapter
       let userPrompt = youtubeChapter.userPrompt
 
-      if (settings.isSummaryAdvancedMode && settings.chapterPromptSelection) {
+      if (settings.chapterPromptSelection) {
         systemInstruction = settings.chapterCustomSystemInstructionContent || ''
         userPrompt = settings.chapterCustomPromptContent || ''
       } else {
@@ -99,10 +99,7 @@ export const promptBuilders = {
       let systemInstruction = getSystemRole(tone) || systemInstructions.selectedText
       let userPrompt = selectedText.userPrompt
 
-      if (
-        settings.isSummaryAdvancedMode &&
-        settings.selectedTextPromptSelection
-      ) {
+      if (settings.selectedTextPromptSelection) {
         systemInstruction =
           settings.selectedTextCustomSystemInstructionContent || ''
         userPrompt = settings.selectedTextCustomPromptContent || ''
@@ -121,10 +118,7 @@ export const promptBuilders = {
       let systemInstruction = getSystemRole(tone) || systemInstructions.courseSummary
       let userPrompt = courseSummary.userPrompt
 
-      if (
-        settings.isSummaryAdvancedMode &&
-        settings.courseSummaryPromptSelection
-      ) {
+      if (settings.courseSummaryPromptSelection) {
         systemInstruction =
           settings.courseSummaryCustomSystemInstructionContent || ''
         userPrompt = settings.courseSummaryCustomPromptContent || ''
@@ -143,10 +137,7 @@ export const promptBuilders = {
       let systemInstruction = getSystemRole(tone) || systemInstructions.courseConcepts
       let userPrompt = courseConcepts.userPrompt
 
-      if (
-        settings.isSummaryAdvancedMode &&
-        settings.courseConceptsPromptSelection
-      ) {
+      if (settings.courseConceptsPromptSelection) {
         systemInstruction =
           settings.courseConceptsCustomSystemInstructionContent || ''
         userPrompt = settings.courseConceptsCustomPromptContent || ''

@@ -55,6 +55,12 @@
   font-family: var(--font-mali);
 }
 
+/* Geist Mono ships a `###` ligature (`liga`), which squeezes markdown h3
+   markers out of column alignment in the prompt/skill editors (issue #77). */
+textarea {
+  font-variant-ligatures: none;
+}
+
 @theme {
   --breakpoint-xs: 38rem;
   --color-blackwhite: oklch(0 0 0);

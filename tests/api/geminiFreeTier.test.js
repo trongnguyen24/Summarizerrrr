@@ -25,6 +25,15 @@ describe('getGeminiFreeTierQuota', () => {
     })
   })
 
+  it('covers the newest flash families (issue #77)', () => {
+    expect(getGeminiFreeTierQuota('gemini-3.8-flash')).toEqual({
+      rpm: 5,
+      tpm: 250_000,
+      rpd: 20,
+    })
+    expect(getGeminiFreeTierQuota('gemini-3.6-flash')).not.toBeNull()
+  })
+
   it('resolves dated and preview variants through their family prefix', () => {
     expect(getGeminiFreeTierQuota('gemini-3.1-flash-lite-preview')).toMatchObject({
       rpd: 500,
@@ -42,6 +51,8 @@ describe('getGeminiFreeTierQuota', () => {
     expect(getGeminiFreeTierQuota('gemini-3.1-pro-preview')).toBeNull()
     expect(getGeminiFreeTierQuota('gemini-2.0-flash-001')).toBeNull()
     expect(getGeminiFreeTierQuota('deep-research-pro-preview-12-2025')).toBeNull()
+    expect(getGeminiFreeTierQuota('gemini-4-argon')).toBeNull()
+    expect(getGeminiFreeTierQuota('gemini-omni-1.1-flash')).toBeNull()
   })
 
   it('returns null for unknown or empty ids instead of guessing', () => {

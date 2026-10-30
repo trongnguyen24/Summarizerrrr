@@ -1,4 +1,5 @@
 <script>
+  import { openExtensionPage } from '@/lib/utils/openExtensionPage.js'
   import { onMount, onDestroy } from 'svelte'
   import { fadeOnly } from '@/lib/utils/slideScaleFade.js'
   import { t } from 'svelte-i18n'
@@ -66,10 +67,7 @@
   function openLink(link) {
     // Check if it's an extension page (settings.html, etc.)
     if (link.startsWith('settings.html')) {
-      browser.runtime.sendMessage({
-        type: 'OPEN_SETTINGS',
-        tab: link.split('tab=')[1],
-      })
+      openExtensionPage('settings.html', link.split('tab=')[1])
     } else {
       // External URL - send to background to open
       browser.runtime.sendMessage({ type: 'OPEN_URL', url: link })

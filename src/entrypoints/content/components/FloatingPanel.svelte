@@ -1,5 +1,6 @@
 <script>
   // @ts-nocheck
+  import { openExtensionPage } from '@/lib/utils/openExtensionPage.js'
   import { onMount, onDestroy } from 'svelte'
 
   // Import composables
@@ -82,11 +83,11 @@
   }
 
   function openSettings() {
-    browser.runtime.sendMessage({ type: 'OPEN_SETTINGS' })
+    openExtensionPage('settings.html')
   }
 
   function openArchive() {
-    browser.runtime.sendMessage({ type: 'OPEN_ARCHIVE' })
+    openExtensionPage('archive.html')
   }
 
   function handleSummarizeClick() {

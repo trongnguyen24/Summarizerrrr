@@ -1,4 +1,5 @@
 <script>
+  import { openExtensionPage } from '@/lib/utils/openExtensionPage.js'
   import { settings, updateSettings } from '@/stores/settingsStore.svelte.js'
   import { slideScaleFade } from '@/lib/utils/slideScaleFade.js'
   import Icon from '@iconify/svelte'
@@ -35,7 +36,7 @@
   }
 
   function openSettings() {
-    browser.runtime.sendMessage({ type: 'OPEN_SETTINGS', tab: 'fab' })
+    openExtensionPage('settings.html', 'fab')
   }
 </script>
 

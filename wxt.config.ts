@@ -172,6 +172,12 @@ export default defineConfig({
             resources: ['youtube_comments.js'],
             matches: ['*://m.youtube.com/*', '*://www.youtube.com/*'],
           },
+          {
+            // Opened straight from content scripts on Safari; see
+            // src/lib/utils/openExtensionPage.js.
+            resources: ['archive.html', 'settings.html'],
+            matches: ['<all_urls>'],
+          },
         ],
         commands: {
           _execute_browser_action: {

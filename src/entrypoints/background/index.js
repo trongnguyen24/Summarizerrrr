@@ -26,7 +26,6 @@ import {
   ALL_URLS,
   hasAllSitesAccess,
   listGrantedSites,
-  domainToOriginPattern,
 } from '@/services/firefoxSitePermissionService.js'
 
 export async function injectScript(tabId, files) {
@@ -55,7 +54,14 @@ export async function executeFunction(tabId, func, args = []) {
 
 // --- Main Background Logic ---
 
-export default defineBackground(() => {
+export default defineBackground({
+  // Safari (MV2) rejects a background without `persistent: false` on iOS/iPadOS.
+  // WXT writes this key only from here, not from the manifest in wxt.config.ts.
+  persistent: { safari: false },
+  main: backgroundMain,
+})
+
+function backgroundMain() {
   async function migrateStorageFromSyncToLocal() {
     const keysToMigrate = ['settings', 'theme', 'appState']
 
@@ -172,9 +178,9 @@ export default defineBackground(() => {
           matches = [ALL_URLS]
         } else {
           const grantedSites = await listGrantedSites()
-          matches = grantedSites
-            .map((domain) => domainToOriginPattern(domain))
-            .filter(Boolean)
+          // Register the granted origin verbatim: it is exactly what Firefox
+          // holds permission for (listGrantedSites() returns {domain, origin}).
+          matches = grantedSites.map((site) => site.origin).filter(Boolean)
         }
 
         if (matches.length === 0) {
@@ -1049,4 +1055,4 @@ export default defineBackground(() => {
       // Ignore - tabCacheService might not be loaded
     }
   })
-})
+}

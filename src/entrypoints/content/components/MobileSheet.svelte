@@ -2,6 +2,7 @@
   // @ts-nocheck
   import { onMount, onDestroy } from 'svelte'
   import Icon from '@iconify/svelte'
+  import { openExtensionPage } from '@/lib/utils/openExtensionPage.js'
   import SummarizeButton from '@/components/buttons/SummarizeButton.svelte'
   import { useNavigationManager } from '../composables/useNavigationManager.svelte.js'
   import { useSummarization } from '../composables/useSummarization.svelte.js'
@@ -392,10 +393,10 @@
   })
 
   function openArchive() {
-    browser.runtime.sendMessage({ type: 'OPEN_ARCHIVE' })
+    openExtensionPage('archive.html')
   }
   function openSettings() {
-    browser.runtime.sendMessage({ type: 'OPEN_SETTINGS' })
+    openExtensionPage('settings.html')
   }
 
   function handleSummarizeClick() {

@@ -1,11 +1,12 @@
 <script>
   // @ts-nocheck
+  import { openExtensionPage } from '@/lib/utils/openExtensionPage.js'
   import Icon from '@iconify/svelte'
   import { fadeOnly } from '@/lib/utils/slideScaleFade.js'
   import { t } from 'svelte-i18n'
 
   const handleOpenSettings = () => {
-    browser.runtime.sendMessage({ type: 'OPEN_SETTINGS' })
+    openExtensionPage('settings.html')
   }
 </script>
 

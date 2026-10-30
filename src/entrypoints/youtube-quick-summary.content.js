@@ -30,6 +30,7 @@ export default defineContentScript({
     let isEnabled = false
     let currentVideoId = null
     let observer = null
+    let previewObserver = null // { target, observer } for the shared ytd-video-preview
     let lastMouseOverTime = 0
     let pendingPreviewCheck = null
     
@@ -112,28 +113,68 @@ export default defineContentScript({
     
     function checkPreview() {
       if (!isEnabled) return
-      
-      const preview = document.querySelector(`${PREVIEW_SELECTOR}:not([hidden])`)
+
+      const preview = document.querySelector(PREVIEW_SELECTOR)
       if (!preview) return
-      
-      // Skip if already has button
-      if (preview.querySelector('.qs-button-wrapper')) return
-      
-      // Try to get video ID from preview's own link first
-      let videoId = null
+
+      watchPreview(preview)
+      syncPreviewButton(preview)
+    }
+
+    // ===== PREVIEW SYNC =====
+    // YouTube keeps ONE ytd-video-preview alive and reuses it for every hovered
+    // video, toggling it with the `ytdVideoPreviewActive` class (older layouts
+    // used the `hidden` attribute). So the button must be re-synced whenever the
+    // preview switches video, not injected once.
+
+    function isPreviewVisible(preview) {
+      if (preview.hasAttribute('hidden') || preview.style.display === 'none') return false
+      if (preview.classList.contains('ytdVideoPreviewHost')) {
+        return preview.classList.contains('ytdVideoPreviewActive')
+      }
+      return true
+    }
+
+    function getPreviewVideoId(preview) {
       const previewLink = preview.querySelector('a[href*="watch"]')
-      if (previewLink) {
-        videoId = extractVideoId(previewLink.href)
-      }
-      
-      // Fallback to tracked video ID
-      if (!videoId && currentVideoId) {
-        videoId = currentVideoId
-      }
-      
+      return (previewLink && extractVideoId(previewLink.href)) || currentVideoId
+    }
+
+    function syncPreviewButton(preview) {
+      if (!isEnabled || !isPreviewVisible(preview)) return
+
+      const videoId = getPreviewVideoId(preview)
       if (!videoId) return
-      
+
+      const existingWrapper = preview.querySelector(':scope > .qs-button-wrapper')
+      if (existingWrapper?.dataset.videoId === videoId) return
+      if (existingWrapper) removeWrapper(existingWrapper)
+
       injectButton(preview, videoId)
+    }
+
+    /**
+     * Observe the (long-lived) preview element itself for show/hide and video
+     * changes — scoped to it so the page-wide observer can stay narrow.
+     */
+    function watchPreview(preview) {
+      if (previewObserver?.target === preview) return
+      previewObserver?.observer.disconnect()
+
+      const obs = new MutationObserver((mutations) => {
+        // The player inside churns its classes; only the host's own state and
+        // link hrefs matter.
+        const relevant = mutations.some(
+          (m) => m.target === preview || m.attributeName === 'href'
+        )
+        if (relevant) syncPreviewButton(preview)
+      })
+      obs.observe(preview, {
+        attributes: true,
+        subtree: true,
+        attributeFilter: ['class', 'hidden', 'href']
+      })
+      previewObserver = { target: preview, observer: obs }
     }
     
     // ===== MUTATION OBSERVER CALLBACK =====
@@ -166,41 +207,18 @@ export default defineContentScript({
         : element.querySelector?.(PREVIEW_SELECTOR)
       
       if (!preview) return
-      
-      // Check if preview is visible (not hidden)
-      if (preview.hasAttribute('hidden') || preview.style.display === 'none') {
-        return
+
+      watchPreview(preview)
+      syncPreviewButton(preview)
+    }
+
+    function removeWrapper(wrapper) {
+      const comp = mountedComponents.get(wrapper)
+      if (comp) {
+        unmount(comp)
+        mountedComponents.delete(wrapper)
       }
-      
-      // Remove old injected button if any
-      const existingWrapper = preview.querySelector('.qs-button-wrapper')
-      if (existingWrapper) {
-        const comp = mountedComponents.get(existingWrapper)
-        if (comp) {
-          unmount(comp)
-          mountedComponents.delete(existingWrapper)
-        }
-        existingWrapper.remove()
-      }
-      
-      // Try to get video ID from preview's video element or current tracked ID
-      let videoId = null
-      
-      // Method 1: Try to get from preview's internal link
-      const previewLink = preview.querySelector('a[href*="watch"]')
-      if (previewLink) {
-        videoId = extractVideoId(previewLink.href)
-      }
-      
-      // Method 2: Use tracked video ID from thumbnail hover
-      if (!videoId && currentVideoId) {
-        videoId = currentVideoId
-      }
-      
-      if (!videoId) return
-      
-      // Inject into preview
-      injectButton(preview, videoId)
+      wrapper.remove()
     }
     
     /**
@@ -226,7 +244,8 @@ export default defineContentScript({
       // Create wrapper element
       const wrapper = document.createElement('div')
       wrapper.className = 'qs-button-wrapper'
-      
+      wrapper.dataset.videoId = videoId
+
       // Ensure container has relative positioning (cached)
       ensureRelativePosition(container)
       
@@ -245,15 +264,7 @@ export default defineContentScript({
      * Remove all injected buttons from the page
      */
     function removeAllButtons() {
-      const wrappers = document.querySelectorAll('.qs-button-wrapper')
-      wrappers.forEach(wrapper => {
-        const comp = mountedComponents.get(wrapper)
-        if (comp) {
-          unmount(comp)
-          mountedComponents.delete(wrapper)
-        }
-        wrapper.remove()
-      })
+      document.querySelectorAll('.qs-button-wrapper').forEach(removeWrapper)
       
       // Remove injection markers so buttons can be re-injected when enabled
       const markedElements = document.querySelectorAll(`[${INJECTED_MARKER}]`)
@@ -306,7 +317,12 @@ export default defineContentScript({
         observer.disconnect()
         observer = null
       }
-      
+
+      if (previewObserver) {
+        previewObserver.observer.disconnect()
+        previewObserver = null
+      }
+
       // Remove all injected buttons
       removeAllButtons()
       

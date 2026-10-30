@@ -150,16 +150,6 @@
                 </a>
               </div>
             {/if}
-            <div class="flex justify-center items-center gap-1">
-              <Icon
-                height="16"
-                width="16"
-                icon={conversation.archived
-                  ? 'heroicons:archive-box-solid'
-                  : 'lucide:message-circle'}
-              />
-              {conversation.archived ? 'Archived' : 'Active'}
-            </div>
           </div>
 
           <h1

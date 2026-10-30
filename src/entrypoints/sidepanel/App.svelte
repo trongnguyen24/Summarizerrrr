@@ -533,13 +533,37 @@
   {/if}
 {/snippet}
 
+{#snippet archiveButton()}
+  <BitsTooltip.Provider>
+    <Tooltip
+      content={$t('archive.open_archive')}
+      side="right"
+      align="start"
+    >
+      {#snippet children({ builder })}
+        <button
+          {...builder}
+          onclick={() => {
+            browser.tabs.create({ url: browser.runtime.getURL('archive.html') })
+          }}
+          class="p-1 setting-animation transition-colors hover:bg-surface-1 rounded-full hover:text-text-primary"
+        >
+          <Icon icon="solar:history-linear" width="24" height="24" />
+        </button>
+      {/snippet}
+    </Tooltip>
+  </BitsTooltip.Provider>
+{/snippet}
+
 {#if showLegacySummary}
 <div
   class="main-container flex min-w-[22.5rem] bg-surface-1 w-full flex-col"
   data-per-tab="true"
 >
   <div
-    class="grid min-h-screen grid-rows-[36px_32px_10px_192px_10px_1fr]"
+    class="grid min-h-screen {settings.compactHeader
+      ? 'grid-rows-[36px_32px_auto_1fr]'
+      : 'grid-rows-[36px_32px_10px_192px_10px_1fr]'}"
   >
     <div
       class="flex sticky top-0 z-[60] justify-center items-center w-screen h-full bg-surface-1"
@@ -556,63 +580,73 @@
         {$tabTitle}
       </div>
     </div>
-    <div
-      class="top-stripes flex justify-center border-b border-border border-t items-center w-full h-full"
-    ></div>
-    <div
-      class="flex relative font-mono flex-col gap-1 justify-center items-center"
-    >
-      <!-- z-50: phải nằm trên permission overlay (z-45) để user luôn mở được
-           archive / settings ngay cả khi panel đang bị che. -->
-      <div class="size-6 absolute z-50 top-2 left-2 text-text-secondary">
-        <BitsTooltip.Provider>
-          <Tooltip
-            content={$t('archive.open_archive')}
-            side="right"
-            align="start"
-          >
-            {#snippet children({ builder })}
-              <button
-                {...builder}
-                onclick={() => {
-                  browser.tabs.create({ url: browser.runtime.getURL('archive.html') })
-                }}
-                class="p-1 setting-animation transition-colors hover:bg-surface-1 rounded-full hover:text-text-primary"
-              >
-                <Icon icon="solar:history-linear" width="24" height="24" />
-              </button>
-            {/snippet}
-          </Tooltip>
-        </BitsTooltip.Provider>
-      </div>
-      <div class="size-6 z-50 absolute top-2 right-4 text-text-secondary">
-        <SettingButton />
-      </div>
-
-      <div class="flex flex-col gap-4 items-center justify-center">
-        {#if !needsApiKeySetup()()}
-          <div class="flex flex-row gap-3 items-center">
+    {#if settings.compactHeader}
+      <!-- Compact header (Appearance → Compact header): one row, no stripes.
+           z-50 keeps archive / settings above the permission overlay (z-45). -->
+      <div
+        class="flex relative font-mono flex-col gap-3 items-center px-2 py-3"
+      >
+        <div class="w-full flex items-center justify-between">
+          <div class="relative z-50 size-8 text-text-secondary">
+            {@render archiveButton()}
+          </div>
+          {#if !needsApiKeySetup()()}
             <SummarizeButton
               isLoading={isAnyLoading()}
               disabled={!hasPermission && import.meta.env.BROWSER === 'firefox'}
             />
-          </div>
-          <!-- Custom Action Buttons - Only show when all summaries are completed -->
-          {#if areAllSummariesCompleted()}
-            <ActionButtonsMini />
           {/if}
+          <div class="relative z-50 size-8 text-text-secondary">
+            <SettingButton />
+          </div>
+        </div>
+        {#if !needsApiKeySetup()() && areAllSummariesCompleted()}
+          <ActionButtonsMini inline />
         {/if}
+
+        {@render firefoxPermissionOverlay()}
+      </div>
+    {:else}
+      <div
+        class="top-stripes flex justify-center border-b border-border border-t items-center w-full h-full"
+      ></div>
+      <div
+        class="flex relative font-mono flex-col gap-1 justify-center items-center"
+      >
+        <!-- z-50: phải nằm trên permission overlay (z-45) để user luôn mở được
+             archive / settings ngay cả khi panel đang bị che. -->
+        <div class="size-6 absolute z-50 top-2 left-2 text-text-secondary">
+          {@render archiveButton()}
+        </div>
+        <div class="size-6 z-50 absolute top-2 right-4 text-text-secondary">
+          <SettingButton />
+        </div>
+
+        <div class="flex flex-col gap-4 items-center justify-center">
+          {#if !needsApiKeySetup()()}
+            <div class="flex flex-row gap-3 items-center">
+              <SummarizeButton
+                isLoading={isAnyLoading()}
+                disabled={!hasPermission && import.meta.env.BROWSER === 'firefox'}
+              />
+            </div>
+            <!-- Custom Action Buttons - Only show when all summaries are completed -->
+            {#if areAllSummariesCompleted()}
+              <ActionButtonsMini />
+            {/if}
+          {/if}
+        </div>
+
+        {@render firefoxPermissionOverlay()}
       </div>
 
-      {@render firefoxPermissionOverlay()}
-    </div>
+      <div
+        class="top-stripes flex justify-center border-b border-border border-t items-center w-full h-full"
+      ></div>
+    {/if}
 
     <div
-      class="top-stripes flex justify-center border-b border-border border-t items-center w-full h-full"
-    ></div>
-
-    <div
-      class="relative prose wrap-anywhere main-sidepanel prose-h2:mt-4 p z-10 flex flex-col gap-8 px-6 pt-8 pb-[30vh] min-w-[22.5rem] max-w-[52rem] w-screen mx-auto"
+      class="relative prose wrap-anywhere main-sidepanel prose-h2:mt-4 p z-10 flex flex-col gap-8 px-6 {settings.compactHeader ? 'pt-4' : 'pt-8'} pb-[30vh] min-w-[22.5rem] max-w-[52rem] w-screen mx-auto"
     >
       {#if needsApiKeySetup()()}
         <ApiKeySetupPrompt />
@@ -682,6 +716,11 @@
             summaryLang={settings.summaryLang || 'English'}
           />
         {/if}
+      {:else if settings.compactHeader}
+        <!-- Compact header → small round one-row buttons. -->
+        <div class="flex justify-center">
+          <ActionButtonsMini inline />
+        </div>
       {:else}
         <ActionButtons />
       {/if}

@@ -43,6 +43,14 @@
         "open_popup": "Abrir configuración emergente",
         "open_floating": "Abrir panel flotante en la página"
       },
+      "compact_header": {
+        "title": "Encabezado compacto",
+        "description": "Coloca Resumir en una sola fila con Historial y Ajustes para dejar más espacio al resumen.",
+        "enabled": "Compacto",
+        "enabled_desc": "Encabezado de una fila",
+        "disabled": "Estándar",
+        "disabled_desc": "Encabezado grande (predeterminado)"
+      },
       "reduce_motion": {
         "title": "Reducir movimiento",
         "description": "Desactivar todas las animaciones en la extensión para accesibilidad o rendimiento.",
@@ -215,6 +223,7 @@
         "medium": "Medio",
         "medium_desc": "Equilibrio entre profundidad y velocidad."
       },
+      "action_buttons": "Botones de acción",
       "comment_limit": "Límite de comentarios de YouTube",
       "comment_limit_desc": "Número máximo de comentarios para analizar.",
       "uses_gemini_basic": "Usa Gemini Básico"

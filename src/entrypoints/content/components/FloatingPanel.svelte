@@ -440,51 +440,90 @@
     class="w-full h-full overflow-y-auto pb-32 outline-none"
     tabindex="-1"
   >
-    <div class="grid grid-rows-[10px_200px_10px_1fr] relative">
-      <div
-        class="top-stripes border-b border-border flex justify-center items-center w-full h-full"
-      ></div>
-      <div class="w-full flex items-center justify-center my-8">
-        <div class="size-10 absolute z-10 top-4 left-2">
+    {#if settings.compactHeader}
+      <!-- Compact header (Appearance → Compact header): one row, no stripes. -->
+      <div class="relative w-full flex flex-col items-center gap-3 px-2 py-3">
+        <div class="w-full flex items-center justify-between">
           <ShadowTooltip content={$t('archive.open_archive')} side="right">
             <button
-              class="size-10 cursor-pointer text-text-secondary hover:text-text-primary transition-colors flex justify-center items-center"
+              class="size-10 shrink-0 cursor-pointer text-text-secondary hover:text-text-primary transition-colors flex justify-center items-center"
               onclick={openArchive}
             >
               <Icon icon="solar:history-linear" width="24" height="24" />
             </button>
           </ShadowTooltip>
-        </div>
-        <div class="size-10 absolute z-10 top-4 right-2">
+          {#if !needsApiKeySetup()()}
+            <SummarizeButton
+              isLoading={summarization.localSummaryState().isLoading}
+              onStop={handleStopSummarization}
+              onClick={handleSummarizeClick}
+            />
+          {/if}
           <ShadowTooltip content={$t('settings.open_settings')} side="left">
             <button
-              class="size-10 cursor-pointer text-text-secondary hover:text-text-primary transition-colors flex justify-center items-center"
+              class="size-10 shrink-0 cursor-pointer text-text-secondary hover:text-text-primary transition-colors flex justify-center items-center"
               onclick={openSettings}
             >
               <Icon width={24} icon="heroicons:cog-6-tooth" />
             </button>
           </ShadowTooltip>
         </div>
-        {#if !needsApiKeySetup()()}
-          <SummarizeButton
-            isLoading={summarization.localSummaryState().isLoading}
-            onStop={handleStopSummarization}
-            onClick={handleSummarizeClick}
-          />
-        {/if}
         {#if summaryToDisplay || summarization.localSummaryState().error}
           <ActionButtonsMiniFP
+            inline
             onActionClick={handleCustomAction}
             isYouTubeActive={isYouTubeActive()}
             isCourseActive={isCourseActive()}
           />
         {/if}
       </div>
-      <div
-        class="top-stripes border-t border-b border-border flex justify-center items-center w-full h-full"
-      ></div>
-    </div>
-    <div class=" py-14">
+    {:else}
+      <div class="grid grid-rows-[10px_200px_10px_1fr] relative">
+        <div
+          class="top-stripes border-b border-border flex justify-center items-center w-full h-full"
+        ></div>
+        <div class="w-full flex items-center justify-center my-8">
+          <div class="size-10 absolute z-10 top-4 left-2">
+            <ShadowTooltip content={$t('archive.open_archive')} side="right">
+              <button
+                class="size-10 cursor-pointer text-text-secondary hover:text-text-primary transition-colors flex justify-center items-center"
+                onclick={openArchive}
+              >
+                <Icon icon="solar:history-linear" width="24" height="24" />
+              </button>
+            </ShadowTooltip>
+          </div>
+          <div class="size-10 absolute z-10 top-4 right-2">
+            <ShadowTooltip content={$t('settings.open_settings')} side="left">
+              <button
+                class="size-10 cursor-pointer text-text-secondary hover:text-text-primary transition-colors flex justify-center items-center"
+                onclick={openSettings}
+              >
+                <Icon width={24} icon="heroicons:cog-6-tooth" />
+              </button>
+            </ShadowTooltip>
+          </div>
+          {#if !needsApiKeySetup()()}
+            <SummarizeButton
+              isLoading={summarization.localSummaryState().isLoading}
+              onStop={handleStopSummarization}
+              onClick={handleSummarizeClick}
+            />
+          {/if}
+          {#if summaryToDisplay || summarization.localSummaryState().error}
+            <ActionButtonsMiniFP
+              onActionClick={handleCustomAction}
+              isYouTubeActive={isYouTubeActive()}
+              isCourseActive={isCourseActive()}
+            />
+          {/if}
+        </div>
+        <div
+          class="top-stripes border-t border-b border-border flex justify-center items-center w-full h-full"
+        ></div>
+      </div>
+    {/if}
+    <div class="{settings.compactHeader ? 'pt-6 pb-14' : 'py-14'}">
       {#if needsApiKeySetup()()}
         <div class="px-4 pt-4">
           <ApiKeySetupPrompt />
@@ -508,11 +547,21 @@
       {/if}
 
       {#if !summaryToDisplay && !summarization.localSummaryState().isLoading && !needsApiKeySetup()()}
-        <ActionButtonsFP
-          onActionClick={handleCustomAction}
-          isYouTubeActive={isYouTubeActive()}
-          isCourseActive={isCourseActive()}
-        />
+        <!-- Compact header → small round one-row buttons here too. -->
+        {#if settings.compactHeader}
+          <ActionButtonsMiniFP
+            inline
+            onActionClick={handleCustomAction}
+            isYouTubeActive={isYouTubeActive()}
+            isCourseActive={isCourseActive()}
+          />
+        {:else}
+          <ActionButtonsFP
+            onActionClick={handleCustomAction}
+            isYouTubeActive={isYouTubeActive()}
+            isCourseActive={isCourseActive()}
+          />
+        {/if}
       {/if}
 
       {#if children?.settingsMini}

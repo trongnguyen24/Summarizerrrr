@@ -56,10 +56,12 @@ export const VALID_SETTING_KEYS = [
   'sidepanelSurface',
   'oneClickSummarize',
   'reduceMotion',
+  'compactHeader',
   'iconClickAction',
   'fabDomainControl',
   'quickSummaryEnabled',
   'quickSummaryAutoplay',
+  'hiddenActionButtons',
   'firefoxPermissions',
 
   // Onboarding

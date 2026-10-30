@@ -12,22 +12,20 @@
     onActionClick,
     isYouTubeActive = false,
     isCourseActive = false,
+    // inline: sit in normal flow (MobileSheet's compact header) instead of
+    // being pinned to the bottom of a fixed-height header (FloatingPanel).
+    inline = false,
   } = $props()
 
-  import { ACTION_BUTTONS } from '@/lib/config/actionConstants.js'
+  import { getVisibleActions } from '@/lib/config/actionConstants.js'
+  import { settings } from '@/stores/settingsStore.svelte.js'
 
-  const actions = ACTION_BUTTONS
-
-  // Filter actions based on current page type
+  // Filter actions by page type and the user's hidden-buttons setting
   let visibleActions = $derived(
-    actions.filter((action) => {
-      if (action.showOnlyForYouTube) {
-        return isYouTubeActive
-      }
-      if (action.showOnlyForCourse) {
-        return isCourseActive
-      }
-      return true
+    getVisibleActions({
+      isYouTube: isYouTubeActive,
+      isCourse: isCourseActive,
+      hidden: settings.hiddenActionButtons,
     }),
   )
 
@@ -36,8 +34,11 @@
   setContext('shadow-tooltip-state', tooltipState)
 </script>
 
+{#if visibleActions.length}
 <div
-  class="flex absolute bottom-6.5 z-30 mx-auto gap-4 flex-wrap justify-center"
+  class="flex z-30 mx-auto gap-4 flex-wrap justify-center {inline
+    ? 'relative'
+    : 'absolute bottom-6.5'}"
 >
   <!-- Shared Anchor for Tooltips -->
   <div
@@ -71,6 +72,7 @@
     </ShadowTooltip>
   {/each}
 </div>
+{/if}
 
 <style>
   .action-btn-mini-fb {

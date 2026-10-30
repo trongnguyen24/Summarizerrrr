@@ -43,6 +43,14 @@
         "open_popup": "Open a popup settings",
         "open_floating": "Open a floating panel on the page"
       },
+      "compact_header": {
+        "title": "Compact header",
+        "description": "Put Summarize on one row with History and Settings to leave more room for the summary.",
+        "enabled": "Compact",
+        "enabled_desc": "One-row header",
+        "disabled": "Standard",
+        "disabled_desc": "Large header (default)"
+      },
       "reduce_motion": {
         "title": "Reduce Motion",
         "description": "Disable all animations across the extension for accessibility or performance.",
@@ -215,6 +223,7 @@
         "medium": "Medium",
         "medium_desc": "Balanced depth and speed."
       },
+      "action_buttons": "Action buttons",
       "comment_limit": "YouTube Comment Limit",
       "comment_limit_desc": "Maximum number of comments to analyze.",
       "uses_gemini_basic": "Uses Gemini Basic"

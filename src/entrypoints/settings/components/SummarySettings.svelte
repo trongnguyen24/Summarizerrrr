@@ -12,11 +12,24 @@
     updateFeatureSettings,
   } from '@/stores/settingsStore.svelte.js'
   import { TASK_REASONING_CHOICES } from '@/lib/api/reasoningConfig.js'
+  import { ACTION_BUTTONS } from '@/lib/config/actionConstants.js'
   import FeatureModelPicker from '@/entrypoints/settings/components/inputs/FeatureModelPicker.svelte'
   import { browser } from 'wxt/browser'
 
   function handleUpdateSetting(key, value) {
     updateSettings({ [key]: value })
+  }
+
+  function isActionShown(key) {
+    return !(settings.hiddenActionButtons ?? []).includes(key)
+  }
+
+  function toggleAction(key) {
+    const hidden = settings.hiddenActionButtons ?? []
+    handleUpdateSetting(
+      'hiddenActionButtons',
+      isActionShown(key) ? [...hidden, key] : hidden.filter((k) => k !== key),
+    )
   }
 
   let wittyClickCount = $state(0)
@@ -204,6 +217,24 @@
             class="setting-btn {settings.commentLimit === limit ? 'active' : ''}"
             onclick={() => handleUpdateSetting('commentLimit', limit)}
             Description=""
+          ></ButtonSet>
+        {/each}
+      </div>
+    </div>
+
+    <!-- Action Buttons Section (Analyze/Explain/... under Summarize) -->
+    <div class="flex flex-col gap-2">
+      <!-- svelte-ignore a11y_label_has_associated_control -->
+      <label class="block text-text-secondary"
+        >{$t('settings.summary.action_buttons')}</label
+      >
+      <div class="grid grid-cols-3 w-full gap-1">
+        {#each ACTION_BUTTONS as action (action.key)}
+          <ButtonSet
+            title={action.label}
+            class="setting-btn {isActionShown(action.key) ? 'active' : ''}"
+            onclick={() => toggleAction(action.key)}
+            Description={$t(`custom_actions.${action.key}_description`)}
           ></ButtonSet>
         {/each}
       </div>

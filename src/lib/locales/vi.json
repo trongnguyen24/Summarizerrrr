@@ -43,6 +43,14 @@
         "open_popup": "Mở cài đặt popup",
         "open_floating": "Mở bảng điều khiển nổi trên trang"
       },
+      "compact_header": {
+        "title": "Header gọn",
+        "description": "Đưa nút Summarize lên cùng hàng với Lịch sử và Cài đặt để dành nhiều chỗ hơn cho bản tóm tắt.",
+        "enabled": "Gọn",
+        "enabled_desc": "Header một hàng",
+        "disabled": "Tiêu chuẩn",
+        "disabled_desc": "Header lớn (mặc định)"
+      },
       "reduce_motion": {
         "title": "Giảm chuyển động",
         "description": "Tắt tất cả hiệu ứng động trên extension để cải thiện khả năng truy cập hoặc hiệu suất.",
@@ -215,6 +223,7 @@
         "medium": "Trung bình",
         "medium_desc": "Cân bằng độ sâu và tốc độ."
       },
+      "action_buttons": "Nút hành động",
       "comment_limit": "Giới hạn bình luận YouTube",
       "comment_limit_desc": "Số lượng bình luận tối đa để phân tích.",
       "uses_gemini_basic": "Sử dụng Gemini Cơ bản"

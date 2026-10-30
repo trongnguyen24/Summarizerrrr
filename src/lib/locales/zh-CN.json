@@ -43,6 +43,14 @@
         "open_popup": "打开弹出设置",
         "open_floating": "在页面上打开浮动面板"
       },
+      "compact_header": {
+        "title": "紧凑标题栏",
+        "description": "将“总结”按钮与历史记录、设置放在同一行，为摘要留出更多空间。",
+        "enabled": "紧凑",
+        "enabled_desc": "单行标题栏",
+        "disabled": "标准",
+        "disabled_desc": "大标题栏（默认）"
+      },
       "reduce_motion": {
         "title": "减少动画",
         "description": "为了辅助功能或性能，禁用扩展程序中的所有动画。",
@@ -140,6 +148,7 @@
         "medium": "中",
         "medium_desc": "平衡深度和速度。"
       },
+      "action_buttons": "操作按钮",
       "comment_limit": "YouTube评论限制",
       "comment_limit_desc": "分析评论的最大数量。",
       "uses_gemini_basic": "使用 Gemini 基础版"

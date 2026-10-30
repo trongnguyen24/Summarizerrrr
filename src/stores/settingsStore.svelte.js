@@ -61,6 +61,7 @@ const DEFAULT_SETTINGS = {
   sidePanelDefaultWidth: 25, // Default width for side panel in em units
   oneClickSummarize: false, // Enable 1-click summarization on FAB
   reduceMotion: false, // Disable all animations across the extension
+  compactHeader: false, // One-row Summarize header in side panel / floating panel, any window size
   iconClickAction: 'sidepanel', // 'sidepanel', 'popup', or 'floating'
   fabDomainControl: {
     mode: 'all', // 'all' | 'whitelist' | 'blacklist'
@@ -71,6 +72,7 @@ const DEFAULT_SETTINGS = {
   // Quick Summary (YouTube thumbnail hover)
   quickSummaryEnabled: true, // Enable/disable quick summary feature
   quickSummaryAutoplay: 'pause', // 'auto' | 'pause' - YouTube autoplay behavior
+  hiddenActionButtons: [], // ACTION_BUTTONS keys hidden by the user (Analyze/Explain/...)
 
   // Firefox Permissions - Persist permission states across tab switches
   firefoxPermissions: {

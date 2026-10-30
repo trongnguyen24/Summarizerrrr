@@ -43,6 +43,14 @@
         "open_popup": "팝업 설정 열기",
         "open_floating": "페이지에서 플로팅 패널 열기"
       },
+      "compact_header": {
+        "title": "간결한 헤더",
+        "description": "요약 버튼을 기록·설정과 한 줄에 배치해 요약에 더 많은 공간을 확보합니다.",
+        "enabled": "간결",
+        "enabled_desc": "한 줄 헤더",
+        "disabled": "기본",
+        "disabled_desc": "큰 헤더 (기본값)"
+      },
       "reduce_motion": {
         "title": "모션 줄이기",
         "description": "접근성 또는 성능을 위해 확장 프로그램 전체의 모든 애니메이션을 비활성화합니다.",
@@ -215,6 +223,7 @@
         "medium": "보통",
         "medium_desc": "깊이와 속도의 균형."
       },
+      "action_buttons": "작업 버튼",
       "comment_limit": "YouTube 댓글 제한",
       "comment_limit_desc": "분석할 댓글의 최대 수.",
       "uses_gemini_basic": "Gemini Basic 사용"

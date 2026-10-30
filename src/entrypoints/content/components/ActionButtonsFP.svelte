@@ -9,20 +9,15 @@
 
   let { onActionClick, isYouTubeActive, isCourseActive = false } = $props()
 
-  import { ACTION_BUTTONS } from '@/lib/config/actionConstants.js'
+  import { getVisibleActions } from '@/lib/config/actionConstants.js'
+  import { settings } from '@/stores/settingsStore.svelte.js'
 
-  const actions = ACTION_BUTTONS
-
-  // Filter actions based on current page type
+  // Filter actions by page type and the user's hidden-buttons setting
   let visibleActions = $derived(
-    actions.filter((action) => {
-      if (action.showOnlyForYouTube) {
-        return isYouTubeActive
-      }
-      if (action.showOnlyForCourse) {
-        return isCourseActive
-      }
-      return true
+    getVisibleActions({
+      isYouTube: isYouTubeActive,
+      isCourse: isCourseActive,
+      hidden: settings.hiddenActionButtons,
     }),
   )
   // Initialize shared tooltip state

@@ -40,3 +40,17 @@ export const ACTION_BUTTONS = [
   },
 ]
 
+
+/**
+ * Action buttons to render for the current page.
+ * @param {{ isYouTube?: boolean, isCourse?: boolean, hidden?: string[] }} opts
+ *   `hidden` is `settings.hiddenActionButtons` — keys the user turned off.
+ */
+export function getVisibleActions({ isYouTube = false, isCourse = false, hidden = [] } = {}) {
+  return ACTION_BUTTONS.filter((action) => {
+    if (hidden?.includes(action.key)) return false
+    if (action.showOnlyForYouTube) return isYouTube
+    if (action.showOnlyForCourse) return isCourse
+    return true
+  })
+}

@@ -43,6 +43,14 @@
         "open_popup": "ポップアップ設定を開く",
         "open_floating": "ページ上でフローティングパネルを開く"
       },
+      "compact_header": {
+        "title": "コンパクトヘッダー",
+        "description": "要約ボタンを履歴・設定と同じ行に配置し、要約の表示領域を広げます。",
+        "enabled": "コンパクト",
+        "enabled_desc": "1行ヘッダー",
+        "disabled": "標準",
+        "disabled_desc": "大きいヘッダー（デフォルト）"
+      },
       "reduce_motion": {
         "title": "モーションを減らす",
         "description": "アクセシビリティまたはパフォーマンスのために、拡張機能全体のアニメーションを無効にします。",
@@ -215,6 +223,7 @@
         "medium": "中",
         "medium_desc": "深さと速さのバランス。"
       },
+      "action_buttons": "アクションボタン",
       "comment_limit": "YouTubeコメント制限",
       "comment_limit_desc": "分析するコメントの最大数。",
       "uses_gemini_basic": "Gemini Basicを使用"

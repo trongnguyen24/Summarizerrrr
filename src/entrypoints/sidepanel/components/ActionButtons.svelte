@@ -12,9 +12,8 @@
   import { Tooltip as BitsTooltip } from 'bits-ui'
   import { t } from 'svelte-i18n'
 
-  import { ACTION_BUTTONS } from '@/lib/config/actionConstants.js'
-
-  const actions = ACTION_BUTTONS
+  import { getVisibleActions } from '@/lib/config/actionConstants.js'
+  import { settings } from '@/stores/settingsStore.svelte.js'
 
   async function handleActionClick(actionType) {
     if (actionType === 'chapters') {
@@ -28,16 +27,12 @@
     }
   }
 
-  // Filter actions based on current page type
+  // Filter actions by page type and the user's hidden-buttons setting
   let visibleActions = $derived(
-    actions.filter((action) => {
-      if (action.showOnlyForYouTube) {
-        return summaryState.isYouTubeVideoActive
-      }
-      if (action.showOnlyForCourse) {
-        return summaryState.isCourseVideoActive
-      }
-      return true
+    getVisibleActions({
+      isYouTube: summaryState.isYouTubeVideoActive,
+      isCourse: summaryState.isCourseVideoActive,
+      hidden: settings.hiddenActionButtons,
     }),
   )
 

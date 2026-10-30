@@ -43,6 +43,14 @@
         "open_popup": "Popup-Einstellungen öffnen",
         "open_floating": "Schwebendes Panel auf der Seite öffnen"
       },
+      "compact_header": {
+        "title": "Kompakter Kopfbereich",
+        "description": "Zeigt „Zusammenfassen“ in einer Zeile mit Verlauf und Einstellungen, damit mehr Platz für die Zusammenfassung bleibt.",
+        "enabled": "Kompakt",
+        "enabled_desc": "Einzeiliger Kopfbereich",
+        "disabled": "Standard",
+        "disabled_desc": "Großer Kopfbereich (Standard)"
+      },
       "reduce_motion": {
         "title": "Bewegung reduzieren",
         "description": "Alle Animationen in der Erweiterung für Barrierefreiheit oder Leistung deaktivieren.",
@@ -215,6 +223,7 @@
         "medium": "Mittel",
         "medium_desc": "Ausgewogene Tiefe und Geschwindigkeit."
       },
+      "action_buttons": "Aktionsschaltflächen",
       "comment_limit": "YouTube-Kommentarlimit",
       "comment_limit_desc": "Maximale Anzahl der zu analysierenden Kommentare.",
       "uses_gemini_basic": "Verwendet Gemini Basic"

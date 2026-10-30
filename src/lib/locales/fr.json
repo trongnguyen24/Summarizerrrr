@@ -43,6 +43,14 @@
         "open_popup": "Ouvrir les paramètres en popup",
         "open_floating": "Ouvrir un panneau flottant sur la page"
       },
+      "compact_header": {
+        "title": "En-tête compact",
+        "description": "Place Résumer sur une seule ligne avec Historique et Paramètres pour laisser plus de place au résumé.",
+        "enabled": "Compact",
+        "enabled_desc": "En-tête sur une ligne",
+        "disabled": "Standard",
+        "disabled_desc": "Grand en-tête (par défaut)"
+      },
       "reduce_motion": {
         "title": "Réduire les animations",
         "description": "Désactiver toutes les animations de l'extension pour l'accessibilité ou les performances.",
@@ -215,6 +223,7 @@
         "medium": "Moyen",
         "medium_desc": "Équilibre entre profondeur et vitesse."
       },
+      "action_buttons": "Boutons d'action",
       "comment_limit": "Limite de commentaires YouTube",
       "comment_limit_desc": "Nombre maximum de commentaires à analyser.",
       "uses_gemini_basic": "Utilise Gemini Basic"

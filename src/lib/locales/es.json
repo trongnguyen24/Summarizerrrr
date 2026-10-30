@@ -584,7 +584,6 @@
     "search_clear": "Borrar búsqueda",
     "search_no_results": "No hay resultados",
     "conversation": {
-      "rename": "Haz clic para renombrar",
       "archive": "Archivar",
       "unarchive": "Desarchivar",
       "export_markdown": "Exportar Markdown",
@@ -746,11 +745,7 @@
     "replace_mode_description": "• Los tipos de datos seleccionados se eliminan completamente primero<br />• Luego se reemplazan solo con datos importados<br />• Los tipos de datos no seleccionados no se ven afectados",
     "replace_warning_title": "Advertencia: Modo de reemplazo",
     "confirm_replace": "Sí, reemplazar",
-    "chats": "Chats",
-    "chat_data": "Datos del chat",
-    "chat_data_note": "Las conversaciones se incluyen en las copias de seguridad locales y se sincronizan con Cloud sync. El contenido de la página se vuelve a capturar cuando continúas un chat en otro dispositivo.",
-    "clear_chat": "Borrar datos del chat",
-    "clear_chat_confirm": "¿Borrar todas las conversaciones y fuentes capturadas del chat? Los resúmenes y el historial no se verán afectados. Si Cloud sync está activado, los chats también se eliminarán de tus otros dispositivos."
+    "chats": "Chats"
   },
   "notifications": {
     "try_chat": "Prueba el Chat — v3.0 beta",

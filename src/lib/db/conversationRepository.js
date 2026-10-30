@@ -1154,39 +1154,6 @@ export async function applyConversationSyncChanges({ upserts = [], purgeIds = []
 }
 
 /**
- * "Clear chat data": tombstone every conversation (so cloud sync propagates
- * the deletion instead of restoring it) and drop messages and sources.
- */
-export async function softDeleteAllConversations() {
-  return runTransaction(CHAT_STORES, 'readwrite', async (transaction) => {
-    const conversationStore = transaction.objectStore(CONVERSATIONS_STORE_NAME)
-    const now = new Date().toISOString()
-    const conversations = await requestAsPromise(conversationStore.getAll())
-    let count = 0
-    for (const conversation of conversations) {
-      if (conversation.deleted) continue
-      await requestAsPromise(conversationStore.put({
-        ...conversation,
-        deleted: true,
-        deletedAt: now,
-        updatedAt: now,
-      }))
-      count++
-    }
-    await requestAsPromise(transaction.objectStore(CONVERSATION_MESSAGES_STORE_NAME).clear())
-    await requestAsPromise(transaction.objectStore(CONVERSATION_SOURCES_STORE_NAME).clear())
-    return count
-  })
-}
-
-export async function clearConversationData() {
-  return runTransaction(CHAT_STORES, 'readwrite', async (transaction) => {
-    await Promise.all(CHAT_STORES.map((storeName) => requestAsPromise(transaction.objectStore(storeName).clear())))
-    return true
-  })
-}
-
-/**
  * Pre-persist an assistant message with status 'streaming' before generation
  * starts. This makes the message durable so recovery-on-open can detect it
  * if the panel closes or crashes mid-stream.
@@ -1328,9 +1295,7 @@ export const conversationRepository = {
   exportConversationSnapshot,
   getChatRevision,
   importConversationBackup,
-  clearConversationData,
   applyConversationSyncChanges,
-  softDeleteAllConversations,
   getAncestorPath,
   getGenerationPath,
   getGenerationContextForUser,

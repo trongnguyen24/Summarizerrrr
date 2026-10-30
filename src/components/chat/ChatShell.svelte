@@ -18,11 +18,14 @@
   // sidebars and gutters that fixed insets can't track. `mentionsOnly` hides
   // the page/committed context rows so only fresh @tab chips show (Archive).
   // `proseClass` overrides the assistant markdown typography (Archive).
+  // `showEmptyState` gates the pinned-skills empty state; Archive turns it off
+  // while a conversation is still loading so the skills don't flash.
   let {
     composerClass = 'left-0 right-0',
     alignComposerToShell = false,
     mentionsOnly = false,
     proseClass = undefined,
+    showEmptyState = true,
   } = $props()
 
   // Gap left between the sticky header and a message parked at the top.
@@ -221,7 +224,7 @@
         aria-hidden="true"
         data-testid="chat-tail-spacer"
       ></div>
-    {:else}
+    {:else if showEmptyState}
       <ChatEmptyState
         onSelectSkill={(skill) => composerRef?.selectSkillAndSend(skill)}
       />

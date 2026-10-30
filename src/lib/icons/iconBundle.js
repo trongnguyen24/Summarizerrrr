@@ -156,6 +156,7 @@ export const iconNames = [
   "tabler:dots-vertical",
   "tabler:layout-sidebar-left-collapse",
   "tabler:layout-sidebar-right-collapse",
+  "tabler:menu-2",
   "tabler:pencil",
   "tabler:tag",
   "tabler:tag-filled",
@@ -788,6 +789,9 @@ export const iconCollections = [
       },
       "layout-sidebar-right-collapse": {
         "body": "<g fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\"><path d=\"M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zm11-2v16\"/><path d=\"m9 10l2 2l-2 2\"/></g>"
+      },
+      "menu-2": {
+        "body": "<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M4 6h16M4 12h16M4 18h16\"/>"
       },
       "pencil": {
         "body": "<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M4 20h4L18.5 9.5a2.828 2.828 0 1 0-4-4L4 16zm9.5-13.5l4 4\"/>"

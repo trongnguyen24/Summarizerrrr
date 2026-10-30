@@ -584,7 +584,6 @@
     "search_clear": "Clear search",
     "search_no_results": "No matching results",
     "conversation": {
-      "rename": "Click to rename",
       "archive": "Archive",
       "unarchive": "Unarchive",
       "export_markdown": "Export Markdown",
@@ -746,11 +745,7 @@
     "replace_mode_description": "• Selected data types are completely deleted first<br />• Then replaced with imported data only<br />• Unselected data types are not affected",
     "replace_warning_title": "Warning: Replace Mode",
     "confirm_replace": "Yes, Replace",
-    "chats": "Chats",
-    "chat_data": "Chat data",
-    "chat_data_note": "Conversations are included in local backups and synced by Cloud sync. Page content is re-captured when you continue a chat on another device.",
-    "clear_chat": "Clear chat data",
-    "clear_chat_confirm": "Clear all conversations and captured chat sources? Summary and history data will not be affected. If Cloud sync is on, chats are also removed from your other devices."
+    "chats": "Chats"
   },
   "cloudSync": {
     "title": "Cloud Sync",

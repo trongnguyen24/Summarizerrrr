@@ -1,10 +1,7 @@
 <script>
   // @ts-nocheck
-  import { _ } from 'svelte-i18n'
   import ConversationMenu from '@/entrypoints/sidepanel/components/chat/ConversationMenu.svelte'
-  import Icon from '@iconify/svelte'
-  import { tabTitle } from '@/stores/tabTitleStore.svelte.js'
-  import { chatState, closeConversation } from '@/stores/chatStore.svelte.js'
+  import { chatState } from '@/stores/chatStore.svelte.js'
   import { browser } from 'wxt/browser'
 
   let { onOpenConversation = null } = $props()
@@ -16,31 +13,20 @@
   function openSettings() {
     browser.tabs.create({ url: browser.runtime.getURL('settings.html') })
   }
-
-  function handleNewChat() {
-    closeConversation()
-  }
 </script>
 
-<div
-  class="relative flex h-8 w-full shrink-0 items-center gap-1 px-2"
->
-  <div class="line-clamp-1 flex-1 text-left text-xs text-text-secondary">
-    {$tabTitle}
+<!-- Pinned to the right edge of the tab bar row (mirrors the prev/next
+     buttons on the left) so the menu costs no vertical space. -->
+<div class="fixed right-0 top-0 z-40 flex h-9 items-center px-1">
+  <div
+    class="absolute right-0 top-0 h-8.5 w-14 bg-linear-to-l from-background-dark/70 to-background-dark/0 mask-l-from-50% backdrop-blur-[2px]"
+  ></div>
+  <div class="relative z-10 flex">
+    <ConversationMenu
+      activeConversationId={chatState.activeConversationId}
+      {onOpenConversation}
+      onOpenHistory={openHistory}
+      onOpenSettings={openSettings}
+    />
   </div>
-
-  <button
-    class="p-1.5 text-text-secondary hover:text-text-primary"
-    aria-label={$_('chat.header.new_chat', { default: 'New chat' })}
-    onclick={handleNewChat}
-  >
-    <Icon icon="heroicons:plus" width="20" height="20" />
-  </button>
-
-  <ConversationMenu
-    activeConversationId={chatState.activeConversationId}
-    {onOpenConversation}
-    onOpenHistory={openHistory}
-    onOpenSettings={openSettings}
-  />
 </div>

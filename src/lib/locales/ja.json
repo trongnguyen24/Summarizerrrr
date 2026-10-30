@@ -584,7 +584,6 @@
     "search_clear": "検索をクリア",
     "search_no_results": "一致する結果はありません",
     "conversation": {
-      "rename": "クリックして名前を変更",
       "archive": "アーカイブ",
       "unarchive": "アーカイブを解除",
       "export_markdown": "Markdown をエクスポート",
@@ -746,11 +745,7 @@
     "replace_mode_description": "• 選択したデータタイプが最初に完全に削除されます<br />• その後、インポートしたデータのみに置換されます<br />• 選択されていないデータタイプは影響を受けません",
     "replace_warning_title": "警告: 置換モード",
     "confirm_replace": "はい、置換します",
-    "chats": "チャット",
-    "chat_data": "チャットデータ",
-    "chat_data_note": "会話はローカルバックアップに含まれ、Cloud sync で同期されます。別のデバイスでチャットを続けると、ページの内容が再取得されます。",
-    "clear_chat": "チャットデータを消去",
-    "clear_chat_confirm": "すべての会話と取得したチャットソースを消去しますか？要約と履歴のデータには影響しません。Cloud sync がオンの場合、他のデバイスからもチャットが削除されます。"
+    "chats": "チャット"
   },
   "notifications": {
     "try_chat": "チャットを試す — v3.0 ベータ",

@@ -584,7 +584,6 @@
     "search_clear": "검색 지우기",
     "search_no_results": "일치하는 결과가 없습니다",
     "conversation": {
-      "rename": "클릭하여 이름 변경",
       "archive": "보관",
       "unarchive": "보관 해제",
       "export_markdown": "Markdown 내보내기",
@@ -746,11 +745,7 @@
     "replace_mode_description": "• 선택된 데이터 유형이 먼저 완전히 삭제됨<br />• 그런 다음 가져온 데이터로만 교체됨<br />• 선택되지 않은 데이터 유형은 영향을 받지 않음",
     "replace_warning_title": "경고: 교체 모드",
     "confirm_replace": "예, 교체합니다",
-    "chats": "채팅",
-    "chat_data": "채팅 데이터",
-    "chat_data_note": "대화는 로컬 백업에 포함되며 Cloud sync로 동기화됩니다. 다른 기기에서 채팅을 이어가면 페이지 내용을 다시 가져옵니다.",
-    "clear_chat": "채팅 데이터 지우기",
-    "clear_chat_confirm": "모든 대화와 수집된 채팅 출처를 지울까요? 요약 및 기록 데이터는 영향을 받지 않습니다. Cloud sync가 켜져 있으면 다른 기기에서도 채팅이 삭제됩니다."
+    "chats": "채팅"
   },
   "notifications": {
     "try_chat": "채팅 체험하기 — v3.0 베타",

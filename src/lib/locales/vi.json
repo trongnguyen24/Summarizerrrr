@@ -584,7 +584,6 @@
     "search_clear": "Xóa tìm kiếm",
     "search_no_results": "Không có kết quả phù hợp",
     "conversation": {
-      "rename": "Bấm để đổi tên",
       "archive": "Lưu trữ",
       "unarchive": "Bỏ lưu trữ",
       "export_markdown": "Xuất Markdown",
@@ -746,11 +745,7 @@
     "replace_mode_description": "• Các loại dữ liệu đã chọn bị xóa hoàn toàn trước<br />• Sau đó thay thế bằng chỉ dữ liệu đã nhập<br />• Các loại dữ liệu không chọn không bị ảnh hưởng",
     "replace_warning_title": "Cảnh báo: Chế độ Thay thế",
     "confirm_replace": "Đồng ý thay thế",
-    "chats": "Trò chuyện",
-    "chat_data": "Dữ liệu trò chuyện",
-    "chat_data_note": "Các cuộc trò chuyện có trong bản sao lưu cục bộ và được đồng bộ bởi Cloud sync. Nội dung trang sẽ được lấy lại khi bạn tiếp tục trò chuyện trên thiết bị khác.",
-    "clear_chat": "Xóa dữ liệu trò chuyện",
-    "clear_chat_confirm": "Xóa tất cả cuộc trò chuyện và nguồn đã thu thập? Dữ liệu tóm tắt và lịch sử không bị ảnh hưởng. Nếu bật Cloud sync, các cuộc trò chuyện cũng bị xóa trên các thiết bị khác."
+    "chats": "Trò chuyện"
   },
   "cloudSync": {
     "title": "Đồng bộ Cloud",

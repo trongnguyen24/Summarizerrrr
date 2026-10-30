@@ -34,20 +34,23 @@
   <DropdownMenu.Trigger>
     {#snippet child({ props })}
       <button
-        class="p-1.5 hover:text-text-primary relative text-text-secondary"
+        class="p-1 hover:text-text-primary relative text-text-secondary"
         aria-label={$t('chat.menu.aria_label', { default: 'Conversation menu' })}
         {...props}
       >
-        <Icon icon="tabler:dots-vertical" width="20" height="20" />
+        <Icon icon="tabler:menu-2" width="20" height="20" />
       </button>
     {/snippet}
   </DropdownMenu.Trigger>
 
   <DropdownMenu.Portal>
+    <!-- preventScroll off: bits-ui's body scroll lock breaks the sidepanel's
+         sticky tab bar, which then scrolls away while the menu is open. -->
     <DropdownMenu.Content
       class="bg-surface-1 dark:bg-surface-2 border border-border rounded-md shadow-lg z-50 w-80"
       sideOffset={5}
       align="end"
+      preventScroll={false}
     >
       {#if recentConversations.length}
         <div

@@ -9,7 +9,6 @@ import {
   getConversation,
   listConversations,
   recoverStreamingMessages,
-  softDeleteAllConversations,
   updateConversationMetadata,
 } from '@/lib/db/conversationRepository.js'
 
@@ -50,7 +49,6 @@ describe('chat revision counter', () => {
     ['createConversation', () => createConversation({ id: 'conv-new', title: 'First' })],
     ['updateConversationMetadata', () => updateConversationMetadata('conv-1', { title: 'Renamed' })],
     ['applyConversationSyncChanges', () => applyConversationSyncChanges({ upserts: [syncUpsert('conv-2', '2026-01-01T00:00:00.000Z')] })],
-    ['softDeleteAllConversations', () => softDeleteAllConversations()],
   ])('%s bumps the revision exactly once', async (_name, write) => {
     await createConversation({ id: 'conv-1', title: 'Seed' })
     const before = await getChatRevision()

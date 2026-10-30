@@ -12,7 +12,6 @@ import {
 import {
   exportConversationBackup,
   restoreConversationBackup,
-  clearConversationData,
   validateConversationBackup,
 } from '../lib/db/conversationRepository.js'
 import { generateUUID } from '../lib/utils/utils.js'
@@ -609,11 +608,6 @@ class DataIntegrityService {
     const { clearChatSyncMarker } = await import('./cloudSync/cloudSyncService.svelte.js')
     await clearChatSyncMarker()
     return cleared
-  }
-
-  /** Clear conversation records without touching legacy summaries/history/tags. */
-  async clearChatData() {
-    return clearConversationData()
   }
 
   /**

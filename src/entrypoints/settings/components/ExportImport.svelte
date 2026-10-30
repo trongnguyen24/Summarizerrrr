@@ -24,7 +24,6 @@
   import {
     exportConversationBackup,
     importConversationBackup,
-    softDeleteAllConversations,
   } from '@/lib/db/conversationRepository.js'
   import { t } from 'svelte-i18n'
   import {
@@ -661,19 +660,6 @@
     }
   }
 
-  async function clearChatOnly() {
-    if (!confirm($t('exportImport.clear_chat_confirm', { default: 'Clear all conversations and captured chat sources? Summary and history data will not be affected. If Cloud sync is on, chats are also removed from your other devices.' }))) return
-    await softDeleteAllConversations()
-    try {
-      const { triggerSync } = await import('@/services/cloudSync/cloudSyncService.svelte.js')
-      triggerSync()
-    } catch (syncError) {
-      console.warn('Failed to trigger sync after clearing chat data:', syncError)
-    }
-    await loadDataCounts()
-    setMessage('success', 'Chat data cleared.')
-  }
-
   function resetImportState(resetFileInput = true) {
     state.importData = null
     importOptions.dataTypes = {
@@ -991,11 +977,6 @@
             onchange={handleFileSelect}
           />
         </div>
-      </div>
-      <div class="flex flex-col gap-2 pb-4">
-        <div class="block text-text-secondary">{$t('exportImport.chat_data', { default: 'Chat data' })}</div>
-        <p class="text-xs text-text-muted">{$t('exportImport.chat_data_note', { default: 'Conversations are included in local backups and synced by Cloud sync. Page content is re-captured when you continue a chat on another device.' })}</p>
-        <button onclick={clearChatOnly} disabled={dataCounts.conversations === 0} class="text-left text-xs text-error disabled:opacity-50">{$t('exportImport.clear_chat', { default: 'Clear chat data' })}</button>
       </div>
       <div class="flex flex-col gap-2 pb-4">
         <!-- svelte-ignore a11y_label_has_associated_control -->

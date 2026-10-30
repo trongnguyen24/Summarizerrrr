@@ -16,7 +16,6 @@
     closeConversation,
   } from '@/stores/chatStore.svelte.js'
   import {
-    renameArchivedConversation,
     setArchivedConversationState,
     deleteArchivedConversation,
     exportArchivedConversation,
@@ -30,8 +29,6 @@
     isSidePanelVisible = true,
     activeTab = 'history',
   } = $props()
-  let title = $state('')
-  let editing = $state(false)
   let lastConversationId = $state(null)
   const primarySource = $derived(sources.find((source) => source?.url) || null)
   const sourceHost = $derived.by(() => {
@@ -65,10 +62,6 @@
     opendyslexic: 'font-opendyslexic',
     mali: 'font-mali',
   }
-
-  $effect(() => {
-    title = conversation?.title || ''
-  })
 
   $effect(() => {
     const conversationId = conversation?.id
@@ -113,10 +106,6 @@
   async function update(action) {
     await action()
     await onRefresh?.()
-  }
-  async function saveTitle() {
-    await update(() => renameArchivedConversation(conversation.id, title))
-    editing = false
   }
 </script>
 
@@ -173,24 +162,11 @@
             </div>
           </div>
 
-          {#if editing}
-            <input
-              class="mx-auto w-full text-center font-noto-serif font-serif text-blackwhite leading-[1.2] bg-transparent outline-none border-b border-border focus:border-blackwhite/40"
-              bind:value={title}
-              onkeydown={(event) => event.key === 'Enter' && saveTitle()}
-              onblur={saveTitle}
-            />
-          {:else}
-            <!-- svelte-ignore a11y_click_events_have_key_events -->
-            <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-            <h1
-              class="mx-auto font-noto-serif my-0 p-0 text-blackwhite text-balance text-center font-serif leading-[1.2] cursor-text hover:text-primary transition-colors"
-              onclick={() => (editing = true)}
-              title={$t('archive.conversation.rename', { default: 'Click to rename' })}
-            >
-              {conversation.title}
-            </h1>
-          {/if}
+          <h1
+            class="mx-auto font-noto-serif my-0 p-0 text-blackwhite text-balance text-center font-serif leading-[1.2]"
+          >
+            {conversation.title}
+          </h1>
         </div>
 
         <!-- Messages: the shared chat UI, bound to the detached chatState -->
@@ -199,6 +175,7 @@
             alignComposerToShell
             mentionsOnly
             proseClass="{fontSizeClasses[settings.fontSizeIndex]} text-text-secondary"
+            showEmptyState={chatState.activeConversationId === conversationId}
           />
         </div>
 

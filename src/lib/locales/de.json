@@ -584,7 +584,6 @@
     "search_clear": "Suche löschen",
     "search_no_results": "Keine passenden Ergebnisse",
     "conversation": {
-      "rename": "Zum Umbenennen klicken",
       "archive": "Archivieren",
       "unarchive": "Archivierung aufheben",
       "export_markdown": "Als Markdown exportieren",
@@ -746,11 +745,7 @@
     "replace_mode_description": "• Ausgewählte Datentypen werden zuerst vollständig gelöscht<br />• Dann nur durch importierte Daten ersetzt<br />• Nicht ausgewählte Datentypen sind nicht betroffen",
     "replace_warning_title": "Warnung: Ersetzen-Modus",
     "confirm_replace": "Ja, ersetzen",
-    "chats": "Chats",
-    "chat_data": "Chatdaten",
-    "chat_data_note": "Unterhaltungen sind in lokalen Backups enthalten und werden per Cloud-Sync synchronisiert. Seiteninhalte werden neu erfasst, wenn du einen Chat auf einem anderen Gerät fortsetzt.",
-    "clear_chat": "Chatdaten löschen",
-    "clear_chat_confirm": "Alle Unterhaltungen und erfassten Chatquellen löschen? Zusammenfassungen und Verlauf bleiben erhalten. Bei aktivem Cloud-Sync werden die Chats auch auf deinen anderen Geräten entfernt."
+    "chats": "Chats"
   },
   "notifications": {
     "try_chat": "Chat testen — v3.0 Beta",

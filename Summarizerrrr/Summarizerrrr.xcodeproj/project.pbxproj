@@ -20,6 +20,11 @@
 		29150C052E7D126600491238 /* background.js in Resources */ = {isa = PBXBuildFile; fileRef = 29150BF52E7D126600491238 /* background.js */; };
 		29150C062E7D126600491238 /* wxt.svg in Resources */ = {isa = PBXBuildFile; fileRef = 29150BF62E7D126600491238 /* wxt.svg */; };
 		29150C072E7D126600491238 /* youtube_transcript.js in Resources */ = {isa = PBXBuildFile; fileRef = 29150BF72E7D126600491238 /* youtube_transcript.js */; };
+		32ABE2EE32ECEF00983DA8CA /* semantic-extractor.js in Resources */ = {isa = PBXBuildFile; fileRef = 3830905A94AEE65817436768 /* semantic-extractor.js */; };
+		60EC7D0A06BEC150AB67BB3A /* accessibility-tree.js in Resources */ = {isa = PBXBuildFile; fileRef = 737DC71AA7D62F4611C73A2A /* accessibility-tree.js */; };
+		E382CD53EEB6F8F9412AE9D1 /* youtube_comments.js in Resources */ = {isa = PBXBuildFile; fileRef = CDFC60DD8807080C2EF9EA25 /* youtube_comments.js */; };
+		E0D6B9750525A363601423E9 /* oauth-callback.html in Resources */ = {isa = PBXBuildFile; fileRef = 0E57A030A147B95A3CB5304E /* oauth-callback.html */; };
+		2FDF629280C831395112FF34 /* avatar.png in Resources */ = {isa = PBXBuildFile; fileRef = C927882EB23ED22BDE707280 /* avatar.png */; };
 		29150C082E7D126600491238 /* libs in Resources */ = {isa = PBXBuildFile; fileRef = 29150BF82E7D126600491238 /* libs */; };
 		29150C092E7D126600491238 /* chunks in Resources */ = {isa = PBXBuildFile; fileRef = 29150BF92E7D126600491238 /* chunks */; };
 		29150C0A2E7D126600491238 /* content-scripts in Resources */ = {isa = PBXBuildFile; fileRef = 29150BFA2E7D126600491238 /* content-scripts */; };
@@ -83,6 +88,11 @@
 		29150BF52E7D126600491238 /* background.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = background.js; path = "../../.output/safari-mv2/background.js"; sourceTree = "<group>"; };
 		29150BF62E7D126600491238 /* wxt.svg */ = {isa = PBXFileReference; lastKnownFileType = text; name = wxt.svg; path = "../../.output/safari-mv2/wxt.svg"; sourceTree = "<group>"; };
 		29150BF72E7D126600491238 /* youtube_transcript.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = youtube_transcript.js; path = "../../.output/safari-mv2/youtube_transcript.js"; sourceTree = "<group>"; };
+		3830905A94AEE65817436768 /* semantic-extractor.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = semantic-extractor.js; path = "../../.output/safari-mv2/semantic-extractor.js"; sourceTree = "<group>"; };
+		737DC71AA7D62F4611C73A2A /* accessibility-tree.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = accessibility-tree.js; path = "../../.output/safari-mv2/accessibility-tree.js"; sourceTree = "<group>"; };
+		CDFC60DD8807080C2EF9EA25 /* youtube_comments.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = youtube_comments.js; path = "../../.output/safari-mv2/youtube_comments.js"; sourceTree = "<group>"; };
+		0E57A030A147B95A3CB5304E /* oauth-callback.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; name = oauth-callback.html; path = "../../.output/safari-mv2/oauth-callback.html"; sourceTree = "<group>"; };
+		C927882EB23ED22BDE707280 /* avatar.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = avatar.png; path = "../../.output/safari-mv2/avatar.png"; sourceTree = "<group>"; };
 		29150BF82E7D126600491238 /* libs */ = {isa = PBXFileReference; lastKnownFileType = folder; name = libs; path = "../../.output/safari-mv2/libs"; sourceTree = "<group>"; };
 		29150BF92E7D126600491238 /* chunks */ = {isa = PBXFileReference; lastKnownFileType = folder; name = chunks; path = "../../.output/safari-mv2/chunks"; sourceTree = "<group>"; };
 		29150BFA2E7D126600491238 /* content-scripts */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "content-scripts"; path = "../../.output/safari-mv2/content-scripts"; sourceTree = "<group>"; };
@@ -182,6 +192,11 @@
 				29150BF52E7D126600491238 /* background.js */,
 				29150BF62E7D126600491238 /* wxt.svg */,
 				29150BF72E7D126600491238 /* youtube_transcript.js */,
+				3830905A94AEE65817436768 /* semantic-extractor.js */,
+				737DC71AA7D62F4611C73A2A /* accessibility-tree.js */,
+				CDFC60DD8807080C2EF9EA25 /* youtube_comments.js */,
+				0E57A030A147B95A3CB5304E /* oauth-callback.html */,
+				C927882EB23ED22BDE707280 /* avatar.png */,
 				29150BF82E7D126600491238 /* libs */,
 				29150BF92E7D126600491238 /* chunks */,
 				29150BFA2E7D126600491238 /* content-scripts */,
@@ -319,6 +334,11 @@
 				29150C052E7D126600491238 /* background.js in Resources */,
 				29150C122E7D126600491238 /* Sumarizzerrrr.png in Resources */,
 				29150C072E7D126600491238 /* youtube_transcript.js in Resources */,
+				32ABE2EE32ECEF00983DA8CA /* semantic-extractor.js in Resources */,
+				60EC7D0A06BEC150AB67BB3A /* accessibility-tree.js in Resources */,
+				E382CD53EEB6F8F9412AE9D1 /* youtube_comments.js in Resources */,
+				E0D6B9750525A363601423E9 /* oauth-callback.html in Resources */,
+				2FDF629280C831395112FF34 /* avatar.png in Resources */,
 				29150C042E7D126600491238 /* popop.html in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -523,7 +543,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 3.0.0;
+				MARKETING_VERSION = 3.0.1;
 				OTHER_LDFLAGS = (
 					"-framework",
 					SafariServices,
@@ -558,7 +578,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 3.0.0;
+				MARKETING_VERSION = 3.0.1;
 				OTHER_LDFLAGS = (
 					"-framework",
 					SafariServices,
@@ -595,7 +615,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 3.0.0;
+				MARKETING_VERSION = 3.0.1;
 				OTHER_LDFLAGS = (
 					"-framework",
 					SafariServices,
@@ -630,7 +650,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 3.0.0;
+				MARKETING_VERSION = 3.0.1;
 				OTHER_LDFLAGS = (
 					"-framework",
 					SafariServices,

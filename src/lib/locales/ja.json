@@ -342,7 +342,8 @@
       "unconfigured_suffix": "未設定",
       "unconfigured_warning": "このプロバイダーは設定されていません。",
       "configure_link": "APIキーを設定",
-      "free_text_placeholder": "モデルIDを入力"
+      "free_text_placeholder": "モデルIDを入力",
+      "free_tier_badge": "無料"
     },
     "provider_key_config": {
       "status_configured": "設定済み",
@@ -373,7 +374,16 @@
       "quick_models_hint": "コンポーザーで素早く切り替えるための最大{max}モデル。",
       "remove_quick_model": "クイックモデルから削除",
       "default_reasoning": "デフォルト推論レベル",
-      "default_reasoning_hint": "新しいタブの推論セレクターに適用されます。タブごとの設定は独立しています。"
+      "default_reasoning_hint": "新しいタブの推論セレクターに適用されます。タブごとの設定は独立しています。",
+      "title": "チャット",
+      "tone": {
+        "none": "なし",
+        "none_desc": "トーンの指示なし。",
+        "simple_desc": "わかりやすく、明快で率直。日常的な言葉と具体例。",
+        "expert_desc": "専門的で深く正確。専門用語と複雑さを保持。",
+        "witty_desc": "皮肉でウィットに富んだ鋭いユーモア。態度のみ — 深さは内容に応じて変わります。",
+        "savage_desc": "歯に衣着せぬ辛辣で攻撃的なユーモア。態度のみ — 深さは内容に応じて変わります。"
+      }
     }
   },
   "chat": {
@@ -397,7 +407,17 @@
       "input": "Input",
       "output": "Output",
       "cache": "Cache",
-      "source": "Source"
+      "source": "Source",
+      "cached_row": "キャッシュ済み",
+      "session_turns": "セッション · {count} ターン",
+      "cost": "コスト",
+      "near_limit": "コンテキストが{percent}%使用済みです — 新しいチャットを始めてください。",
+      "near_limit_turns": "コンテキストが{percent}%使用済み、残り約{count}ターンです — 新しいチャットを始めてください。"
+    },
+    "message_meta": {
+      "aria_label": "メッセージの詳細",
+      "created": "時刻",
+      "sources": "{count} 件のソース"
     },
     "context_warning": {
       "source_dropped": "「{title}」はこのモデルのコンテキスト制限を超えているため、除外されました。以下の回答はこれに基づいていません。より大きなコンテキストウィンドウを持つモデルをお試しください。",
@@ -413,6 +433,85 @@
       "manage_models": "モデルの管理...",
       "reasoning": "推論",
       "warning_unresolvable": "不明なプロファイル"
+    },
+    "composer": {
+      "placeholder": "質問する",
+      "placeholder_plain": "タスクを説明するか質問してください",
+      "aria_label": "チャットメッセージ",
+      "queued": "送信待ち",
+      "cancel_queued": "送信待ちのメッセージをキャンセル",
+      "stop": "生成を停止",
+      "send": "メッセージを送信"
+    },
+    "context_bar": {
+      "source_fallback": "コンテキストのソース",
+      "attached_fallback": "添付したタブ",
+      "locked": "AI コンテキストに追加済み",
+      "tokens": "~{count} トークン",
+      "added_tabs": "+ {count} タブ"
+    },
+    "deep_dive": {
+      "title": "Deep Dive",
+      "generating": "生成中…",
+      "generating_aria": "Deep Dive の質問を生成中",
+      "regenerate": "新しい質問を生成"
+    },
+    "empty_state": {
+      "suggested_skills": "おすすめのスキル"
+    },
+    "message": {
+      "previous_branch": "前のブランチ",
+      "next_branch": "次のブランチ",
+      "edit": "メッセージを編集",
+      "copy_message": "メッセージをコピー",
+      "copy_response": "回答をコピー",
+      "regenerate": "回答を再生成",
+      "continue": "回答を続ける",
+      "retry": "このメッセージを再試行",
+      "stopped": "停止しました"
+    },
+    "editor": {
+      "placeholder": "メッセージを編集...",
+      "aria_label": "メッセージを編集",
+      "cancel": "キャンセル",
+      "save": "保存して送信"
+    },
+    "skill_chip": {
+      "clear": "選択したスキルを解除"
+    },
+    "skill_picker": {
+      "aria_label": "一致するスキル",
+      "no_results": "一致するスキルはありません。"
+    },
+    "tab_mention": {
+      "aria_label": "一致するソース",
+      "no_results": "一致するタブはありません。",
+      "reason_unsupported": "ブラウザ、拡張機能、ストア、ローカルのページは添付できません。",
+      "reason_pdf": "PDF やビューアのページは添付できません。",
+      "reason_comments_attached": "この動画のコメントは添付済みです。"
+    },
+    "header": {
+      "new_chat": "新しいチャット"
+    },
+    "menu": {
+      "aria_label": "会話メニュー",
+      "recent": "最近の会話",
+      "history": "履歴",
+      "settings": "設定"
+    },
+    "source_drawer": {
+      "unknown": "不明なソース",
+      "loading": "ソースを読み込み中…"
+    },
+    "reasoning": {
+      "provider-default": "自動",
+      "provider-default_desc": "モデルに任せる",
+      "low": "低",
+      "low_desc": "高速・低コスト",
+      "medium": "中",
+      "medium_desc": "速度と深さのバランス",
+      "high": "高",
+      "high_desc": "より深い推論、低速"
     }
   },
   "tab_navigation": {
@@ -425,6 +524,21 @@
     "tabs": {
       "prompts": "プロンプト",
       "skills": "スキル"
+    },
+    "skills": {
+      "new": "新しいスキル",
+      "built_in": "組み込み",
+      "user_skills": "ユーザースキル",
+      "empty": "カスタムスキルはまだありません。",
+      "pin": "ピン留め",
+      "name": "名前",
+      "instruction": "単発の指示",
+      "instruction_hint": "1 回のターンにのみ適用",
+      "reset": "組み込みに戻す",
+      "delete": "削除",
+      "select_prompt": "左のメニューからスキルを選ぶか、新しく作成してください。",
+      "error_name_required": "スキル名は必須です。",
+      "error_instruction_required": "指示は必須です。"
     }
   },
   "prompts": {
@@ -468,7 +582,25 @@
     "toggle_width": "幅切り替え",
     "search_placeholder": "タイトルまたはURLで検索",
     "search_clear": "検索をクリア",
-    "search_no_results": "一致する結果はありません"
+    "search_no_results": "一致する結果はありません",
+    "conversation": {
+      "rename": "クリックして名前を変更",
+      "archive": "アーカイブ",
+      "unarchive": "アーカイブを解除",
+      "export_markdown": "Markdown をエクスポート",
+      "export_json": "JSON をエクスポート",
+      "delete": "会話を削除",
+      "none_selected": "会話が選択されていません。"
+    },
+    "toc": {
+      "aria_label": "目次",
+      "switch_sidebar": "サイドバーの目次に切り替え",
+      "switch_floating": "フローティング目次に切り替え",
+      "go_top": "トップへ移動",
+      "go_bottom": "一番下へ移動",
+      "previous": "前の項目",
+      "next": "次の項目"
+    }
   },
   "button": {
     "copy": "クリップボードにコピー",
@@ -477,7 +609,8 @@
     "download": "Markdownでダウンロード",
     "downloaded": "ダウンロード完了！",
     "save_to_archive": "アーカイブに保存",
-    "saved": "保存完了！"
+    "saved": "保存完了！",
+    "saving": "保存中…"
   },
   "welcome": {
     "choose_interface_language": "Summarizerrrrへようこそ！",
@@ -539,7 +672,8 @@
     "error": "コンテンツの{action}に失敗しました",
     "debate_description": "多角的な視点から分析",
     "chapters_description": "チャプターごとに要約",
-    "comments_description": "YouTubeコメントを要約"
+    "comments_description": "YouTubeコメントを要約",
+    "courseConcepts_description": "コースの主要な概念を抽出"
   },
   "tags": {
     "title": "タグ",
@@ -611,7 +745,12 @@
     "merge_mode_description": "• インポートしたデータが既存のデータと結合されます<br />• 重複（同じID）は更新されます<br />• インポートした設定が既存の設定を上書きします",
     "replace_mode_description": "• 選択したデータタイプが最初に完全に削除されます<br />• その後、インポートしたデータのみに置換されます<br />• 選択されていないデータタイプは影響を受けません",
     "replace_warning_title": "警告: 置換モード",
-    "confirm_replace": "はい、置換します"
+    "confirm_replace": "はい、置換します",
+    "chats": "チャット",
+    "chat_data": "チャットデータ",
+    "chat_data_note": "会話はローカルバックアップに含まれ、Cloud sync で同期されます。別のデバイスでチャットを続けると、ページの内容が再取得されます。",
+    "clear_chat": "チャットデータを消去",
+    "clear_chat_confirm": "すべての会話と取得したチャットソースを消去しますか？要約と履歴のデータには影響しません。Cloud sync がオンの場合、他のデバイスからもチャットが削除されます。"
   },
   "notifications": {
     "try_chat": "チャットを試す — v3.0 ベータ",
@@ -642,6 +781,9 @@
       "description": "iPhone・iPadのSafariでSummarizerrrrをお使いいただけます。",
       "cta_label": "今すぐダウンロード"
     }
+  },
+  "fab": {
+    "hide_on_site": "このサイトで非表示"
   },
   "cloudSync": {
     "title": "クラウド同期",

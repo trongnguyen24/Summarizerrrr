@@ -136,6 +136,11 @@
       reasoningOptions[0],
   )
   const supportsReasoning = $derived(reasoningOptions.length > 1)
+
+  function reasoningLabel(choice) {
+    if (!choice) return ''
+    return $_(`chat.reasoning.${choice.value}`, { default: choice.label })
+  }
   const showEffortSuffix = $derived(
     supportsReasoning && displayedReasoningLevel !== 'provider-default',
   )
@@ -210,7 +215,7 @@
         {#if showEffortSuffix}
           <span
             class="text-muted font-normal select-none"
-            data-testid="model-effort">{currentChoice?.label}</span
+            data-testid="model-effort">{reasoningLabel(currentChoice)}</span
           >
         {/if}
         {#if !isDisabled}
@@ -280,7 +285,7 @@
                 default: 'Reasoning',
               })}</span
             >
-            <span class="ml-auto text-muted">{currentChoice?.label}</span>
+            <span class="ml-auto text-muted">{reasoningLabel(currentChoice)}</span>
             <Icon
               icon="heroicons:chevron-right-16-solid"
               width="12"
@@ -297,7 +302,7 @@
                 class="{ROW} text-text-primary"
                 onSelect={() => handleReasoningChange(option.value)}
               >
-                <span class="flex-1 text-xs">{option.label}</span>
+                <span class="flex-1 text-xs">{reasoningLabel(option)}</span>
                 {#if option.value === displayedReasoningLevel}
                   <Icon
                     icon="heroicons:check"

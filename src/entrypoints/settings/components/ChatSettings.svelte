@@ -29,6 +29,11 @@
 
   let wittyClickCount = $state(0)
 
+  function toneLabel(value) {
+    if (value === 'none') return $t('settings.chat.tone.none', { default: 'None' })
+    return $t(`settings.summary.tone_mode.${value}`, { default: value })
+  }
+
   function currentTone() {
     return currentPersona().tone || ''
   }
@@ -124,7 +129,7 @@
 <!-- Chat Section -->
 <div class="setting-block flex flex-col gap-5 pb-6 pt-5">
   <div class="flex items-center h-6 justify-between px-5">
-    <label class="block font-bold text-text-primary">Chat</label>
+    <label class="block font-bold text-text-primary">{$t('settings.chat.title', { default: 'Chat' })}</label>
   </div>
 
   <div class="setting-secsion flex flex-col gap-6 px-5">
@@ -187,10 +192,10 @@
       <div class="grid grid-cols-4 w-full gap-1">
         {#each REASONING_CHOICES as choice (choice.value)}
           <ButtonSet
-            title={choice.label}
+            title={$t(`chat.reasoning.${choice.value}`, { default: choice.label })}
             class="setting-btn {currentDefaultReasoning() === choice.value ? 'active' : ''}"
             onclick={() => setDefaultReasoning(choice.value)}
-            Description={choice.description}
+            Description={$t(`chat.reasoning.${choice.value}_desc`, { default: choice.description })}
           ></ButtonSet>
         {/each}
       </div>
@@ -199,16 +204,18 @@
     <!-- Tone -->
     <div class="flex flex-col gap-2">
       <!-- svelte-ignore a11y_label_has_associated_control -->
-      <label class="block text-text-secondary">Tone</label>
+      <label class="block text-text-secondary">{$t('settings.summary.tone')}</label>
       <div class="grid grid-cols-4 w-full gap-1">
         {#each TONE_OPTIONS as option (option.value)}
           {@const isWittySlot = option.value === 'witty'}
           {@const showSavage = isWittySlot && currentTone() === 'savage'}
           <ButtonSet
-            title={showSavage ? 'savage' : option.label}
+            title={toneLabel(showSavage ? 'savage' : option.label)}
             class="setting-btn {(isWittySlot ? ['witty', 'savage'].includes(currentTone()) : currentTone() === option.value) ? 'active' : ''}"
             onclick={() => handleToneClick(option)}
-            Description={showSavage ? CHAT_TONE_ROLES.savage.toneDescription : option.description}
+            Description={showSavage
+              ? $t('settings.chat.tone.savage_desc', { default: CHAT_TONE_ROLES.savage.toneDescription })
+              : $t(`settings.chat.tone.${option.label}_desc`, { default: option.description })}
           ></ButtonSet>
         {/each}
       </div>

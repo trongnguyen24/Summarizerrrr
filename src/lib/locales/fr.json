@@ -342,7 +342,8 @@
       "unconfigured_suffix": "non configuré",
       "unconfigured_warning": "Ce fournisseur n'est pas configuré.",
       "configure_link": "Configurer la clé API",
-      "free_text_placeholder": "Saisir l'ID du modèle"
+      "free_text_placeholder": "Saisir l'ID du modèle",
+      "free_tier_badge": "Gratuit"
     },
     "provider_key_config": {
       "status_configured": "configuré",
@@ -373,7 +374,16 @@
       "quick_models_hint": "Jusqu'à {max} modèles pour un changement rapide dans le compositeur.",
       "remove_quick_model": "Retirer des modèles rapides",
       "default_reasoning": "Niveau de raisonnement par défaut",
-      "default_reasoning_hint": "S'applique au sélecteur de raisonnement des nouveaux onglets. Les réglages par onglet sont indépendants."
+      "default_reasoning_hint": "S'applique au sélecteur de raisonnement des nouveaux onglets. Les réglages par onglet sont indépendants.",
+      "title": "Discussion",
+      "tone": {
+        "none": "Aucun",
+        "none_desc": "Aucune consigne de ton.",
+        "simple_desc": "Facile à comprendre, clair et direct. Langage courant et exemples concrets.",
+        "expert_desc": "Professionnel et précis en profondeur. Conserve les termes techniques et la complexité.",
+        "witty_desc": "Sarcastique, spirituel, humour mordant. L’attitude seulement — la profondeur suit toujours le contenu.",
+        "savage_desc": "Franc, féroce, humour agressif. L’attitude seulement — la profondeur suit toujours le contenu."
+      }
     }
   },
   "chat": {
@@ -397,7 +407,17 @@
       "input": "Input",
       "output": "Output",
       "cache": "Cache",
-      "source": "Source"
+      "source": "Source",
+      "cached_row": "en cache",
+      "session_turns": "Session · {count} tours",
+      "cost": "Coût",
+      "near_limit": "Le contexte est plein à {percent} % — démarrez une nouvelle discussion.",
+      "near_limit_turns": "Le contexte est plein à {percent} %, il reste environ {count} tours — démarrez une nouvelle discussion."
+    },
+    "message_meta": {
+      "aria_label": "Détails du message",
+      "created": "Heure",
+      "sources": "{count} source(s)"
     },
     "context_warning": {
       "source_dropped": "\"{title}\" était trop long pour le contexte de ce modèle et a été exclu. La réponse ci-dessous n'est pas basée sur celui-ci — essayez un modèle avec une fenêtre de contexte plus grande.",
@@ -413,6 +433,85 @@
       "manage_models": "Gérer les modèles...",
       "reasoning": "Raisonnement",
       "warning_unresolvable": "Profil inconnu"
+    },
+    "composer": {
+      "placeholder": "Posez une question",
+      "placeholder_plain": "Décrivez une tâche ou posez une question",
+      "aria_label": "Message de discussion",
+      "queued": "En file d’attente",
+      "cancel_queued": "Annuler le message en attente",
+      "stop": "Arrêter la génération",
+      "send": "Envoyer le message"
+    },
+    "context_bar": {
+      "source_fallback": "Source de contexte",
+      "attached_fallback": "Onglet joint",
+      "locked": "Déjà inclus dans le contexte de l’IA",
+      "tokens": "~{count} jetons",
+      "added_tabs": "+ {count, plural, one {# onglet} other {# onglets}}"
+    },
+    "deep_dive": {
+      "title": "Deep Dive",
+      "generating": "Génération…",
+      "generating_aria": "Génération des questions Deep Dive",
+      "regenerate": "Générer de nouvelles questions"
+    },
+    "empty_state": {
+      "suggested_skills": "Compétences suggérées"
+    },
+    "message": {
+      "previous_branch": "Branche précédente",
+      "next_branch": "Branche suivante",
+      "edit": "Modifier le message",
+      "copy_message": "Copier le message",
+      "copy_response": "Copier la réponse",
+      "regenerate": "Régénérer la réponse",
+      "continue": "Continuer la réponse",
+      "retry": "Réessayer ce message",
+      "stopped": "Arrêté"
+    },
+    "editor": {
+      "placeholder": "Modifiez votre message...",
+      "aria_label": "Modifier le message",
+      "cancel": "Annuler",
+      "save": "Enregistrer et envoyer"
+    },
+    "skill_chip": {
+      "clear": "Retirer la compétence sélectionnée"
+    },
+    "skill_picker": {
+      "aria_label": "Compétences correspondantes",
+      "no_results": "Aucune compétence correspondante."
+    },
+    "tab_mention": {
+      "aria_label": "Sources correspondantes",
+      "no_results": "Aucun onglet correspondant.",
+      "reason_unsupported": "Les pages du navigateur, des extensions, des boutiques et les pages locales ne peuvent pas être jointes.",
+      "reason_pdf": "Les pages PDF et de visionneuse ne peuvent pas être jointes.",
+      "reason_comments_attached": "Les commentaires de cette vidéo sont déjà joints."
+    },
+    "header": {
+      "new_chat": "Nouvelle discussion"
+    },
+    "menu": {
+      "aria_label": "Menu de la conversation",
+      "recent": "Conversations récentes",
+      "history": "Historique",
+      "settings": "Paramètres"
+    },
+    "source_drawer": {
+      "unknown": "Source inconnue",
+      "loading": "Chargement des sources…"
+    },
+    "reasoning": {
+      "provider-default": "Auto",
+      "provider-default_desc": "Laisser le modèle décider",
+      "low": "Faible",
+      "low_desc": "Plus rapide, moins coûteux",
+      "medium": "Moyen",
+      "medium_desc": "Équilibre entre vitesse et profondeur",
+      "high": "Élevé",
+      "high_desc": "Raisonnement plus approfondi, plus lent"
     }
   },
   "tab_navigation": {
@@ -425,6 +524,21 @@
     "tabs": {
       "prompts": "Prompts",
       "skills": "Compétences"
+    },
+    "skills": {
+      "new": "Nouvelle compétence",
+      "built_in": "Intégrées",
+      "user_skills": "Vos compétences",
+      "empty": "Aucune compétence personnalisée pour l’instant.",
+      "pin": "Épingler",
+      "name": "Nom",
+      "instruction": "Instruction ponctuelle",
+      "instruction_hint": "S’applique à un seul tour",
+      "reset": "Réinitialiser la compétence intégrée",
+      "delete": "Supprimer",
+      "select_prompt": "Sélectionnez une compétence dans le menu de gauche ou créez-en une nouvelle.",
+      "error_name_required": "Un nom de compétence est requis.",
+      "error_instruction_required": "Une instruction est requise."
     }
   },
   "prompts": {
@@ -468,7 +582,25 @@
     "toggle_width": "Basculer la largeur",
     "search_placeholder": "Rechercher un titre ou une URL",
     "search_clear": "Effacer la recherche",
-    "search_no_results": "Aucun résultat"
+    "search_no_results": "Aucun résultat",
+    "conversation": {
+      "rename": "Cliquez pour renommer",
+      "archive": "Archiver",
+      "unarchive": "Désarchiver",
+      "export_markdown": "Exporter en Markdown",
+      "export_json": "Exporter en JSON",
+      "delete": "Supprimer la conversation",
+      "none_selected": "Aucune conversation sélectionnée."
+    },
+    "toc": {
+      "aria_label": "Table des matières",
+      "switch_sidebar": "Passer à la table des matières latérale",
+      "switch_floating": "Passer à la table des matières flottante",
+      "go_top": "Aller en haut",
+      "go_bottom": "Aller en bas",
+      "previous": "Élément précédent",
+      "next": "Élément suivant"
+    }
   },
   "button": {
     "copy": "Copier dans le presse-papiers",
@@ -477,7 +609,8 @@
     "download": "Télécharger en Markdown",
     "downloaded": "Téléchargé !",
     "save_to_archive": "Sauvegarder dans l'archive",
-    "saved": "Sauvegardé !"
+    "saved": "Sauvegardé !",
+    "saving": "Enregistrement…"
   },
   "welcome": {
     "choose_interface_language": "Bienvenue dans Summarizerrrr !",
@@ -539,7 +672,8 @@
     "error": "Échec de {action} du contenu",
     "debate_description": "Analyser sous plusieurs angles",
     "chapters_description": "Résumer par chapitres",
-    "comments_description": "Résumer les commentaires YouTube"
+    "comments_description": "Résumer les commentaires YouTube",
+    "courseConcepts_description": "Extraire les concepts clés du cours"
   },
   "tags": {
     "title": "Étiquettes",
@@ -611,7 +745,12 @@
     "merge_mode_description": "• Les données importées sont combinées avec les données existantes<br />• Les doublons (même ID) seront mis à jour<br />• Les paramètres importés remplacent les paramètres existants",
     "replace_mode_description": "• Les types de données sélectionnés sont complètement supprimés d'abord<br />• Puis remplacés uniquement par les données importées<br />• Les types de données non sélectionnés ne sont pas affectés",
     "replace_warning_title": "Attention : Mode Remplacement",
-    "confirm_replace": "Oui, remplacer"
+    "confirm_replace": "Oui, remplacer",
+    "chats": "Discussions",
+    "chat_data": "Données des discussions",
+    "chat_data_note": "Les conversations sont incluses dans les sauvegardes locales et synchronisées par Cloud sync. Le contenu de la page est recapturé lorsque vous reprenez une discussion sur un autre appareil.",
+    "clear_chat": "Effacer les données des discussions",
+    "clear_chat_confirm": "Effacer toutes les conversations et les sources capturées ? Les résumés et l’historique ne seront pas affectés. Si Cloud sync est activé, les discussions seront aussi supprimées de vos autres appareils."
   },
   "notifications": {
     "try_chat": "Essayer le Chat — v3.0 bêta",
@@ -642,6 +781,9 @@
       "description": "Utilisez Summarizerrrr avec Safari sur iPhone et iPad.",
       "cta_label": "Télécharger maintenant"
     }
+  },
+  "fab": {
+    "hide_on_site": "Masquer sur ce site"
   },
   "cloudSync": {
     "title": "Synchronisation Cloud",

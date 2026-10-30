@@ -1,5 +1,6 @@
 <script>
   // @ts-nocheck
+  import { t } from 'svelte-i18n'
   import Icon from '@iconify/svelte'
   import 'overlayscrollbars/overlayscrollbars.css'
   import { useOverlayScrollbars } from 'overlayscrollbars-svelte'
@@ -349,7 +350,7 @@
           <button
             onclick={toggleTocMode}
             class="flex-1 flex items-center justify-center py-2 text-text-secondary hover:text-text-primary transition-colors"
-            title="Switch to floating TOC"
+            title={$t('archive.toc.switch_floating', { default: 'Switch to floating TOC' })}
           >
             <Icon icon="carbon:minimize" width="16" height="16" />
           </button>
@@ -360,7 +361,7 @@
               {canGoPrev
               ? 'text-text-secondary hover:text-text-primary cursor-pointer'
               : 'text-text-tertiary/40 opacity-50 cursor-not-allowed'}"
-            title="Previous item"
+            title={$t('archive.toc.previous', { default: 'Previous item' })}
           >
             <Icon icon="carbon:chevron-left" width="16" height="16" />
           </button>
@@ -371,7 +372,7 @@
               {canGoNext
               ? 'text-text-secondary hover:text-text-primary cursor-pointer'
               : 'text-text-tertiary/40 cursor-not-allowed'}"
-            title="Next item"
+            title={$t('archive.toc.next', { default: 'Next item' })}
           >
             <Icon icon="carbon:chevron-right" width="16" height="16" />
           </button>
@@ -379,14 +380,14 @@
           <a
             href="#footer"
             class="flex-1 flex items-center justify-center py-2 text-text-secondary hover:text-text-primary transition-colors"
-            title="Go to bottom"
+            title={$t('archive.toc.go_bottom', { default: 'Go to bottom' })}
           >
             <Icon width="16" icon="carbon:up-to-top" class="rotate-180" />
           </a>
           <a
             href="#top"
             class="flex-1 flex items-center justify-center py-2 text-text-secondary hover:text-text-primary transition-colors"
-            title="Go to top"
+            title={$t('archive.toc.go_top', { default: 'Go to top' })}
           >
             <Icon width="16" icon="carbon:up-to-top" />
           </a>

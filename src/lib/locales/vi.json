@@ -374,7 +374,16 @@
       "quick_models_hint": "Tối đa {max} mô hình để chuyển nhanh trong trình soạn.",
       "remove_quick_model": "Xóa khỏi mô hình nhanh",
       "default_reasoning": "Mức suy luận mặc định",
-      "default_reasoning_hint": "Áp dụng cho các tab mới. Tùy chỉnh theo tab là độc lập."
+      "default_reasoning_hint": "Áp dụng cho các tab mới. Tùy chỉnh theo tab là độc lập.",
+      "title": "Trò chuyện",
+      "tone": {
+        "none": "Không",
+        "none_desc": "Không áp dụng văn phong.",
+        "simple_desc": "Dễ hiểu, rõ ràng và trực tiếp. Ngôn ngữ đời thường và ví dụ cụ thể.",
+        "expert_desc": "Chuyên nghiệp, chính xác và chuyên sâu. Giữ nguyên thuật ngữ và độ phức tạp.",
+        "witty_desc": "Châm biếm, dí dỏm, hài hước sắc sảo. Chỉ thay đổi thái độ — độ sâu vẫn theo nội dung.",
+        "savage_desc": "Thẳng thừng, gay gắt, hài hước dữ dội. Chỉ thay đổi thái độ — độ sâu vẫn theo nội dung."
+      }
     }
   },
   "chat": {
@@ -424,6 +433,85 @@
       "manage_models": "Quản lý mô hình...",
       "reasoning": "Suy luận",
       "warning_unresolvable": "Không rõ cấu hình"
+    },
+    "composer": {
+      "placeholder": "Đặt câu hỏi",
+      "placeholder_plain": "Mô tả một tác vụ hoặc đặt câu hỏi",
+      "aria_label": "Tin nhắn chat",
+      "queued": "Đang chờ gửi",
+      "cancel_queued": "Hủy tin nhắn đang chờ",
+      "stop": "Dừng tạo",
+      "send": "Gửi tin nhắn"
+    },
+    "context_bar": {
+      "source_fallback": "Nguồn ngữ cảnh",
+      "attached_fallback": "Tab đã đính kèm",
+      "locked": "Đã có trong ngữ cảnh AI",
+      "tokens": "~{count} token",
+      "added_tabs": "+ {count} tab"
+    },
+    "deep_dive": {
+      "title": "Deep Dive",
+      "generating": "Đang tạo…",
+      "generating_aria": "Đang tạo câu hỏi Deep Dive",
+      "regenerate": "Tạo câu hỏi mới"
+    },
+    "empty_state": {
+      "suggested_skills": "Kỹ năng gợi ý"
+    },
+    "message": {
+      "previous_branch": "Nhánh trước",
+      "next_branch": "Nhánh sau",
+      "edit": "Sửa tin nhắn",
+      "copy_message": "Sao chép tin nhắn",
+      "copy_response": "Sao chép câu trả lời",
+      "regenerate": "Tạo lại câu trả lời",
+      "continue": "Tiếp tục câu trả lời",
+      "retry": "Thử lại tin nhắn này",
+      "stopped": "Đã dừng"
+    },
+    "editor": {
+      "placeholder": "Sửa tin nhắn của bạn...",
+      "aria_label": "Sửa tin nhắn",
+      "cancel": "Hủy",
+      "save": "Lưu & gửi"
+    },
+    "skill_chip": {
+      "clear": "Bỏ chọn kỹ năng"
+    },
+    "skill_picker": {
+      "aria_label": "Kỹ năng phù hợp",
+      "no_results": "Không có kỹ năng phù hợp."
+    },
+    "tab_mention": {
+      "aria_label": "Nguồn phù hợp",
+      "no_results": "Không có tab phù hợp.",
+      "reason_unsupported": "Không thể đính kèm trang trình duyệt, tiện ích, cửa hàng và trang cục bộ.",
+      "reason_pdf": "Không thể đính kèm trang PDF và trang trình xem.",
+      "reason_comments_attached": "Bình luận của video này đã được đính kèm."
+    },
+    "header": {
+      "new_chat": "Chat mới"
+    },
+    "menu": {
+      "aria_label": "Menu cuộc trò chuyện",
+      "recent": "Cuộc trò chuyện gần đây",
+      "history": "Lịch sử",
+      "settings": "Cài đặt"
+    },
+    "source_drawer": {
+      "unknown": "Nguồn không xác định",
+      "loading": "Đang tải nguồn…"
+    },
+    "reasoning": {
+      "provider-default": "Tự động",
+      "provider-default_desc": "Để mô hình tự quyết định",
+      "low": "Thấp",
+      "low_desc": "Nhanh hơn, chi phí thấp hơn",
+      "medium": "Trung bình",
+      "medium_desc": "Cân bằng tốc độ và độ sâu",
+      "high": "Cao",
+      "high_desc": "Suy luận sâu hơn, chậm hơn"
     }
   },
   "tab_navigation": {
@@ -436,6 +524,21 @@
     "tabs": {
       "prompts": "Prompts",
       "skills": "Kỹ năng"
+    },
+    "skills": {
+      "new": "Kỹ năng mới",
+      "built_in": "Có sẵn",
+      "user_skills": "Kỹ năng của bạn",
+      "empty": "Chưa có kỹ năng tùy chỉnh.",
+      "pin": "Ghim",
+      "name": "Tên",
+      "instruction": "Chỉ dẫn một lần",
+      "instruction_hint": "Chỉ áp dụng cho một lượt",
+      "reset": "Khôi phục mặc định",
+      "delete": "Xóa",
+      "select_prompt": "Chọn một kỹ năng ở menu bên trái hoặc tạo kỹ năng mới.",
+      "error_name_required": "Cần nhập tên kỹ năng.",
+      "error_instruction_required": "Cần nhập chỉ dẫn."
     }
   },
   "prompts": {
@@ -479,7 +582,25 @@
     "toggle_width": "Đổi độ rộng vùng đọc",
     "search_placeholder": "Tìm theo tiêu đề hoặc URL",
     "search_clear": "Xóa tìm kiếm",
-    "search_no_results": "Không có kết quả phù hợp"
+    "search_no_results": "Không có kết quả phù hợp",
+    "conversation": {
+      "rename": "Bấm để đổi tên",
+      "archive": "Lưu trữ",
+      "unarchive": "Bỏ lưu trữ",
+      "export_markdown": "Xuất Markdown",
+      "export_json": "Xuất JSON",
+      "delete": "Xóa cuộc trò chuyện",
+      "none_selected": "Chưa chọn cuộc trò chuyện nào."
+    },
+    "toc": {
+      "aria_label": "Mục lục",
+      "switch_sidebar": "Chuyển sang mục lục thanh bên",
+      "switch_floating": "Chuyển sang mục lục nổi",
+      "go_top": "Lên đầu trang",
+      "go_bottom": "Xuống cuối trang",
+      "previous": "Mục trước",
+      "next": "Mục sau"
+    }
   },
   "button": {
     "copy": "Sao chép vào bộ nhớ đệm",
@@ -488,7 +609,8 @@
     "download": "Tải xuống dạng Markdown",
     "downloaded": "Đã tải xuống!",
     "save_to_archive": "Lưu vào lưu trữ",
-    "saved": "Đã lưu!"
+    "saved": "Đã lưu!",
+    "saving": "Đang lưu…"
   },
   "welcome": {
     "choose_interface_language": "Chào mừng đến với Summarizer!",
@@ -623,7 +745,12 @@
     "merge_mode_description": "• Dữ liệu đã nhập được kết hợp với dữ liệu hiện có<br />• Bản sao (cùng ID) sẽ được cập nhật<br />• Cài đặt đã nhập sẽ ghi đè cài đặt hiện có",
     "replace_mode_description": "• Các loại dữ liệu đã chọn bị xóa hoàn toàn trước<br />• Sau đó thay thế bằng chỉ dữ liệu đã nhập<br />• Các loại dữ liệu không chọn không bị ảnh hưởng",
     "replace_warning_title": "Cảnh báo: Chế độ Thay thế",
-    "confirm_replace": "Đồng ý thay thế"
+    "confirm_replace": "Đồng ý thay thế",
+    "chats": "Trò chuyện",
+    "chat_data": "Dữ liệu trò chuyện",
+    "chat_data_note": "Các cuộc trò chuyện có trong bản sao lưu cục bộ và được đồng bộ bởi Cloud sync. Nội dung trang sẽ được lấy lại khi bạn tiếp tục trò chuyện trên thiết bị khác.",
+    "clear_chat": "Xóa dữ liệu trò chuyện",
+    "clear_chat_confirm": "Xóa tất cả cuộc trò chuyện và nguồn đã thu thập? Dữ liệu tóm tắt và lịch sử không bị ảnh hưởng. Nếu bật Cloud sync, các cuộc trò chuyện cũng bị xóa trên các thiết bị khác."
   },
   "cloudSync": {
     "title": "Đồng bộ Cloud",
@@ -746,5 +873,8 @@
       "description": "Sử dụng Summarizerrrr với Safari trên iPhone & iPad.",
       "cta_label": "Tải ngay"
     }
+  },
+  "fab": {
+    "hide_on_site": "Ẩn trên trang này"
   }
 }

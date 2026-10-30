@@ -1,5 +1,6 @@
 <script>
   // @ts-nocheck
+  import { _ } from 'svelte-i18n'
   import Icon from '@iconify/svelte'
   import { Tooltip as BitsTooltip } from 'bits-ui'
   import Tooltip from '@/components/ui/Tooltip.svelte'
@@ -56,7 +57,9 @@
          parent happens to mount it. Nested providers are fine. -->
     <BitsTooltip.Provider>
       <Tooltip
-        content={entry.isGenerating ? 'Generating…' : 'Deep Dive'}
+        content={entry.isGenerating
+          ? $_('chat.deep_dive.generating', { default: 'Generating…' })
+          : $_('chat.deep_dive.title', { default: 'Deep Dive' })}
         side="top"
         delayDuration={300}
       >
@@ -70,8 +73,8 @@
             disabled={entry.isGenerating}
             onclick={generate}
             aria-label={entry.isGenerating
-              ? 'Generating Deep Dive questions'
-              : 'Deep Dive'}
+              ? $_('chat.deep_dive.generating_aria', { default: 'Generating Deep Dive questions' })
+              : $_('chat.deep_dive.title', { default: 'Deep Dive' })}
           >
             <Icon
               icon={entry.isGenerating ? 'heroicons:arrow-path' : 'octicon:sparkle-fill-16'}
@@ -100,7 +103,7 @@
             <div class="flex items-center gap-1.5">
               <Icon icon="octicon:sparkle-fill-16" width="12" height="12" class="text-primary" />
               <p class="font-mono text-[0.65rem] uppercase tracking-wider text-muted">
-                Deep Dive
+                {$_('chat.deep_dive.title', { default: 'Deep Dive' })}
               </p>
             </div>
             <button
@@ -108,8 +111,10 @@
               class="deep-dive-reload"
               disabled={entry.isGenerating}
               onclick={generate}
-              title={entry.isGenerating ? 'Generating…' : 'Generate new questions'}
-              aria-label="Generate new questions"
+              title={entry.isGenerating
+                ? $_('chat.deep_dive.generating', { default: 'Generating…' })
+                : $_('chat.deep_dive.regenerate', { default: 'Generate new questions' })}
+              aria-label={$_('chat.deep_dive.regenerate', { default: 'Generate new questions' })}
             >
               <Icon
                 icon="heroicons:arrow-path"

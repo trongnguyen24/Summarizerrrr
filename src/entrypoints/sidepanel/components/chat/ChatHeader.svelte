@@ -1,5 +1,6 @@
 <script>
   // @ts-nocheck
+  import { _ } from 'svelte-i18n'
   import ConversationMenu from '@/entrypoints/sidepanel/components/chat/ConversationMenu.svelte'
   import Icon from '@iconify/svelte'
   import { tabTitle } from '@/stores/tabTitleStore.svelte.js'
@@ -30,7 +31,7 @@
 
   <button
     class="p-1.5 text-text-secondary hover:text-text-primary"
-    aria-label="New chat"
+    aria-label={$_('chat.header.new_chat', { default: 'New chat' })}
     onclick={handleNewChat}
   >
     <Icon icon="heroicons:plus" width="20" height="20" />

@@ -1,5 +1,6 @@
 <script>
   // @ts-nocheck
+  import { _ } from 'svelte-i18n'
   import Icon from '@iconify/svelte'
 
   let { skill, onClear = null } = $props()
@@ -16,7 +17,7 @@
       <button
         type="button"
         class="shrink-0 text-muted transition-colors hover:text-text-primary"
-        aria-label="Clear selected skill"
+        aria-label={$_('chat.skill_chip.clear', { default: 'Clear selected skill' })}
         onclick={onClear}
       >
         <Icon icon="tabler:x" width="12" height="12" />

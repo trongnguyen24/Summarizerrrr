@@ -662,7 +662,7 @@
   }
 
   async function clearChatOnly() {
-    if (!confirm('Clear all conversations and captured chat sources? Summary and history data will not be affected. If Cloud sync is on, chats are also removed from your other devices.')) return
+    if (!confirm($t('exportImport.clear_chat_confirm', { default: 'Clear all conversations and captured chat sources? Summary and history data will not be affected. If Cloud sync is on, chats are also removed from your other devices.' }))) return
     await softDeleteAllConversations()
     try {
       const { triggerSync } = await import('@/services/cloudSync/cloudSyncService.svelte.js')
@@ -911,7 +911,7 @@
             </div>
           </div>
           <div class="flex justify-between">
-            <div class="text-text-secondary text-xs">Chats</div>
+            <div class="text-text-secondary text-xs">{$t('exportImport.chats', { default: 'Chats' })}</div>
             <div class="text-text-primary font-medium">{dataCounts.isLoading ? '...' : dataCounts.conversations}</div>
           </div>
           <div class="flex justify-between">
@@ -993,9 +993,9 @@
         </div>
       </div>
       <div class="flex flex-col gap-2 pb-4">
-        <div class="block text-text-secondary">Chat data</div>
-        <p class="text-xs text-text-muted">Conversations are included in local backups and synced by Cloud sync. Page content is re-captured when you continue a chat on another device.</p>
-        <button onclick={clearChatOnly} disabled={dataCounts.conversations === 0} class="text-left text-xs text-error disabled:opacity-50">Clear chat data</button>
+        <div class="block text-text-secondary">{$t('exportImport.chat_data', { default: 'Chat data' })}</div>
+        <p class="text-xs text-text-muted">{$t('exportImport.chat_data_note', { default: 'Conversations are included in local backups and synced by Cloud sync. Page content is re-captured when you continue a chat on another device.' })}</p>
+        <button onclick={clearChatOnly} disabled={dataCounts.conversations === 0} class="text-left text-xs text-error disabled:opacity-50">{$t('exportImport.clear_chat', { default: 'Clear chat data' })}</button>
       </div>
       <div class="flex flex-col gap-2 pb-4">
         <!-- svelte-ignore a11y_label_has_associated_control -->

@@ -1,5 +1,6 @@
 <script>
   // @ts-nocheck
+  import { t } from 'svelte-i18n'
   import TextScramble from '@/lib/utils/textScramble.js'
   import EditorActionBar from '@/entrypoints/prompt/components/EditorActionBar.svelte'
 
@@ -9,6 +10,17 @@
   const fieldClass =
     'relative z-10 bg-white dark:bg-surface-1 border border-border w-full p-2 rounded-lg outline-0 shadow-[0_0_0_0_var(--color-border)] focus:shadow-[0_0_0_3px_var(--color-border)] transition-shadow focus:border-muted/60 text-text-primary font-mono'
 
+  // skillService validates in English; map its known messages to locale keys.
+  const ERROR_KEYS = {
+    'A skill name is required.': 'customize.skills.error_name_required',
+    'An instruction is required.': 'customize.skills.error_instruction_required',
+  }
+
+  function errorLabel(error) {
+    const key = ERROR_KEYS[error]
+    return key ? $t(key, { default: error }) : error
+  }
+
   // Scramble the skill title like the prompt editor.
   let titleEl = $state(null)
   let ts = null
@@ -16,7 +28,7 @@
     const name = editor.draft?.name
     if (!titleEl) return
     if (!ts) ts = new TextScramble(titleEl)
-    ts.setText(name || 'New skill')
+    ts.setText(name || $t('customize.skills.new', { default: 'New skill' }))
   })
 </script>
 
@@ -26,14 +38,14 @@
   {#if editor.draft}
     <div class="flex items-center justify-between gap-4">
       <h2 class="text-lg font-bold" bind:this={titleEl}>
-        {editor.draft.name || 'New skill'}
+        {editor.draft.name || $t('customize.skills.new', { default: 'New skill' })}
       </h2>
       <div class="flex shrink-0 items-center gap-4">
         <label
           class="flex items-center gap-2 text-text-secondary cursor-pointer select-none"
         >
           <input type="checkbox" bind:checked={editor.draft.pinned} />
-          Pin
+          {$t('customize.skills.pin', { default: 'Pin' })}
         </label>
       </div>
     </div>
@@ -42,7 +54,7 @@
       <p
         class="rounded-lg bg-error/10 border border-error/20 px-3 py-2 text-error"
       >
-        {error}
+        {errorLabel(error)}
       </p>
     {/each}
 
@@ -50,7 +62,7 @@
       <label
         for="skill-name"
         class="text-text-secondary bg-blackwhite/5 rounded-t-lg top-0 px-2 pt-1 pb-5 absolute w-fit"
-        >Name</label
+        >{$t('customize.skills.name', { default: 'Name' })}</label
       >
       <input
         id="skill-name"
@@ -65,12 +77,12 @@
       <label
         for="skill-instruction"
         class="text-text-secondary bg-blackwhite/5 rounded-t-lg top-0 px-2 pt-1 pb-5 absolute w-fit"
-        >One-shot instruction</label
+        >{$t('customize.skills.instruction', { default: 'One-shot instruction' })}</label
       >
       <div
         class="text-text-secondary absolute top-0 right-0 max-w-[55%] truncate"
       >
-        Applied to a single turn only
+        {$t('customize.skills.instruction_hint', { default: 'Applied to a single turn only' })}
       </div>
       <textarea
         id="skill-instruction"
@@ -94,7 +106,7 @@
             <div
               class="font-medium py-2 px-4 border transition-colors duration-200 bg-surface-2 group-hover:bg-surface-2/95 text-text-secondary border-border hover:border-gray-500/50 hover:text-text-primary dark:hover:text-white"
             >
-              Reset built-in
+              {$t('customize.skills.reset', { default: 'Reset built-in' })}
             </div>
             <span
               class="size-4 absolute z-10 -left-2 -bottom-2 border bg-white dark:bg-surface-1 rotate-45 transition-colors duration-200 border-border group-hover:border-gray-500"
@@ -108,7 +120,7 @@
             <div
               class="font-medium py-2 px-4 border transition-colors duration-200 bg-white dark:bg-surface-1 text-error/90 border-error/30 hover:border-error/60 hover:text-error"
             >
-              Delete
+              {$t('customize.skills.delete', { default: 'Delete' })}
             </div>
             <span
               class="size-4 absolute z-10 -left-2 -bottom-2 border bg-white dark:bg-surface-1 rotate-45 transition-colors duration-200 border-error/30 group-hover:border-error/60"
@@ -119,7 +131,7 @@
     </EditorActionBar>
   {:else}
     <p class="text-text-secondary">
-      Select a skill from the menu on the left, or create a new one.
+      {$t('customize.skills.select_prompt', { default: 'Select a skill from the menu on the left, or create a new one.' })}
     </p>
   {/if}
 </div>

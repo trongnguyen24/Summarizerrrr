@@ -1,5 +1,6 @@
 <script>
   // @ts-nocheck
+  import { _ } from 'svelte-i18n'
   import Icon from '@iconify/svelte'
   import ChatSourceIcon from '@/components/chat/ChatSourceIcon.svelte'
   import { formatK } from '@/lib/utils/formatTokens.js'
@@ -112,7 +113,7 @@
       if (source === committedCurrent) continue
       list.push({
         key: `committed-${source.sourceId}`,
-        title: source.title || 'Context source',
+        title: source.title || $_('chat.context_bar.source_fallback', { default: 'Context source' }),
         favIconUrl: source.favIconUrl ?? null,
         kind: source.sourceKind,
         tokens:
@@ -129,7 +130,7 @@
       if (att.sourceId && committedIds.has(att.sourceId)) continue
       list.push({
         key: `${att.tabId}-${att.sourceKind || 'auto'}`,
-        title: att.title || att.hostname || 'Attached tab',
+        title: att.title || att.hostname || $_('chat.context_bar.attached_fallback', { default: 'Attached tab' }),
         favIconUrl: att.favIconUrl ?? null,
         kind: att.sourceKind,
         tokens: att.estimatedTokens,
@@ -231,7 +232,7 @@
             {#if source.locked}
               <span
                 class="shrink-0 text-text-tertiary"
-                title="Already included in AI context"
+                title={$_('chat.context_bar.locked', { default: 'Already included in AI context' })}
                 data-testid="context-source-locked"
               >
                 <Icon
@@ -289,13 +290,13 @@
             class="shrink-0 tabular-nums text-text-tertiary"
             data-testid="context-bar-tokens"
           >
-            ~{formatK(sources[0].tokens)} tokens
+            {$_('chat.context_bar.tokens', { values: { count: formatK(sources[0].tokens) }, default: '~{count} tokens' })}
           </span>
         {/if}
         {#if sources[0].locked}
           <span
             class="shrink-0 text-text-tertiary"
-            title="Already included in AI context"
+            title={$_('chat.context_bar.locked', { default: 'Already included in AI context' })}
             data-testid="context-source-locked"
           >
             <Icon icon="heroicons:lock-closed-solid" width="12" height="12" />
@@ -351,7 +352,7 @@
             class="shrink-0 text-text-tertiary"
             data-testid="context-bar-tab-count"
           >
-            + {addedCount} tab{addedCount !== 1 ? 's' : ''}
+            {$_('chat.context_bar.added_tabs', { values: { count: addedCount }, default: `+ ${addedCount} tab${addedCount !== 1 ? 's' : ''}` })}
           </span>
         {/if}
 
@@ -362,7 +363,7 @@
             class="shrink-0 tabular-nums text-text-tertiary"
             data-testid="context-bar-tokens"
           >
-            ~{formatK(knownTokens)} tokens
+            {$_('chat.context_bar.tokens', { values: { count: formatK(knownTokens) }, default: '~{count} tokens' })}
           </span>
         {/if}
 

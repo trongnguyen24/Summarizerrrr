@@ -1,5 +1,6 @@
 <script>
   // @ts-nocheck
+  import { _ } from 'svelte-i18n'
   import Icon from '@iconify/svelte'
   import { skillService } from '@/lib/chat/skills/skillService.js'
   import { settings } from '@/stores/settingsStore.svelte.js'
@@ -27,7 +28,7 @@
     <div
       class="flex flex-wrap flex-col items-center justify-center gap-3"
       role="group"
-      aria-label="Suggested skills"
+      aria-label={$_('chat.empty_state.suggested_skills', { default: 'Suggested skills' })}
     >
       {#each pinnedSkills as skill (skill.id)}
         <button

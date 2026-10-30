@@ -381,7 +381,8 @@
               oniniterror={handleInitError}
               onsubmit={handleSubmit}
               disabled={chatState.queuedSend || chatState.readOnly}
-              placeholder="Ask a question"
+              placeholder={$t('chat.composer.placeholder', { default: 'Ask a question' })}
+              aria-label={$t('chat.composer.aria_label', { default: 'Chat message' })}
             />
           {/key}
         {:else}
@@ -401,7 +402,8 @@
             oninput={handleComposerInput}
             onkeydown={handleKeydown}
             disabled={chatState.queuedSend || chatState.readOnly}
-            placeholder="Describe a task or ask a question"
+            placeholder={$t('chat.composer.placeholder_plain', { default: 'Describe a task or ask a question' })}
+            aria-label={$t('chat.composer.aria_label', { default: 'Chat message' })}
           />
         {/if}
 
@@ -413,11 +415,11 @@
               <span
                 class="flex min-w-0 items-center gap-1 text-xs text-text-secondary"
               >
-                <span class="truncate">Queued</span>
+                <span class="truncate">{$t('chat.composer.queued', { default: 'Queued' })}</span>
                 <button
                   type="button"
                   class="shrink-0 text-muted transition-colors hover:text-text-primary"
-                  aria-label="Cancel queued message"
+                  aria-label={$t('chat.composer.cancel_queued', { default: 'Cancel queued message' })}
                   onclick={() => (chatState.queuedSend = false)}
                 >
                   <Icon icon="tabler:x" width="12" height="12" />
@@ -432,8 +434,8 @@
                 : 'scale-85!  text-muted cursor-not-allowed'}"
               disabled={!chatState.isSending && !canSendChat()}
               aria-label={chatState.isSending
-                ? 'Stop generating'
-                : 'Send message'}
+                ? $t('chat.composer.stop', { default: 'Stop generating' })
+                : $t('chat.composer.send', { default: 'Send message' })}
               onclick={handleButtonClick}
             >
               <!-- Both states are absolutely centred so the icons cross-fade in

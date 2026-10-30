@@ -1,5 +1,6 @@
 <script>
   // @ts-nocheck
+  import { t } from 'svelte-i18n'
   import Icon from '@iconify/svelte'
   import 'overlayscrollbars/overlayscrollbars.css'
   import { animate, stagger, onScroll } from 'animejs'
@@ -379,7 +380,7 @@
         class="flex flex-col items-end gap-2 py-2 px-4 transition-all {isTouchDevice()
           ? ''
           : 'group-hover:opacity-0'}"
-        aria-label="Table of contents"
+        aria-label={$t('archive.toc.aria_label', { default: 'Table of contents' })}
         aria-expanded={isNavOpen}
         onclick={() => {
           if (isTouchDevice()) {
@@ -551,7 +552,7 @@
           {#if isDesktop}
             <button
               class="px-3 flex-1 border-border border-r flex justify-center items-center py-3 font-mono text-xs/4 transition-colors"
-              title="Switch to sidebar TOC"
+              title={$t('archive.toc.switch_sidebar', { default: 'Switch to sidebar TOC' })}
               onclick={toggleTocMode}
             >
               <Icon icon="carbon:maximize" width="16" height="16" />
@@ -560,7 +561,7 @@
           <a
             href="#footer"
             class="px-3 flex-1 border-border border-r flex justify-center items-center py-3 font-mono text-xs/4 no-underline transition-colors"
-            title="Go to bottom"
+            title={$t('archive.toc.go_bottom', { default: 'Go to bottom' })}
             onclick={() => {
               if (isTouchDevice()) {
                 isNavOpen = false
@@ -570,7 +571,7 @@
           <a
             href="#top"
             class="px-3 flex-1 flex justify-center items-center py-3 font-mono text-xs/4 no-underline transition-colors"
-            title="Go to top"
+            title={$t('archive.toc.go_top', { default: 'Go to top' })}
             onclick={() => {
               if (isTouchDevice()) {
                 isNavOpen = false
@@ -607,7 +608,7 @@
           {canGoPrev
         ? 'text-text-secondary hover:text-text-primary hover:bg-surface-1'
         : 'text-muted/50  cursor-not-allowed'}"
-      title="Previous item (←)"
+      title="{$t('archive.toc.previous', { default: 'Previous item' })} (←)"
     >
       <Icon icon="carbon:chevron-left" width="24" height="24" />
     </button>
@@ -618,7 +619,7 @@
           {canGoNext
         ? 'text-text-secondary hover:text-text-primary hover:bg-surface-1'
         : 'text-muted/50 cursor-not-allowed'}"
-      title="Next item (→)"
+      title="{$t('archive.toc.next', { default: 'Next item' })} (→)"
     >
       <Icon icon="carbon:chevron-right" width="24" height="24" />
     </button>

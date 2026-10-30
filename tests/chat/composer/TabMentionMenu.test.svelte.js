@@ -14,6 +14,8 @@ vi.mock('@/services/chat/tabMentionService.js', () => ({
 
 import TabMentionMenu from '../../../src/components/chat/TabMentionMenu.svelte'
 
+vi.mock('svelte-i18n', () => import('../../stubs/svelteI18nStub.js'))
+
 HTMLElement.prototype.scrollIntoView ||= vi.fn()
 
 describe('TabMentionMenu', () => {

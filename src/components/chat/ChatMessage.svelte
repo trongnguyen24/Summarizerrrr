@@ -173,14 +173,14 @@
           {#if hasSiblings}
             <div class="flex items-center gap-1 select-none text-xs text-text-secondary">
               {@render actionBtn(
-                'Previous branch',
+                $_('chat.message.previous_branch', { default: 'Previous branch' }),
                 'heroicons:chevron-left',
                 () => switchBranch(siblings[(siblingIndex - 1 + siblings.length) % siblings.length].id),
                 BTN_NAV,
               )}
               <span>{siblingIndex + 1}/{siblings.length}</span>
               {@render actionBtn(
-                'Next branch',
+                $_('chat.message.next_branch', { default: 'Next branch' }),
                 'heroicons:chevron-right',
                 () => switchBranch(siblings[(siblingIndex + 1) % siblings.length].id),
                 BTN_NAV,
@@ -188,10 +188,10 @@
             </div>
           {/if}
           {#if !readOnly}
-            {@render actionBtn('Edit message', 'tabler:pencil', startEditing, BTN_USER)}
+            {@render actionBtn($_('chat.message.edit', { default: 'Edit message' }), 'tabler:pencil', startEditing, BTN_USER)}
           {/if}
           {@render actionBtn(
-            'Copy message',
+            $_('chat.message.copy_message', { default: 'Copy message' }),
             'heroicons:square-2-stack',
             copyContent,
             BTN_USER,
@@ -223,7 +223,7 @@
     {#if isAborted}
       <div class="flex items-center gap-1 text-xs text-text-secondary">
         <Icon icon="heroicons:stop-solid" width="12" height="12" />
-        <span>Stopped</span>
+        <span>{$_('chat.message.stopped', { default: 'Stopped' })}</span>
       </div>
     {:else if isError}
       <div class="flex w-full items-start gap-1.5 text-xs text-error">
@@ -260,14 +260,14 @@
           {#if hasSiblings}
             <div class="flex items-center gap-1 select-none text-xs text-text-secondary">
               {@render actionBtn(
-                'Previous branch',
+                $_('chat.message.previous_branch', { default: 'Previous branch' }),
                 'heroicons:chevron-left',
                 () => switchBranch(siblings[(siblingIndex - 1 + siblings.length) % siblings.length].id),
                 BTN_NAV,
               )}
               <span>{siblingIndex + 1}/{siblings.length}</span>
               {@render actionBtn(
-                'Next branch',
+                $_('chat.message.next_branch', { default: 'Next branch' }),
                 'heroicons:chevron-right',
                 () => switchBranch(siblings[(siblingIndex + 1) % siblings.length].id),
                 BTN_NAV,
@@ -276,7 +276,7 @@
           {/if}
 
           {@render actionBtn(
-            'Copy response',
+            $_('chat.message.copy_response', { default: 'Copy response' }),
             'heroicons:square-2-stack',
             copyContent,
             BTN,
@@ -285,14 +285,14 @@
           {#if !readOnly}
             {#if message.status === 'complete'}
               {@render actionBtn(
-                'Regenerate response',
+                $_('chat.message.regenerate', { default: 'Regenerate response' }),
                 'heroicons:arrow-path',
                 () => regenerateChatMessage(message.id),
                 BTN,
               )}
             {:else if canContinue}
               {@render actionBtn(
-                'Continue response',
+                $_('chat.message.continue', { default: 'Continue response' }),
                 'heroicons:play',
                 () => continueChatMessage(message.id),
                 BTN,
@@ -302,7 +302,7 @@
 
           {#if onRetry && retryTargetId && isError}
             {@render actionBtn(
-              'Retry this message',
+              $_('chat.message.retry', { default: 'Retry this message' }),
               'heroicons:arrow-path',
               () => onRetry(retryTargetId),
               BTN,

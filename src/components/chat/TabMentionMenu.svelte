@@ -1,7 +1,24 @@
 <script>
   // @ts-nocheck
+  import { _ } from 'svelte-i18n'
   import ChatSourceIcon from '@/components/chat/ChatSourceIcon.svelte'
   import { tabMentionService } from '@/services/chat/tabMentionService.js'
+
+  // tabMentionService reports reasons as English sentences; map the known ones
+  // to locale keys and let anything else through unchanged.
+  const DISABLED_REASON_KEYS = {
+    'Browser, extension, store, and local pages cannot be attached.':
+      'chat.tab_mention.reason_unsupported',
+    'PDF and viewer pages cannot be attached.': 'chat.tab_mention.reason_pdf',
+    'Comments already attached for this video.':
+      'chat.tab_mention.reason_comments_attached',
+  }
+
+  function disabledReasonLabel(reason) {
+    if (!reason) return reason
+    const key = DISABLED_REASON_KEYS[reason]
+    return key ? $_(key, { default: reason }) : reason
+  }
   let { open = false, query = '', attachments = [], onSelect = null, onClose = null } = $props()
   let entries = $state([])
   let error = $state('')
@@ -67,7 +84,7 @@
   }
 </script>
 {#if open}
-  <div role="listbox" aria-label="Matching sources" class="absolute bottom-full left-3 right-3 mb-2 max-h-56 overflow-y-auto rounded-lg border border-border bg-surface-1 p-1 shadow-xl z-30">
+  <div role="listbox" aria-label={$_('chat.tab_mention.aria_label', { default: 'Matching sources' })} class="absolute bottom-full left-3 right-3 mb-2 max-h-56 overflow-y-auto rounded-lg border border-border bg-surface-1 p-1 shadow-xl z-30">
     {#if error}<p class="p-2 text-xs text-error">{error}</p>{/if}
     {#each entries as entry, i (entry.id)}
       <button
@@ -76,7 +93,7 @@
         aria-selected={i === selectedIndex}
         class="flex w-full items-center gap-2 rounded p-2 text-left text-sm hover:bg-surface-2 disabled:opacity-50 {i === selectedIndex ? 'bg-surface-2 ring-1 ring-border' : ''}"
         disabled={!!entry.disabledReason}
-        title={entry.disabledReason || entry.url}
+        title={disabledReasonLabel(entry.disabledReason) || entry.url}
         onclick={() => select(entry)}
       >
         <ChatSourceIcon
@@ -92,7 +109,7 @@
         </span>
       </button>
     {:else}
-      <p class="p-2 text-xs text-text-secondary">No matching tabs.</p>
+      <p class="p-2 text-xs text-text-secondary">{$_('chat.tab_mention.no_results', { default: 'No matching tabs.' })}</p>
     {/each}
   </div>
 {/if}

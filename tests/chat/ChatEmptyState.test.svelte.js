@@ -3,6 +3,8 @@ import { describe, expect, it, vi } from 'vitest'
 import { flushSync, mount } from 'svelte'
 import ChatEmptyState from '../../src/components/chat/ChatEmptyState.svelte'
 
+vi.mock('svelte-i18n', () => import('../stubs/svelteI18nStub.js'))
+
 // `pinned` decides what the empty chat screen offers, so the store only needs
 // to supply the user-skill overrides the service merges over the built-ins.
 vi.mock('@/stores/settingsStore.svelte.js', () => ({

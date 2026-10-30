@@ -1,5 +1,6 @@
 <script>
   // @ts-nocheck
+  import { _ } from 'svelte-i18n'
   import Icon from '@iconify/svelte'
 
   let {
@@ -79,7 +80,7 @@
 {#if open}
   <div
     role="listbox"
-    aria-label="Matching skills"
+    aria-label={$_('chat.skill_picker.aria_label', { default: 'Matching skills' })}
     class="absolute bottom-full left-3 right-3 z-30 mb-2 max-h-56 overflow-y-auto rounded-lg border border-border bg-surface-1 p-1 shadow-xl"
   >
     {#each matchingSkills as skill, i (skill.id)}
@@ -95,7 +96,7 @@
         <span class="min-w-0 flex-1 truncate font-medium">{skill.name}</span>
       </button>
     {:else}
-      <p class="p-2 text-xs text-text-secondary">No matching skills.</p>
+      <p class="p-2 text-xs text-text-secondary">{$_('chat.skill_picker.no_results', { default: 'No matching skills.' })}</p>
     {/each}
   </div>
 {/if}

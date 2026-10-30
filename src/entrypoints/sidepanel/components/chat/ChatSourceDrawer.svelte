@@ -1,5 +1,6 @@
 <script>
   // @ts-nocheck
+  import { _ } from 'svelte-i18n'
   import Icon from '@iconify/svelte'
   import { conversationRepository } from '@/lib/db/conversationRepository.js'
 
@@ -26,7 +27,7 @@
           return {
             sourceId: ref.sourceId,
             contentKind: ref.contentKind || 'condensed',
-            title: source?.title || source?.normalizedUrl || 'Unknown source',
+            title: source?.title || source?.normalizedUrl || $_('chat.source_drawer.unknown', { default: 'Unknown source' }),
             url: source?.url || source?.normalizedUrl || null,
             sourceType: source?.sourceType || null,
           }
@@ -37,7 +38,7 @@
         resolvedSources = refs.map((ref) => ({
           sourceId: ref.sourceId,
           contentKind: ref.contentKind || 'condensed',
-          title: 'Unknown source',
+          title: $_('chat.source_drawer.unknown', { default: 'Unknown source' }),
           url: null,
           sourceType: null,
         }))
@@ -79,5 +80,5 @@
     {/each}
   </div>
 {:else if open && isLoading}
-  <div class="mt-1 text-xs text-text-secondary/60">Loading sources…</div>
+  <div class="mt-1 text-xs text-text-secondary/60">{$_('chat.source_drawer.loading', { default: 'Loading sources…' })}</div>
 {/if}

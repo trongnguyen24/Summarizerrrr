@@ -1,5 +1,6 @@
 <script>
   // @ts-nocheck
+  import { t } from 'svelte-i18n'
   import Icon from '@iconify/svelte'
   import CustomizeListRow from '@/entrypoints/prompt/components/CustomizeListRow.svelte'
 
@@ -20,7 +21,7 @@
   onclick={() => onCreate?.()}
 >
   <Icon icon="heroicons:plus" width="16" height="16" />
-  <span>New skill</span>
+  <span>{$t('customize.skills.new', { default: 'New skill' })}</span>
 </button>
 
 <!-- Built-in Section -->
@@ -28,7 +29,7 @@
   <h3
     class="text-xs uppercase tracking-wider text-muted/70 px-2.5 py-1 font-semibold"
   >
-    Built-in
+    {$t('customize.skills.built_in', { default: 'Built-in' })}
   </h3>
   {#each builtIns as skill (skill.id)}
     <CustomizeListRow
@@ -44,7 +45,7 @@
   <h3
     class="text-xs uppercase tracking-wider text-muted/70 px-2.5 py-1 font-semibold"
   >
-    User skills
+    {$t('customize.skills.user_skills', { default: 'User skills' })}
   </h3>
   {#each userSkills as skill (skill.id)}
     <CustomizeListRow
@@ -53,6 +54,6 @@
       onSelect={() => onSelect?.(skill.id)}
     />
   {:else}
-    <p class="px-2.5 py-2 text-xs text-muted/70">No custom skills yet.</p>
+    <p class="px-2.5 py-2 text-xs text-muted/70">{$t('customize.skills.empty', { default: 'No custom skills yet.' })}</p>
   {/each}
 </div>

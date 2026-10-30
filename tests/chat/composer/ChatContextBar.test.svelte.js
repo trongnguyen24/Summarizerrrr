@@ -3,6 +3,8 @@ import { describe, expect, it, vi } from 'vitest'
 import { flushSync, mount } from 'svelte'
 import ChatContextBar from '../../../src/components/chat/ChatContextBar.svelte'
 
+vi.mock('svelte-i18n', () => import('../../stubs/svelteI18nStub.js'))
+
 // Mock the slideScaleFade transition to avoid animation issues in tests
 vi.mock('@/lib/utils/slideScaleFade.js', () => ({
   slideScaleFade: () => ({ delay: 0, duration: 0, css: () => '' }),

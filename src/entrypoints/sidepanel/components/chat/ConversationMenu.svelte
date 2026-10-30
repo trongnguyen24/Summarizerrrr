@@ -35,7 +35,7 @@
     {#snippet child({ props })}
       <button
         class="p-1.5 hover:text-text-primary relative text-text-secondary"
-        aria-label="Conversation menu"
+        aria-label={$t('chat.menu.aria_label', { default: 'Conversation menu' })}
         {...props}
       >
         <Icon icon="tabler:dots-vertical" width="20" height="20" />
@@ -53,7 +53,7 @@
         <div
           class="px-4 pt-4 pb-1 text-[0.7rem] uppercase tracking-wide text-text-secondary"
         >
-          Recent conversations
+          {$t('chat.menu.recent', { default: 'Recent conversations' })}
         </div>
         <div class="relative">
           <div
@@ -89,7 +89,7 @@
         onSelect={() => onOpenHistory?.()}
       >
         <Icon icon="solar:history-linear" width="20" height="20" />
-        <span>History</span>
+        <span>{$t('chat.menu.history', { default: 'History' })}</span>
       </DropdownMenu.Item>
 
       <DropdownMenu.Item
@@ -97,7 +97,7 @@
         onSelect={() => onOpenSettings?.()}
       >
         <Icon icon="heroicons:cog-6-tooth" width="20" height="20" />
-        <span>Settings</span>
+        <span>{$t('chat.menu.settings', { default: 'Settings' })}</span>
       </DropdownMenu.Item>
 
       <div class="border-t border-border my-1"></div>

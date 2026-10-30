@@ -1,5 +1,6 @@
 <script>
   // @ts-nocheck
+  import { _ } from 'svelte-i18n'
   import { onMount, onDestroy } from 'svelte'
   import { Editor } from '@tiptap/core'
   import { getEditorExtensions } from '@/lib/chat/composer/editorExtensions.js'
@@ -22,7 +23,7 @@
       editor = new Editor({
         element: editorContainer,
         extensions: [
-          ...getEditorExtensions({ placeholder: 'Edit your message...' }),
+          ...getEditorExtensions({ placeholder: $_('chat.editor.placeholder', { default: 'Edit your message...' }) }),
           Markdown
         ],
         content: value,
@@ -36,7 +37,7 @@
             class: 'thin-scroll w-full pr-3.5 text-sm text-text-primary focus:outline-0 focus-visible:outline-0 focus:ring-0 resize-none min-h-[60px] max-h-[200px] overflow-y-auto',
             role: 'textbox',
             'aria-multiline': 'true',
-            'aria-label': 'Edit message'
+            'aria-label': $_('chat.editor.aria_label', { default: 'Edit message' })
           },
           handleKeyDown(view, event) {
             if (!editor) return false
@@ -111,7 +112,7 @@
           oncancel?.()
         }
       }}
-      placeholder="Edit your message..."
+      placeholder={$_('chat.editor.placeholder', { default: 'Edit your message...' })}
     ></textarea>
     <div class="flex justify-end gap-2 border-t border-border/30 pt-1.5">
       <button
@@ -119,14 +120,14 @@
         class="rounded-md px-3 py-1 text-xs text-text-secondary hover:bg-blackwhite-5 transition-colors"
         onclick={oncancel}
       >
-        Cancel
+        {$_('chat.editor.cancel', { default: 'Cancel' })}
       </button>
       <button
         type="button"
         class="rounded-md bg-accent px-3 py-1 text-xs text-white hover:bg-accent/80 transition-colors"
         onclick={handleSave}
       >
-        Save & Submit
+        {$_('chat.editor.save', { default: 'Save & Submit' })}
       </button>
     </div>
   </div>
@@ -139,14 +140,14 @@
         class="rounded-md px-3 py-1 text-xs text-text-secondary hover:bg-blackwhite-5 transition-colors"
         onclick={oncancel}
       >
-        Cancel
+        {$_('chat.editor.cancel', { default: 'Cancel' })}
       </button>
       <button
         type="button"
         class="rounded-md bg-accent px-3 py-1 text-xs text-white hover:bg-accent/80 transition-colors"
         onclick={handleSave}
       >
-        Save & Submit
+        {$_('chat.editor.save', { default: 'Save & Submit' })}
       </button>
     </div>
   </div>

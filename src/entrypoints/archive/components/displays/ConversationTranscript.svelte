@@ -1,5 +1,6 @@
 <script>
   // @ts-nocheck
+  import { t } from 'svelte-i18n'
   import { tick, untrack } from 'svelte'
   import Icon from '@iconify/svelte'
   import ChatShell from '@/components/chat/ChatShell.svelte'
@@ -185,7 +186,7 @@
             <h1
               class="mx-auto font-noto-serif my-0 p-0 text-blackwhite text-balance text-center font-serif leading-[1.2] cursor-text hover:text-primary transition-colors"
               onclick={() => (editing = true)}
-              title="Click to rename"
+              title={$t('archive.conversation.rename', { default: 'Click to rename' })}
             >
               {conversation.title}
             </h1>
@@ -221,7 +222,9 @@
 
           <button
             class="p-1.5 size-8 relative hover:bg-blackwhite/10 rounded-4xl transition-all duration-200 flex items-center justify-center"
-            title={conversation.archived ? 'Unarchive' : 'Archive'}
+            title={conversation.archived
+              ? $t('archive.conversation.unarchive', { default: 'Unarchive' })
+              : $t('archive.conversation.archive', { default: 'Archive' })}
             onclick={() =>
               update(() =>
                 setArchivedConversationState(
@@ -240,21 +243,21 @@
           </button>
           <button
             class="p-1.5 size-8 relative hover:bg-blackwhite/10 rounded-4xl transition-all duration-200 flex items-center justify-center"
-            title="Export Markdown"
+            title={$t('archive.conversation.export_markdown', { default: 'Export Markdown' })}
             onclick={() => exportArchivedConversation(conversation.id, 'markdown')}
           >
             <Icon icon="heroicons:document-text" width="20" height="20" />
           </button>
           <button
             class="p-1.5 size-8 relative hover:bg-blackwhite/10 rounded-4xl transition-all duration-200 flex items-center justify-center"
-            title="Export JSON"
+            title={$t('archive.conversation.export_json', { default: 'Export JSON' })}
             onclick={() => exportArchivedConversation(conversation.id, 'json')}
           >
             <Icon icon="heroicons:code-bracket" width="20" height="20" />
           </button>
           <button
             class="p-1.5 size-8 relative hover:bg-blackwhite/10 hover:text-error rounded-4xl transition-all duration-200 flex items-center justify-center"
-            title="Delete conversation"
+            title={$t('archive.conversation.delete', { default: 'Delete conversation' })}
             onclick={() => update(() => deleteArchivedConversation(conversation.id))}
           >
             <Icon icon="heroicons:trash" width="20" height="20" />
@@ -300,7 +303,7 @@
           />
         </g>
       </svg>
-      No conversation selected.
+      {$t('archive.conversation.none_selected', { default: 'No conversation selected.' })}
     </p>
   {/if}
 </div>

@@ -374,7 +374,16 @@
       "quick_models_hint": "Up to {max} models for fast switching in the composer.",
       "remove_quick_model": "Remove from quick models",
       "default_reasoning": "Default reasoning",
-      "default_reasoning_hint": "Seeds new tabs' reasoning selector. Per-tab overrides are independent."
+      "default_reasoning_hint": "Seeds new tabs' reasoning selector. Per-tab overrides are independent.",
+      "title": "Chat",
+      "tone": {
+        "none": "None",
+        "none_desc": "No tone instruction.",
+        "simple_desc": "Easy to understand, clear and direct. Everyday language and concrete examples.",
+        "expert_desc": "Professional, in-depth precision. Preserves technical terms and complexity.",
+        "witty_desc": "Sarcastic, witty, sharp humor. Attitude only — depth still scales to the content.",
+        "savage_desc": "Blunt, savage, aggressive humor. Attitude only — depth still scales to the content."
+      }
     }
   },
   "chat": {
@@ -424,6 +433,85 @@
       "manage_models": "Manage models...",
       "reasoning": "Reasoning",
       "warning_unresolvable": "Unknown profile"
+    },
+    "composer": {
+      "placeholder": "Ask a question",
+      "placeholder_plain": "Describe a task or ask a question",
+      "aria_label": "Chat message",
+      "queued": "Queued",
+      "cancel_queued": "Cancel queued message",
+      "stop": "Stop generating",
+      "send": "Send message"
+    },
+    "context_bar": {
+      "source_fallback": "Context source",
+      "attached_fallback": "Attached tab",
+      "locked": "Already included in AI context",
+      "tokens": "~{count} tokens",
+      "added_tabs": "+ {count, plural, one {# tab} other {# tabs}}"
+    },
+    "deep_dive": {
+      "title": "Deep Dive",
+      "generating": "Generating…",
+      "generating_aria": "Generating Deep Dive questions",
+      "regenerate": "Generate new questions"
+    },
+    "empty_state": {
+      "suggested_skills": "Suggested skills"
+    },
+    "message": {
+      "previous_branch": "Previous branch",
+      "next_branch": "Next branch",
+      "edit": "Edit message",
+      "copy_message": "Copy message",
+      "copy_response": "Copy response",
+      "regenerate": "Regenerate response",
+      "continue": "Continue response",
+      "retry": "Retry this message",
+      "stopped": "Stopped"
+    },
+    "editor": {
+      "placeholder": "Edit your message...",
+      "aria_label": "Edit message",
+      "cancel": "Cancel",
+      "save": "Save & Submit"
+    },
+    "skill_chip": {
+      "clear": "Clear selected skill"
+    },
+    "skill_picker": {
+      "aria_label": "Matching skills",
+      "no_results": "No matching skills."
+    },
+    "tab_mention": {
+      "aria_label": "Matching sources",
+      "no_results": "No matching tabs.",
+      "reason_unsupported": "Browser, extension, store, and local pages cannot be attached.",
+      "reason_pdf": "PDF and viewer pages cannot be attached.",
+      "reason_comments_attached": "Comments already attached for this video."
+    },
+    "header": {
+      "new_chat": "New chat"
+    },
+    "menu": {
+      "aria_label": "Conversation menu",
+      "recent": "Recent conversations",
+      "history": "History",
+      "settings": "Settings"
+    },
+    "source_drawer": {
+      "unknown": "Unknown source",
+      "loading": "Loading sources…"
+    },
+    "reasoning": {
+      "provider-default": "Auto",
+      "provider-default_desc": "Let the model decide",
+      "low": "Low",
+      "low_desc": "Faster, lower cost",
+      "medium": "Medium",
+      "medium_desc": "Balanced speed and depth",
+      "high": "High",
+      "high_desc": "Deeper reasoning, slower"
     }
   },
   "tab_navigation": {
@@ -436,6 +524,21 @@
     "tabs": {
       "prompts": "Prompts",
       "skills": "Skills"
+    },
+    "skills": {
+      "new": "New skill",
+      "built_in": "Built-in",
+      "user_skills": "User skills",
+      "empty": "No custom skills yet.",
+      "pin": "Pin",
+      "name": "Name",
+      "instruction": "One-shot instruction",
+      "instruction_hint": "Applied to a single turn only",
+      "reset": "Reset built-in",
+      "delete": "Delete",
+      "select_prompt": "Select a skill from the menu on the left, or create a new one.",
+      "error_name_required": "A skill name is required.",
+      "error_instruction_required": "An instruction is required."
     }
   },
   "prompts": {
@@ -479,7 +582,25 @@
     "toggle_width": "Toggle width",
     "search_placeholder": "Search title or URL",
     "search_clear": "Clear search",
-    "search_no_results": "No matching results"
+    "search_no_results": "No matching results",
+    "conversation": {
+      "rename": "Click to rename",
+      "archive": "Archive",
+      "unarchive": "Unarchive",
+      "export_markdown": "Export Markdown",
+      "export_json": "Export JSON",
+      "delete": "Delete conversation",
+      "none_selected": "No conversation selected."
+    },
+    "toc": {
+      "aria_label": "Table of contents",
+      "switch_sidebar": "Switch to sidebar TOC",
+      "switch_floating": "Switch to floating TOC",
+      "go_top": "Go to top",
+      "go_bottom": "Go to bottom",
+      "previous": "Previous item",
+      "next": "Next item"
+    }
   },
   "button": {
     "copy": "Copy to clipboard",
@@ -488,7 +609,8 @@
     "download": "Download as Markdown",
     "downloaded": "Downloaded!",
     "save_to_archive": "Save to archive",
-    "saved": "Saved!"
+    "saved": "Saved!",
+    "saving": "Saving…"
   },
   "welcome": {
     "choose_interface_language": "Welcome to Summarizerrrr!",
@@ -623,7 +745,12 @@
     "merge_mode_description": "• Imported data is combined with existing data<br />• Duplicates (same ID) will be updated<br />• Imported settings override existing settings",
     "replace_mode_description": "• Selected data types are completely deleted first<br />• Then replaced with imported data only<br />• Unselected data types are not affected",
     "replace_warning_title": "Warning: Replace Mode",
-    "confirm_replace": "Yes, Replace"
+    "confirm_replace": "Yes, Replace",
+    "chats": "Chats",
+    "chat_data": "Chat data",
+    "chat_data_note": "Conversations are included in local backups and synced by Cloud sync. Page content is re-captured when you continue a chat on another device.",
+    "clear_chat": "Clear chat data",
+    "clear_chat_confirm": "Clear all conversations and captured chat sources? Summary and history data will not be affected. If Cloud sync is on, chats are also removed from your other devices."
   },
   "cloudSync": {
     "title": "Cloud Sync",
@@ -746,5 +873,8 @@
       "description": "Use Summarizerrrr with Safari on iPhone & iPad.",
       "cta_label": "Get it now"
     }
+  },
+  "fab": {
+    "hide_on_site": "Hide on this site"
   }
 }

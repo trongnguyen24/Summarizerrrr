@@ -121,6 +121,12 @@ describe('getChatReasoningOptions', () => {
     expect(options[0].value).toBe('provider-default')
   })
 
+  it('returns Auto-only for nvidia (thinking is per-model on NIM)', () => {
+    const options = getChatReasoningOptions('nvidia')
+    expect(options).toHaveLength(1)
+    expect(options[0].value).toBe('provider-default')
+  })
+
   it('returns Auto-only for dynamic openai-compatible profile ids', () => {
     const options = getChatReasoningOptions('openai-compatible-abc-123')
     expect(options).toHaveLength(1)
@@ -268,6 +274,40 @@ describe('buildReasoningRequestOptions', () => {
       const result = buildReasoningRequestOptions('gemini', 'off', null)
       expect(result).toEqual({ reasoning: 'none' })
     })
+
+    describe('families are parsed from the version, not listed', () => {
+      const level = (modelId) =>
+        buildReasoningRequestOptions('gemini', 'off', modelId).providerOptions
+          ?.google?.thinkingConfig?.thinkingLevel
+
+      it('treats newer and future flash generations like Gemini 3', () => {
+        expect(level('gemini-3.5-flash-lite')).toBe('minimal')
+        expect(level('gemini-3.6-flash')).toBe('minimal')
+        expect(level('gemini-4-flash-preview')).toBe('minimal')
+        expect(level('gemini-12-flash')).toBe('minimal')
+      })
+
+      it('gives every Pro generation the Pro quirks', () => {
+        expect(level('gemini-3.5-pro')).toBe('medium')
+        expect(level('gemini-4-pro-preview')).toBe('medium')
+      })
+
+      it('maps the -latest aliases to the generation they track', () => {
+        expect(level('gemini-flash-latest')).toBe('minimal')
+        expect(level('gemini-flash-lite-latest')).toBe('minimal')
+        expect(level('gemini-pro-latest')).toBe('medium')
+      })
+
+      it('keeps Gemma 4+ quirks and leaves older generations alone', () => {
+        expect(level('gemma-5-12b-it')).toBe('minimal')
+        expect(buildReasoningRequestOptions('gemini', 'off', 'gemma-3-27b-it')).toEqual({
+          reasoning: 'none',
+        })
+        expect(buildReasoningRequestOptions('gemini', 'off', 'gemini-2.0-flash')).toEqual({
+          reasoning: 'none',
+        })
+      })
+    })
   })
 
   describe('geminiAdvanced / openai normalization', () => {
@@ -355,6 +395,14 @@ describe('buildReasoningRequestOptions', () => {
       expect(buildReasoningRequestOptions('lmstudio', 'off')).toEqual({})
     })
 
+    it('returns {} for nvidia regardless of level', () => {
+      // NIM would 400 on a portable `reasoning`/`reasoningEffort` for most of
+      // its ~70-model catalog, so nothing must be sent.
+      expect(buildReasoningRequestOptions('nvidia', 'high')).toEqual({})
+      expect(buildReasoningRequestOptions('nvidia', 'provider-default')).toEqual({})
+      expect(buildReasoningRequestOptions('nvidia', 'off')).toEqual({})
+    })
+
     it('returns {} for unknown providers', () => {
       expect(buildReasoningRequestOptions('future-provider', 'high')).toEqual({})
     })
@@ -405,10 +453,11 @@ describe('effectiveReasoningLevel', () => {
 
 describe('task reasoning: Off on unrecognized Gemini model families', () => {
   it('falls back to portable reasoning "none" instead of sending nothing', () => {
-    // detectModelFamily only knows gemma*, gemini-2.5*, gemini-3*. Anything else
-    // (gemini-flash-latest, gemini-2.0-flash, a future gemini-4) returned {} before,
-    // which left thinking at the model default — the opposite of Off.
-    for (const model of ['gemini-flash-latest', 'gemini-2.0-flash', 'gemini-4-flash']) {
+    // Families without thinking support (gemini-2.0, Gemma 3, exp/unknown ids)
+    // get {} from detectModelFamily, which would leave thinking at the model
+    // default — the opposite of Off. Newer generations and the -latest aliases
+    // are recognized by version now (see the "parsed from the version" tests).
+    for (const model of ['gemini-2.0-flash', 'gemma-3-27b-it', 'gemini-exp-1206']) {
       expect(buildReasoningRequestOptions('gemini', 'off', model)).toEqual({ reasoning: 'none' })
     }
   })

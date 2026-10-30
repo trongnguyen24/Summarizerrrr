@@ -20,16 +20,33 @@ import { createOllamaProxyModel } from './ollamaProxyModel.js'
 import {
   isOverloadError,
   isQuotaError,
-  getNextFallbackModel,
-  getNextAdvancedFallbackModel,
+  isModelUnavailableError,
   shouldEnableAutoFallback,
   shouldEnableApiKeyRetry,
   getCurrentGeminiModel,
 } from '@/lib/utils/geminiAutoFallback.js'
 import { reportModelStatus as updateModelStatus } from '@/lib/api/modelStatusReporter.js'
+import {
+  ensureGeminiModelList,
+  getNextGeminiFallbackModel,
+} from '@/lib/providers/geminiFallbackChain.js'
+import { fetchProviderModels } from '@/lib/api/providerModelService.js'
 
 import { showModelFallbackToast } from '@/lib/utils/toastUtils.js'
 
+
+/**
+ * Next Gemini model for auto-fallback. The chain is built from the account's
+ * live `/models` list (refreshed here when stale), so new Gemini releases need
+ * no code change.
+ */
+async function pickGeminiFallback(triedModels, apiKey, settings) {
+  const key = apiKey || settings.geminiApiKey
+  await ensureGeminiModelList(
+    key ? () => fetchProviderModels('gemini', key) : undefined,
+  )
+  return getNextGeminiFallbackModel(triedModels)
+}
 
 // Global index for round-robin key rotation
 let currentKeyIndex = 0
@@ -169,6 +186,18 @@ export function getAISDKModel(providerId, settings) {
       })
       return cerebras(settings.selectedCerebrasModel || 'gpt-oss-120b')
 
+    case 'nvidia':
+      // NVIDIA NIM has no dedicated AI SDK package — it exposes an
+      // OpenAI-compatible surface at integrate.api.nvidia.com/v1.
+      const nvidia = createOpenAICompatible({
+        name: 'nvidia',
+        apiKey: settings.nvidiaApiKey,
+        baseURL: 'https://integrate.api.nvidia.com/v1',
+      })
+      return nvidia(
+        settings.selectedNvidiaModel || 'deepseek-ai/deepseek-v4-flash'
+      )
+
     default:
       throw new Error(`Unsupported provider: ${providerId}`)
   }
@@ -303,6 +332,7 @@ export async function generateContentRequest(request) {
     ? getCurrentGeminiModel(settings)
     : null
   let originalModel = currentModel // Track original model for fallback display
+  const triedModels = new Set(currentModel ? [currentModel] : [])
   let lastError = null
   let failedKeys = new Set() // Track failed keys for this request
   let currentApiKey = null // Track current key being used
@@ -447,11 +477,10 @@ export async function generateContentRequest(request) {
          }
       }
 
-      // 2. Check for Overload Error (503) OR (All keys failed quota) -> Try different MODEL
+      // 2. Check for Overload Error (503), a retired model (404), OR (All keys failed quota) -> Try different MODEL
       if (autoFallbackEnabled) {
-          if (isOverloadError(error) || (isQuotaError(error) && failedKeys.size >= ([settings.geminiApiKey, ...(settings.geminiAdditionalApiKeys||[])].filter(k => k && k.trim() !== '').length || 1))) {
-               const nextModel = getNextAdvancedFallbackModel(currentModel, settings)
-                  || getNextFallbackModel(currentModel)
+          if (isOverloadError(error) || isModelUnavailableError(error) || (isQuotaError(error) && failedKeys.size >= ([settings.geminiApiKey, ...(settings.geminiAdditionalApiKeys||[])].filter(k => k && k.trim() !== '').length || 1))) {
+                const nextModel = await pickGeminiFallback(triedModels, currentApiKey, settings)
 
                 if (nextModel) {
                   console.log(
@@ -459,6 +488,7 @@ export async function generateContentRequest(request) {
                   )
                   showModelFallbackToast(currentModel, nextModel)
                   currentModel = nextModel
+                  triedModels.add(nextModel)
                   // Reset failed keys when switching model? 
                   // Maybe lighter model works with same keys? 
                   // Let's keep failed keys if it was quota error, but if it was 503, keys might be fine.
@@ -587,6 +617,7 @@ export async function* generateContentStreamRequest(request) {
     ? getCurrentGeminiModel(settings)
     : null
   let originalModel = currentModel // Track original model for fallback display
+  const triedModels = new Set(currentModel ? [currentModel] : [])
   let lastError = null
   let failedKeys = new Set() // Track failed keys for this request
   let currentApiKey = null // Track current key being used
@@ -782,11 +813,10 @@ export async function* generateContentStreamRequest(request) {
          }
       }
 
-      // 2. Check for Overload Error (503) OR (All keys failed quota) -> Try different MODEL
+      // 2. Check for Overload Error (503), a retired model (404), OR (All keys failed quota) -> Try different MODEL
       if (autoFallbackEnabled) {
-          if (isOverloadError(error) || (isQuotaError(error) && failedKeys.size >= ([settings.geminiApiKey, ...(settings.geminiAdditionalApiKeys||[])].filter(k => k && k.trim() !== '').length || 1))) {
-                const nextModel = getNextAdvancedFallbackModel(currentModel, settings)
-                  || getNextFallbackModel(currentModel)
+          if (isOverloadError(error) || isModelUnavailableError(error) || (isQuotaError(error) && failedKeys.size >= ([settings.geminiApiKey, ...(settings.geminiAdditionalApiKeys||[])].filter(k => k && k.trim() !== '').length || 1))) {
+                const nextModel = await pickGeminiFallback(triedModels, currentApiKey, settings)
         
                 if (nextModel) {
                   console.log(
@@ -794,6 +824,7 @@ export async function* generateContentStreamRequest(request) {
                   )
                   showModelFallbackToast(currentModel, nextModel)
                   currentModel = nextModel
+                  triedModels.add(nextModel)
                   
                   // Reset failed keys for new model (different model might have different quota buckets)
                   if (isQuotaError(error)) {
@@ -1004,6 +1035,8 @@ function getDisplayModelName(providerId, settings) {
       return settings.selectedLmStudioModel || 'lmstudio-community/gemma-2b-it-GGUF'
     case 'cerebras':
       return settings.selectedCerebrasModel || 'gpt-oss-120b'
+    case 'nvidia':
+      return settings.selectedNvidiaModel || 'deepseek-ai/deepseek-v4-flash'
     default:
       return providerId
   }

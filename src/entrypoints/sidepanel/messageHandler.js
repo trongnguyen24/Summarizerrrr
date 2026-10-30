@@ -228,7 +228,11 @@ function handleBackgroundMessage(request) {
       break
     case 'resumeConversation':
       import('@/stores/chatStore.svelte.js')
-        .then(({ openConversation }) => openConversation(request.conversationId))
+        // Archived conversations have no live page, so resume opens them detached:
+        // follow-ups use only history sources and never the active tab's page.
+        .then(({ openConversation }) =>
+          openConversation(request.conversationId, { detached: true })
+        )
         .catch((error) => console.error('[messageHandler] Failed to resume conversation:', error))
       break
     default:

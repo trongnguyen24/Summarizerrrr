@@ -15,6 +15,7 @@
   import { Toaster, toast } from 'svelte-sonner'
   import ModelToast from '@/entrypoints/sidepanel/components/ModelToast.svelte'
   import Noti from '@/entrypoints/sidepanel/components/Noti.svelte'
+  import ChatTryBanner from '@/entrypoints/sidepanel/components/ChatTryBanner.svelte'
   import 'webextension-polyfill'
   import { browser } from 'wxt/browser'
 
@@ -50,7 +51,7 @@
   import { fadeOnly, slideScaleFade } from '@/lib/utils/slideScaleFade.js'
   import ActionButtonsMini from '@/entrypoints/sidepanel/components/ActionButtonsMini.svelte'
   import { debounce } from '@/lib/utils/utils.js'
-  import Tooltip from '@/entrypoints/sidepanel/components/Tooltip.svelte'
+  import Tooltip from '@/components/ui/Tooltip.svelte'
   import { Tooltip as BitsTooltip } from 'bits-ui'
   import TabTitleBar from '@/entrypoints/sidepanel/components/TabTitleBar.svelte'
   import { tabTitle } from '@/stores/tabTitleStore.svelte.js'
@@ -72,13 +73,12 @@
   import { generateFollowUpQuestions } from '@/services/tools/deepDiveService.js'
 
   // Chat harness (Phase 5): chat is the default side-panel surface
-  import ChatShell from '@/entrypoints/sidepanel/components/chat/ChatShell.svelte'
+  import ChatShell from '@/components/chat/ChatShell.svelte'
   import ChatHeader from '@/entrypoints/sidepanel/components/chat/ChatHeader.svelte'
   import ChatTabTitleBar from '@/entrypoints/sidepanel/components/chat/ChatTabTitleBar.svelte'
   import { openConversation } from '@/stores/chatStore.svelte.js'
   import {
     sidepanelViewState,
-    showLegacySummarySurface,
   } from '@/stores/sidepanelViewStore.svelte.js'
 
   // Track if settings are loaded
@@ -482,7 +482,7 @@
 
 {#if !settings.hasCompletedOnboarding}
   <div
-    class=" absolute z-[50] inset-0"
+    class="absolute z-[100] inset-0"
     out:fadeOnly={{
       duration: 400,
     }}
@@ -508,16 +508,65 @@
     {/await}
   </div>
 {/if}
+
+<!--
+  Firefox-only permission overlay, rendered by BOTH the legacy summary surface
+  and the chat surface — a missing host permission blocks extraction for both,
+  so both need the notice and the blocking overlay. Only one branch of the
+  `showLegacySummary` if/else mounts at a time, so this never renders twice.
+
+  Skipped while API-key setup is pending: without a key nothing works at all,
+  so ApiKeySetupPrompt takes precedence over the permission notice.
+-->
+{#snippet firefoxPermissionOverlay()}
+  {#if import.meta.env.BROWSER === 'firefox' && !needsApiKeySetup()()}
+    {#await import('@/entrypoints/sidepanel/components/PermissionWarningPrompt.svelte')}
+      <!-- Loading placeholder - có thể để trống hoặc thêm loading indicator nhỏ -->
+    {:then { default: PermissionWarningPrompt }}
+      <PermissionWarningPrompt
+        currentUrl={currentTabUrl}
+        onPermissionGranted={handlePermissionChange}
+      />
+    {:catch error}
+      <!-- Silent fail - log error nhưng không block UI -->
+    {/await}
+  {/if}
+{/snippet}
+
+{#snippet archiveButton()}
+  <BitsTooltip.Provider>
+    <Tooltip
+      content={$t('archive.open_archive')}
+      side="right"
+      align="start"
+    >
+      {#snippet children({ builder })}
+        <button
+          {...builder}
+          onclick={() => {
+            browser.tabs.create({ url: browser.runtime.getURL('archive.html') })
+          }}
+          class="p-1 setting-animation transition-colors hover:bg-surface-1 rounded-full hover:text-text-primary"
+        >
+          <Icon icon="solar:history-linear" width="24" height="24" />
+        </button>
+      {/snippet}
+    </Tooltip>
+  </BitsTooltip.Provider>
+{/snippet}
+
 {#if showLegacySummary}
 <div
   class="main-container flex min-w-[22.5rem] bg-surface-1 w-full flex-col"
   data-per-tab="true"
 >
   <div
-    class="grid min-h-screen grid-rows-[36px_32px_10px_192px_10px_1fr]"
+    class="grid min-h-screen {settings.compactHeader
+      ? 'grid-rows-[36px_32px_auto_1fr]'
+      : 'grid-rows-[36px_32px_10px_192px_10px_1fr]'}"
   >
     <div
-      class="flex sticky top-0 z-40 justify-center items-center w-screen h-full bg-surface-1"
+      class="flex sticky top-0 z-[60] justify-center items-center w-screen h-full bg-surface-1"
     >
       <TabTitleBar {cachedTabsCount} />
       <div
@@ -531,73 +580,73 @@
         {$tabTitle}
       </div>
     </div>
-    <div
-      class="top-stripes flex justify-center border-b border-border border-t items-center w-full h-full"
-    ></div>
-    <div
-      class="flex relative font-mono flex-col gap-1 justify-center items-center"
-    >
-      <div class="size-6 absolute z-10 top-2 left-2 text-text-secondary">
-        <BitsTooltip.Provider>
-          <Tooltip
-            content={$t('archive.open_archive')}
-            side="right"
-            align="start"
-          >
-            {#snippet children({ builder })}
-              <button
-                {...builder}
-                onclick={() => {
-                  browser.tabs.create({ url: browser.runtime.getURL('archive.html') })
-                }}
-                class="p-1 setting-animation transition-colors hover:bg-surface-1 rounded-full hover:text-text-primary"
-              >
-                <Icon icon="solar:history-linear" width="24" height="24" />
-              </button>
-            {/snippet}
-          </Tooltip>
-        </BitsTooltip.Provider>
-      </div>
-      <div class="size-6 z-10 absolute top-2 right-4 text-text-secondary">
-        <SettingButton />
-      </div>
-
-      <div class="flex flex-col gap-4 items-center justify-center">
-        {#if !needsApiKeySetup()()}
-          <div class="flex flex-row gap-3 items-center">
+    {#if settings.compactHeader}
+      <!-- Compact header (Appearance → Compact header): one row, no stripes.
+           z-50 keeps archive / settings above the permission overlay (z-45). -->
+      <div
+        class="flex relative font-mono flex-col gap-3 items-center px-2 py-3"
+      >
+        <div class="w-full flex items-center justify-between">
+          <div class="relative z-50 size-8 text-text-secondary">
+            {@render archiveButton()}
+          </div>
+          {#if !needsApiKeySetup()()}
             <SummarizeButton
               isLoading={isAnyLoading()}
               disabled={!hasPermission && import.meta.env.BROWSER === 'firefox'}
             />
-          </div>
-          <!-- Custom Action Buttons - Only show when all summaries are completed -->
-          {#if areAllSummariesCompleted()}
-            <ActionButtonsMini />
           {/if}
+          <div class="relative z-50 size-8 text-text-secondary">
+            <SettingButton />
+          </div>
+        </div>
+        {#if !needsApiKeySetup()() && areAllSummariesCompleted()}
+          <ActionButtonsMini inline />
         {/if}
+
+        {@render firefoxPermissionOverlay()}
+      </div>
+    {:else}
+      <div
+        class="top-stripes flex justify-center border-b border-border border-t items-center w-full h-full"
+      ></div>
+      <div
+        class="flex relative font-mono flex-col gap-1 justify-center items-center"
+      >
+        <!-- z-50: phải nằm trên permission overlay (z-45) để user luôn mở được
+             archive / settings ngay cả khi panel đang bị che. -->
+        <div class="size-6 absolute z-50 top-2 left-2 text-text-secondary">
+          {@render archiveButton()}
+        </div>
+        <div class="size-6 z-50 absolute top-2 right-4 text-text-secondary">
+          <SettingButton />
+        </div>
+
+        <div class="flex flex-col gap-4 items-center justify-center">
+          {#if !needsApiKeySetup()()}
+            <div class="flex flex-row gap-3 items-center">
+              <SummarizeButton
+                isLoading={isAnyLoading()}
+                disabled={!hasPermission && import.meta.env.BROWSER === 'firefox'}
+              />
+            </div>
+            <!-- Custom Action Buttons - Only show when all summaries are completed -->
+            {#if areAllSummariesCompleted()}
+              <ActionButtonsMini />
+            {/if}
+          {/if}
+        </div>
+
+        {@render firefoxPermissionOverlay()}
       </div>
 
-      <!-- NEW: Permission Warning Component for Firefox -->
-      {#if import.meta.env.BROWSER === 'firefox'}
-        {#await import('@/entrypoints/sidepanel/components/PermissionWarningPrompt.svelte')}
-          <!-- Loading placeholder - có thể để trống hoặc thêm loading indicator nhỏ -->
-        {:then { default: PermissionWarningPrompt }}
-          <PermissionWarningPrompt
-            currentUrl={currentTabUrl}
-            onPermissionGranted={handlePermissionChange}
-          />
-        {:catch error}
-          <!-- Silent fail - log error nhưng không block UI -->
-        {/await}
-      {/if}
-    </div>
+      <div
+        class="top-stripes flex justify-center border-b border-border border-t items-center w-full h-full"
+      ></div>
+    {/if}
 
     <div
-      class="top-stripes flex justify-center border-b border-border border-t items-center w-full h-full"
-    ></div>
-
-    <div
-      class="relative prose wrap-anywhere main-sidepanel prose-h2:mt-4 p z-10 flex flex-col gap-8 px-6 pt-8 pb-[30vh] min-w-[22.5rem] max-w-[52rem] w-screen mx-auto"
+      class="relative prose wrap-anywhere main-sidepanel prose-h2:mt-4 p z-10 flex flex-col gap-8 px-6 {settings.compactHeader ? 'pt-4' : 'pt-8'} pb-[30vh] min-w-[22.5rem] max-w-[52rem] w-screen mx-auto"
     >
       {#if needsApiKeySetup()()}
         <ApiKeySetupPrompt />
@@ -667,6 +716,11 @@
             summaryLang={settings.summaryLang || 'English'}
           />
         {/if}
+      {:else if settings.compactHeader}
+        <!-- Compact header → small round one-row buttons. -->
+        <div class="flex justify-center">
+          <ActionButtonsMini inline />
+        </div>
       {:else}
         <ActionButtons />
       {/if}
@@ -678,6 +732,7 @@
   class=" fixed bg-linear-to-t from-surface-1 to-surface-1/40 bottom-0 mask-t-from-50% h-16 backdrop-blur-[2px] w-full z-30 pointer-events-none"
 ></div>
 {#if !summaryState.lastSummaryTypeDisplayed && settings.hasCompletedOnboarding && !needsApiKeySetup()()}
+  <ChatTryBanner />
   <Noti />
 {/if}
 {:else}
@@ -686,7 +741,9 @@
   data-per-tab="true"
 >
   <!-- `data-sticky-header`: ChatShell measures this to offset its submit scroll. -->
-  <div class="sticky top-0 z-40 bg-surface-1" data-sticky-header>
+  <!-- z-50: trên permission overlay (z-45) để ConversationMenu → Settings vẫn
+       mở được khi overlay đang che chat. -->
+  <div class="sticky top-0 z-50 bg-surface-1" data-sticky-header>
     <div
       class="relative flex h-9 shrink-0 items-center justify-center bg-surface-1"
     >
@@ -697,7 +754,6 @@
     </div>
     <ChatHeader
       onOpenConversation={openConversation}
-      onShowLegacySummary={showLegacySummarySurface}
     />
   </div>
 
@@ -710,6 +766,8 @@
       <ChatShell />
     </div>
   {/if}
+
+  {@render firefoxPermissionOverlay()}
 </div>
 {/if}
 <Toaster />

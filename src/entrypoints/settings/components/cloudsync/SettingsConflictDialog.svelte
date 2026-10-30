@@ -20,6 +20,7 @@
       'deepseekApiKey',
       'groqApiKey',
       'cerebrasApiKey',
+      'nvidiaApiKey',
       'openrouterApiKey',
     ]
 

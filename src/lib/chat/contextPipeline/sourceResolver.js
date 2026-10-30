@@ -1,3 +1,5 @@
+import { isStubSource } from '../../db/conversationSyncMerge.js'
+
 /**
  * @param {string | object} ref
  * @param {'conversation' | 'attachment'} placement
@@ -44,6 +46,11 @@ export async function resolveSources({
     let source = normalizedRef.sourceId
       ? await repository.getSourceById(normalizedRef.sourceId)
       : undefined
+
+    // A stub has metadata only (synced without content) and not yet been
+    // re-captured on this device. Treat it as missing so an empty source never
+    // reaches the prompt.
+    if (source && isStubSource(source)) source = undefined
 
     if (!source && normalizedRef.isActive && captureSource) {
       source = await captureSource(normalizedRef)

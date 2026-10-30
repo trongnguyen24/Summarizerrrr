@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { describe, expect, it } from 'vitest'
 import { flushSync, mount, unmount } from 'svelte'
-import ChatUserBubble from '../../src/entrypoints/sidepanel/components/chat/ChatUserBubble.svelte'
+import ChatUserBubble from '../../src/components/chat/ChatUserBubble.svelte'
 
 describe('ChatUserBubble', () => {
   it('renders a skill chip when a user sends a skill without text', async () => {

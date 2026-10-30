@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 import { flushSync, mount } from 'svelte'
-import ChatModelSelect from '../../../src/entrypoints/sidepanel/components/chat/ChatModelSelect.svelte'
+import ChatModelSelect from '../../../src/components/chat/ChatModelSelect.svelte'
 
 // bits-ui scrollIntoView stub
 HTMLElement.prototype.scrollIntoView ||= vi.fn()

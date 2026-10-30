@@ -8,17 +8,20 @@
     fetchCourseConcepts,
     summaryState,
   } from '@/stores/summaryStore.svelte.js'
-  import Tooltip from '@/entrypoints/sidepanel/components/Tooltip.svelte'
+  import Tooltip from '@/components/ui/Tooltip.svelte'
   import { Tooltip as BitsTooltip } from 'bits-ui'
   import { t } from 'svelte-i18n'
 
-  import { ACTION_BUTTONS } from '@/lib/config/actionConstants.js'
+  import { getVisibleActions } from '@/lib/config/actionConstants.js'
+  import { settings } from '@/stores/settingsStore.svelte.js'
+
+  // inline: sit in normal flow (compact header) instead of being pinned to
+  // the bottom of the fixed-height header.
+  let { inline = false } = $props()
   import {
     getHasAnimatedButtons,
     setHasAnimatedButtons,
   } from '@/services/tabCacheService.js'
-
-  const actions = ACTION_BUTTONS
 
   async function handleActionClick(actionType) {
     if (actionType === 'chapters') {
@@ -32,16 +35,12 @@
     }
   }
 
-  // Filter actions based on current page type
+  // Filter actions by page type and the user's hidden-buttons setting
   let visibleActions = $derived(
-    actions.filter((action) => {
-      if (action.showOnlyForYouTube) {
-        return summaryState.isYouTubeVideoActive
-      }
-      if (action.showOnlyForCourse) {
-        return summaryState.isCourseVideoActive
-      }
-      return true
+    getVisibleActions({
+      isYouTube: summaryState.isYouTubeVideoActive,
+      isCourse: summaryState.isCourseVideoActive,
+      hidden: settings.hiddenActionButtons,
     }),
   )
 
@@ -82,7 +81,11 @@
   let customAnchor = $state(null)
 </script>
 
-<div class="flex absolute bottom-4 z-10 mx-auto gap-3 flex-wrap justify-center">
+<div
+  class="flex z-10 mx-auto gap-3 flex-wrap justify-center {inline
+    ? 'relative'
+    : 'absolute bottom-4'}"
+>
   <div
     bind:this={customAnchor}
     class="absolute -bottom-15 left-1/2 -translate-x-1/2 w-px h-px"

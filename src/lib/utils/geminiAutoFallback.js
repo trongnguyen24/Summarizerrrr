@@ -5,28 +5,8 @@
  * Only applies to Gemini Basic mode
  */
 
-/**
- * Fallback chain for Gemini Basic mode
- * Order: Best performance → Lighter → Lightest
- */
-export const GEMINI_FALLBACK_CHAIN = [
-  'gemini-3-flash-preview',
-  'gemini-2.5-flash',
-  'gemini-3.1-flash-lite-preview',
-  'gemini-2.5-flash-lite',
-]
-
-/**
- * Fixed fallback chain for Gemini Advanced mode
- * Used when auto-fallback is enabled, covers all free models
- */
-export const GEMINI_ADVANCED_FALLBACK_CHAIN = [
-  'gemini-3-flash-preview',
-  'gemini-2.5-flash',
-  'gemini-3.1-flash-lite-preview',
-  'gemini-2.5-flash-lite',
-  'gemma-4-26b-a4b-it',
-]
+// The fallback chain itself lives in `lib/providers/geminiFallbackChain.js`,
+// built from the account's live model list.
 
 /**
  * Checks if an error is due to API overload/resource exhaustion
@@ -136,47 +116,47 @@ export function isQuotaError(error) {
 }
 
 /**
- * Gets the next fallback model in the chain (for Basic mode)
- * @param {string} currentModel - Current model that failed
- * @returns {string|null} Next model to try, or null if no more fallbacks
+ * Checks if an error means the model itself is gone — retired by Google, or
+ * never callable with generateContent. The cached model list can lag behind
+ * Google (and the user's own pick can go stale); treating 404 as a fallback
+ * signal lets the chain step over a dead link instead of surfacing a confusing
+ * error about a model the user never picked.
+ * @param {Error|any} error - Error object to check
+ * @returns {boolean} True if the model is unavailable
  */
-export function getNextFallbackModel(currentModel) {
-  const currentIndex = GEMINI_FALLBACK_CHAIN.indexOf(currentModel)
+export function isModelUnavailableError(error) {
+  if (!error) return false
 
-  // If model not in chain or is last model, no fallback available
-  if (
-    currentIndex === -1 ||
-    currentIndex === GEMINI_FALLBACK_CHAIN.length - 1
-  ) {
-    return null
-  }
+  const messages = [
+    error?.message,
+    error?.toString?.(),
+    error?.cause?.message,
+    error?.cause?.toString?.(),
+  ]
+    .filter((value) => typeof value === 'string')
+    .map((value) => value.toLowerCase())
 
-  return GEMINI_FALLBACK_CHAIN[currentIndex + 1]
-}
+  const unavailableKeywords = [
+    'not_found',
+    'is not found',
+    'not supported for generatecontent',
+    'is not supported',
+  ]
+  const hasUnavailableKeyword = unavailableKeywords.some((keyword) =>
+    messages.some((message) => message.includes(keyword))
+  )
 
-/**
- * Gets the next fallback model for Advanced mode using fixed chain
- * Chain: gemini-3-flash-preview → gemini-2.5-flash → gemini-2.5-flash-lite → gemma-4-26b-a4b-it
- * @param {string} currentModel - Current model that failed
- * @param {object} settings - User settings (only used to check if fallback is enabled)
- * @returns {string|null} Next model to try, or null if no more fallbacks
- */
-export function getNextAdvancedFallbackModel(currentModel, settings) {
-  if (!settings?.geminiEnableAutoFallback) {
-    return null
-  }
+  const status = error?.status || error?.statusCode || error?.code
+  const causeStatus =
+    error?.cause?.status || error?.cause?.statusCode || error?.cause?.code
 
-  const currentIndex = GEMINI_ADVANCED_FALLBACK_CHAIN.indexOf(currentModel)
-
-  // If model not in chain or is last model, no fallback available
-  if (
-    currentIndex === -1 ||
-    currentIndex === GEMINI_ADVANCED_FALLBACK_CHAIN.length - 1
-  ) {
-    return null
-  }
-
-  return GEMINI_ADVANCED_FALLBACK_CHAIN[currentIndex + 1]
+  return (
+    status === 404 ||
+    causeStatus === 404 ||
+    status === 'NOT_FOUND' ||
+    causeStatus === 'NOT_FOUND' ||
+    hasUnavailableKeyword
+  )
 }
 
 /**

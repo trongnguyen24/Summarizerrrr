@@ -1,13 +1,12 @@
 <!-- @ts-nocheck -->
 <script>
   import { t } from 'svelte-i18n'
-  import Icon, { loadIcons } from '@iconify/svelte'
+  import Icon from '@iconify/svelte'
   import { slideScaleFade } from '@/lib/utils/slideScaleFade.js'
   import HoverTooltip from '@/components/ui/HoverTooltip.svelte'
 
   let { onSave, localSummaryState } = $props()
   let isSaving = $state(false)
-  loadIcons(['heroicons:archive-box', 'heroicons:archive-box-solid'])
 
   async function handleSave() {
     if (localSummaryState.isSavedToArchive || isSaving) return

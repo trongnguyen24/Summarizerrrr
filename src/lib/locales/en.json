@@ -27,10 +27,12 @@
       },
       "floatingButton": "Floating Button",
       "floating_button": {
-        "show": "Show",
-        "show_desc": "Show floating button on web pages.",
-        "hide": "Hide",
-        "hide_desc": "Hide floating button from web pages."
+        "show": "Always Show",
+        "show_desc": "Keep the floating button always visible at a fixed position.",
+        "hide": "Always Hide",
+        "hide_desc": "Completely hide the floating button on all web pages.",
+        "hide_on_scroll": "Hide on scroll",
+        "show_on_scroll_up": "Smart scroll"
       },
       "shortcuts": "Shortcuts",
       "shortcuts_settings": "Shortcut Settings",
@@ -40,6 +42,14 @@
         "open_sidepanel": "Open the sidepanel",
         "open_popup": "Open a popup settings",
         "open_floating": "Open a floating panel on the page"
+      },
+      "compact_header": {
+        "title": "Compact header",
+        "description": "Put Summarize on one row with History and Settings to leave more room for the summary.",
+        "enabled": "Compact",
+        "enabled_desc": "One-row header",
+        "disabled": "Standard",
+        "disabled_desc": "Large header (default)"
       },
       "reduce_motion": {
         "title": "Reduce Motion",
@@ -125,6 +135,21 @@
         "pause_desc": "Pause video before generating summary"
       }
     },
+    "site_access": {
+      "title": "Site Access",
+      "description": "Control which websites Summarizerrrr can access.",
+      "mode": {
+        "all_sites": "All sites",
+        "selected_only": "Selected sites only",
+        "aria_label": "Select site access mode"
+      },
+      "domain_input_placeholder": "example.com",
+      "selected_helper": "Summarizerrrr can access data on the sites listed above.",
+      "all_helper": "Summarizerrrr can access data on all websites.",
+      "invalid_domain": "Enter a valid domain, e.g. example.com or *.example.com.",
+      "already_added": "This domain has already been added.",
+      "denied": "Permission for this site was denied."
+    },
     "ai_model": {
       "title": "Provider",
       "mode": {
@@ -198,6 +223,7 @@
         "medium": "Medium",
         "medium_desc": "Balanced depth and speed."
       },
+      "action_buttons": "Action buttons",
       "comment_limit": "YouTube Comment Limit",
       "comment_limit_desc": "Maximum number of comments to analyze.",
       "uses_gemini_basic": "Uses Gemini Basic"
@@ -325,7 +351,8 @@
       "unconfigured_suffix": "unconfigured",
       "unconfigured_warning": "This provider is not configured.",
       "configure_link": "Configure API Key",
-      "free_text_placeholder": "Enter model ID"
+      "free_text_placeholder": "Enter model ID",
+      "free_tier_badge": "Free"
     },
     "provider_key_config": {
       "status_configured": "configured",
@@ -356,10 +383,25 @@
       "quick_models_hint": "Up to {max} models for fast switching in the composer.",
       "remove_quick_model": "Remove from quick models",
       "default_reasoning": "Default reasoning",
-      "default_reasoning_hint": "Seeds new tabs' reasoning selector. Per-tab overrides are independent."
+      "default_reasoning_hint": "Seeds new tabs' reasoning selector. Per-tab overrides are independent.",
+      "title": "Chat",
+      "tone": {
+        "none": "None",
+        "none_desc": "No tone instruction.",
+        "simple_desc": "Easy to understand, clear and direct. Everyday language and concrete examples.",
+        "expert_desc": "Professional, in-depth precision. Preserves technical terms and complexity.",
+        "witty_desc": "Sarcastic, witty, sharp humor. Attitude only — depth still scales to the content.",
+        "savage_desc": "Blunt, savage, aggressive humor. Attitude only — depth still scales to the content."
+      }
     }
   },
   "chat": {
+    "hydratingSources": "Re-capturing page content…",
+    "read_only_elsewhere": "This conversation is open in another window. It is read-only here.",
+    "detached": {
+      "tab_tooltip": "Page closed",
+      "source_note": "Page closed — using earlier sources"
+    },
     "time": {
       "justNow": "Just now",
       "minutesAgo": "{count}m ago"
@@ -400,12 +442,113 @@
       "manage_models": "Manage models...",
       "reasoning": "Reasoning",
       "warning_unresolvable": "Unknown profile"
+    },
+    "composer": {
+      "placeholder": "Ask a question",
+      "placeholder_plain": "Describe a task or ask a question",
+      "aria_label": "Chat message",
+      "queued": "Queued",
+      "cancel_queued": "Cancel queued message",
+      "stop": "Stop generating",
+      "send": "Send message"
+    },
+    "context_bar": {
+      "source_fallback": "Context source",
+      "attached_fallback": "Attached tab",
+      "locked": "Already included in AI context",
+      "tokens": "~{count} tokens",
+      "added_tabs": "+ {count, plural, one {# tab} other {# tabs}}"
+    },
+    "deep_dive": {
+      "title": "Deep Dive",
+      "generating": "Generating…",
+      "generating_aria": "Generating Deep Dive questions",
+      "regenerate": "Generate new questions"
+    },
+    "empty_state": {
+      "suggested_skills": "Suggested skills"
+    },
+    "message": {
+      "previous_branch": "Previous branch",
+      "next_branch": "Next branch",
+      "edit": "Edit message",
+      "copy_message": "Copy message",
+      "copy_response": "Copy response",
+      "regenerate": "Regenerate response",
+      "continue": "Continue response",
+      "retry": "Retry this message",
+      "stopped": "Stopped"
+    },
+    "editor": {
+      "placeholder": "Edit your message...",
+      "aria_label": "Edit message",
+      "cancel": "Cancel",
+      "save": "Save & Submit"
+    },
+    "skill_chip": {
+      "clear": "Clear selected skill"
+    },
+    "skill_picker": {
+      "aria_label": "Matching skills",
+      "no_results": "No matching skills."
+    },
+    "tab_mention": {
+      "aria_label": "Matching sources",
+      "no_results": "No matching tabs.",
+      "reason_unsupported": "Browser, extension, store, and local pages cannot be attached.",
+      "reason_pdf": "PDF and viewer pages cannot be attached.",
+      "reason_comments_attached": "Comments already attached for this video."
+    },
+    "header": {
+      "new_chat": "New chat"
+    },
+    "menu": {
+      "aria_label": "Conversation menu",
+      "recent": "Recent conversations",
+      "history": "History",
+      "settings": "Settings"
+    },
+    "source_drawer": {
+      "unknown": "Unknown source",
+      "loading": "Loading sources…"
+    },
+    "reasoning": {
+      "provider-default": "Auto",
+      "provider-default_desc": "Let the model decide",
+      "low": "Low",
+      "low_desc": "Faster, lower cost",
+      "medium": "Medium",
+      "medium_desc": "Balanced speed and depth",
+      "high": "High",
+      "high_desc": "Deeper reasoning, slower"
     }
   },
   "tab_navigation": {
     "previous_tab": "Previous tab",
     "next_tab": "Next tab",
     "remove_tab": "Remove (Middle-click)"
+  },
+  "customize": {
+    "title": "Customize",
+    "tabs": {
+      "prompts": "Prompts",
+      "skills": "Skills"
+    },
+    "skills": {
+      "new": "New skill",
+      "built_in": "Built-in",
+      "user_skills": "User skills",
+      "empty": "No custom skills yet.",
+      "pin": "Pin",
+      "name": "Name",
+      "instruction": "One-shot instruction",
+      "instruction_hint": "Applied to a single turn only",
+      "reset": "Reset built-in",
+      "delete": "Delete",
+      "select_prompt": "Select a skill from the menu on the left, or create a new one.",
+      "error_name_required": "A skill name is required.",
+      "error_instruction_required": "An instruction is required."
+    }
   },
   "prompts": {
     "title": "Prompts",
@@ -417,10 +560,11 @@
       "summarize": "Summarize",
       "custom_actions": "Custom Actions"
     },
-    "select_template": "Select a template",
     "prompt_enhance": "Prompt enhance",
+    "confirm_discard": "You have unsaved changes. Discard them?",
     "buttons": {
-      "import": "Import",
+      "load_preset": "Load preset",
+      "improve": "Improve",
       "discard": "Discard",
       "save": "Save",
       "apply_prompt": "Apply Prompt"
@@ -435,11 +579,36 @@
     "open_archive": "Open archive",
     "tab_history": "History",
     "tab_archive": "Archive",
+    "kind_all": "All",
+    "kind_summaries": "Summaries",
+    "kind_chats": "Chats",
+    "resume_in_sidepanel": "Resume in side panel",
+    "no_chats": "No chats yet",
     "change_theme": "Change theme",
     "font_dec": "Font Decrease",
     "font_inc": "Font Increase",
     "change_font": "Change font",
-    "toggle_width": "Toggle width"
+    "toggle_width": "Toggle width",
+    "search_placeholder": "Search title or URL",
+    "search_clear": "Clear search",
+    "search_no_results": "No matching results",
+    "conversation": {
+      "archive": "Archive",
+      "unarchive": "Unarchive",
+      "export_markdown": "Export Markdown",
+      "export_json": "Export JSON",
+      "delete": "Delete conversation",
+      "none_selected": "No conversation selected."
+    },
+    "toc": {
+      "aria_label": "Table of contents",
+      "switch_sidebar": "Switch to sidebar TOC",
+      "switch_floating": "Switch to floating TOC",
+      "go_top": "Go to top",
+      "go_bottom": "Go to bottom",
+      "previous": "Previous item",
+      "next": "Next item"
+    }
   },
   "button": {
     "copy": "Copy to clipboard",
@@ -448,7 +617,8 @@
     "download": "Download as Markdown",
     "downloaded": "Downloaded!",
     "save_to_archive": "Save to archive",
-    "saved": "Saved!"
+    "saved": "Saved!",
+    "saving": "Saving…"
   },
   "welcome": {
     "choose_interface_language": "Welcome to Summarizerrrr!",
@@ -529,6 +699,7 @@
     "actions": "Actions",
     "archived": "Archived",
     "add_to_archive": "Add to Archive",
+    "remove_from_archive": "Remove from Archive",
     "errors": {
       "empty": "Name required",
       "max_length": "Max 50 characters",
@@ -582,7 +753,8 @@
     "merge_mode_description": "• Imported data is combined with existing data<br />• Duplicates (same ID) will be updated<br />• Imported settings override existing settings",
     "replace_mode_description": "• Selected data types are completely deleted first<br />• Then replaced with imported data only<br />• Unselected data types are not affected",
     "replace_warning_title": "Warning: Replace Mode",
-    "confirm_replace": "Yes, Replace"
+    "confirm_replace": "Yes, Replace",
+    "chats": "Chats"
   },
   "cloudSync": {
     "title": "Cloud Sync",
@@ -612,9 +784,18 @@
     "syncPreferences": "Sync Preferences",
     "syncPreferencesDescription": "Choose which data types to sync with cloud",
     "library": "Archive",
+    "chats": "Chats",
     "error": "Error",
     "enabled": "Enabled",
     "disabled": "Disabled",
+    "reauth": {
+      "title": "Reconnect required",
+      "description": "Google rejected the saved session. If your OAuth app is still in \"Testing\" in Google Cloud Console, its refresh tokens expire after 7 days — publish the app to stop this from repeating.",
+      "button": "Reconnect",
+      "reconnecting": "Reconnecting...",
+      "publishGuide": "Publish your OAuth app",
+      "sharedDescription": "Your Google session expired. Sign in again."
+    },
     "byok": {
       "description": "Enter your own OAuth credentials from your Google Cloud Console, your data never through third-party servers.",
       "clientIdPlaceholder": "xxxxx.apps.googleusercontent.com",
@@ -625,7 +806,10 @@
       "errors": {
         "bothRequired": "Both Client ID and Client Secret are required",
         "invalidClientId": "Invalid Client ID format (should end with .apps.googleusercontent.com)"
-      }
+      },
+      "advancedToggle": "Use your own Google Cloud project",
+      "signInWithProject": "Sign in with your project",
+      "separateDataNote": "Data synced with your own project is separate from data synced with the default sign-in. Use the same option on every device."
     },
     "redirectUris": {
       "title": "Redirect URIs",
@@ -653,9 +837,20 @@
       "mergeNote": "Archive, Tags and History will be merged from both this device and Cloud.",
       "cancel": "Cancel",
       "sync": "Sync"
+    },
+    "shared": {
+      "note": "Your data goes straight to your own Google Drive. oauth.summarizerrrr.com only handles the sign-in token.",
+      "firefoxPermissionDenied": "Firefox needs permission to reach oauth.summarizerrrr.com to sign in with Google. Allow it when prompted, or use your own Google Cloud project below."
+    },
+    "proxyPermission": {
+      "title": "Permission needed",
+      "description": "Firefox no longer allows Summarizerrrr to reach oauth.summarizerrrr.com, so your session can't be renewed. Grant access to resume syncing — you stay signed in.",
+      "button": "Grant access"
     }
   },
   "notifications": {
+    "try_chat": "Try Chat — v3.0 beta",
+    "back_to_summarize": "Back to Summarize",
     "no_notifications": "No notifications",
     "noti_1": {
       "title": "Gemini API limits reduced",
@@ -682,5 +877,8 @@
       "description": "Use Summarizerrrr with Safari on iPhone & iPad.",
       "cta_label": "Get it now"
     }
+  },
+  "fab": {
+    "hide_on_site": "Hide on this site"
   }
 }

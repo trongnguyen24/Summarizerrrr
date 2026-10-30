@@ -56,7 +56,7 @@
   </Select.Trigger>
   <Select.Portal>
     <Select.Content
-      class="focus-override text-text-primary bg-surface-2 outline-hidden z-50 max-h-[var(--bits-select-content-available-height)] w-[var(--bits-select-anchor-width)] min-w-[var(--bits-select-anchor-width)] select-none border border-border"
+      class="focus-override text-text-primary bg-surface-2 outline-hidden z-50 flex flex-col overflow-hidden max-h-[var(--bits-floating-available-height)] w-[var(--bits-floating-anchor-width)] min-w-[var(--bits-floating-anchor-width)] select-none border border-border"
       sideOffset={4}
       forceMount
     >

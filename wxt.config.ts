@@ -1,10 +1,11 @@
 import { defineConfig } from 'wxt'
 import tailwindcss from '@tailwindcss/vite'
+import { iconBundlePlugin } from './build/icons/iconBundlePlugin.mjs'
 
 // See https://wxt.dev/api/config.html
 export default defineConfig({
   vite: () => ({
-    plugins: [tailwindcss()],
+    plugins: [tailwindcss(), iconBundlePlugin()],
     optimizeDeps: {
       exclude: ['@wxt-dev/module-svelte'],
     },
@@ -31,9 +32,16 @@ export default defineConfig({
   },
   srcDir: 'src',
   modules: ['@wxt-dev/module-svelte'],
-  manifest: ({ browser }) => {
+  manifest: ({ browser, command }) => {
     if (browser === 'chrome') {
       return {
+        // `npm run dev` only: CHROME_EXTENSION_KEY (in the gitignored .env.local)
+        // pins the unpacked build to the store ID, so the OAuth redirect URI
+        // https://ahfjndakflcegianjdojpldllodpkkpc.chromiumapp.org/ matches.
+        // Never applied to `build`/`zip` — the store manifest stays unchanged.
+        ...(command === 'serve' && process.env.CHROME_EXTENSION_KEY
+          ? { key: process.env.CHROME_EXTENSION_KEY }
+          : {}),
         name: '__MSG_extensionName__',
         description: '__MSG_extensionDescription__',
         default_locale: 'en',
@@ -48,6 +56,7 @@ export default defineConfig({
           '*://api.anthropic.com/*',
           '*://openrouter.ai/*',
           '*://api.cerebras.ai/*',
+          '*://integrate.api.nvidia.com/*',
           '*://api.deepseek.com/*',
           '<all_urls>',
         ],
@@ -130,6 +139,7 @@ export default defineConfig({
           '*://api.anthropic.com/*',
           '*://openrouter.ai/*',
           '*://api.cerebras.ai/*',
+          '*://integrate.api.nvidia.com/*',
           '*://api.deepseek.com/*',
           '<all_urls>',
         ],
@@ -201,7 +211,7 @@ export default defineConfig({
           'identity',
           'alarms',
         ],
-        optional_permissions: ['<all_urls>'],
+        optional_permissions: ['<all_urls>', 'https://oauth.summarizerrrr.com/*'],
         host_permissions: [
           'http://127.0.0.1:11434/*',
           'http://localhost:11434/*',
@@ -219,6 +229,7 @@ export default defineConfig({
           '*://api.anthropic.com/*',
           '*://openrouter.ai/*',
           '*://api.cerebras.ai/*',
+          '*://integrate.api.nvidia.com/*',
           '*://api.deepseek.com/*',
         ],
         action: {

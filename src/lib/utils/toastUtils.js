@@ -43,6 +43,6 @@ export function showOverloadToast() {
   dispatchToastEvent({
     title: 'Server overload',
     message: 'Retrying request...',
-    icon: 'heroicons-outline:exclamation-triangle',
+    icon: 'heroicons:exclamation-triangle',
   })
 }

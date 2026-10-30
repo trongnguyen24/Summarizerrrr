@@ -14,6 +14,8 @@ vi.mock('@/services/chat/chatService.js', () => ({
       },
       tab: { id: 101 }, // TAB_A — must match the tab synced in the test
     })),
+    send: vi.fn(),
+    retry: vi.fn(),
   },
 }))
 
@@ -26,8 +28,8 @@ vi.mock('@/lib/db/conversationRepository.js', () => ({
     })),
     getConversation: vi.fn(),
     recoverStreamingMessages: vi.fn(async () => 0),
-    getGenerationPath: vi.fn(),
-    getSourcesByIds: vi.fn(),
+    getGenerationPath: vi.fn(async () => []),
+    getSourcesByIds: vi.fn(async () => []),
   },
 }))
 
@@ -39,8 +41,15 @@ vi.mock('@/services/chat/chatSourceService.js', () => ({
 
 import {
   chatState,
+  activateChatSession,
+  chatTabsState,
+  closeConversation,
   handleChatBrowserTabRemoved,
   handleChatTabNavigation,
+  getChatTabRuntimeDescriptors,
+  removeChatTabSession,
+  retryChatMessage,
+  sendChatMessage,
   syncChatForActiveTab,
   updateChatTabMetadata,
   setChatModel,
@@ -60,9 +69,9 @@ const TAB_B = 202
 const TAB_C = 303
 
 afterEach(() => {
-  handleChatBrowserTabRemoved(TAB_A)
-  handleChatBrowserTabRemoved(TAB_B)
-  handleChatBrowserTabRemoved(TAB_C)
+  removeChatTabSession(TAB_A, { detachActiveTab: true })
+  removeChatTabSession(TAB_B, { detachActiveTab: true })
+  removeChatTabSession(TAB_C, { detachActiveTab: true })
   vi.clearAllMocks()
 })
 
@@ -143,6 +152,258 @@ describe('chat store tab ownership', () => {
     // Once the user explicitly picks a level, it overrides the default
     chatState.reasoningLevel = 'medium'
     expect(effectiveReasoningLevel(chatState.reasoningLevel, settingsWithDefault)).toBe('medium')
+  })
+})
+
+describe('browser tab close behavior', () => {
+  it('detaches a conversation session without aborting it', async () => {
+    await syncChatForActiveTab(TAB_A, {
+      url: 'https://a.example',
+      title: 'Page A',
+      favIconUrl: 'https://a.example/favicon.ico',
+    })
+    chatState.conversation = { id: 'conversation-a' }
+    chatState.activeConversationId = 'conversation-a'
+    const abort = vi.fn()
+    chatState.abortController = { abort }
+
+    expect(handleChatBrowserTabRemoved(TAB_A)).toBe(true)
+
+    expect(abort).not.toHaveBeenCalled()
+    expect(getChatTabRuntimeDescriptors()).toEqual([
+      expect.objectContaining({
+        id: TAB_A,
+        detached: true,
+        title: 'Page A',
+        favIconUrl: 'https://a.example/favicon.ico',
+        hasConversation: true,
+      }),
+    ])
+    expect(chatState.activeSourceEstimate).toBeNull()
+  })
+
+  it('removes a tab with no conversation', async () => {
+    await syncChatForActiveTab(TAB_A, { url: 'https://a.example' })
+    chatState.composerText = 'unsent draft'
+
+    expect(handleChatBrowserTabRemoved(TAB_A)).toBe(true)
+    expect(getChatTabRuntimeDescriptors()).toEqual([])
+  })
+
+  it('keeps a reply that finishes after its browser tab closes', async () => {
+    await syncChatForActiveTab(TAB_A, { url: 'https://a.example' })
+    chatState.conversation = { id: 'conversation-a' }
+    chatState.activeConversationId = 'conversation-a'
+    chatState.activeSourceDismissed = true
+
+    let resolveSend
+    let inFlightAbortController
+    const sendStarted = new Promise((resolve) => {
+      chatService.send.mockImplementation(async (options) => {
+        inFlightAbortController = options.abortController
+        resolve()
+        await new Promise((release) => {
+          resolveSend = release
+        })
+        return { assistant: { id: 'assistant-a' }, transient: {}, diagnostics: {} }
+      })
+    })
+    conversationRepository.getGenerationPath.mockResolvedValue([
+      { id: 'user-a', role: 'user', content: 'Hello' },
+      { id: 'assistant-a', role: 'assistant', content: 'Hi there' },
+    ])
+
+    const sending = sendChatMessage('Hello')
+    await sendStarted
+    expect(handleChatBrowserTabRemoved(TAB_A)).toBe(true)
+    expect(inFlightAbortController.signal.aborted).toBe(false)
+
+    resolveSend()
+    await sending
+
+    expect(chatState.messages).toEqual([
+      { id: 'user-a', role: 'user', content: 'Hello' },
+      { id: 'assistant-a', role: 'assistant', content: 'Hi there' },
+    ])
+    expect(chatState.isSending).toBe(false)
+    expect(getChatTabRuntimeDescriptors()).toEqual([
+      expect.objectContaining({ id: TAB_A, detached: true, hasConversation: true }),
+    ])
+  })
+
+  it('does not recreate a detached session when a removed stream resolves', async () => {
+    await syncChatForActiveTab(TAB_A, { url: 'https://a.example' })
+    chatState.conversation = { id: 'conversation-a' }
+    chatState.activeConversationId = 'conversation-a'
+    chatState.activeSourceDismissed = true
+
+    let resolveSend
+    const sendStarted = new Promise((resolve) => {
+      chatService.send.mockImplementation(async () => {
+        resolve()
+        return new Promise((release) => {
+          resolveSend = release
+        })
+      })
+    })
+
+    const sending = sendChatMessage('Hello')
+    await sendStarted
+    expect(handleChatBrowserTabRemoved(TAB_A)).toBe(true)
+
+    await syncChatForActiveTab(TAB_B, { url: 'https://b.example' })
+    chatState.messages = [{ id: 'message-b' }]
+    chatState.error = new Error('B stays visible')
+    chatState.isSending = false
+    removeChatTabSession(TAB_A)
+
+    resolveSend({})
+    await sending
+
+    expect(getChatTabRuntimeDescriptors()).not.toEqual(
+      expect.arrayContaining([expect.objectContaining({ id: TAB_A })]),
+    )
+    expect(chatState.messages).toEqual([{ id: 'message-b' }])
+    expect(chatState.isSending).toBe(false)
+    expect(chatState.error).toBeInstanceOf(Error)
+    expect(chatState.error.message).toBe('B stays visible')
+  })
+
+  it('does not recreate a detached session when a removed stream rejects', async () => {
+    await syncChatForActiveTab(TAB_A, { url: 'https://a.example' })
+    chatState.conversation = { id: 'conversation-a' }
+    chatState.activeConversationId = 'conversation-a'
+    chatState.activeSourceDismissed = true
+
+    let rejectSend
+    const sendStarted = new Promise((resolve) => {
+      chatService.send.mockImplementation(async () => {
+        resolve()
+        return new Promise((resolvePromise, rejectPromise) => {
+          rejectSend = rejectPromise
+        })
+      })
+    })
+
+    const sending = sendChatMessage('Hello')
+    await sendStarted
+    expect(handleChatBrowserTabRemoved(TAB_A)).toBe(true)
+
+    await syncChatForActiveTab(TAB_B, { url: 'https://b.example' })
+    chatState.messages = [{ id: 'message-b' }]
+    chatState.error = new Error('B stays visible')
+    chatState.isSending = false
+    removeChatTabSession(TAB_A)
+
+    rejectSend(new Error('A failed'))
+    await sending
+
+    expect(getChatTabRuntimeDescriptors()).not.toEqual(
+      expect.arrayContaining([expect.objectContaining({ id: TAB_A })]),
+    )
+    expect(chatState.messages).toEqual([{ id: 'message-b' }])
+    expect(chatState.isSending).toBe(false)
+    expect(chatState.error.message).toBe('B stays visible')
+  })
+
+  it('guards retry writes after its detached session is removed', async () => {
+    await syncChatForActiveTab(TAB_A, { url: 'https://a.example' })
+    chatState.conversation = { id: 'conversation-a' }
+    chatState.activeConversationId = 'conversation-a'
+    chatState.messages = [
+      { id: 'user-a', role: 'user', content: 'Hello' },
+      { id: 'assistant-a', role: 'assistant', content: 'Hi', parentId: 'user-a' },
+    ]
+
+    let resolveRetry
+    const retryStarted = new Promise((resolve) => {
+      chatService.retry.mockImplementation(async () => {
+        resolve()
+        return new Promise((release) => {
+          resolveRetry = release
+        })
+      })
+    })
+
+    const retrying = retryChatMessage('user-a')
+    await retryStarted
+    expect(handleChatBrowserTabRemoved(TAB_A)).toBe(true)
+    await syncChatForActiveTab(TAB_B, { url: 'https://b.example' })
+    chatState.messages = [{ id: 'message-b' }]
+    chatState.error = new Error('B stays visible')
+    chatState.isSending = false
+    removeChatTabSession(TAB_A)
+
+    resolveRetry({})
+    await retrying
+
+    expect(getChatTabRuntimeDescriptors()).not.toEqual(
+      expect.arrayContaining([expect.objectContaining({ id: TAB_A })]),
+    )
+    expect(chatState.messages).toEqual([{ id: 'message-b' }])
+    expect(chatState.isSending).toBe(false)
+    expect(chatState.error.message).toBe('B stays visible')
+  })
+
+  it('activates a detached session without changing the active browser tab', async () => {
+    await syncChatForActiveTab(TAB_A, { url: 'https://a.example' })
+    chatState.conversation = { id: 'conversation-a' }
+    chatState.activeConversationId = 'conversation-a'
+    chatState.messages = [{ id: 'message-a' }]
+    chatState.composerText = 'Draft A'
+    expect(handleChatBrowserTabRemoved(TAB_A)).toBe(true)
+
+    await syncChatForActiveTab(TAB_B, { url: 'https://b.example' })
+    await activateChatSession(TAB_A)
+
+    expect(chatState.messages).toEqual([{ id: 'message-a' }])
+    expect(chatState.composerText).toBe('Draft A')
+    expect(chatTabsState.activeBrowserTabId).toBe(TAB_B)
+    expect(chatTabsState.activeSessionTabId).toBe(TAB_A)
+  })
+
+  it('returns to the active browser tab when the on-screen detached session is removed', async () => {
+    await syncChatForActiveTab(TAB_A, { url: 'https://a.example' })
+    chatState.conversation = { id: 'conversation-a' }
+    chatState.activeConversationId = 'conversation-a'
+    expect(handleChatBrowserTabRemoved(TAB_A)).toBe(true)
+
+    await syncChatForActiveTab(TAB_B, { url: 'https://b.example' })
+    await activateChatSession(TAB_A)
+    removeChatTabSession(TAB_A)
+    await Promise.resolve()
+
+    expect(chatState.conversation).toBeNull()
+    expect(chatTabsState.activeBrowserTabId).toBe(TAB_B)
+    expect(chatTabsState.activeSessionTabId).toBe(TAB_B)
+  })
+
+  it('does not write a reply into a fresh session after closeConversation', async () => {
+    await syncChatForActiveTab(TAB_A, { url: 'https://a.example' })
+    chatState.conversation = { id: 'conversation-a' }
+    chatState.activeConversationId = 'conversation-a'
+    chatState.activeSourceDismissed = true
+
+    let resolveSend
+    const sendStarted = new Promise((resolve) => {
+      chatService.send.mockImplementation(async () => {
+        resolve()
+        return new Promise((release) => {
+          resolveSend = release
+        })
+      })
+    })
+
+    const sending = sendChatMessage('Hello')
+    await sendStarted
+    closeConversation()
+    resolveSend({})
+    await sending
+
+    expect(chatState.conversation).toBeNull()
+    expect(chatState.messages).toEqual([])
+    expect(chatState.isSending).toBe(false)
+    expect(getChatTabRuntimeDescriptors()).toEqual([])
   })
 })
 
@@ -381,6 +642,53 @@ describe('active-tab identity — title + favicon (Phase 1)', () => {
     handleChatTabNavigation(TAB_A, 'https://a.example/two')
     expect(chatState.activeSourceEstimate).toBeNull()
     expect(chatSourceService.captureTabSource).toHaveBeenCalledOnce()
+  })
+
+  it('does not estimate the page for a detached session', async () => {
+    await syncChatForActiveTab(TAB_A, {
+      url: 'https://a.example/closed',
+      title: 'Page A',
+    })
+    chatState.conversation = { id: 'conversation-a' }
+    chatState.activeConversationId = 'conversation-a'
+    expect(handleChatBrowserTabRemoved(TAB_A)).toBe(true)
+
+    expect(await ensureActiveSourceEstimate('webpage')).toBeNull()
+    expect(chatSourceService.captureTabSource).not.toHaveBeenCalled()
+  })
+
+  it('drops the active source when the tab closes during capture', async () => {
+    await syncChatForActiveTab(TAB_A, {
+      url: 'https://a.example/capture',
+      title: 'Page A',
+    })
+    chatState.conversation = { id: 'conversation-a' }
+    chatState.activeConversationId = 'conversation-a'
+
+    let resolveCapture
+    const captureStarted = new Promise((resolve) => {
+      chatSourceService.captureTabSource.mockImplementationOnce(
+        () => new Promise((resolvePromise) => {
+          resolveCapture = resolvePromise
+          resolve()
+        }),
+      )
+    })
+    chatService.send.mockResolvedValue({ assistant: { id: 'assistant-a' }, transient: {}, diagnostics: {} })
+
+    const sending = sendChatMessage('Hello')
+    await captureStarted
+    expect(handleChatBrowserTabRemoved(TAB_A)).toBe(true)
+
+    resolveCapture({ source: { id: 'source-a', rawContent: 'Page content' } })
+    await sending
+
+    expect(chatSourceService.captureTabSource).toHaveBeenCalledOnce()
+    expect(chatService.send).toHaveBeenCalledOnce()
+    expect(chatService.send.mock.calls[0][0]).toMatchObject({
+      activeSource: null,
+      sourceRequired: false,
+    })
   })
 })
 

@@ -24,7 +24,7 @@ const DEFAULT_SETTINGS = {
   selectedProvider: 'gemini',
   floatButton: 200,
   floatButtonLeft: false,
-  showFloatingButton: true,
+  showFloatingButton: 'showOnScrollUp',
   floatingPanelLeft: false, // Default to right side
   closePanelOnOutsideClick: true, // Close floating panel when clicking outside
   geminiApiKey: '',
@@ -50,6 +50,8 @@ const DEFAULT_SETTINGS = {
   selectedGroqModel: 'llama-3.3-70b-versatile',
   cerebrasApiKey: '',
   selectedCerebrasModel: 'gpt-oss-120b',
+  nvidiaApiKey: '',
+  selectedNvidiaModel: 'deepseek-ai/deepseek-v4-flash',
   selectedFont: 'default',
   uiLang: 'en',
   mobileSheetHeight: 80, // Chiều cao MobileSheet (40-100 svh)
@@ -59,6 +61,7 @@ const DEFAULT_SETTINGS = {
   sidePanelDefaultWidth: 25, // Default width for side panel in em units
   oneClickSummarize: false, // Enable 1-click summarization on FAB
   reduceMotion: false, // Disable all animations across the extension
+  compactHeader: false, // One-row Summarize header in side panel / floating panel, any window size
   iconClickAction: 'sidepanel', // 'sidepanel', 'popup', or 'floating'
   fabDomainControl: {
     mode: 'all', // 'all' | 'whitelist' | 'blacklist'
@@ -69,12 +72,16 @@ const DEFAULT_SETTINGS = {
   // Quick Summary (YouTube thumbnail hover)
   quickSummaryEnabled: true, // Enable/disable quick summary feature
   quickSummaryAutoplay: 'pause', // 'auto' | 'pause' - YouTube autoplay behavior
+  hiddenActionButtons: [], // ACTION_BUTTONS keys hidden by the user (Analyze/Explain/...)
 
   // Firefox Permissions - Persist permission states across tab switches
   firefoxPermissions: {
     httpsPermission: false,
     lastChecked: null,
   },
+  // Side panel surface it opens on: flips to 'chat' once the user picks Try Chat
+  sidepanelSurface: 'summary', // 'summary' | 'chat'
+
   // Onboarding
   hasCompletedOnboarding: false,
   onboardingStep: 0,
@@ -138,6 +145,7 @@ const DEFAULT_SETTINGS = {
   },
   chatUserSkills: [],
   chatSkillMigrationVersion: 0,
+  fabVisibilityMigrationVersion: 1,
 
   // Advanced Mode (from former stores)
   isAdvancedMode: false,
@@ -320,6 +328,35 @@ function migrateDeprecatedTone(settings) {
     return true
   }
   return false
+}
+
+const FAB_VISIBILITY_MIGRATION_VERSION = 1
+
+/**
+ * Migrates legacy boolean showFloatingButton to string visibility mode ONCE
+ * Forces old 'true' / default users to 'showOnScrollUp' (Smart Scroll)
+ * Stamped with fabVisibilityMigrationVersion to ensure it runs strictly once per installation.
+ * @param {Object} settings - Settings object to migrate
+ * @returns {boolean} - True if migration was performed
+ */
+function migrateFloatingButtonVisibility(settings) {
+  if ((settings.fabVisibilityMigrationVersion || 0) >= FAB_VISIBILITY_MIGRATION_VERSION) {
+    return false
+  }
+
+  let migrated = false
+  if (settings.showFloatingButton === true || settings.showFloatingButton === 'show') {
+    console.log("[settingsStore] Migration: showFloatingButton -> 'showOnScrollUp'")
+    settings.showFloatingButton = 'showOnScrollUp'
+    migrated = true
+  } else if (settings.showFloatingButton === false) {
+    console.log("[settingsStore] Migration: showFloatingButton false -> 'hide'")
+    settings.showFloatingButton = 'hide'
+    migrated = true
+  }
+
+  settings.fabVisibilityMigrationVersion = FAB_VISIBILITY_MIGRATION_VERSION
+  return true
 }
 
 /**
@@ -639,6 +676,9 @@ export async function loadSettings() {
         // ✅ MIGRATION: Migrate 'alien' tone to 'witty'
         migrateDeprecatedTone(cleanStoredSettings)
 
+        // ✅ MIGRATION: Migrate legacy boolean showFloatingButton to 'showOnScrollUp'
+        migrateFloatingButtonVisibility(cleanStoredSettings)
+
         // Handle migration from old fabDomainPermissions to new fabDomainControl format
         if (
           cleanStoredSettings.fabDomainPermissions &&
@@ -790,6 +830,11 @@ export async function loadSettings() {
       console.error('[settingsStore] Error loading settings:', error)
       Object.assign(settings, DEFAULT_SETTINGS) // Fallback to defaults
     }
+
+    // Resolve to the live store object. Without this the promise resolved to
+    // `undefined`, which silently disabled every `await loadSettings()` caller
+    // that checked the result (see background/settingsBootstrap.js).
+    return settings
   })()
 
   return _isInitializedPromise
@@ -818,7 +863,15 @@ export async function updateSettings(newSettings, options = {}) {
     newSettings = applyFeatureModelMirrors(newSettings)
   }
 
+  // `isFullIngress` runs the payload through normalizeStoredSettings, whose
+  // migration steps treat every *absent* key as "never migrated" and re-seed it
+  // from defaults. That is only correct for a COMPLETE settings object (cloud
+  // sync ingress); handing it a partial patch silently resets addedProviders,
+  // openaiCompatibleProfiles and the summarize/chat blocks.
   const isFullIngress = options.isFullIngress === true
+  // Suppressing the sync round-trip is a separate concern from full ingress —
+  // internal caching writes need the former without the latter.
+  const skipSync = options.skipSync === true || _isSyncingFromCloud
 
   // ✅ FIX: Sanitize input hoặc normalizeStoredSettings nếu là full ingress
   const cleanNewSettings = isFullIngress
@@ -868,7 +921,7 @@ export async function updateSettings(newSettings, options = {}) {
     await settingsStorage.setValue(JSON.parse(JSON.stringify(updatedSettings)))
     
     // Trigger cloud sync after settings change (unless syncing from cloud)
-    if (!_isSyncingFromCloud) {
+    if (!skipSync) {
       console.log('[settingsStore] Triggering cloud sync after settings change...')
       try {
         const { triggerSync } = await import(
@@ -991,8 +1044,13 @@ export async function updateFirefoxPermission(permissionKey, value) {
     timestamp: Date.now(),
   })
 
-  // Use updateSettingsFromCloud to avoid triggering sync - this is internal caching, not user-initiated change
-  await updateSettingsFromCloud({ firefoxPermissions: newPermissions })
+  // Skip the sync round-trip (this is internal caching, not a user-initiated
+  // change) but stay on the normal *patch* path. Routing this one-key payload
+  // through updateSettingsFromCloud marked it as full ingress, which re-seeded
+  // addedProviders to ['gemini'] and cleared openaiCompatibleProfiles every
+  // time a permission was checked — Firefox-only, since this is the only
+  // caller of that path outside real cloud sync.
+  await updateSettings({ firefoxPermissions: newPermissions }, { skipSync: true })
 }
 
 /**

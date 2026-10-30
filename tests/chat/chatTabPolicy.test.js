@@ -111,6 +111,137 @@ describe('chat tab policy', () => {
     ])
   })
 
+  it('appends detached conversations after live browser tabs', () => {
+    const tabs = mergeChatTabsWithBrowserTabs({
+      runtimeTabs: [
+        {
+          id: 99,
+          detached: true,
+          title: 'Closed lesson',
+          hasConversation: true,
+          isLoading: true,
+          hasError: false,
+          removable: true,
+        },
+        {
+          id: 10,
+          detached: false,
+          hasConversation: true,
+          isLoading: false,
+          hasError: true,
+          removable: true,
+        },
+      ],
+      browserTabs: [{ id: 10, title: 'Live lesson' }],
+      activeBrowserTabId: 10,
+    })
+
+    expect(tabs).toEqual([
+      {
+        id: 10,
+        title: 'Live lesson',
+        isLoading: false,
+        hasError: true,
+        removable: true,
+      },
+      {
+        id: 99,
+        title: 'Closed lesson',
+        detached: true,
+        isLoading: true,
+        hasError: false,
+        removable: true,
+      },
+    ])
+  })
+
+  it('hides detached runtime tabs without a conversation', () => {
+    const tabs = mergeChatTabsWithBrowserTabs({
+      runtimeTabs: [
+        {
+          id: 99,
+          detached: true,
+          title: 'Draft only',
+          hasConversation: false,
+          isLoading: false,
+          hasError: false,
+          removable: true,
+        },
+      ],
+      browserTabs: [{ id: 10, title: 'Current page' }],
+      activeBrowserTabId: 10,
+    })
+
+    expect(tabs).toEqual([
+      {
+        id: 10,
+        title: 'Current page',
+        isLoading: false,
+        hasError: false,
+        removable: false,
+      },
+    ])
+  })
+
+  it('adds the active browser placeholder while a detached session is shown', () => {
+    const detachedRuntimeTab = {
+      id: 99,
+      detached: true,
+      title: 'Closed lesson',
+      hasConversation: true,
+      isLoading: false,
+      hasError: false,
+      removable: true,
+    }
+    const browserTabs = [
+      { id: 10, title: 'Current page' },
+      { id: 20, title: 'Other page' },
+    ]
+
+    expect(
+      mergeChatTabsWithBrowserTabs({
+        runtimeTabs: [detachedRuntimeTab],
+        browserTabs,
+        activeBrowserTabId: 10,
+        activeSessionId: 99,
+      }),
+    ).toEqual([
+      {
+        id: 99,
+        title: 'Closed lesson',
+        detached: true,
+        isLoading: false,
+        hasError: false,
+        removable: true,
+      },
+      {
+        id: 10,
+        title: 'Current page',
+        isLoading: false,
+        hasError: false,
+        removable: false,
+      },
+    ])
+
+    expect(
+      mergeChatTabsWithBrowserTabs({
+        runtimeTabs: [
+          detachedRuntimeTab,
+          {
+            id: 10,
+            hasConversation: true,
+            isLoading: false,
+            hasError: false,
+            removable: true,
+          },
+        ],
+        browserTabs,
+        activeBrowserTabId: 10,
+        activeSessionId: 99,
+      }).filter((tab) => tab.id === 10),
+    ).toHaveLength(1)
+  })
+
   it('maps loading, error and removable state from a session', () => {
     expect(
       toChatTabRuntimeDescriptor(7, {
@@ -119,6 +250,9 @@ describe('chat tab policy', () => {
       }),
     ).toEqual({
       id: 7,
+      detached: false,
+      title: null,
+      favIconUrl: null,
       hasConversation: false,
       isLoading: true,
       hasError: true,

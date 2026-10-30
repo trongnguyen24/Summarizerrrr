@@ -29,7 +29,10 @@ const OPENROUTER_MODELS_URL = 'https://openrouter.ai/api/v1/models'
  * Allowlist mapping the app's `providerId` → the OpenRouter vendor prefix.
  * **Cloud, non-Groq/Cerebras, non-local only.**
  * Providers NOT in this map (ollama, lmstudio, openaiCompatible, groq,
- * cerebras, openrouter) are never looked up in the catalog.
+ * cerebras, nvidia, openrouter) are never looked up in the catalog.
+ *
+ * Note `nvidia` is excluded structurally, not by oversight: like openrouter it
+ * fronts many vendors, so a single vendor prefix can't represent it.
  */
 export const PROVIDER_VENDOR_MAP = {
   chatgpt: 'openai',

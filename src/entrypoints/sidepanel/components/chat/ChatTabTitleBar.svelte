@@ -8,6 +8,7 @@
     handleChatBrowserTabRemoved,
     handleChatTabNavigation,
     removeChatTabSession,
+    activateChatSession,
     syncChatForActiveTab,
     updateChatTabMetadata,
   } from '@/stores/chatStore.svelte.js'
@@ -21,11 +22,15 @@
   let loadSequence = 0
   let lastBrowserTabs = []
 
-  let activeTabId = $derived(chatTabsState.activeBrowserTabId)
+  let activeSessionId = $derived(chatTabsState.activeSessionTabId)
+  let activeTabId = $derived(
+    chatTabsState.activeSessionTabId ?? chatTabsState.activeBrowserTabId,
+  )
 
   $effect(() => {
     const _trigger = [
       chatTabsState.version,
+      chatTabsState.activeSessionTabId,
       chatState.activeConversationId,
       chatState.messages.length,
       chatState.composerText,
@@ -68,7 +73,6 @@
 
     const handleRemoved = (tabId) => {
       handleChatBrowserTabRemoved(tabId)
-      tabs = tabs.filter((tab) => tab.id !== tabId)
       refreshTabsInfo()
     }
 
@@ -124,13 +128,21 @@
       runtimeTabs: getChatTabRuntimeDescriptors(),
       browserTabs: lastBrowserTabs,
       activeBrowserTabId: chatTabsState.activeBrowserTabId,
+      activeSessionId: chatTabsState.activeSessionTabId,
     })
   }
 
   async function selectTab(tabId) {
-    if (!tabId || tabId === activeTabId) return
+    if (!tabId || tabId === activeSessionId) return
+    const selectedTab = tabs.find((tab) => tab.id === tabId)
     try {
-      await browser.tabs.update(tabId, { active: true })
+      if (selectedTab?.detached) {
+        await activateChatSession(tabId)
+      } else if (tabId === chatTabsState.activeBrowserTabId) {
+        await syncChatForActiveTab(tabId)
+      } else {
+        await browser.tabs.update(tabId, { active: true })
+      }
     } catch (error) {
       console.error('[ChatTabTitleBar] Failed to navigate to tab:', error)
     }

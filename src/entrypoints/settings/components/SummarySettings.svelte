@@ -5,7 +5,6 @@
   import { t } from 'svelte-i18n'
   import Icon from '@iconify/svelte'
   import ButtonSet from '@/components/buttons/ButtonSet.svelte'
-  import LanguageSelect from '@/components/inputs/LanguageSelect.svelte'
   import SwitchButton from '@/entrypoints/settings/components/inputs/Switch.svelte'
   import {
     settings,
@@ -13,11 +12,24 @@
     updateFeatureSettings,
   } from '@/stores/settingsStore.svelte.js'
   import { TASK_REASONING_CHOICES } from '@/lib/api/reasoningConfig.js'
+  import { ACTION_BUTTONS } from '@/lib/config/actionConstants.js'
   import FeatureModelPicker from '@/entrypoints/settings/components/inputs/FeatureModelPicker.svelte'
   import { browser } from 'wxt/browser'
 
   function handleUpdateSetting(key, value) {
     updateSettings({ [key]: value })
+  }
+
+  function isActionShown(key) {
+    return !(settings.hiddenActionButtons ?? []).includes(key)
+  }
+
+  function toggleAction(key) {
+    const hidden = settings.hiddenActionButtons ?? []
+    handleUpdateSetting(
+      'hiddenActionButtons',
+      isActionShown(key) ? [...hidden, key] : hidden.filter((k) => k !== key),
+    )
   }
 
   let wittyClickCount = $state(0)
@@ -98,18 +110,6 @@
         bind:provider={settings.summarize.provider}
         bind:model={settings.summarize.model}
         onchange={(p, m) => updateFeatureSettings('summarize', { provider: p, model: m })}
-      />
-    </div>
-
-    <!-- Summary Language Section -->
-    <div class="flex flex-col gap-2">
-      <!-- svelte-ignore a11y_label_has_associated_control -->
-      <label class="block text-text-secondary"
-        >{$t('settings.summary.language_output')}</label
-      >
-      <LanguageSelect
-        bind:value={settings.summaryLang}
-        onchange={(event) => handleUpdateSetting('summaryLang', event.detail)}
       />
     </div>
 
@@ -211,24 +211,32 @@
         >{$t('settings.summary.comment_limit')}</label
       >
       <div class="grid grid-cols-3 w-full gap-1">
-        <ButtonSet
-          title="40"
-          class="setting-btn {settings.commentLimit === 40 ? 'active' : ''}"
-          onclick={() => handleUpdateSetting('commentLimit', 40)}
-          Description=""
-        ></ButtonSet>
-        <ButtonSet
-          title="60"
-          class="setting-btn {settings.commentLimit === 60 ? 'active' : ''}"
-          onclick={() => handleUpdateSetting('commentLimit', 60)}
-          Description=""
-        ></ButtonSet>
-        <ButtonSet
-          title="80"
-          class="setting-btn {settings.commentLimit === 80 ? 'active' : ''}"
-          onclick={() => handleUpdateSetting('commentLimit', 80)}
-          Description=""
-        ></ButtonSet>
+        {#each [40, 60, 80, 160, 300, 500] as limit}
+          <ButtonSet
+            title={String(limit)}
+            class="setting-btn {settings.commentLimit === limit ? 'active' : ''}"
+            onclick={() => handleUpdateSetting('commentLimit', limit)}
+            Description=""
+          ></ButtonSet>
+        {/each}
+      </div>
+    </div>
+
+    <!-- Action Buttons Section (Analyze/Explain/... under Summarize) -->
+    <div class="flex flex-col gap-2">
+      <!-- svelte-ignore a11y_label_has_associated_control -->
+      <label class="block text-text-secondary"
+        >{$t('settings.summary.action_buttons')}</label
+      >
+      <div class="grid grid-cols-3 w-full gap-1">
+        {#each ACTION_BUTTONS as action (action.key)}
+          <ButtonSet
+            title={action.label}
+            class="setting-btn {isActionShown(action.key) ? 'active' : ''}"
+            onclick={() => toggleAction(action.key)}
+            Description={$t(`custom_actions.${action.key}_description`)}
+          ></ButtonSet>
+        {/each}
       </div>
     </div>
   </div>

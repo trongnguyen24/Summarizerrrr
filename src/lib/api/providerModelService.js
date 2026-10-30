@@ -1,5 +1,7 @@
 import { registerModelCapability } from '@/lib/chat/providerCapabilities.js'
 import { persistDiscoveredCapabilities } from '@/lib/chat/modelCapabilityCache.js'
+import { isNonTextGeminiModel } from '@/lib/providers/geminiFreeTier.js'
+import { rememberGeminiModels } from '@/lib/providers/geminiFallbackChain.js'
 
 export const PROVIDER_CONFIG = {
   chatgpt: {
@@ -29,6 +31,12 @@ export const PROVIDER_CONFIG = {
     usesApiKeyQueryParam: true,
     capabilityProviderId: 'gemini',
   },
+  nvidia: {
+    // NVIDIA's catalog endpoint answers unauthenticated, so discovery works
+    // before the user pastes a key.
+    url: 'https://integrate.api.nvidia.com/v1/models',
+    requiresApiKey: false,
+  },
 }
 
 export const FALLBACK_PROVIDER_MODELS = {
@@ -42,6 +50,17 @@ export const FALLBACK_PROVIDER_MODELS = {
     'qwen/qwen3-32b',
   ],
   cerebras: ['gpt-oss-120b', 'zai-glm-4.7'],
+  nvidia: [
+    'deepseek-ai/deepseek-v4-flash',
+    'deepseek-ai/deepseek-v4-pro',
+    'meta/llama-3.3-70b-instruct',
+    'moonshotai/kimi-k2.6',
+    'nvidia/llama-3.3-nemotron-super-49b-v1.5',
+    'nvidia/nvidia-nemotron-nano-9b-v2',
+    'openai/gpt-oss-120b',
+    'openai/gpt-oss-20b',
+    'z-ai/glm-5.2',
+  ],
   deepseek: ['deepseek-v4-flash', 'deepseek-v4-pro'],
   gemini: [
     'gemini-3.5-flash',
@@ -78,6 +97,56 @@ function isGroqChatModel(model) {
     !id.includes('guard') &&
     !id.includes('moderation')
   )
+}
+
+/**
+ * NVIDIA's catalog mixes chat LLMs with embedding, reranking, safety-guard,
+ * reward, OCR/document-parse, speech, vision-only and biology models — all
+ * under the same `/v1/models` list, with no `type` field to discriminate on.
+ * Substring matching on the id is the only signal available.
+ */
+const NVIDIA_NON_CHAT_PATTERNS = [
+  'embed',
+  'rerank',
+  'retriever',
+  'bge-',
+  'nvclip',
+  'guard',
+  'shield',
+  // Catches `nemotron-3.5-content-safety`, which carries no `guard` in its id.
+  'safety',
+  'reward',
+  'parse',
+  'ocr',
+  'table-structure',
+  'graphic-elements',
+  'deplot',
+  'parakeet',
+  'riva-',
+  '-asr',
+  '-tts',
+  'fuyu',
+  'kosmos',
+  'neva-',
+  'vila',
+  'video-detector',
+  'maxine',
+  'usdcode',
+  'esm',
+  'molmim',
+  'diffdock',
+  'proteinmpnn',
+  'genmol',
+  'sana',
+  'flux',
+  'stable-diffusion',
+  'sdxl',
+]
+
+function isNvidiaChatModel(model) {
+  const id = model.id?.toLowerCase() || ''
+
+  return !NVIDIA_NON_CHAT_PATTERNS.some((pattern) => id.includes(pattern))
 }
 
 /**
@@ -127,6 +196,9 @@ function normalizeModels(providerId, body) {
           model.baseModelId?.trim() || model.name?.replace(/^models\//, '').trim(),
       )
       .filter(Boolean)
+      // `generateContent` alone still lets TTS, image and Live-audio models
+      // through; this extension only ever sends text.
+      .filter((id) => !isNonTextGeminiModel(id))
       .filter((id, index, models) => models.indexOf(id) === index)
       .sort((a, b) => a.localeCompare(b))
   }
@@ -137,6 +209,7 @@ function normalizeModels(providerId, body) {
 
   return body.data
     .filter((model) => providerId !== 'groq' || isGroqChatModel(model))
+    .filter((model) => providerId !== 'nvidia' || isNvidiaChatModel(model))
     .filter((model) => typeof model?.id === 'string' && model.id.trim())
     .map((model) => model.id.trim())
     .filter((id, index, models) => models.indexOf(id) === index)
@@ -201,6 +274,8 @@ export async function fetchProviderModels(
     registerCapabilitiesFromBody(config.capabilityProviderId || providerId, body)
     const models = normalizeModels(providerId, body)
     void persistDiscoveredCapabilities()
+    // Feeds the Gemini auto-fallback chain; the hardcoded fallback list never does.
+    if (providerId === 'gemini' && models.length) void rememberGeminiModels(models)
     return models.length ? models : FALLBACK_PROVIDER_MODELS[providerId]
   } catch (error) {
     if (!config.publicUrl) throw error

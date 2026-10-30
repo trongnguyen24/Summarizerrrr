@@ -2,7 +2,7 @@
 <script>
   import { onMount } from 'svelte'
   import { animate } from 'animejs'
-  import Icon, { loadIcons } from '@iconify/svelte'
+  import Icon from '@iconify/svelte'
   import { DropdownMenu, Dialog } from 'bits-ui'
   import {
     createTimer,

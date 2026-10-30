@@ -124,6 +124,10 @@ const FULL_REASONING_PROVIDERS = new Set([
 const AUTO_ONLY_PROVIDERS = new Set([
   'openaiCompatible',
   'lmstudio',
+  // NVIDIA NIM fronts ~70 models from a dozen vendors; thinking is opted into
+  // per-model (e.g. Nemotron's `chat_template_kwargs`), not by a portable
+  // `reasoningEffort`. Sending one would 400 on most of the catalog.
+  'nvidia',
 ])
 
 /**

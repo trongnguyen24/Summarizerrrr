@@ -236,9 +236,19 @@
               ? ''
               : 'group-hover:w-[90%]'} duration-200 transition-all mask-alpha overflow-x-hidden mask-r-from-black mask-r-from-75% mask-r-to-90% select-none {tab.isLoading
               ? 'animate-pulse'
-              : ''} {tab.hasError ? 'text-red-400' : ''}"
-            >{tab.title}</span
-          >
+              : ''} {tab.hasError ? 'text-red-400' : ''} {tab.detached ? 'text-text-tertiary opacity-75' : ''}"
+            >
+            {#if tab.detached}
+              <span
+                class="inline-flex shrink-0 items-center mr-1"
+                title={$t('chat.detached.tab_tooltip')}
+                aria-hidden="true"
+              >
+                <Icon icon="carbon:unlink" width="13" height="13" />
+              </span>
+            {/if}
+            {tab.title}
+          </span>
           <div
             class="absolute tab-bg scale-90 group-hover:scale-100 w-[calc(100%-2px)] top-0.5 left-1/2 -translate-x-1/2 flex items-center gap-1 transition-all duration-150 ease-in-out group-hover:bg-surface-1 group-hover:dark:bg-surface-2 px-1.5 h-5 rounded-xl overflow-hidden"
           ></div>

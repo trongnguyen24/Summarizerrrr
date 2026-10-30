@@ -24,8 +24,10 @@ export function createNavigationHandlers({
         try {
           if (!message.conversationId) throw new Error('A conversation ID is required')
           const [activeTab] = await browser.tabs.query({ active: true, currentWindow: true })
-          // Keep this message in the existing side-panel port path so an
-          // archive page never needs to import chat state directly.
+          // Resume always lands in the side panel, which opens the conversation
+          // detached (so it never grabs the active tab as a source). The archive
+          // page renders chat itself through chatStore, so it no longer avoids
+          // chat state; this path stays for the side-panel handoff only.
           const sidePanelPort = getSidePanelPort()
           if (sidePanelPort) sidePanelPort.postMessage({ action: 'resumeConversation', conversationId: message.conversationId })
           else setPendingConversationResume(message.conversationId)

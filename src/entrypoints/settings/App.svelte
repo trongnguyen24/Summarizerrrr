@@ -1,7 +1,7 @@
 <script>
   // @ts-nocheck
   import { t } from 'svelte-i18n'
-  import Icon, { loadIcons } from '@iconify/svelte'
+  import Icon from '@iconify/svelte'
 
   import {
     settings,

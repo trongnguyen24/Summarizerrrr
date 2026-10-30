@@ -13,8 +13,10 @@ const mocks = vi.hoisted(() => ({
   shouldEnableAutoFallback: vi.fn(),
   shouldEnableApiKeyRetry: vi.fn(),
   getCurrentGeminiModel: vi.fn(),
-  getNextFallbackModel: vi.fn(),
+  getNextGeminiFallbackModel: vi.fn(),
+  ensureGeminiModelList: vi.fn(),
   isOverloadError: vi.fn(),
+  isModelUnavailableError: vi.fn(),
   updateModelStatus: vi.fn(),
 }))
 
@@ -46,12 +48,16 @@ vi.mock('@/lib/utils/browserDetection.js', () => ({
 vi.mock('@/lib/utils/geminiAutoFallback.js', () => ({
   isOverloadError: mocks.isOverloadError,
   isQuotaError: vi.fn(),
-  getNextFallbackModel: mocks.getNextFallbackModel,
-  getNextAdvancedFallbackModel: vi.fn(),
+  isModelUnavailableError: mocks.isModelUnavailableError,
   shouldEnableAutoFallback: mocks.shouldEnableAutoFallback,
   shouldEnableApiKeyRetry: mocks.shouldEnableApiKeyRetry,
   getCurrentGeminiModel: mocks.getCurrentGeminiModel,
 }))
+vi.mock('@/lib/providers/geminiFallbackChain.js', () => ({
+  ensureGeminiModelList: mocks.ensureGeminiModelList,
+  getNextGeminiFallbackModel: mocks.getNextGeminiFallbackModel,
+}))
+vi.mock('@/lib/api/providerModelService.js', () => ({ fetchProviderModels: vi.fn() }))
 vi.mock('@/stores/summaryStore.svelte.js', () => ({
   updateModelStatus: mocks.updateModelStatus,
 }))
@@ -97,8 +103,10 @@ beforeEach(() => {
   mocks.shouldEnableAutoFallback.mockReturnValue(false)
   mocks.shouldEnableApiKeyRetry.mockReturnValue(false)
   mocks.getCurrentGeminiModel.mockReturnValue('gemini-test')
-  mocks.getNextFallbackModel.mockReturnValue(null)
+  mocks.getNextGeminiFallbackModel.mockReturnValue(null)
+  mocks.ensureGeminiModelList.mockResolvedValue(undefined)
   mocks.isOverloadError.mockReturnValue(false)
+  mocks.isModelUnavailableError.mockReturnValue(false)
 })
 
 describe('AI SDK generation requests', () => {
@@ -156,7 +164,7 @@ describe('AI SDK generation requests', () => {
     const messages = [{ role: 'user', content: 'Keep this turn during retry.' }]
     mocks.shouldEnableAutoFallback.mockReturnValue(true)
     mocks.getCurrentGeminiModel.mockReturnValue('gemini-primary')
-    mocks.getNextFallbackModel.mockReturnValue('gemini-fallback')
+    mocks.getNextGeminiFallbackModel.mockReturnValue('gemini-fallback')
     mocks.isOverloadError.mockReturnValue(true)
     mocks.generateText
       .mockRejectedValueOnce(new Error('overloaded'))
@@ -170,6 +178,29 @@ describe('AI SDK generation requests', () => {
     expect(mocks.generateText.mock.calls).toHaveLength(2)
     expect(mocks.generateText.mock.calls[0][0].messages).toEqual(messages)
     expect(mocks.generateText.mock.calls[1][0].messages).toEqual(messages)
+  })
+
+  it('steps over a retired model instead of surfacing its 404', async () => {
+    mocks.shouldEnableAutoFallback.mockReturnValue(true)
+    mocks.getCurrentGeminiModel.mockReturnValue('gemini-retired')
+    mocks.getNextGeminiFallbackModel.mockReturnValue('gemini-alive')
+    mocks.isModelUnavailableError.mockReturnValue(true)
+    const notFound = new Error(
+      'models/gemini-retired is not found for API version v1beta'
+    )
+    notFound.status = 404
+    mocks.generateText
+      .mockRejectedValueOnce(notFound)
+      .mockResolvedValueOnce({ text: 'answer from the live model' })
+
+    await expect(
+      generateContentRequest({ providerId: 'gemini', settings, prompt: 'Prompt' })
+    ).resolves.toBe('answer from the live model')
+    expect(mocks.generateText.mock.calls).toHaveLength(2)
+    // The dead model is marked tried, so the chain can never hand it back.
+    const [tried] = mocks.getNextGeminiFallbackModel.mock.calls[0]
+    expect(tried.has('gemini-retired')).toBe(true)
+    expect(mocks.ensureGeminiModelList).toHaveBeenCalled()
   })
 
   it('passes abort signals through direct and proxy request paths', async () => {
@@ -600,6 +631,40 @@ describe('Model-routing contract (Phase 1 lock)', () => {
     expect(cerebrasFactory).toHaveBeenCalledWith(explicitModel)
     expect(mocks.generateText).toHaveBeenCalledWith(
       expect.objectContaining({ model: cerebrasModel })
+    )
+  })
+
+  it('resolveAdapterCall for nvidia builds an OpenAI-compatible client on the NIM base URL', async () => {
+    const explicitModel = 'meta/llama-3.3-70b-instruct'
+    const { providerId: adapterId, settings: resolved } = resolveAdapterCall(
+      'nvidia',
+      explicitModel,
+      { ...settings, nvidiaApiKey: 'nvapi-key-test' }
+    )
+
+    expect(adapterId).toBe('nvidia')
+    expect(resolved.selectedNvidiaModel).toBe(explicitModel)
+
+    const nvidiaModel = { modelId: explicitModel }
+    const nvidiaFactory = vi.fn(() => nvidiaModel)
+    mocks.createOpenAICompatible.mockReturnValue(nvidiaFactory)
+
+    await generateContentRequest({
+      providerId: adapterId,
+      settings: resolved,
+      prompt: 'test nvidia model routing',
+    })
+
+    expect(mocks.createOpenAICompatible).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'nvidia',
+        apiKey: 'nvapi-key-test',
+        baseURL: 'https://integrate.api.nvidia.com/v1',
+      })
+    )
+    expect(nvidiaFactory).toHaveBeenCalledWith(explicitModel)
+    expect(mocks.generateText).toHaveBeenCalledWith(
+      expect.objectContaining({ model: nvidiaModel })
     )
   })
 

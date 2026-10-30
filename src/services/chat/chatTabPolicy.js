@@ -17,6 +17,9 @@ export function chatSessionHasActivity(session) {
 export function toChatTabRuntimeDescriptor(id, session) {
   return {
     id,
+    detached: Boolean(session?.detached),
+    title: session?.currentTitle || null,
+    favIconUrl: session?.currentFavIconUrl || null,
     hasConversation: Boolean(
       session?.conversation ||
         session?.activeConversationId ||
@@ -49,13 +52,17 @@ export function mergeChatTabsWithBrowserTabs({
   runtimeTabs,
   browserTabs,
   activeBrowserTabId,
+  activeSessionId,
 }) {
   const browserById = new Map(browserTabs.map((tab) => [tab.id, tab]))
   const browserIndexById = new Map(
     browserTabs.map((tab, index) => [tab.id, index]),
   )
   const establishedTabs = runtimeTabs
-    .filter((tab) => tab.hasConversation && browserById.has(tab.id))
+    .filter(
+      (tab) =>
+        !tab.detached && tab.hasConversation && browserById.has(tab.id),
+    )
     .sort(
       (left, right) =>
         browserIndexById.get(left.id) - browserIndexById.get(right.id),
@@ -72,7 +79,30 @@ export function mergeChatTabsWithBrowserTabs({
     })
   }
 
-  if (result.length === 0 && browserById.has(activeBrowserTabId)) {
+  const detachedTabs = runtimeTabs.filter(
+    (tab) => tab.detached && tab.hasConversation,
+  )
+  for (const runtime of detachedTabs) {
+    result.push({
+      id: runtime.id,
+      title: runtime.title || 'Untitled',
+      detached: true,
+      isLoading: runtime.isLoading,
+      hasError: runtime.hasError,
+      removable: true,
+    })
+  }
+
+  const activeSessionIsDetached = runtimeTabs.some(
+    (tab) => tab.id === activeSessionId && tab.detached,
+  )
+  const shouldShowActiveBrowserPlaceholder =
+    browserById.has(activeBrowserTabId) &&
+    (result.length === 0 ||
+      (activeSessionIsDetached &&
+        !result.some((tab) => tab.id === activeBrowserTabId)))
+
+  if (shouldShowActiveBrowserPlaceholder) {
     const activeBrowserTab = browserById.get(activeBrowserTabId)
     result.push({
       id: activeBrowserTabId,

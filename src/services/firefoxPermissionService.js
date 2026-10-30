@@ -3,28 +3,46 @@
  * Firefox Optional Permissions Service
  * Core service để xử lý optional permissions trên Firefox
  */
+import {
+  urlToDomain,
+  domainToOriginPattern,
+  isDomainCoveredByPatterns,
+  getManifestOriginPatterns,
+} from './firefoxSitePermissionService.js'
 
 /**
- * Lấy permission pattern cần thiết cho URL
- * Chỉ trả về pattern cho sites cần optional permission
- * YouTube, Udemy, Coursera đã có host_permissions nên không cần check
+ * True nếu domain đã nằm trong host_permissions khai báo tĩnh của manifest
+ * (YouTube, Udemy, Coursera, Reddit, Wikipedia hiện tại) - derived từ
+ * `getManifestOriginPatterns()` thay vì một danh sách hardcode riêng.
+ *
+ * Subdomain chỉ được coi là covered khi manifest pattern có wildcard `*.`
+ * thật. Manifest khai báo các site học tập dạng `*://*.youtube.com/*` nhưng
+ * các API host dạng `*://openrouter.ai/*` (không wildcard), nên
+ * `docs.openrouter.ai` phải vẫn cần xin quyền - nếu không thì
+ * `checkPermission()` trả true rồi `executeScript` fail mà không hề hỏi user.
+ * @param {string} domain
+ * @returns {boolean}
+ */
+function isCoveredByManifest(domain) {
+  return isDomainCoveredByPatterns(domain, getManifestOriginPatterns())
+}
+
+/**
+ * Lấy permission pattern cần thiết cho URL hiện tại.
+ * Chỉ trả về pattern cho site đó (không còn `<all_urls>`) - sites đã có
+ * host_permissions tĩnh trong manifest (YouTube, Udemy, Coursera, Reddit,
+ * Wikipedia) vẫn trả về null vì không cần optional permission.
  * @param {string} url - URL hiện tại
- * @returns {string|null} - Permission pattern hoặc null nếu đã có host permission
+ * @returns {string|null} - Site-specific permission pattern, hoặc null nếu
+ *   URL không thể request được (non-http(s)) hoặc đã có host permission
  */
 export function getRequiredPermission(url) {
-  // YouTube, Udemy, Coursera, Reddit đã có host_permissions - không cần optional permission
-  if (
-    url.includes('youtube.com') ||
-    url.includes('udemy.com') ||
-    url.includes('coursera.org') ||
-    url.includes('reddit.com') ||
-    url.includes('wikipedia.org')
-  ) {
-    return null // Đã có host permission
-  }
+  const domain = urlToDomain(url)
+  if (!domain) return null // non-http(s) - không có gì để request
 
-  // Default cho tất cả các site khác (trừ sites có host permissions)
-  return '<all_urls>'
+  if (isCoveredByManifest(domain)) return null // Đã có host permission
+
+  return domainToOriginPattern(domain)
 }
 
 /**

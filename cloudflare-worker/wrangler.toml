@@ -1,0 +1,21 @@
+# Cloudflare Worker: OAuth token exchange/refresh proxy for Cloud Sync's shared sign-in.
+#
+# Deploy (repo owner, from this directory):
+#   npx wrangler secret put SUMMARIZERRRR_GOOGLE_CLIENT_SECRET   # paste the secret at the prompt; never commit it
+#   npx wrangler deploy
+#
+# GOOGLE_CLIENT_ID must equal CLIENT_ID in src/services/cloudSync/googleDriveAdapter.js.
+# Firefox (moz-extension://<random uuid>) origins are always matched by pattern, not ALLOWED_ORIGINS.
+
+name = "summarizerrrr-oauth-proxy"
+main = "oauth-proxy.js"
+compatibility_date = "2026-10-01"
+
+routes = [{ pattern = "oauth.summarizerrrr.com", custom_domain = true }]
+
+[vars]
+GOOGLE_CLIENT_ID = "197192111766-kfe6nfv6tsfbtvg0emd4ifcrjs631944.apps.googleusercontent.com"
+# Chrome Web Store, Edge Add-ons
+ALLOWED_ORIGINS = "chrome-extension://ahfjndakflcegianjdojpldllodpkkpc,chrome-extension://kgoolaebmcbhbjokofmhdcjbljagaiif"
+# Chrome, Edge, Firefox (fixed gecko ID hash)
+ALLOWED_REDIRECT_URIS = "https://ahfjndakflcegianjdojpldllodpkkpc.chromiumapp.org/,https://kgoolaebmcbhbjokofmhdcjbljagaiif.chromiumapp.org/,https://5addcb3f-a5ee-4df3-b7e6-a30bf3445a6d.extensions.allizom.org/"

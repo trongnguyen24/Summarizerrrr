@@ -24,7 +24,6 @@
   import {
     exportConversationBackup,
     importConversationBackup,
-    clearConversationData,
   } from '@/lib/db/conversationRepository.js'
   import { t } from 'svelte-i18n'
   import {
@@ -141,7 +140,10 @@
       dataCounts.history = counts.history
       dataCounts.archives = counts.summaries
       dataCounts.tags = counts.tags
-      dataCounts.conversations = (await exportConversationBackup()).conversations.length
+      // Deleted conversations stay as sync tombstones; don't count them.
+      dataCounts.conversations = (await exportConversationBackup()).conversations.filter(
+        (conversation) => !conversation.deleted
+      ).length
     } catch (error) {
       console.error('Error loading data counts:', error)
     } finally {
@@ -658,13 +660,6 @@
     }
   }
 
-  async function clearChatOnly() {
-    if (!confirm('Clear all conversations and captured chat sources? Summary and history data will not be affected.')) return
-    await clearConversationData()
-    await loadDataCounts()
-    setMessage('success', 'Chat data cleared.')
-  }
-
   function resetImportState(resetFileInput = true) {
     state.importData = null
     importOptions.dataTypes = {
@@ -902,7 +897,7 @@
             </div>
           </div>
           <div class="flex justify-between">
-            <div class="text-text-secondary text-xs">Chats</div>
+            <div class="text-text-secondary text-xs">{$t('exportImport.chats', { default: 'Chats' })}</div>
             <div class="text-text-primary font-medium">{dataCounts.isLoading ? '...' : dataCounts.conversations}</div>
           </div>
           <div class="flex justify-between">
@@ -982,11 +977,6 @@
             onchange={handleFileSelect}
           />
         </div>
-      </div>
-      <div class="flex flex-col gap-2 pb-4">
-        <div class="block text-text-secondary">Chat data</div>
-        <p class="text-xs text-text-muted">Conversations are included in local backups only. Cloud sync does not sync chats in v1.</p>
-        <button onclick={clearChatOnly} disabled={dataCounts.conversations === 0} class="text-left text-xs text-error disabled:opacity-50">Clear chat data</button>
       </div>
       <div class="flex flex-col gap-2 pb-4">
         <!-- svelte-ignore a11y_label_has_associated_control -->

@@ -25,6 +25,10 @@
 </script>
 
 <div class=" flex flex-col gap-8 py-6">
+  <div class="flex items-center h-6 justify-between px-5">
+    <label class="block font-bold text-text-primary">Appearance</label>
+  </div>
+
   <!-- Sidepanel Support Setting - Only show on Chrome -->
   {#if import.meta.env.BROWSER === 'chrome' && !browserCompatibility.isMobile}
     <div class="flex flex-col gap-2 px-5">
@@ -170,6 +174,29 @@
         class={`setting-btn ${settings.reduceMotion ? 'active' : ''}`}
         onclick={() => handleUpdateSetting('reduceMotion', true)}
         Description={$t('settings.general.reduce_motion.enabled_desc')}
+      />
+    </div>
+  </div>
+
+  <div class="flex flex-col gap-2 px-5">
+    <label class="block text-text-primary font-bold"
+      >{$t('settings.general.compact_header.title')}</label
+    >
+    <p class="text-xs text-muted">
+      {$t('settings.general.compact_header.description')}
+    </p>
+    <div class="flex w-full gap-1">
+      <ButtonSet
+        title={$t('settings.general.compact_header.disabled')}
+        class={`setting-btn ${!settings.compactHeader ? 'active' : ''}`}
+        onclick={() => handleUpdateSetting('compactHeader', false)}
+        Description={$t('settings.general.compact_header.disabled_desc')}
+      />
+      <ButtonSet
+        title={$t('settings.general.compact_header.enabled')}
+        class={`setting-btn ${settings.compactHeader ? 'active' : ''}`}
+        onclick={() => handleUpdateSetting('compactHeader', true)}
+        Description={$t('settings.general.compact_header.enabled_desc')}
       />
     </div>
   </div>

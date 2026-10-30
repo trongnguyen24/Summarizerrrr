@@ -1,15 +1,12 @@
 <script>
   // @ts-nocheck
-  import Icon, { loadIcons } from '@iconify/svelte'
+  import Icon from '@iconify/svelte'
   import { t } from 'svelte-i18n'
   import 'overlayscrollbars/overlayscrollbars.css'
   import Dialog from './Dialog.svelte'
   import { useOverlayScrollbars } from 'overlayscrollbars-svelte'
   import { slideScaleFade } from '@/lib/utils/slideScaleFade.js'
-  import ExportMarkdownFAB from '@/entrypoints/archive/components/ExportMarkdownFAB.svelte'
 
-  // Load icons for archive states
-  loadIcons(['heroicons:archive-box', 'heroicons:archive-box-solid'])
   import {
     deleteSummary,
     deleteHistory,
@@ -21,104 +18,62 @@
     softDeleteHistory,
     removeFromArchiveByHistoryId,
   } from '@/lib/db/indexedDBService'
-  import TabArchive from '@/entrypoints/archive/components/TabArchive.svelte'
+  import SidebarTabs from '@/components/ui/SidebarTabs.svelte'
   import TagManagement from '@/entrypoints/archive/components/displays/TagManagement.svelte'
-  import HistoryTagFilter from '@/entrypoints/archive/components/displays/HistoryTagFilter.svelte'
+  import ArchiveSearch from '@/entrypoints/archive/components/displays/ArchiveSearch.svelte'
   import AssignTagsModal from '@/entrypoints/archive/components/AssignTagsModal.svelte' // Import the new modal
-  import ActionDropdownMenu from '@/entrypoints/archive/components/ActionDropdownMenu.svelte' // Import the new dropdown menu
+  import ArchiveListItem from '@/entrypoints/archive/components/ArchiveListItem.svelte'
   import {
     archiveFilterStore,
     refreshTagCounts,
     clearAllTagFilters,
   } from '@/stores/archiveFilterStore.svelte.js'
+  import { categorizeArchiveList } from '@/lib/utils/archiveListFilter.js'
   import {
-    historyFilterStore,
-    clearContentTypeFilter,
-  } from '@/stores/historyFilterStore.svelte.js'
+    kindFilterStore,
+    clearKindFilter,
+  } from '@/stores/kindFilterStore.svelte.js'
   import { preloadTagsData } from '@/stores/tagsCacheStore.svelte.js'
-  import ConversationList from '@/entrypoints/archive/components/displays/ConversationList.svelte'
+  import { itemKey } from '@/stores/archiveStore.svelte.js'
+  import {
+    renameArchivedConversation,
+    setArchivedConversationState,
+    deleteArchivedConversation,
+    resumeArchivedConversation,
+  } from '@/stores/conversationArchiveStore.svelte.js'
 
-  const {
-    list,
-    selectedSummary,
-    selectSummary,
-    selectedSummaryId,
+  let {
+    list, // Merged rows: { kind, id, title, timestamp, raw }
+    selectedKey, // `${kind}:${id}` of the current selection
+    selectItem,
     activeTab,
     selectTab,
     onRefresh,
+    searchQuery = $bindable(''), // Owned by App so arrow-key navigation sees it
   } = $props()
 
   // State management
   let isOpen = $state(false)
   let newSummaryName = $state('')
-  let currentSummaryIdToRename = $state(null)
+  let itemToRename = $state(null)
 
   let deleteCandidateId = $state(null)
   let deleteTimeoutId = $state(null)
   let isConfirmingDelete = $state(false)
   let isTouchScreen = $state(false)
 
-  // Use effect to compute categorized list instead of filtered list
-  let categorizedList = $state({ matchedItems: [], unmatchedItems: [] })
-  let filteredList = $state([]) // Keep for backward compatibility
-
-  $effect(() => {
-    // For history tab with content type filter
-    if (activeTab === 'history') {
-      if (historyFilterStore.selectedContentType === null) {
-        // No filter, return original list
-        filteredList = list || []
-        categorizedList = { matchedItems: list || [], unmatchedItems: [] }
-        return
-      }
-
-      // Filter by content type
-      const matched = []
-      const unmatched = []
-
-      ;(list || []).forEach((item) => {
-        if (item.contentType === historyFilterStore.selectedContentType) {
-          matched.push(item)
-        } else {
-          unmatched.push(item)
-        }
-      })
-
-      categorizedList = { matchedItems: matched, unmatchedItems: unmatched }
-      filteredList = [...matched, ...unmatched] // Keep backward compatibility
-      return
-    }
-
-    // For archive tab with no filter, return original list
-    if (archiveFilterStore.selectedTagIds.length === 0) {
-      filteredList = list || []
-      categorizedList = { matchedItems: list || [], unmatchedItems: [] }
-      return
-    }
-
-    // Categorize items for archive tab with selected tags
-    const matched = []
-    const unmatched = []
-
-    ;(list || []).forEach((item) => {
-      if (!item.tags || !Array.isArray(item.tags)) {
-        unmatched.push(item)
-      } else {
-        const isMatched = archiveFilterStore.selectedTagIds.every((tagId) =>
-          item.tags.includes(tagId),
-        )
-
-        if (isMatched) {
-          matched.push(item)
-        } else {
-          unmatched.push(item)
-        }
-      }
-    })
-
-    categorizedList = { matchedItems: matched, unmatchedItems: unmatched }
-    filteredList = [...matched, ...unmatched] // Keep backward compatibility
-  })
+  // Same function App uses for arrow-key navigation, so both see one list
+  let categorizedList = $derived(
+    categorizeArchiveList(list, {
+      activeTab,
+      selectedKind: kindFilterStore.selectedKind,
+      selectedTagIds: archiveFilterStore.selectedTagIds,
+      searchQuery,
+    }),
+  )
+  let visibleCount = $derived(
+    categorizedList.matchedItems.length + categorizedList.unmatchedItems.length,
+  )
 
   // State for AssignTagsModal
   let isAssigningTags = $state(false)
@@ -128,11 +83,12 @@
   function resetDialogState() {
     isOpen = false
     newSummaryName = ''
-    currentSummaryIdToRename = null
+    itemToRename = null
   }
 
   function openAssignTagsModal(item) {
-    summaryToEditTags = item
+    // AssignTagsModal works on the raw summary record, not the merged row
+    summaryToEditTags = item.raw
     isAssigningTags = true
   }
 
@@ -141,10 +97,27 @@
     summaryToEditTags = null
   }
 
+  let tabs = $derived([
+    {
+      id: 'history',
+      label: $t('archive.tab_history'),
+      icon: 'heroicons:clock',
+      iconActive: 'heroicons:clock-solid',
+    },
+    {
+      id: 'archive',
+      label: $t('archive.tab_archive'),
+      icon: 'heroicons:archive-box',
+      iconActive: 'heroicons:archive-box-solid',
+    },
+  ])
+
+  // Single place that resets every filter on tab change (App's selectTab
+  // callback used to clear tags a second time).
   function handleTabChange(tabName) {
-    selectTab(tabName)
     clearAllTagFilters() // Reset archive filter when changing tabs
-    clearContentTypeFilter() // Reset history filter when changing tabs
+    clearKindFilter() // Reset summary/chat filter when changing tabs
+    selectTab(tabName)
   }
 
   function handleKeyDown(event) {
@@ -174,22 +147,31 @@
   }
 
   function openRenameDialog(item) {
-    currentSummaryIdToRename = item.id
+    itemToRename = item
     newSummaryName = item.title
     isOpen = true
   }
 
   async function handleRename() {
-    if (!currentSummaryIdToRename || !newSummaryName.trim()) return
+    if (!itemToRename || !newSummaryName.trim()) return
 
     try {
+      const title = newSummaryName.trim()
+
+      if (itemToRename.kind === 'chat') {
+        await renameArchivedConversation(itemToRename.id, title)
+        await refreshSummaries()
+        resetDialogState()
+        return
+      }
+
       const item =
         activeTab === 'archive'
-          ? await getSummaryById(currentSummaryIdToRename)
-          : await getHistoryById(currentSummaryIdToRename)
+          ? await getSummaryById(itemToRename.id)
+          : await getHistoryById(itemToRename.id)
 
       if (item) {
-        item.title = newSummaryName.trim()
+        item.title = title
         activeTab === 'archive'
           ? await updateSummary(item)
           : await updateHistory(item)
@@ -211,12 +193,21 @@
     }
   }
 
-  async function handleDelete(id) {
+  async function handleDelete(item) {
     try {
+      if (item.kind === 'chat') {
+        // Conversations are not covered by cloud sync
+        await deleteArchivedConversation(item.id)
+        await refreshSummaries()
+        deleteCandidateId = null
+        isConfirmingDelete = false
+        return
+      }
+
       // Use soft delete for cloud sync compatibility
       activeTab === 'archive'
-        ? await softDeleteSummary(id)
-        : await softDeleteHistory(id)
+        ? await softDeleteSummary(item.id)
+        : await softDeleteHistory(item.id)
 
       // Trigger cloud sync after delete
       try {
@@ -241,6 +232,15 @@
     } catch (error) {
       console.error('Error deleting item:', error)
     }
+  }
+
+  async function handleResumeChat(item) {
+    await resumeArchivedConversation(item.id)
+  }
+
+  async function handleToggleChatArchive(item) {
+    await setArchivedConversationState(item.id, !item.raw.archived)
+    await refreshSummaries()
   }
 
   async function handleAddToArchive(item) {
@@ -314,12 +314,12 @@
     }
   }
 
-  function handleDeleteClick(id) {
-    if (isConfirmingDelete && deleteCandidateId === id) {
+  function handleDeleteClick(item) {
+    if (isConfirmingDelete && deleteCandidateId === item.id) {
       clearTimeout(deleteTimeoutId)
-      handleDelete(id)
+      handleDelete(item)
     } else {
-      deleteCandidateId = id
+      deleteCandidateId = item.id
       isConfirmingDelete = true
       deleteTimeoutId = setTimeout(() => {
         isConfirmingDelete = false
@@ -371,9 +371,13 @@
   }}
   class="w-80 relative flex flex-col h-lvh"
 >
-  <h2 class="text-lg pl-12 pt-4.5 pb-2 font-bold">Summarizerrrr</h2>
+  <div class="flex items-center justify-between gap-2 pr-3 pt-4.5 pb-2">
+    <h2 class="text-lg pl-12 font-bold">Summarizerrrr</h2>
+  </div>
 
-  <TabArchive {activeTab} onSelectTab={handleTabChange} />
+  <SidebarTabs {tabs} {activeTab} onSelectTab={handleTabChange} />
+
+  <ArchiveSearch bind:value={searchQuery} />
 
   <div
     id="scroll-side"
@@ -388,251 +392,67 @@
         ? 'gap-1 !text-sm'
         : 'gap-0.5'}"
     >
-      {#if activeTab === 'archive'}
+      <!-- Tags only apply to summaries -->
+      {#if activeTab === 'archive' && kindFilterStore.selectedKind !== 'chat'}
         <TagManagement />
       {/if}
 
-      {#if activeTab === 'history'}
-        <HistoryTagFilter />
-      {/if}
-
-      {#if activeTab === 'conversations'}
-        <ConversationList onRefresh={onRefresh} />
-      {:else}
-
       <!-- Render matched items -->
-      {#each categorizedList.matchedItems as item (item.id)}
-        <div class="relative group h-10">
-          <button
-            class="list-button w-full relative p-2.5 text-left hover:bg-blackwhite/5 rounded-md {selectedSummaryId ==
-            item.id
-              ? 'text-text-primary bg-neutral-100 hover:bg-white/60 dark:hover:bg-white/10 dark:bg-surface-2 active '
-              : 'hover:bg-surface-1 dark:hover:bg-surface-2'} {isTouchScreen
-              ? 'pr-6'
-              : 'pr-8'}"
-            onclick={() => selectSummary(item, activeTab)}
-            title={item.title}
-          >
-            <div
-              class="line-clamp-1 transition-colors w-full mask-r-from-85% mask-r-to-100%"
-            >
-              {item.title}
-            </div>
-          </button>
-          {#if isTouchScreen}
-            <div
-              class="action-menu-container text-text-muted justify-center rounded-r-sm items-center bg-none top-0 bottom-0 pr-1 right-0 absolute flex"
-            >
-              <ActionDropdownMenu
-                {item}
-                {activeTab}
-                {isConfirmingDelete}
-                {deleteCandidateId}
-                onAssignTags={openAssignTagsModal}
-                onRename={openRenameDialog}
-                onDeleteClick={handleDeleteClick}
-                onAddToArchive={handleAddToArchive}
-              />
-            </div>
-          {:else}
-            <div
-              class="text-text-muted justify-center rounded-r-sm items-center bg-linear-to-l from-surface-1 dark:from-surface-2 from-80% to-surface-1/0 dark:to-surface-2/0 top-0 bottom-0 pl-4 pr-1 right-0 absolute hidden group-hover:flex"
-            >
-              {#if activeTab === 'archive'}
-                <button
-                  onclick={() => openAssignTagsModal(item)}
-                  class="p-1 hover:text-text-primary"
-                  title={$t('tags.assign')}
-                >
-                  <Icon icon="tabler:tag" width="20" height="20" />
-                </button>
-              {/if}
-              {#if activeTab === 'history'}
-                {#if item.isArchived}
-                  <button
-                    onclick={() => handleRemoveFromArchive(item)}
-                    class="p-1 hover:text-text-primary"
-                    title={$t('tags.remove_from_archive')}
-                  >
-                    <Icon
-                      icon="heroicons:archive-box-solid"
-                      width="20"
-                      height="20"
-                    />
-                  </button>
-                {:else}
-                  <button
-                    onclick={() => handleAddToArchive(item)}
-                    class="p-1 hover:text-text-primary"
-                    title={$t('tags.add_to_archive')}
-                  >
-                    <Icon icon="heroicons:archive-box" width="20" height="20" />
-                  </button>
-                {/if}
-              {/if}
-              <button
-                onclick={() => openRenameDialog(item)}
-                class="p-1 hover:text-text-primary"
-                title={$t('tags.rename')}
-              >
-                <Icon icon="tabler:pencil" width="20" height="20" />
-              </button>
-              <button
-                onclick={() => handleDeleteClick(item.id)}
-                class="relative rounded-3xl transition-colors duration-150 p-1 {isConfirmingDelete &&
-                deleteCandidateId === item.id
-                  ? 'text-red-50'
-                  : 'hover:text-text-primary'}"
-                title={$t('tags.delete')}
-              >
-                <Icon
-                  icon="heroicons:trash"
-                  width="20"
-                  height="20"
-                  class="relative z-10"
-                />
-                {#if isConfirmingDelete && deleteCandidateId === item.id}
-                  <span
-                    transition:slideScaleFade={{
-                      duration: 150,
-                      slideFrom: 'bottom',
-                      startScale: 0.4,
-                      slideDistance: '0rem',
-                    }}
-                    class="rounded-sm block bg-error absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 size-7"
-                  >
-                  </span>
-                {/if}
-              </button>
-            </div>
-          {/if}
-        </div>
+      {#each categorizedList.matchedItems as item (itemKey(item))}
+        <ArchiveListItem
+          {item}
+          {activeTab}
+          {isTouchScreen}
+          {isConfirmingDelete}
+          {deleteCandidateId}
+          isSelected={selectedKey === itemKey(item)}
+          onSelect={(row) => selectItem(row, activeTab)}
+          onAssignTags={openAssignTagsModal}
+          onRename={openRenameDialog}
+          onDeleteClick={handleDeleteClick}
+          onAddToArchive={handleAddToArchive}
+          onRemoveFromArchive={handleRemoveFromArchive}
+          onResume={handleResumeChat}
+          onToggleChatArchive={handleToggleChatArchive}
+        />
       {/each}
 
-      <!-- Render unmatched items with opacity -->
-      {#each categorizedList.unmatchedItems as item (item.id)}
-        <div
-          class="relative group opacity-40 transition-opacity duration-300 ease-in-out"
-        >
-          <button
-            class="list-button w-full relative p-2.5 text-left hover:bg-blackwhite/5 rounded-md {selectedSummaryId ==
-            item.id
-              ? 'text-text-primary bg-neutral-100 hover:bg-white/60 dark:hover:bg-white/10 dark:bg-surface-2 active '
-              : 'hover:bg-surface-1 dark:hover:bg-surface-2'} {isTouchScreen
-              ? 'pr-6'
-              : 'pr-8'}"
-            onclick={() => selectSummary(item, activeTab)}
-            title={item.title}
-          >
-            <div
-              class="line-clamp-1 transition-colors w-full mask-r-from-85% mask-r-to-100%"
-            >
-              {item.title}
-            </div>
-          </button>
-          {#if isTouchScreen}
-            <div
-              class="action-menu-container text-text-muted justify-center rounded-r-sm items-center bg-none top-0 bottom-0 pr-1 right-0 absolute flex"
-            >
-              <ActionDropdownMenu
-                {item}
-                {activeTab}
-                {isConfirmingDelete}
-                {deleteCandidateId}
-                onAssignTags={openAssignTagsModal}
-                onRename={openRenameDialog}
-                onDeleteClick={handleDeleteClick}
-                onAddToArchive={handleAddToArchive}
-              />
-            </div>
-          {:else}
-            <div
-              class="text-text-muted justify-center rounded-r-sm items-center bg-linear-to-l from-surface-1 dark:from-surface-2 from-80% to-surface-1/0 dark:to-surface-2/0 top-0 bottom-0 pl-4 pr-1 right-0 absolute hidden group-hover:flex"
-            >
-              {#if activeTab === 'archive'}
-                <button
-                  onclick={() => openAssignTagsModal(item)}
-                  class="p-1 hover:text-text-primary"
-                  title={$t('tags.assign')}
-                >
-                  <Icon icon="tabler:tag" width="20" height="20" />
-                </button>
-              {/if}
-              {#if activeTab === 'history'}
-                {#if item.isArchived}
-                  <button
-                    onclick={() => handleRemoveFromArchive(item)}
-                    class="p-1 hover:text-text-primary"
-                    title={$t('tags.remove_from_archive')}
-                  >
-                    <Icon
-                      icon="heroicons:archive-box-solid"
-                      width="20"
-                      height="20"
-                    />
-                  </button>
-                {:else}
-                  <button
-                    onclick={() => handleAddToArchive(item)}
-                    class="p-1 hover:text-text-primary"
-                    title={$t('tags.add_to_archive')}
-                  >
-                    <Icon icon="heroicons:archive-box" width="20" height="20" />
-                  </button>
-                {/if}
-              {/if}
-              <button
-                onclick={() => openRenameDialog(item)}
-                class="p-1 hover:text-text-primary"
-                title={$t('tags.rename')}
-              >
-                <Icon icon="tabler:pencil" width="20" height="20" />
-              </button>
-              <button
-                onclick={() => handleDeleteClick(item.id)}
-                class="relative rounded-3xl transition-colors duration-150 p-1 {isConfirmingDelete &&
-                deleteCandidateId === item.id
-                  ? 'text-red-50'
-                  : 'hover:text-text-primary'}"
-                title={$t('tags.delete')}
-              >
-                <Icon
-                  icon="heroicons:trash"
-                  width="20"
-                  height="20"
-                  class="relative z-10"
-                />
-                {#if isConfirmingDelete && deleteCandidateId === item.id}
-                  <span
-                    transition:slideScaleFade={{
-                      duration: 150,
-                      slideFrom: 'bottom',
-                      startScale: 0.4,
-                      slideDistance: '0rem',
-                    }}
-                    class="rounded-sm block bg-error absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 size-7"
-                  >
-                  </span>
-                {/if}
-              </button>
-            </div>
-          {/if}
-        </div>
+      <!-- Render unmatched items dimmed -->
+      {#each categorizedList.unmatchedItems as item (itemKey(item))}
+        <ArchiveListItem
+          dimmed
+          {item}
+          {activeTab}
+          {isTouchScreen}
+          {isConfirmingDelete}
+          {deleteCandidateId}
+          isSelected={selectedKey === itemKey(item)}
+          onSelect={(row) => selectItem(row, activeTab)}
+          onAssignTags={openAssignTagsModal}
+          onRename={openRenameDialog}
+          onDeleteClick={handleDeleteClick}
+          onAddToArchive={handleAddToArchive}
+          onRemoveFromArchive={handleRemoveFromArchive}
+          onResume={handleResumeChat}
+          onToggleChatArchive={handleToggleChatArchive}
+        />
       {/each}
-      <!-- Export Markdown FAB - Only show in Archive tab -->
-      <!-- {#if activeTab === 'archive' && filteredList?.length != 0}
-        <ExportMarkdownFAB />
-      {/if} -->
-      {#if (filteredList?.length || 0) === 0}
+
+      {#if visibleCount === 0}
         <div class="px-2 py-4 text-text-muted text-xs">
-          {activeTab === 'archive'
-            ? $t('tags.no_archived')
-            : $t('tags.no_history')}
+          {#if searchQuery.trim()}
+            {$t('archive.search_no_results')}
+          {:else if kindFilterStore.selectedKind === 'chat'}
+            {$t('archive.no_chats')}
+          {:else if activeTab === 'archive'}
+            {$t('tags.no_archived')}
+          {:else}
+            {$t('tags.no_history')}
+          {/if}
         </div>
       {/if}
 
       <div class="">&nbsp;</div>
-      {/if}
     </div>
   </div>
 
@@ -712,33 +532,7 @@
 </Dialog>
 
 <style>
-  .list-button::after {
-    content: '';
-    display: block;
-    width: 0px;
-    position: absolute;
-    background: white;
-    top: 50%;
-    transform: translateY(-50%) translateX(-0.25rem);
-    right: -0.5rem;
-    left: -0.5rem;
-    height: 1rem;
-    border-radius: 0 4px 4px 0;
-    transition: all 0.3s ease-in-out;
-    box-shadow:
-      0 0 2px #ffffff18,
-      0 0 0 #ffffff18;
-  }
-
-  .list-button.active {
-    &::after {
-      transform: translateY(-50%) translateX(1px);
-      width: 4px;
-      box-shadow:
-        4px 0 8px 2px #ffffff71,
-        0 0 3px 1px #ffffff94;
-    }
-  }
+  /* .list-button styles now live in ArchiveListItem.svelte */
 
   .lang::after {
     display: block;

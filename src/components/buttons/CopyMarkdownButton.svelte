@@ -1,14 +1,12 @@
 <script>
   import { t } from 'svelte-i18n'
-  import Icon, { loadIcons } from '@iconify/svelte'
+  import Icon from '@iconify/svelte'
   import { slideScaleFade } from '@/lib/utils/slideScaleFade.js'
   import HoverTooltip from '@/components/ui/HoverTooltip.svelte'
 
   let { text = '', pageUrl = null } = $props()
 
   let isCopied = $state(false)
-
-  loadIcons(['heroicons:check-circle-solid', 'heroicons:document-text'])
 
   function parseTimestampToSeconds(timestamp) {
     const parts = timestamp.split(':').map(Number)

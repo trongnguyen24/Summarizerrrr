@@ -6,16 +6,16 @@ import { flushSync, mount, unmount } from 'svelte'
 // drag in the rich-text editor.
 // Each `vi.mock` is hoisted, so the factories can't share a helper and every
 // path has to be a literal.
-vi.mock('@/entrypoints/sidepanel/components/chat/ChatMessageList.svelte', async () => ({
+vi.mock('@/components/chat/ChatMessageList.svelte', async () => ({
   default: (await import('../stubs/EmptyStub.svelte')).default,
 }))
-vi.mock('@/entrypoints/sidepanel/components/chat/ChatEmptyState.svelte', async () => ({
+vi.mock('@/components/chat/ChatEmptyState.svelte', async () => ({
   default: (await import('../stubs/EmptyStub.svelte')).default,
 }))
-vi.mock('@/entrypoints/sidepanel/components/chat/ChatComposer.svelte', async () => ({
+vi.mock('@/components/chat/ChatComposer.svelte', async () => ({
   default: (await import('../stubs/EmptyStub.svelte')).default,
 }))
-vi.mock('@/entrypoints/sidepanel/components/chat/ChatContextWarning.svelte', async () => ({
+vi.mock('@/components/chat/ChatContextWarning.svelte', async () => ({
   default: (await import('../stubs/EmptyStub.svelte')).default,
 }))
 vi.mock('@/components/ui/ErrorDisplay.svelte', async () => ({
@@ -29,7 +29,7 @@ vi.mock(
 
 const { chatState } = await import('@/stores/chatStore.svelte.js')
 const { default: ChatShell } = await import(
-  '../../src/entrypoints/sidepanel/components/chat/ChatShell.svelte'
+  '../../src/components/chat/ChatShell.svelte'
 )
 
 const scroller = { scrollTop: 0, clientHeight: 800, scrollTo: vi.fn() }

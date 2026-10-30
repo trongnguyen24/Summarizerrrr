@@ -27,10 +27,12 @@
       },
       "floatingButton": "플로팅 버튼",
       "floating_button": {
-        "show": "표시",
-        "show_desc": "웹 페이지에 플로팅 버튼 표시",
-        "hide": "숨기기",
-        "hide_desc": "웹 페이지에서 플로팅 버튼 숨기기"
+        "show": "항상 표시",
+        "show_desc": "플로팅 버튼을 항상 고정된 위치에 표시합니다.",
+        "hide": "항상 숨기기",
+        "hide_desc": "모든 웹 페이지에서 플로팅 버튼을 완전히 숨깁니다.",
+        "hide_on_scroll": "스크롤 시 숨기기",
+        "show_on_scroll_up": "스마트 스크롤"
       },
       "shortcuts": "단축키",
       "shortcuts_settings": "단축키 설정",
@@ -40,6 +42,14 @@
         "open_sidepanel": "사이드 패널 열기",
         "open_popup": "팝업 설정 열기",
         "open_floating": "페이지에서 플로팅 패널 열기"
+      },
+      "compact_header": {
+        "title": "간결한 헤더",
+        "description": "요약 버튼을 기록·설정과 한 줄에 배치해 요약에 더 많은 공간을 확보합니다.",
+        "enabled": "간결",
+        "enabled_desc": "한 줄 헤더",
+        "disabled": "기본",
+        "disabled_desc": "큰 헤더 (기본값)"
       },
       "reduce_motion": {
         "title": "모션 줄이기",
@@ -125,6 +135,21 @@
         "pause_desc": "요약 생성 전 동영상 일시 정지"
       }
     },
+    "site_access": {
+      "title": "사이트 접근 권한",
+      "description": "Summarizerrrr가 접근할 수 있는 웹사이트를 제어합니다.",
+      "mode": {
+        "all_sites": "모든 사이트",
+        "selected_only": "선택한 사이트만",
+        "aria_label": "사이트 접근 모드 선택"
+      },
+      "domain_input_placeholder": "example.com",
+      "selected_helper": "Summarizerrrr는 위에 나열된 사이트의 데이터에 접근할 수 있습니다.",
+      "all_helper": "Summarizerrrr는 모든 웹사이트의 데이터에 접근할 수 있습니다.",
+      "invalid_domain": "유효한 도메인을 입력하세요. 예: example.com 또는 *.example.com.",
+      "already_added": "이 도메인은 이미 추가되었습니다.",
+      "denied": "이 사이트에 대한 권한이 거부되었습니다."
+    },
     "ai_model": {
       "title": "제공자",
       "mode": {
@@ -198,6 +223,7 @@
         "medium": "보통",
         "medium_desc": "깊이와 속도의 균형."
       },
+      "action_buttons": "작업 버튼",
       "comment_limit": "YouTube 댓글 제한",
       "comment_limit_desc": "분석할 댓글의 최대 수.",
       "uses_gemini_basic": "Gemini Basic 사용"
@@ -325,7 +351,8 @@
       "unconfigured_suffix": "미설정",
       "unconfigured_warning": "이 제공자는 설정되지 않았습니다.",
       "configure_link": "API 키 설정",
-      "free_text_placeholder": "모델 ID 입력"
+      "free_text_placeholder": "모델 ID 입력",
+      "free_tier_badge": "무료"
     },
     "provider_key_config": {
       "status_configured": "설정됨",
@@ -356,10 +383,25 @@
       "quick_models_hint": "작성기에서 빠르게 전환할 수 있는 최대 {max}개 모델.",
       "remove_quick_model": "빠른 모델에서 제거",
       "default_reasoning": "기본 추론 수준",
-      "default_reasoning_hint": "새 탭의 추론 선택기에 적용됩니다. 탭별 설정은 독립적입니다."
+      "default_reasoning_hint": "새 탭의 추론 선택기에 적용됩니다. 탭별 설정은 독립적입니다.",
+      "title": "채팅",
+      "tone": {
+        "none": "없음",
+        "none_desc": "어조 지시 없음.",
+        "simple_desc": "이해하기 쉽고 명확하며 직접적. 일상 언어와 구체적인 예시.",
+        "expert_desc": "전문적이고 깊이 있는 정확성. 전문 용어와 복잡성을 유지.",
+        "witty_desc": "풍자적이고 재치 있는 날카로운 유머. 태도만 바뀌며 깊이는 내용에 맞춰집니다.",
+        "savage_desc": "직설적이고 거친 공격적 유머. 태도만 바뀌며 깊이는 내용에 맞춰집니다."
+      }
     }
   },
   "chat": {
+    "hydratingSources": "페이지 내용을 다시 가져오는 중…",
+    "read_only_elsewhere": "이 대화는 다른 창에서 열려 있습니다. 여기서는 읽기 전용입니다.",
+    "detached": {
+      "tab_tooltip": "페이지 닫힘",
+      "source_note": "페이지 닫힘 — 이전 소스를 사용 중"
+    },
     "time": {
       "justNow": "방금",
       "minutesAgo": "{count}분 전"
@@ -374,7 +416,17 @@
       "input": "Input",
       "output": "Output",
       "cache": "Cache",
-      "source": "Source"
+      "source": "Source",
+      "cached_row": "캐시됨",
+      "session_turns": "세션 · {count}턴",
+      "cost": "비용",
+      "near_limit": "컨텍스트가 {percent}% 찼습니다 — 새 채팅을 시작하세요.",
+      "near_limit_turns": "컨텍스트가 {percent}% 찼습니다. 약 {count}턴 남았습니다 — 새 채팅을 시작하세요."
+    },
+    "message_meta": {
+      "aria_label": "메시지 세부 정보",
+      "created": "시간",
+      "sources": "출처 {count}개"
     },
     "context_warning": {
       "source_dropped": "\"{title}\" 소스가 이 모델의 컨텍스트 한도를 초과하여 제외되었습니다. 아래의 답변은 이 소스를 반영하지 않습니다 — 더 큰 컨텍스트 창을 지원하는 모델을 사용해 보세요.",
@@ -390,12 +442,113 @@
       "manage_models": "모델 관리...",
       "reasoning": "추론",
       "warning_unresolvable": "알 수 없는 프로필"
+    },
+    "composer": {
+      "placeholder": "질문하기",
+      "placeholder_plain": "작업을 설명하거나 질문하세요",
+      "aria_label": "채팅 메시지",
+      "queued": "대기 중",
+      "cancel_queued": "대기 중인 메시지 취소",
+      "stop": "생성 중지",
+      "send": "메시지 보내기"
+    },
+    "context_bar": {
+      "source_fallback": "컨텍스트 출처",
+      "attached_fallback": "첨부된 탭",
+      "locked": "이미 AI 컨텍스트에 포함됨",
+      "tokens": "~{count} 토큰",
+      "added_tabs": "+ 탭 {count}개"
+    },
+    "deep_dive": {
+      "title": "Deep Dive",
+      "generating": "생성 중…",
+      "generating_aria": "Deep Dive 질문 생성 중",
+      "regenerate": "새 질문 생성"
+    },
+    "empty_state": {
+      "suggested_skills": "추천 스킬"
+    },
+    "message": {
+      "previous_branch": "이전 분기",
+      "next_branch": "다음 분기",
+      "edit": "메시지 편집",
+      "copy_message": "메시지 복사",
+      "copy_response": "응답 복사",
+      "regenerate": "응답 다시 생성",
+      "continue": "응답 계속하기",
+      "retry": "이 메시지 다시 시도",
+      "stopped": "중지됨"
+    },
+    "editor": {
+      "placeholder": "메시지 편집...",
+      "aria_label": "메시지 편집",
+      "cancel": "취소",
+      "save": "저장 후 보내기"
+    },
+    "skill_chip": {
+      "clear": "선택한 스킬 지우기"
+    },
+    "skill_picker": {
+      "aria_label": "일치하는 스킬",
+      "no_results": "일치하는 스킬이 없습니다."
+    },
+    "tab_mention": {
+      "aria_label": "일치하는 출처",
+      "no_results": "일치하는 탭이 없습니다.",
+      "reason_unsupported": "브라우저, 확장 프로그램, 스토어, 로컬 페이지는 첨부할 수 없습니다.",
+      "reason_pdf": "PDF 및 뷰어 페이지는 첨부할 수 없습니다.",
+      "reason_comments_attached": "이 동영상의 댓글이 이미 첨부되었습니다."
+    },
+    "header": {
+      "new_chat": "새 채팅"
+    },
+    "menu": {
+      "aria_label": "대화 메뉴",
+      "recent": "최근 대화",
+      "history": "기록",
+      "settings": "설정"
+    },
+    "source_drawer": {
+      "unknown": "알 수 없는 출처",
+      "loading": "출처 불러오는 중…"
+    },
+    "reasoning": {
+      "provider-default": "자동",
+      "provider-default_desc": "모델이 결정",
+      "low": "낮음",
+      "low_desc": "더 빠르고 저렴함",
+      "medium": "보통",
+      "medium_desc": "속도와 깊이의 균형",
+      "high": "높음",
+      "high_desc": "더 깊은 추론, 더 느림"
     }
   },
   "tab_navigation": {
     "previous_tab": "이전 탭",
     "next_tab": "다음 탭",
     "remove_tab": "제거 (가운데 클릭)"
+  },
+  "customize": {
+    "title": "사용자 지정",
+    "tabs": {
+      "prompts": "프롬프트",
+      "skills": "스킬"
+    },
+    "skills": {
+      "new": "새 스킬",
+      "built_in": "기본 제공",
+      "user_skills": "사용자 스킬",
+      "empty": "아직 사용자 스킬이 없습니다.",
+      "pin": "고정",
+      "name": "이름",
+      "instruction": "일회성 지시",
+      "instruction_hint": "한 번의 턴에만 적용",
+      "reset": "기본값으로 재설정",
+      "delete": "삭제",
+      "select_prompt": "왼쪽 메뉴에서 스킬을 선택하거나 새로 만드세요.",
+      "error_name_required": "스킬 이름은 필수입니다.",
+      "error_instruction_required": "지시 내용은 필수입니다."
+    }
   },
   "prompts": {
     "title": "프롬프트",
@@ -407,10 +560,11 @@
       "summarize": "요약",
       "custom_actions": "사용자 지정 액션"
     },
-    "select_template": "템플릿 선택",
     "prompt_enhance": "프롬프트 향상",
+    "confirm_discard": "저장되지 않은 변경 사항이 있습니다. 취소하시겠습니까?",
     "buttons": {
-      "import": "가져오기",
+      "load_preset": "프리셋 불러오기",
+      "improve": "개선",
       "discard": "취소",
       "save": "저장",
       "apply_prompt": "프롬프트 적용"
@@ -425,11 +579,36 @@
     "open_archive": "아카이브 열기",
     "tab_history": "기록",
     "tab_archive": "아카이브",
+    "kind_all": "전체",
+    "kind_summaries": "요약",
+    "kind_chats": "채팅",
+    "resume_in_sidepanel": "사이드 패널에서 계속하기",
+    "no_chats": "채팅이 없습니다",
     "change_theme": "테마 변경",
     "font_dec": "글꼴 축소",
     "font_inc": "글꼴 확대",
     "change_font": "글꼴 변경",
-    "toggle_width": "너비 전환"
+    "toggle_width": "너비 전환",
+    "search_placeholder": "제목 또는 URL 검색",
+    "search_clear": "검색 지우기",
+    "search_no_results": "일치하는 결과가 없습니다",
+    "conversation": {
+      "archive": "보관",
+      "unarchive": "보관 해제",
+      "export_markdown": "Markdown 내보내기",
+      "export_json": "JSON 내보내기",
+      "delete": "대화 삭제",
+      "none_selected": "선택된 대화가 없습니다."
+    },
+    "toc": {
+      "aria_label": "목차",
+      "switch_sidebar": "사이드바 목차로 전환",
+      "switch_floating": "플로팅 목차로 전환",
+      "go_top": "맨 위로",
+      "go_bottom": "맨 아래로",
+      "previous": "이전 항목",
+      "next": "다음 항목"
+    }
   },
   "button": {
     "copy": "클립보드에 복사",
@@ -438,7 +617,8 @@
     "download": "마크다운으로 다운로드",
     "downloaded": "다운로드됨!",
     "save_to_archive": "아카이브에 저장",
-    "saved": "저장됨!"
+    "saved": "저장됨!",
+    "saving": "저장 중…"
   },
   "welcome": {
     "choose_interface_language": "Summarizerrrr에 오신 것을 환영합니다!",
@@ -500,7 +680,8 @@
     "error": "콘텐츠 {action} 실패",
     "debate_description": "다각도에서 분석",
     "chapters_description": "챕터별 요약",
-    "comments_description": "YouTube 댓글 요약"
+    "comments_description": "YouTube 댓글 요약",
+    "courseConcepts_description": "강의의 핵심 개념 추출"
   },
   "tags": {
     "title": "태그",
@@ -518,6 +699,7 @@
     "actions": "작업",
     "archived": "보관됨",
     "add_to_archive": "보관함에 추가",
+    "remove_from_archive": "보관함에서 제거",
     "errors": {
       "empty": "이름 필요",
       "max_length": "최대 50자",
@@ -571,9 +753,12 @@
     "merge_mode_description": "• 가져온 데이터가 기존 데이터와 결합됨<br />• 중복 항목(동일 ID)이 업데이트됨<br />• 가져온 설정이 기존 설정을 재정의함",
     "replace_mode_description": "• 선택된 데이터 유형이 먼저 완전히 삭제됨<br />• 그런 다음 가져온 데이터로만 교체됨<br />• 선택되지 않은 데이터 유형은 영향을 받지 않음",
     "replace_warning_title": "경고: 교체 모드",
-    "confirm_replace": "예, 교체합니다"
+    "confirm_replace": "예, 교체합니다",
+    "chats": "채팅"
   },
   "notifications": {
+    "try_chat": "채팅 체험하기 — v3.0 베타",
+    "back_to_summarize": "요약으로 돌아가기",
     "no_notifications": "알림이 없습니다",
     "noti_1": {
       "title": "Gemini API 제한이 감소했습니다",
@@ -600,6 +785,9 @@
       "description": "iPhone 및 iPad의 Safari에서 Summarizerrrr를 사용하세요.",
       "cta_label": "지금 다운로드"
     }
+  },
+  "fab": {
+    "hide_on_site": "이 사이트에서 숨기기"
   },
   "cloudSync": {
     "title": "클라우드 동기화",
@@ -629,9 +817,18 @@
     "syncPreferences": "동기화 환경설정",
     "syncPreferencesDescription": "클라우드와 동기화할 데이터 유형 선택",
     "library": "아카이브",
+    "chats": "채팅",
     "error": "오류",
     "enabled": "활성화됨",
     "disabled": "비활성화됨",
+    "reauth": {
+      "title": "다시 연결해야 합니다",
+      "description": "Google이 저장된 세션을 거부했습니다. Google Cloud Console에서 OAuth 앱이 아직 \"테스트\" 상태라면 갱신 토큰이 7일 후 만료됩니다 — 앱을 게시하면 이 문제가 반복되지 않습니다.",
+      "button": "다시 연결",
+      "reconnecting": "다시 연결 중...",
+      "publishGuide": "OAuth 앱 게시하기",
+      "sharedDescription": "Google 세션이 만료되었습니다. 다시 로그인하세요."
+    },
     "byok": {
       "description": "Google Cloud Console에서 자신의 OAuth 자격 증명을 입력하세요. 데이터는 제3자 서버를 통과하지 않습니다.",
       "clientIdPlaceholder": "xxxxx.apps.googleusercontent.com",
@@ -642,7 +839,10 @@
       "errors": {
         "bothRequired": "Client ID와 Client Secret이 모두 필요합니다",
         "invalidClientId": "Client ID 형식이 잘못되었습니다 (.apps.googleusercontent.com으로 끝나야 합니다)"
-      }
+      },
+      "advancedToggle": "내 Google Cloud 프로젝트 사용",
+      "signInWithProject": "내 프로젝트로 로그인",
+      "separateDataNote": "내 프로젝트로 동기화한 데이터는 기본 로그인으로 동기화한 데이터와 분리됩니다. 모든 기기에서 같은 방식을 사용하세요."
     },
     "redirectUris": {
       "title": "리디렉션 URI",
@@ -670,6 +870,15 @@
       "mergeNote": "아카이브, 태그, 기록은 이 기기와 클라우드에서 병합됩니다.",
       "cancel": "취소",
       "sync": "동기화"
+    },
+    "shared": {
+      "note": "데이터는 사용자의 Google 드라이브로 바로 전송됩니다. oauth.summarizerrrr.com은 로그인 토큰만 처리합니다.",
+      "firefoxPermissionDenied": "Google로 로그인하려면 Firefox에서 oauth.summarizerrrr.com 접근 권한이 필요합니다. 요청 시 허용하거나 아래에서 직접 만든 Google Cloud 프로젝트를 사용하세요."
+    },
+    "proxyPermission": {
+      "title": "권한 필요",
+      "description": "Firefox에서 Summarizerrrr의 oauth.summarizerrrr.com 접근을 더 이상 허용하지 않아 세션을 갱신할 수 없습니다. 접근을 허용하면 동기화가 재개되며 로그인 상태는 유지됩니다.",
+      "button": "접근 허용"
     }
   }
 }

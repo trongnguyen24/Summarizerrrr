@@ -1,6 +1,6 @@
 <script>
   import { t } from 'svelte-i18n'
-  import Icon, { loadIcons } from '@iconify/svelte'
+  import Icon from '@iconify/svelte'
   import { slideScaleFade } from '@/lib/utils/slideScaleFade.js'
   import HoverTooltip from '@/components/ui/HoverTooltip.svelte'
 
@@ -8,8 +8,6 @@
 
   let isCopied = $state(false)
   let btn // bind tới nút để xác định đúng root
-
-  loadIcons(['heroicons:check-circle-solid', 'heroicons:square-2-stack'])
 
   const asString = (v) => (typeof v === 'string' ? v : String(v ?? ''))
 

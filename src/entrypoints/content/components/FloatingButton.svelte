@@ -31,6 +31,47 @@
   let isFirefoxBrowser = $state(false)
   let isHovered = $state(false)
   let isOverDropZone = $state(false)
+  let isScrollHidden = $state(false)
+  let lastScrollY = 0
+
+  function handleScroll() {
+    const currentScrollY =
+      window.scrollY || document.documentElement.scrollTop || 0
+    const delta = currentScrollY - lastScrollY
+    const mode = settings?.showFloatingButton
+
+    if (mode === 'hideOnScroll') {
+      // Ẩn khi cuộn > 200px, hiện khi quay lại đầu trang
+      isScrollHidden = currentScrollY > 200
+    } else if (mode === 'showOnScrollUp' || mode === 'showOnScroll') {
+      // Smart Scroll:
+      if (currentScrollY <= 200) {
+        isScrollHidden = false
+      } else if (delta > 5) {
+        // Đang cuộn xuống quá 200px -> Ẩn
+        isScrollHidden = true
+      } else if (delta < -5) {
+        // Đang cuộn ngược lên -> Hiện lại ngay
+        isScrollHidden = false
+      }
+    } else {
+      // Chế độ 'show' hoặc mặc định: luôn hiện
+      isScrollHidden = false
+    }
+
+    lastScrollY = currentScrollY
+  }
+
+  // Đăng ký scroll event
+  $effect(() => {
+    lastScrollY = window.scrollY || document.documentElement.scrollTop || 0
+    handleScroll()
+
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => {
+      window.removeEventListener('scroll', handleScroll)
+    }
+  })
 
   // Kiểm tra Firefox khi component mount
   $effect(() => {
@@ -499,6 +540,7 @@
 <div
   bind:this={buttonElement}
   class="floating-button-container"
+  class:is-scrolled-hidden={isScrollHidden && !isOpen && !isDragging && !isHovered}
   style="left: 0; top: 0;"
   onmousedown={handleStart}
   use:nonPassiveTouch={handleStart}
@@ -712,6 +754,14 @@
     -webkit-user-select: none;
     width: 40px;
     height: 40px;
+    transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                visibility 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .floating-button-container.is-scrolled-hidden {
+    opacity: 0;
+    pointer-events: none;
+    visibility: hidden;
   }
 
   .floating-button-container:active {
@@ -747,12 +797,25 @@
     border-radius: 0 50px 50px 0;
     backdrop-filter: blur(6px);
     -webkit-backdrop-filter: blur(6px);
+    transform-origin: left center;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .round-r {
     border-radius: 50px 0 0 50px;
     backdrop-filter: blur(6px);
     -webkit-backdrop-filter: blur(6px);
+    transform-origin: right center;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Fade + Scale nhẹ nhàng khi ẩn với transform-origin bám mép */
+  .floating-button-container.is-scrolled-hidden .round-l,
+  .floating-button-container.is-scrolled-hidden .round-r {
+    transform: scale(0.85);
+    opacity: 0;
   }
 
   /* Only apply hover effects on devices that support hover (desktop with mouse) */

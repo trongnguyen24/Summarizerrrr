@@ -27,10 +27,12 @@
       },
       "floatingButton": "Nút nổi",
       "floating_button": {
-        "show": "Hiển thị",
-        "show_desc": "Hiển thị nút nổi trên trang web.",
-        "hide": "Ẩn",
-        "hide_desc": "Ẩn nút nổi khỏi trang web."
+        "show": "Luôn hiển thị",
+        "show_desc": "Luôn hiển thị nút nổi cố định ở mọi vị trí cuộn trang.",
+        "hide": "Luôn ẩn",
+        "hide_desc": "Tắt hoàn toàn nút nổi trên mọi trang web.",
+        "hide_on_scroll": "Ẩn khi cuộn",
+        "show_on_scroll_up": "Cuộn thông minh"
       },
       "shortcuts": "Phím tắt",
       "shortcuts_settings": "Cài Phím tắt",
@@ -40,6 +42,14 @@
         "open_sidepanel": "Mở thanh bên",
         "open_popup": "Mở cài đặt popup",
         "open_floating": "Mở bảng điều khiển nổi trên trang"
+      },
+      "compact_header": {
+        "title": "Header gọn",
+        "description": "Đưa nút Summarize lên cùng hàng với Lịch sử và Cài đặt để dành nhiều chỗ hơn cho bản tóm tắt.",
+        "enabled": "Gọn",
+        "enabled_desc": "Header một hàng",
+        "disabled": "Tiêu chuẩn",
+        "disabled_desc": "Header lớn (mặc định)"
       },
       "reduce_motion": {
         "title": "Giảm chuyển động",
@@ -125,6 +135,21 @@
         "pause_desc": "Tạm dừng video trước khi tóm tắt"
       }
     },
+    "site_access": {
+      "title": "Quyền truy cập trang web",
+      "description": "Kiểm soát trang web mà Summarizerrrr được phép truy cập.",
+      "mode": {
+        "all_sites": "Tất cả trang web",
+        "selected_only": "Chỉ trang web đã chọn",
+        "aria_label": "Chọn chế độ quyền truy cập trang web"
+      },
+      "domain_input_placeholder": "example.com",
+      "selected_helper": "Summarizerrrr có thể truy cập dữ liệu trên các trang web liệt kê ở trên.",
+      "all_helper": "Summarizerrrr có thể truy cập dữ liệu trên tất cả trang web.",
+      "invalid_domain": "Nhập tên miền hợp lệ, ví dụ: example.com hoặc *.example.com.",
+      "already_added": "Tên miền này đã được thêm.",
+      "denied": "Quyền truy cập trang web này đã bị từ chối."
+    },
     "ai_model": {
       "title": "Nhà cung cấp",
       "mode": {
@@ -173,7 +198,7 @@
         "witty": "Xéo xắt",
         "witty_desc": "Hài hước, mỉa mai nhẹ nhàng."
       },
-      "language_output": "Ngôn ngữ tóm tắt",
+      "language_output": "Ngôn ngữ đầu ra",
       "custom_prompts": {
         "title": "Prompt tùy chỉnh",
         "editor_button": "Trình sửa Prompt",
@@ -198,6 +223,7 @@
         "medium": "Trung bình",
         "medium_desc": "Cân bằng độ sâu và tốc độ."
       },
+      "action_buttons": "Nút hành động",
       "comment_limit": "Giới hạn bình luận YouTube",
       "comment_limit_desc": "Số lượng bình luận tối đa để phân tích.",
       "uses_gemini_basic": "Sử dụng Gemini Cơ bản"
@@ -325,7 +351,8 @@
       "unconfigured_suffix": "chưa cấu hình",
       "unconfigured_warning": "Nhà cung cấp này chưa được cấu hình.",
       "configure_link": "Cấu hình API Key",
-      "free_text_placeholder": "Nhập ID mô hình"
+      "free_text_placeholder": "Nhập ID mô hình",
+      "free_tier_badge": "Free"
     },
     "provider_key_config": {
       "status_configured": "đã cấu hình",
@@ -356,10 +383,25 @@
       "quick_models_hint": "Tối đa {max} mô hình để chuyển nhanh trong trình soạn.",
       "remove_quick_model": "Xóa khỏi mô hình nhanh",
       "default_reasoning": "Mức suy luận mặc định",
-      "default_reasoning_hint": "Áp dụng cho các tab mới. Tùy chỉnh theo tab là độc lập."
+      "default_reasoning_hint": "Áp dụng cho các tab mới. Tùy chỉnh theo tab là độc lập.",
+      "title": "Trò chuyện",
+      "tone": {
+        "none": "Không",
+        "none_desc": "Không áp dụng văn phong.",
+        "simple_desc": "Dễ hiểu, rõ ràng và trực tiếp. Ngôn ngữ đời thường và ví dụ cụ thể.",
+        "expert_desc": "Chuyên nghiệp, chính xác và chuyên sâu. Giữ nguyên thuật ngữ và độ phức tạp.",
+        "witty_desc": "Châm biếm, dí dỏm, hài hước sắc sảo. Chỉ thay đổi thái độ — độ sâu vẫn theo nội dung.",
+        "savage_desc": "Thẳng thừng, gay gắt, hài hước dữ dội. Chỉ thay đổi thái độ — độ sâu vẫn theo nội dung."
+      }
     }
   },
   "chat": {
+    "hydratingSources": "Đang thu thập lại nội dung trang…",
+    "read_only_elsewhere": "Cuộc trò chuyện này đang mở ở cửa sổ khác. Tại đây chỉ xem được.",
+    "detached": {
+      "tab_tooltip": "Đã đóng trang",
+      "source_note": "Đã đóng trang — đang dùng các nguồn trước đó"
+    },
     "time": {
       "justNow": "Vừa xong",
       "minutesAgo": "{count} phút trước"
@@ -400,12 +442,113 @@
       "manage_models": "Quản lý mô hình...",
       "reasoning": "Suy luận",
       "warning_unresolvable": "Không rõ cấu hình"
+    },
+    "composer": {
+      "placeholder": "Đặt câu hỏi",
+      "placeholder_plain": "Mô tả một tác vụ hoặc đặt câu hỏi",
+      "aria_label": "Tin nhắn chat",
+      "queued": "Đang chờ gửi",
+      "cancel_queued": "Hủy tin nhắn đang chờ",
+      "stop": "Dừng tạo",
+      "send": "Gửi tin nhắn"
+    },
+    "context_bar": {
+      "source_fallback": "Nguồn ngữ cảnh",
+      "attached_fallback": "Tab đã đính kèm",
+      "locked": "Đã có trong ngữ cảnh AI",
+      "tokens": "~{count} token",
+      "added_tabs": "+ {count} tab"
+    },
+    "deep_dive": {
+      "title": "Deep Dive",
+      "generating": "Đang tạo…",
+      "generating_aria": "Đang tạo câu hỏi Deep Dive",
+      "regenerate": "Tạo câu hỏi mới"
+    },
+    "empty_state": {
+      "suggested_skills": "Kỹ năng gợi ý"
+    },
+    "message": {
+      "previous_branch": "Nhánh trước",
+      "next_branch": "Nhánh sau",
+      "edit": "Sửa tin nhắn",
+      "copy_message": "Sao chép tin nhắn",
+      "copy_response": "Sao chép câu trả lời",
+      "regenerate": "Tạo lại câu trả lời",
+      "continue": "Tiếp tục câu trả lời",
+      "retry": "Thử lại tin nhắn này",
+      "stopped": "Đã dừng"
+    },
+    "editor": {
+      "placeholder": "Sửa tin nhắn của bạn...",
+      "aria_label": "Sửa tin nhắn",
+      "cancel": "Hủy",
+      "save": "Lưu & gửi"
+    },
+    "skill_chip": {
+      "clear": "Bỏ chọn kỹ năng"
+    },
+    "skill_picker": {
+      "aria_label": "Kỹ năng phù hợp",
+      "no_results": "Không có kỹ năng phù hợp."
+    },
+    "tab_mention": {
+      "aria_label": "Nguồn phù hợp",
+      "no_results": "Không có tab phù hợp.",
+      "reason_unsupported": "Không thể đính kèm trang trình duyệt, tiện ích, cửa hàng và trang cục bộ.",
+      "reason_pdf": "Không thể đính kèm trang PDF và trang trình xem.",
+      "reason_comments_attached": "Bình luận của video này đã được đính kèm."
+    },
+    "header": {
+      "new_chat": "Chat mới"
+    },
+    "menu": {
+      "aria_label": "Menu cuộc trò chuyện",
+      "recent": "Cuộc trò chuyện gần đây",
+      "history": "Lịch sử",
+      "settings": "Cài đặt"
+    },
+    "source_drawer": {
+      "unknown": "Nguồn không xác định",
+      "loading": "Đang tải nguồn…"
+    },
+    "reasoning": {
+      "provider-default": "Tự động",
+      "provider-default_desc": "Để mô hình tự quyết định",
+      "low": "Thấp",
+      "low_desc": "Nhanh hơn, chi phí thấp hơn",
+      "medium": "Trung bình",
+      "medium_desc": "Cân bằng tốc độ và độ sâu",
+      "high": "Cao",
+      "high_desc": "Suy luận sâu hơn, chậm hơn"
     }
   },
   "tab_navigation": {
     "previous_tab": "Tab trước",
     "next_tab": "Tab tiếp theo",
     "remove_tab": "Xóa (Click chuột giữa)"
+  },
+  "customize": {
+    "title": "Tùy chỉnh",
+    "tabs": {
+      "prompts": "Prompts",
+      "skills": "Kỹ năng"
+    },
+    "skills": {
+      "new": "Kỹ năng mới",
+      "built_in": "Có sẵn",
+      "user_skills": "Kỹ năng của bạn",
+      "empty": "Chưa có kỹ năng tùy chỉnh.",
+      "pin": "Ghim",
+      "name": "Tên",
+      "instruction": "Chỉ dẫn một lần",
+      "instruction_hint": "Chỉ áp dụng cho một lượt",
+      "reset": "Khôi phục mặc định",
+      "delete": "Xóa",
+      "select_prompt": "Chọn một kỹ năng ở menu bên trái hoặc tạo kỹ năng mới.",
+      "error_name_required": "Cần nhập tên kỹ năng.",
+      "error_instruction_required": "Cần nhập chỉ dẫn."
+    }
   },
   "prompts": {
     "title": "Prompts",
@@ -417,10 +560,11 @@
       "summarize": "Tóm tắt",
       "custom_actions": "Hành động tùy chỉnh"
     },
-    "select_template": "Chọn mẫu prompt",
     "prompt_enhance": "Nâng cấp Prompt",
+    "confirm_discard": "Bạn có thay đổi chưa lưu. Bỏ các thay đổi này?",
     "buttons": {
-      "import": "Nhập",
+      "load_preset": "Tải mẫu có sẵn",
+      "improve": "Cải thiện",
       "discard": "Loại",
       "save": "Lưu",
       "apply_prompt": "Áp dụng Prompt"
@@ -435,11 +579,36 @@
     "open_archive": "Mở lưu trữ",
     "tab_history": "Lịch sử",
     "tab_archive": "Lưu trữ",
+    "kind_all": "Tất cả",
+    "kind_summaries": "Bản tóm tắt",
+    "kind_chats": "Trò chuyện",
+    "resume_in_sidepanel": "Tiếp tục ở side panel",
+    "no_chats": "Chưa có cuộc trò chuyện nào",
     "change_theme": "Đổi theme",
     "font_dec": "Giảm kích thước chữ",
     "font_inc": "Tăng kích thước chữ",
     "change_font": "Đổi kiểu chữ",
-    "toggle_width": "Đổi độ rộng vùng đọc"
+    "toggle_width": "Đổi độ rộng vùng đọc",
+    "search_placeholder": "Tìm theo tiêu đề hoặc URL",
+    "search_clear": "Xóa tìm kiếm",
+    "search_no_results": "Không có kết quả phù hợp",
+    "conversation": {
+      "archive": "Lưu trữ",
+      "unarchive": "Bỏ lưu trữ",
+      "export_markdown": "Xuất Markdown",
+      "export_json": "Xuất JSON",
+      "delete": "Xóa cuộc trò chuyện",
+      "none_selected": "Chưa chọn cuộc trò chuyện nào."
+    },
+    "toc": {
+      "aria_label": "Mục lục",
+      "switch_sidebar": "Chuyển sang mục lục thanh bên",
+      "switch_floating": "Chuyển sang mục lục nổi",
+      "go_top": "Lên đầu trang",
+      "go_bottom": "Xuống cuối trang",
+      "previous": "Mục trước",
+      "next": "Mục sau"
+    }
   },
   "button": {
     "copy": "Sao chép vào bộ nhớ đệm",
@@ -448,7 +617,8 @@
     "download": "Tải xuống dạng Markdown",
     "downloaded": "Đã tải xuống!",
     "save_to_archive": "Lưu vào lưu trữ",
-    "saved": "Đã lưu!"
+    "saved": "Đã lưu!",
+    "saving": "Đang lưu…"
   },
   "welcome": {
     "choose_interface_language": "Chào mừng đến với Summarizer!",
@@ -529,6 +699,7 @@
     "actions": "Hành động",
     "archived": "Đã lưu trữ",
     "add_to_archive": "Lưu trữ",
+    "remove_from_archive": "Xóa khỏi Lưu trữ",
     "errors": {
       "empty": "Tên bắt buộc",
       "max_length": "Tối đa 50 ký tự",
@@ -582,7 +753,8 @@
     "merge_mode_description": "• Dữ liệu đã nhập được kết hợp với dữ liệu hiện có<br />• Bản sao (cùng ID) sẽ được cập nhật<br />• Cài đặt đã nhập sẽ ghi đè cài đặt hiện có",
     "replace_mode_description": "• Các loại dữ liệu đã chọn bị xóa hoàn toàn trước<br />• Sau đó thay thế bằng chỉ dữ liệu đã nhập<br />• Các loại dữ liệu không chọn không bị ảnh hưởng",
     "replace_warning_title": "Cảnh báo: Chế độ Thay thế",
-    "confirm_replace": "Đồng ý thay thế"
+    "confirm_replace": "Đồng ý thay thế",
+    "chats": "Trò chuyện"
   },
   "cloudSync": {
     "title": "Đồng bộ Cloud",
@@ -612,9 +784,18 @@
     "syncPreferences": "Tùy chọn đồng bộ",
     "syncPreferencesDescription": "Chọn loại dữ liệu cần đồng bộ với cloud",
     "library": "Lưu trữ",
+    "chats": "Trò chuyện",
     "error": "Lỗi",
     "enabled": "Đang bật",
     "disabled": "Đang tắt",
+    "reauth": {
+      "title": "Cần kết nối lại",
+      "description": "Google đã từ chối phiên đăng nhập đã lưu. Nếu OAuth app của bạn vẫn ở trạng thái \"Testing\" trong Google Cloud Console, refresh token sẽ hết hạn sau 7 ngày — hãy Publish app để không bị lặp lại.",
+      "button": "Kết nối lại",
+      "reconnecting": "Đang kết nối lại...",
+      "publishGuide": "Publish OAuth app của bạn",
+      "sharedDescription": "Phiên Google của bạn đã hết hạn. Hãy đăng nhập lại."
+    },
     "byok": {
       "description": "Nhập thông tin xác thực OAuth của riêng bạn từ Google Cloud Console, dữ liệu của bạn không bao giờ đi qua máy chủ bên thứ ba.",
       "clientIdPlaceholder": "xxxxx.apps.googleusercontent.com",
@@ -625,7 +806,10 @@
       "errors": {
         "bothRequired": "Cần cả Client ID và Client Secret",
         "invalidClientId": "Định dạng Client ID không hợp lệ (phải kết thúc bằng .apps.googleusercontent.com)"
-      }
+      },
+      "advancedToggle": "Dùng dự án Google Cloud của riêng bạn",
+      "signInWithProject": "Đăng nhập bằng dự án của bạn",
+      "separateDataNote": "Dữ liệu đồng bộ bằng dự án riêng tách biệt với dữ liệu đồng bộ bằng đăng nhập mặc định. Hãy dùng cùng một lựa chọn trên mọi thiết bị."
     },
     "redirectUris": {
       "title": "Redirect URIs",
@@ -653,9 +837,20 @@
       "mergeNote": "Lưu trữ, Thẻ và Lịch sử sẽ được gộp từ cả thiết bị này và Cloud.",
       "cancel": "Hủy",
       "sync": "Đồng bộ"
+    },
+    "shared": {
+      "note": "Dữ liệu của bạn được lưu thẳng vào Google Drive của bạn. oauth.summarizerrrr.com chỉ xử lý token đăng nhập.",
+      "firefoxPermissionDenied": "Firefox cần quyền truy cập oauth.summarizerrrr.com để đăng nhập bằng Google. Hãy cho phép khi được hỏi, hoặc dùng dự án Google Cloud của riêng bạn bên dưới."
+    },
+    "proxyPermission": {
+      "title": "Cần cấp quyền",
+      "description": "Firefox không còn cho phép Summarizerrrr truy cập oauth.summarizerrrr.com nên không thể gia hạn phiên. Hãy cấp quyền để tiếp tục đồng bộ — bạn vẫn đang đăng nhập.",
+      "button": "Cấp quyền"
     }
   },
   "notifications": {
+    "try_chat": "Dùng thử Chat — bản 3.0 beta",
+    "back_to_summarize": "Quay lại Tóm tắt",
     "no_notifications": "Không có thông báo",
     "noti_1": {
       "title": "Giới hạn API Gemini đã giảm",
@@ -682,5 +877,8 @@
       "description": "Sử dụng Summarizerrrr với Safari trên iPhone & iPad.",
       "cta_label": "Tải ngay"
     }
+  },
+  "fab": {
+    "hide_on_site": "Ẩn trên trang này"
   }
 }

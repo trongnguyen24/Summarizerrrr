@@ -36,13 +36,11 @@ export async function isStorageReady() {
  */
 export async function loadSettingsDirectly() {
   try {
-    // Try multiple possible storage keys based on discovered patterns
-    const possibleKeys = [
-      'settings',
-      'local:settings',
-      'wxt:settings',
-      'local_settings',
-    ]
+    // WXT's `storage.defineItem('local:settings')` stores under the RAW key
+    // `settings` — the `local:` prefix selects the storage area, it is not part
+    // of the key. The other spellings are legacy guesses kept as a read-only
+    // fallback; nothing writes them.
+    const possibleKeys = ['settings', 'wxt:settings', 'local_settings']
 
     for (const key of possibleKeys) {
       const result = await browser.storage.local.get(key)
@@ -65,38 +63,21 @@ export async function loadSettingsDirectly() {
 }
 
 /**
- * Initialize default settings if none exist
- * @returns {Promise<Object>} Default settings object
- */
-export async function initializeDefaultSettings() {
-  const defaultSettings = {
-    iconClickAction: 'floating', // Use floating as default for this fix
-    selectedProvider: 'gemini',
-    hasCompletedOnboarding: false,
-    // Add other essential defaults as needed
-  }
-
-  try {
-    // Try to save default settings to storage
-    await browser.storage.local.set({ 'local:settings': defaultSettings })
-    console.log(
-      '[Background] Initialized default settings:',
-      defaultSettings.iconClickAction
-    )
-    return defaultSettings
-  } catch (error) {
-    console.error('[Background] Failed to initialize default settings:', error)
-    return defaultSettings // Return anyway, don't persist but use in memory
-  }
-}
-
-/**
- * Enhanced settings loading with multiple fallback strategies
+ * Enhanced settings loading with fallback strategies.
+ *
+ * There used to be a third strategy that "initialized defaults" by writing a
+ * three-key object to `local:settings`. That key is not the one WXT reads
+ * (`settings`), so it could never restore anything — it only left junk behind
+ * that strategy 2 could later pick up in place of the real settings. Defaults
+ * are already seeded by `loadSettings()` itself when storage is empty, so the
+ * strategy was redundant as well as wrong, and is gone.
+ *
  * @returns {Promise<Object|null>} Settings object or null if failed
  */
 export async function loadSettingsWithReadiness() {
   try {
-    // Strategy 1: Check if storage is ready and try WXT storage
+    // Strategy 1: Check if storage is ready and try WXT storage. This is the
+    // only path that returns *migrated* settings, so it must stay first.
     if (await isStorageReady()) {
       try {
         const settings = await loadSettings()
@@ -112,16 +93,11 @@ export async function loadSettingsWithReadiness() {
       }
     }
 
-    // Strategy 2: Direct browser.storage access as backup
+    // Strategy 2: Direct browser.storage access as backup. Returns raw,
+    // un-migrated data — acceptable for the few flat keys read here.
     const directSettings = await loadSettingsDirectly()
     if (directSettings && directSettings.iconClickAction) {
       return directSettings
-    }
-
-    // Strategy 3: Initialize default settings as last resort
-    const defaultSettings = await initializeDefaultSettings()
-    if (defaultSettings && defaultSettings.iconClickAction) {
-      return defaultSettings
     }
 
     console.warn('[Background] All settings loading strategies failed')

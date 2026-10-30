@@ -1,20 +1,57 @@
 // @ts-nocheck
 /**
  * Google Drive Adapter for Cloud Sync
- * Uses OAuth2 Authorization Code Flow with PKCE
- * Token exchange via secure proxy server (Cloudflare Worker)
- * 
- * Architecture:
- * 1. Extension gets authorization code from Google
- * 2. Extension sends code to proxy server
- * 3. Proxy server (with client_secret) exchanges for tokens
- * 4. Proxy returns tokens to extension
+ * Uses OAuth2 Authorization Code Flow with PKCE, in one of two modes:
+ *
+ * - Shared (default): the published Summarizerrrr client (CLIENT_ID). The code
+ *   is exchanged and the token refreshed through the token proxy
+ *   (Cloudflare Worker at TOKEN_PROXY_URL), which holds the client_secret.
+ *   `authenticate()` / `refreshAccessToken()`.
+ * - Custom (BYOK): the user's own Google Cloud OAuth client. The code is
+ *   exchanged and refreshed directly with Google using the user's secret.
+ *   `authenticateWithCustomCredentials()` / `refreshAccessTokenDirect()`.
+ *
+ * Both modes share the same auth-code flow (`obtainAuthCode()`). Drive data is
+ * per OAuth client (`drive.file` scope), so the two modes see separate files.
  */
 
 import { browser } from 'wxt/browser'
 
+/**
+ * Thrown when Google's token endpoint rejects a request.
+ * `code` carries Google's own identifier (`invalid_grant`, `invalid_client`, …)
+ * so callers can branch on it instead of matching message strings — the
+ * messages are user-facing and change; the codes don't.
+ */
+export class OAuthTokenError extends Error {
+  constructor(message, code) {
+    super(message)
+    this.name = 'OAuthTokenError'
+    this.code = code || 'unknown_error'
+  }
+}
+
+/**
+ * Turn a non-OK token-endpoint response into an OAuthTokenError.
+ * Google answers with `{ error, error_description }`; a proxy or a network-level
+ * failure may answer with neither, hence the defensive parse.
+ */
+async function toTokenError(response, fallbackMessage) {
+  let body = {}
+  try {
+    body = await response.json()
+  } catch {
+    // Non-JSON body (gateway error page, empty 5xx) — code stays unknown.
+  }
+  console.error(`${fallbackMessage}:`, body)
+  return new OAuthTokenError(
+    body.error_description || body.error || fallbackMessage,
+    body.error
+  )
+}
+
 // OAuth2 Configuration
-const CLIENT_ID = '1045816330790-n9u8unuthqvdqvlmce7d3j779uprv26k.apps.googleusercontent.com'
+const CLIENT_ID = '197192111766-kfe6nfv6tsfbtvg0emd4ifcrjs631944.apps.googleusercontent.com'
 // drive.file scope: only access files created by this app (visible in Drive)
 const SCOPES = 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email'
 
@@ -46,11 +83,9 @@ async function exchangeCodeDirectInternal(code, codeVerifier, redirectUri, clien
   })
   
   if (!response.ok) {
-    const error = await response.json()
-    console.error('Direct token exchange failed:', error)
-    throw new Error(error.error_description || error.error || 'Failed to exchange code')
+    throw await toTokenError(response, 'Direct token exchange failed')
   }
-  
+
   const data = await response.json()
   
   return {
@@ -80,18 +115,15 @@ export async function refreshAccessTokenDirect(refreshToken, clientId, clientSec
   })
   
   if (!response.ok) {
-    const error = await response.json()
-    console.error('Direct token refresh failed:', error)
-    
-    if (error.error === 'invalid_grant') {
-      throw new Error('Session expired. Please sign in again.')
-    }
-    
-    throw new Error(error.error_description || 'Failed to refresh token')
+    // `invalid_grant` here means the refresh token itself is dead — revoked,
+    // or (by far the most common case for BYOK) expired because the user's
+    // OAuth app is still in "Testing", where Google caps them at 7 days.
+    // Callers branch on `error.code`, not on this message.
+    throw await toTokenError(response, 'Direct token refresh failed')
   }
-  
+
   const data = await response.json()
-  
+
   return {
     accessToken: data.access_token,
     expiresAt: Date.now() + (data.expires_in || 3600) * 1000,
@@ -107,80 +139,11 @@ export async function authenticateWithCustomCredentials(clientId, clientSecret) 
   const redirectUri = getRedirectUri()
   const codeVerifier = generateCodeVerifier()
   const codeChallenge = await generateCodeChallenge(codeVerifier)
-  
+
   console.log('[CloudSync BYOK] Using custom credentials')
-  console.log('[CloudSync BYOK] Redirect URI:', redirectUri)
-  console.log('[CloudSync BYOK] Identity API available:', isIdentityApiAvailable())
-  
+
   try {
-    let authCode
-    
-    if (isIdentityApiAvailable()) {
-      // Desktop flow
-      const authUrl = buildAuthUrlWithClientId(redirectUri, codeChallenge, clientId)
-      
-      const responseUrl = await browser.identity.launchWebAuthFlow({
-        url: authUrl.toString(),
-        interactive: true,
-      })
-      
-      authCode = parseAuthorizationCode(responseUrl)
-    } else {
-      // Mobile flow - similar to authenticateMobile but with custom client ID
-      const authUrl = buildAuthUrlWithClientId(redirectUri, codeChallenge, clientId)
-      
-      const authTab = await browser.tabs.create({ url: authUrl.toString() })
-      
-      authCode = await new Promise((resolve, reject) => {
-        const AUTH_TIMEOUT = 120000
-        
-        const timeoutId = setTimeout(() => {
-          cleanup()
-          reject(new Error('Authentication timeout. Please try again.'))
-        }, AUTH_TIMEOUT)
-        
-        const cleanup = () => {
-          clearTimeout(timeoutId)
-          browser.tabs.onUpdated.removeListener(tabListener)
-        }
-        
-        const tabListener = async (tabId, changeInfo, tab) => {
-          if (tabId !== authTab.id) return
-          if (!tab.url || !tab.url.startsWith(redirectUri)) return
-          
-          cleanup()
-          
-          try {
-            const url = new URL(tab.url)
-            const code = url.searchParams.get('code')
-            const error = url.searchParams.get('error')
-            
-            try {
-              await browser.tabs.remove(tabId)
-            } catch (e) {
-              console.warn('[CloudSync BYOK] Could not close auth tab:', e)
-            }
-            
-            if (error) {
-              reject(new Error(`Auth error: ${error}`))
-              return
-            }
-            
-            if (!code) {
-              reject(new Error('No authorization code received'))
-              return
-            }
-            
-            resolve(code)
-          } catch (err) {
-            reject(err)
-          }
-        }
-        
-        browser.tabs.onUpdated.addListener(tabListener)
-      })
-    }
-    
+    const authCode = await obtainAuthCode(clientId, redirectUri, codeChallenge)
     // Exchange code directly with Google (BYOK mode)
     return await exchangeCodeDirectInternal(authCode, codeVerifier, redirectUri, clientId, clientSecret)
   } catch (error) {
@@ -190,9 +153,9 @@ export async function authenticateWithCustomCredentials(clientId, clientSecret) 
 }
 
 /**
- * Build OAuth authorization URL with custom Client ID
+ * Build OAuth authorization URL with PKCE for the given Client ID
  */
-function buildAuthUrlWithClientId(redirectUri, codeChallenge, clientId) {
+function buildAuthUrl(redirectUri, codeChallenge, clientId) {
   const authUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth')
   authUrl.searchParams.set('client_id', clientId)
   authUrl.searchParams.set('redirect_uri', redirectUri)
@@ -307,126 +270,81 @@ function getRedirectUri() {
 // --- Authentication ---
 
 /**
- * Build OAuth authorization URL with PKCE
+ * Mobile auth-code flow using browser.tabs
+ * Opens Google auth in a new tab and waits for the redirect
  */
-function buildAuthUrl(redirectUri, codeChallenge) {
-  const authUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth')
-  authUrl.searchParams.set('client_id', CLIENT_ID)
-  authUrl.searchParams.set('redirect_uri', redirectUri)
-  authUrl.searchParams.set('response_type', 'code')
-  authUrl.searchParams.set('scope', SCOPES)
-  authUrl.searchParams.set('access_type', 'offline')
-  authUrl.searchParams.set('prompt', 'consent')
-  authUrl.searchParams.set('code_challenge', codeChallenge)
-  authUrl.searchParams.set('code_challenge_method', 'S256')
-  return authUrl
-}
-
-/**
- * Mobile OAuth flow using browser.tabs
- * Opens Google auth in a new tab and monitors for redirect
- */
-async function authenticateMobile(redirectUri, codeVerifier, codeChallenge) {
-  console.log('[CloudSync] Using mobile OAuth flow')
-  
-  const authUrl = buildAuthUrl(redirectUri, codeChallenge)
-  
-  // Open auth URL in new tab
+async function obtainAuthCodeViaTab(authUrl, redirectUri) {
   const authTab = await browser.tabs.create({ url: authUrl.toString() })
-  console.log('[CloudSync] Opened auth tab:', authTab.id)
-  
+
   return new Promise((resolve, reject) => {
     const AUTH_TIMEOUT = 120000 // 2 minutes
-    
+
     const timeoutId = setTimeout(() => {
       cleanup()
       reject(new Error('Authentication timeout. Please try again.'))
     }, AUTH_TIMEOUT)
-    
+
     const cleanup = () => {
       clearTimeout(timeoutId)
       browser.tabs.onUpdated.removeListener(tabListener)
     }
-    
+
     const tabListener = async (tabId, changeInfo, tab) => {
-      // Only monitor our auth tab
+      // Only monitor our auth tab, until it reaches our redirect URI
       if (tabId !== authTab.id) return
-      
-      // Check if URL matches our redirect URI
       if (!tab.url || !tab.url.startsWith(redirectUri)) return
-      
-      console.log('[CloudSync] Auth redirect detected:', tab.url)
+
       cleanup()
-      
+
       try {
-        const url = new URL(tab.url)
-        const code = url.searchParams.get('code')
-        const error = url.searchParams.get('error')
-        
-        // Close the auth tab
-        try {
-          await browser.tabs.remove(tabId)
-        } catch (e) {
-          console.warn('[CloudSync] Could not close auth tab:', e)
-        }
-        
-        if (error) {
-          reject(new Error(`Auth error: ${error}`))
-          return
-        }
-        
-        if (!code) {
-          reject(new Error('No authorization code received'))
-          return
-        }
-        
-        // Exchange code for tokens
-        const tokens = await exchangeCodeViaProxy(code, codeVerifier, redirectUri)
-        resolve(tokens)
+        await browser.tabs.remove(tabId)
+      } catch (e) {
+        console.warn('[CloudSync] Could not close auth tab:', e)
+      }
+
+      try {
+        resolve(parseAuthorizationCode(tab.url))
       } catch (err) {
         reject(err)
       }
     }
-    
+
     browser.tabs.onUpdated.addListener(tabListener)
   })
 }
 
 /**
- * Desktop OAuth flow using browser.identity
+ * Run the OAuth consent flow for `clientId` and return the authorization code.
+ * Desktop: browser.identity.launchWebAuthFlow. Mobile: a tab + tabs.onUpdated.
  */
-async function authenticateDesktop(redirectUri, codeVerifier, codeChallenge) {
-  console.log('[CloudSync] Using desktop OAuth flow')
-  
-  const authUrl = buildAuthUrl(redirectUri, codeChallenge)
-  
-  const responseUrl = await browser.identity.launchWebAuthFlow({
-    url: authUrl.toString(),
-    interactive: true,
-  })
-  
-  const authCode = parseAuthorizationCode(responseUrl)
-  return await exchangeCodeViaProxy(authCode, codeVerifier, redirectUri)
+async function obtainAuthCode(clientId, redirectUri, codeChallenge) {
+  const authUrl = buildAuthUrl(redirectUri, codeChallenge, clientId)
+
+  console.log('[CloudSync] Redirect URI:', redirectUri)
+  console.log('[CloudSync] Identity API available:', isIdentityApiAvailable())
+
+  if (isIdentityApiAvailable()) {
+    const responseUrl = await browser.identity.launchWebAuthFlow({
+      url: authUrl.toString(),
+      interactive: true,
+    })
+    return parseAuthorizationCode(responseUrl)
+  }
+
+  return await obtainAuthCodeViaTab(authUrl, redirectUri)
 }
 
 /**
- * Authenticate with Google using OAuth2 PKCE flow
- * Automatically selects desktop or mobile flow based on API availability
+ * Authenticate with Google using the shared client (token exchange via proxy)
  */
 export async function authenticate() {
   const redirectUri = getRedirectUri()
   const codeVerifier = generateCodeVerifier()
   const codeChallenge = await generateCodeChallenge(codeVerifier)
-  
-  console.log('[CloudSync] Redirect URI:', redirectUri)
-  console.log('[CloudSync] Identity API available:', isIdentityApiAvailable())
-  
+
   try {
-    if (isIdentityApiAvailable()) {
-      return await authenticateDesktop(redirectUri, codeVerifier, codeChallenge)
-    } else {
-      return await authenticateMobile(redirectUri, codeVerifier, codeChallenge)
-    }
+    const authCode = await obtainAuthCode(CLIENT_ID, redirectUri, codeChallenge)
+    return await exchangeCodeViaProxy(authCode, codeVerifier, redirectUri)
   } catch (error) {
     console.error('Authentication failed:', error)
     throw error
@@ -465,11 +383,9 @@ async function exchangeCodeViaProxy(code, codeVerifier, redirectUri) {
   })
   
   if (!response.ok) {
-    const error = await response.json()
-    console.error('Token exchange failed:', error)
-    throw new Error(error.error_description || error.error || 'Failed to exchange code')
+    throw await toTokenError(response, 'Token exchange failed')
   }
-  
+
   const data = await response.json()
   
   return {
@@ -494,16 +410,9 @@ export async function refreshAccessToken(refreshToken) {
   })
   
   if (!response.ok) {
-    const error = await response.json()
-    console.error('Token refresh failed:', error)
-    
-    if (error.error === 'invalid_grant') {
-      throw new Error('Session expired. Please sign in again.')
-    }
-    
-    throw new Error(error.error_description || 'Failed to refresh token')
+    throw await toTokenError(response, 'Token refresh failed')
   }
-  
+
   const data = await response.json()
   
   return {
@@ -657,25 +566,35 @@ export function clearSyncFolderCache() {
   cachedSyncFolderId = null
 }
 
-async function findFile(accessToken, filename) {
+/**
+ * Look up a sync file by name without downloading it.
+ * @returns {Promise<{ id: string, modifiedTime: string } | null>}
+ */
+export async function findFileMeta(accessToken, filename) {
   const folderId = await getOrCreateSyncFolder(accessToken)
-  
+
   const response = await fetch(
     `https://www.googleapis.com/drive/v3/files?q=name='${filename}' and '${folderId}' in parents and trashed=false&fields=files(id,modifiedTime)`,
     {
       headers: { Authorization: `Bearer ${accessToken}` },
     }
   )
-  
+
   if (!response.ok) {
     if (response.status === 401) {
       throw new Error('TOKEN_EXPIRED')
     }
     throw new Error(`Failed to search file ${filename}`)
   }
-  
+
   const data = await response.json()
-  return data.files?.[0]?.id || null
+  const file = data.files?.[0]
+  return file ? { id: file.id, modifiedTime: file.modifiedTime } : null
+}
+
+async function findFile(accessToken, filename) {
+  const meta = await findFileMeta(accessToken, filename)
+  return meta?.id || null
 }
 
 export async function listFiles(accessToken, query = "trashed = false") {
@@ -782,44 +701,20 @@ export async function saveFile(accessToken, filename, data) {
 }
 
 /**
- * Get file content as JSONL with metadata (JSON Lines format)
- * Format: Line 1 is metadata with _meta:true, remaining lines are items
- * @returns {Object|null} { meta: {version, updatedAt}, items: Map<id, item> } or null
+ * Parse JSONL text into typed buckets. Line 1 may be a `_meta` line; every other
+ * line is an item, bucketed by its `_type` (Library and Chats files) or by its
+ * `id` alone (History file). Invalid lines are skipped with a warning.
+ * @param {string} text
+ * @returns {{ meta: Object, items: Object, archives: Object, tags: Object, conversations: Object, chatSources: Object }}
  */
-export async function getFileJsonl(accessToken, filename) {
-  const fileId = await findFile(accessToken, filename)
-  
-  if (!fileId) {
-    return null
-  }
-  
-  const response = await fetch(
-    `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`,
-    {
-      headers: { Authorization: `Bearer ${accessToken}` },
-    }
-  )
-  
-  if (!response.ok) {
-    if (response.status === 401) {
-      throw new Error('TOKEN_EXPIRED')
-    }
-    if (response.status === 404) {
-      return null
-    }
-    const err = await response.json()
-    throw new Error(err.error?.message || `Failed to get ${filename}`)
-  }
-  
-  const text = await response.text()
-  
-  // Parse JSONL: first line with _meta is metadata, rest are items
-  // For Library files: items have _type field ("archive" or "tag")
+export function parseJsonl(text) {
   let meta = { version: 2, updatedAt: 0 }
   const items = {}
   const archives = {}
   const tags = {}
-  
+  const conversations = {}
+  const chatSources = {}
+
   const lines = text.split('\n')
   for (const line of lines) {
     const trimmed = line.trim()
@@ -835,6 +730,14 @@ export async function getFileJsonl(accessToken, filename) {
         } else if (obj._type === 'tag' && obj.id) {
           // Tag item (Library file)
           tags[obj.id] = obj
+        } else if (obj._type === 'conversation' && obj.id) {
+          // Conversation item (Chats file): conversation record + its messages
+          const { _type, ...item } = obj
+          conversations[obj.id] = item
+        } else if (obj._type === 'chatSource' && obj.id) {
+          // Captured source snapshot (Chats file)
+          const { _type, ...source } = obj
+          chatSources[obj.id] = source
         } else if (obj.id) {
           // Generic item (History file) - use id as key
           items[obj.id] = obj
@@ -844,13 +747,59 @@ export async function getFileJsonl(accessToken, filename) {
       }
     }
   }
-  
+
+  return { meta, items, archives, tags, conversations, chatSources }
+}
+
+/**
+ * Get file content as JSONL with metadata (JSON Lines format)
+ * Format: Line 1 is metadata with _meta:true, remaining lines are items
+ * @param {string} accessToken
+ * @param {string} filename
+ * @param {{ gzip?: boolean }} [options] - gzip: the file is gzip-compressed and is inflated before parsing
+ * @returns {Object|null} { meta: {version, updatedAt}, items: Map<id, item> } or null
+ */
+export async function getFileJsonl(accessToken, filename, { gzip = false } = {}) {
+  const fileId = await findFile(accessToken, filename)
+
+  if (!fileId) {
+    return null
+  }
+
+  const response = await fetch(
+    `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`,
+    {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    }
+  )
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error('TOKEN_EXPIRED')
+    }
+    if (response.status === 404) {
+      return null
+    }
+    const err = await response.json()
+    throw new Error(err.error?.message || `Failed to get ${filename}`)
+  }
+
+  const text = gzip
+    ? await new Response(response.body.pipeThrough(new DecompressionStream('gzip'))).text()
+    : await response.text()
+
+  const { meta, items, archives, tags, conversations, chatSources } = parseJsonl(text)
+
   // Return appropriate structure based on content
+  if (Object.keys(conversations).length > 0 || Object.keys(chatSources).length > 0) {
+    // Chats file format
+    return { meta, conversations, chatSources }
+  }
   if (Object.keys(archives).length > 0 || Object.keys(tags).length > 0) {
     // Library file format
     return { meta, archives, tags }
   }
-  
+
   // History file format
   return { meta, items }
 }
@@ -858,30 +807,44 @@ export async function getFileJsonl(accessToken, filename) {
 /**
  * Save data as JSONL file with metadata (JSON Lines format)
  * Format: Line 1 is metadata with _meta:true, remaining lines are items
- * Supports both History format (items) and Library format (archives + tags)
+ * Supports History format (items), Library format (archives + tags) and
+ * Chats format (conversations + chatSources)
  * @param {string} accessToken
  * @param {string} filename
- * @param {Object} data - { meta, items } or { meta, archives, tags }
+ * @param {Object} data - { meta, items }, { meta, archives, tags } or { meta, conversations, chatSources }
+ * @param {{ gzip?: boolean }} [options] - gzip: compress the payload and upload it as application/gzip
+ * @returns {Promise<{ id: string, modifiedTime: string }>}
  */
-export async function saveFileJsonl(accessToken, filename, data) {
+export async function saveFileJsonl(accessToken, filename, data, { gzip = false } = {}) {
   // Build JSONL content: metadata line first, then items
   const lines = []
-  
+
   // Metadata line
   lines.push(JSON.stringify({
     _meta: true,
     version: data.meta?.version || 2,
     updatedAt: data.meta?.updatedAt || Date.now(),
   }))
-  
-  // Check if this is Library format (archives + tags)
-  if (data.archives || data.tags) {
+
+  if (data.conversations || data.chatSources) {
+    // Chats format: conversations + captured sources
+    const conversations = data.conversations || {}
+    for (const id of Object.keys(conversations)) {
+      lines.push(JSON.stringify({ ...conversations[id], _type: 'conversation' }))
+    }
+
+    const chatSources = data.chatSources || {}
+    for (const id of Object.keys(chatSources)) {
+      lines.push(JSON.stringify({ ...chatSources[id], _type: 'chatSource' }))
+    }
+  } else if (data.archives || data.tags) {
+    // Library format: archives + tags
     // Library format: add _type field to each item
     const archives = data.archives || {}
     for (const id of Object.keys(archives)) {
       lines.push(JSON.stringify({ ...archives[id], _type: 'archive' }))
     }
-    
+
     const tags = data.tags || {}
     for (const id of Object.keys(tags)) {
       lines.push(JSON.stringify({ ...tags[id], _type: 'tag' }))
@@ -893,21 +856,29 @@ export async function saveFileJsonl(accessToken, filename, data) {
       lines.push(JSON.stringify(items[id]))
     }
   }
-  
+
   const jsonlContent = lines.join('\n')
-  
+
+  // Gzipped payloads go up as application/gzip; the plain path is unchanged.
+  const contentType = gzip ? 'application/gzip' : 'text/plain'
+  const payload = gzip
+    ? await new Response(new Blob([jsonlContent]).stream().pipeThrough(new CompressionStream('gzip'))).blob()
+    : jsonlContent
+
   const fileId = await findFile(accessToken, filename)
-  
+
+  // `fields` makes Drive echo back the saved file's id and modifiedTime, which
+  // the chats sync stores as its skip marker.
   if (fileId) {
     const res = await fetch(
-      `https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`,
+      `https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media&fields=id,modifiedTime`,
       {
         method: 'PATCH',
         headers: {
           Authorization: `Bearer ${accessToken}`,
-          'Content-Type': 'text/plain',
+          'Content-Type': contentType,
         },
-        body: jsonlContent,
+        body: payload,
       }
     )
     if (!res.ok) {
@@ -917,19 +888,21 @@ export async function saveFileJsonl(accessToken, filename, data) {
       const err = await res.json()
       throw new Error(err.error?.message || `Update ${filename} failed`)
     }
+    const { id, modifiedTime } = await res.json()
+    return { id, modifiedTime }
   } else {
     const folderId = await getOrCreateSyncFolder(accessToken)
     const form = new FormData()
     form.append(
       'metadata',
-      new Blob([JSON.stringify({ name: filename, mimeType: 'text/plain', parents: [folderId] })], {
+      new Blob([JSON.stringify({ name: filename, mimeType: contentType, parents: [folderId] })], {
         type: 'application/json',
       })
     )
-    form.append('file', new Blob([jsonlContent], { type: 'text/plain' }))
-    
+    form.append('file', new Blob([payload], { type: contentType }))
+
     const res = await fetch(
-      'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',
+      'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,modifiedTime',
       {
         method: 'POST',
         headers: { Authorization: `Bearer ${accessToken}` },
@@ -943,6 +916,8 @@ export async function saveFileJsonl(accessToken, filename, data) {
       const err = await res.json()
       throw new Error(err.error?.message || `Create ${filename} failed`)
     }
+    const { id, modifiedTime } = await res.json()
+    return { id, modifiedTime }
   }
 }
 

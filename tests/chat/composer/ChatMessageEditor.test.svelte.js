@@ -1,7 +1,9 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount, flushSync } from 'svelte'
-import ChatMessageEditor from '../../../src/entrypoints/sidepanel/components/chat/ChatMessageEditor.svelte'
+import ChatMessageEditor from '../../../src/components/chat/ChatMessageEditor.svelte'
+
+vi.mock('svelte-i18n', () => import('../../stubs/svelteI18nStub.js'))
 
 // Mock getClientRects and getBoundingClientRect for JSDOM ProseMirror compatibility
 if (typeof window !== 'undefined') {

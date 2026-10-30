@@ -15,6 +15,50 @@
     updateSettings({ [key]: value })
   }
 
+  // Chuẩn hóa giá trị từ store (hỗ trợ boolean cũ)
+  function normalizeVisibilityMode(val) {
+    if (val === false || val === 'hide') return 'hide'
+    if (val === true) return 'showOnScrollUp'
+    if (val === 'show') return 'show'
+    if (val === 'hideOnScroll') return 'hideOnScroll'
+    if (val === 'showOnScrollUp' || val === 'showOnScroll') return 'showOnScrollUp'
+    return 'showOnScrollUp'
+  }
+
+  let currentVisibilityMode = $derived(
+    normalizeVisibilityMode(settings.showFloatingButton),
+  )
+
+  const visibilityItems = $derived([
+    {
+      value: 'hide',
+      label: $t('settings.general.floating_button.hide'),
+    },
+    {
+      value: 'show',
+      label: $t('settings.general.floating_button.show'),
+    },
+    {
+      value: 'hideOnScroll',
+      label: $t('settings.general.floating_button.hide_on_scroll'),
+    },
+    {
+      value: 'showOnScrollUp',
+      label: $t('settings.general.floating_button.show_on_scroll_up'),
+    },
+  ])
+
+  let animTriggerKey = $state(0)
+
+  function replayAnimation() {
+    animTriggerKey++
+  }
+
+  function handleVisibilityModeChange(newMode) {
+    handleUpdateSetting('showFloatingButton', newMode)
+    animTriggerKey++
+  }
+
   let newWhitelistedDomain = $state()
   let newBlacklistedDomain = $state()
 
@@ -160,63 +204,68 @@
     </p>
   </div>
   <div class="px-5 py-4 flex flex-col sm:flex-row gap-4">
-    <Preview
-      title={$t('settings.fab.preview')}
-      class=" w-full sm:w-60 h-40 shrink-0 mx-auto"
-    >
-      <div
-        class="absolute top-1/2 -translate-y-1/2 flex items-center justify-center h-10 w-10 text-gray-500/50 overflow-hidden rounded-4xl ease-in-out duration-800 transition-all
-        {settings.floatButtonLeft
-          ? 'rounded-l-none left-0 origin-left'
-          : 'rounded-r-none left-[calc(100%-2.5rem)] origin-right'}
-        {settings.showFloatingButton
-          ? 'opacity-100 scale-100'
-          : 'opacity-0 scale-85'}"
+    {#key animTriggerKey}
+      <Preview
+        title={$t('settings.fab.preview')}
+        class="w-full sm:w-60 h-40 shrink-0 mx-auto cursor-pointer select-none"
+        onclick={replayAnimation}
+        bgDotClass={currentVisibilityMode === 'hideOnScroll'
+          ? 'anim-scroll-hide-on-scroll'
+          : currentVisibilityMode === 'showOnScrollUp'
+            ? 'anim-scroll-smart'
+            : ''}
       >
         <div
-          class=" bg-[hsl(224,35%,96%)] dark:bg-[#2D303E] flex justify-center items-center size-16"
+          class="absolute top-1/2 -translate-y-1/2 flex items-center justify-center h-10 w-10 text-gray-500/50 overflow-hidden rounded-4xl
+          {settings.floatButtonLeft
+            ? 'rounded-l-none left-0 origin-left'
+            : 'rounded-r-none left-[calc(100%-2.5rem)] origin-right'}
+          {currentVisibilityMode === 'hide'
+            ? 'opacity-0 scale-85 ease-in-out duration-800 transition-all'
+            : currentVisibilityMode === 'show'
+              ? 'opacity-100 scale-100 ease-in-out duration-800 transition-all'
+              : currentVisibilityMode === 'hideOnScroll'
+                ? 'anim-fab-hide-on-scroll'
+                : currentVisibilityMode === 'showOnScrollUp'
+                  ? 'anim-fab-smart'
+                  : 'opacity-100 scale-100'}"
         >
           <div
-            class="rounded-4xl size-9 flex justify-center items-center border border-slate-500/10"
+            class="bg-[hsl(224,35%,96%)] dark:bg-[#2D303E] flex justify-center items-center size-16"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="18"
-              height="18"
-              viewBox="0 0 16 16"
+            <div
+              class="rounded-4xl size-9 flex justify-center items-center border border-slate-500/10"
             >
-              <path
-                fill="currentColor"
-                d="M7.53 1.282a.5.5 0 0 1 .94 0l.478 1.306a7.5 7.5 0 0 0 4.464 4.464l1.305.478a.5.5 0 0 1 0 .94l-1.305.478a7.5 7.5 0 0 0-4.464 4.464l-.478 1.305a.5.5 0 0 1-.94 0l-.478-1.305a7.5 7.5 0 0 0-4.464-4.464L1.282 8.47a.5.5 0 0 1 0-.94l1.306-.478a7.5 7.5 0 0 0 4.464-4.464Z"
-              />
-            </svg>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="18"
+                height="18"
+                viewBox="0 0 16 16"
+              >
+                <path
+                  fill="currentColor"
+                  d="M7.53 1.282a.5.5 0 0 1 .94 0l.478 1.306a7.5 7.5 0 0 0 4.464 4.464l1.305.478a.5.5 0 0 1 0 .94l-1.305.478a7.5 7.5 0 0 0-4.464 4.464l-.478 1.305a.5.5 0 0 1-.94 0l-.478-1.305a7.5 7.5 0 0 0-4.464-4.464L1.282 8.47a.5.5 0 0 1 0-.94l1.306-.478a7.5 7.5 0 0 0 4.464-4.464Z"
+                />
+              </svg>
+            </div>
           </div>
         </div>
-      </div>
-    </Preview>
+      </Preview>
+    {/key}
     <div class="flex-auto">
       <div class="flex flex-col gap-2 pb-4">
         <!-- svelte-ignore a11y_label_has_associated_control -->
         <label class="block text-text-secondary"
           >{$t('settings.general.floatingButton')}</label
         >
-        <div class="grid w-full grid-cols-2 gap-1">
-          <ButtonSet
-            title={$t('settings.general.floating_button.hide')}
-            class="setting-btn {!settings.showFloatingButton ? 'active' : ''}"
-            onclick={() => handleUpdateSetting('showFloatingButton', false)}
-            Description={$t('settings.general.floating_button.hide_desc')}
-          >
-            <Icon icon="heroicons:eye-slash-20-solid" width="20" height="20" />
-          </ButtonSet>
-          <ButtonSet
-            title={$t('settings.general.floating_button.show')}
-            class="setting-btn {settings.showFloatingButton ? 'active' : ''}"
-            onclick={() => handleUpdateSetting('showFloatingButton', true)}
-            Description={$t('settings.general.floating_button.show_desc')}
-          >
-            <Icon icon="heroicons:eye-20-solid" width="20" height="20" />
-          </ButtonSet>
+        <div class="w-full">
+          <ReusableSelect
+            items={visibilityItems}
+            bind:bindValue={currentVisibilityMode}
+            onValueChangeCallback={handleVisibilityModeChange}
+            ariaLabel={$t('settings.general.floatingButton')}
+            className="w-full"
+          />
         </div>
       </div>
 
@@ -718,3 +767,105 @@
     </div>
   </div>
 </div>
+
+<style>
+  :global(.anim-scroll-hide-on-scroll) {
+    animation: sim-scroll-hide-on-scroll 3.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+
+  @keyframes sim-scroll-hide-on-scroll {
+    0%,
+    15% {
+      background-position-y: 0px;
+    }
+    45%,
+    65% {
+      background-position-y: -60px;
+    }
+    90%,
+    100% {
+      background-position-y: 0px;
+    }
+  }
+
+  .anim-fab-hide-on-scroll {
+    animation: sim-fab-hide-on-scroll 3.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+
+  @keyframes sim-fab-hide-on-scroll {
+    0%,
+    15% {
+      opacity: 1;
+      transform: translateY(-50%) scale(1);
+    }
+    40%,
+    65% {
+      opacity: 0;
+      transform: translateY(-50%) scale(0.85);
+    }
+    90%,
+    100% {
+      opacity: 1;
+      transform: translateY(-50%) scale(1);
+    }
+  }
+
+  :global(.anim-scroll-smart) {
+    animation: sim-scroll-smart 4.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+
+  @keyframes sim-scroll-smart {
+    0%,
+    10% {
+      background-position-y: 0px;
+    }
+    30%,
+    42% {
+      background-position-y: -60px;
+    }
+    58%,
+    70% {
+      background-position-y: -36px;
+    }
+    82%,
+    86% {
+      background-position-y: -60px;
+    }
+    95%,
+    100% {
+      background-position-y: 0px;
+    }
+  }
+
+  .anim-fab-smart {
+    animation: sim-fab-smart 4.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+
+  @keyframes sim-fab-smart {
+    0%,
+    10% {
+      opacity: 1;
+      transform: translateY(-50%) scale(1);
+    }
+    28%,
+    42% {
+      opacity: 0;
+      transform: translateY(-50%) scale(0.85);
+    }
+    56%,
+    70% {
+      opacity: 1;
+      transform: translateY(-50%) scale(1);
+    }
+    80%,
+    86% {
+      opacity: 0;
+      transform: translateY(-50%) scale(0.85);
+    }
+    94%,
+    100% {
+      opacity: 1;
+      transform: translateY(-50%) scale(1);
+    }
+  }
+</style>

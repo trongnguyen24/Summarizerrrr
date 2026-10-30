@@ -377,7 +377,7 @@
 
         // Only handle if FAB/floating panel is actually enabled for this page.
         // If not, return false so background.js falls back to the browser sidepanel.
-        if (!settings.showFloatingButton || !isFabAllowedOnDomain) {
+        if (settings.showFloatingButton === false || settings.showFloatingButton === 'hide' || !isFabAllowedOnDomain) {
           console.log('[App] FAB not active on this page, declining — background will use sidepanel')
           if (sendResponse) sendResponse({ success: false, reason: 'fab_disabled' })
           return
@@ -578,7 +578,7 @@
 
 <div bind:this={shadowContainer} class="floating-ui-root absolute top-0 left-0">
   <!-- rerender when settings.floatButton changes -->
-  {#if settings.showFloatingButton && !showBlacklistConfirm && isFabAllowedOnDomain}
+  {#if settings.showFloatingButton !== false && settings.showFloatingButton !== 'hide' && !showBlacklistConfirm && isFabAllowedOnDomain}
     {#key settings.floatButton}
       <FloatingButton
         topButton={settings.floatButton}

@@ -41,13 +41,13 @@ Trích dẫn được **tạo lúc capture** (trỏ vào một node DOM trong m�
 
 ### 3.3 `groundingRefs` — trích dẫn **cấp tài liệu** (đã có)
 - `contextPipeline/index.js:48-61` dựng `groundingRefs = [{ sourceId, contentKind, tokens }]` từ nguồn mà budgeter chọn (deterministic, **không** do LLM sinh).
-- Persist trên message (`conversationRepository.js:100, 1082`), render bởi `ChatMessage.svelte:340-352` → nút "N sources" mở `ChatSourceDrawer.svelte` (resolve `sourceId → {title,url,type}`).
+- Persist trên message (`conversationRepository.js:100, 1082`), render bởi `src/entrypoints/sidepanel/components/chat/ChatMessage.svelte:340-352` → nút "N sources" mở `src/entrypoints/sidepanel/components/chat/ChatSourceDrawer.svelte` (resolve `sourceId → {title,url,type}`).
 - Đây là "câu trả lời này dùng những trang nào", **không** phải "câu này lấy từ đoạn nào". Inline citation là **nấc granularity tiếp theo**, và `groundingRefs` là hook tự nhiên để mở rộng.
 
 ### 3.4 Rendering — **precedent tái dùng được**
-- Assistant message render qua `src/components/displays/ui/StreamingMarkdownV2.svelte` (engine `@humanspeak/svelte-markdown`, có custom renderer + preprocess).
+- Assistant message render qua `src/components/markdown/StreamingMarkdownV2.svelte` (engine `@humanspeak/svelte-markdown`, có custom renderer + preprocess).
 - **`src/lib/utils/timestampProcessor.js#processTimestamps()`** viết lại `[MM:SS]` → link `timestamp:<giây>`.
-- **`src/components/displays/ui/TimestampLink.svelte`**: click → `browser.tabs.sendMessage(tabId, { action: 'seekToTimestamp', … })` để tua video.
+- **`src/components/markdown/TimestampLink.svelte`**: click → `browser.tabs.sendMessage(tabId, { action: 'seekToTimestamp', … })` để tua video.
 - → **"Click → nhảy tới vị trí trong nguồn" đã chạy hoàn chỉnh cho video.** Inline citation về cơ bản là *nhân bản pattern này*: thêm loại link `cite:` + component `CiteLink` gửi `action: 'scrollToCiteId'`.
 
 ### 3.5 Skills — prompt-injection snippet, không phải tool-calling
@@ -135,8 +135,8 @@ Vì citation **tự mang đủ text để tự mô tả**, mất live-anchor ch�
 
 - Pipeline: `src/lib/chat/contextPipeline/{index,sourceResolver,contextBudgeter,contextAssembler,sourceFormatter}.js`
 - Source model: `src/services/chat/chatSourceService.js#persistSnapshot`
-- Grounding (hook mở rộng): `src/lib/chat/contextPipeline/index.js:48`, `src/components/chat/ChatSourceDrawer.svelte`, `ChatMessage.svelte:340`
-- Render precedent (nhân bản): `src/lib/utils/timestampProcessor.js`, `src/components/displays/ui/TimestampLink.svelte`, `StreamingMarkdownV2.svelte`
+- Grounding (hook mở rộng): `src/lib/chat/contextPipeline/index.js:48`, `src/entrypoints/sidepanel/components/chat/ChatSourceDrawer.svelte`, `src/entrypoints/sidepanel/components/chat/ChatMessage.svelte:340`
+- Render precedent (nhân bản): `src/lib/utils/timestampProcessor.js`, `src/components/markdown/TimestampLink.svelte`, `src/components/markdown/StreamingMarkdownV2.svelte`
 - Skills: `src/lib/chat/skills/{builtInSkills,skillService}.js`, `src/entrypoints/prompt/SkillsPage.svelte`
 - @tab / capture: `src/services/chat/tabMentionService.js`, `src/services/contentService.js#getPageContent`, `background.js` (executeScript by tabId)
 - Ràng buộc: `tests/chat/contextPipeline/contextPipeline.test.js:151`; docs nền: `docs/chat-harness-discussion.md`, `docs/chat-context-budget-v1.md`

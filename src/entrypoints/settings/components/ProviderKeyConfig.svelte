@@ -133,7 +133,9 @@
                       ? 'https://console.groq.com/keys'
                       : entry.id === 'cerebras'
                         ? 'https://cloud.cerebras.ai'
-                        : ''}
+                        : entry.id === 'nvidia'
+                          ? 'https://build.nvidia.com/settings/api-keys'
+                          : ''}
             linkText={$t('settings.provider_key_config.get_a_key', {
               default: 'Get API Key',
             })}

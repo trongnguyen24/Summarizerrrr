@@ -107,13 +107,14 @@ export function clearOpenrouterCatalog() {
 const KNOWN_MODEL_CAPABILITIES = [
   {
     providerId: 'gemini',
-    modelPattern: /^gemini-(2\.5|3|3\.1)-/,
+    // 2.5 and every later generation, plus the `-latest` aliases.
+    modelPattern: /^gemini-(?:2\.5|[3-9](?:\.\d+)?|\d{2,}(?:\.\d+)?)-|^gemini-(?:flash|flash-lite|pro)-latest$/,
     contextWindowTokens: 1_000_000,
     defaultOutputTokens: DEFAULT_OUTPUT_TOKENS,
   },
   {
     providerId: 'gemini',
-    modelPattern: /^gemma-4-/,
+    modelPattern: /^gemma-(?:[4-9]|\d{2,})-/,
     contextWindowTokens: 128_000,
     defaultOutputTokens: DEFAULT_OUTPUT_TOKENS,
   },

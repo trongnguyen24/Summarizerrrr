@@ -64,10 +64,92 @@
       </div>
 
       <div class=" absolute inset-0 border border-dashed border-border"></div>
-      <Version class=" w-140 md:w-200 shrink-0 mx-auto" />
+      <Version class=" w-full max-w-200 mx-auto" />
     </div>
     <div class="p-6 prose prose-sm w-full max-w-full">
       <h2>Release note</h2>
+
+      <b class="font-mono">3.0.0</b>
+      <ul class="mt-0 pl-0">
+        {@render note(
+          'Chat Assistant:',
+          'A new Chat tab in the side panel lets you talk with the current page, YouTube video (transcript or comments) or course lesson. The right source is picked automatically, and you can switch it from the context bar. Each browser tab keeps its own conversation and model.',
+        )}
+        {@render note(
+          'Chat Skills & @tab:',
+          'Start a chat from built-in or your own skills, and mention other open tabs with @tab to bring their content into the conversation.',
+        )}
+        {@render note(
+          'Edit, Regenerate & Branch:',
+          'Edit your messages, regenerate or continue replies, and switch between branches of a conversation. Replies being streamed are saved as they arrive, so nothing is lost if the panel closes.',
+        )}
+        {@render note(
+          'Rich Composer:',
+          'Markdown-aware message editor, quick model and reasoning selector, and a context gauge showing how much of the model\'s context window is used.',
+        )}
+        {@render note(
+          'Chats in Archive:',
+          'Summaries and chats now live in one Archive list with search and type filter. Open a saved chat to read it with a table of contents, or continue it. Chats that lose their tab are kept instead of disappearing.',
+        )}
+        {@render note(
+          'Customize Page:',
+          'Prompts and chat skills are edited on one Customize page.',
+        )}
+        {@render note(
+          'Easier Provider Setup:',
+          'Basic/Advanced modes are replaced by an "Add provider" flow and a model picker for each feature (Summary, Chat, Deep Dive). Model lists are fetched live from Gemini, Groq, Cerebras and DeepSeek.',
+        )}
+        {@render note(
+          'New Providers:',
+          'Added NVIDIA NIM, and multiple custom OpenAI-compatible profiles.',
+        )}
+        {@render note(
+          'Reasoning Control:',
+          'One reasoning/thinking setting for Summary, Chat and Deep Dive, across supported providers. Replaces the Gemini Thinking Level setting.',
+        )}
+        {@render note(
+          'Gemini Improvements:',
+          'Free-tier models get a "Free" badge and are listed first, non-text models are hidden, and requests automatically fall back to another model when one is unavailable.',
+        )}
+        {@render note(
+          'FAB Visibility Modes:',
+          'Choose how the floating button behaves: always show, hide, hide on scroll, or show on scroll up, with a live preview in settings.',
+          [
+            {
+              label: 'jmh2002',
+              url: 'https://github.com/trongnguyen24/Summarizerrrr/issues/69',
+            },
+          ],
+        )}
+        {@render note(
+          'Compact Header & Action Buttons:',
+          'Option for a one-row Summarize header, and choose which action buttons (Analyze, Explain, Debate…) are shown.',
+          [
+            {
+              label: 'jmh2002',
+              url: 'https://github.com/trongnguyen24/Summarizerrrr/issues/71',
+            },
+          ],
+        )}
+        {@render note(
+          'Firefox Site Access:',
+          'Grant access per site instead of to all websites, and manage allowed sites from the new Site Access settings tab.',
+          [
+            {
+              label: 'enchained',
+              url: 'https://github.com/trongnguyen24/Summarizerrrr/issues/66',
+            },
+          ],
+        )}
+        {@render note(
+          'Cloud Sync:',
+          'Chats now sync to Google Drive (page content is not uploaded; sources are re-captured when needed). Sign in with Google directly, or keep using your own Client ID.',
+        )}
+        {@render note(
+          'Redesigned Settings & Faster UI:',
+          'New settings layout for desktop and mobile. Icons are bundled with the extension, so the side panel no longer flickers while loading.',
+        )}
+      </ul>
 
       <b class="font-mono">2.12.0</b>
       <ul class="mt-0 pl-0">

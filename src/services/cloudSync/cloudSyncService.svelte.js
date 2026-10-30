@@ -1,19 +1,23 @@
 // @ts-nocheck
 /**
  * Cloud Sync Service v2
- * Architecture: 3 files (settings.json, history.json, library.json)
+ * Architecture: 4 files (settings.json, history.jsonl, library.jsonl, chats.jsonl.gz)
  * - Settings: Last Write Wins
  * - History: Append-only Map Merge
  * - Library (Archive + Tags): Smart Merge with Soft Delete
+ * - Chats (Conversations + Sources): Last Write Wins per conversation, with tombstones
  */
 
 import { storage } from '@wxt-dev/storage'
 import { browser } from 'wxt/browser'
 import {
+  authenticate,
   authenticateWithCustomCredentials,
+  refreshAccessToken,
   refreshAccessTokenDirect,
   revokeToken,
   getFile,
+  findFileMeta,
   saveFile,
   getFileJsonl,
   saveFileJsonl,
@@ -35,12 +39,31 @@ import {
 } from '@/lib/db/indexedDBService.js'
 import { settings, loadSettings, updateSettings, updateSettingsFromCloud, isToolEnabled } from '@/stores/settingsStore.svelte.js'
 import { generateUUID } from '@/lib/utils/utils.js'
+import { buildLocalChatItems, mergeChatData } from '@/lib/db/conversationSyncMerge.js'
+import { checkSpecificPermission, requestSpecificPermission } from '@/services/firefoxPermissionService.js'
+import { isFirefox } from '@/lib/utils/browserDetection.js'
 
-// File names on Google Drive - 3 file architecture
+// Host permission the shared sign-in needs on Firefox (optional, user-granted)
+export const PROXY_ORIGIN_PATTERN = 'https://oauth.summarizerrrr.com/*'
+
+// File names on Google Drive
 const FILES = {
   SETTINGS: 'summarizerrrr-settings.json',
   HISTORY: 'summarizerrrr-history.jsonl',
   LIBRARY: 'summarizerrrr-library.jsonl', // Archive + Tags combined for atomic sync
+  CHATS: 'summarizerrrr-chats.jsonl.gz', // Conversations + captured sources (gzipped JSONL)
+}
+
+const DEFAULT_SYNC_PREFERENCES = {
+  settings: true,
+  history: true,
+  library: true,
+  chats: true,
+}
+
+/** Stored preferences predate the `chats` key; a missing key means on. */
+function withDefaultPreferences(preferences) {
+  return { ...DEFAULT_SYNC_PREFERENCES, ...(preferences || {}) }
 }
 
 // Soft delete cleanup threshold (30 days in ms)
@@ -50,6 +73,10 @@ const SOFT_DELETE_CLEANUP_MS = 30 * 24 * 60 * 60 * 1000
 export const syncStorage = storage.defineItem('local:syncState', {
   defaultValue: {
     isLoggedIn: false,
+    // Google refused the stored refresh token (see markNeedsReauth). The account
+    // stays "logged in" so the UI keeps the profile and can offer Reconnect,
+    // but every sync path is gated off until the user re-authorises.
+    needsReauth: false,
     autoSyncEnabled: null, // null = chưa hỏi, true/false = user đã chọn
     lastSyncTime: null,
     needsSettingsConflictCheck: true, // Flag to show settings conflict dialog on first sync after login
@@ -64,15 +91,29 @@ export const syncStorage = storage.defineItem('local:syncState', {
       settings: true,
       history: true,
       library: true, // Archive + Tags combined
+      chats: true,
     },
-    // BYOK (Bring Your Own Key) Mode
-    customCredentials: null, // { clientId, clientSecret } or null for default proxy mode
+    // Which OAuth client issued the stored refresh token: 'shared' (default
+    // client via oauth.summarizerrrr.com) | 'custom' (BYOK). Refresh must use the
+    // same client, so this is never inferred from customCredentials, which the
+    // user can edit after signing in.
+    authMode: null,
+    // BYOK (Bring Your Own Key) credentials, used when authMode === 'custom'
+    customCredentials: null, // { clientId, clientSecret } or null
+    // Chats sync skip marker: { cloudModifiedTime, localRevision } recorded after
+    // a chats sync that left both sides identical. null = next sync is full.
+    chatSyncMarker: null,
   },
 })
 
 // --- State ---
 let syncState = $state({
   isLoggedIn: false,
+  needsReauth: false,
+  authMode: null,
+  // Firefox revoked (or never granted) the proxy host permission for a shared
+  // session. Derived from permissions.contains() — see computeNeedsProxyPermission.
+  needsProxyPermission: false,
   autoSyncEnabled: null,
   lastSyncTime: null,
   isSyncing: false,
@@ -80,11 +121,7 @@ let syncState = $state({
   userEmail: null,
   userName: null,
   userPicture: null,
-  syncPreferences: {
-    settings: true,
-    history: true,
-    library: true,
-  },
+  syncPreferences: { ...DEFAULT_SYNC_PREFERENCES },
 })
 
 // Debug logs store
@@ -130,13 +167,21 @@ export async function initSync() {
       await syncStorage.setValue(stored)
     }
     
+    // Every session that predates authMode was signed in with BYOK
+    if (stored.isLoggedIn && !stored.authMode) {
+      stored.authMode = 'custom'
+      await syncStorage.setValue(stored)
+    }
+
     syncState.isLoggedIn = stored.isLoggedIn
+    syncState.needsReauth = !!stored.needsReauth
+    syncState.authMode = stored.authMode || null
     syncState.autoSyncEnabled = stored.autoSyncEnabled
     syncState.lastSyncTime = stored.lastSyncTime
     syncState.userEmail = stored.userEmail
     syncState.userName = stored.userName
     syncState.userPicture = stored.userPicture
-    
+
     // Migrate old preferences format if needed
     if (stored.syncPreferences?.archive !== undefined && stored.syncPreferences?.library === undefined) {
       stored.syncPreferences.library = stored.syncPreferences.archive
@@ -144,26 +189,25 @@ export async function initSync() {
       await syncStorage.setValue(stored)
     }
     
-    syncState.syncPreferences = stored.syncPreferences || {
-      settings: true,
-      history: true,
-      library: true,
-    }
+    syncState.syncPreferences = withDefaultPreferences(stored.syncPreferences)
+    syncState.needsProxyPermission = await computeNeedsProxyPermission(stored)
     
     // If logged in, check token validity and start auto-sync
-    if (stored.isLoggedIn && stored.accessToken) {
+    if (stored.isLoggedIn && stored.accessToken && !stored.needsReauth) {
       if (isTokenExpired(stored.tokenExpiry)) {
-        // Try silent re-auth with Implicit Flow
         try {
           await doRefreshToken()
         } catch (error) {
-          console.warn('Silent refresh failed, user needs to re-login:', error)
-          // Don't logout immediately - let them manually try again
-          // await logout(false)
+          // A dead refresh token has already flipped needsReauth inside
+          // doRefreshToken; anything else (offline at browser start, 5xx) is
+          // transient, so the session is left intact for the next sync to retry.
+          console.warn('[CloudSync] Startup token refresh failed:', error)
         }
       }
-      
-      if (stored.autoSyncEnabled) {
+
+      // Re-read: doRefreshToken may have flagged the session dead just above.
+      const afterRefresh = await syncStorage.getValue()
+      if (afterRefresh.autoSyncEnabled && !afterRefresh.needsReauth) {
         startAutoSync()
       }
     }
@@ -183,16 +227,15 @@ export async function refreshSyncState() {
     const stored = await syncStorage.getValue()
     
     syncState.isLoggedIn = stored.isLoggedIn
+    syncState.needsReauth = !!stored.needsReauth
+    syncState.authMode = stored.authMode || null
     syncState.autoSyncEnabled = stored.autoSyncEnabled
     syncState.lastSyncTime = stored.lastSyncTime
     syncState.userEmail = stored.userEmail
     syncState.userName = stored.userName
     syncState.userPicture = stored.userPicture
-    syncState.syncPreferences = stored.syncPreferences || {
-      settings: true,
-      history: true,
-      library: true,
-    }
+    syncState.syncPreferences = withDefaultPreferences(stored.syncPreferences)
+    syncState.needsProxyPermission = await computeNeedsProxyPermission(stored)
   } catch (error) {
     console.error('Failed to refresh sync state:', error)
   }
@@ -206,9 +249,86 @@ function isTokenExpired(expiryTime) {
   return Date.now() >= expiryTime - 60000 // 1 minute buffer
 }
 
+// Shown in the UI (and the debug log) when the refresh token is dead. The
+// 7-day figure is Google's cap on refresh tokens issued by an OAuth app whose
+// publishing status is still "Testing" — which is where BYOK users land unless
+// they press "Publish app", so it's the overwhelmingly likely cause here.
+const REAUTH_HINT =
+  'Google rejected the saved session (invalid_grant). If your OAuth app is still in "Testing", its refresh tokens expire after 7 days — publish the app in Google Cloud Console to stop this from repeating.'
+
+// Shared-client sessions: the app is published, so there is nothing to fix on
+// the user's side beyond signing in again.
+const REAUTH_HINT_SHARED = 'Your Google session expired. Sign in again.'
+
+function reauthHint(authMode) {
+  return authMode === 'shared' ? REAUTH_HINT_SHARED : REAUTH_HINT
+}
+
 /**
- * Refresh access token using stored refresh_token
- * BYOK mode only - requires custom credentials
+ * Whether a shared Firefox session is missing the proxy host permission.
+ * Recomputed from permissions.contains() — the answer is the same in every
+ * extension context, so a failure in the background shows up in Settings too.
+ */
+async function computeNeedsProxyPermission(stored) {
+  if (stored.isLoggedIn && stored.authMode === 'shared' && isFirefox()) {
+    return !(await checkSpecificPermission(PROXY_ORIGIN_PATTERN))
+  }
+  return false
+}
+
+function proxyPermissionError() {
+  return Object.assign(
+    new Error('Firefox needs permission to reach oauth.summarizerrrr.com to sign in with Google.'),
+    { code: 'proxy_permission_missing' }
+  )
+}
+
+/**
+ * Throws proxy_permission_missing when on Firefox without the proxy permission.
+ * Only checks: requesting needs a user gesture, so the UI does that.
+ */
+async function assertProxyPermission() {
+  if (isFirefox() && !(await checkSpecificPermission(PROXY_ORIGIN_PATTERN))) {
+    throw proxyPermissionError()
+  }
+}
+
+/**
+ * Flag the session as needing re-authorisation instead of signing the user out.
+ *
+ * A hard logout wipes the profile and re-arms needsSettingsConflictCheck, so a
+ * user whose token expired on a weekly cadence would be dropped to a blank
+ * sign-in screen and then get a settings-conflict dialog on the way back in,
+ * for an event they did nothing to cause. Keeping the account visible with a
+ * Reconnect button costs one flag and removes both.
+ *
+ * The dead tokens are still cleared — they can't be used again.
+ */
+async function markNeedsReauth() {
+  stopAutoSync()
+  tokenCache = { accessToken: null, tokenExpiry: null, lastUpdated: 0 }
+  clearSyncFolderCache()
+
+  const stored = await syncStorage.getValue()
+  await syncStorage.setValue({
+    ...stored,
+    needsReauth: true,
+    accessToken: null,
+    refreshToken: null,
+    tokenExpiry: null,
+    // Deliberately keep isLoggedIn, the profile fields, lastSyncTime and
+    // needsSettingsConflictCheck untouched: this is not a logout.
+  })
+
+  syncState.needsReauth = true
+  syncState.syncError = reauthHint(stored.authMode)
+  logToUI(syncState.syncError, 'error')
+}
+
+/**
+ * Refresh access token using stored refresh_token, through the same client
+ * that issued it (stored.authMode): the proxy for 'shared', Google directly
+ * with the user's credentials for 'custom'.
  */
 async function doRefreshToken() {
   const stored = await syncStorage.getValue()
@@ -216,22 +336,37 @@ async function doRefreshToken() {
   if (!stored.refreshToken) {
     throw new Error('No refresh token available. Please sign in again.')
   }
-  
-  // BYOK mode is required - no proxy fallback
-  if (!stored.customCredentials?.clientId || !stored.customCredentials?.clientSecret) {
+
+  const authMode = stored.authMode || 'custom'
+
+  if (authMode === 'shared') {
+    // The grant is still valid — only the host permission is missing, so this
+    // must not go through markNeedsReauth().
+    try {
+      await assertProxyPermission()
+    } catch (error) {
+      syncState.needsProxyPermission = true
+      throw error
+    }
+  } else if (!stored.customCredentials?.clientId || !stored.customCredentials?.clientSecret) {
     throw new Error('OAuth credentials missing. Please sign in again.')
   }
   
   try {
-    console.log('[CloudSync] Refreshing token using BYOK mode')
-    const { accessToken, expiresAt } = await refreshAccessTokenDirect(
-      stored.refreshToken,
-      stored.customCredentials.clientId,
-      stored.customCredentials.clientSecret
-    )
+    console.log(`[CloudSync] Refreshing token (${authMode} mode)`)
+    const { accessToken, expiresAt } = authMode === 'shared'
+      ? await refreshAccessToken(stored.refreshToken)
+      : await refreshAccessTokenDirect(
+          stored.refreshToken,
+          stored.customCredentials.clientId,
+          stored.customCredentials.clientSecret
+        )
     
+    // Re-read: the refresh above was a network round-trip, and a sync in another
+    // context may have written chatSyncMarker meanwhile.
+    const latest = await syncStorage.getValue()
     await syncStorage.setValue({
-      ...stored,
+      ...latest,
       accessToken,
       tokenExpiry: expiresAt,
     })
@@ -245,10 +380,11 @@ async function doRefreshToken() {
     
     return accessToken
   } catch (error) {
-    console.error('Token refresh failed:', error)
-    // If refresh token is invalid, clear login state
-    if (error.message.includes('Session expired')) {
-      await logout(false)
+    console.error('[CloudSync] Token refresh failed:', error)
+    // Only a dead grant is terminal. Network blips, 5xx from Google and the
+    // like must not tear the session down — they resolve on the next attempt.
+    if (error.code === 'invalid_grant') {
+      await markNeedsReauth()
     }
     throw error
   }
@@ -265,12 +401,19 @@ async function getValidAccessToken() {
   }
   
   const stored = await syncStorage.getValue()
-  
+
+  if (stored.needsReauth) {
+    tokenCache = { accessToken: null, tokenExpiry: null, lastUpdated: 0 }
+    const error = new Error(reauthHint(stored.authMode))
+    error.code = 'needs_reauth'
+    throw error
+  }
+
   if (!stored.accessToken) {
     tokenCache = { accessToken: null, tokenExpiry: null, lastUpdated: 0 }
     throw new Error('Not logged in')
   }
-  
+
   let token = stored.accessToken
   let expiry = stored.tokenExpiry
   
@@ -295,26 +438,36 @@ async function getValidAccessToken() {
 
 /**
  * Login with Google
- * BYOK mode only - requires custom credentials
+ * @param {{ mode?: 'shared' | 'custom' }} [options] - 'shared' (default): the
+ *   published client via the token proxy. 'custom': the user's own OAuth client.
  * @returns {Promise<{needsAutoSyncChoice: boolean}>}
  */
-export async function login() {
+export async function login({ mode = 'shared' } = {}) {
   syncState.syncError = null
   
   try {
-    const stored = await syncStorage.getValue()
-    const customCreds = stored.customCredentials
-    
-    // BYOK mode is required - no proxy fallback
-    if (!customCreds?.clientId || !customCreds?.clientSecret) {
-      throw new Error('OAuth credentials required. Please save your Client ID and Client Secret first.')
+    let tokens
+    if (mode === 'custom') {
+      const stored = await syncStorage.getValue()
+      const customCreds = stored.customCredentials
+
+      if (!customCreds?.clientId || !customCreds?.clientSecret) {
+        throw new Error('OAuth credentials required. Please save your Client ID and Client Secret first.')
+      }
+
+      console.log('[CloudSync] Logging in with custom credentials')
+      tokens = await authenticateWithCustomCredentials(
+        customCreds.clientId,
+        customCreds.clientSecret
+      )
+    } else {
+      // Checked before the OAuth window opens: without the permission the
+      // flow would complete and then fail at /exchange.
+      await assertProxyPermission()
+      console.log('[CloudSync] Logging in with the shared client')
+      tokens = await authenticate()
     }
-    
-    console.log('[CloudSync] Logging in using BYOK mode')
-    const { accessToken, refreshToken: newRefreshToken, expiresAt } = await authenticateWithCustomCredentials(
-      customCreds.clientId,
-      customCreds.clientSecret
-    )
+    const { accessToken, refreshToken: newRefreshToken, expiresAt } = tokens
     
     // Get user profile
     const profile = await getUserProfile(accessToken)
@@ -326,14 +479,18 @@ export async function login() {
     const updatedState = {
       ...freshStored,
       isLoggedIn: true,
+      needsReauth: false, // Fresh grant — clears any pending Reconnect prompt
+      authMode: mode,
       accessToken,
       refreshToken: newRefreshToken,
       tokenExpiry: expiresAt,
       userEmail: profile.email,
       userName: profile.name,
       userPicture: profile.picture,
+      // Possibly a different account: the marker described the old one's file.
+      chatSyncMarker: null,
     }
-    
+
     // Set default sync mode on first login
     if (isFirstLogin) {
       updatedState.autoSyncEnabled = false
@@ -342,23 +499,39 @@ export async function login() {
     await syncStorage.setValue(updatedState)
     
     syncState.isLoggedIn = true
+    syncState.needsReauth = false
+    syncState.authMode = mode
+    syncState.needsProxyPermission = false
+    syncState.syncError = null
     syncState.userEmail = profile.email
     syncState.userName = profile.name
     syncState.userPicture = profile.picture
     syncState.lastSyncTime = (await syncStorage.getValue()).lastSyncTime
     syncState.autoSyncEnabled = updatedState.autoSyncEnabled
-    syncState.syncPreferences = freshStored.syncPreferences || {
-      settings: true,
-      history: true,
-      library: true,
+    syncState.syncPreferences = withDefaultPreferences(freshStored.syncPreferences)
+
+    // markNeedsReauth() cleared the alarm when the grant died; a reconnect has
+    // to put it back, otherwise auto-sync stays silently off.
+    if (updatedState.autoSyncEnabled) {
+      startAutoSync()
     }
-    
+
     return {}
   } catch (error) {
     console.error('Login failed:', error)
     syncState.syncError = error.message
     throw error
   }
+}
+
+/**
+ * Re-authorise an account whose refresh token died, without losing the session.
+ * Same OAuth round-trip as login(); named separately so the UI reads honestly
+ * and so the two intents stay distinguishable if they ever diverge.
+ */
+export async function reconnect() {
+  const stored = await syncStorage.getValue()
+  return await login({ mode: stored.authMode || 'custom' })
 }
 
 /**
@@ -388,17 +561,28 @@ export async function logout(revokeAccess = true) {
   await syncStorage.setValue({
     ...stored,
     isLoggedIn: false,
+    needsReauth: false,
+    authMode: null,
     accessToken: null,
     refreshToken: null,
     tokenExpiry: null,
     userEmail: null,
     userName: null,
     userPicture: null,
-    needsSettingsConflictCheck: true, // Trigger conflict dialog on next login (important for multiple profiles)
+    chatSyncMarker: null,
+    // Only a deliberate sign-out re-arms this: the next login may be a
+    // different Google account, so its settings genuinely need reconciling.
+    // An expired-token reconnect goes through markNeedsReauth() and leaves it
+    // alone — same account, nothing to reconcile.
+    needsSettingsConflictCheck: true,
     // Note: Keep lastSyncTime so UI can still show last sync time
   })
-  
+
   syncState.isLoggedIn = false
+  syncState.needsReauth = false
+  syncState.authMode = null
+  syncState.needsProxyPermission = false
+  syncState.syncError = null
   syncState.userEmail = null
   syncState.userName = null
   syncState.userPicture = null
@@ -472,7 +656,16 @@ function cleanupSoftDeleted(itemsMap) {
 export async function pullData(_isRetry = false) {
   if (!isToolEnabled('cloudSync')) return
   if (syncState.isSyncing) return
-  
+
+  // No point burning a network round-trip (or the alarm's wake-up) while the
+  // grant is dead — nothing works until the user reconnects.
+  const preflight = await syncStorage.getValue()
+  if (preflight.needsReauth) {
+    syncState.needsReauth = true
+    logToUI('Sync skipped: reconnect required', 'error')
+    return
+  }
+
   syncState.isSyncing = true
   syncState.syncError = null
   logToUI('Starting sync...')
@@ -495,11 +688,16 @@ export async function pullData(_isRetry = false) {
     
     if (prefs.library) fetchPromises.push(getFileJsonl(accessToken, FILES.LIBRARY))
     else fetchPromises.push(Promise.resolve(null))
-    
-    const [settingsFile, historyFile, libraryFile] = await Promise.all(fetchPromises)
 
-    const hasCloudData = settingsFile || historyFile || libraryFile
-    
+    // Chats: metadata only. syncChats downloads the file itself, and only when
+    // it has changed since the last sync or local chats have changed.
+    if (prefs.chats) fetchPromises.push(findFileMeta(accessToken, FILES.CHATS))
+    else fetchPromises.push(Promise.resolve(null))
+
+    const [settingsFile, historyFile, libraryFile, chatsMeta] = await Promise.all(fetchPromises)
+
+    const hasCloudData = settingsFile || historyFile || libraryFile || chatsMeta
+
     if (!hasCloudData) {
       // No cloud data - push local data for first time
       logToUI('No cloud data found, pushing local data...')
@@ -511,27 +709,38 @@ export async function pullData(_isRetry = false) {
     if (prefs.settings) {
       await syncSettings(accessToken, settingsFile, stored)
     }
-    
+
     if (prefs.history) {
       await syncHistory(accessToken, historyFile)
     }
-    
+
     if (prefs.library) {
       await syncLibrary(accessToken, libraryFile)
     }
-    
+
+    let chatMarkerUpdate = {}
+    if (prefs.chats) {
+      chatMarkerUpdate = { chatSyncMarker: await syncChats(accessToken, chatsMeta) }
+    }
+
     // Update last sync time ONLY if there's no pending settings conflict
-    // If there's a pending conflict, we need to wait for user to resolve it
+    // If there's a pending conflict, we need to wait for user to resolve it.
+    // The chats marker is written either way: it describes chats, not settings.
+    // Re-read storage first: another context may have written meanwhile, and
+    // spreading the stale `stored` would overwrite its changes.
+    const latest = await syncStorage.getValue()
     if (!pendingSettingsConflict) {
       const now = new Date().toISOString()
       await syncStorage.setValue({
-        ...stored,
+        ...latest,
         lastSyncTime: now,
+        ...chatMarkerUpdate,
       })
-      
+
       syncState.lastSyncTime = now
       logToUI('Sync completed successfully', 'success')
     } else {
+      await syncStorage.setValue({ ...latest, ...chatMarkerUpdate })
       logToUI('Sync paused - waiting for settings conflict resolution', 'info')
     }
   } catch (error) {
@@ -556,9 +765,19 @@ export async function pullData(_isRetry = false) {
         return pullData(true)
       } catch (refreshError) {
         console.error('Token refresh failed:', refreshError)
-        logToUI(`Token refresh failed: ${refreshError.message}`, 'error')
-        syncState.syncError = `Token refresh failed: ${refreshError.message}`
+        // markNeedsReauth() has already logged the actionable message for a
+        // dead grant, and a missing proxy permission has its own banner; don't
+        // bury either under a generic error.
+        if (refreshError.code === 'proxy_permission_missing') {
+          logToUI('Sync skipped: Firefox permission for oauth.summarizerrrr.com is missing', 'info')
+        } else if (refreshError.code !== 'invalid_grant') {
+          logToUI(`Token refresh failed: ${refreshError.message}`, 'error')
+          syncState.syncError = `Token refresh failed: ${refreshError.message}`
+        }
       }
+    } else if (error.code === 'proxy_permission_missing') {
+      // The UI shows a Grant-access banner for this; no error toast.
+      logToUI('Sync skipped: Firefox permission for oauth.summarizerrrr.com is missing', 'info')
     } else {
       logToUI(`Sync failed: ${error.message}`, 'error')
       syncState.syncError = error.message
@@ -771,6 +990,97 @@ async function syncLibrary(accessToken, cloudFile) {
 }
 
 /**
+ * Sync Chats - Last Write Wins per conversation (record + all its messages),
+ * tombstones for deletions, sources GC'd to what live conversations reference.
+ * Merge rules live in lib/db/conversationSyncMerge.js.
+ */
+/**
+ * @param {string} accessToken
+ * @param {{ id: string, modifiedTime: string } | null} cloudMeta  Drive metadata of the chats file (null = no file)
+ * @returns {Promise<{ cloudModifiedTime: string | null, localRevision: number } | null>}
+ *   The marker to persist, or null when this sync cannot prove both sides match
+ *   (the next sync then does a full reconcile).
+ */
+async function syncChats(accessToken, cloudMeta) {
+  const {
+    exportConversationSnapshot,
+    applyConversationSyncChanges,
+    getChatRevision,
+  } = await import('@/lib/db/conversationRepository.js')
+
+  // Skip: neither the cloud file nor local chats changed since the last sync
+  // that left them identical. Nothing is downloaded.
+  const { chatSyncMarker: marker } = await syncStorage.getValue()
+  if (
+    cloudMeta?.modifiedTime &&
+    marker &&
+    marker.cloudModifiedTime === cloudMeta.modifiedTime &&
+    (await getChatRevision()) === marker.localRevision
+  ) {
+    logToUI('Chats in sync (skipped).')
+    return marker
+  }
+
+  // The snapshot carries the revision it was read at (same transaction).
+  const snapshot = await exportConversationSnapshot()
+  const startRevision = snapshot.revision
+  const local = buildLocalChatItems(snapshot)
+  const cloudFile = cloudMeta ? await getFileJsonl(accessToken, FILES.CHATS, { gzip: true }) : null
+
+  logToUI('Merging Chats...')
+  const result = mergeChatData({
+    cloudItems: cloudFile?.conversations || {},
+    cloudSources: cloudFile?.chatSources || {},
+    local,
+    tombstoneTtlMs: SOFT_DELETE_CLEANUP_MS,
+  })
+
+  let applied = 0
+  let purged = 0
+  let skipped = 0
+  if (result.upserts.length || result.purgeIds.length) {
+    const outcome = await applyConversationSyncChanges({
+      upserts: result.upserts,
+      purgeIds: result.purgeIds,
+      sources: result.sourcesToApply,
+    })
+    applied = outcome.applied
+    purged = outcome.purged
+    skipped = outcome.skipped || 0
+    logToUI(`Applied ${applied} chat change(s) from cloud.`)
+  }
+
+  let uploaded = null
+  if (result.hasChanges) {
+    logToUI('Pushing merged Chats...')
+    uploaded = await saveFileJsonl(accessToken, FILES.CHATS, {
+      meta: { version: 2, updatedAt: Date.now() },
+      conversations: result.items,
+      chatSources: result.sources,
+    }, { gzip: true })
+  } else {
+    logToUI('Chats in sync.')
+  }
+
+  // Commit the marker only if this sync provably left the two sides identical:
+  //  - nothing was skipped (skipped conversations are not in the uploaded payload);
+  //  - the revision moved only by our own apply (one readwrite transaction = +1).
+  // Any other movement means a local write landed during the sync and is not in
+  // what we uploaded, so no marker and the next sync reconciles.
+  const endRevision = await getChatRevision()
+  const expectedRevision = startRevision + (applied + purged > 0 ? 1 : 0)
+  if (skipped > 0 || endRevision !== expectedRevision) {
+    logToUI('Chats changed during sync, the next sync will reconcile fully.', 'info')
+    return null
+  }
+
+  return {
+    cloudModifiedTime: uploaded?.modifiedTime ?? cloudMeta?.modifiedTime ?? null,
+    localRevision: endRevision,
+  }
+}
+
+/**
  * Merge two item maps based on updatedAt timestamp
  * Handles soft-delete propagation
  */
@@ -916,8 +1226,21 @@ async function pushAllData(accessToken) {
     )
   }
   
+  let chatMarker = null
+  if (prefs.chats) {
+    // Same path as a regular sync against an empty cloud file: tombstones and
+    // in-flight conversations are handled there.
+    pushPromises.push(syncChats(accessToken, null).then((marker) => { chatMarker = marker }))
+  }
+
   await Promise.all(pushPromises)
-  
+
+  // pullData returns right after this, so the marker is persisted here.
+  if (prefs.chats) {
+    const latest = await syncStorage.getValue()
+    await syncStorage.setValue({ ...latest, chatSyncMarker: chatMarker })
+  }
+
   logToUI('Initial push completed')
 }
 
@@ -952,6 +1275,10 @@ async function debouncedPush() {
   }
   if (!stored.isLoggedIn || !stored.autoSyncEnabled) {
     console.log('[CloudSync] Sync skipped: not logged in or auto sync disabled')
+    return
+  }
+  if (stored.needsReauth) {
+    console.log('[CloudSync] Sync skipped: reconnect required')
     return
   }
   
@@ -1094,7 +1421,7 @@ export async function setAutoSync(enabled) {
 
 /**
  * Update sync preferences
- * @param {Object} preferences - { settings: boolean, history: boolean, library: boolean }
+ * @param {Object} preferences - { settings, history, library, chats } booleans
  */
 export async function setSyncPreferences(preferences) {
   const stored = await syncStorage.getValue()
@@ -1105,17 +1432,29 @@ export async function setSyncPreferences(preferences) {
     delete preferences.archive
   }
   
-  const updatedPreferences = {
+  const updatedPreferences = withDefaultPreferences({
     ...stored.syncPreferences,
     ...preferences,
-  }
+  })
   
   await syncStorage.setValue({
     ...stored,
     syncPreferences: updatedPreferences,
+    // Chats off: a later re-enable must not trust a marker from before.
+    ...(updatedPreferences.chats ? {} : { chatSyncMarker: null }),
   })
-  
+
   syncState.syncPreferences = updatedPreferences
+}
+
+/**
+ * Forget the chats skip marker so the next chats sync reconciles fully. Used
+ * when chat data is wiped by a path that bypasses the repository (and therefore
+ * the revision counter).
+ */
+export async function clearChatSyncMarker() {
+  const latest = await syncStorage.getValue()
+  await syncStorage.setValue({ ...latest, chatSyncMarker: null })
 }
 
 /**
@@ -1160,6 +1499,23 @@ async function stopAutoSync() {
   }
 }
 
+/**
+ * Ask Firefox for the proxy host permission. Must be called directly from a
+ * click handler (permissions.request() needs the user gesture).
+ * @returns {Promise<boolean>} true if granted
+ */
+export async function grantProxyPermission() {
+  const granted = await requestSpecificPermission(PROXY_ORIGIN_PATTERN)
+  if (!granted) return false
+
+  syncState.needsProxyPermission = false
+  const stored = await syncStorage.getValue()
+  if (stored.isLoggedIn && stored.autoSyncEnabled && !stored.needsReauth) {
+    startAutoSync()
+  }
+  return true
+}
+
 // --- BYOK (Bring Your Own Key) Credentials Management ---
 
 /**
@@ -1178,11 +1534,11 @@ export async function saveCustomCredentials(clientId, clientSecret) {
     },
   })
   
-  console.log('[CloudSync] Custom credentials saved (BYOK mode enabled)')
+  console.log('[CloudSync] Custom credentials saved')
 }
 
 /**
- * Clear custom OAuth credentials (switch back to proxy mode)
+ * Clear custom OAuth credentials
  */
 export async function clearCustomCredentials() {
   const stored = await syncStorage.getValue()
@@ -1192,7 +1548,7 @@ export async function clearCustomCredentials() {
     customCredentials: null,
   })
   
-  console.log('[CloudSync] Custom credentials cleared (proxy mode enabled)')
+  console.log('[CloudSync] Custom credentials cleared')
 }
 
 /**
@@ -1218,6 +1574,15 @@ export async function isUsingCustomCredentials() {
 export const cloudSyncStore = {
   get isLoggedIn() {
     return syncState.isLoggedIn
+  },
+  get needsReauth() {
+    return syncState.needsReauth
+  },
+  get authMode() {
+    return syncState.authMode
+  },
+  get needsProxyPermission() {
+    return syncState.needsProxyPermission
   },
   get autoSyncEnabled() {
     return syncState.autoSyncEnabled

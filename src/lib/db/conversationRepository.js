@@ -1,16 +1,20 @@
 import { generateUUID } from '../utils/utils.js'
 import {
+  CHAT_META_STORE_NAME,
   CONVERSATIONS_STORE_NAME,
   CONVERSATION_MESSAGES_STORE_NAME,
   CONVERSATION_SOURCES_STORE_NAME,
   getDatabase,
 } from './indexedDBService.js'
+import { conversationEffectiveTime, isStubSource } from './conversationSyncMerge.js'
+import { stableContentHash } from '../utils/contentHash.js'
 
 const CHAT_STORES = [
   CONVERSATIONS_STORE_NAME,
   CONVERSATION_MESSAGES_STORE_NAME,
   CONVERSATION_SOURCES_STORE_NAME,
 ]
+const CHAT_REVISION_KEY = 'revision'
 const CONVERSATION_BUNDLE_SCHEMA_VERSION = 2
 export const CONVERSATION_BACKUP_SCHEMA_VERSION = 2
 const VALID_MESSAGE_ROLES = new Set(['user', 'assistant'])
@@ -32,13 +36,56 @@ function transactionAsPromise(transaction) {
   })
 }
 
+/**
+ * Every readwrite transaction that actually writes also bumps the chat revision
+ * counter, in the same transaction, so a write and its revision bump commit or
+ * abort together. Cloud sync compares the counter to decide whether a chats sync
+ * can be skipped. Readonly transactions, and readwrite ones that end up writing
+ * nothing (e.g. recoverStreamingMessages with no streaming message), never
+ * touch it.
+ */
+async function bumpChatRevision(store) {
+  const current = await requestAsPromise(store.get(CHAT_REVISION_KEY))
+  await requestAsPromise(store.put({ key: CHAT_REVISION_KEY, value: (current?.value || 0) + 1 }))
+}
+
+const WRITE_METHODS = ['put', 'add', 'delete', 'clear']
+
+/**
+ * Hands the callback object stores whose write methods flag `tracker.wrote`.
+ * Methods are shadowed on the store instance (bound to the real one), so
+ * indexes and reads behave exactly as before.
+ */
+function trackWrites(transaction, tracker) {
+  const rawObjectStore = transaction.objectStore.bind(transaction)
+  const wrapped = new Map()
+  transaction.objectStore = (name) => {
+    if (wrapped.has(name)) return wrapped.get(name)
+    const store = rawObjectStore(name)
+    for (const method of WRITE_METHODS) {
+      const original = store[method].bind(store)
+      store[method] = (...args) => {
+        tracker.wrote = true
+        return original(...args)
+      }
+    }
+    wrapped.set(name, store)
+    return store
+  }
+  return rawObjectStore
+}
+
 async function runTransaction(storeNames, mode, callback) {
   const database = await getDatabase()
-  const transaction = database.transaction(storeNames, mode)
+  const names = mode === 'readwrite' ? [...storeNames, CHAT_META_STORE_NAME] : storeNames
+  const transaction = database.transaction(names, mode)
   const transactionComplete = transactionAsPromise(transaction)
+  const tracker = { wrote: false }
+  const rawObjectStore = mode === 'readwrite' ? trackWrites(transaction, tracker) : null
 
   try {
     const result = await callback(transaction)
+    if (tracker.wrote) await bumpChatRevision(rawObjectStore(CHAT_META_STORE_NAME))
     await transactionComplete
     return result
   } catch (error) {
@@ -302,6 +349,41 @@ export async function getSourceByKey(sourceKey) {
   return runTransaction([CONVERSATION_SOURCES_STORE_NAME], 'readonly', async (transaction) =>
     requestAsPromise(transaction.objectStore(CONVERSATION_SOURCES_STORE_NAME).index('sourceKey').get(sourceKey))
   )
+}
+
+/**
+ * Fill in the captured content of a stub source (synced metadata only) after
+ * an on-demand re-capture. Keeps `id` and `sourceKey` unchanged, since the
+ * sourceKey index is unique and conversations reference the source by id.
+ *
+ * The write is conditional inside its own transaction: it only happens while
+ * the record is still a stub. A late or duplicate hydration therefore cannot
+ * overwrite content that is already present.
+ *
+ * @param {string} id
+ * @param {string} rawContent
+ * @returns {Promise<object | null>} The hydrated record, or null when nothing was written.
+ */
+export async function hydrateSourceContent(id, rawContent) {
+  const content = String(rawContent || '')
+  if (!id || !content.trim()) return null
+
+  return runTransaction([CONVERSATION_SOURCES_STORE_NAME], 'readwrite', async (transaction) => {
+    const store = transaction.objectStore(CONVERSATION_SOURCES_STORE_NAME)
+    const existing = await requestAsPromise(store.get(id))
+    if (!existing || !isStubSource(existing)) return null
+
+    const hydrated = {
+      ...existing,
+      rawContent: content,
+      originalLength: content.length,
+      contentHash: stableContentHash(content),
+      hydratedAt: new Date().toISOString(),
+      contentOmitted: false,
+    }
+    await requestAsPromise(store.put(hydrated))
+    return hydrated
+  })
 }
 
 export async function getSourcesByIds(ids) {
@@ -757,13 +839,38 @@ export function validateConversationBackup(backup) {
   }
 }
 
+/**
+ * Snapshot of all chat stores. `revision` is read in the same readonly
+ * transaction, so it describes exactly the data returned.
+ */
+export async function exportConversationSnapshot() {
+  return runTransaction([...CHAT_STORES, CHAT_META_STORE_NAME], 'readonly', async (transaction) => {
+    const conversations = await requestAsPromise(transaction.objectStore(CONVERSATIONS_STORE_NAME).getAll())
+    const conversationMessages = await requestAsPromise(transaction.objectStore(CONVERSATION_MESSAGES_STORE_NAME).getAll())
+    const conversationSources = await requestAsPromise(transaction.objectStore(CONVERSATION_SOURCES_STORE_NAME).getAll())
+    const revisionRecord = await requestAsPromise(transaction.objectStore(CHAT_META_STORE_NAME).get(CHAT_REVISION_KEY))
+    return {
+      schemaVersion: CONVERSATION_BACKUP_SCHEMA_VERSION,
+      conversations,
+      conversationMessages,
+      conversationSources,
+      revision: revisionRecord?.value || 0,
+    }
+  })
+}
+
+/** User-facing backup: the snapshot minus the internal sync revision. */
 export async function exportConversationBackup() {
-  return runTransaction(CHAT_STORES, 'readonly', async (transaction) => ({
-    schemaVersion: CONVERSATION_BACKUP_SCHEMA_VERSION,
-    conversations: await requestAsPromise(transaction.objectStore(CONVERSATIONS_STORE_NAME).getAll()),
-    conversationMessages: await requestAsPromise(transaction.objectStore(CONVERSATION_MESSAGES_STORE_NAME).getAll()),
-    conversationSources: await requestAsPromise(transaction.objectStore(CONVERSATION_SOURCES_STORE_NAME).getAll()),
-  }))
+  const { revision: _revision, ...backup } = await exportConversationSnapshot()
+  return backup
+}
+
+/** Current chat revision: changes on every chat transaction that writes. */
+export async function getChatRevision() {
+  return runTransaction([CHAT_META_STORE_NAME], 'readonly', async (transaction) => {
+    const record = await requestAsPromise(transaction.objectStore(CHAT_META_STORE_NAME).get(CHAT_REVISION_KEY))
+    return record?.value || 0
+  })
 }
 
 export async function restoreConversationBackup(backup) {
@@ -976,10 +1083,73 @@ export async function deleteSubtree(messageId) {
   )
 }
 
-export async function clearConversationData() {
+/**
+ * Write the result of a cloud-sync merge (`mergeChatData`). Each upsert
+ * replaces the conversation and its whole message set. A conversation that
+ * changed locally after the merge snapshot was taken — or is streaming — is
+ * skipped; the next sync reconciles it.
+ */
+export async function applyConversationSyncChanges({ upserts = [], purgeIds = [], sources = [] } = {}) {
   return runTransaction(CHAT_STORES, 'readwrite', async (transaction) => {
-    await Promise.all(CHAT_STORES.map((storeName) => requestAsPromise(transaction.objectStore(storeName).clear())))
-    return true
+    const conversationStore = transaction.objectStore(CONVERSATIONS_STORE_NAME)
+    const messageStore = transaction.objectStore(CONVERSATION_MESSAGES_STORE_NAME)
+    const sourceStore = transaction.objectStore(CONVERSATION_SOURCES_STORE_NAME)
+
+    // Sources from the cloud are stubs (no rawContent). An existing id is
+    // skipped below, so a local full source is never downgraded to a stub.
+    // Two devices capturing the same page mint different ids for one sourceKey;
+    // keep the local record and point incoming messages at it.
+    const sourceIdMap = new Map()
+    for (const source of sources) {
+      if (await requestAsPromise(sourceStore.get(source.id))) continue
+      const existingByKey = await requestAsPromise(sourceStore.index('sourceKey').get(source.sourceKey))
+      if (existingByKey) {
+        sourceIdMap.set(source.id, existingByKey.id)
+        continue
+      }
+      await requestAsPromise(sourceStore.add(source))
+    }
+
+    const removeMessages = async (conversationId) => {
+      const messages = await requestAsPromise(messageStore.index('conversationId').getAll(conversationId))
+      for (const message of messages) await requestAsPromise(messageStore.delete(message.id))
+      return messages
+    }
+
+    let applied = 0
+    let skipped = 0
+    for (const { conversation, messages = [], updatedAt } of upserts) {
+      const current = await requestAsPromise(conversationStore.get(conversation.id))
+      if (current) {
+        const currentMessages = await requestAsPromise(
+          messageStore.index('conversationId').getAll(conversation.id)
+        )
+        if (
+          currentMessages.some((message) => message.status === 'streaming') ||
+          conversationEffectiveTime(current, currentMessages) > new Date(updatedAt || 0).getTime()
+        ) {
+          // Left alone: changed locally after the snapshot, or still streaming.
+          skipped++
+          continue
+        }
+      }
+      await removeMessages(conversation.id)
+      await requestAsPromise(conversationStore.put(conversation))
+      for (const message of messages) {
+        await requestAsPromise(messageStore.put({
+          ...message,
+          attachmentRefs: (message.attachmentRefs || []).map((id) => sourceIdMap.get(id) || id),
+        }))
+      }
+      applied++
+    }
+
+    for (const id of purgeIds) {
+      await removeMessages(id)
+      await requestAsPromise(conversationStore.delete(id))
+    }
+
+    return { applied, purged: purgeIds.length, skipped }
   })
 }
 
@@ -1117,12 +1287,15 @@ export const conversationRepository = {
   getSourceById,
   getSourceByKey,
   getSourcesByIds,
+  hydrateSourceContent,
   deleteUnreferencedSources,
   exportConversationBundle,
   importConversationBundle,
   exportConversationBackup,
+  exportConversationSnapshot,
+  getChatRevision,
   importConversationBackup,
-  clearConversationData,
+  applyConversationSyncChanges,
   getAncestorPath,
   getGenerationPath,
   getGenerationContextForUser,

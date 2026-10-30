@@ -147,7 +147,7 @@ describe('messageGraph database upgrade', () => {
     await createVersionTenFixture()
 
     const database = await getDatabase()
-    expect(database.version).toBe(11)
+    expect(database.version).toBe(12)
 
     const transaction = database.transaction(['conversations', 'conversation_messages'], 'readonly')
     const conversations = transaction.objectStore('conversations')

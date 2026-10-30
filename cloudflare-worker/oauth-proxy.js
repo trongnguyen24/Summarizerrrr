@@ -1,9 +1,11 @@
 /**
  * Cloudflare Worker - OAuth2 Token Exchange Proxy
  * 
- * Environment variables required:
- * - GOOGLE_CLIENT_ID: OAuth2 client ID
- * - GOOGLE_CLIENT_SECRET: OAuth2 client secret
+ * Environment variables:
+ * - GOOGLE_CLIENT_ID: OAuth2 client ID (wrangler.toml [vars])
+ * - SUMMARIZERRRR_GOOGLE_CLIENT_SECRET: OAuth2 client secret (wrangler secret, never committed)
+ * - ALLOWED_ORIGINS (optional): exact extension origins, comma-separated
+ * - ALLOWED_REDIRECT_URIS (optional): exact redirect URIs, comma-separated
  * 
  * Endpoints:
  * - POST /exchange - Exchange authorization code for tokens
@@ -33,9 +35,27 @@ const ALLOWED_ORIGIN_PATTERNS = [
   /^safari-web-extension:\/\/[A-Z0-9-]+$/i,
 ];
 
-// Optional: Specific extension IDs whitelist (more secure)
-// Set as environment variable ALLOWED_EXTENSION_IDS as comma-separated values
-// Example: "abcdefghijklmnopqrstuvwxyz123456,your-firefox-id"
+// Optional exact allowlists (more secure), set as comma-separated env vars:
+// - ALLOWED_ORIGINS: exact extension origins, e.g. "chrome-extension://<id>,chrome-extension://<id>".
+//   moz-extension:// origins are a random UUID per Firefox install, so they are
+//   always checked with the pattern above, never against this list.
+// - ALLOWED_REDIRECT_URIS: exact redirect URIs (trailing slash is normalised).
+// When a variable is unset, the corresponding patterns above are used instead.
+
+/**
+ * Split a comma-separated env var into a list (empty list when unset)
+ */
+function parseList(value) {
+  if (!value) return [];
+  return value.split(',').map(item => item.trim()).filter(Boolean);
+}
+
+/**
+ * Normalise a redirect URI for exact comparison (single trailing slash)
+ */
+function normalizeRedirectUri(uri) {
+  return uri.replace(/\/+$/, '') + '/';
+}
 
 /**
  * Validate Origin header against allowed extension origins
@@ -43,21 +63,15 @@ const ALLOWED_ORIGIN_PATTERNS = [
 function isValidOrigin(origin, env) {
   if (!origin) return false;
 
-  // Check specific extension IDs whitelist (if configured)
-  if (env.ALLOWED_EXTENSION_IDS) {
-    const allowedIds = env.ALLOWED_EXTENSION_IDS.split(',').map(id => id.trim());
-    for (const id of allowedIds) {
-      // Chrome: chrome-extension://{extension_id}
-      // Firefox: moz-extension://{extension_id}
-      const chromeOrigin = `chrome-extension://${id}`;
-      const firefoxOrigin = `moz-extension://${id}`;
-      
-      if (origin === chromeOrigin || origin === firefoxOrigin) {
-        return true;
-      }
-    }
-    // If whitelist is configured but origin doesn't match, reject
-    return false;
+  // Firefox: per-install random UUID, only the pattern can check it
+  if (origin.startsWith('moz-extension://')) {
+    return /^moz-extension:\/\/[a-f0-9-]{36}$/.test(origin);
+  }
+
+  // Exact origins whitelist (if configured)
+  const allowedOrigins = parseList(env.ALLOWED_ORIGINS);
+  if (allowedOrigins.length > 0) {
+    return allowedOrigins.includes(origin);
   }
 
   // Fallback: Check against general patterns
@@ -79,6 +93,45 @@ function getCorsHeaders(origin, env) {
   };
 }
 
+/**
+ * Build a JSON response that always carries the CORS headers
+ */
+function jsonResponse(body, status, corsHeaders) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+  });
+}
+
+/**
+ * Parse the request body as JSON; null when it is not valid JSON
+ */
+async function readJsonBody(request) {
+  try {
+    const body = await request.json();
+    return body && typeof body === 'object' ? body : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Forward Google's token response. Non-JSON upstream bodies become
+ * { error: 'upstream_error' } (502 when the upstream status was 2xx).
+ * Never logs codes, verifiers or tokens.
+ */
+async function readUpstream(response) {
+  try {
+    return { data: await response.json(), status: response.status };
+  } catch {
+    return {
+      data: { error: 'upstream_error', error_description: 'Invalid response from token endpoint' },
+      status: response.ok ? 502 : response.status,
+      failed: true,
+    };
+  }
+}
+
 export default {
   async fetch(request, env) {
     const origin = request.headers.get('Origin');
@@ -92,10 +145,11 @@ export default {
 
     // Reject requests from invalid origins (except for non-browser clients without Origin)
     if (origin && !isValidOrigin(origin, env)) {
-      return new Response(JSON.stringify({ error: 'Origin not allowed' }), {
-        status: 403,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      return jsonResponse(
+        { error: 'origin_not_allowed', error_description: 'Origin not allowed' },
+        403,
+        corsHeaders
+      );
     }
 
     const url = new URL(request.url);
@@ -109,13 +163,18 @@ export default {
         return await handleRefresh(request, env, corsHeaders);
       }
 
-      return new Response('Not Found', { status: 404 });
+      return jsonResponse(
+        { error: 'not_found', error_description: 'Not Found' },
+        404,
+        corsHeaders
+      );
     } catch (error) {
-      console.error('Error:', error);
-      return new Response(JSON.stringify({ error: error.message }), {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      console.error('Error:', error?.message);
+      return jsonResponse(
+        { error: 'internal_error', error_description: error?.message || 'Internal error' },
+        500,
+        corsHeaders
+      );
     }
   },
 };
@@ -124,24 +183,12 @@ export default {
  * Validate redirect_uri against allowed patterns
  */
 function isValidRedirectUri(redirectUri, env) {
-  if (!redirectUri) return false;
+  if (!redirectUri || typeof redirectUri !== 'string') return false;
 
-  // Check specific extension IDs whitelist (if configured)
-  if (env.ALLOWED_EXTENSION_IDS) {
-    const allowedIds = env.ALLOWED_EXTENSION_IDS.split(',').map(id => id.trim());
-    for (const id of allowedIds) {
-      // Build expected URL patterns for each extension ID
-      // Chrome: https://{extension_id}.chromiumapp.org/
-      // Firefox: https://{extension_id}.extensions.allizom.org/
-      const chromePattern = `https://${id}.chromiumapp.org`;
-      const firefoxPattern = `https://${id}.extensions.allizom.org`;
-      
-      if (redirectUri.startsWith(chromePattern) || redirectUri.startsWith(firefoxPattern)) {
-        return true;
-      }
-    }
-    // If whitelist is configured but URI doesn't match, reject
-    return false;
+  // Exact redirect URIs whitelist (if configured)
+  const allowedUris = parseList(env.ALLOWED_REDIRECT_URIS).map(normalizeRedirectUri);
+  if (allowedUris.length > 0) {
+    return allowedUris.includes(normalizeRedirectUri(redirectUri));
   }
 
   // Fallback: Check against general patterns
@@ -152,22 +199,32 @@ function isValidRedirectUri(redirectUri, env) {
  * Exchange authorization code for tokens
  */
 async function handleExchange(request, env, corsHeaders) {
-  const { code, code_verifier, redirect_uri } = await request.json();
+  const body = await readJsonBody(request);
+  if (!body) {
+    return jsonResponse(
+      { error: 'invalid_request', error_description: 'Body must be JSON' },
+      400,
+      corsHeaders
+    );
+  }
+  const { code, code_verifier, redirect_uri } = body;
 
-  if (!code || !code_verifier || !redirect_uri) {
-    return new Response(JSON.stringify({ error: 'Missing required fields' }), {
-      status: 400,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+  // Validate redirect_uri to prevent abuse (logged without code/verifier)
+  if (redirect_uri && !isValidRedirectUri(redirect_uri, env)) {
+    console.error('Invalid redirect_uri:', redirect_uri);
+    return jsonResponse(
+      { error: 'invalid_redirect_uri', error_description: 'Invalid redirect_uri' },
+      403,
+      corsHeaders
+    );
   }
 
-  // Validate redirect_uri to prevent abuse
-  if (!isValidRedirectUri(redirect_uri, env)) {
-    console.error('Invalid redirect_uri:', redirect_uri);
-    return new Response(JSON.stringify({ error: 'Invalid redirect_uri' }), {
-      status: 403,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+  if (!code || !code_verifier || !redirect_uri) {
+    return jsonResponse(
+      { error: 'invalid_request', error_description: 'Missing required fields' },
+      400,
+      corsHeaders
+    );
   }
 
   const response = await fetch(GOOGLE_TOKEN_URL, {
@@ -175,7 +232,7 @@ async function handleExchange(request, env, corsHeaders) {
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams({
       client_id: env.GOOGLE_CLIENT_ID,
-      client_secret: env.GOOGLE_CLIENT_SECRET,
+      client_secret: env.SUMMARIZERRRR_GOOGLE_CLIENT_SECRET,
       code,
       code_verifier,
       grant_type: 'authorization_code',
@@ -183,35 +240,32 @@ async function handleExchange(request, env, corsHeaders) {
     }),
   });
 
-  const data = await response.json();
+  const { data, status, failed } = await readUpstream(response);
 
-  if (!response.ok) {
-    return new Response(JSON.stringify(data), {
-      status: response.status,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+  if (failed || !response.ok) {
+    return jsonResponse(data, status, corsHeaders);
   }
 
-  return new Response(JSON.stringify({
+  return jsonResponse({
     access_token: data.access_token,
     refresh_token: data.refresh_token,
     expires_in: data.expires_in,
-  }), {
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-  });
+  }, 200, corsHeaders);
 }
 
 /**
  * Refresh access token
  */
 async function handleRefresh(request, env, corsHeaders) {
-  const { refresh_token } = await request.json();
+  const body = await readJsonBody(request);
+  const refresh_token = body?.refresh_token;
 
   if (!refresh_token) {
-    return new Response(JSON.stringify({ error: 'Missing refresh_token' }), {
-      status: 400,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    return jsonResponse(
+      { error: 'invalid_request', error_description: 'Missing refresh_token' },
+      400,
+      corsHeaders
+    );
   }
 
   const response = await fetch(GOOGLE_TOKEN_URL, {
@@ -219,25 +273,20 @@ async function handleRefresh(request, env, corsHeaders) {
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams({
       client_id: env.GOOGLE_CLIENT_ID,
-      client_secret: env.GOOGLE_CLIENT_SECRET,
+      client_secret: env.SUMMARIZERRRR_GOOGLE_CLIENT_SECRET,
       refresh_token,
       grant_type: 'refresh_token',
     }),
   });
 
-  const data = await response.json();
+  const { data, status, failed } = await readUpstream(response);
 
-  if (!response.ok) {
-    return new Response(JSON.stringify(data), {
-      status: response.status,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+  if (failed || !response.ok) {
+    return jsonResponse(data, status, corsHeaders);
   }
 
-  return new Response(JSON.stringify({
+  return jsonResponse({
     access_token: data.access_token,
     expires_in: data.expires_in,
-  }), {
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-  });
+  }, 200, corsHeaders);
 }

@@ -45,6 +45,7 @@ import {
   canSendChat,
   chatState,
   handleChatBrowserTabRemoved,
+  removeChatTabSession,
   syncChatForActiveTab,
   sendChatMessage,
 } from '@/stores/chatStore.svelte.js'
@@ -83,12 +84,27 @@ beforeEach(async () => {
 })
 
 afterEach(() => {
-  handleChatBrowserTabRemoved(TAB_A)
-  handleChatBrowserTabRemoved(TAB_B)
+  removeChatTabSession(TAB_A, { detachActiveTab: true })
+  removeChatTabSession(TAB_B, { detachActiveTab: true })
   vi.clearAllMocks()
 })
 
 describe('queued send', () => {
+  it('does not ground a detached page and preserves explicit tab attachments', async () => {
+    chatState.pendingAttachments = [{ tabId: TAB_B, title: 'Tab B', sourceKind: 'webpage' }]
+    chatService.send.mockResolvedValue({ assistant: { id: 'a1' }, transient: {}, diagnostics: {} })
+
+    expect(handleChatBrowserTabRemoved(TAB_A)).toBe(true)
+    await sendChatMessage('detached question')
+
+    expect(chatService.send).toHaveBeenCalledOnce()
+    expect(chatService.send.mock.calls[0][0]).toMatchObject({
+      activeSource: null,
+      sourceRequired: false,
+      pendingAttachments: [{ tabId: TAB_B, title: 'Tab B', sourceKind: 'webpage' }],
+    })
+  })
+
   it('starts disarmed', () => {
     expect(chatState.queuedSend).toBe(false)
   })

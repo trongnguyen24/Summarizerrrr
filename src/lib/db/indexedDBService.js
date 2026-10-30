@@ -4,12 +4,13 @@ import { generateUUID } from '../utils/utils'
 export const DB_NAME = 'summarizer_db'
 const STORE_NAME = 'summaries'
 const TAGS_STORE_NAME = 'tags'
-export const DB_VERSION = 11 // Version increased for conversation persistence
+export const DB_VERSION = 12 // v12: chat_meta store (chat revision counter for cloud sync skip)
 const HISTORY_STORE_NAME = 'history'
 export const CONVERSATIONS_STORE_NAME = 'conversations'
 export const CONVERSATION_MESSAGES_STORE_NAME = 'conversation_messages'
 export const CONVERSATION_SOURCES_STORE_NAME = 'conversation_sources'
-const HISTORY_LIMIT = 100
+export const CHAT_META_STORE_NAME = 'chat_meta'
+const HISTORY_LIMIT = 300
 
 let db
 
@@ -116,6 +117,12 @@ function openDatabase() {
         sourceStore.createIndex('sourceKey', 'sourceKey', { unique: true })
         sourceStore.createIndex('normalizedUrl', 'normalizedUrl', { unique: false })
         sourceStore.createIndex('capturedAt', 'capturedAt', { unique: false })
+      }
+
+      // Chat meta (v12): key/value store holding the chat revision counter.
+      // Bumped inside every chat readwrite transaction (conversationRepository).
+      if (!db.objectStoreNames.contains(CHAT_META_STORE_NAME)) {
+        db.createObjectStore(CHAT_META_STORE_NAME, { keyPath: 'key' })
       }
 
       // Data migration for messages: chain parentId/parentKey and set activeLeafMessageId (v10 -> v11)

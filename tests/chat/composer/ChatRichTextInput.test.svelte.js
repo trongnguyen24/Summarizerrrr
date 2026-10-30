@@ -2,7 +2,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount, flushSync } from 'svelte'
 import { Editor } from '@tiptap/core'
-import ChatRichTextInput from '../../../src/entrypoints/sidepanel/components/chat/ChatRichTextInput.svelte'
+import ChatRichTextInput from '../../../src/components/chat/ChatRichTextInput.svelte'
 
 // Mock getClientRects and getBoundingClientRect for JSDOM ProseMirror compatibility
 if (typeof window !== 'undefined') {

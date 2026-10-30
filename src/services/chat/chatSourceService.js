@@ -1,8 +1,10 @@
 import { browser } from 'wxt/browser'
 import { getPageContent } from '@/services/contentService.js'
+import { checkPermission } from '@/services/firefoxPermissionService.js'
 import { conversationRepository } from '@/lib/db/conversationRepository.js'
 import { fetchYouTubeComments, formatCommentsForAI } from '@/lib/utils/youtubeUtils.js'
 import { resolveAutoSourceKind, contentTypeForKind, SOURCE_KINDS } from './sourceResolution.js'
+import { stableContentHash } from '@/lib/utils/contentHash.js'
 
 function normalizeUrl(url) {
   try {
@@ -12,15 +14,6 @@ function normalizeUrl(url) {
   } catch {
     return String(url || '')
   }
-}
-
-function stableContentHash(content) {
-  let hash = 2166136261
-  for (let index = 0; index < content.length; index += 1) {
-    hash ^= content.charCodeAt(index)
-    hash = Math.imul(hash, 16777619)
-  }
-  return `fnv1a-${(hash >>> 0).toString(16)}`
 }
 
 /**
@@ -48,6 +41,8 @@ export function createChatSourceService({
   fetchCommentsFn = fetchYouTubeComments,
   formatCommentsFn = formatCommentsForAI,
   repository = conversationRepository,
+  checkPermissionFn = checkPermission,
+  isFirefox = () => import.meta.env.BROWSER === 'firefox',
 } = {}) {
   /** @type {Map<string, {sourceId: string, normalizedUrl: string}>} */
   const sourceIdsByTab = new Map()
@@ -67,6 +62,24 @@ export function createChatSourceService({
    * @returns {Promise<string>}
    */
   async function capturePageContent(tab, sourceKind) {
+    // Firefox site access can be revoked per-site from Settings → Site Access
+    // at any point after an @tab chip was added. getPageContent() swallows
+    // every executeScript rejection and falls through to an empty string, so
+    // without this check the user would be told the *page* had no readable
+    // content — blaming the site for a permission the extension simply no
+    // longer holds, with no hint of how to fix it.
+    if (isFirefox() && !(await checkPermissionFn(tab.url))) {
+      let host = tab.url
+      try {
+        host = new URL(tab.url).hostname
+      } catch {
+        // Keep the raw URL if it will not parse.
+      }
+      throw new Error(
+        `Summarizerrrr does not have permission to read ${host}. Open Settings → Site Access to allow it, then try again.`
+      )
+    }
+
     const contentType = contentTypeForKind(sourceKind)
     const extracted = await getPageContentFn({ tabId: tab.id, url: tab.url, contentType, preferredLang: 'en' })
     const content = String(extracted?.content || '').trim()
@@ -147,8 +160,138 @@ export function createChatSourceService({
     return source
   }
 
+  /**
+   * Re-capture the content of a stub source (metadata synced, content omitted)
+   * and write it into the same record. Never throws.
+   *
+   * Uses an already-open tab with the same URL when there is one (waiting for
+   * it if it is still loading; a discarded tab has no live page, so it is
+   * passed over). Otherwise it opens a background tab, captures, and closes
+   * that tab again. The timeout and `signal` really cancel: once either fires,
+   * nothing is persisted, the listener is removed, and any tab this call
+   * created is closed, even if it was created afterwards.
+   *
+   * @param {object} source Stub source record (must have id, url, normalizedUrl, sourceType).
+   * @param {{timeoutMs?: number, signal?: AbortSignal}} [opts]
+   * @returns {Promise<{source: object} | {error: string}>}
+   */
+  function hydrateSource(source, { timeoutMs = 15000, signal } = {}) {
+    if (!source?.id || !source.url) return Promise.resolve({ error: 'The source has no URL to re-capture.' })
+    if (source.sourceType === SOURCE_KINDS.youtubeComments) {
+      return Promise.resolve({ error: 'comments are not re-captured' })
+    }
+    if (signal?.aborted) return Promise.resolve({ error: 'Cancelled.' })
+
+    return new Promise((resolve) => {
+      let settled = false
+      let timer = null
+      /** @type {((tabId: number, changeInfo: {status?: string}) => void) | null} */
+      let onUpdated = null
+      /** Id of a background tab this call created; null when none is open for us. */
+      let createdTabId = null
+
+      function closeCreatedTab(tabId) {
+        Promise.resolve()
+          .then(() => browserApi.tabs.remove(tabId))
+          .catch(() => {})
+      }
+
+      // Idempotent: used by success, failure and timeout alike.
+      function cleanup() {
+        if (timer != null) {
+          clearTimeout(timer)
+          timer = null
+        }
+        if (onUpdated) {
+          browserApi.tabs.onUpdated.removeListener(onUpdated)
+          onUpdated = null
+        }
+        signal?.removeEventListener('abort', onAbort)
+        if (createdTabId != null) {
+          const tabId = createdTabId
+          createdTabId = null
+          closeCreatedTab(tabId)
+        }
+      }
+
+      function settle(result) {
+        if (settled) return
+        settled = true
+        cleanup()
+        resolve(result)
+      }
+
+      function waitForComplete(tabId) {
+        return new Promise((done) => {
+          onUpdated = (updatedId, changeInfo) => {
+            if (updatedId === tabId && changeInfo?.status === 'complete') done()
+          }
+          browserApi.tabs.onUpdated.addListener(onUpdated)
+          // The tab may already have finished loading before the listener attached.
+          Promise.resolve()
+            .then(() => browserApi.tabs.get(tabId))
+            .then((current) => {
+              if (current?.status === 'complete') done()
+            })
+            .catch(() => {})
+        })
+      }
+
+      function onAbort() {
+        settle({ error: 'Cancelled.' })
+      }
+
+      timer = setTimeout(() => settle({ error: 'Timed out waiting for the page to load.' }), timeoutMs)
+      signal?.addEventListener('abort', onAbort, { once: true })
+
+      ;(async () => {
+        try {
+          const openTabs = await browserApi.tabs.query({})
+          if (settled) return
+          const openTab = (openTabs || []).find(
+            (tab) =>
+              tab?.id != null &&
+              !tab.discarded &&
+              tab.url &&
+              normalizeUrl(tab.url) === source.normalizedUrl
+          )
+
+          let tab
+          if (openTab) {
+            // Never closed by this call: the user already had it open.
+            if (openTab.status === 'loading') {
+              await waitForComplete(openTab.id)
+              if (settled) return
+            }
+            tab = openTab
+          } else {
+            const created = await browserApi.tabs.create({ url: source.url, active: false })
+            if (settled) {
+              // Timed out while the tab was being created: close it right away.
+              if (created?.id != null) closeCreatedTab(created.id)
+              return
+            }
+            createdTabId = created.id
+            await waitForComplete(created.id)
+            if (settled) return
+            tab = { id: created.id, url: source.url, title: source.title }
+          }
+
+          const content = await capturePageContent(tab, source.sourceType)
+          // Once timed out, never persist.
+          if (settled) return
+          const hydrated = await repository.hydrateSourceContent(source.id, content)
+          settle({ source: hydrated || source })
+        } catch (error) {
+          settle({ error: error?.message || 'Could not re-capture the page.' })
+        }
+      })()
+    })
+  }
+
   return {
     getActiveTab,
+    hydrateSource,
 
     /**
      * @param {string} [sourceKind] Defaults to `resolveAutoSourceKind(tab.url)`.

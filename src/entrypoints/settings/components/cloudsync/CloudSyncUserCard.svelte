@@ -9,6 +9,8 @@
     userEmail,
     lastSyncTime,
     isSyncing,
+    needsReauth = false,
+    authMode = null,
     debugLogs,
     clientId = '',
     clientSecret = '',
@@ -109,7 +111,7 @@
   <div class="flex gap-0 justify-center items-center border-t border-border">
     <button
       onclick={onSyncNow}
-      disabled={isSyncing}
+      disabled={isSyncing || needsReauth}
       class="flex flex-1 items-center justify-center gap-2 py-3 px-4 text-text-primary hover:bg-blackwhite/10 transition-colors duration-100 disabled:opacity-50 disabled:cursor-not-allowed"
     >
       <Icon
@@ -131,53 +133,62 @@
     <div
       class="w-full font-mono relative text-[10px] flex items-center text-muted px-3 py-1 border-t border-border"
     >
-      <span class="w-24 shrink-0">Client ID:</span>
-      <span class="select-all truncate" title={clientId}
-        >{clientId || 'N/A'}</span
-      >
-      {#if clientId}
-        <button
-          class="ml-auto shrink-0 p-1 hover:text-text-primary transition-colors"
-          title="Copy Client ID"
-          onclick={() => navigator.clipboard.writeText(clientId)}
-        >
-          <Icon icon="heroicons:square-2-stack" class="size-4" />
-        </button>
-      {/if}
+      <span class="w-24 shrink-0">Auth mode:</span>
+      <span class="truncate">{authMode || 'N/A'}</span>
     </div>
-    <div
-      class="w-full font-mono relative text-[10px] flex items-center text-muted px-3 py-1 border-t border-border"
-    >
-      <span class="w-24 shrink-0">Client Secret:</span>
-      <span class="truncate {showClientSecret ? 'select-all' : 'select-none'}"
-        >{showClientSecret
-          ? clientSecret || 'N/A'
-          : clientSecret
-            ? '••••••••••••••••'
-            : 'N/A'}</span
+    <!-- Shared sign-in has no user-visible credentials; only BYOK shows them -->
+    {#if authMode === 'custom'}
+      <div
+        class="w-full font-mono relative text-[10px] flex items-center text-muted px-3 py-1 border-t border-border"
       >
-      {#if clientSecret}
-        <button
-          class="ml-auto shrink-0 p-1 hover:text-text-primary transition-colors"
-          title={showClientSecret ? 'Hide Client Secret' : 'Show Client Secret'}
-          onclick={() => (showClientSecret = !showClientSecret)}
+        <span class="w-24 shrink-0">Client ID:</span>
+        <span class="select-all truncate" title={clientId}
+          >{clientId || 'N/A'}</span
         >
-          <Icon
-            icon={showClientSecret ? 'heroicons:eye-slash' : 'heroicons:eye'}
-            class="size-4"
-          />
-        </button>
-        {#if showClientSecret}
+        {#if clientId}
           <button
-            class="shrink-0 p-1 hover:text-text-primary transition-colors"
-            title="Copy Client Secret"
-            onclick={() => navigator.clipboard.writeText(clientSecret)}
+            class="ml-auto shrink-0 p-1 hover:text-text-primary transition-colors"
+            title="Copy Client ID"
+            onclick={() => navigator.clipboard.writeText(clientId)}
           >
             <Icon icon="heroicons:square-2-stack" class="size-4" />
           </button>
         {/if}
-      {/if}
-    </div>
+      </div>
+      <div
+        class="w-full font-mono relative text-[10px] flex items-center text-muted px-3 py-1 border-t border-border"
+      >
+        <span class="w-24 shrink-0">Client Secret:</span>
+        <span class="truncate {showClientSecret ? 'select-all' : 'select-none'}"
+          >{showClientSecret
+            ? clientSecret || 'N/A'
+            : clientSecret
+              ? '••••••••••••••••'
+              : 'N/A'}</span
+        >
+        {#if clientSecret}
+          <button
+            class="ml-auto shrink-0 p-1 hover:text-text-primary transition-colors"
+            title={showClientSecret ? 'Hide Client Secret' : 'Show Client Secret'}
+            onclick={() => (showClientSecret = !showClientSecret)}
+          >
+            <Icon
+              icon={showClientSecret ? 'heroicons:eye-slash' : 'heroicons:eye'}
+              class="size-4"
+            />
+          </button>
+          {#if showClientSecret}
+            <button
+              class="shrink-0 p-1 hover:text-text-primary transition-colors"
+              title="Copy Client Secret"
+              onclick={() => navigator.clipboard.writeText(clientSecret)}
+            >
+              <Icon icon="heroicons:square-2-stack" class="size-4" />
+            </button>
+          {/if}
+        {/if}
+      </div>
+    {/if}
     <SyncDebugLogs {debugLogs} />
   {/if}
 </div>

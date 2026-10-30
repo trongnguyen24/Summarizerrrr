@@ -27,10 +27,12 @@
       },
       "floatingButton": "Schwebender Button",
       "floating_button": {
-        "show": "Anzeigen",
-        "show_desc": "Schwebenden Button auf Webseiten anzeigen.",
-        "hide": "Ausblenden",
-        "hide_desc": "Schwebenden Button auf Webseiten ausblenden."
+        "show": "Immer anzeigen",
+        "show_desc": "Schwebenden Button immer an einer festen Position anzeigen.",
+        "hide": "Immer ausblenden",
+        "hide_desc": "Schwebenden Button auf allen Webseiten vollständig ausblenden.",
+        "hide_on_scroll": "Beim Scrollen ausblenden",
+        "show_on_scroll_up": "Smart Scroll"
       },
       "shortcuts": "Tastenkürzel",
       "shortcuts_settings": "Tastenkürzel",
@@ -40,6 +42,14 @@
         "open_sidepanel": "Seitenbereich öffnen",
         "open_popup": "Popup-Einstellungen öffnen",
         "open_floating": "Schwebendes Panel auf der Seite öffnen"
+      },
+      "compact_header": {
+        "title": "Kompakter Kopfbereich",
+        "description": "Zeigt „Zusammenfassen“ in einer Zeile mit Verlauf und Einstellungen, damit mehr Platz für die Zusammenfassung bleibt.",
+        "enabled": "Kompakt",
+        "enabled_desc": "Einzeiliger Kopfbereich",
+        "disabled": "Standard",
+        "disabled_desc": "Großer Kopfbereich (Standard)"
       },
       "reduce_motion": {
         "title": "Bewegung reduzieren",
@@ -125,6 +135,21 @@
         "pause_desc": "Video vor der Zusammenfassung pausieren"
       }
     },
+    "site_access": {
+      "title": "Website-Zugriff",
+      "description": "Legen Sie fest, auf welche Websites Summarizerrrr zugreifen darf.",
+      "mode": {
+        "all_sites": "Alle Websites",
+        "selected_only": "Nur ausgewählte Websites",
+        "aria_label": "Website-Zugriffsmodus auswählen"
+      },
+      "domain_input_placeholder": "example.com",
+      "selected_helper": "Summarizerrrr kann auf die oben aufgeführten Websites zugreifen.",
+      "all_helper": "Summarizerrrr kann auf alle Websites zugreifen.",
+      "invalid_domain": "Geben Sie eine gültige Domain ein, z. B. example.com oder *.example.com.",
+      "already_added": "Diese Domain wurde bereits hinzugefügt.",
+      "denied": "Die Berechtigung für diese Website wurde verweigert."
+    },
     "ai_model": {
       "title": "KI-Einstellungen",
       "mode": {
@@ -198,6 +223,7 @@
         "medium": "Mittel",
         "medium_desc": "Ausgewogene Tiefe und Geschwindigkeit."
       },
+      "action_buttons": "Aktionsschaltflächen",
       "comment_limit": "YouTube-Kommentarlimit",
       "comment_limit_desc": "Maximale Anzahl der zu analysierenden Kommentare.",
       "uses_gemini_basic": "Verwendet Gemini Basic"
@@ -325,7 +351,8 @@
       "unconfigured_suffix": "nicht konfiguriert",
       "unconfigured_warning": "Dieser Anbieter ist nicht konfiguriert.",
       "configure_link": "API-Schlüssel konfigurieren",
-      "free_text_placeholder": "Modell-ID eingeben"
+      "free_text_placeholder": "Modell-ID eingeben",
+      "free_tier_badge": "Kostenlos"
     },
     "provider_key_config": {
       "status_configured": "konfiguriert",
@@ -356,10 +383,25 @@
       "quick_models_hint": "Bis zu {max} Modelle für schnelles Wechseln im Composer.",
       "remove_quick_model": "Aus Schnellmodellen entfernen",
       "default_reasoning": "Standard-Reasoning-Stufe",
-      "default_reasoning_hint": "Gilt für den Reasoning-Selektor neuer Tabs. Tab-spezifische Einstellungen sind unabhängig."
+      "default_reasoning_hint": "Gilt für den Reasoning-Selektor neuer Tabs. Tab-spezifische Einstellungen sind unabhängig.",
+      "title": "Chat",
+      "tone": {
+        "none": "Keiner",
+        "none_desc": "Keine Tonfall-Vorgabe.",
+        "simple_desc": "Leicht verständlich, klar und direkt. Alltagssprache und konkrete Beispiele.",
+        "expert_desc": "Professionell und präzise in der Tiefe. Behält Fachbegriffe und Komplexität bei.",
+        "witty_desc": "Sarkastisch, witzig, scharfer Humor. Nur die Haltung — die Tiefe richtet sich weiter nach dem Inhalt.",
+        "savage_desc": "Unverblümt, gnadenlos, aggressiver Humor. Nur die Haltung — die Tiefe richtet sich weiter nach dem Inhalt."
+      }
     }
   },
   "chat": {
+    "hydratingSources": "Seiteninhalt wird erneut erfasst…",
+    "read_only_elsewhere": "Dieses Gespräch ist in einem anderen Fenster geöffnet. Hier ist es nur lesbar.",
+    "detached": {
+      "tab_tooltip": "Seite geschlossen",
+      "source_note": "Seite geschlossen — frühere Quellen werden verwendet"
+    },
     "time": {
       "justNow": "Gerade eben",
       "minutesAgo": "vor {count} Min."
@@ -374,7 +416,17 @@
       "input": "Input",
       "output": "Output",
       "cache": "Cache",
-      "source": "Source"
+      "source": "Source",
+      "cached_row": "zwischengespeichert",
+      "session_turns": "Sitzung · {count} Runden",
+      "cost": "Kosten",
+      "near_limit": "Kontext zu {percent}% voll – starte einen neuen Chat.",
+      "near_limit_turns": "Kontext zu {percent}% voll, noch etwa {count} Runden – starte einen neuen Chat."
+    },
+    "message_meta": {
+      "aria_label": "Nachrichtendetails",
+      "created": "Zeit",
+      "sources": "{count} Quelle(n)"
     },
     "context_warning": {
       "source_dropped": "\"{title}\" war zu lang für den Kontext dieses Modells und wurde weggelassen. Die folgende Antwort basiert nicht darauf — versuchen Sie ein Modell mit einem größeren Kontextfenster.",
@@ -390,12 +442,113 @@
       "manage_models": "Modelle verwalten...",
       "reasoning": "Begründung",
       "warning_unresolvable": "Unbekanntes Profil"
+    },
+    "composer": {
+      "placeholder": "Stelle eine Frage",
+      "placeholder_plain": "Beschreibe eine Aufgabe oder stelle eine Frage",
+      "aria_label": "Chatnachricht",
+      "queued": "In Warteschlange",
+      "cancel_queued": "Wartende Nachricht abbrechen",
+      "stop": "Generierung stoppen",
+      "send": "Nachricht senden"
+    },
+    "context_bar": {
+      "source_fallback": "Kontextquelle",
+      "attached_fallback": "Angehängter Tab",
+      "locked": "Bereits im KI-Kontext enthalten",
+      "tokens": "~{count} Tokens",
+      "added_tabs": "+ {count, plural, one {# Tab} other {# Tabs}}"
+    },
+    "deep_dive": {
+      "title": "Deep Dive",
+      "generating": "Wird generiert…",
+      "generating_aria": "Deep-Dive-Fragen werden generiert",
+      "regenerate": "Neue Fragen generieren"
+    },
+    "empty_state": {
+      "suggested_skills": "Vorgeschlagene Skills"
+    },
+    "message": {
+      "previous_branch": "Vorheriger Zweig",
+      "next_branch": "Nächster Zweig",
+      "edit": "Nachricht bearbeiten",
+      "copy_message": "Nachricht kopieren",
+      "copy_response": "Antwort kopieren",
+      "regenerate": "Antwort neu generieren",
+      "continue": "Antwort fortsetzen",
+      "retry": "Diese Nachricht erneut senden",
+      "stopped": "Gestoppt"
+    },
+    "editor": {
+      "placeholder": "Nachricht bearbeiten...",
+      "aria_label": "Nachricht bearbeiten",
+      "cancel": "Abbrechen",
+      "save": "Speichern & senden"
+    },
+    "skill_chip": {
+      "clear": "Ausgewählten Skill entfernen"
+    },
+    "skill_picker": {
+      "aria_label": "Passende Skills",
+      "no_results": "Keine passenden Skills."
+    },
+    "tab_mention": {
+      "aria_label": "Passende Quellen",
+      "no_results": "Keine passenden Tabs.",
+      "reason_unsupported": "Browser-, Erweiterungs-, Store- und lokale Seiten können nicht angehängt werden.",
+      "reason_pdf": "PDF- und Viewer-Seiten können nicht angehängt werden.",
+      "reason_comments_attached": "Kommentare für dieses Video sind bereits angehängt."
+    },
+    "header": {
+      "new_chat": "Neuer Chat"
+    },
+    "menu": {
+      "aria_label": "Unterhaltungsmenü",
+      "recent": "Letzte Unterhaltungen",
+      "history": "Verlauf",
+      "settings": "Einstellungen"
+    },
+    "source_drawer": {
+      "unknown": "Unbekannte Quelle",
+      "loading": "Quellen werden geladen…"
+    },
+    "reasoning": {
+      "provider-default": "Auto",
+      "provider-default_desc": "Das Modell entscheiden lassen",
+      "low": "Niedrig",
+      "low_desc": "Schneller, günstiger",
+      "medium": "Mittel",
+      "medium_desc": "Ausgewogen zwischen Tempo und Tiefe",
+      "high": "Hoch",
+      "high_desc": "Tiefere Begründung, langsamer"
     }
   },
   "tab_navigation": {
     "previous_tab": "Vorheriger Tab",
     "next_tab": "Nächster Tab",
     "remove_tab": "Entfernen (Mittelklick)"
+  },
+  "customize": {
+    "title": "Anpassen",
+    "tabs": {
+      "prompts": "Prompts",
+      "skills": "Skills"
+    },
+    "skills": {
+      "new": "Neuer Skill",
+      "built_in": "Integriert",
+      "user_skills": "Eigene Skills",
+      "empty": "Noch keine eigenen Skills.",
+      "pin": "Anheften",
+      "name": "Name",
+      "instruction": "Einmalige Anweisung",
+      "instruction_hint": "Gilt nur für eine einzelne Runde",
+      "reset": "Integrierten Skill zurücksetzen",
+      "delete": "Löschen",
+      "select_prompt": "Wähle links einen Skill aus oder erstelle einen neuen.",
+      "error_name_required": "Ein Skill-Name ist erforderlich.",
+      "error_instruction_required": "Eine Anweisung ist erforderlich."
+    }
   },
   "prompts": {
     "title": "Prompts",
@@ -407,10 +560,11 @@
       "summarize": "Zusammenfassung",
       "custom_actions": "Benutzerdefinierte Aktionen"
     },
-    "select_template": "Vorlage auswählen",
     "prompt_enhance": "Prompt verbessern",
+    "confirm_discard": "Sie haben nicht gespeicherte Änderungen. Verwerfen?",
     "buttons": {
-      "import": "Importieren",
+      "load_preset": "Vorlage laden",
+      "improve": "Verbessern",
       "discard": "Verwerfen",
       "save": "Speichern",
       "apply_prompt": "Prompt anwenden"
@@ -425,11 +579,36 @@
     "open_archive": "Archiv öffnen",
     "tab_history": "Verlauf",
     "tab_archive": "Archiv",
+    "kind_all": "Alle",
+    "kind_summaries": "Zusammenfassungen",
+    "kind_chats": "Chats",
+    "resume_in_sidepanel": "Im Seitenbereich fortsetzen",
+    "no_chats": "Noch keine Chats",
     "change_theme": "Design wechseln",
     "font_dec": "Schrift verkleinern",
     "font_inc": "Schrift vergrößern",
     "change_font": "Schrift wechseln",
-    "toggle_width": "Breite umschalten"
+    "toggle_width": "Breite umschalten",
+    "search_placeholder": "Titel oder URL suchen",
+    "search_clear": "Suche löschen",
+    "search_no_results": "Keine passenden Ergebnisse",
+    "conversation": {
+      "archive": "Archivieren",
+      "unarchive": "Archivierung aufheben",
+      "export_markdown": "Als Markdown exportieren",
+      "export_json": "Als JSON exportieren",
+      "delete": "Unterhaltung löschen",
+      "none_selected": "Keine Unterhaltung ausgewählt."
+    },
+    "toc": {
+      "aria_label": "Inhaltsverzeichnis",
+      "switch_sidebar": "Zum Seitenleisten-Inhaltsverzeichnis wechseln",
+      "switch_floating": "Zum schwebenden Inhaltsverzeichnis wechseln",
+      "go_top": "Nach oben",
+      "go_bottom": "Nach unten",
+      "previous": "Vorheriger Eintrag",
+      "next": "Nächster Eintrag"
+    }
   },
   "button": {
     "copy": "In Zwischenablage kopieren",
@@ -438,7 +617,8 @@
     "download": "Als Markdown herunterladen",
     "downloaded": "Heruntergeladen!",
     "save_to_archive": "Im Archiv speichern",
-    "saved": "Gespeichert!"
+    "saved": "Gespeichert!",
+    "saving": "Wird gespeichert…"
   },
   "welcome": {
     "choose_interface_language": "Willkommen bei Summarizerrrr!",
@@ -500,7 +680,8 @@
     "error": "Fehler beim {action} des Inhalts",
     "debate_description": "Aus mehreren Perspektiven analysieren",
     "chapters_description": "Nach Kapiteln zusammenfassen",
-    "comments_description": "YouTube-Kommentare zusammenfassen"
+    "comments_description": "YouTube-Kommentare zusammenfassen",
+    "courseConcepts_description": "Schlüsselkonzepte aus dem Kurs extrahieren"
   },
   "tags": {
     "title": "Tags",
@@ -518,6 +699,7 @@
     "actions": "Aktionen",
     "archived": "Archiviert",
     "add_to_archive": "Zum Archiv hinzufügen",
+    "remove_from_archive": "Aus Archiv entfernen",
     "errors": {
       "empty": "Name erforderlich",
       "max_length": "Max. 50 Zeichen",
@@ -571,9 +753,12 @@
     "merge_mode_description": "• Importierte Daten werden mit vorhandenen Daten kombiniert<br />• Duplikate (gleiche ID) werden aktualisiert<br />• Importierte Einstellungen überschreiben vorhandene Einstellungen",
     "replace_mode_description": "• Ausgewählte Datentypen werden zuerst vollständig gelöscht<br />• Dann nur durch importierte Daten ersetzt<br />• Nicht ausgewählte Datentypen sind nicht betroffen",
     "replace_warning_title": "Warnung: Ersetzen-Modus",
-    "confirm_replace": "Ja, ersetzen"
+    "confirm_replace": "Ja, ersetzen",
+    "chats": "Chats"
   },
   "notifications": {
+    "try_chat": "Chat testen — v3.0 Beta",
+    "back_to_summarize": "Zurück zu Summarize",
     "no_notifications": "Keine Benachrichtigungen",
     "noti_1": {
       "title": "Gemini API-Limits reduziert",
@@ -600,6 +785,9 @@
       "description": "Nutzen Sie Summarizerrrr mit Safari auf iPhone & iPad.",
       "cta_label": "Jetzt herunterladen"
     }
+  },
+  "fab": {
+    "hide_on_site": "Auf dieser Website ausblenden"
   },
   "cloudSync": {
     "title": "Cloud-Synchronisierung",
@@ -629,9 +817,18 @@
     "syncPreferences": "Synchronisierungseinstellungen",
     "syncPreferencesDescription": "Wählen Sie, welche Datentypen mit der Cloud synchronisiert werden sollen",
     "library": "Archiv",
+    "chats": "Chats",
     "error": "Fehler",
     "enabled": "Aktiviert",
     "disabled": "Deaktiviert",
+    "reauth": {
+      "title": "Neuverbindung erforderlich",
+      "description": "Google hat die gespeicherte Sitzung abgelehnt. Wenn deine OAuth-App in der Google Cloud Console noch den Status „Testing“ hat, laufen ihre Refresh-Tokens nach 7 Tagen ab — veröffentliche die App, damit das nicht erneut passiert.",
+      "button": "Neu verbinden",
+      "reconnecting": "Verbinde neu ...",
+      "publishGuide": "OAuth-App veröffentlichen",
+      "sharedDescription": "Deine Google-Sitzung ist abgelaufen. Melde dich erneut an."
+    },
     "byok": {
       "description": "Geben Sie Ihre eigenen OAuth-Anmeldedaten aus Ihrer Google Cloud Console ein. Ihre Daten werden niemals über Drittanbieter-Server übertragen.",
       "clientIdPlaceholder": "xxxxx.apps.googleusercontent.com",
@@ -642,7 +839,10 @@
       "errors": {
         "bothRequired": "Sowohl Client ID als auch Client Secret sind erforderlich",
         "invalidClientId": "Ungültiges Client ID-Format (sollte mit .apps.googleusercontent.com enden)"
-      }
+      },
+      "advancedToggle": "Eigenes Google-Cloud-Projekt verwenden",
+      "signInWithProject": "Mit deinem Projekt anmelden",
+      "separateDataNote": "Mit deinem eigenen Projekt synchronisierte Daten sind von den Daten der Standard-Anmeldung getrennt. Verwende auf allen Geräten dieselbe Option."
     },
     "redirectUris": {
       "title": "Redirect-URIs",
@@ -670,6 +870,15 @@
       "mergeNote": "Archiv, Tags und Verlauf werden von diesem Gerät und der Cloud zusammengeführt.",
       "cancel": "Abbrechen",
       "sync": "Synchronisieren"
+    },
+    "shared": {
+      "note": "Deine Daten gehen direkt in dein eigenes Google Drive. oauth.summarizerrrr.com verarbeitet nur das Anmelde-Token.",
+      "firefoxPermissionDenied": "Firefox benötigt die Berechtigung für oauth.summarizerrrr.com, um dich mit Google anzumelden. Erlaube sie bei der Abfrage oder nutze unten dein eigenes Google-Cloud-Projekt."
+    },
+    "proxyPermission": {
+      "title": "Berechtigung erforderlich",
+      "description": "Firefox erlaubt Summarizerrrr keinen Zugriff mehr auf oauth.summarizerrrr.com, daher kann die Sitzung nicht erneuert werden. Erteile den Zugriff, um die Synchronisierung fortzusetzen – du bleibst angemeldet.",
+      "button": "Zugriff erlauben"
     }
   }
 }

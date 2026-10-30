@@ -11,7 +11,6 @@
   import { settings } from '@/stores/settingsStore.svelte.js'
   import { useApiKeyValidation } from '../composables/useApiKeyValidation.svelte.js'
   import { fadeOnly } from '@/lib/utils/slideScaleFade.js'
-  import ActionButtonsFP from '@/entrypoints/content/components/ActionButtonsFP.svelte'
   import ActionButtonsMiniFP from '@/entrypoints/content/components/ActionButtonsMiniFP.svelte'
   import ShadowToast from '@/entrypoints/content/components/ShadowToast.svelte'
   // Deep Dive imports
@@ -504,25 +503,18 @@
           {/await}
         </div>
       {/if}
-      <div class="grid grid-rows-[10px_200px_10px_1fr] relative">
-        <div
-          class="top-stripes border-t border-b drag-handle border-border flex justify-center items-center w-full h-full"
-        ></div>
-        <div
-          class="w-full no-pull-to-refresh flex items-center justify-center my-8"
-        >
+      <!-- Compact header: archive / Summarize / settings share one row so the
+           sheet's limited height goes to the summary (issue #71). -->
+      <div
+        class="relative w-full no-pull-to-refresh flex flex-col items-center gap-3 px-2 py-3"
+      >
+        <div class="w-full flex items-center justify-between">
           <button
-            class="size-10 absolute z-10 top-4 text-text-secondary transition-colors left-2 flex justify-center items-center"
+            class="size-10 shrink-0 text-text-secondary transition-colors flex justify-center items-center"
             onclick={openArchive}
             title="Open Archive"
           >
             <Icon icon="solar:history-linear" width="28" />
-          </button>
-          <button
-            class="size-10 absolute z-10 top-4 text-text-secondary right-2 flex justify-center items-center"
-            onclick={openSettings}
-          >
-            <Icon width={28} icon="heroicons:cog-6-tooth" />
           </button>
           {#if !needsApiKeySetup()()}
             <SummarizeButton
@@ -532,17 +524,21 @@
               onClick={handleSummarizeClick}
             />
           {/if}
-          {#if summaryToDisplay || summarization.localSummaryState().error}
-            <ActionButtonsMiniFP
-              onActionClick={handleCustomAction}
-              isYouTubeActive={isYouTubeActive()}
-              isCourseActive={isCourseActive()}
-            />
-          {/if}
+          <button
+            class="size-10 shrink-0 text-text-secondary flex justify-center items-center"
+            onclick={openSettings}
+          >
+            <Icon width={28} icon="heroicons:cog-6-tooth" />
+          </button>
         </div>
-        <div
-          class="top-stripes border-t border-b drag-handle border-border flex justify-center items-center w-full h-full"
-        ></div>
+        {#if summaryToDisplay || summarization.localSummaryState().error}
+          <ActionButtonsMiniFP
+            inline
+            onActionClick={handleCustomAction}
+            isYouTubeActive={isYouTubeActive()}
+            isCourseActive={isCourseActive()}
+          />
+        {/if}
       </div>
       <div class="pt-8 relative">
         {#if needsApiKeySetup()()}
@@ -569,7 +565,8 @@
           <div
             class="no-pull-to-refresh w-full flex justify-center items-center inset-0"
           >
-            <ActionButtonsFP
+            <ActionButtonsMiniFP
+              inline
               onActionClick={handleCustomAction}
               isYouTubeActive={isYouTubeActive()}
               isCourseActive={isCourseActive()}

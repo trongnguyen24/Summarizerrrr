@@ -6,9 +6,9 @@
  * to the correct API parameter for each Gemini model family:
  *
  * - Gemini 2.5 series  → thinkingBudget (integer)
- * - Gemini 3/3.1 Flash & Flash-Lite → thinkingLevel ('minimal' | 'low' | 'medium' | 'high')
- * - Gemini 3 Pro       → thinkingLevel ('medium' | 'high') — no 'minimal'/'low' support
- * - Gemma 4            → thinkingLevel ('minimal' | 'high') — no 'low'/'medium' support
+ * - Gemini 3+ Flash & Flash-Lite → thinkingLevel ('minimal' | 'low' | 'medium' | 'high')
+ * - Gemini 3+ Pro      → thinkingLevel ('medium' | 'high') — no 'minimal'/'low' support
+ * - Gemma 4+           → thinkingLevel ('minimal' | 'high') — no 'low'/'medium' support
  * - Other models       → no thinkingConfig (ignored)
  *
  * 'off' is aliased to 'minimal' at the top of buildThinkingProviderOptions.
@@ -28,33 +28,47 @@
  * └─────────┴──────────────────┴──────────────────────┴───────────────┴──────────┘
  */
 
+// `gemini-<version>-…` — the version is parsed, not listed, so a new Gemini
+// generation lands in the right family without touching this file.
+const GEMINI_VERSIONED = /^gemini-(\d+)(?:\.(\d+))?-(.*)$/
+// Google's self-updating aliases always point at the current generation.
+const GEMINI_ALIAS = /^gemini-(flash|flash-lite|pro)-latest$/
+const GEMMA_VERSIONED = /^gemma-(\d+)/
+
 /**
  * Detects the Gemini model family from a model name string.
+ *
+ * - 2.5                      → budget-based thinking
+ * - 3 and newer, Pro         → level-based, Pro quirks ('medium'/'high' only)
+ * - 3 and newer, anything else (Flash, Flash-Lite, …) → level-based, all levels
+ * - `-latest` aliases        → same as the generation they alias
+ * - Gemma 4 and newer        → Gemma quirks; older Gemma has no thinking
+ * - anything else (2.0, 1.5, unknown) → no thinking config
+ *
  * @param {string} modelName
  * @returns {'gemma4' | 'gemini25' | 'gemini3pro' | 'gemini3' | 'other'}
  */
 function detectModelFamily(modelName) {
   if (!modelName) return 'other'
-  const lower = modelName.toLowerCase()
+  const lower = modelName.toLowerCase().replace(/^models\//, '')
 
-  // Gemma 4 (gemma-4-*)
-  if (lower.includes('gemma')) return 'gemma4'
+  const gemma = GEMMA_VERSIONED.exec(lower)
+  if (gemma) return Number(gemma[1]) >= 4 ? 'gemma4' : 'other'
 
-  // Gemini 2.5 series (gemini-2.5-*)
-  if (lower.includes('gemini-2.5')) return 'gemini25'
+  const alias = GEMINI_ALIAS.exec(lower)
+  if (alias) return alias[1] === 'pro' ? 'gemini3pro' : 'gemini3'
 
-  // Gemini 3 Pro — must check before generic gemini-3
-  if (
-    lower.includes('gemini-3-pro') ||
-    lower.includes('gemini-3.1-pro') ||
-    lower.includes('gemini-3.0-pro')
-  ) {
-    return 'gemini3pro'
+  const versioned = GEMINI_VERSIONED.exec(lower)
+  if (!versioned) return 'other'
+
+  const major = Number(versioned[1])
+  const minor = Number(versioned[2] ?? 0)
+  const variant = versioned[3]
+
+  if (major >= 3) {
+    return /(^|-)pro(-|$)/.test(variant) ? 'gemini3pro' : 'gemini3'
   }
-
-  // Gemini 3 / 3.1 Flash, Flash-Lite, etc.
-  if (lower.includes('gemini-3')) return 'gemini3'
-
+  if (major === 2 && minor === 5) return 'gemini25'
   return 'other'
 }
 

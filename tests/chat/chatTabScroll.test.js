@@ -24,8 +24,11 @@ vi.mock('@/services/chat/chatSourceService.js', () => ({
 }))
 
 import {
+  activateChatSession,
   chatState,
+  chatTabsState,
   handleChatBrowserTabRemoved,
+  removeChatTabSession,
   syncChatForActiveTab,
 } from '@/stores/chatStore.svelte.js'
 import { chatSessionService } from '@/services/chat/chatSessionService.js'
@@ -47,9 +50,9 @@ beforeAll(() => {
 })
 
 afterEach(() => {
-  handleChatBrowserTabRemoved(TAB_A)
-  handleChatBrowserTabRemoved(TAB_B)
-  handleChatBrowserTabRemoved(TAB_C)
+  removeChatTabSession(TAB_A, { detachActiveTab: true })
+  removeChatTabSession(TAB_B, { detachActiveTab: true })
+  removeChatTabSession(TAB_C, { detachActiveTab: true })
   chatSessionService.clearAll()
   scroller.scrollTop = 0
   vi.clearAllMocks()
@@ -103,5 +106,31 @@ describe('per-tab chat scroll offset', () => {
     await syncChatForActiveTab(TAB_A, { url: 'https://a.example', title: 'A' })
     expect(chatState.pendingScrollRestore).toBeNull()
     expect(chatState.currentTitle).toBe('A')
+  })
+
+  it('preserves a detached session snapshot through activation and auto-follow', async () => {
+    await syncChatForActiveTab(TAB_A, { url: 'https://a.example' })
+    chatState.conversation = { id: 'conversation-a' }
+    chatState.activeConversationId = 'conversation-a'
+    chatState.messages = [{ id: 'message-a' }]
+    chatState.composerText = 'Draft A'
+    scroller.scrollTop = 420
+    expect(handleChatBrowserTabRemoved(TAB_A)).toBe(true)
+
+    await syncChatForActiveTab(TAB_B, { url: 'https://b.example' })
+    await activateChatSession(TAB_A)
+    expect(chatTabsState.activeBrowserTabId).toBe(TAB_B)
+    expect(chatState.messages).toEqual([{ id: 'message-a' }])
+    expect(chatState.composerText).toBe('Draft A')
+    expect(chatState.pendingScrollRestore).toBe(420)
+
+    scroller.scrollTop = 315
+    await syncChatForActiveTab(TAB_B)
+    await activateChatSession(TAB_A)
+
+    expect(chatState.messages).toEqual([{ id: 'message-a' }])
+    expect(chatState.composerText).toBe('Draft A')
+    expect(chatState.scrollTop).toBe(315)
+    expect(chatState.pendingScrollRestore).toBe(315)
   })
 })

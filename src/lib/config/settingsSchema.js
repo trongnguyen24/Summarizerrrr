@@ -35,6 +35,8 @@ export const VALID_SETTING_KEYS = [
   'selectedGroqModel',
   'cerebrasApiKey',
   'selectedCerebrasModel',
+  'nvidiaApiKey',
+  'selectedNvidiaModel',
   'addedProviders',
   'openaiCompatibleProfiles',
 
@@ -51,12 +53,15 @@ export const VALID_SETTING_KEYS = [
   'fontSizeIndex',
   'widthIndex',
   'sidePanelDefaultWidth',
+  'sidepanelSurface',
   'oneClickSummarize',
   'reduceMotion',
+  'compactHeader',
   'iconClickAction',
   'fabDomainControl',
   'quickSummaryEnabled',
   'quickSummaryAutoplay',
+  'hiddenActionButtons',
   'firefoxPermissions',
 
   // Onboarding
@@ -125,6 +130,7 @@ export const VALID_SETTING_KEYS = [
   'chatGlobalPersona',
   'chatUserSkills',
   'chatSkillMigrationVersion',
+  'fabVisibilityMigrationVersion',
 
   // Advanced Mode
   'isAdvancedMode',
